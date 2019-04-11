@@ -17,6 +17,8 @@
 #include <stdio.h>
 #include <tinyxml2.h>
 
+// Simple example that shows how to use tinyxlm2 to read XLM files
+
 int main(int argc, char **argv)
 {
     tinyxml2::XMLDocument doc;
