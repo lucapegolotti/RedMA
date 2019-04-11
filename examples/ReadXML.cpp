@@ -22,9 +22,10 @@ int main(int argc, char **argv)
     tinyxml2::XMLDocument doc;
     doc.LoadFile("data/test.xml");
 
-    const char* title = doc.FirstChildElement("rootnode")->FirstChildElement("buildingblock")->FirstChildElement("x0")->GetText();
-	printf( "Name of play (1): %s\n", title );
-
+    const char* title = doc.FirstChildElement("rootnode")->
+                            FirstChildElement("buildingblock")->
+                            FirstChildElement("x0")->GetText();
+    printf( "First attribute: %s\n", title );
 
     return 0;
 }
