@@ -10,3 +10,4 @@ set(HEADERS_DIRS ${CMAKE_SOURCE_DIR}/geometric_structure
 add_subdirectory(geometric_structure)
 add_subdirectory(utils)
 add_subdirectory(examples)
+add_subdirectory(tests)

@@ -1,4 +1,7 @@
-#include "test.hpp"
+#include "Test.hpp"
+
+namespace ReMA
+{
 
 Test::Test(std::string testName) :
   M_subTests(),
@@ -14,7 +17,7 @@ void Test::addSubTest(void (*subTest)(Test&))
   M_subTests.push_back(subTest);
 }
 
-void Test::assert(bool statement)
+void Test::assertTrue(bool statement)
 {
   M_successes = statement? M_successes + 1 : M_successes;
   if (!statement)
@@ -59,3 +62,5 @@ void Test::run()
     printlog(RED, "\n");
   }
 }
+
+}  // namespace ReMA

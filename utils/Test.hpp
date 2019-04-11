@@ -7,6 +7,9 @@
 
 #include "PrintLog.hpp"
 
+namespace ReMA
+{
+
 class Test
 {
 public:
@@ -14,12 +17,12 @@ public:
 
   void addSubTest(void (*subTest)(Test&));
 
-  void assert(bool statement);
+  void assertTrue(bool statement);
 
   void run();
 
 private:
-  Test() {}
+  Test() {};
 
   std::vector<void (*)(Test&)> M_subTests;
   std::string M_testName;
@@ -27,5 +30,7 @@ private:
   unsigned int M_nTests;
   unsigned int M_successes;
 };
+
+}  // namespace ReMA
 
 #endif  // TEST_HPP
