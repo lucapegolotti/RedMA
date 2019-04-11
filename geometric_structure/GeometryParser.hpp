@@ -15,21 +15,19 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdio.h>
+#include <string>
 #include <tinyxml2.h>
 
-int main(int argc, char **argv)
+namespace ReMA
 {
-    tinyxml2::XMLDocument doc;
-    doc.LoadFile("data/test.xml");
 
-    const char* title = doc.FirstChildElement("rootnode")->
-                            FirstChildElement("buildingblock")->
-                            FirstChildElement("x0")->GetText();
-    printf( "First attribute: %s\n", title );
+class GeometryParser
+{
+public:
+    GeometryParser(std::string fileName);
 
-    const char* name = doc.FirstChildElement("rootnode")->
-                            FirstChildElement()->Value();
-    printf( "Name of first child of rootnode: %s\n", name );
+private:
 
-    return 0;
-}
+};
+
+}  // namespace ReMA

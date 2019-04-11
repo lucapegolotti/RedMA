@@ -1,4 +1,4 @@
-// Reduced Modeling of Arteries
+// Reduced Modeling of Arteris
 // Copyright (C) 2019  Luca Pegolotti
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,22 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <stdio.h>
-#include <tinyxml2.h>
 
-int main(int argc, char **argv)
+#include <exception>
+#include <string>
+
+namespace ReMA
 {
-    tinyxml2::XMLDocument doc;
-    doc.LoadFile("data/test.xml");
 
-    const char* title = doc.FirstChildElement("rootnode")->
-                            FirstChildElement("buildingblock")->
-                            FirstChildElement("x0")->GetText();
-    printf( "First attribute: %s\n", title );
+class Exception: public std::exception
+{
+public:
+    explicit Exception(const char* message) :
+      M_msg(message)
+    {
+    }
 
-    const char* name = doc.FirstChildElement("rootnode")->
-                            FirstChildElement()->Value();
-    printf( "Name of first child of rootnode: %s\n", name );
+    explicit Exception(const std::string& message) :
+      M_msg(message)
+    {
+    }
 
-    return 0;
-}
+    virtual ~Exception() throw ()
+    {
+    }
+
+    virtual const char* what() const throw ()
+    {
+       return M_msg.c_str();
+    }
+
+protected:
+    std::string M_msg;
+};
+
+}  // namespace ReMA

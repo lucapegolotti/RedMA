@@ -1,0 +1,6 @@
+set(SOURCES
+    ${SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/BuildingBlock.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tube.cpp
+    CACHE INTERNAL ""
+)

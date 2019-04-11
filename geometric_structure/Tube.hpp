@@ -14,22 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <stdio.h>
-#include <tinyxml2.h>
+#include "BuildingBlock.hpp"
 
-int main(int argc, char **argv)
+namespace ReMA
 {
-    tinyxml2::XMLDocument doc;
-    doc.LoadFile("data/test.xml");
 
-    const char* title = doc.FirstChildElement("rootnode")->
-                            FirstChildElement("buildingblock")->
-                            FirstChildElement("x0")->GetText();
-    printf( "First attribute: %s\n", title );
+class Tube : public BuildingBlock
+{
+public:
+    Tube();
 
-    const char* name = doc.FirstChildElement("rootnode")->
-                            FirstChildElement()->Value();
-    printf( "Name of first child of rootnode: %s\n", name );
+private:
+};
 
-    return 0;
-}
+}  // namespace ReMA

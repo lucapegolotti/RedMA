@@ -15,21 +15,23 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdio.h>
+#include <iostream>
 #include <tinyxml2.h>
+#include <Tube.hpp>
+#include <PrintLog.hpp>
 
 int main(int argc, char **argv)
 {
-    tinyxml2::XMLDocument doc;
-    doc.LoadFile("data/test.xml");
+    ReMA::Tube tube;
 
-    const char* title = doc.FirstChildElement("rootnode")->
-                            FirstChildElement("buildingblock")->
-                            FirstChildElement("x0")->GetText();
-    printf( "First attribute: %s\n", title );
-
-    const char* name = doc.FirstChildElement("rootnode")->
-                            FirstChildElement()->Value();
-    printf( "Name of first child of rootnode: %s\n", name );
+    try
+    {
+        tube.setParameterValue("abab", 2.0);
+    }
+    catch (std::exception& e)
+    {
+        printlog(ReMA::MAGENTA,e.what());
+    }
 
     return 0;
 }
