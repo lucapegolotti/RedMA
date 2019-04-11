@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#ifndef TUBE_HPP
+#define TUBE_HPP
 
 #include "BuildingBlock.hpp"
 
@@ -28,3 +30,5 @@ private:
 };
 
 }  // namespace ReMA
+
+#endif  // TUBE_HPP
