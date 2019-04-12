@@ -20,6 +20,8 @@
 #include <map>
 #include <Exception.hpp>
 
+#include <lifev/core/mesh/RegionMesh.hpp>
+
 namespace ReMA
 {
 
@@ -33,6 +35,8 @@ public:
 protected:
     std::map<std::string,double> M_parametersMap;
     std::string M_name;
+
+    LifeV::RegionMesh<LifeV::LinearTetra> mesh;
 };
 
 }  // namespace ReMA

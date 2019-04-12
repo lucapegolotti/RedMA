@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
 project(ReMA VERSION 1.0.0 DESCRIPTION "Reduced Modeling of Arteries")
 
-set(LINKED_LIBRARIES tinyxml2)
+set(LINKED_LIBRARIES )
 
 set(HEADERS_DIRS
     ${CMAKE_SOURCE_DIR}/geometric_structure
@@ -22,6 +22,20 @@ set(LIBRARIES_DIRS
     ${TPL_HDF5_LIBRARY_DIRS}
     ${TPL_PARMETIS_LIBRARY_DIRECTORY}
     ${TPL_METIS_LIBRARY_DIRECTORY}
+    )
+
+set(LINKED_LIBRARIES
+    tinyxml2
+    mpi
+    mpi_cxx
+    lifevcore
+    lifeveta
+    epetraext
+    teuchoscore
+    teuchoscomm
+    hdf5
+    parmetis
+    metis
     )
 
 include_directories(${HEADERS_DIRS})
