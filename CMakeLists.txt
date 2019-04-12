@@ -4,8 +4,28 @@ project(ReMA VERSION 1.0.0 DESCRIPTION "Reduced Modeling of Arteries")
 
 set(LINKED_LIBRARIES tinyxml2)
 
-set(HEADERS_DIRS ${CMAKE_SOURCE_DIR}/geometric_structure
-                 ${CMAKE_SOURCE_DIR}/utils)
+set(HEADERS_DIRS
+    ${CMAKE_SOURCE_DIR}/geometric_structure
+    ${CMAKE_SOURCE_DIR}/utils
+    ${TPL_MPI_INCLUDE_DIRS}
+    ${TPL_Trilinos_INCLUDE_DIRS}
+    ${TPL_LifeV_INCLUDE_DIRS}
+    ${TPL_HDF5_INCLUDE_DIRS}
+    ${TPL_PARMETIS_INCLUDE_DIRECTORY}
+    ${TPL_METIS_INCLUDE_DIRECTORY}
+    )
+
+set(LIBRARIES_DIRS
+    ${TPL_MPI_LIBRARY_DIRS}
+    ${TPL_Trilinos_LIBRARY_DIRS}
+    ${TPL_LifeV_LIBRARY_DIRS}
+    ${TPL_HDF5_LIBRARY_DIRS}
+    ${TPL_PARMETIS_LIBRARY_DIRECTORY}
+    ${TPL_METIS_LIBRARY_DIRECTORY}
+    )
+
+include_directories(${HEADERS_DIRS})
+link_directories(${LIBRARIES_DIRS})
 
 add_subdirectory(geometric_structure)
 add_subdirectory(utils)
