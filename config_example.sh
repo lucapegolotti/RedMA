@@ -4,9 +4,10 @@ rm CMakeCache.txt
 rm -rf CMakeFiles
 mkdir build
 
-# if you have installed LifeV by following the instructions on www.lifev.org, LIBRARIES_BASE_DIRECTORY is a sub-directory of your lifev-env folder
+# if you have installed LifeV by following the instructions on www.lifev.org,
+# LIBRARIES_BASE_DIRECTORY is a sub-directory of your lifev-env folder
 
-LIBRARIES_BASE_DIRECTORY=/u/cmcs/pegolott/deeplearning_pdes/lifev-env/libs/installs/
+LIBRARIES_BASE_DIRECTORY=/path/to/librarybase
 
 HDF5_INCLUDE_DIR=${LIBRARIES_BASE_DIRECTORY}hdf5-1.8.19_installRelease/include/
 HDF5_LIB_DIR=${LIBRARIES_BASE_DIRECTORY}hdf5-1.8.19_installRelease/lib/
@@ -19,8 +20,7 @@ METIS_LIB_DIRECTORY=${LIBRARIES_BASE_DIRECTORY}metis-5.1.0_installRelease/lib/
 MPI_INCLUDE_DIRECTORY=/usr/include/mpi/
 MPI_LIB_DIRECTORY=/usr/lib/
 
-LIFEV_INSTALLATION=/u/cmcs/pegolott/deeplearning_pdes/lifev-env/lifev-epfl-install/
-# LIFEV_4_PYORB_DIR=<target build installation>
+LIFEV_INSTALLATION=/path/to/lifev
 
 cd build
 

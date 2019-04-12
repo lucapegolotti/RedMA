@@ -7,7 +7,3 @@ add_custom_command(
                 ${CMAKE_CURRENT_BINARY_DIR}/data/test.xml)
 
 target_link_libraries(ReadXML ${LINKED_LIBRARIES})
-
-add_executable(InstantiateTube InstantiateTube.cpp ${SOURCES})
-target_include_directories(InstantiateTube PRIVATE ${HEADERS_DIRS})
-target_link_libraries(InstantiateTube ${LINKED_LIBRARIES})
