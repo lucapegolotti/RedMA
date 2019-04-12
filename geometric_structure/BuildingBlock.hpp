@@ -18,25 +18,43 @@
 #define BUILDINGBLOCK_HPP
 
 #include <map>
+#include <memory>
+
 #include <Exception.hpp>
+#include <PrintLog.hpp>
 
 #include <lifev/core/mesh/RegionMesh.hpp>
+
+#include <Epetra_MpiComm.h>
 
 namespace ReMA
 {
 
 class BuildingBlock
 {
+protected:
+    typedef LifeV::RegionMesh<LifeV::LinearTetra>   mesh_Type;
+    typedef std::shared_ptr<mesh_Type>              meshPtr_Type;
+
+    typedef std::shared_ptr<Epetra_Comm>            commPtr_Type;
+
 public:
-    BuildingBlock();
+    BuildingBlock(commPtr_Type comm, bool verbose);
 
     void setParameterValue(std::string key, double value);
+
+    void readMesh();
 
 protected:
     std::map<std::string,double> M_parametersMap;
     std::string M_name;
 
-    LifeV::RegionMesh<LifeV::LinearTetra> mesh;
+    std::string M_meshName;
+    meshPtr_Type M_mesh;
+
+    commPtr_Type M_comm;
+
+    bool M_verbose;
 };
 
 }  // namespace ReMA

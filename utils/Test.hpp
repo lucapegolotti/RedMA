@@ -17,6 +17,14 @@
 #ifndef TEST_HPP
 #define TEST_HPP
 
+#include <Epetra_ConfigDefs.h>
+#ifdef EPETRA_MPI
+#include <mpi.h>
+#include <Epetra_MpiComm.h>
+#else
+#include <Epetra_SerialComm.h>
+#endif
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -29,22 +37,26 @@ namespace ReMA
 class Test
 {
 public:
-  Test(std::string testName);
+    Test(std::string testName);
 
-  void addSubTest(void (*subTest)(Test&));
+    void addSubTest(void (*subTest)(Test&));
 
-  void assertTrue(bool statement);
+    void assertTrue(bool statement);
 
-  void run();
+    void run();
+
+    std::shared_ptr<Epetra_Comm>& getComm();
 
 private:
-  Test() {};
+    Test() {};
 
-  std::vector<void (*)(Test&)> M_subTests;
-  std::string M_testName;
+    std::vector<void (*)(Test&)> M_subTests;
+    std::string M_testName;
 
-  unsigned int M_nTests;
-  unsigned int M_successes;
+    unsigned int M_nTests;
+    unsigned int M_successes;
+
+    std::shared_ptr<Epetra_Comm> M_comm;
 };
 
 }  // namespace ReMA

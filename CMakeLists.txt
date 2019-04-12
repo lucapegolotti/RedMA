@@ -24,15 +24,45 @@ set(LIBRARIES_DIRS
     ${TPL_METIS_LIBRARY_DIRECTORY}
     )
 
+set(TRILINOS_LIBRARIES
+    amesos
+    anasazi
+    anasaziepetra
+    aztecoo
+    belos
+    belosepetra
+    epetra
+    epetraext
+    galeri-epetra
+    ifpack
+    isorropia
+    kokkoscore
+    ml
+    ModeLaplace
+    rtop
+    teuchoscomm
+    teuchoscore
+    teuchoskokkoscomm
+    teuchoskokkoscompat
+    teuchosnumerics
+    teuchosparameterlist
+    teuchosremainder
+    thyracore
+    thyraepetra
+    thyraepetraext
+    trilinosss
+    triutils
+    zoltan
+    belosepetra)
+
 set(LINKED_LIBRARIES
     tinyxml2
     mpi
     mpi_cxx
+    blas
     lifevcore
     lifeveta
-    epetraext
-    teuchoscore
-    teuchoscomm
+    ${TRILINOS_LIBRARIES}
     hdf5
     parmetis
     metis

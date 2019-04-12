@@ -25,7 +25,7 @@ namespace ReMA
 class Tube : public BuildingBlock
 {
 public:
-    Tube();
+    Tube(commPtr_Type comm,bool verbose = false);
 
 private:
 };

@@ -9,58 +9,68 @@ Test::Test(std::string testName) :
   M_nTests(0),
   M_successes(0)
 {
-
+    #ifdef HAVE_MPI
+    MPI_Init (nullptr, nullptr);
+    std::shared_ptr<Epetra_Comm> M_comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    #else
+    std::shared_ptr<Epetra_Comm> M_comm(new Epetra_SerialComm ());
+    #endif
 }
 
 void Test::addSubTest(void (*subTest)(Test&))
 {
-  M_subTests.push_back(subTest);
+    M_subTests.push_back(subTest);
 }
 
 void Test::assertTrue(bool statement)
 {
-  M_successes = statement? M_successes + 1 : M_successes;
-  if (!statement)
-    printlog(RED, "ERROR: assertion failed\n");
-  M_nTests++;
+    M_successes = statement? M_successes + 1 : M_successes;
+    if (!statement)
+        printlog(RED, "ERROR: assertion failed\n");
+    M_nTests++;
 }
 
 
 void Test::run()
 {
 
-  std::string msg = "\nRunning test " + M_testName + "\n";
-  printlog(MAGENTA, msg);
-  printlog(WHITE, "-----------------------\n");
+    std::string msg = "\nRunning test " + M_testName + "\n";
+    printlog(MAGENTA, msg);
+    printlog(WHITE, "-----------------------\n");
 
-  int count = 0;
-  for (std::vector<void (*)(Test&)>::iterator it = M_subTests.begin();
+    int count = 0;
+    for (std::vector<void (*)(Test&)>::iterator it = M_subTests.begin();
        it < M_subTests.end(); it++)
-  {
-    count++;
-    printlog(BLUE, "\tTest ");
-    printlog(BLUE, count);
-    printlog(BLUE, " ... \n");
+    {
+        count++;
+        printlog(BLUE, "\tTest ");
+        printlog(BLUE, count);
+        printlog(BLUE, " ... \n");
 
-    (*(*it))(*this);
-  }
+        (*(*it))(*this);
+    }
 
-  if (M_successes == M_nTests)
-  {
-    printlog(GREEN, "Successful asserts: ");
-    printlog(GREEN, M_successes);
-    printlog(GREEN, "/");
-    printlog(GREEN, M_nTests);
-    printlog(GREEN, "\n");
-  }
-  else
-  {
-    printlog(RED, "Successful asserts: ");
-    printlog(RED, M_successes);
-    printlog(RED, "/");
-    printlog(RED, M_nTests);
-    printlog(RED, "\n");
-  }
+    if (M_successes == M_nTests)
+    {
+        printlog(GREEN, "Successful asserts: ");
+        printlog(GREEN, M_successes);
+        printlog(GREEN, "/");
+        printlog(GREEN, M_nTests);
+        printlog(GREEN, "\n");
+    }
+    else
+    {
+        printlog(RED, "Successful asserts: ");
+        printlog(RED, M_successes);
+        printlog(RED, "/");
+        printlog(RED, M_nTests);
+        printlog(RED, "\n");
+    }
+}
+
+std::shared_ptr<Epetra_Comm>& Test::getComm()
+{
+    return M_comm;
 }
 
 }  // namespace ReMA

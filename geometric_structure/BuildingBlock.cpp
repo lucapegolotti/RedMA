@@ -4,7 +4,9 @@
 namespace ReMA
 {
 
-BuildingBlock::BuildingBlock()
+BuildingBlock::BuildingBlock(commPtr_Type comm, bool verbose) :
+  M_comm(comm),
+  M_verbose(verbose)
 {
 }
 
@@ -22,6 +24,15 @@ void BuildingBlock::setParameterValue(std::string key, double value)
 
         throw Exception(errorMsg);
     }
+}
+
+void BuildingBlock::readMesh()
+{
+    if (M_verbose)
+        printlog(GREEN,"[BuildingBlock] reading mesh ...");
+
+    meshPtr_Type fullMesh(new mesh_Type(M_comm));
+
 }
 
 }  // namespace BuildingBlock
