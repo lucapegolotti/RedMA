@@ -56,7 +56,28 @@ void subTest3(Test& test)
     tree.setRoot(tubePtr1);
 
     std::shared_ptr<Tube> tubePtr2(new Tube(test.getComm()));
-    tree.addChild(0,tubePtr2);
+    try
+    {
+        // this fails because tube can only have one child
+        tree.addChild(0,tubePtr2);
+        test.assertTrue(true);
+    }
+    catch(Exception& e)
+    {
+        test.assertTrue(false);
+    }
+
+    std::shared_ptr<Tube> tubePtr3(new Tube(test.getComm()));
+    try
+    {
+        // this fails because tube can only have one child
+        tree.addChild(0,tubePtr3);
+        test.assertTrue(false);
+    }
+    catch(Exception& e)
+    {
+        test.assertTrue(true);
+    }
 }
 
 int main()
@@ -65,7 +86,7 @@ int main()
     MPI_Init (nullptr, nullptr);
     std::shared_ptr<Epetra_Comm> comm(new Epetra_MpiComm(MPI_COMM_WORLD));
     #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
+    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm());
     #endif
 
     Test test("TreeStructureTest",comm);

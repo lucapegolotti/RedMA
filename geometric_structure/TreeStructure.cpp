@@ -21,6 +21,13 @@ unsigned int TreeStructure::getMaxID()
 
 void TreeStructure::addChild(unsigned int baseID, std::shared_ptr<BuildingBlock> blockToAdd)
 {
+    if (M_nodesMap.find(baseID) == M_nodesMap.end())
+    {
+        std::string errorMsg = "Node tree with ID = " + std::to_string(baseID) +
+                               " does not exist!";
+        throw Exception(errorMsg);
+    }
+
     TreeNodePtr baseNode = M_nodesMap[baseID];
     if (baseNode->M_block->expectedNumberOfChildren() == baseNode->M_children.size())
     {
@@ -44,6 +51,7 @@ void TreeStructure::setRoot(std::shared_ptr<BuildingBlock> block)
     std::shared_ptr<TreeNode> newNode(new TreeNode(block,0));
     M_root = newNode;
     M_nodesMap[0] = M_root;
+    M_maxID++;
 }
 
 }  // namespace ReMA
