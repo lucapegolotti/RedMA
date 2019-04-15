@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Tube.hpp>
+#include <GeometryParser.hpp>
 
 #include <Epetra_ConfigDefs.h>
 #ifdef EPETRA_MPI
@@ -35,9 +35,7 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    Tube tube(comm, true);
-
-    tube.readMesh("../geometries/");
+    GeometryParser gParser("data/artery1.xml", comm, true);
 
     return 0;
 }

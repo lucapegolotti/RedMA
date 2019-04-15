@@ -10,6 +10,8 @@ Tube::Tube(commPtr_Type comm, bool verbose) :
 
     M_datafileName = "tube_coarse_data";
 
+    // it is important to fill parametersMap right at this level because then
+    // the keys will be used in the parser to check the values in the XML file
     // center of inlet
     M_parametersMap["x0"] = 0.0;
     M_parametersMap["y0"] = 0.0;

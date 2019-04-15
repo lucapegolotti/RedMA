@@ -28,6 +28,7 @@
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/core/filter/GetPot.hpp>
 
+#include <Epetra_SerialComm.h>
 #include <Epetra_MpiComm.h>
 
 namespace ReMA
@@ -45,6 +46,8 @@ public:
     BuildingBlock(commPtr_Type comm, bool verbose);
 
     void setParameterValue(std::string key, double value);
+
+    std::map<std::string,double>& getParametersMap();
 
     int readMesh(std::string meshdir);
 

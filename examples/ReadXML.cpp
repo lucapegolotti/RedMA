@@ -27,11 +27,17 @@ int main(int argc, char **argv)
     const char* title = doc.FirstChildElement("rootnode")->
                             FirstChildElement("buildingblock")->
                             FirstChildElement("x0")->GetText();
-    printf( "First attribute: %s\n", title );
+    printf("First attribute: %s\n", title);
 
     const char* name = doc.FirstChildElement("rootnode")->
                            FirstChildElement()->Value();
-    printf( "Name of first child of rootnode: %s\n", name );
+    printf("Name of first child of rootnode: %s\n", name);
+
+    doc.LoadFile("data/artery1.xml");
+
+    const char* name2 = doc.FirstChildElement()->Value();
+    printf("Name of root in artery: %s\n", name2);
+
 
     return 0;
 }

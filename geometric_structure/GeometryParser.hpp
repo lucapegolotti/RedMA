@@ -15,23 +15,40 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef GEOMETRYPARSER_HPP
+#define GEOMETRYPARSER_HPP
 
 #include <stdio.h>
 #include <string>
 #include <tinyxml2.h>
+
+#include <PrintLog.hpp>
+#include <BuildingBlock.hpp>
+#include <Tube.hpp>
+#include <TreeStructure.hpp>
+
+#include <Epetra_SerialComm.h>
+#include <Epetra_MpiComm.h>
 
 namespace ReMA
 {
 
 class GeometryParser
 {
+    typedef std::shared_ptr<Epetra_Comm>            commPtr_Type;
+
 public:
-    GeometryParser(std::string fileName);
+    GeometryParser(std::string fileName, commPtr_Type comm, bool verbose);
 
 private:
+    std::shared_ptr<BuildingBlock> parseElement(const tinyxml2::XMLElement* element);
 
+    commPtr_Type M_comm;
+
+    bool M_verbose;
+
+    TreeStructure M_tree;
 };
 
 }  // namespace ReMA
 
-#define GEOMETRYPARSER_HPP
+#endif  // GEOMETRYPARSER_HPP
