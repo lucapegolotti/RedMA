@@ -26,10 +26,24 @@ void subTest1(Test& test)
     }
 }
 
+void subTest2(Test& test)
+{
+    Tube tube(test.getComm());
+    test.assertTrue(tube.readMesh("../geometries/") == 0);
+}
+
 int main()
 {
-    Test test("TubeTest");
+    #ifdef HAVE_MPI
+    MPI_Init (nullptr, nullptr);
+    std::shared_ptr<Epetra_Comm> comm(new Epetra_MpiComm(MPI_COMM_WORLD));
+    #else
+    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
+    #endif
+
+    Test test("TubeTest",comm);
     test.addSubTest(*subTest1);
+    test.addSubTest(*subTest2);
     test.run();
 
     return 0;

@@ -37,7 +37,7 @@ namespace ReMA
 class Test
 {
 public:
-    Test(std::string testName);
+    Test(std::string testName,std::shared_ptr<Epetra_Comm> comm);
 
     void addSubTest(void (*subTest)(Test&));
 

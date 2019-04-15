@@ -3,10 +3,12 @@
 namespace ReMA
 {
 
-Tube::Tube(commPtr_Type comm,bool verbose) :
-  BuildingBlock(comm,verbose)
+Tube::Tube(commPtr_Type comm, bool verbose) :
+  BuildingBlock(comm, verbose)
 {
     M_name = "Tube";
+
+    M_datafileName = "tube_coarse_data";
 
     // center of inlet
     M_parametersMap["x0"] = 0.0;

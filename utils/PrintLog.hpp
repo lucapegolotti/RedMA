@@ -26,12 +26,12 @@ namespace ReMA
 
 enum Color {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE};
 
-extern void printlog(Color outColor, std::string text);
+extern void printlog(Color outColor, std::string text, bool verbose = true);
 
 template<typename T>
 extern std::string to_string(const T& n);
 
-extern void printlog(Color outColor, int num);
+extern void printlog(Color outColor, int num, bool verbose = true);
 
 }  // namespace ReMA
 

@@ -3,11 +3,14 @@
 namespace ReMA
 {
 
-void printlog(Color outColor, std::string text)
+void printlog(Color outColor, std::string text, bool verbose)
 {
-  std::cout << "\033[;" << outColor+30 << "m";
-  std::cout << text;
-  std::cout << "\033[0m";
+    if(verbose)
+    {
+        std::cout << "\033[;" << outColor+30 << "m";
+        std::cout << text;
+        std::cout << "\033[0m";
+    }
 }
 
 template < typename T >
@@ -18,9 +21,9 @@ std::string to_string( const T& n )
     return stm.str() ;
 }
 
-void printlog(Color outColor, int num)
+void printlog(Color outColor, int num, bool verbose)
 {
-  printlog(outColor, to_string(num));
+    printlog(outColor, to_string(num), verbose);
 }
 
 }  // PrintLog

@@ -7,3 +7,7 @@ add_custom_command(
                 ${CMAKE_CURRENT_BINARY_DIR}/data/test.xml)
 
 target_link_libraries(ReadXML ${LINKED_LIBRARIES})
+
+add_executable(Playground Playground.cpp ${SOURCES})
+target_link_libraries(Playground ${LINKED_LIBRARIES})
+target_include_directories(Playground PRIVATE ${HEADERS_DIRS})

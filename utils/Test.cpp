@@ -3,18 +3,13 @@
 namespace ReMA
 {
 
-Test::Test(std::string testName) :
+Test::Test(std::string testName, std::shared_ptr<Epetra_Comm> comm) :
   M_subTests(),
   M_testName(testName),
   M_nTests(0),
-  M_successes(0)
+  M_successes(0),
+  M_comm(comm)
 {
-    #ifdef HAVE_MPI
-    MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> M_comm (new Epetra_MpiComm(MPI_COMM_WORLD));
-    #else
-    std::shared_ptr<Epetra_Comm> M_comm(new Epetra_SerialComm ());
-    #endif
 }
 
 void Test::addSubTest(void (*subTest)(Test&))

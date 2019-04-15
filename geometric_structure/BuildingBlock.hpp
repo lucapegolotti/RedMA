@@ -24,6 +24,9 @@
 #include <PrintLog.hpp>
 
 #include <lifev/core/mesh/RegionMesh.hpp>
+#include <lifev/core/mesh/MeshData.hpp>
+#include <lifev/core/mesh/MeshPartitioner.hpp>
+#include <lifev/core/filter/GetPot.hpp>
 
 #include <Epetra_MpiComm.h>
 
@@ -43,7 +46,7 @@ public:
 
     void setParameterValue(std::string key, double value);
 
-    void readMesh();
+    int readMesh(std::string meshdir);
 
 protected:
     std::map<std::string,double> M_parametersMap;
@@ -55,6 +58,8 @@ protected:
     commPtr_Type M_comm;
 
     bool M_verbose;
+
+    std::string M_datafileName;
 };
 
 }  // namespace ReMA

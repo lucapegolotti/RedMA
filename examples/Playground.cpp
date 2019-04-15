@@ -14,22 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef TUBE_HPP
-#define TUBE_HPP
+#include <Tube.hpp>
 
-#include "BuildingBlock.hpp"
+#include <Epetra_ConfigDefs.h>
+#ifdef EPETRA_MPI
+#include <mpi.h>
+#include <Epetra_MpiComm.h>
+#else
+#include <Epetra_SerialComm.h>
+#endif
 
-namespace ReMA
+using namespace ReMA;
+
+int main(int argc, char **argv)
 {
+    #ifdef HAVE_MPI
+    MPI_Init (nullptr, nullptr);
+    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    #else
+    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
+    #endif
 
-class Tube : public BuildingBlock
-{
-public:
-    Tube(commPtr_Type comm, bool verbose = false);
+    Tube tube(comm, true);
 
-private:
-};
+    tube.readMesh("../geometries/");
 
-}  // namespace ReMA
-
-#endif  // TUBE_HPP
+    return 0;
+}
