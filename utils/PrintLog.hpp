@@ -33,6 +33,18 @@ extern std::string to_string(const T& n);
 
 extern void printlog(Color outColor, int num, bool verbose = true);
 
+class CoutRedirecter
+{
+public:
+    void redirect();
+
+    std::string restore();
+
+private:
+    std::streambuf* M_prevBuf;
+    std::ostringstream M_strCout;
+};
+
 }  // namespace ReMA
 
 #endif  // PRINTLOG_HPP

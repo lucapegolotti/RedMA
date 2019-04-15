@@ -30,7 +30,7 @@ void BuildingBlock::setParameterValue(std::string key, double value)
 
 int BuildingBlock::readMesh(std::string meshdir)
 {
-    printlog(GREEN, "[BuildingBlock] reading mesh ...\n", M_verbose);
+    printlog(GREEN, "[" + M_name + " BuildingBlock] reading mesh ...\n", M_verbose);
 
     meshPtr_Type fullMesh(new mesh_Type(M_comm));
     LifeV::MeshData meshData;
@@ -43,12 +43,10 @@ int BuildingBlock::readMesh(std::string meshdir)
     LifeV::MeshPartitioner<mesh_Type> meshPart;
 
     // small trick to redirect std cout
-    std::streambuf* curBuf = std::cout.rdbuf();
-    std::ostringstream strCout;
-    std::cout.rdbuf(strCout.rdbuf());
+    CoutRedirecter ct;
+    ct.redirect();
     meshPart.doPartition(fullMesh, M_comm);
-    std::cout.rdbuf(curBuf);
-    printlog(YELLOW, strCout.str(), M_verbose);
+    printlog(YELLOW, ct.restore(), M_verbose);
 
     printlog(GREEN, "done\n", M_verbose);
 

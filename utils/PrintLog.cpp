@@ -26,4 +26,16 @@ void printlog(Color outColor, int num, bool verbose)
     printlog(outColor, to_string(num), verbose);
 }
 
+void CoutRedirecter::redirect()
+{
+    M_prevBuf = std::cout.rdbuf();
+    std::cout.rdbuf(M_strCout.rdbuf());
+}
+
+std::string CoutRedirecter::restore()
+{
+    std::cout.rdbuf(M_prevBuf);
+    return M_strCout.str();
+}
+
 }  // PrintLog
