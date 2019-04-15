@@ -14,24 +14,43 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef GEOMETRYPARSER_HPP
+#ifndef TREESTRUCTURE_HPP
+#define TREESTRUCTURE_HPP
 
-#include <stdio.h>
-#include <string>
-#include <tinyxml2.h>
+#include <BuildingBlock.hpp>
+#include <memory>
 
 namespace ReMA
 {
 
-class GeometryParser
+class TreeNode
 {
 public:
-    GeometryParser(std::string fileName);
+    TreeNode(std::shared_ptr<BuildingBlock> block, unsigned int id);
+
+    std::vector<std::shared_ptr<TreeNode> > M_children;
+    std::shared_ptr<BuildingBlock> M_block;
+    unsigned int M_ID;
+};
+
+class TreeStructure
+{
+private:
+    typedef std::shared_ptr<TreeNode> TreeNodePtr;
+public:
+    TreeStructure();
+
+    void addChild(TreeNodePtr baseNode, std::shared_ptr<BuildingBlock> blockToAdd);
+
+    void setRoot(std::shared_ptr<BuildingBlock> blockHead);
+
+    unsigned int getMaxID();
 
 private:
-
+    TreeNodePtr M_root;
+    unsigned int M_maxID;
 };
 
 }  // namespace ReMA
 
-#define GEOMETRYPARSER_HPP
+#endif  // BUILDINGBLOCK_HPP

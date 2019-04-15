@@ -48,6 +48,8 @@ public:
 
     int readMesh(std::string meshdir);
 
+    virtual inline unsigned int expectedNumberOfChildren() = 0;
+
 protected:
     std::map<std::string,double> M_parametersMap;
     std::string M_name;

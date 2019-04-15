@@ -27,6 +27,11 @@ class Tube : public BuildingBlock
 public:
     Tube(commPtr_Type comm, bool verbose = false);
 
+    virtual inline unsigned int expectedNumberOfChildren()
+    {
+        return 1;
+    }
+
 private:
 };
 

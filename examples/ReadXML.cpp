@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     printf( "First attribute: %s\n", title );
 
     const char* name = doc.FirstChildElement("rootnode")->
-                            FirstChildElement()->Value();
+                           FirstChildElement()->Value();
     printf( "Name of first child of rootnode: %s\n", name );
 
     return 0;

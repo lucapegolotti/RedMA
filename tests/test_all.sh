@@ -5,3 +5,4 @@ echo ========== Running all tests ==============
 echo ===========================================
 
 ./TestTube
+./TestTreeStructure
