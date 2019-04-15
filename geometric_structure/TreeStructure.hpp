@@ -19,6 +19,7 @@
 
 #include <BuildingBlock.hpp>
 #include <memory>
+#include <map>
 
 namespace ReMA
 {
@@ -40,7 +41,7 @@ private:
 public:
     TreeStructure();
 
-    void addChild(TreeNodePtr baseNode, std::shared_ptr<BuildingBlock> blockToAdd);
+    void addChild(unsigned int baseID, std::shared_ptr<BuildingBlock> blockToAdd);
 
     void setRoot(std::shared_ptr<BuildingBlock> blockHead);
 
@@ -49,6 +50,7 @@ public:
 private:
     TreeNodePtr M_root;
     unsigned int M_maxID;
+    std::map<unsigned int, TreeNodePtr> M_nodesMap;
 };
 
 }  // namespace ReMA

@@ -22,7 +22,9 @@
 #endif
 
 #include <TreeStructure.hpp>
+#include <Tube.hpp>
 #include <Test.hpp>
+#include <Exception.hpp>
 
 using namespace ReMA;
 
@@ -32,6 +34,30 @@ void subTest1(Test& test)
     test.assertTrue(tree.getMaxID() == 0);
 }
 
+void subTest2(Test& test)
+{
+    TreeStructure tree;
+    std::shared_ptr<Tube> tubePtr(new Tube(test.getComm()));
+    try
+    {
+        tree.setRoot(tubePtr);
+        test.assertTrue(true);
+    }
+    catch(Exception& e)
+    {
+        test.assertTrue(false);
+    }
+}
+
+void subTest3(Test& test)
+{
+    TreeStructure tree;
+    std::shared_ptr<Tube> tubePtr1(new Tube(test.getComm()));
+    tree.setRoot(tubePtr1);
+
+    std::shared_ptr<Tube> tubePtr2(new Tube(test.getComm()));
+    tree.addChild(0,tubePtr2);
+}
 
 int main()
 {
@@ -44,6 +70,8 @@ int main()
 
     Test test("TreeStructureTest",comm);
     test.addSubTest(*subTest1);
+    test.addSubTest(*subTest2);
+    test.addSubTest(*subTest3);
     test.run();
 
     return 0;
