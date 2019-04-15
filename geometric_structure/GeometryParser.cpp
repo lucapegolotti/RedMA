@@ -11,19 +11,52 @@ GeometryParser::GeometryParser(std::string fileName, commPtr_Type comm, bool ver
     tinyxml2::XMLDocument doc;
     doc.LoadFile(fileName.c_str());
 
-    std::shared_ptr<BuildingBlock> root = parseElement(doc.FirstChildElement());
+    tinyxml2::XMLElement* rootElement = doc.FirstChildElement();
 
-    M_tree.setRoot(root);
+    traverseXML(rootElement,0);
 
     printlog(GREEN, "done\n", verbose);
+}
+
+void GeometryParser::traverseXML(tinyxml2::XMLElement* curElement, unsigned int IDfather)
+{
+    std::shared_ptr<BuildingBlock> newNode;
+    if (curElement)
+        newNode = parseElement(curElement);
+    else
+        return;
+
+    unsigned int newID = 0;
+    if (M_tree.isEmpty())
+    {
+        M_tree.setRoot(newNode);
+    }
+    else
+    {
+        newID = M_tree.addChild(IDfather, newNode);
+    }
+
+    if (curElement->NoChildren())
+        return;
+
+    tinyxml2::XMLElement* childElement = curElement->FirstChildElement();
+    while(childElement)
+    {
+        if (childElement->Attribute("type"))
+        {
+            traverseXML(childElement, newID);
+        }
+        childElement = childElement->NextSiblingElement();
+    }
 }
 
 std::shared_ptr<BuildingBlock> GeometryParser::parseElement(const tinyxml2::XMLElement *element)
 {
     std::shared_ptr<BuildingBlock> returnBlock;
 
-    if (!std::strcmp(element->Value(), "tube"))
+    if (!std::strcmp(element->Attribute("type"), "tube"))
     {
+        printlog(CYAN, "[GeometryParser] parsing building block of type tube\n", M_verbose);
         returnBlock.reset(new Tube(M_comm, M_verbose));
     }
 
@@ -40,7 +73,7 @@ std::shared_ptr<BuildingBlock> GeometryParser::parseElement(const tinyxml2::XMLE
         }
         else
         {
-            std::string warningMsg = "[GeometryParser] attribute " + paramName +
+            std::string warningMsg = "[GeometryParser] parameter " + paramName +
             " is not set in the datafile and will be set to default value!\n";
 
             printlog(YELLOW, warningMsg, M_verbose);

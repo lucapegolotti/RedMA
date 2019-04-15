@@ -39,6 +39,8 @@ class GeometryParser
 public:
     GeometryParser(std::string fileName, commPtr_Type comm, bool verbose);
 
+    void traverseXML(tinyxml2::XMLElement* curElement, unsigned int IDfather);
+
 private:
     std::shared_ptr<BuildingBlock> parseElement(const tinyxml2::XMLElement* element);
 

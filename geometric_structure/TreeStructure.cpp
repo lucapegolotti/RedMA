@@ -19,7 +19,7 @@ unsigned int TreeStructure::getMaxID()
     return M_maxID;
 }
 
-void TreeStructure::addChild(unsigned int baseID, std::shared_ptr<BuildingBlock> blockToAdd)
+unsigned int TreeStructure::addChild(unsigned int baseID, std::shared_ptr<BuildingBlock> blockToAdd)
 {
     if (M_nodesMap.find(baseID) == M_nodesMap.end())
     {
@@ -39,6 +39,7 @@ void TreeStructure::addChild(unsigned int baseID, std::shared_ptr<BuildingBlock>
     baseNode->M_children.push_back(newNode);
     M_nodesMap[newNode->M_ID] = newNode;
     M_maxID++;
+    return newNode->M_ID;
 }
 
 void TreeStructure::setRoot(std::shared_ptr<BuildingBlock> block)
@@ -52,6 +53,11 @@ void TreeStructure::setRoot(std::shared_ptr<BuildingBlock> block)
     M_root = newNode;
     M_nodesMap[0] = M_root;
     M_maxID++;
+}
+
+bool TreeStructure::isEmpty()
+{
+    return (M_nodesMap.size() == 0);
 }
 
 }  // namespace ReMA

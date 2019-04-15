@@ -41,11 +41,13 @@ private:
 public:
     TreeStructure();
 
-    void addChild(unsigned int baseID, std::shared_ptr<BuildingBlock> blockToAdd);
+    unsigned int addChild(unsigned int baseID, std::shared_ptr<BuildingBlock> blockToAdd);
 
     void setRoot(std::shared_ptr<BuildingBlock> blockHead);
 
     unsigned int getMaxID();
+
+    bool isEmpty();
 
 private:
     TreeNodePtr M_root;
