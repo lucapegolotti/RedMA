@@ -23,6 +23,7 @@
 
 #include <TreeStructure.hpp>
 #include <Tube.hpp>
+#include <BifurcationSymmetric.hpp>
 #include <Test.hpp>
 #include <Exception.hpp>
 
@@ -58,7 +59,6 @@ void subTest3(Test& test)
     std::shared_ptr<Tube> tubePtr2(new Tube(test.getComm()));
     try
     {
-        // this fails because tube can only have one child
         tree.addChild(0,tubePtr2);
         test.assertTrue(true);
     }
@@ -80,6 +80,35 @@ void subTest3(Test& test)
     }
 }
 
+void subTest4(Test& test)
+{
+    TreeStructure tree;
+    std::shared_ptr<Tube> tubePtr1(new Tube(test.getComm()));
+    tree.setRoot(tubePtr1);
+
+    std::shared_ptr<BifurcationSymmetric>
+                            bifurcationPtr2(new BifurcationSymmetric(test.getComm()));
+
+    unsigned int id = id = tree.addChild(0,bifurcationPtr2);
+
+    std::shared_ptr<Tube> tubePtr3(new Tube(test.getComm()));
+    tree.addChild(id,tubePtr3);
+
+    std::shared_ptr<Tube> tubePtr5(new Tube(test.getComm()));
+    // bifurcation should allow for two children
+    try
+    {
+        tree.addChild(id,tubePtr3);
+        test.assertTrue(true);
+    }
+    catch(Exception& e)
+    {
+        test.assertTrue(false);
+    }
+
+    test.assertTrue(tree.depth() == 2);
+}
+
 int main()
 {
     #ifdef HAVE_MPI
@@ -93,6 +122,7 @@ int main()
     test.addSubTest(*subTest1);
     test.addSubTest(*subTest2);
     test.addSubTest(*subTest3);
+    test.addSubTest(*subTest4);
     test.run();
 
     return 0;

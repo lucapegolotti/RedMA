@@ -37,8 +37,10 @@ unsigned int TreeStructure::addChild(unsigned int baseID, std::shared_ptr<Buildi
     }
     std::shared_ptr<TreeNode> newNode(new TreeNode(blockToAdd,M_maxID));
     baseNode->M_children.push_back(newNode);
+    newNode->M_depth = baseNode->M_depth + 1;
     M_nodesMap[newNode->M_ID] = newNode;
     M_maxID++;
+    M_depth = newNode->M_depth > M_depth ? newNode->M_depth : M_depth;
     return newNode->M_ID;
 }
 
@@ -51,13 +53,25 @@ void TreeStructure::setRoot(std::shared_ptr<BuildingBlock> block)
     }
     std::shared_ptr<TreeNode> newNode(new TreeNode(block,0));
     M_root = newNode;
+    M_root->M_depth = 0;
     M_nodesMap[0] = M_root;
     M_maxID++;
+    M_depth = 0;
 }
 
 bool TreeStructure::isEmpty()
 {
     return (M_nodesMap.size() == 0);
+}
+
+void TreeStructure::print()
+{
+
+}
+
+unsigned int TreeStructure::depth()
+{
+    return M_depth;
 }
 
 }  // namespace ReMA

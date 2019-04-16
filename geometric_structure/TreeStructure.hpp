@@ -32,6 +32,7 @@ public:
     std::vector<std::shared_ptr<TreeNode> > M_children;
     std::shared_ptr<BuildingBlock> M_block;
     unsigned int M_ID;
+    unsigned int M_depth;
 };
 
 class TreeStructure
@@ -47,12 +48,17 @@ public:
 
     unsigned int getMaxID();
 
+    void print();
+
     bool isEmpty();
+
+    unsigned int depth();
 
 private:
     TreeNodePtr M_root;
     unsigned int M_maxID;
     std::map<unsigned int, TreeNodePtr> M_nodesMap;
+    unsigned int M_depth;
 };
 
 }  // namespace ReMA
