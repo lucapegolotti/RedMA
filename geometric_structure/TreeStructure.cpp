@@ -66,7 +66,52 @@ bool TreeStructure::isEmpty()
 
 void TreeStructure::print()
 {
+    typedef std::vector<std::string> StringVector;
+    typedef std::vector<StringVector> StringVectorVector;
+    std::vector<StringVector> labels = fillDepthVectors();
 
+    for (StringVectorVector::iterator it = labels.begin();
+         it != labels.end(); it++)
+    {
+        for (StringVector::iterator jt = it->begin();
+             jt != it->end(); jt++)
+        {
+            std::cout << *jt << "\t" << std::endl;
+        }
+    }
+}
+
+std::vector<std::vector<std::string> > TreeStructure::fillDepthVectors()
+{
+    std::vector<std::vector<std::string> > returnVec(M_depth+1);
+
+    TreeNodePtr curNode = M_root;
+    std::queue<TreeNodePtr > nodesQueue;
+
+    returnVec[0].push_back(M_root->M_block->name());
+    do
+    {
+        typedef std::vector<TreeNodePtr> TreeNodesVector;
+        TreeNodesVector& children = curNode->M_children;
+        unsigned int expectedChildren = curNode->M_block->expectedNumberOfChildren();
+        for (int i = 0; i < expectedChildren; i++)
+        {
+            if (i < children.size())
+            {
+                TreeNodePtr curChild = children[i];
+                nodesQueue.push(curChild);
+                returnVec[curChild->M_depth].push_back(curChild->M_block->name());
+            }
+            else
+            {
+                returnVec[curNode->M_depth+1].push_back("NULL");
+            }
+        }
+        curNode = nodesQueue.front();
+        nodesQueue.pop();
+    } while (nodesQueue.size() != 0);
+
+    return returnVec;
 }
 
 unsigned int TreeStructure::depth()

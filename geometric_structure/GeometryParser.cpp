@@ -63,7 +63,7 @@ std::shared_ptr<BuildingBlock> GeometryParser::parseElement(const tinyxml2::XMLE
     {
         std::string msg = "[GeometryParser] parsing building block of type bifurcation symmetric\n";
         printlog(CYAN, msg, M_verbose);
-        returnBlock.reset(new Tube(M_comm, M_verbose));
+        returnBlock.reset(new BifurcationSymmetric(M_comm, M_verbose));
     }
     else
     {
@@ -94,6 +94,11 @@ std::shared_ptr<BuildingBlock> GeometryParser::parseElement(const tinyxml2::XMLE
     }
 
     return returnBlock;
+}
+
+TreeStructure& GeometryParser::getTree()
+{
+    return M_tree;
 }
 
 }  // namespace ReMA

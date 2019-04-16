@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <GeometryParser.hpp>
+#include <TreeStructure.hpp>
 
 #include <Epetra_ConfigDefs.h>
 #ifdef EPETRA_MPI
@@ -36,6 +37,9 @@ int main(int argc, char **argv)
     #endif
 
     GeometryParser gParser("data/artery1.xml", comm, true);
+
+    TreeStructure& tree = gParser.getTree();
+    tree.print();
 
     return 0;
 }

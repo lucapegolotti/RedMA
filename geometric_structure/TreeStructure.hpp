@@ -20,6 +20,7 @@
 #include <BuildingBlock.hpp>
 #include <memory>
 #include <map>
+#include <queue>
 
 namespace ReMA
 {
@@ -55,6 +56,8 @@ public:
     unsigned int depth();
 
 private:
+    std::vector<std::vector<std::string> > fillDepthVectors();
+
     TreeNodePtr M_root;
     unsigned int M_maxID;
     std::map<unsigned int, TreeNodePtr> M_nodesMap;

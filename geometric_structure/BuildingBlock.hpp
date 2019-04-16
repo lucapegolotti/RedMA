@@ -53,6 +53,8 @@ public:
 
     virtual inline unsigned int expectedNumberOfChildren() = 0;
 
+    std::string name();
+
 protected:
     std::map<std::string,double> M_parametersMap;
     std::string M_name;

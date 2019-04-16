@@ -24,6 +24,7 @@
 #include <PrintLog.hpp>
 #include <BuildingBlock.hpp>
 #include <Tube.hpp>
+#include <BifurcationSymmetric.hpp>
 #include <TreeStructure.hpp>
 
 #include <Epetra_SerialComm.h>
@@ -40,6 +41,8 @@ public:
     GeometryParser(std::string fileName, commPtr_Type comm, bool verbose);
 
     void traverseXML(tinyxml2::XMLElement* curElement, unsigned int IDfather);
+
+    TreeStructure& getTree();
 
 private:
     std::shared_ptr<BuildingBlock> parseElement(const tinyxml2::XMLElement* element);

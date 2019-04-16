@@ -58,4 +58,9 @@ int BuildingBlock::readMesh(std::string meshdir)
     return 0;
 }
 
+std::string BuildingBlock::name()
+{
+    return M_name;
+}
+
 }  // namespace BuildingBlock

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <buildingblock type="tube">
-    <buildingblock type="tube">
+    <buildingblock type="bifurcation_symmetric">
     <x0>0.0</x0>
     <y0>0.0</y0>
     <z0>0.0</z0>
