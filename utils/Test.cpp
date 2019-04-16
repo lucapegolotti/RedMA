@@ -1,6 +1,6 @@
 #include "Test.hpp"
 
-namespace ReMA
+namespace RedMA
 {
 
 Test::
@@ -76,4 +76,4 @@ getComm()
     return M_comm;
 }
 
-}  // namespace ReMA
+}  // namespace RedMA

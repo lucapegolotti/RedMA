@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
-project(ReMA VERSION 1.0.0 DESCRIPTION "Reduced Modeling of Arteries")
+project(RedMA VERSION 1.0.0 DESCRIPTION "Reduced Modeling of Arteries")
 
 set(LINKED_LIBRARIES )
 

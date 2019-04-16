@@ -1,7 +1,7 @@
 #include "BuildingBlock.hpp"
 #include <iostream>
 
-namespace ReMA
+namespace RedMA
 {
 
 BuildingBlock::

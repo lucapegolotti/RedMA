@@ -1,6 +1,6 @@
 #include <TreeStructure.hpp>
 
-namespace ReMA
+namespace RedMA
 {
 
 TreeNode::
@@ -139,4 +139,4 @@ depth()
     return M_depth;
 }
 
-}  // namespace ReMA
+}  // namespace RedMA

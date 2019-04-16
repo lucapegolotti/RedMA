@@ -1,6 +1,6 @@
 #include "Tube.hpp"
 
-namespace ReMA
+namespace RedMA
 {
 
 Tube::

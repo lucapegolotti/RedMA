@@ -1,4 +1,4 @@
-REduced Modeling of Arteries
+Reduced Modeling of Arteries (RedMA)
 =========
 
 Dependencies

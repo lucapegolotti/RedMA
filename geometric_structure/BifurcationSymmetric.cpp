@@ -1,6 +1,6 @@
 #include "BifurcationSymmetric.hpp"
 
-namespace ReMA
+namespace RedMA
 {
 
 BifurcationSymmetric::

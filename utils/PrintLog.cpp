@@ -1,6 +1,6 @@
 #include "PrintLog.hpp"
 
-namespace ReMA
+namespace RedMA
 {
 
 void

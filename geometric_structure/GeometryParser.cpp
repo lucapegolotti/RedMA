@@ -1,6 +1,6 @@
 #include <GeometryParser.hpp>
 
-namespace ReMA
+namespace RedMA
 {
 
 GeometryParser::
@@ -120,4 +120,4 @@ getTree()
     return M_tree;
 }
 
-}  // namespace ReMA
+}  // namespace RedMA

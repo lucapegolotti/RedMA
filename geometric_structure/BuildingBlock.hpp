@@ -1,12 +1,12 @@
-// Reduced Modeling of Arteries (ReMA)
+// Reduced Modeling of Arteries (RedMA)
 // Copyright (C) 2019  Luca Pegolotti
 //
-// ReMA is free software: you can redistribute it and/or modify
+// RedMA is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ReMA is distributed in the hope that it will be useful,
+// RedMA is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
@@ -31,7 +31,7 @@
 #include <Epetra_SerialComm.h>
 #include <Epetra_MpiComm.h>
 
-namespace ReMA
+namespace RedMA
 {
 
 class BuildingBlock
@@ -69,6 +69,6 @@ protected:
     std::string M_datafileName;
 };
 
-}  // namespace ReMA
+}  // namespace RedMA
 
 #endif  // BUILDINGBLOCK_HPP
