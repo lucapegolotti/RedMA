@@ -11,6 +11,19 @@ BuildingBlock(commPtr_Type comm, bool verbose) :
 {
     if (M_comm->MyPID() != 0)
         M_verbose = false;
+
+    // rotation angle
+    M_parametersMap["alphax"] = 0.0;
+    M_parametersMap["alphay"] = 0.0;
+    M_parametersMap["alphaz"] = 0.0;
+
+    // scale
+    M_parametersMap["scale"] = 1.0;
+
+    // translation
+    M_parametersMap["bx"] = 0.0;
+    M_parametersMap["by"] = 0.0;
+    M_parametersMap["bz"] = 0.0;
 }
 
 void
@@ -73,6 +86,27 @@ BuildingBlock::
 name()
 {
     return M_name;
+}
+
+void
+BuildingBlock::
+applyAffineTransformation()
+{
+    LifeV::MeshUtility::MeshTransformer<mesh_Type> transformer(*M_mesh);
+
+    Vector3D scale(M_parametersMap["scale"],
+                   M_parametersMap["scale"],
+                   M_parametersMap["scale"]);
+
+    Vector3D rotation(M_parametersMap["alphax"],
+                      M_parametersMap["alphay"],
+                      M_parametersMap["alphaz"]);
+
+    Vector3D translation(M_parametersMap["bx"],
+                         M_parametersMap["by"],
+                         M_parametersMap["bz"]);
+
+    transformer.transformMesh(scale, rotation, translation);
 }
 
 }  // namespace BuildingBlock

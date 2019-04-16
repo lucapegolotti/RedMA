@@ -19,14 +19,11 @@
 
 #include <BuildingBlock.hpp>
 
-#include <lifev/core/array/VectorSmall.hpp>
-
 namespace RedMA
 {
 
 class Tube : public BuildingBlock
 {
-    typedef LifeV::VectorSmall<3> Vector3D;
 public:
     Tube(commPtr_Type comm, bool verbose = false);
 

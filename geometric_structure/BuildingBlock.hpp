@@ -30,6 +30,8 @@
 
 #include <Epetra_SerialComm.h>
 #include <Epetra_MpiComm.h>
+#include <lifev/core/mesh/MeshUtility.hpp>
+#include <lifev/core/array/VectorSmall.hpp>
 
 namespace RedMA
 {
@@ -39,8 +41,8 @@ class BuildingBlock
 protected:
     typedef LifeV::RegionMesh<LifeV::LinearTetra>   mesh_Type;
     typedef std::shared_ptr<mesh_Type>              meshPtr_Type;
-
     typedef std::shared_ptr<Epetra_Comm>            commPtr_Type;
+    typedef LifeV::VectorSmall<3> Vector3D;
 
 public:
     BuildingBlock(commPtr_Type comm, bool verbose);
@@ -54,6 +56,8 @@ public:
     virtual inline unsigned int expectedNumberOfChildren() = 0;
 
     std::string name();
+
+    virtual void applyAffineTransformation();
 
 protected:
     std::map<std::string,double> M_parametersMap;
