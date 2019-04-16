@@ -132,11 +132,67 @@ fillDepthVectors()
     return returnVec;
 }
 
+void
+TreeStructure::
+traverseAndConformGeometries()
+{
+    TreeNodePtr curNode = M_root;
+    std::queue<TreeNodePtr> nodesQueue;
+    do
+    {
+        typedef std::vector<TreeNodePtr> TreeNodesVector;
+        TreeNodesVector& children = curNode->M_children;
+        unsigned int expectedChildren =
+                     curNode->M_block->expectedNumberOfChildren();
+        for (int i = 0; i < expectedChildren; i++)
+        {
+            if (i < children.size())
+            {
+                GeometricFace curFace = curNode->M_block->getOutlet(i);
+
+                TreeNodePtr curChild = children[i];
+                curChild->M_block->mapChildInletToParentOutlet(curFace);
+                nodesQueue.push(curChild);
+            }
+        }
+        curNode = nodesQueue.front();
+        nodesQueue.pop();
+    } while (nodesQueue.size() != 0);
+}
+
 unsigned int
 TreeStructure::
 depth()
 {
     return M_depth;
+}
+
+void
+TreeStructure::
+dump(std::string outdir, std::string meshdir)
+{
+    typedef std::map<unsigned int, TreeNodePtr> NodesMap;
+
+    for (NodesMap::iterator it = M_nodesMap.begin();
+         it != M_nodesMap.end(); it++)
+    {
+        std::string nodeName = (*it).second->M_block->name() +
+                               std::to_string((*it).second->M_ID);
+        (*it).second->M_block->dumpMesh(outdir, meshdir, nodeName);
+    }
+}
+
+void
+TreeStructure::
+readMeshes(std::string meshdir)
+{
+    typedef std::map<unsigned int, TreeNodePtr> NodesMap;
+
+    for (NodesMap::iterator it = M_nodesMap.begin();
+         it != M_nodesMap.end(); it++)
+    {
+        (*it).second->M_block->readMesh(meshdir);
+    }
 }
 
 }  // namespace RedMA

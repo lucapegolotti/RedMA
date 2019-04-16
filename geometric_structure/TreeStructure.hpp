@@ -57,6 +57,12 @@ public:
 
     unsigned int depth();
 
+    void traverseAndConformGeometries();
+
+    void dump(std::string outdir, std::string meshdir);
+
+    void readMeshes(std::string meshdir);
+
 private:
     std::vector<std::vector<std::string> > fillDepthVectors();
 
