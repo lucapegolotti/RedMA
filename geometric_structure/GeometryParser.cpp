@@ -59,6 +59,19 @@ std::shared_ptr<BuildingBlock> GeometryParser::parseElement(const tinyxml2::XMLE
         printlog(CYAN, "[GeometryParser] parsing building block of type tube\n", M_verbose);
         returnBlock.reset(new Tube(M_comm, M_verbose));
     }
+    else if (!std::strcmp(element->Attribute("type"), "bifurcation_symmetric"))
+    {
+        std::string msg = "[GeometryParser] parsing building block of type bifurcation symmetric\n";
+        printlog(CYAN, msg, M_verbose);
+        returnBlock.reset(new Tube(M_comm, M_verbose));
+    }
+    else
+    {
+        std::string warningMsg = "[GeometryParser] building block " + std::string(element->Attribute("type")) +
+        " is not implemented! Skipping\n";
+
+        printlog(YELLOW, warningMsg, M_verbose);
+    }
 
     std::map<std::string,double>& parametersMap = returnBlock->getParametersMap();
 

@@ -1,0 +1,10 @@
+# -----------------------------------------
+# Datafile for bifurcation symmetric coarse
+# -----------------------------------------
+
+[mesh]
+    mesh_dir = geometries/
+    mesh_file = bifurcation_symmetric_coarse.mesh
+    mesh_type = .mesh
+    overlap = 0
+    verbose = false
