@@ -41,6 +41,20 @@
 namespace RedMA
 {
 
+class GeometricFace
+{
+public:
+    typedef LifeV::VectorSmall<3>   Vector3D;
+
+    GeometricFace();
+
+    GeometricFace(Vector3D center, Vector3D normal, double radius);
+
+    Vector3D M_center;
+    Vector3D M_normal;
+    double M_radius;
+};
+
 class BuildingBlock
 {
 protected:
@@ -86,6 +100,9 @@ protected:
     bool M_verbose;
 
     std::string M_datafileName;
+
+    GeometricFace M_inlet;
+    std::vector<GeometricFace> M_outlets;
 };
 
 }  // namespace RedMA

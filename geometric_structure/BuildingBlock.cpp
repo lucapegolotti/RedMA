@@ -4,6 +4,22 @@
 namespace RedMA
 {
 
+GeometricFace::
+GeometricFace() :
+  M_center(Vector3D(0.0,0.0,0.0)),
+  M_normal(Vector3D(1.0,0.0,0.0)),
+  M_radius(1.0)
+{
+}
+
+GeometricFace::
+GeometricFace(Vector3D center, Vector3D normal, double radius) :
+  M_center(center),
+  M_normal(normal),
+  M_radius(radius)
+{
+}
+
 BuildingBlock::
 BuildingBlock(commPtr_Type comm, bool verbose) :
   M_comm(comm),
