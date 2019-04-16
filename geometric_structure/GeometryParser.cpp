@@ -65,8 +65,8 @@ parseElement(const XMLEl *element)
 
     if (!std::strcmp(element->Attribute("type"), "tube"))
     {
-        printlog(CYAN, "[GeometryParser] parsing building block " +
-                       std::string("of type tube)\n", M_verbose));
+        printlog(CYAN, std::string("[GeometryParser] parsing building block") +
+                       " of type tube\n", M_verbose);
         returnBlock.reset(new Tube(M_comm, M_verbose));
     }
     else if (!std::strcmp(element->Attribute("type"),
