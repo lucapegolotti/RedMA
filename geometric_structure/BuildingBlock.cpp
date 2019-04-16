@@ -122,7 +122,7 @@ dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
     vectorPtr_Type zero( new vector_Type(dummyFespace->map()) );
     zero->zero();
 
-    exporter.addVariable(LifeV::ExporterData<mesh_Type>::ScalarField, "zero",
+    exporter.addVariable(LifeV::ExporterData<mesh_Type>::ScalarField, "z",
                          dummyFespace, zero, 0);
     exporter.postProcess(0.0);
 }
