@@ -6,3 +6,4 @@ echo ===========================================
 
 ./TestTube
 ./TestTreeStructure
+./TestBifurcationSymmetric
