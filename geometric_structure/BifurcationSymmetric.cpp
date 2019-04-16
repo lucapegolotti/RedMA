@@ -3,7 +3,8 @@
 namespace ReMA
 {
 
-BifurcationSymmetric::BifurcationSymmetric(commPtr_Type comm, bool verbose) :
+BifurcationSymmetric::
+BifurcationSymmetric(commPtr_Type comm, bool verbose) :
   BuildingBlock(comm, verbose)
 {
     M_name = "BifurcationSymmetric";

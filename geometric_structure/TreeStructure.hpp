@@ -40,12 +40,14 @@ class TreeStructure
 {
 private:
     typedef std::shared_ptr<TreeNode> TreeNodePtr;
+    typedef std::shared_ptr<BuildingBlock> BuildingBlockPtr;
 public:
     TreeStructure();
 
-    unsigned int addChild(unsigned int baseID, std::shared_ptr<BuildingBlock> blockToAdd);
+    unsigned int addChild(unsigned int baseID,
+                          BuildingBlockPtr blockToAdd);
 
-    void setRoot(std::shared_ptr<BuildingBlock> blockHead);
+    void setRoot(BuildingBlockPtr blockHead);
 
     unsigned int getMaxID();
 

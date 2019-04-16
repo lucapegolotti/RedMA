@@ -3,7 +3,8 @@
 namespace ReMA
 {
 
-Test::Test(std::string testName, std::shared_ptr<Epetra_Comm> comm) :
+Test::
+Test(std::string testName, std::shared_ptr<Epetra_Comm> comm) :
   M_subTests(),
   M_testName(testName),
   M_nTests(0),
@@ -12,12 +13,16 @@ Test::Test(std::string testName, std::shared_ptr<Epetra_Comm> comm) :
 {
 }
 
-void Test::addSubTest(void (*subTest)(Test&))
+void
+Test::
+addSubTest(void (*subTest)(Test&))
 {
     M_subTests.push_back(subTest);
 }
 
-void Test::assertTrue(bool statement)
+void
+Test::
+assertTrue(bool statement)
 {
     M_successes = statement? M_successes + 1 : M_successes;
     if (!statement)
@@ -25,8 +30,9 @@ void Test::assertTrue(bool statement)
     M_nTests++;
 }
 
-
-void Test::run()
+void
+Test::
+run()
 {
 
     std::string msg = "\nRunning test " + M_testName + "\n";
@@ -63,7 +69,9 @@ void Test::run()
     }
 }
 
-std::shared_ptr<Epetra_Comm>& Test::getComm()
+std::shared_ptr<Epetra_Comm>&
+Test::
+getComm()
 {
     return M_comm;
 }

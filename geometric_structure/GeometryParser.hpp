@@ -35,23 +35,26 @@ namespace ReMA
 
 class GeometryParser
 {
-    typedef std::shared_ptr<Epetra_Comm>            commPtr_Type;
+    typedef std::shared_ptr<Epetra_Comm>  commPtr_Type;
+    typedef std::shared_ptr<BuildingBlock>  BuildingBlockPtr;
+    typedef tinyxml2::XMLElement  XMLEl;
 
 public:
-    GeometryParser(std::string fileName, commPtr_Type comm, bool verbose);
+    GeometryParser(std::string fileName, commPtr_Type comm,
+                   bool verbose);
 
-    void traverseXML(tinyxml2::XMLElement* curElement, unsigned int IDfather);
+    void traverseXML(XMLEl* curElement,
+                     unsigned int IDfather);
 
     TreeStructure& getTree();
 
 private:
-    std::shared_ptr<BuildingBlock> parseElement(const tinyxml2::XMLElement* element);
+    BuildingBlockPtr parseElement(const XMLEl* element);
 
     commPtr_Type M_comm;
+    TreeStructure M_tree;
 
     bool M_verbose;
-
-    TreeStructure M_tree;
 };
 
 }  // namespace ReMA

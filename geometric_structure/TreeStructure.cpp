@@ -3,23 +3,29 @@
 namespace ReMA
 {
 
-TreeNode::TreeNode(std::shared_ptr<BuildingBlock> block, unsigned int id) :
+TreeNode::
+TreeNode(std::shared_ptr<BuildingBlock> block, unsigned int id) :
   M_block(block),
   M_ID(id)
 {
 }
 
-TreeStructure::TreeStructure() :
+TreeStructure::
+TreeStructure() :
   M_maxID(0)
 {
 }
 
-unsigned int TreeStructure::getMaxID()
+unsigned int
+TreeStructure::
+getMaxID()
 {
     return M_maxID;
 }
 
-unsigned int TreeStructure::addChild(unsigned int baseID, std::shared_ptr<BuildingBlock> blockToAdd)
+unsigned int
+TreeStructure::
+addChild(unsigned int baseID, BuildingBlockPtr blockToAdd)
 {
     if (M_nodesMap.find(baseID) == M_nodesMap.end())
     {
@@ -29,9 +35,11 @@ unsigned int TreeStructure::addChild(unsigned int baseID, std::shared_ptr<Buildi
     }
 
     TreeNodePtr baseNode = M_nodesMap[baseID];
-    if (baseNode->M_block->expectedNumberOfChildren() == baseNode->M_children.size())
+    if (baseNode->M_block->expectedNumberOfChildren() ==
+        baseNode->M_children.size())
     {
-        std::string errorMsg = "Node tree with ID = " + std::to_string(baseNode->M_ID) +
+        std::string errorMsg = "Node tree with ID = " +
+                               std::to_string(baseNode->M_ID) +
                                " can not have other children!";
         throw Exception(errorMsg);
     }
@@ -44,7 +52,9 @@ unsigned int TreeStructure::addChild(unsigned int baseID, std::shared_ptr<Buildi
     return newNode->M_ID;
 }
 
-void TreeStructure::setRoot(std::shared_ptr<BuildingBlock> block)
+void
+TreeStructure::
+setRoot(BuildingBlockPtr block)
 {
     if (M_maxID != 0)
     {
@@ -59,12 +69,16 @@ void TreeStructure::setRoot(std::shared_ptr<BuildingBlock> block)
     M_depth = 0;
 }
 
-bool TreeStructure::isEmpty()
+bool
+TreeStructure::
+isEmpty()
 {
     return (M_nodesMap.size() == 0);
 }
 
-void TreeStructure::print()
+void
+TreeStructure::
+print()
 {
     typedef std::vector<std::string> StringVector;
     typedef std::vector<StringVector> StringVectorVector;
@@ -82,7 +96,9 @@ void TreeStructure::print()
     }
 }
 
-std::vector<std::vector<std::string> > TreeStructure::fillDepthVectors()
+std::vector<std::vector<std::string> >
+TreeStructure::
+fillDepthVectors()
 {
     std::vector<std::vector<std::string> > returnVec(M_depth+1);
 
@@ -94,7 +110,8 @@ std::vector<std::vector<std::string> > TreeStructure::fillDepthVectors()
     {
         typedef std::vector<TreeNodePtr> TreeNodesVector;
         TreeNodesVector& children = curNode->M_children;
-        unsigned int expectedChildren = curNode->M_block->expectedNumberOfChildren();
+        unsigned int expectedChildren =
+                     curNode->M_block->expectedNumberOfChildren();
         for (int i = 0; i < expectedChildren; i++)
         {
             if (i < children.size())
@@ -115,7 +132,9 @@ std::vector<std::vector<std::string> > TreeStructure::fillDepthVectors()
     return returnVec;
 }
 
-unsigned int TreeStructure::depth()
+unsigned int
+TreeStructure::
+depth()
 {
     return M_depth;
 }

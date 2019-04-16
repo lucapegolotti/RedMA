@@ -3,7 +3,8 @@
 namespace ReMA
 {
 
-Tube::Tube(commPtr_Type comm, bool verbose) :
+Tube::
+Tube(commPtr_Type comm, bool verbose) :
   BuildingBlock(comm, verbose)
 {
     M_name = "Tube";

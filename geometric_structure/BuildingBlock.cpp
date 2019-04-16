@@ -4,7 +4,8 @@
 namespace ReMA
 {
 
-BuildingBlock::BuildingBlock(commPtr_Type comm, bool verbose) :
+BuildingBlock::
+BuildingBlock(commPtr_Type comm, bool verbose) :
   M_comm(comm),
   M_verbose(verbose)
 {
@@ -12,7 +13,9 @@ BuildingBlock::BuildingBlock(commPtr_Type comm, bool verbose) :
         M_verbose = false;
 }
 
-void BuildingBlock::setParameterValue(std::string key, double value)
+void
+BuildingBlock::
+setParameterValue(std::string key, double value)
 {
     if (M_parametersMap.find(key) != M_parametersMap.end())
     {
@@ -20,22 +23,29 @@ void BuildingBlock::setParameterValue(std::string key, double value)
     }
     else
     {
-        std::string errorMsg = "Parameter with key " + key + " and value " +
-                                std::to_string(value) + " is not contained in " +
-                                M_name + " building block!\n";
+        std::string errorMsg =
+                     "Parameter with key " + key + " and value " +
+                     std::to_string(value) + " is not contained" +
+                     " in " + M_name + " building block!\n";
 
         throw Exception(errorMsg);
     }
 }
 
-std::map<std::string,double>& BuildingBlock::getParametersMap()
+std::map<std::string,double>&
+BuildingBlock::
+getParametersMap()
 {
     return M_parametersMap;
 }
 
-int BuildingBlock::readMesh(std::string meshdir)
+int
+BuildingBlock::
+readMesh(std::string meshdir)
 {
-    printlog(GREEN, "[" + M_name + " BuildingBlock] reading mesh ...\n", M_verbose);
+    printlog(GREEN, "[" + M_name +
+                    " BuildingBlock] reading mesh ...\n",
+                    M_verbose);
 
     meshPtr_Type fullMesh(new mesh_Type(M_comm));
     LifeV::MeshData meshData;
@@ -58,7 +68,9 @@ int BuildingBlock::readMesh(std::string meshdir)
     return 0;
 }
 
-std::string BuildingBlock::name()
+std::string
+BuildingBlock::
+name()
 {
     return M_name;
 }
