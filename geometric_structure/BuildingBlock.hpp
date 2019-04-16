@@ -56,6 +56,8 @@ public:
 
     GeometricFace(Vector3D center, Vector3D normal, double radius);
 
+    void print();
+
     Vector3D M_center;
     Vector3D M_normal;
     double M_radius;
@@ -91,6 +93,10 @@ public:
     std::string name();
 
     void applyAffineTransformation();
+
+    void applyNonLinearTransformation();
+
+    void applyGlobalTransformation();
 
     void dumpMesh(std::string outdir, std::string meshdir,
                   std::string outputName);

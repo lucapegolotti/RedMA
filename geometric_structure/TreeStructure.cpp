@@ -101,13 +101,14 @@ TreeStructure::
 fillDepthVectors()
 {
     std::vector<std::vector<std::string> > returnVec(M_depth+1);
-
-    TreeNodePtr curNode = M_root;
-    std::queue<TreeNodePtr > nodesQueue;
+    std::queue<TreeNodePtr> nodesQueue;
+    nodesQueue.push(M_root);
 
     returnVec[0].push_back(M_root->M_block->name());
-    do
+    while (nodesQueue.size() != 0)
     {
+        TreeNodePtr curNode = nodesQueue.front();
+        nodesQueue.pop();
         typedef std::vector<TreeNodePtr> TreeNodesVector;
         TreeNodesVector& children = curNode->M_children;
         unsigned int expectedChildren =
@@ -125,21 +126,22 @@ fillDepthVectors()
                 returnVec[curNode->M_depth+1].push_back("NULL");
             }
         }
-        curNode = nodesQueue.front();
-        nodesQueue.pop();
-    } while (nodesQueue.size() != 0);
+    };
 
     return returnVec;
 }
 
 void
 TreeStructure::
-traverseAndConformGeometries()
+traverseAndDeformGeometries()
 {
-    TreeNodePtr curNode = M_root;
     std::queue<TreeNodePtr> nodesQueue;
-    do
+    nodesQueue.push(M_root);
+    while(nodesQueue.size() != 0)
     {
+        TreeNodePtr curNode = nodesQueue.front();
+        nodesQueue.pop();
+        curNode->M_block->applyGlobalTransformation();
         typedef std::vector<TreeNodePtr> TreeNodesVector;
         TreeNodesVector& children = curNode->M_children;
         unsigned int expectedChildren =
@@ -155,9 +157,7 @@ traverseAndConformGeometries()
                 nodesQueue.push(curChild);
             }
         }
-        curNode = nodesQueue.front();
-        nodesQueue.pop();
-    } while (nodesQueue.size() != 0);
+    }
 }
 
 unsigned int

@@ -57,7 +57,7 @@ public:
 
     unsigned int depth();
 
-    void traverseAndConformGeometries();
+    void traverseAndDeformGeometries();
 
     void dump(std::string outdir, std::string meshdir);
 

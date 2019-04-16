@@ -20,6 +20,20 @@ GeometricFace(Vector3D center, Vector3D normal, double radius) :
 {
 }
 
+void
+GeometricFace::
+print()
+{
+    printlog(WHITE, "[GeometricFace]\n");
+    printlog(WHITE, std::string("\tcenter = (") + std::to_string(M_center[0]) +
+                    "," + std::to_string(M_center[1]) + "," +
+                    std::to_string(M_center[2]) + ")\n");
+    printlog(WHITE, std::string("\tnormal = (") + std::to_string(M_normal[0]) +
+                    "," + std::to_string(M_normal[1]) + "," +
+                    std::to_string(M_normal[2]) + ")\n");
+    printlog(WHITE, std::string("\tradius = ") + std::to_string(M_radius) + "\n");
+}
+
 BuildingBlock::
 BuildingBlock(commPtr_Type comm, bool verbose) :
   M_comm(comm),
@@ -177,6 +191,8 @@ applyAffineTransformation()
     {
         applyAffineTransformationGeometricFace(*it,R,translation,scale[0]);
     }
+    std::cout << "Apply affine transf\n" << std::endl;
+    M_inlet.print();
 }
 
 void
@@ -243,9 +259,12 @@ void
 BuildingBlock::
 mapChildInletToParentOutlet(GeometricFace parentOutlet)
 {
-    M_parametersMap["bx"] = M_inlet.M_center[0] - parentOutlet.M_center[0];
-    M_parametersMap["by"] = M_inlet.M_center[1] - parentOutlet.M_center[1];
-    M_parametersMap["bz"] = M_inlet.M_center[2] - parentOutlet.M_center[2];
+    parentOutlet.print();
+
+    std::cout << M_inlet.M_center[0] - parentOutlet.M_center[0] << std::endl;
+    M_parametersMap["bx"] = parentOutlet.M_center[0] - M_inlet.M_center[0];
+    M_parametersMap["by"] = parentOutlet.M_center[1] - M_inlet.M_center[1];
+    M_parametersMap["bz"] = parentOutlet.M_center[2] - M_inlet.M_center[2];
 
     M_parametersMap["scale"] = parentOutlet.M_radius / M_inlet.M_radius;
 
@@ -264,19 +283,40 @@ mapChildInletToParentOutlet(GeometricFace parentOutlet)
                                    M_inlet.M_normal[i1] +
                                    M_inlet.M_normal[i2] *
                                    M_inlet.M_normal[i2]);
+
         double normout = std::sqrt(parentOutlet.M_normal[i1] *
                                    parentOutlet.M_normal[i1] +
                                    parentOutlet.M_normal[i2] *
                                    parentOutlet.M_normal[i2]);
-        double val = (M_inlet.M_normal[i1] * parentOutlet.M_normal[i1] +
-                      M_inlet.M_normal[i2] * parentOutlet.M_normal[i2]) /
-                      (norminl * normout);
+
+        double val;
+        if (norminl < 1e-14 || normout < 1e-14)
+            val = 1;
+        else
+            val = (M_inlet.M_normal[i1] * parentOutlet.M_normal[i1] +
+                   M_inlet.M_normal[i2] * parentOutlet.M_normal[i2]) /
+                   (norminl * normout);
+
         res.push_back(val);
     }
 
     M_parametersMap["alphax"] = std::acos(res[0]);
     M_parametersMap["alphay"] = std::acos(res[1]);
     M_parametersMap["alphaz"] = std::acos(res[2]);
+}
+
+void
+BuildingBlock::
+applyNonLinearTransformation()
+{
+}
+
+void
+BuildingBlock::
+applyGlobalTransformation()
+{
+    applyAffineTransformation();
+    applyNonLinearTransformation();
 }
 
 }  // namespace BuildingBlock

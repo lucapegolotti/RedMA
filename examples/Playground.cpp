@@ -40,6 +40,7 @@ int main(int argc, char **argv)
 
     TreeStructure& tree = gParser.getTree();
     tree.readMeshes("../geometries/");
+    tree.traverseAndDeformGeometries();
     tree.dump("output/","../geometries/");
     // Tube tube(comm,true);
     // tube.readMesh("../geometries/");
