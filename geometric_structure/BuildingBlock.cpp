@@ -198,10 +198,15 @@ void
 BuildingBlock::
 dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
 {
+    if (!M_mesh)
+    {
+        std::string msg = "Mesh has not been read yet!\n";
+        throw Exception(msg);
+    }
     boost::filesystem::create_directory(outdir);
 
     GetPot exporterDatafile(meshdir + "datafiles/" + M_datafileName);
-    LifeV::ExporterVTK<mesh_Type> exporter(exporterDatafile, outdir + outputName);
+    LifeV::ExporterVTK<mesh_Type> exporter(exporterDatafile, outputName);
     exporter.setMeshProcId(M_mesh, M_comm->MyPID());
 
     FESpacePtr_Type dummyFespace(new FESpace_Type(M_mesh, "P1", 3, M_comm));
@@ -210,7 +215,68 @@ dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
 
     exporter.addVariable(LifeV::ExporterData<mesh_Type>::ScalarField, "z",
                          dummyFespace, zero, 0);
+    exporter.setPostDir(outdir);
     exporter.postProcess(0.0);
+}
+
+GeometricFace
+BuildingBlock::
+getOutlet(unsigned int outletIndex) const
+{
+    if (outletIndex >= M_outlets.size())
+    {
+        std::string msg = "Requesting acess to outlet that does not exist!";
+        throw Exception(msg);
+    }
+
+    return M_outlets[outletIndex];
+}
+
+GeometricFace
+BuildingBlock::
+getInlet() const
+{
+    return M_inlet;
+}
+
+void
+BuildingBlock::
+mapChildInletToParentOutlet(GeometricFace parentOutlet)
+{
+    M_parametersMap["bx"] = M_inlet.M_center[0] - parentOutlet.M_center[0];
+    M_parametersMap["by"] = M_inlet.M_center[1] - parentOutlet.M_center[1];
+    M_parametersMap["bz"] = M_inlet.M_center[2] - parentOutlet.M_center[2];
+
+    M_parametersMap["scale"] = parentOutlet.M_radius / M_inlet.M_radius;
+
+    unsigned int coors1[3] = {1,2,0};
+    unsigned int coors2[3] = {2,0,1};
+
+    std::vector<double> res;
+    // here we compute each angle by considering the projection of the vectors
+    // on the remaining plane (e.g. alphax->projection on yz)
+    for (int i = 0; i < 3; i++)
+    {
+        unsigned int i1 = coors1[i];
+        unsigned int i2 = coors2[i];
+
+        double norminl = std::sqrt(M_inlet.M_normal[i1] *
+                                   M_inlet.M_normal[i1] +
+                                   M_inlet.M_normal[i2] *
+                                   M_inlet.M_normal[i2]);
+        double normout = std::sqrt(parentOutlet.M_normal[i1] *
+                                   parentOutlet.M_normal[i1] +
+                                   parentOutlet.M_normal[i2] *
+                                   parentOutlet.M_normal[i2]);
+        double val = (M_inlet.M_normal[i1] * parentOutlet.M_normal[i1] +
+                      M_inlet.M_normal[i2] * parentOutlet.M_normal[i2]) /
+                      (norminl * normout);
+        res.push_back(val);
+    }
+
+    M_parametersMap["alphax"] = std::acos(res[0]);
+    M_parametersMap["alphay"] = std::acos(res[1]);
+    M_parametersMap["alphaz"] = std::acos(res[2]);
 }
 
 }  // namespace BuildingBlock

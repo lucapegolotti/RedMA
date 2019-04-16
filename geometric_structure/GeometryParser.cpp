@@ -16,7 +16,7 @@ GeometryParser(std::string fileName, commPtr_Type comm,
 
     tinyxml2::XMLElement* rootElement = doc.FirstChildElement();
 
-    traverseXML(rootElement,0);
+    traverseXML(rootElement, 0);
 
     printlog(GREEN, "done\n", verbose);
 }

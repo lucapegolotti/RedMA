@@ -95,6 +95,12 @@ public:
     void dumpMesh(std::string outdir, std::string meshdir,
                   std::string outputName);
 
+    GeometricFace getOutlet(unsigned int indexFace) const;
+
+    GeometricFace getInlet() const;
+
+    void mapChildInletToParentOutlet(GeometricFace parentOutlet);
+
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,

@@ -36,17 +36,17 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    GeometryParser gParser("data/artery1.xml", comm, true);
+    GeometryParser gParser("data/artery2.xml", comm, true);
 
     TreeStructure& tree = gParser.getTree();
-    tree.print();
-
-    Tube tube(comm,true);
-    tube.readMesh("../geometries/");
-    tube.setParameterValue("alphax",0.2);
-    tube.setParameterValue("alphay",0.3);
-    tube.applyAffineTransformation();
-    tube.dumpMesh("output/", "../geometries/", "hello");
+    tree.readMeshes("../geometries/");
+    tree.dump("output/","../geometries/");
+    // Tube tube(comm,true);
+    // tube.readMesh("../geometries/");
+    // tube.setParameterValue("alphax",0.2);
+    // tube.setParameterValue("alphay",0.3);
+    // tube.applyAffineTransformation();
+    // tube.dumpMesh("output/", "../geometries/", "hello");
 
     return 0;
 }

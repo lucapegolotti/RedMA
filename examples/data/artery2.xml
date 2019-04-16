@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<buildingblock type="tube">
+    <buildingblock type="tube">
+        <bend>0.0</bend>
+        <r0>3.0</r0>
+        <r1>3.0</r1>
+    </buildingblock>
+
+    <alphax>0.0</alphax>
+    <alphay>0.0</alphay>
+    <alphaz>0.0</alphaz>
+    <bx>0.0</bx>
+    <by>0.0</by>
+    <bz>0.0</bz>
+    <scale>1.0</scale>
+    <bend>0.0</bend>
+    <r0>3.0</r0>
+    <r1>3.0</r1>
+</buildingblock>

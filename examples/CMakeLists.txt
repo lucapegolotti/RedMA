@@ -13,6 +13,13 @@ add_custom_command(
                 ${CMAKE_SOURCE_DIR}/examples/data/artery1.xml
                 ${CMAKE_CURRENT_BINARY_DIR}/data/artery1.xml)
 
+add_custom_command(
+        TARGET ReadXML POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/examples/data/artery2.xml
+                ${CMAKE_CURRENT_BINARY_DIR}/data/artery2.xml)
+
+
 target_link_libraries(ReadXML ${LINKED_LIBRARIES})
 
 add_executable(Playground Playground.cpp ${SOURCES})
