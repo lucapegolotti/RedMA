@@ -43,7 +43,10 @@ int main(int argc, char **argv)
 
     Tube tube(comm,true);
     tube.readMesh("../geometries/");
-    tube.dumpMesh(".", "../geometries/", "hello");
+    tube.setParameterValue("alphax",0.2);
+    tube.setParameterValue("alphay",0.3);
+    tube.applyAffineTransformation();
+    tube.dumpMesh(".", "../geometries/", "hello2");
 
     return 0;
 }

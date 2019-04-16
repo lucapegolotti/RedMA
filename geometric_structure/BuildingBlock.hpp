@@ -34,6 +34,7 @@
 #include <Epetra_MpiComm.h>
 #include <lifev/core/mesh/MeshUtility.hpp>
 #include <lifev/core/array/VectorSmall.hpp>
+#include <lifev/core/array/MatrixSmall.hpp>
 #include <lifev/core/filter/ExporterHDF5.hpp>
 #include <lifev/core/filter/ExporterVTK.hpp>
 #include <lifev/core/fem/FESpace.hpp>
@@ -64,6 +65,7 @@ protected:
     typedef LifeV::MapEpetra                        map_Type;
     typedef std::shared_ptr<map_Type>               mapPtr_Type;
     typedef LifeV::VectorSmall<3>                   Vector3D;
+    typedef LifeV::MatrixSmall<3,3>                 Matrix3D;
     typedef LifeV::ExporterVTK<mesh_Type>           Exporter;
     typedef LifeV::FESpace<mesh_Type, map_Type>     FESpace_Type;
     typedef std::shared_ptr<FESpace_Type>           FESpacePtr_Type;
@@ -83,12 +85,17 @@ public:
 
     std::string name();
 
-    virtual void applyAffineTransformation();
+    void applyAffineTransformation();
 
     void dumpMesh(std::string outdir, std::string meshdir,
                   std::string outputName);
 
 protected:
+    void applyAffineTransformationGeometricFace(GeometricFace& face,
+                                                const Matrix3D& affineMatrix,
+                                                const Vector3D& translation,
+                                                const double& scale);
+
     std::map<std::string,double> M_parametersMap;
     std::string M_name;
 

@@ -124,6 +124,74 @@ applyAffineTransformation()
                          M_parametersMap["bz"]);
 
     transformer.transformMesh(scale, rotation, translation);
+
+    Matrix3D R, R1, R2, R3, S;
+
+    R1(0,0) = 1.;
+    R1(0,1) = 0.;
+    R1(0,2) = 0.;
+    R1(1,0) = 0.;
+    R1(1,1) = std::cos (rotation[0]);
+    R1(1,2) = -std::sin (rotation[0]);
+    R1(2,0) = 0.;
+    R1(2,1) = std::sin (rotation[0]);
+    R1(2,2) = std::cos (rotation[0]);
+
+    R2(0,0) = std::cos (rotation[1]);
+    R2(0,1) = 0.;
+    R2(0,2) = std::sin (rotation[1]);
+    R2(1,0) = 0.;
+    R2(1,1) = 1.;
+    R2(1,2) = 0.;
+    R2(2,0) = -std::sin (rotation[1]);
+    R2(2,1) = 0.;
+    R2(2,2) = std::cos (rotation[1]);
+
+    R3(0,0) = std::cos (rotation[2]);
+    R3(0,1) = -std::sin (rotation[2]);
+    R3(0,2) = 0.;
+    R3(1,0) = std::sin (rotation[2]);
+    R3(1,1) = std::cos (rotation[2]);
+    R3(1,2) = 0.;
+    R3(2,0) = 0.;
+    R3(2,1) = 0.;
+    R3(2,2) = 1.;
+
+    S(0,0) = scale[0];
+    S(0,1) = 0.;
+    S(0,2) = 0.;
+    S(1,0) = 0.;
+    S(1,1) = scale[1];
+    S(1,2) = 0.;
+    S(2,0) = 0.;
+    S(2,1) = 0.;
+    S(2,2) = scale[2];
+
+    R = R3 * S;
+    R = R2 * R;
+    R = R1 * R;
+
+    applyAffineTransformationGeometricFace(M_inlet,R,translation,scale[0]);
+    for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
+         it != M_outlets.end(); it++)
+    {
+        applyAffineTransformationGeometricFace(*it,R,translation,scale[0]);
+    }
+}
+
+void
+BuildingBlock::
+applyAffineTransformationGeometricFace(GeometricFace& face,
+                                       const Matrix3D& affineMatrix,
+                                       const Vector3D& translation,
+                                       const double& scale)
+{
+    face.M_center = affineMatrix * face.M_center;
+    face.M_center = face.M_center + translation;
+
+    face.M_normal = affineMatrix * face.M_normal;
+
+    face.M_radius = face.M_radius * scale;
 }
 
 void
