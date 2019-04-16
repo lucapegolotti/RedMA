@@ -8,3 +8,10 @@
     mesh_type = .mesh
     overlap = 0
     verbose = false
+
+[exporter]
+	type       = vtk
+	multimesh  = false
+	start      = 0
+	save       = 1
+	filename   = tube

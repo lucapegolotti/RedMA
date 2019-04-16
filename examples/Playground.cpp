@@ -41,5 +41,9 @@ int main(int argc, char **argv)
     TreeStructure& tree = gParser.getTree();
     tree.print();
 
+    Tube tube(comm,true);
+    tube.readMesh("../geometries/");
+    tube.dumpMesh(".", "../geometries/", "hello");
+
     return 0;
 }

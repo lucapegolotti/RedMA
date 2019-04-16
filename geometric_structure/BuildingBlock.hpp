@@ -28,10 +28,15 @@
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/core/filter/GetPot.hpp>
 
+#include <lifev/core/LifeV.hpp>
+#include <lifev/core/array/VectorEpetra.hpp>
 #include <Epetra_SerialComm.h>
 #include <Epetra_MpiComm.h>
 #include <lifev/core/mesh/MeshUtility.hpp>
 #include <lifev/core/array/VectorSmall.hpp>
+#include <lifev/core/filter/ExporterHDF5.hpp>
+#include <lifev/core/filter/ExporterVTK.hpp>
+#include <lifev/core/fem/FESpace.hpp>
 
 namespace RedMA
 {
@@ -42,7 +47,14 @@ protected:
     typedef LifeV::RegionMesh<LifeV::LinearTetra>   mesh_Type;
     typedef std::shared_ptr<mesh_Type>              meshPtr_Type;
     typedef std::shared_ptr<Epetra_Comm>            commPtr_Type;
-    typedef LifeV::VectorSmall<3> Vector3D;
+    typedef LifeV::MapEpetra                        map_Type;
+    typedef std::shared_ptr<map_Type>               mapPtr_Type;
+    typedef LifeV::VectorSmall<3>                   Vector3D;
+    typedef LifeV::ExporterVTK<mesh_Type>           Exporter;
+    typedef LifeV::FESpace<mesh_Type, map_Type>     FESpace_Type;
+    typedef std::shared_ptr<FESpace_Type>           FESpacePtr_Type;
+    typedef LifeV::VectorEpetra                     vector_Type;
+    typedef std::shared_ptr<vector_Type>            vectorPtr_Type;
 
 public:
     BuildingBlock(commPtr_Type comm, bool verbose);
@@ -58,6 +70,9 @@ public:
     std::string name();
 
     virtual void applyAffineTransformation();
+
+    void dumpMesh(std::string outdir, std::string meshdir,
+                  std::string outputName);
 
 protected:
     std::map<std::string,double> M_parametersMap;

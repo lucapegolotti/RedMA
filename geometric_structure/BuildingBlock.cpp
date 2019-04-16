@@ -74,8 +74,9 @@ readMesh(std::string meshdir)
     CoutRedirecter ct;
     ct.redirect();
     meshPart.doPartition(fullMesh, M_comm);
-    printlog(CYAN, ct.restore(), M_verbose);
+    M_mesh = meshPart.meshPartition();
 
+    printlog(CYAN, ct.restore(), M_verbose);
     printlog(GREEN, "done\n", M_verbose);
 
     return 0;
@@ -107,6 +108,23 @@ applyAffineTransformation()
                          M_parametersMap["bz"]);
 
     transformer.transformMesh(scale, rotation, translation);
+}
+
+void
+BuildingBlock::
+dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
+{
+    GetPot exporterDatafile(meshdir + "datafiles/" + M_datafileName);
+    LifeV::ExporterVTK<mesh_Type> exporter(exporterDatafile, outputName);
+    exporter.setMeshProcId(M_mesh, M_comm->MyPID());
+
+    FESpacePtr_Type dummyFespace(new FESpace_Type(M_mesh, "P1", 3, M_comm));
+    vectorPtr_Type zero( new vector_Type(dummyFespace->map()) );
+    zero->zero();
+
+    exporter.addVariable(LifeV::ExporterData<mesh_Type>::ScalarField, "zero",
+                         dummyFespace, zero, 0);
+    exporter.postProcess(0.0);
 }
 
 }  // namespace BuildingBlock
