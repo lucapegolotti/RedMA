@@ -198,12 +198,14 @@ void
 BuildingBlock::
 dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
 {
+    boost::filesystem::create_directory(outdir);
+
     GetPot exporterDatafile(meshdir + "datafiles/" + M_datafileName);
-    LifeV::ExporterVTK<mesh_Type> exporter(exporterDatafile, outputName);
+    LifeV::ExporterVTK<mesh_Type> exporter(exporterDatafile, outdir + outputName);
     exporter.setMeshProcId(M_mesh, M_comm->MyPID());
 
     FESpacePtr_Type dummyFespace(new FESpace_Type(M_mesh, "P1", 3, M_comm));
-    vectorPtr_Type zero( new vector_Type(dummyFespace->map()) );
+    vectorPtr_Type zero(new vector_Type(dummyFespace->map()) );
     zero->zero();
 
     exporter.addVariable(LifeV::ExporterData<mesh_Type>::ScalarField, "z",

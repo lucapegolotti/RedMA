@@ -19,6 +19,9 @@
 
 #include <map>
 #include <memory>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <iostream>
 
 #include <Exception.hpp>
 #include <PrintLog.hpp>
@@ -38,6 +41,8 @@
 #include <lifev/core/filter/ExporterHDF5.hpp>
 #include <lifev/core/filter/ExporterVTK.hpp>
 #include <lifev/core/fem/FESpace.hpp>
+
+#include <boost/filesystem.hpp>
 
 namespace RedMA
 {

@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     tube.setParameterValue("alphax",0.2);
     tube.setParameterValue("alphay",0.3);
     tube.applyAffineTransformation();
-    tube.dumpMesh(".", "../geometries/", "hello2");
+    tube.dumpMesh("output/", "../geometries/", "hello");
 
     return 0;
 }

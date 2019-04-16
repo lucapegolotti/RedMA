@@ -13,6 +13,7 @@ set(HEADERS_DIRS
     ${TPL_Trilinos_INCLUDE_DIRS}
     ${TPL_LifeV_INCLUDE_DIRS}
     ${TPL_HDF5_INCLUDE_DIRS}
+    ${TPL_BOOST_INCLUDE_DIRS}
     ${TPL_PARMETIS_INCLUDE_DIRECTORY}
     ${TPL_METIS_INCLUDE_DIRECTORY}
     )
@@ -22,6 +23,7 @@ set(LIBRARIES_DIRS
     ${TPL_Trilinos_LIBRARY_DIRS}
     ${TPL_LifeV_LIBRARY_DIRS}
     ${TPL_HDF5_LIBRARY_DIRS}
+    ${TPL_BOOST_LIBRARY_DIRS}
     ${TPL_PARMETIS_LIBRARY_DIRECTORY}
     ${TPL_METIS_LIBRARY_DIRECTORY}
     )
@@ -58,6 +60,8 @@ set(TRILINOS_LIBRARIES
     belosepetra)
 
 set(LINKED_LIBRARIES
+    boost_system
+    boost_filesystem
     tinyxml2
     mpi
     mpi_cxx
