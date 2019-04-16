@@ -76,8 +76,9 @@ void TreeStructure::print()
         for (StringVector::iterator jt = it->begin();
              jt != it->end(); jt++)
         {
-            std::cout << *jt << "\t" << std::endl;
+            printlog(MAGENTA, *jt + "\t");
         }
+        printlog(WHITE, "\n");
     }
 }
 
