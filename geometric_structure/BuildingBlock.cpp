@@ -119,6 +119,50 @@ name()
     return M_name;
 }
 
+BuildingBlock::Matrix3D
+BuildingBlock::
+computeRotationMatrix(unsigned int axis, double angle)
+{
+    Matrix3D R;
+    if (axis == 0)
+    {
+        R(0,0) = 1.;
+        R(0,1) = 0.;
+        R(0,2) = 0.;
+        R(1,0) = 0.;
+        R(1,1) = std::cos(angle);
+        R(1,2) = -std::sin(angle);
+        R(2,0) = 0.;
+        R(2,1) = std::sin(angle);
+        R(2,2) = std::cos(angle);
+    }
+    else if (axis == 1)
+    {
+        R(0,0) = std::cos(angle);
+        R(0,1) = 0.;
+        R(0,2) = std::sin(angle);
+        R(1,0) = 0.;
+        R(1,1) = 1.;
+        R(1,2) = 0.;
+        R(2,0) = -std::sin(angle);
+        R(2,1) = 0.;
+        R(2,2) = std::cos(angle);
+    }
+    else if (axis == 2)
+    {
+        R(0,0) = std::cos(angle);
+        R(0,1) = -std::sin(angle);
+        R(0,2) = 0.;
+        R(1,0) = std::sin(angle);
+        R(1,1) = std::cos(angle);
+        R(1,2) = 0.;
+        R(2,0) = 0.;
+        R(2,1) = 0.;
+        R(2,2) = 1.;
+    }
+    return R;
+}
+
 void
 BuildingBlock::
 applyAffineTransformation()
@@ -129,9 +173,9 @@ applyAffineTransformation()
                    M_parametersMap["scale"],
                    M_parametersMap["scale"]);
 
-    Vector3D rotation(M_parametersMap["alphax"],
-                      M_parametersMap["alphay"],
-                      M_parametersMap["alphaz"]);
+    Vector3D rotation(-M_parametersMap["alphax"],
+                      -M_parametersMap["alphay"],
+                      -M_parametersMap["alphaz"]);
 
     Vector3D translation(M_parametersMap["bx"],
                          M_parametersMap["by"],
@@ -141,35 +185,9 @@ applyAffineTransformation()
 
     Matrix3D R, R1, R2, R3, S;
 
-    R1(0,0) = 1.;
-    R1(0,1) = 0.;
-    R1(0,2) = 0.;
-    R1(1,0) = 0.;
-    R1(1,1) = std::cos (rotation[0]);
-    R1(1,2) = -std::sin (rotation[0]);
-    R1(2,0) = 0.;
-    R1(2,1) = std::sin (rotation[0]);
-    R1(2,2) = std::cos (rotation[0]);
-
-    R2(0,0) = std::cos (rotation[1]);
-    R2(0,1) = 0.;
-    R2(0,2) = std::sin (rotation[1]);
-    R2(1,0) = 0.;
-    R2(1,1) = 1.;
-    R2(1,2) = 0.;
-    R2(2,0) = -std::sin (rotation[1]);
-    R2(2,1) = 0.;
-    R2(2,2) = std::cos (rotation[1]);
-
-    R3(0,0) = std::cos (rotation[2]);
-    R3(0,1) = -std::sin (rotation[2]);
-    R3(0,2) = 0.;
-    R3(1,0) = std::sin (rotation[2]);
-    R3(1,1) = std::cos (rotation[2]);
-    R3(1,2) = 0.;
-    R3(2,0) = 0.;
-    R3(2,1) = 0.;
-    R3(2,2) = 1.;
+    R1 = computeRotationMatrix(0, rotation[0]);
+    R2 = computeRotationMatrix(1, rotation[1]);
+    R3 = computeRotationMatrix(2, rotation[2]);
 
     S(0,0) = scale[0];
     S(0,1) = 0.;
@@ -261,7 +279,6 @@ mapChildInletToParentOutlet(GeometricFace parentOutlet)
 {
     parentOutlet.print();
 
-    std::cout << M_inlet.M_center[0] - parentOutlet.M_center[0] << std::endl;
     M_parametersMap["bx"] = parentOutlet.M_center[0] - M_inlet.M_center[0];
     M_parametersMap["by"] = parentOutlet.M_center[1] - M_inlet.M_center[1];
     M_parametersMap["bz"] = parentOutlet.M_center[2] - M_inlet.M_center[2];
@@ -271,38 +288,63 @@ mapChildInletToParentOutlet(GeometricFace parentOutlet)
     unsigned int coors1[3] = {1,2,0};
     unsigned int coors2[3] = {2,0,1};
 
-    std::vector<double> res;
+    std::vector<double> angles;
+    std::vector<double> dets;
+
+    Vector3D iNormal = -1 * M_inlet.M_normal;
+    Vector3D oNormal = parentOutlet.M_normal;
+
     // here we compute each angle by considering the projection of the vectors
     // on the remaining plane (e.g. alphax->projection on yz)
     for (int i = 0; i < 3; i++)
     {
+
         unsigned int i1 = coors1[i];
         unsigned int i2 = coors2[i];
 
-        double norminl = std::sqrt(M_inlet.M_normal[i1] *
-                                   M_inlet.M_normal[i1] +
-                                   M_inlet.M_normal[i2] *
-                                   M_inlet.M_normal[i2]);
+        double norminl = std::sqrt(iNormal[i1] *
+                                   iNormal[i1] +
+                                   iNormal[i2] *
+                                   iNormal[i2]);
 
-        double normout = std::sqrt(parentOutlet.M_normal[i1] *
-                                   parentOutlet.M_normal[i1] +
-                                   parentOutlet.M_normal[i2] *
-                                   parentOutlet.M_normal[i2]);
+        double normout = std::sqrt(oNormal[i1] *
+                                   oNormal[i1] +
+                                   oNormal[i2] *
+                                   oNormal[i2]);
 
         double val;
         if (norminl < 1e-14 || normout < 1e-14)
+        {
             val = 1;
+            dets.push_back(0.0);
+        }
         else
-            val = (M_inlet.M_normal[i1] * parentOutlet.M_normal[i1] +
-                   M_inlet.M_normal[i2] * parentOutlet.M_normal[i2]) /
+        {
+            val = (iNormal[i1] * oNormal[i1] +
+                   iNormal[i2] * oNormal[i2]) /
                    (norminl * normout);
+            double determ = iNormal[i1] * oNormal[i2] -
+                            iNormal[i2] * oNormal[i1];
 
-        res.push_back(val);
+            dets.push_back(determ);
+        }
+        double angle;
+        if (dets[i] == 0)
+            angle = 0;
+        else if (dets[i] > 0)
+            angle = -std::acos(val) + M_PI;
+        else if (dets[i] < 0)
+            angle = std::acos(val);
+
+        Matrix3D R = computeRotationMatrix(i, angle);
+        oNormal = R * oNormal;
+
+        angles.push_back(angle);
     }
 
-    M_parametersMap["alphax"] = std::acos(res[0]);
-    M_parametersMap["alphay"] = std::acos(res[1]);
-    M_parametersMap["alphaz"] = std::acos(res[2]);
+    M_parametersMap["alphax"] = angles[0];
+    M_parametersMap["alphay"] = angles[1];
+    M_parametersMap["alphaz"] = angles[2];
 }
 
 void

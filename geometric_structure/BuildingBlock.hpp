@@ -113,6 +113,8 @@ protected:
                                                 const Vector3D& translation,
                                                 const double& scale);
 
+    Matrix3D computeRotationMatrix(unsigned int axis, double angle);
+
     std::map<std::string,double> M_parametersMap;
     std::string M_name;
 
