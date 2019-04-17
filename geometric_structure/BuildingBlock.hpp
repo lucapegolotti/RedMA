@@ -115,6 +115,11 @@ protected:
 
     Matrix3D computeRotationMatrix(unsigned int axis, double angle);
 
+    Matrix3D computeRotationMatrix(Vector3D axis, double angle);
+
+    static  void rotationFunction(double& x, double& y, double& z,
+                                  const Matrix3D& affMatrix, const Vector3D& transl);
+
     std::map<std::string,double> M_parametersMap;
     std::string M_name;
 
