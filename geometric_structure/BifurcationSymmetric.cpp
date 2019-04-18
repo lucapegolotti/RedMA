@@ -11,48 +11,51 @@ BifurcationSymmetric(commPtr_Type comm, bool verbose) :
 
     M_datafileName = "bifurcation_symmetric_coarse_data";
 
+    // values are referred to the reference configuration
+
+    M_inletCenterRef[0] = 0;
+    M_inletCenterRef[1] = 0;
+    M_inletCenterRef[2] = 0;
+
+    M_inletNormalRef[0] = 0;
+    M_inletNormalRef[1] = -1;
+    M_inletNormalRef[2] = 0;
+
+    M_outlet1CenterRef[0] = 9;
+    M_outlet1CenterRef[1] = 30;
+    M_outlet1CenterRef[2] = 0;
+
+    M_outlet1NormalRef[0] = 0.3714;
+    M_outlet1NormalRef[1] = 0.9285;
+    M_outlet1NormalRef[2] = 0.0;
+
+    M_outlet2CenterRef[0] = -9;
+    M_outlet2CenterRef[1] = 30;
+    M_outlet2CenterRef[2] = 0.0;
+
+    M_outlet2NormalRef[0] = -0.3714;
+    M_outlet2NormalRef[1] = 0.9285;
+    M_outlet2NormalRef[2] = 0.0;
+
+    M_inletRadiusRef = 3.0;
+    M_outlet1RadiusRef = 3.0;
+    M_outlet2RadiusRef = 3.0;
+
+    GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef);
+    GeometricFace outlet1(M_outlet1CenterRef, M_outlet1NormalRef, M_outlet1RadiusRef);
+    GeometricFace outlet2(M_outlet2CenterRef, M_outlet2NormalRef, M_outlet2RadiusRef);
+
+    M_inlet = inlet;
+    M_outlets.push_back(outlet1);
+    M_outlets.push_back(outlet2);
+
     // it is important to fill parametersMap right at this level because then
     // the keys will be used in the parser to check the values in the XML file
     // center of inlet
-    M_parametersMap["x0"] = 0.0;
-    M_parametersMap["y0"] = 0.0;
-    M_parametersMap["z0"] = 0.0;
-
-    // TODO: fix these number to default values
-    // center of outlet 1
-    M_parametersMap["x1"] = 0.0;
-    M_parametersMap["y1"] = 0.0;
-    M_parametersMap["z1"] = 0.0;
-
-    // center of outlet 2
-    M_parametersMap["x2"] = 0.0;
-    M_parametersMap["y2"] = 0.0;
-    M_parametersMap["z2"] = 0.0;
-
-    // normal of inlet
-    M_parametersMap["i0"] = 0.0;
-    M_parametersMap["j0"] = 0.0;
-    M_parametersMap["k0"] = -1.0;
-
-    // normal of outlet 1
-    M_parametersMap["i1"] = 0.0;
-    M_parametersMap["j1"] = 0.0;
-    M_parametersMap["k1"] = 1.0;
-
-    // normal of outlet 2
-    M_parametersMap["i2"] = 0.0;
-    M_parametersMap["j2"] = 0.0;
-    M_parametersMap["k2"] = 1.0;
-
-    // radius of inlet
-    M_parametersMap["r0"] = 3.0;
-
-    // radius of outlet1
-    M_parametersMap["r1"] = 3.0;
-
-    // radius of outlet2
-    M_parametersMap["r2"] = 3.0;
-
+    M_parametersMap["bend"] = 0.0;
+    M_parametersMap["r0"] = M_inletRadiusRef;
+    M_parametersMap["r1"] = M_outlet1RadiusRef;
+    M_parametersMap["r2"] = M_outlet1RadiusRef;
 }
 
 }

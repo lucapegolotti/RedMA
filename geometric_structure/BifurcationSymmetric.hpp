@@ -33,6 +33,16 @@ public:
     }
 
 private:
+    Vector3D M_inletCenterRef;
+    Vector3D M_inletNormalRef;
+    Vector3D M_outlet1CenterRef;
+    Vector3D M_outlet1NormalRef;
+    Vector3D M_outlet2CenterRef;
+    Vector3D M_outlet2NormalRef;
+
+    double M_inletRadiusRef;
+    double M_outlet1RadiusRef;
+    double M_outlet2RadiusRef;
 };
 
 }  // namespace RedMA

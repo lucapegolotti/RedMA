@@ -37,7 +37,8 @@ print()
 BuildingBlock::
 BuildingBlock(commPtr_Type comm, bool verbose) :
   M_comm(comm),
-  M_verbose(verbose)
+  M_verbose(verbose),
+  M_isChild(false)
 {
     if (M_comm->MyPID() != 0)
         M_verbose = false;
@@ -192,54 +193,85 @@ applyAffineTransformation()
 {
     LifeV::MeshUtility::MeshTransformer<mesh_Type> transformer(*M_mesh);
 
-    double scale(M_parametersMap["scale"]);
+    Matrix3D R, R1, R2, R3;
+    double scale;
+    Vector3D scaleVec;
+    Vector3D rotation;
+    Vector3D translation;
 
-    Vector3D scaleVec(scale, scale, scale);
+    if (M_isChild)
+    {
+        R =  computeRotationMatrix(M_inletRotationAxis, M_inletAngle);
 
-    // with minus in front: counterclockwise rotation
-    Vector3D rotation(-M_parametersMap["alphax"],
-                      -M_parametersMap["alphay"],
-                      -M_parametersMap["alphaz"]);
+        translation = M_inletTranslation;
+        scale = M_inletScale;
 
-    Vector3D translation(M_parametersMap["bx"],
-                         M_parametersMap["by"],
-                         M_parametersMap["bz"]);
+        std::cout << "rotation axis" << std::endl;
+        std::cout << M_inletRotationAxis[0] << std::endl;
+        std::cout << M_inletRotationAxis[1] << std::endl;
+        std::cout << M_inletRotationAxis[2] << std::endl;
 
-    transformer.transformMesh(scaleVec, rotation, translation);
+        std::cout << "rotation angle" << std::endl;
+        std::cout << M_inletAngle << std::endl;
 
-    Matrix3D R, R1, R2, R3, S;
 
-    R1 = computeRotationMatrix(0, rotation[0]);
-    R2 = computeRotationMatrix(1, rotation[1]);
-    R3 = computeRotationMatrix(2, rotation[2]);
+        auto foo = std::bind(rotationFunction,
+                             std::placeholders::_1,
+                             std::placeholders::_2,
+                             std::placeholders::_3,
+                             R, translation, scale);
 
-    R = R1 * R2 * R3;
+        transformer.transformMesh(foo);
+    }
+    else
+    {
+        scale = M_parametersMap["scale"];
+        scaleVec[0] = scale; scaleVec[1] = scale; scaleVec[2] = scale;
+
+        // with minus in front: counterclockwise rotation
+        rotation[0] = -M_parametersMap["alphax"];
+        rotation[1] = -M_parametersMap["alphay"];
+        rotation[2] = -M_parametersMap["alphaz"];
+
+        translation[0] = M_parametersMap["bx"];
+        translation[1] = M_parametersMap["by"];
+        translation[2] = M_parametersMap["bz"];
+
+        transformer.transformMesh(scaleVec, rotation, translation);
+
+        R1 = computeRotationMatrix(0, rotation[0]);
+        R2 = computeRotationMatrix(1, rotation[1]);
+        R3 = computeRotationMatrix(2, rotation[2]);
+
+        R = R1 * R2 * R3;
+    }
 
     applyAffineTransformationGeometricFace(M_inlet,R,translation,scale);
     for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
          it != M_outlets.end(); it++)
     {
         applyAffineTransformationGeometricFace(*it, R, translation,scale);
+        it->print();
     }
 
     // Handle rotation along the axis of the inlet
     double angle = M_parametersMap["alpha_axis"];
 
     Matrix3D Raxis = computeRotationMatrix(M_inlet.M_normal,angle);
+    Vector3D transZero = M_inlet.M_center - Raxis * M_inlet.M_center;
 
     auto foo = std::bind(rotationFunction,
                          std::placeholders::_1,
                          std::placeholders::_2,
                          std::placeholders::_3,
-                         Raxis, M_inlet.M_center);
+                         Raxis, transZero, 1.0);
 
     transformer.transformMesh(foo);
 
     for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
          it != M_outlets.end(); it++)
     {
-        applyAffineTransformationGeometricFace(*it, Raxis, M_inlet.M_center -
-                                               Raxis * M_inlet.M_center, 1.0);
+        applyAffineTransformationGeometricFace(*it, Raxis, transZero, 1.0);
     }
 }
 
@@ -261,15 +293,13 @@ applyAffineTransformationGeometricFace(GeometricFace& face,
 void
 BuildingBlock::
 rotationFunction(double& x, double& y, double& z, const Matrix3D& affMatrix,
-               const Vector3D& transl)
+               const Vector3D& transl, const double& scale)
 {
     Vector3D vec;
     vec[0] = x; vec[1] = y; vec[2] = z;
 
-    vec = vec - transl;
-    vec = affMatrix * vec;
-
-    vec = vec + transl;
+    vec = vec * scale;
+    vec = affMatrix * vec + transl;
 
     x = vec[0];
     y = vec[1];
@@ -325,75 +355,21 @@ void
 BuildingBlock::
 mapChildInletToParentOutlet(GeometricFace parentOutlet)
 {
-    double scale = parentOutlet.M_radius / M_inlet.M_radius;
-    M_parametersMap["scale"] = scale;
+    M_isChild = true;
 
     Vector3D iNormal = -1 * M_inlet.M_normal;
     Vector3D oNormal = parentOutlet.M_normal;
     Vector3D iCenter = M_inlet.M_center;
     Vector3D oCenter = parentOutlet.M_center;
 
-    M_parametersMap["bx"] = oCenter[0] - iCenter[0];
-    M_parametersMap["by"] = oCenter[1] - iCenter[1];
-    M_parametersMap["bz"] = oCenter[2] - iCenter[2];
+    M_inletScale = parentOutlet.M_radius / M_inlet.M_radius;
 
-    unsigned int coors1[3] = {1,2,0};
-    unsigned int coors2[3] = {2,0,1};
+    M_inletTranslation = oCenter - iCenter;
 
-    std::vector<double> angles;
-    std::vector<double> dets;
-
-    // here we compute each angle by considering the projection of the vectors
-    // on the remaining plane (e.g. alphax->projection on yz)
-    for (int i = 0; i < 3; i++)
-    {
-
-        unsigned int i1 = coors1[i];
-        unsigned int i2 = coors2[i];
-
-        double norminl = std::sqrt(iNormal[i1] *
-                                   iNormal[i1] +
-                                   iNormal[i2] *
-                                   iNormal[i2]);
-
-        double normout = std::sqrt(oNormal[i1] *
-                                   oNormal[i1] +
-                                   oNormal[i2] *
-                                   oNormal[i2]);
-
-        double val;
-        if (norminl < 1e-14 || normout < 1e-14)
-        {
-            val = 1;
-            dets.push_back(0.0);
-        }
-        else
-        {
-            val = (iNormal[i1] * oNormal[i1] +
-                   iNormal[i2] * oNormal[i2]) /
-                   (norminl * normout);
-            double determ = iNormal[i1] * oNormal[i2] -
-                            iNormal[i2] * oNormal[i1];
-
-            dets.push_back(determ);
-        }
-        double angle;
-        if (dets[i] == 0)
-            angle = 0;
-        else if (dets[i] > 0)
-            angle = -std::acos(val) + M_PI;
-        else if (dets[i] < 0)
-            angle = std::acos(val);
-
-        Matrix3D R = computeRotationMatrix(i, angle);
-        oNormal = R * oNormal;
-
-        angles.push_back(angle);
-    }
-
-    M_parametersMap["alphax"] = angles[0];
-    M_parametersMap["alphay"] = angles[1];
-    M_parametersMap["alphaz"] = angles[2];
+    M_inletRotationAxis = iNormal.cross(oNormal);
+    M_inletRotationAxis = M_inletRotationAxis / M_inletRotationAxis.norm();
+    M_inletAngle = std::acos(iNormal.dot(oNormal) /
+                             (iNormal.norm() * oNormal.norm()));
 }
 
 void

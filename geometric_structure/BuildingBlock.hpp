@@ -118,7 +118,8 @@ protected:
     Matrix3D computeRotationMatrix(Vector3D axis, double angle);
 
     static  void rotationFunction(double& x, double& y, double& z,
-                                  const Matrix3D& affMatrix, const Vector3D& transl);
+                                  const Matrix3D& affMatrix,
+                                  const Vector3D& transl, const double& scale);
 
     std::map<std::string,double> M_parametersMap;
     std::string M_name;
@@ -134,6 +135,14 @@ protected:
 
     GeometricFace M_inlet;
     std::vector<GeometricFace> M_outlets;
+
+    bool M_isChild;
+
+    double M_inletScale;
+
+    Vector3D M_inletTranslation;
+    Vector3D M_inletRotationAxis;
+    double M_inletAngle;
 };
 
 }  // namespace RedMA
