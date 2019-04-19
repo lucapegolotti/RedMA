@@ -8,6 +8,7 @@ printlog(Color outColor, std::string text, bool verbose)
 {
     std::string sp = "  ";
     unsigned int hierarchy = 0;
+
     if (outColor == MAGENTA)
         hierarchy = 0;
     if (outColor == GREEN)

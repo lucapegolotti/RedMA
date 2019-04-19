@@ -44,28 +44,26 @@ run()
        it < M_subTests.end(); it++)
     {
         count++;
-        printlog(BLUE, "\tTest ");
-        printlog(BLUE, count);
-        printlog(BLUE, " ... \n");
+        std::string msgBlue = std::string("\tTest ") + std::to_string(count)
+                              + " ... \n";
+        printlog(BLUE, msgBlue);
 
         (*(*it))(*this);
     }
 
     if (M_successes == M_nTests)
     {
-        printlog(GREEN, "Successful asserts: ");
-        printlog(GREEN, M_successes);
-        printlog(GREEN, "/");
-        printlog(GREEN, M_nTests);
-        printlog(GREEN, "\n");
+        std::string msgGreen = std::string("Successful asserts: ") +
+                               std::to_string(M_successes) + "/" +
+                               std::to_string(M_nTests) + "\n";
+        printlog(GREEN, msgGreen);
     }
     else
     {
-        printlog(RED, "Successful asserts: ");
-        printlog(RED, M_successes);
-        printlog(RED, "/");
-        printlog(RED, M_nTests);
-        printlog(RED, "\n");
+        std::string msgRed = std::string("Successful asserts: ") +
+                             std::to_string(M_successes) + "/" +
+                             std::to_string(M_nTests) + "\n";
+        printlog(RED, msgRed);
     }
 }
 
