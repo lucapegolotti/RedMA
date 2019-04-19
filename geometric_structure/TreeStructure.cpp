@@ -11,8 +11,9 @@ TreeNode(std::shared_ptr<BuildingBlock> block, unsigned int id) :
 }
 
 TreeStructure::
-TreeStructure() :
-  M_maxID(0)
+TreeStructure(bool verbose) :
+  M_maxID(0),
+  M_verbose(verbose)
 {
 }
 

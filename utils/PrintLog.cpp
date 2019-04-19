@@ -6,9 +6,20 @@ namespace RedMA
 void
 printlog(Color outColor, std::string text, bool verbose)
 {
+    std::string sp = "  ";
+    unsigned int hierarchy = 0;
+    if (outColor == MAGENTA)
+        hierarchy = 0;
+    if (outColor == GREEN)
+        hierarchy = 1;
+    if (outColor == YELLOW)
+        hierarchy = 2;
+
     if(verbose)
     {
         std::cout << "\033[;" << outColor+30 << "m";
+        for (int i = 0; i < hierarchy; i++)
+            std::cout << sp;
         std::cout << text;
         std::cout << "\033[0m";
     }

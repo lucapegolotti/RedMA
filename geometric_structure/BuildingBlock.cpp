@@ -191,6 +191,9 @@ void
 BuildingBlock::
 applyAffineTransformation()
 {
+    printlog(MAGENTA, "[" + M_name +
+                    " BuildingBlock] applying affine transformation ...\n",
+                    M_verbose);
     LifeV::MeshUtility::MeshTransformer<mesh_Type> transformer(*M_mesh);
 
     Matrix3D R, R1, R2, R3;
@@ -201,6 +204,8 @@ applyAffineTransformation()
 
     if (M_isChild)
     {
+        printlog(GREEN, "[" + M_name +
+                     " BuildingBlock] conforming inlet/parent_outlet ...\n", M_verbose);
         R =  computeRotationMatrix(M_inletRotationAxis, M_inletAngle);
 
         translation = M_inletTranslation;
@@ -212,7 +217,32 @@ applyAffineTransformation()
                              std::placeholders::_3,
                              R, translation, scale);
 
+        std::string axisStr = std::string("(");
+        axisStr = axisStr + std::to_string(M_inletRotationAxis[0]) + ",";
+        axisStr = axisStr + std::to_string(M_inletRotationAxis[1]) + ",";
+        axisStr = axisStr + std::to_string(M_inletRotationAxis[2]) + ")";
+
+        printlog(YELLOW, "[" + M_name +
+                     " BuildingBlock] rotating about axis " + axisStr + " and" +
+                     " angle " + std::to_string(M_inletAngle) +
+                     ") ...\n", M_verbose);
+
+        std::string transStr = std::string("(");
+        transStr  = "(";
+        transStr = transStr + std::to_string(translation[0]) + ",";
+        transStr = transStr + std::to_string(translation[1]) + ",";
+        transStr = transStr + std::to_string(translation[2]) + ")";
+
+        printlog(YELLOW, "[" + M_name +
+                  " BuildingBlock] translating with vector " + transStr +
+                  " ...\n", M_verbose);
+
+        printlog(YELLOW, "[" + M_name +
+                " BuildingBlock] applying scaling of " + std::to_string(scale) +
+                " ...\n", M_verbose);
+
         transformer.transformMesh(foo);
+        printlog(GREEN, "done\n", M_verbose);
     }
     else
     {
@@ -263,6 +293,8 @@ applyAffineTransformation()
     {
         applyAffineTransformationGeometricFace(*it, Raxis, transZero, 1.0);
     }
+
+    printlog(MAGENTA, "done\n", M_verbose);
 }
 
 void
@@ -300,6 +332,10 @@ void
 BuildingBlock::
 dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
 {
+    printlog(MAGENTA, "[" + M_name +
+                    " BuildingBlock] dumping mesh to file ...\n",
+                    M_verbose);
+
     if (!M_mesh)
     {
         std::string msg = "Mesh has not been read yet!\n";
@@ -323,6 +359,8 @@ dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
     ct.redirect();
     exporter.postProcess(0.0);
     printlog(CYAN, ct.restore(), M_verbose);
+
+    printlog(MAGENTA, "done\n", M_verbose);
 }
 
 GeometricFace

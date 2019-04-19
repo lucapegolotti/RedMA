@@ -42,7 +42,7 @@ private:
     typedef std::shared_ptr<TreeNode> TreeNodePtr;
     typedef std::shared_ptr<BuildingBlock> BuildingBlockPtr;
 public:
-    TreeStructure();
+    TreeStructure(bool verbose = false);
 
     unsigned int addChild(unsigned int baseID,
                           BuildingBlockPtr blockToAdd);
@@ -70,6 +70,7 @@ private:
     unsigned int M_maxID;
     std::map<unsigned int, TreeNodePtr> M_nodesMap;
     unsigned int M_depth;
+    bool M_verbose;
 };
 
 }  // namespace RedMA
