@@ -88,7 +88,7 @@ int
 BuildingBlock::
 readMesh(std::string meshdir)
 {
-    printlog(GREEN, "[" + M_name +
+    printlog(MAGENTA, "[" + M_name +
                     " BuildingBlock] reading mesh ...\n",
                     M_verbose);
 
@@ -109,7 +109,7 @@ readMesh(std::string meshdir)
     M_mesh = meshPart.meshPartition();
 
     printlog(CYAN, ct.restore(), M_verbose);
-    printlog(GREEN, "done\n", M_verbose);
+    printlog(MAGENTA, "done\n", M_verbose);
 
     return 0;
 }
@@ -206,15 +206,6 @@ applyAffineTransformation()
         translation = M_inletTranslation;
         scale = M_inletScale;
 
-        std::cout << "rotation axis" << std::endl;
-        std::cout << M_inletRotationAxis[0] << std::endl;
-        std::cout << M_inletRotationAxis[1] << std::endl;
-        std::cout << M_inletRotationAxis[2] << std::endl;
-
-        std::cout << "rotation angle" << std::endl;
-        std::cout << M_inletAngle << std::endl;
-
-
         auto foo = std::bind(rotationFunction,
                              std::placeholders::_1,
                              std::placeholders::_2,
@@ -251,7 +242,6 @@ applyAffineTransformation()
          it != M_outlets.end(); it++)
     {
         applyAffineTransformationGeometricFace(*it, R, translation,scale);
-        it->print();
     }
 
     // Handle rotation along the axis of the inlet
@@ -328,7 +318,11 @@ dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
     exporter.addVariable(LifeV::ExporterData<mesh_Type>::ScalarField, "z",
                          dummyFespace, zero, 0);
     exporter.setPostDir(outdir);
+
+    CoutRedirecter ct;
+    ct.redirect();
     exporter.postProcess(0.0);
+    printlog(CYAN, ct.restore(), M_verbose);
 }
 
 GeometricFace

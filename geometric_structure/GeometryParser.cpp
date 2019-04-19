@@ -9,7 +9,7 @@ GeometryParser(std::string fileName, commPtr_Type comm,
   M_comm(comm),
   M_verbose(verbose)
 {
-    printlog(GREEN, "[GeometryParser] parsing " +
+    printlog(MAGENTA, "[GeometryParser] parsing " +
                     fileName + " structure file ...\n", M_verbose);
     tinyxml2::XMLDocument doc;
     doc.LoadFile(fileName.c_str());
@@ -18,7 +18,7 @@ GeometryParser(std::string fileName, commPtr_Type comm,
 
     traverseXML(rootElement, 0);
 
-    printlog(GREEN, "done\n", verbose);
+    printlog(MAGENTA, "done\n", verbose);
 }
 
 void
@@ -65,7 +65,7 @@ parseElement(const XMLEl *element)
 
     if (!std::strcmp(element->Attribute("type"), "tube"))
     {
-        printlog(CYAN, std::string("[GeometryParser] parsing building block") +
+        printlog(GREEN, std::string("[GeometryParser] parsing building block") +
                        " of type tube\n", M_verbose);
         returnBlock.reset(new Tube(M_comm, M_verbose));
     }
@@ -73,8 +73,8 @@ parseElement(const XMLEl *element)
                           "bifurcation_symmetric"))
     {
         std::string msg = std::string("[GeometryParser] parsing") +
-                  "building block of type bifurcation symmetric\n";
-        printlog(CYAN, msg, M_verbose);
+                  " building block of type bifurcation symmetric\n";
+        printlog(GREEN, msg, M_verbose);
         returnBlock.reset(new BifurcationSymmetric(M_comm, M_verbose));
     }
     else
@@ -100,14 +100,14 @@ parseElement(const XMLEl *element)
 
         if (value)
             parametersMap[paramName] = std::stod(value->GetText());
-        else
-        {
-            std::string warningMsg = "[GeometryParser] parameter " +
-            paramName + " is not set in the datafile and will be " +
-            "set to default value!\n";
-
-            printlog(YELLOW, warningMsg, M_verbose);
-        }
+        // else
+        // {
+        //     std::string warningMsg = "[GeometryParser] parameter " +
+        //     paramName + " is not set in the datafile and will be " +
+        //     "set to default value!\n";
+        //
+        //     printlog(YELLOW, warningMsg, M_verbose);
+        // }
     }
 
     return returnBlock;

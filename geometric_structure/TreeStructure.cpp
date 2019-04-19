@@ -46,6 +46,13 @@ addChild(unsigned int baseID, BuildingBlockPtr blockToAdd)
     std::shared_ptr<TreeNode> newNode(new TreeNode(blockToAdd,M_maxID));
     baseNode->M_children.push_back(newNode);
     newNode->M_depth = baseNode->M_depth + 1;
+    if (M_nodesMap.find(newNode->M_ID) != M_nodesMap.end())
+    {
+        std::string errorMsg = "Node tree with ID = " +
+                               std::to_string(newNode->M_ID) +
+                               " already exists!";
+        throw Exception(errorMsg);
+    }
     M_nodesMap[newNode->M_ID] = newNode;
     M_maxID++;
     M_depth = newNode->M_depth > M_depth ? newNode->M_depth : M_depth;
