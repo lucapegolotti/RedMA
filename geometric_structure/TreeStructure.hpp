@@ -34,6 +34,7 @@ public:
     std::shared_ptr<BuildingBlock> M_block;
     unsigned int M_ID;
     unsigned int M_depth;
+    unsigned int M_nChildren;
 };
 
 class TreeStructure
@@ -45,13 +46,13 @@ public:
     TreeStructure(bool verbose = false);
 
     unsigned int addChild(unsigned int baseID,
-                          BuildingBlockPtr blockToAdd);
+                          BuildingBlockPtr blockToAdd, int outletIndex = -1);
 
     void setRoot(BuildingBlockPtr blockHead);
 
     unsigned int getMaxID();
 
-    void print();
+    // void print();
 
     bool isEmpty();
 
@@ -64,7 +65,7 @@ public:
     void readMeshes(std::string meshdir);
 
 private:
-    std::vector<std::vector<std::string> > fillDepthVectors();
+    // std::vector<std::vector<std::string> > fillDepthVectors();
 
     TreeNodePtr M_root;
     unsigned int M_maxID;

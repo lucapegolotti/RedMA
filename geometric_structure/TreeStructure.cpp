@@ -6,8 +6,12 @@ namespace RedMA
 TreeNode::
 TreeNode(std::shared_ptr<BuildingBlock> block, unsigned int id) :
   M_block(block),
-  M_ID(id)
+  M_ID(id),
+  M_nChildren(0)
 {
+    M_children.resize(M_block->expectedNumberOfChildren());
+    for (int i = 0; i < M_block->expectedNumberOfChildren(); i++)
+        M_children[i] = nullptr;
 }
 
 TreeStructure::
@@ -26,7 +30,7 @@ getMaxID()
 
 unsigned int
 TreeStructure::
-addChild(unsigned int baseID, BuildingBlockPtr blockToAdd)
+addChild(unsigned int baseID, BuildingBlockPtr blockToAdd, int outletIndex)
 {
     if (M_nodesMap.find(baseID) == M_nodesMap.end())
     {
@@ -36,16 +40,34 @@ addChild(unsigned int baseID, BuildingBlockPtr blockToAdd)
     }
 
     TreeNodePtr baseNode = M_nodesMap[baseID];
-    if (baseNode->M_block->expectedNumberOfChildren() ==
-        baseNode->M_children.size())
+    // note: this ensures that 1) we don't add to many children when outlets
+    // are not specifies in the xml file, 2) we don't overwrite a already added
+    // child
+    if (baseNode->M_block->expectedNumberOfChildren() == baseNode->M_nChildren)
     {
         std::string errorMsg = "Node tree with ID = " +
                                std::to_string(baseNode->M_ID) +
                                " can not have other children!";
         throw Exception(errorMsg);
     }
+    if (outletIndex != -1 &&
+        baseNode->M_block->expectedNumberOfChildren() <= outletIndex)
+    {
+        std::string maxChildrenStr =
+                  std::to_string(baseNode->M_block->expectedNumberOfChildren());
+        std::string errorMsg = "Node tree with ID = " +
+                               std::to_string(baseNode->M_ID) +
+                               " is not compatible with outletIndex " +
+                               std::to_string(outletIndex) + " (max index = " +
+                               maxChildrenStr + ")";
+        throw Exception(errorMsg);
+    }
     std::shared_ptr<TreeNode> newNode(new TreeNode(blockToAdd,M_maxID));
-    baseNode->M_children.push_back(newNode);
+    if (outletIndex == -1)
+        baseNode->M_children[baseNode->M_nChildren] = newNode;
+    else
+        baseNode->M_children[outletIndex] = newNode;
+
     newNode->M_depth = baseNode->M_depth + 1;
     if (M_nodesMap.find(newNode->M_ID) != M_nodesMap.end())
     {
@@ -57,6 +79,7 @@ addChild(unsigned int baseID, BuildingBlockPtr blockToAdd)
     M_nodesMap[newNode->M_ID] = newNode;
     M_maxID++;
     M_depth = newNode->M_depth > M_depth ? newNode->M_depth : M_depth;
+    baseNode->M_nChildren++;
     return newNode->M_ID;
 }
 
@@ -84,60 +107,63 @@ isEmpty()
     return (M_nodesMap.size() == 0);
 }
 
-void
-TreeStructure::
-print()
-{
-    typedef std::vector<std::string> StringVector;
-    typedef std::vector<StringVector> StringVectorVector;
-    std::vector<StringVector> labels = fillDepthVectors();
+// void
+// TreeStructure::
+// print()
+// {
+//     typedef std::vector<std::string> StringVector;
+//     typedef std::vector<StringVector> StringVectorVector;
+//     std::vector<StringVector> labels = fillDepthVectors();
+//
+//     for (StringVectorVector::iterator it = labels.begin();
+//          it != labels.end(); it++)
+//     {
+//         for (StringVector::iterator jt = it->begin();
+//              jt != it->end(); jt++)
+//         {
+//             printlog(MAGENTA, *jt + "\t");
+//         }
+//         printlog(WHITE, "\n");
+//     }
+// }
 
-    for (StringVectorVector::iterator it = labels.begin();
-         it != labels.end(); it++)
-    {
-        for (StringVector::iterator jt = it->begin();
-             jt != it->end(); jt++)
-        {
-            printlog(MAGENTA, *jt + "\t");
-        }
-        printlog(WHITE, "\n");
-    }
-}
-
-std::vector<std::vector<std::string> >
-TreeStructure::
-fillDepthVectors()
-{
-    std::vector<std::vector<std::string> > returnVec(M_depth+1);
-    std::queue<TreeNodePtr> nodesQueue;
-    nodesQueue.push(M_root);
-
-    returnVec[0].push_back(M_root->M_block->name());
-    while (nodesQueue.size() != 0)
-    {
-        TreeNodePtr curNode = nodesQueue.front();
-        nodesQueue.pop();
-        typedef std::vector<TreeNodePtr> TreeNodesVector;
-        TreeNodesVector& children = curNode->M_children;
-        unsigned int expectedChildren =
-                     curNode->M_block->expectedNumberOfChildren();
-        for (int i = 0; i < expectedChildren; i++)
-        {
-            if (i < children.size())
-            {
-                TreeNodePtr curChild = children[i];
-                nodesQueue.push(curChild);
-                returnVec[curChild->M_depth].push_back(curChild->M_block->name());
-            }
-            else
-            {
-                returnVec[curNode->M_depth+1].push_back("NULL");
-            }
-        }
-    };
-
-    return returnVec;
-}
+// std::vector<std::vector<std::string> >
+// TreeStructure::
+// fillDepthVectors()
+// {
+//     std::vector<std::vector<std::string> > returnVec(M_depth+1);
+//     std::cout << "DEPTH = " << M_depth << std::endl;
+//     std::queue<TreeNodePtr> nodesQueue;
+//     nodesQueue.push(M_root);
+//
+//     returnVec[0].push_back(M_root->M_block->name());
+//     while (nodesQueue.size() != 0)
+//     {
+//         TreeNodePtr curNode = nodesQueue.front();
+//         nodesQueue.pop();
+//         typedef std::vector<TreeNodePtr> TreeNodesVector;
+//         TreeNodesVector& children = curNode->M_children;
+//         unsigned int expectedChildren =
+//                      curNode->M_block->expectedNumberOfChildren();
+//         for (int i = 0; i < expectedChildren; i++)
+//         {
+//             TreeNodePtr curChild = children[i];
+//             if (curChild != nullptr)
+//             {
+//                 std::cout << "curChild->M_depth = " << curChild->M_depth << std::endl;
+//                 nodesQueue.push(curChild);
+//                 returnVec[curChild->M_depth].push_back(curChild->M_block->name());
+//             }
+//             else
+//             {
+//                 std::cout << "curChild->M_depth+1 = " << curChild->M_depth+1 << std::endl;
+//                 returnVec[curNode->M_depth].push_back("NULL");
+//             }
+//         }
+//     };
+//
+//     return returnVec;
+// }
 
 void
 TreeStructure::
@@ -156,11 +182,12 @@ traverseAndDeformGeometries()
                      curNode->M_block->expectedNumberOfChildren();
         for (int i = 0; i < expectedChildren; i++)
         {
-            if (i < children.size())
+            TreeNodePtr curChild = children[i];
+
+            if (curChild)
             {
                 GeometricFace curFace = curNode->M_block->getOutlet(i);
 
-                TreeNodePtr curChild = children[i];
                 curChild->M_block->mapChildInletToParentOutlet(curFace);
                 nodesQueue.push(curChild);
             }

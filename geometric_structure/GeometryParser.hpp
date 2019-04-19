@@ -49,7 +49,7 @@ public:
     TreeStructure& getTree();
 
 private:
-    BuildingBlockPtr parseElement(const XMLEl* element);
+    BuildingBlockPtr parseElement(const XMLEl* element, unsigned int& outletParent);
 
     commPtr_Type M_comm;
     TreeStructure M_tree;

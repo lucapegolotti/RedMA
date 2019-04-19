@@ -42,12 +42,6 @@ int main(int argc, char **argv)
     tree.readMeshes("../geometries/");
     tree.traverseAndDeformGeometries();
     tree.dump("output/","../geometries/");
-    // Tube tube(comm,true);
-    // tube.readMesh("../geometries/");
-    // tube.setParameterValue("alphax",0.2);
-    // tube.setParameterValue("alphay",0.3);
-    // tube.applyAffineTransformation();
-    // tube.dumpMesh("output/", "../geometries/", "hello");
 
     return 0;
 }

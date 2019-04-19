@@ -27,20 +27,17 @@ traverseXML(tinyxml2::XMLElement* curElement,
             unsigned int IDfather)
 {
     std::shared_ptr<BuildingBlock> newNode;
+    unsigned int outletParent = -1;
     if (curElement)
-        newNode = parseElement(curElement);
+        newNode = parseElement(curElement, outletParent);
     else
         return;
 
     unsigned int newID = 0;
     if (M_tree.isEmpty())
-    {
         M_tree.setRoot(newNode);
-    }
     else
-    {
-        newID = M_tree.addChild(IDfather, newNode);
-    }
+        newID = M_tree.addChild(IDfather, newNode, outletParent);
 
     if (curElement->NoChildren())
         return;
@@ -50,18 +47,24 @@ traverseXML(tinyxml2::XMLElement* curElement,
     while(childElement)
     {
         if (childElement->Attribute("type"))
-        {
             traverseXML(childElement, newID);
-        }
         childElement = childElement->NextSiblingElement();
     }
 }
 
 GeometryParser::BuildingBlockPtr
 GeometryParser::
-parseElement(const XMLEl *element)
+parseElement(const XMLEl *element, unsigned int& outletParent)
 {
     BuildingBlockPtr returnBlock;
+
+    outletParent = -1;
+    if (element->Attribute("outlet"))
+    {
+        // decrease by one because we want numbering of outlets to start from
+        // 1
+        outletParent = std::stoi(element->Attribute("outlet")) - 1;
+    }
 
     if (!std::strcmp(element->Attribute("type"), "tube"))
     {
