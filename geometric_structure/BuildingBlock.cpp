@@ -205,7 +205,8 @@ applyAffineTransformation()
     if (M_isChild)
     {
         printlog(GREEN, "[" + M_name +
-                     " BuildingBlock] conforming inlet/parent_outlet ...\n", M_verbose);
+                     " BuildingBlock] is child: conforming inlet/parent_outlet ...\n",
+                     M_verbose);
         R =  computeRotationMatrix(M_inletRotationAxis, M_inletAngle);
 
         translation = M_inletTranslation;
@@ -225,7 +226,7 @@ applyAffineTransformation()
         printlog(YELLOW, "[" + M_name +
                      " BuildingBlock] rotating about axis " + axisStr + " and" +
                      " angle " + std::to_string(M_inletAngle) +
-                     ") ...\n", M_verbose);
+                     " ...\n", M_verbose);
 
         std::string transStr = std::string("(");
         transStr  = "(";
@@ -246,6 +247,9 @@ applyAffineTransformation()
     }
     else
     {
+        printlog(GREEN, "[" + M_name +
+                     " BuildingBlock] is root: applying initial affine transformation ...\n",
+                     M_verbose);
         scale = M_parametersMap["scale"];
         scaleVec[0] = scale; scaleVec[1] = scale; scaleVec[2] = scale;
 
@@ -258,13 +262,38 @@ applyAffineTransformation()
         translation[1] = M_parametersMap["by"];
         translation[2] = M_parametersMap["bz"];
 
+        std::string angleStr = std::string("(");
+        angleStr = angleStr + std::to_string(rotation[0]) + ",";
+        angleStr = angleStr + std::to_string(rotation[1]) + ",";
+        angleStr = angleStr + std::to_string(rotation[2]) + ")";
+
+        printlog(YELLOW, "[" + M_name +
+                     " BuildingBlock] rotating with angles " + angleStr + " and" +
+                     " ...\n", M_verbose);
+
+
+        std::string transStr = std::string("(");
+        transStr  = "(";
+        transStr = transStr + std::to_string(translation[0]) + ",";
+        transStr = transStr + std::to_string(translation[1]) + ",";
+        transStr = transStr + std::to_string(translation[2]) + ")";
+
+        printlog(YELLOW, "[" + M_name +
+               " BuildingBlock] translating with vector " + transStr +
+               " ...\n", M_verbose);
+
         transformer.transformMesh(scaleVec, rotation, translation);
 
         R1 = computeRotationMatrix(0, rotation[0]);
         R2 = computeRotationMatrix(1, rotation[1]);
         R3 = computeRotationMatrix(2, rotation[2]);
 
+        printlog(YELLOW, "[" + M_name +
+                " BuildingBlock] applying scaling of " + std::to_string(scale) +
+                " ...\n", M_verbose);
+
         R = R1 * R2 * R3;
+        printlog(GREEN, "done\n", M_verbose);
     }
 
     applyAffineTransformationGeometricFace(M_inlet,R,translation,scale);
