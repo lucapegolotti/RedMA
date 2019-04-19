@@ -398,7 +398,7 @@ getOutlet(unsigned int outletIndex) const
 {
     if (outletIndex >= M_outlets.size())
     {
-        std::string msg = "Requesting acess to outlet that does not exist!";
+        std::string msg = "Requesting access to outlet that does not exist!";
         throw Exception(msg);
     }
 
