@@ -12,7 +12,13 @@ GeometryParser(std::string fileName, commPtr_Type comm,
     printlog(MAGENTA, "[GeometryParser] parsing " +
                     fileName + " structure file ...\n", M_verbose);
     tinyxml2::XMLDocument doc;
-    doc.LoadFile(fileName.c_str());
+    int status = doc.LoadFile(fileName.c_str());
+
+    if (status)
+    {
+        std::string errorMsg = "[GeometryParser] " + fileName + " does not exist!";
+        throw Exception(errorMsg);
+    }
 
     tinyxml2::XMLElement* rootElement = doc.FirstChildElement();
 
@@ -103,14 +109,6 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
 
         if (value)
             parametersMap[paramName] = std::stod(value->GetText());
-        // else
-        // {
-        //     std::string warningMsg = "[GeometryParser] parameter " +
-        //     paramName + " is not set in the datafile and will be " +
-        //     "set to default value!\n";
-        //
-        //     printlog(YELLOW, warningMsg, M_verbose);
-        // }
     }
 
     return returnBlock;

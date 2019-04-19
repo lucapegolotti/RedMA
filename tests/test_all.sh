@@ -7,3 +7,4 @@ echo ===========================================
 ./TestTube
 ./TestTreeStructure
 ./TestBifurcationSymmetric
+./TestGeometryParser
