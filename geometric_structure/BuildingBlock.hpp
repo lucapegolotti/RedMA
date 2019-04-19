@@ -86,7 +86,7 @@ public:
 
     std::map<std::string,double>& getParametersMap();
 
-    int readMesh(std::string meshdir);
+    int readMesh(std::string meshdir = "../geometries/");
 
     virtual inline unsigned int expectedNumberOfChildren() = 0;
 
@@ -106,6 +106,8 @@ public:
     GeometricFace getInlet() const;
 
     void mapChildInletToParentOutlet(GeometricFace parentOutlet);
+
+    void setIsChild(bool isChild);
 
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,

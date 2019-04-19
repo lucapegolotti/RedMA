@@ -62,7 +62,7 @@ public:
 
     void dump(std::string outdir, std::string meshdir);
 
-    void readMeshes(std::string meshdir);
+    void readMeshes(std::string meshdir = "../geometries/");
 
 private:
     // std::vector<std::vector<std::string> > fillDepthVectors();

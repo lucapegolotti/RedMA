@@ -194,6 +194,12 @@ applyAffineTransformation()
     printlog(MAGENTA, "[" + M_name +
                     " BuildingBlock] applying affine transformation ...\n",
                     M_verbose);
+    if (!M_mesh)
+    {
+        std::string errorMsg = std::string("[") + M_name + " BuildingBlock] " +
+                               " mesh has not being read!";
+        throw Exception(errorMsg);
+    }
     LifeV::MeshUtility::MeshTransformer<mesh_Type> transformer(*M_mesh);
 
     Matrix3D R, R1, R2, R3;
@@ -445,6 +451,13 @@ applyGlobalTransformation()
 {
     applyAffineTransformation();
     applyNonLinearTransformation();
+}
+
+void
+BuildingBlock::
+setIsChild(bool isChild)
+{
+    M_isChild = isChild;
 }
 
 }  // namespace BuildingBlock

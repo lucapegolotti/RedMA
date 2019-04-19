@@ -21,8 +21,11 @@
 #include <Epetra_SerialComm.h>
 #endif
 
+#include <stdlib.h>
+#include <time.h>
 #include <iostream>
 #include <string>
+
 #include <Test.hpp>
 #include <Tube.hpp>
 
@@ -48,6 +51,64 @@ void subTest2(Test& test)
     test.assertTrue(tube.readMesh("../geometries/") == 0);
 }
 
+void subTest3(Test& test)
+{
+    typedef std::shared_ptr<Tube> TubePtr;
+    typedef LifeV::VectorSmall<3> Vector3D;
+    // we impose a random affine transformation and check if the child tube
+    // stay attached to the first one
+    srand(time(NULL));
+
+    TubePtr tube1(new Tube(test.getComm()));
+    TubePtr tube2(new Tube(test.getComm()));
+    tube2->setIsChild(true);
+
+    tube1->setIsChild(false);
+    tube1->setParameterValue("alphax", rand());
+    tube1->setParameterValue("alphay", rand());
+    tube1->setParameterValue("alphaz", rand());
+    tube1->setParameterValue("bx", rand());
+    tube1->setParameterValue("by", rand());
+    tube1->setParameterValue("bz", rand());
+    tube1->setParameterValue("scale", 0.123);
+    try
+    {
+        // we check if assert on mesh being read holds
+        tube1->applyAffineTransformation();
+        test.assertTrue(false);
+    }
+    catch (Exception& e)
+    {
+        test.assertTrue(true);
+        tube1->readMesh();
+        tube1->applyAffineTransformation();
+    }
+    GeometricFace inlet = tube1->getInlet();
+
+    const double tol = 1e-14;
+
+    // we check if the inlet has been moved
+    Vector3D res = inlet.M_center - Vector3D(0,0,0);
+    test.assertTrue(res.norm() > tol);
+
+    res = inlet.M_normal - Vector3D(0,0,-1);
+    test.assertTrue(res.norm() > tol);
+
+    tube2->mapChildInletToParentOutlet(tube1->getOutlet(0));
+    tube2->readMesh();
+    tube2->applyAffineTransformation();
+
+    res = tube1->getOutlet(0).M_center - tube2->getInlet().M_center;
+    test.assertTrue(res.norm() < tol);
+
+    // normals must have opposite sign
+    res = tube1->getOutlet(0).M_normal + tube2->getInlet().M_normal;
+    test.assertTrue(res.norm() < tol);
+
+    test.assertTrue(std::abs(tube1->getOutlet(0).M_radius -
+                             tube2->getInlet().M_radius) < tol);
+}
+
 int main()
 {
     #ifdef HAVE_MPI
@@ -60,6 +121,7 @@ int main()
     Test test("TubeTest",comm);
     test.addSubTest(*subTest1);
     test.addSubTest(*subTest2);
+    test.addSubTest(*subTest3);
     test.run();
 
     return 0;
