@@ -44,8 +44,43 @@ Tube(commPtr_Type comm, bool verbose) :
     // the keys will be used in the parser to check the values in the XML file
     // center of inlet
     M_parametersMap["bend"] = 0.0;
-    M_parametersMap["r0"] = M_inletRadiusRef;
-    M_parametersMap["r1"] = M_outletRadiusRef;
+    M_parametersMap["L_ratio"] = 1.0;
+    M_parametersMap["Rout_ratio"] = 1.0;
+}
+
+void
+Tube::
+applyNonAffineTransformation()
+{
+    LifeV::MeshUtility::MeshTransformer<mesh_Type> transformer(*M_mesh);
+    nonAffineScaling(M_parametersMap["L_ratio"], M_parametersMap["Rout_ratio"],
+                     transformer);
+}
+
+void
+Tube::
+nonAffineScaling(const double lengthRatio, const double radiusRatio,
+                 Tube::Transformer& transformer)
+{
+    auto foo = std::bind(scalingFunction, std::placeholders::_1,
+                         std::placeholders::_2, std::placeholders::_3,
+                         lengthRatio, radiusRatio);
+    transformer.transformMesh(foo);
+
+    M_outlets[0].M_radius = M_outlets[0].M_radius * radiusRatio;
+    M_outlets[0].M_center[2] = M_outlets[0].M_center[2] * lengthRatio;
+}
+
+void
+Tube::
+scalingFunction(double& x, double& y, double& z,
+                const double lenghtRatio, const double outRadiusRatio)
+{
+    // 15 is the length of the tube
+    double curRatio = 1. - (1. - outRadiusRatio) * z / 15.0;
+    z = z * lenghtRatio;
+    x = x * curRatio;
+    y = y * curRatio;
 }
 
 }

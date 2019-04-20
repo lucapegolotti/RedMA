@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <GeometryParser.hpp>
+#include <TreeStructure.hpp>
+
 #include <Epetra_ConfigDefs.h>
 #ifdef EPETRA_MPI
 #include <mpi.h>
@@ -21,9 +24,6 @@
 #else
 #include <Epetra_SerialComm.h>
 #endif
-
-#include <Tube.hpp>
-#include <NonAffineDeformer.hpp>
 
 using namespace RedMA;
 
@@ -36,12 +36,12 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    Tube tube(comm);
-    tube.readMesh();
-    tube.setParameterValue("Rout_ratio", 0.7);
-    tube.setParameterValue("L_ratio", 1.2);
-    tube.applyNonAffineTransformation();
-    tube.dumpMesh("output/", "../geometries/", "deformedTube");
+    GeometryParser gParser("data/artery2.xml", comm, true);
+
+    TreeStructure& tree = gParser.getTree();
+    tree.readMeshes("../geometries/");
+    tree.traverseAndDeformGeometries();
+    tree.dump("output/","../geometries/");
 
     return 0;
 }

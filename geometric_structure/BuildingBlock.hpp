@@ -94,7 +94,7 @@ public:
 
     void applyAffineTransformation();
 
-    void applyNonLinearTransformation();
+    virtual void applyNonAffineTransformation() = 0;
 
     void applyGlobalTransformation();
 
@@ -108,6 +108,8 @@ public:
     void mapChildInletToParentOutlet(GeometricFace parentOutlet);
 
     void setIsChild(bool isChild);
+
+    meshPtr_Type getMesh();
 
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,

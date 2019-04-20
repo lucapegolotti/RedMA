@@ -32,6 +32,8 @@ public:
         return 2;
     }
 
+    virtual void applyNonAffineTransformation();
+
 private:
     Vector3D M_inletCenterRef;
     Vector3D M_inletNormalRef;

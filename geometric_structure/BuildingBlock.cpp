@@ -436,21 +436,15 @@ mapChildInletToParentOutlet(GeometricFace parentOutlet)
     M_inletRotationAxis = iNormal.cross(oNormal);
     M_inletRotationAxis = M_inletRotationAxis / M_inletRotationAxis.norm();
     M_inletAngle = std::acos(iNormal.dot(oNormal) /
-                             (iNormal.norm() * oNormal.norm()));
-}
-
-void
-BuildingBlock::
-applyNonLinearTransformation()
-{
+                            (iNormal.norm() * oNormal.norm()));
 }
 
 void
 BuildingBlock::
 applyGlobalTransformation()
 {
+    applyNonAffineTransformation();
     applyAffineTransformation();
-    applyNonLinearTransformation();
 }
 
 void
@@ -458,6 +452,13 @@ BuildingBlock::
 setIsChild(bool isChild)
 {
     M_isChild = isChild;
+}
+
+BuildingBlock::meshPtr_Type
+BuildingBlock::
+getMesh()
+{
+    return M_mesh;
 }
 
 }  // namespace BuildingBlock

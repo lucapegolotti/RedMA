@@ -58,4 +58,11 @@ BifurcationSymmetric(commPtr_Type comm, bool verbose) :
     M_parametersMap["r2"] = M_outlet1RadiusRef;
 }
 
+void
+BifurcationSymmetric::
+applyNonAffineTransformation()
+{
+
+}
+
 }

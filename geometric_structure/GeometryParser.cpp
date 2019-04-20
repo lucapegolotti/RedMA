@@ -16,7 +16,8 @@ GeometryParser(std::string fileName, commPtr_Type comm,
 
     if (status)
     {
-        std::string errorMsg = "[GeometryParser] " + fileName + " does not exist!";
+        std::string errorMsg = "[GeometryParser] " + fileName + " does not " +
+        " exist, or it is badly formatted!";
         throw Exception(errorMsg);
     }
 

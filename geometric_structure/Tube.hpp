@@ -24,6 +24,7 @@ namespace RedMA
 
 class Tube : public BuildingBlock
 {
+    typedef LifeV::MeshUtility::MeshTransformer<mesh_Type> Transformer;
 public:
     Tube(commPtr_Type comm, bool verbose = false);
 
@@ -32,7 +33,17 @@ public:
         return 1;
     }
 
+    virtual void applyNonAffineTransformation();
+
 private:
+    void nonAffineScaling(const double lengthRatio,
+                          const double outRadiusRatio,
+                          Transformer& transformer);
+
+    static void scalingFunction(double& x, double& y, double& z,
+                                const double lenghtRatio,
+                                const double outRadiusRatio);
+
     Vector3D M_inletCenterRef;
     Vector3D M_inletNormalRef;
     Vector3D M_outletCenterRef;
