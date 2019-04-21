@@ -64,6 +64,8 @@ public:
 
     void readMeshes(std::string meshdir = "../geometries/");
 
+    void createRandom(unsigned int blocksNumber);
+
 private:
     // std::vector<std::vector<std::string> > fillDepthVectors();
 

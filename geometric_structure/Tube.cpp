@@ -40,13 +40,16 @@ Tube(commPtr_Type comm, bool verbose) :
     M_inlet = inlet;
     M_outlets.push_back(outlet);
 
-    // it is important to fill parametersMap right at this level because then
+    // it is important to fill parametersHandler right at this level because then
     // the keys will be used in the parser to check the values in the XML file
     // center of inlet
-    M_parametersMap["bend"] = 0.0;
-    M_parametersMap["L_ratio"] = 1.0;
-    M_parametersMap["Rout_ratio"] = 1.0;
-    M_parametersMap["use_linear_elasticity"] = 0.0;
+
+    double infty = GeometricParametersHandler::infty;
+
+    M_parametersHandler.registerParameter("bend", 0.0, 0.0, M_PI/2);
+    M_parametersHandler.registerParameter("L_ratio", 1.0, 0.0, infty);
+    M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.0);
+    M_parametersHandler.registerParameter("use_linear_elasticity", 0.0, 0.0, 1.0);
 }
 
 void
@@ -57,10 +60,11 @@ applyNonAffineTransformation()
                     " BuildingBlock] applying non affine transformation ...\n",
                     M_verbose);
     LifeV::MeshUtility::MeshTransformer<mesh_Type> transformer(*M_mesh);
-    nonAffineScaling(M_parametersMap["L_ratio"], M_parametersMap["Rout_ratio"],
+    nonAffineScaling(M_parametersHandler["L_ratio"],
+                     M_parametersHandler["Rout_ratio"],
                      transformer);
 
-    bend(M_parametersMap["bend"], transformer);
+    bend(M_parametersHandler["bend"], transformer);
     printlog(MAGENTA, "done\n", M_verbose);
 }
 
@@ -105,7 +109,7 @@ bend(const double& bendAngle, Transformer& transformer)
 
     if (bendAngle > 1e-5)
     {
-        if (M_parametersMap["use_linear_elasticity"])
+        if (M_parametersHandler["use_linear_elasticity"])
         {
             using namespace std::placeholders;
 

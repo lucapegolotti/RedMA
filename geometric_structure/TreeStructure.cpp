@@ -230,4 +230,11 @@ readMeshes(std::string meshdir)
     }
 }
 
+void
+TreeStructure::
+createRandom(unsigned int blocksNumber)
+{
+    
+}
+
 }  // namespace RedMA

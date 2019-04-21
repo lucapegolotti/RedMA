@@ -25,6 +25,7 @@
 
 #include <Exception.hpp>
 #include <PrintLog.hpp>
+#include <GeometricParametersHandler.hpp>
 
 #include <lifev/core/mesh/RegionMesh.hpp>
 #include <lifev/core/mesh/MeshData.hpp>
@@ -84,7 +85,8 @@ public:
 
     void setParameterValue(std::string key, double value);
 
-    std::map<std::string,double>& getParametersMap();
+    std::map<std::string,std::shared_ptr<GeometricParameter> >&
+                                                             getParametersMap();
 
     int readMesh(std::string meshdir = "../geometries/");
 
@@ -127,7 +129,7 @@ protected:
                                   const Matrix3D& affMatrix,
                                   const Vector3D& transl, const double& scale);
 
-    std::map<std::string,double> M_parametersMap;
+    GeometricParametersHandler M_parametersHandler;
     std::string M_name;
 
     std::string M_meshName;

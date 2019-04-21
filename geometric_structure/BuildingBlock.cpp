@@ -50,45 +50,35 @@ BuildingBlock(commPtr_Type comm, bool verbose) :
     if (M_comm->MyPID() != 0)
         M_verbose = false;
 
+    double infty = GeometricParametersHandler::infty;
+
     // rotation angle
-    M_parametersMap["alphax"] = 0.0;
-    M_parametersMap["alphay"] = 0.0;
-    M_parametersMap["alphaz"] = 0.0;
-    M_parametersMap["alpha_axis"] = 0.0;
+    M_parametersHandler.registerParameter("alphax", 0.0, -infty, infty);
+    M_parametersHandler.registerParameter("alphay", 0.0, -infty, infty);
+    M_parametersHandler.registerParameter("alphaz", 0.0, -infty, infty);
+    M_parametersHandler.registerParameter("alpha_axis", 0.0, -infty, infty);
 
     // scale
-    M_parametersMap["scale"] = 1.0;
+    M_parametersHandler.registerParameter("scale", 1.0, 0.0, infty);
 
     // translation
-    M_parametersMap["bx"] = 0.0;
-    M_parametersMap["by"] = 0.0;
-    M_parametersMap["bz"] = 0.0;
+    M_parametersHandler.registerParameter("bx", 0.0, -infty, infty);
+    M_parametersHandler.registerParameter("by", 1.0, -infty, infty);
+    M_parametersHandler.registerParameter("bz", 1.0, -infty, infty);
 }
 
 void
 BuildingBlock::
 setParameterValue(std::string key, double value)
 {
-    if (M_parametersMap.find(key) != M_parametersMap.end())
-    {
-        M_parametersMap[key] = value;
-    }
-    else
-    {
-        std::string errorMsg =
-                     "Parameter with key " + key + " and value " +
-                     std::to_string(value) + " is not contained" +
-                     " in " + M_name + " building block!\n";
-
-        throw Exception(errorMsg);
-    }
+    M_parametersHandler.setParameterValue(key, value);
 }
 
-std::map<std::string,double>&
+std::map<std::string,std::shared_ptr<GeometricParameter> >&
 BuildingBlock::
 getParametersMap()
 {
-    return M_parametersMap;
+    return M_parametersHandler.getParametersMap();
 }
 
 int
@@ -263,17 +253,17 @@ applyAffineTransformation()
         printlog(GREEN, "[" + M_name +
                      " BuildingBlock] is root: applying initial affine transformation ...\n",
                      M_verbose);
-        scale = M_parametersMap["scale"];
+        scale = M_parametersHandler["scale"];
         scaleVec[0] = scale; scaleVec[1] = scale; scaleVec[2] = scale;
 
         // with minus in front: counterclockwise rotation
-        rotation[0] = -M_parametersMap["alphax"];
-        rotation[1] = -M_parametersMap["alphay"];
-        rotation[2] = -M_parametersMap["alphaz"];
+        rotation[0] = -M_parametersHandler["alphax"];
+        rotation[1] = -M_parametersHandler["alphay"];
+        rotation[2] = -M_parametersHandler["alphaz"];
 
-        translation[0] = M_parametersMap["bx"];
-        translation[1] = M_parametersMap["by"];
-        translation[2] = M_parametersMap["bz"];
+        translation[0] = M_parametersHandler["bx"];
+        translation[1] = M_parametersHandler["by"];
+        translation[2] = M_parametersHandler["bz"];
 
         std::string angleStr = std::string("(");
         angleStr = angleStr + std::to_string(rotation[0]) + ",";
@@ -317,7 +307,7 @@ applyAffineTransformation()
     }
 
     // Handle rotation along the axis of the inlet
-    double angle = M_parametersMap["alpha_axis"];
+    double angle = M_parametersHandler["alpha_axis"];
 
     Matrix3D Raxis = computeRotationMatrix(M_inlet.M_normal,angle);
     Vector3D transZero = M_inlet.M_center - Raxis * M_inlet.M_center;

@@ -1,40 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <buildingblock type="tube">
   <buildingblock type="bifurcation_symmetric">
-    <buildingblock type="bifurcation_symmetric">
-      <buildingblock type="tube" outlet="2">
-        <bend>0.0</bend>
-        <r0>3.0</r0>
-        <r1>3.0</r1>
-        <alpha_axis>1.0</alpha_axis>
+      <buildingblock type="tube">
+          <buildingblock type="bifurcation_symmetric">
+              <alpha_axis>0.6</alpha_axis>
+          </buildingblock>
+          <Rout_ratio>0.6</Rout_ratio>
+          <bend>0.4</bend>
+          <alpha_axis>0.2</alpha_axis>
       </buildingblock>
-	  <bend>0.0</bend>
-      <r0>3.0</r0>
-      <r1>3.0</r1>
-      <alpha_axis>2.0</alpha_axis>
-    </buildingblock>
-
-    <buildingblock type="bifurcation_symmetric">
-      <bend>0.0</bend>
-      <r0>3.0</r0>
-      <r1>3.0</r1>
-      <alpha_axis>1.0</alpha_axis>
-    </buildingblock>
-
-    <bend>0.0</bend>
-    <r0>3.0</r0>
-    <r1>3.0</r1>
-    <alpha_axis>2.0</alpha_axis>
+      <buildingblock type="bifurcation_symmetric">
+          <alpha_axis>0.1</alpha_axis>
+      </buildingblock>
   </buildingblock>
 
-  <alphax>1.5</alphax>
+  <alphax>0</alphax>
   <alphay>1.0</alphay>
   <alphaz>-4.0</alphaz>
   <bx>0.0</bx>
   <by>0.0</by>
   <bz>0.0</bz>
   <scale>1.0</scale>
-  <bend>0.0</bend>
-  <r0>3.0</r0>
-  <r1>3.0</r1>
+  <bend>0.2</bend>
+  <Rout_ratio>0.7</Rout_ratio>
 </buildingblock>

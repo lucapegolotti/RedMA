@@ -96,10 +96,11 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
         printlog(YELLOW, warningMsg, M_verbose);
     }
 
-    std::map<std::string,double>& parametersMap =
+    typedef std::shared_ptr<GeometricParameter> GeometricParameterPtr;
+    std::map<std::string,GeometricParameterPtr>& parametersMap =
                                   returnBlock->getParametersMap();
 
-    typedef std::map<std::string,double>::iterator MapIterator;
+    typedef std::map<std::string,GeometricParameterPtr>::iterator MapIterator;
 
     for (MapIterator it = parametersMap.begin();
          it != parametersMap.end(); it++)
@@ -109,7 +110,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
                     element->FirstChildElement(paramName.c_str());
 
         if (value)
-            parametersMap[paramName] = std::stod(value->GetText());
+            *parametersMap[paramName] = std::stod(value->GetText());
     }
 
     return returnBlock;

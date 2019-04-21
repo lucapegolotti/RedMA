@@ -49,13 +49,6 @@ BifurcationSymmetric(commPtr_Type comm, bool verbose) :
     M_outlets.push_back(outlet1);
     M_outlets.push_back(outlet2);
 
-    // it is important to fill parametersMap right at this level because then
-    // the keys will be used in the parser to check the values in the XML file
-    // center of inlet
-    M_parametersMap["bend"] = 0.0;
-    M_parametersMap["r0"] = M_inletRadiusRef;
-    M_parametersMap["r1"] = M_outlet1RadiusRef;
-    M_parametersMap["r2"] = M_outlet1RadiusRef;
 }
 
 void
