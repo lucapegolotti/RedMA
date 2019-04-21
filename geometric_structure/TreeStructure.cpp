@@ -232,9 +232,45 @@ readMeshes(std::string meshdir)
 
 void
 TreeStructure::
-createRandom(unsigned int blocksNumber)
+createRandom(unsigned int blocksNumber, std::shared_ptr<Epetra_Comm> comm)
 {
-    
+    srand(time(NULL));
+    for (int i = 0; i < blocksNumber; i++)
+    {
+        const unsigned int numberClasses = 4;
+        std::shared_ptr<BuildingBlock> newBlock;
+
+        int chosenClass = rand() % numberClasses;
+        if (chosenClass == 0)
+        {
+            printlog(MAGENTA, "[TreeStructure] Initializing tube\n", M_verbose);
+            newBlock.reset(new Tube(comm, M_verbose));
+        }
+        else
+        {
+            printlog(MAGENTA, std::string("[TreeStructure] Initializing ") +
+                              " bifurcation symmetric\n", M_verbose);
+            newBlock.reset(new BifurcationSymmetric(comm, M_verbose));
+        }
+        newBlock->setRandom();
+
+        if (i == 0)
+            setRoot(newBlock);
+        else
+        {
+            int a = 0;
+            for (auto it = M_nodesMap.begin(); it != M_nodesMap.end(); it++)
+            {
+                unsigned int id = it->first;
+                if (it->second->M_nChildren <
+                    it->second->M_block->expectedNumberOfChildren())
+                {
+                    addChild(id, newBlock);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 }  // namespace RedMA

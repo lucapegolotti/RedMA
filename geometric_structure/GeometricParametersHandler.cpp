@@ -5,11 +5,13 @@ namespace RedMA
 
 GeometricParameter::
 GeometricParameter(std::string name, const double& value,
-                   const double& minValue, const double& maxValue) :
+                   const double& minValue, const double& maxValue,
+                   bool randomizible) :
   M_name(name),
   M_value(value),
   M_minValue(minValue),
-  M_maxValue(maxValue)
+  M_maxValue(maxValue),
+  M_randomizible(randomizible)
 {
 }
 
@@ -20,6 +22,14 @@ GeometricParameter(const GeometricParameter& other)
     M_value = other.M_value;
     M_minValue = other.M_minValue;
     M_maxValue = other.M_maxValue;
+    M_randomizible = other.M_randomizible;
+}
+
+std::string
+GeometricParameter::
+name()
+{
+    return M_name;
 }
 
 void
@@ -37,12 +47,21 @@ getValue()
     return M_value;
 }
 
+bool
+GeometricParameter::
+isRandomizible()
+{
+    return M_randomizible;
+}
+
 void
 GeometricParameter::
 randomSample()
 {
-    srand(time(NULL));
-    M_value = M_minValue + rand() * (M_maxValue - M_minValue);
+    // note: the seed must have been set at this point
+    float randomNumber =
+                        static_cast<float>(rand())/static_cast<float>(RAND_MAX);
+    M_value = M_minValue + randomNumber * (M_maxValue - M_minValue);
 }
 
 constexpr double GeometricParametersHandler::infty;
@@ -56,12 +75,14 @@ GeometricParametersHandler()
 void
 GeometricParametersHandler::
 registerParameter(std::string name, const double& value,
-                  const double& minValue, const double& maxValue)
+                  const double& minValue, const double& maxValue,
+                  bool randomizible)
 {
     if (!exists(name))
     {
         GeometricParameterPtr
-          newParameter(new GeometricParameter(name, value, minValue, maxValue));
+          newParameter(new GeometricParameter(name, value, minValue, maxValue,
+                                              randomizible));
         M_parametersMap[name] = newParameter;
     }
     else
@@ -120,6 +141,21 @@ GeometricParametersHandler::
 getParametersMap()
 {
     return M_parametersMap;
+}
+
+void
+GeometricParametersHandler::
+randomizeParameters()
+{
+    typedef std::map<std::string, GeometricParameterPtr> mapType;
+
+    for (mapType::iterator it = M_parametersMap.begin();
+         it != M_parametersMap.end(); it++)
+    {
+        GeometricParameterPtr gp = it->second;
+        if (gp->isRandomizible())
+            gp->randomSample();
+    }
 }
 
 }  // namespace RedMA

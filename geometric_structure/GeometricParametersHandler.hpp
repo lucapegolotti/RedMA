@@ -34,7 +34,8 @@ class GeometricParameter
 {
 public:
     GeometricParameter(std::string name, const double& value,
-                       const double& minValue, const double& maxValue);
+                       const double& minValue, const double& maxValue,
+                       bool randomizible = false);
 
     GeometricParameter(const GeometricParameter& other);
 
@@ -44,6 +45,10 @@ public:
 
     void randomSample();
 
+    bool isRandomizible();
+
+    std::string name();
+
 private:
     GeometricParameter() {}
 
@@ -51,6 +56,7 @@ private:
     double M_value;
     double M_minValue;
     double M_maxValue;
+    bool M_randomizible;
 };
 
 class GeometricParametersHandler
@@ -60,7 +66,8 @@ public:
     GeometricParametersHandler();
 
     void registerParameter(std::string name, const double& value,
-                           const double& minValue, const double& maxValue);
+                           const double& minValue, const double& maxValue,
+                           bool randomizible = false);
 
     void setParameterValue(std::string name, const double& value);
 
@@ -73,6 +80,8 @@ public:
     static constexpr double infty = 1e9;
 
     std::map<std::string,GeometricParameterPtr>& getParametersMap();
+
+    void randomizeParameters();
 
 private:
     std::map<std::string, GeometricParameterPtr> M_parametersMap;

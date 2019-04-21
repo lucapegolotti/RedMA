@@ -115,6 +115,8 @@ public:
 
     void setDatafile(const GetPot& datafile);
 
+    void setRandom();
+
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,

@@ -24,6 +24,7 @@
 
 #include <Tube.hpp>
 #include <NonAffineDeformer.hpp>
+#include <TreeStructure.hpp>
 
 using namespace RedMA;
 
@@ -36,13 +37,19 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    Tube tube(comm);
-    tube.readMesh();
-    tube.setParameterValue("Rout_ratio", 1.);
-    tube.setParameterValue("L_ratio", 1.);
-    tube.setParameterValue("bend", 1.5707963268);
-    tube.applyNonAffineTransformation();
-    tube.dumpMesh("output/", "../geometries/", "deformedTube");
+    // Tube tube(comm);
+    // tube.readMesh();
+    // tube.setParameterValue("Rout_ratio", 1.);
+    // tube.setParameterValue("L_ratio", 1.);
+    // tube.setParameterValue("bend", 1.5707963268);
+    // tube.applyNonAffineTransformation();
+    // tube.dumpMesh("output/", "../geometries/", "deformedTube");
+
+    TreeStructure tree(true);
+    tree.createRandom(40, comm);
+    tree.readMeshes("../geometries/");
+    tree.traverseAndDeformGeometries();
+    tree.dump("output/","../geometries/");
 
     return 0;
 }

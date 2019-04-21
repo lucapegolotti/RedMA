@@ -18,9 +18,18 @@
 #define TREESTRUCTURE_HPP
 
 #include <BuildingBlock.hpp>
+#include <Tube.hpp>
+#include <BifurcationSymmetric.hpp>
+
+#include <Epetra_SerialComm.h>
+#include <Epetra_MpiComm.h>
+
 #include <memory>
 #include <map>
 #include <queue>
+
+#include <ctime>
+#include <cstdlib>
 
 namespace RedMA
 {
@@ -64,7 +73,7 @@ public:
 
     void readMeshes(std::string meshdir = "../geometries/");
 
-    void createRandom(unsigned int blocksNumber);
+    void createRandom(unsigned int blocksNumber, std::shared_ptr<Epetra_Comm> comm);
 
 private:
     // std::vector<std::vector<std::string> > fillDepthVectors();

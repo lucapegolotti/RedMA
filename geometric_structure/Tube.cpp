@@ -44,11 +44,11 @@ Tube(commPtr_Type comm, bool verbose) :
     // the keys will be used in the parser to check the values in the XML file
     // center of inlet
 
-    double infty = GeometricParametersHandler::infty;
+    const bool randomizible = true;
 
-    M_parametersHandler.registerParameter("bend", 0.0, 0.0, M_PI/2);
-    M_parametersHandler.registerParameter("L_ratio", 1.0, 0.0, infty);
-    M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.0);
+    M_parametersHandler.registerParameter("bend", 0.0, 0.0, M_PI/2, randomizible);
+    M_parametersHandler.registerParameter("L_ratio", 1.0, 0.0, 1.2, randomizible);
+    M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.0, randomizible);
     M_parametersHandler.registerParameter("use_linear_elasticity", 0.0, 0.0, 1.0);
 }
 

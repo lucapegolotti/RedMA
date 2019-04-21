@@ -51,12 +51,13 @@ BuildingBlock(commPtr_Type comm, bool verbose) :
         M_verbose = false;
 
     double infty = GeometricParametersHandler::infty;
+    double mp2 = 2 * M_PI;
 
     // rotation angle
-    M_parametersHandler.registerParameter("alphax", 0.0, -infty, infty);
-    M_parametersHandler.registerParameter("alphay", 0.0, -infty, infty);
-    M_parametersHandler.registerParameter("alphaz", 0.0, -infty, infty);
-    M_parametersHandler.registerParameter("alpha_axis", 0.0, -infty, infty);
+    M_parametersHandler.registerParameter("alphax", 0.0, -mp2, mp2);
+    M_parametersHandler.registerParameter("alphay", 0.0, -mp2, mp2);
+    M_parametersHandler.registerParameter("alphaz", 0.0, -mp2, mp2);
+    M_parametersHandler.registerParameter("alpha_axis", 0.0, -mp2, mp2, true);
 
     // scale
     M_parametersHandler.registerParameter("scale", 1.0, 0.0, infty);
@@ -456,6 +457,13 @@ BuildingBlock::
 getMesh()
 {
     return M_mesh;
+}
+
+void
+BuildingBlock::
+setRandom()
+{
+    M_parametersHandler.randomizeParameters();
 }
 
 }  // namespace BuildingBlock
