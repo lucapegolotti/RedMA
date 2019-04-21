@@ -18,6 +18,7 @@
 #define TUBE_HPP
 
 #include <BuildingBlock.hpp>
+#include <NonAffineDeformer.hpp>
 
 namespace RedMA
 {
@@ -36,13 +37,27 @@ public:
     virtual void applyNonAffineTransformation();
 
 private:
-    void nonAffineScaling(const double lengthRatio,
-                          const double outRadiusRatio,
+    void nonAffineScaling(const double& lengthRatio,
+                          const double& outRadiusRatio,
                           Transformer& transformer);
 
     static void scalingFunction(double& x, double& y, double& z,
                                 const double lenghtRatio,
                                 const double outRadiusRatio);
+
+    static double bendFunction(const double& t, const double& x, const double& y,
+                               const double& z, const LifeV::ID& i,
+                               const Vector3D& rotationCenter,
+                               const Matrix3D& rotationMatrix);
+
+    static void bendFunctionAnalytic(double& x, double& y, double& z,
+                                       const double& bendAngle,
+                                       const GeometricFace& outlet);
+
+    static double fZero(const double& t, const double& x, const double& y,
+                        const double& z, const LifeV::ID& i);
+
+    void bend(const double& bendAngle, Transformer& transformer);
 
     Vector3D M_inletCenterRef;
     Vector3D M_inletNormalRef;

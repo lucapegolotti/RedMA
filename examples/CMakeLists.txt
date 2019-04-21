@@ -19,6 +19,11 @@ add_custom_command(
                 ${CMAKE_SOURCE_DIR}/examples/data/artery2.xml
                 ${CMAKE_CURRENT_BINARY_DIR}/data/artery2.xml)
 
+add_custom_command(
+        TARGET ReadXML POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/examples/data/SolverParamList.xml
+                ${CMAKE_CURRENT_BINARY_DIR}/data/SolverParamList.xml)
 
 target_link_libraries(ReadXML ${LINKED_LIBRARIES})
 

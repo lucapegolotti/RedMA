@@ -21,6 +21,13 @@ GeometricFace(Vector3D center, Vector3D normal, double radius) :
 }
 
 void
+BuildingBlock::
+setDatafile(const GetPot& datafile)
+{
+    M_datafile = datafile;
+}
+
+void
 GeometricFace::
 print()
 {

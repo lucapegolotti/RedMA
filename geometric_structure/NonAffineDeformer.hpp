@@ -60,7 +60,7 @@ public:
 
     void applyBCs(bcPtr_Type bcs);
 
-    void deformMesh();
+    void deformMesh(LifeV::MeshUtility::MeshTransformer<mesh_Type>& transformer);
 
 private:
     void assembleStiffness(const double young, const double poisson);

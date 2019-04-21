@@ -10,7 +10,7 @@ NonAffineDeformer(meshPtr_Type mesh, commPtr_Type comm, bool verbose) :
   M_verbose(verbose)
 {
     // hardcoded values for the moment
-    const double young = 3e6;
+    const double young = 100;// 3e6;
     const double poisson = 0.3;
 
     M_fespace.reset(new fespace_Type(M_mesh, "P1", 3, M_comm));
@@ -51,17 +51,13 @@ applyBCs(bcPtr_Type bcs)
 
     LifeV::bcManage(*M_stiffness, *M_rhs, *M_fespace->mesh(), M_fespace->dof(),
                     *bcs, M_fespace->feBd(), 1.0);
-
 }
 
 void
 NonAffineDeformer::
-deformMesh()
+deformMesh(LifeV::MeshUtility::MeshTransformer<mesh_Type>& transformer)
 {
-    LifeV::MeshUtility::MeshTransformer<mesh_Type> transformer(*M_mesh);
     vectorPtr_Type displacement = solveSystem();
-
-    displacement.reset(new vector_Type(M_fespace->map(), LifeV::Unique));
     transformer.moveMesh(*displacement,  M_fespace->dof().numTotalDof());
 }
 

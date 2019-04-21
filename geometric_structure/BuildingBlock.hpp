@@ -111,6 +111,8 @@ public:
 
     meshPtr_Type getMesh();
 
+    void setDatafile(const GetPot& datafile);
+
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,
@@ -147,6 +149,8 @@ protected:
     Vector3D M_inletTranslation;
     Vector3D M_inletRotationAxis;
     double M_inletAngle;
+
+    GetPot M_datafile;
 };
 
 }  // namespace RedMA

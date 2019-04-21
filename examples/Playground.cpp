@@ -38,8 +38,9 @@ int main(int argc, char **argv)
 
     Tube tube(comm);
     tube.readMesh();
-    tube.setParameterValue("Rout_ratio", 0.7);
-    tube.setParameterValue("L_ratio", 1.2);
+    tube.setParameterValue("Rout_ratio", 1.);
+    tube.setParameterValue("L_ratio", 1.);
+    tube.setParameterValue("bend", 1.5707963268);
     tube.applyNonAffineTransformation();
     tube.dumpMesh("output/", "../geometries/", "deformedTube");
 
