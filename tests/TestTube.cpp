@@ -64,13 +64,13 @@ void subTest3(Test& test)
     tube2->setIsChild(true);
 
     tube1->setIsChild(false);
-    tube1->setParameterValue("alphax", rand());
-    tube1->setParameterValue("alphay", rand());
-    tube1->setParameterValue("alphaz", rand());
+    tube1->setParameterValue("alphax", static_cast<float>(rand()) / RAND_MAX);
+    tube1->setParameterValue("alphay", static_cast<float>(rand()) / RAND_MAX);
+    tube1->setParameterValue("alphaz", static_cast<float>(rand()) / RAND_MAX);
     tube1->setParameterValue("bx", rand());
     tube1->setParameterValue("by", rand());
     tube1->setParameterValue("bz", rand());
-    tube1->setParameterValue("scale", 0.123);
+    tube1->setParameterValue("scale", 0.888);
     try
     {
         // we check if assert on mesh being read holds
