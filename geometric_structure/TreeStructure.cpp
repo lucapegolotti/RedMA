@@ -107,64 +107,6 @@ isEmpty()
     return (M_nodesMap.size() == 0);
 }
 
-// void
-// TreeStructure::
-// print()
-// {
-//     typedef std::vector<std::string> StringVector;
-//     typedef std::vector<StringVector> StringVectorVector;
-//     std::vector<StringVector> labels = fillDepthVectors();
-//
-//     for (StringVectorVector::iterator it = labels.begin();
-//          it != labels.end(); it++)
-//     {
-//         for (StringVector::iterator jt = it->begin();
-//              jt != it->end(); jt++)
-//         {
-//             printlog(MAGENTA, *jt + "\t");
-//         }
-//         printlog(WHITE, "\n");
-//     }
-// }
-
-// std::vector<std::vector<std::string> >
-// TreeStructure::
-// fillDepthVectors()
-// {
-//     std::vector<std::vector<std::string> > returnVec(M_depth+1);
-//     std::cout << "DEPTH = " << M_depth << std::endl;
-//     std::queue<TreeNodePtr> nodesQueue;
-//     nodesQueue.push(M_root);
-//
-//     returnVec[0].push_back(M_root->M_block->name());
-//     while (nodesQueue.size() != 0)
-//     {
-//         TreeNodePtr curNode = nodesQueue.front();
-//         nodesQueue.pop();
-//         typedef std::vector<TreeNodePtr> TreeNodesVector;
-//         TreeNodesVector& children = curNode->M_children;
-//         unsigned int expectedChildren =
-//                      curNode->M_block->expectedNumberOfChildren();
-//         for (int i = 0; i < expectedChildren; i++)
-//         {
-//             TreeNodePtr curChild = children[i];
-//             if (curChild != nullptr)
-//             {
-//                 std::cout << "curChild->M_depth = " << curChild->M_depth << std::endl;
-//                 nodesQueue.push(curChild);
-//                 returnVec[curChild->M_depth].push_back(curChild->M_block->name());
-//             }
-//             else
-//             {
-//                 std::cout << "curChild->M_depth+1 = " << curChild->M_depth+1 << std::endl;
-//                 returnVec[curNode->M_depth].push_back("NULL");
-//             }
-//         }
-//     };
-//
-//     return returnVec;
-// }
-
 void
 TreeStructure::
 traverseAndDeformGeometries()
@@ -271,6 +213,13 @@ createRandom(unsigned int blocksNumber, std::shared_ptr<Epetra_Comm> comm)
             }
         }
     }
+}
+
+TreeStructure::TreeNodePtr
+TreeStructure::
+getRoot()
+{
+    return M_root;
 }
 
 }  // namespace RedMA

@@ -64,8 +64,8 @@ BuildingBlock(commPtr_Type comm, bool verbose) :
 
     // translation
     M_parametersHandler.registerParameter("bx", 0.0, -infty, infty);
-    M_parametersHandler.registerParameter("by", 1.0, -infty, infty);
-    M_parametersHandler.registerParameter("bz", 1.0, -infty, infty);
+    M_parametersHandler.registerParameter("by", 0.0, -infty, infty);
+    M_parametersHandler.registerParameter("bz", 0.0, -infty, infty);
 }
 
 void

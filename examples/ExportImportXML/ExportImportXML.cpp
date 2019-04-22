@@ -40,10 +40,10 @@ int main(int argc, char **argv)
     #endif
 
     TreeStructure tree(true);
-    tree.createRandom(5, comm);
-    tree.readMeshes("../geometries/");
+    tree.createRandom(30, comm);
+    tree.readMeshes("../../geometries/");
     tree.traverseAndDeformGeometries();
-    tree.dump("output_original/","../geometries/");
+    tree.dump("output_original/","../../geometries/");
 
     GeometryPrinter printer;
     printer.saveToFile(tree, "tree.xml");
@@ -51,9 +51,9 @@ int main(int argc, char **argv)
     GeometryParser gParser("tree.xml", comm, true);
 
     TreeStructure& tree2 = gParser.getTree();
-    tree2.readMeshes("../geometries/");
+    tree2.readMeshes("../../geometries/");
     tree2.traverseAndDeformGeometries();
-    tree2.dump("output_read/","../geometries/");
+    tree2.dump("output_read/","../../geometries/");
 
     return 0;
 }

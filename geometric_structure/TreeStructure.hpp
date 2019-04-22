@@ -59,9 +59,9 @@ public:
 
     void setRoot(BuildingBlockPtr blockHead);
 
-    unsigned int getMaxID();
+    TreeNodePtr getRoot();
 
-    // void print();
+    unsigned int getMaxID();
 
     bool isEmpty();
 
@@ -76,7 +76,6 @@ public:
     void createRandom(unsigned int blocksNumber, std::shared_ptr<Epetra_Comm> comm);
 
 private:
-    // std::vector<std::vector<std::string> > fillDepthVectors();
 
     TreeNodePtr M_root;
     unsigned int M_maxID;

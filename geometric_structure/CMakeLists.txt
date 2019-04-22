@@ -7,5 +7,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/GeometryParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NonAffineDeformer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/GeometricParametersHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/GeometryPrinter.cpp
     CACHE INTERNAL ""
 )
