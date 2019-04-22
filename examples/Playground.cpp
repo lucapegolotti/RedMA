@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     // tube.dumpMesh("output/", "../geometries/", "deformedTube");
 
     TreeStructure tree(true);
-    tree.createRandom(40, comm);
+    tree.createRandom(30, comm);
     tree.readMeshes("../geometries/");
     tree.traverseAndDeformGeometries();
     tree.dump("output/","../geometries/");

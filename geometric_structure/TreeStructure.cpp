@@ -237,7 +237,7 @@ createRandom(unsigned int blocksNumber, std::shared_ptr<Epetra_Comm> comm)
     srand(time(NULL));
     for (int i = 0; i < blocksNumber; i++)
     {
-        const unsigned int numberClasses = 4;
+        const unsigned int numberClasses = 2;
         std::shared_ptr<BuildingBlock> newBlock;
 
         int chosenClass = rand() % numberClasses;
