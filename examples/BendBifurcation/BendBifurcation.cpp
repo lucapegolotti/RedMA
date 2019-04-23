@@ -39,21 +39,13 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    TreeStructure tree(true);
-    tree.createRandom(100, comm);
-    tree.readMeshes("../../geometries/");
-    tree.traverseAndDeformGeometries();
-    tree.dump("output_original/","../../geometries/");
-
-    GeometryPrinter printer;
-    printer.saveToFile(tree, "tree.xml");
-
-    GeometryParser gParser("tree.xml", comm, true);
-
-    TreeStructure& tree2 = gParser.getTree();
-    tree2.readMeshes("../../geometries/");
-    tree2.traverseAndDeformGeometries();
-    tree2.dump("output_read/","../../geometries/");
-
+    BifurcationSymmetric bifurcation(comm, true);
+    bifurcation.readMesh("../../geometries/");
+    bifurcation.setParameterValue("out1_alphax", 0.3);
+    bifurcation.setParameterValue("out1_alpha_plane", 0.3);
+    bifurcation.setParameterValue("out2_alphax", 0.3);
+    bifurcation.setParameterValue("out2_alpha_plane", -0.3);
+    bifurcation.applyGlobalTransformation();
+    bifurcation.dumpMesh("output/", "../../geometries/", "deformedBifurcation");
     return 0;
 }

@@ -1,2 +1,3 @@
 add_subdirectory(ExportImportXML)
 add_subdirectory(ReadXML)
+add_subdirectory(BendBifurcation)

@@ -17,7 +17,8 @@
 #ifndef BIFURCATIONSYMMETRIC_HPP
 #define BIFURCATIONSYMMETRIC_HPP
 
-#include "BuildingBlock.hpp"
+#include <BuildingBlock.hpp>
+#include <NonAffineDeformer.hpp>
 
 namespace RedMA
 {
@@ -42,8 +43,8 @@ private:
                                const Vector3D& desiredCenter,
                                const Matrix3D& rotationMatrix);
 
-    void bend(const double& out1_alpha_plane, const double& out1_alphaz,
-              const double& out2_alpha_plane, const double& out2_alphaz,
+    void bend(const double& out1_alpha_plane, const double& out1_alphax,
+              const double& out2_alpha_plane, const double& out2_alphax,
               Transformer& transformer);
 
     void rotateGeometricFace(const GeometricFace& face, Vector3D& rotatedCenter,

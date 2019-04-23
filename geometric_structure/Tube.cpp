@@ -126,7 +126,7 @@ bend(const double& bendAngle, Transformer& transformer)
 
             NonAffineDeformer nAffineDeformer(M_mesh, M_comm, M_verbose);
 
-            LifeV::BCFunctionBase zeroFunction(fZero);
+            LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
         	LifeV::BCFunctionBase outletFunction(foo);
 
             std::shared_ptr<LifeV::BCHandler> bcs(new LifeV::BCHandler);

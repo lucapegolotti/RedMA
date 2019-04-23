@@ -50,11 +50,8 @@ private:
                                const Matrix3D& rotationMatrix);
 
     static void bendFunctionAnalytic(double& x, double& y, double& z,
-                                       const double& bendAngle,
-                                       const GeometricFace& outlet);
-
-    static double fZero(const double& t, const double& x, const double& y,
-                        const double& z, const LifeV::ID& i);
+                                     const double& bendAngle,
+                                     const GeometricFace& outlet);
 
     void bend(const double& bendAngle, Transformer& transformer);
 

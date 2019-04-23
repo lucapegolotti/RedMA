@@ -50,21 +50,21 @@ BifurcationSymmetric(commPtr_Type comm, bool verbose) :
     M_outlets.push_back(outlet2);
 
     const bool randomizible = true;
-    const double maxAngle = 0.2;
+    const double maxAngle = 0.3;
     M_parametersHandler.registerParameter("out1_alpha_plane", 0.0, -maxAngle,
                                           maxAngle, randomizible);
     M_parametersHandler.registerParameter("out1_alphax", 0.0, -maxAngle,
                                           maxAngle, randomizible);
     M_parametersHandler.registerParameter("out2_alpha_plane", 0.0, -maxAngle,
                                           maxAngle, randomizible);
-    M_parametersHandler.registerParameter("out1_alphax", 0.0, -maxAngle,
+    M_parametersHandler.registerParameter("out2_alphax", 0.0, -maxAngle,
                                           maxAngle, randomizible);
 }
 
 void
 BifurcationSymmetric::
-bend(const double& out1_alpha_plane, const double& out1_alphaz,
-     const double& out2_alpha_plane, const double& out2_alphaz,
+bend(const double& out1_alpha_plane, const double& out1_alphax,
+     const double& out2_alpha_plane, const double& out2_alphax,
      Transformer& transformer)
 {
     using namespace std::placeholders;
@@ -78,8 +78,8 @@ bend(const double& out1_alpha_plane, const double& out1_alphaz,
     // handle rotation for outlet 1
     Vector3D rotationCenter(0, yRotationCenter, 0);
     Matrix3D rotationMatrix =
-             computeRotationMatrix(2, M_parametersHandler["out1_alpha_plane"]) *
-             computeRotationMatrix(0, M_parametersHandler["out1_alphax"]);
+             computeRotationMatrix(2, out1_alpha_plane) *
+             computeRotationMatrix(0, out1_alphax);
 
     Vector3D rotatedCenterOutlet1;
     Vector3D rotatedNormalOutlet1;
@@ -95,13 +95,13 @@ bend(const double& out1_alpha_plane, const double& out1_alphaz,
                                 M_outlets[0], rotatedCenterOutlet1,
                                 rotationMatrix);
 
-    M_outlets[0].M_center = rotatedCenterOutlet2;
-    M_outlets[0].M_normal = rotatedNormalOutlet2;
+    M_outlets[0].M_center = rotatedCenterOutlet1;
+    M_outlets[0].M_normal = rotatedNormalOutlet1;
 
     // handle rotation for outlet 2
     rotationMatrix =
-             computeRotationMatrix(2, -M_parametersHandler["out1_alpha_plane"]) *
-             computeRotationMatrix(0, M_parametersHandler["out1_alphax"]);
+             computeRotationMatrix(2, -out2_alpha_plane) *
+             computeRotationMatrix(0, out2_alphax);
 
     Vector3D rotatedCenterOutlet2;
     Vector3D rotatedNormalOutlet2;
@@ -120,11 +120,9 @@ bend(const double& out1_alpha_plane, const double& out1_alphaz,
     M_outlets[1].M_center = rotatedCenterOutlet2;
     M_outlets[1].M_normal = rotatedNormalOutlet2;
 
-
-
     NonAffineDeformer nAffineDeformer(M_mesh, M_comm, M_verbose);
 
-    LifeV::BCFunctionBase zeroFunction(fZero);
+    LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
     LifeV::BCFunctionBase outletFunction1(fooOutlet1);
     LifeV::BCFunctionBase outletFunction2(fooOutlet2);
 
@@ -140,7 +138,7 @@ bend(const double& out1_alpha_plane, const double& out1_alphaz,
     ct.redirect();
     nAffineDeformer.applyBCs(bcs);
     std::string xmlFilename = M_datafile("geometric_structure/xml_file",
-                                         "data/SolverParamList.xml");
+                                         "SolverParamList.xml");
     nAffineDeformer.setXMLsolver(xmlFilename);
     nAffineDeformer.deformMesh(transformer);
     printlog(CYAN, ct.restore(), M_verbose);
@@ -157,9 +155,9 @@ outletMapFunction(const double& t, const double& x,
     Vector3D diff = cur - targetFace.M_center;
 
     Vector3D modifiedDif = rotationMatrix * diff;
-    Vector3D newPoint = desiredCenter + modifiedCenter;
+    Vector3D newPoint = desiredCenter + modifiedDif;
 
-    return newPoinr[i] - cur[i];
+    return newPoint[i] - cur[i];
 }
 
 void
@@ -178,7 +176,11 @@ void
 BifurcationSymmetric::
 applyNonAffineTransformation()
 {
-
+    LifeV::MeshUtility::MeshTransformer<mesh_Type> transformer(*M_mesh);
+    bend(M_parametersHandler["out1_alpha_plane"],
+         M_parametersHandler["out1_alphax"],
+         M_parametersHandler["out2_alpha_plane"],
+         M_parametersHandler["out2_alphax"], transformer);
 }
 
 }
