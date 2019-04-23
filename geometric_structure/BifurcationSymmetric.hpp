@@ -35,6 +35,22 @@ public:
     virtual void applyNonAffineTransformation();
 
 private:
+    static double outletMapFunction(const double& t, const double& x,
+                               const double& y, const double& z,
+                               const LifeV::ID& i,
+                               const GeometricFace& targetFace,
+                               const Vector3D& desiredCenter,
+                               const Matrix3D& rotationMatrix);
+
+    void bend(const double& out1_alpha_plane, const double& out1_alphaz,
+              const double& out2_alpha_plane, const double& out2_alphaz,
+              Transformer& transformer);
+
+    void rotateGeometricFace(const GeometricFace& face, Vector3D& rotatedCenter,
+                             Vector3D& rotatedNormal,
+                             const Matrix3D& rotationMatrix,
+                             const Vector3D& rotationCenter);
+
     Vector3D M_inletCenterRef;
     Vector3D M_inletNormalRef;
     Vector3D M_outlet1CenterRef;

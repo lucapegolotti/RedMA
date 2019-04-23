@@ -466,4 +466,12 @@ setRandom()
     M_parametersHandler.randomizeParameters();
 }
 
+double
+BuildingBlock::
+fZero(const double& t, const double& x, const double& y,
+      const double& z, const LifeV::ID& i)
+{
+    return 0.0;
+}
+
 }  // namespace BuildingBlock

@@ -25,7 +25,6 @@ namespace RedMA
 
 class Tube : public BuildingBlock
 {
-    typedef LifeV::MeshUtility::MeshTransformer<mesh_Type> Transformer;
 public:
     Tube(commPtr_Type comm, bool verbose = false);
 

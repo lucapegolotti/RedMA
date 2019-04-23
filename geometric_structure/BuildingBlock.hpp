@@ -67,18 +67,19 @@ public:
 class BuildingBlock
 {
 protected:
-    typedef LifeV::RegionMesh<LifeV::LinearTetra>   mesh_Type;
-    typedef std::shared_ptr<mesh_Type>              meshPtr_Type;
-    typedef std::shared_ptr<Epetra_Comm>            commPtr_Type;
-    typedef LifeV::MapEpetra                        map_Type;
-    typedef std::shared_ptr<map_Type>               mapPtr_Type;
-    typedef LifeV::VectorSmall<3>                   Vector3D;
-    typedef LifeV::MatrixSmall<3,3>                 Matrix3D;
-    typedef LifeV::ExporterVTK<mesh_Type>           Exporter;
-    typedef LifeV::FESpace<mesh_Type, map_Type>     FESpace_Type;
-    typedef std::shared_ptr<FESpace_Type>           FESpacePtr_Type;
-    typedef LifeV::VectorEpetra                     vector_Type;
-    typedef std::shared_ptr<vector_Type>            vectorPtr_Type;
+    typedef LifeV::RegionMesh<LifeV::LinearTetra>          mesh_Type;
+    typedef std::shared_ptr<mesh_Type>                     meshPtr_Type;
+    typedef std::shared_ptr<Epetra_Comm>                   commPtr_Type;
+    typedef LifeV::MapEpetra                               map_Type;
+    typedef std::shared_ptr<map_Type>                      mapPtr_Type;
+    typedef LifeV::VectorSmall<3>                          Vector3D;
+    typedef LifeV::MatrixSmall<3,3>                        Matrix3D;
+    typedef LifeV::ExporterVTK<mesh_Type>                  Exporter;
+    typedef LifeV::FESpace<mesh_Type, map_Type>            FESpace_Type;
+    typedef std::shared_ptr<FESpace_Type>                  FESpacePtr_Type;
+    typedef LifeV::VectorEpetra                            vector_Type;
+    typedef std::shared_ptr<vector_Type>                   vectorPtr_Type;
+    typedef LifeV::MeshUtility::MeshTransformer<mesh_Type> Transformer;
 
 public:
     BuildingBlock(commPtr_Type comm, bool verbose);
@@ -130,6 +131,9 @@ protected:
     static  void rotationFunction(double& x, double& y, double& z,
                                   const Matrix3D& affMatrix,
                                   const Vector3D& transl, const double& scale);
+
+    static double fZero(const double& t, const double& x, const double& y,
+                      const double& z, const LifeV::ID& i);
 
     GeometricParametersHandler M_parametersHandler;
     std::string M_name;

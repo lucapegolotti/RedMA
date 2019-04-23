@@ -193,14 +193,6 @@ bendFunction(const double& t, const double& x, const double& y,
     return point[i] - initial[i];
 }
 
-double
-Tube::
-fZero(const double& t, const double& x, const double& y,
-      const double& z, const LifeV::ID& i)
-{
-    return 0.0;
-}
-
 void
 Tube::
 bendFunctionAnalytic(double &x, double &y, double &z,
