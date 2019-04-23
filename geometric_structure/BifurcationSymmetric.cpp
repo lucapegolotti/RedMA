@@ -67,6 +67,14 @@ bend(const double& out1_alpha_plane, const double& out1_alphax,
      const double& out2_alpha_plane, const double& out2_alphax,
      Transformer& transformer)
 {
+
+    std::string msg = std::string("[") + M_name + " BuildingBlock]";
+    msg = msg + " bending with angles = (" + std::to_string(out1_alpha_plane)
+          + ", " + std::to_string(out1_alphax) + ") at outlet1, and (" +
+          std::to_string(out2_alpha_plane) + ", " + std::to_string(out2_alphax) + ")"
+          + " at outlet2" + "\n";
+    printlog(GREEN, msg, M_verbose);
+
     using namespace std::placeholders;
 
     double angleOutlet1 = std::atan(M_outlet1NormalRef[0] /
@@ -176,11 +184,17 @@ void
 BifurcationSymmetric::
 applyNonAffineTransformation()
 {
+    printlog(MAGENTA, "[" + M_name +
+                    " BuildingBlock] applying non affine transformation ...\n",
+                    M_verbose);
+
     LifeV::MeshUtility::MeshTransformer<mesh_Type> transformer(*M_mesh);
     bend(M_parametersHandler["out1_alpha_plane"],
          M_parametersHandler["out1_alphax"],
          M_parametersHandler["out2_alpha_plane"],
          M_parametersHandler["out2_alphax"], transformer);
+
+    printlog(MAGENTA, "done\n", M_verbose);
 }
 
 }
