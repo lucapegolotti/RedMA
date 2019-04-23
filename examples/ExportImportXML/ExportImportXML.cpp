@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     #endif
 
     TreeStructure tree(true);
-    tree.createRandom(100, comm);
+    tree.createRandom(30, comm);
     tree.readMeshes("../../geometries/");
     tree.traverseAndDeformGeometries();
     tree.dump("output_original/","../../geometries/");
