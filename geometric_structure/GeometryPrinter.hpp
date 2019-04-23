@@ -33,7 +33,8 @@ class GeometryPrinter
 public:
     GeometryPrinter();
 
-    void saveToFile(TreeStructure& tree, std::string name);
+    void saveToFile(TreeStructure& tree, std::string name,
+                    std::shared_ptr<Epetra_Comm> comm);
 };
 
 }  // namespace RedMA

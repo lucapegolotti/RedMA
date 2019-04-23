@@ -46,9 +46,10 @@ int main(int argc, char **argv)
     tree.dump("output_original/","../../geometries/");
 
     GeometryPrinter printer;
-    printer.saveToFile(tree, "tree.xml");
+    printer.saveToFile(tree, "tree.xml", comm);
 
     GeometryParser gParser("tree.xml", comm, true);
+    comm->Barrier();
 
     TreeStructure& tree2 = gParser.getTree();
     tree2.readMeshes("../../geometries/");
