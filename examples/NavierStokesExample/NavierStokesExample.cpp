@@ -22,12 +22,8 @@
 #include <Epetra_SerialComm.h>
 #endif
 
-#include <tinyxml2.h>
-#include <vector>
-
-#include <GeometryPrinter.hpp>
-#include <GeometryParser.hpp>
-
+#include <GlobalSolver.hpp>
+#include <NavierStokesAssembler.hpp>
 using namespace RedMA;
 
 int main(int argc, char **argv)
@@ -39,22 +35,9 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    TreeStructure tree(true);
-    tree.createRandom(7, comm);
-    tree.readMeshes("../../geometries/");
-    tree.traverseAndDeformGeometries();
-    tree.dump("output_original/","../../geometries/");
-
-    GeometryPrinter printer;
-    printer.saveToFile(tree, "tree.xml", comm);
-
-    GeometryParser gParser("tree.xml", comm, true);
-    comm->Barrier();
-
-    TreeStructure& tree2 = gParser.getTree();
-    tree2.readMeshes("../../geometries/");
-    tree2.traverseAndDeformGeometries();
-    tree2.dump("output_read/","../../geometries/");
+    std::string treeFilename = "tree7.xml";
+    std::string geometryDir = "../../geometries/";
+    GlobalSolver<NavierStokesAssembler> gs(treeFilename, geometryDir, comm, true);
 
     return 0;
 }

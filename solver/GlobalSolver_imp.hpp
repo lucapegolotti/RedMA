@@ -1,9 +1,9 @@
-#include <GlobalSolver.hpp>
+// implementation of template class
 
 namespace RedMA
 {
 
-template<class AssemblerType>
+template <class AssemblerType>
 GlobalSolver<AssemblerType>::
 GlobalSolver(std::string xmlFile, std::string geometriesDir,
              commPtr_Type comm, bool verbose) :

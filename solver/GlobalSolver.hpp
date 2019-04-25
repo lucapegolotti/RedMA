@@ -28,7 +28,7 @@
 namespace RedMA
 {
 
-template<class AssemblerType>
+template <class AssemblerType>
 class GlobalSolver
 {
     typedef LifeV::MatrixEpetraStructured<double>           MatrixStructured;
@@ -50,5 +50,7 @@ private:
 };
 
 }  // namespace RedMA
+
+#include "GlobalSolver_imp.hpp"
 
 #endif  // GLOBALSOLVER_HPP

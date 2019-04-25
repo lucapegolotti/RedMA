@@ -49,4 +49,6 @@ private:
 
 }  // namespace RedMA
 
+#include "GlobalAssembler_imp.hpp"
+
 #endif  // GLOBALASSEMBLER_HPP

@@ -1,4 +1,4 @@
-#include <GlobalAssembler.hpp>
+// implementation of template class
 
 namespace RedMA
 {
