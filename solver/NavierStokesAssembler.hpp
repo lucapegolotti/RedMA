@@ -25,9 +25,7 @@ namespace RedMA
 class NavierStokesAssembler : public AbstractAssembler
 {
 public:
-    NavierStokesAssembler();
-
-    NavierStokesAssembler(const TreeNodePtr& treeNode);
+    NavierStokesAssembler(const GetPot& datafile, const TreeNodePtr& treeNode);
 
 protected:
 };

@@ -20,6 +20,7 @@
 #include <TreeStructure.hpp>
 
 #include <lifev/core/array/MapEpetra.hpp>
+#include <lifev/core/filter/GetPot.hpp>
 
 namespace RedMA
 {
@@ -37,9 +38,7 @@ protected:
     typedef std::vector<MapEpetraPtr>                       MapVectorSTD;
 
 public:
-    AbstractAssembler();
-
-    AbstractAssembler(const TreeNodePtr& treeNode);
+    AbstractAssembler(const GetPot& datafile, const TreeNodePtr& treeNode);
 
     void addMapsToVector(MapVectorPtr& mapVector);
 
@@ -48,6 +47,7 @@ public:
 protected:
     TreeNodePtr               M_treeNode;
     std::vector<MapEpetraPtr> M_maps;
+    GetPot                    M_datafile;
 };
 
 }  // namespace RedMA

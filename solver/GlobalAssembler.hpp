@@ -38,13 +38,14 @@ class GlobalAssembler
     typedef std::shared_ptr<MatrixStructured>               MatrixStructuredPtr;
 
 public:
-    GlobalAssembler();
+    GlobalAssembler(const GetPot& datafile);
 
     void buildPrimalStructures(TreeStructure& tree, MapVectorPtr& mapVector,
                                MatrixStructuredPtr& matrixStructure);
 
 private:
     std::map<unsigned int, AssemblerTypePtr> M_assemblersMap;
+    GetPot                                   M_datafile;
 };
 
 }  // namespace RedMA

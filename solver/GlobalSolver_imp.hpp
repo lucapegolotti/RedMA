@@ -5,7 +5,7 @@ namespace RedMA
 
 template <class AssemblerType>
 GlobalSolver<AssemblerType>::
-GlobalSolver(GetPot datafile, commPtr_Type comm, bool verbose) :
+GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
   M_geometryParser(datafile("geometric_structure/xmlfile","tree.xml"),
                    comm, verbose),
   M_datafile(datafile)
@@ -18,7 +18,7 @@ GlobalSolver(GetPot datafile, commPtr_Type comm, bool verbose) :
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();
 
-    GlobalAssembler<AssemblerType> globalAssembler;
+    GlobalAssembler<AssemblerType> globalAssembler(M_datafile);
 
     globalAssembler.buildPrimalStructures(M_tree, M_mapVector, M_globalMatrix);
 }

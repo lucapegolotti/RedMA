@@ -4,14 +4,8 @@ namespace RedMA
 {
 
 NavierStokesAssembler::
-NavierStokesAssembler() :
-  AbstractAssembler()
-{
-}
-
-NavierStokesAssembler::
-NavierStokesAssembler(const TreeNodePtr& treeNode) :
-  AbstractAssembler(treeNode)
+NavierStokesAssembler(const GetPot& datafile, const TreeNodePtr& treeNode) :
+  AbstractAssembler(datafile, treeNode)
 {
 }
 
