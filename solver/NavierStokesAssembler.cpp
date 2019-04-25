@@ -23,14 +23,14 @@ setup()
     std::string orderVelocity = M_datafile("fluid/velocity_order", "P2");
     M_velocityFESpace.reset(new FESpace(mesh, orderVelocity, 3, M_comm));
 
-    msg = std::string("[NavierStokesAssembler] velocity FE space of size ") +
+    msg = std::string("Velocity FE space of size ") +
           std::to_string(M_velocityFESpace->dof().numTotalDof()) + "\n";
     printlog(GREEN, msg, M_verbose);
 
     std::string orderPressure = M_datafile("fluid/velocity_pressure", "P1");
     M_pressureFESpace.reset(new FESpace(mesh, orderPressure, 1, M_comm));
 
-    msg = std::string("[NavierStokesAssembler] pressure FE space of size ") +
+    msg = std::string("Pressure FE space of size ") +
           std::to_string(M_pressureFESpace->dof().numTotalDof()) + "\n";
     printlog(GREEN, msg, M_verbose);
 
@@ -55,28 +55,33 @@ void
 NavierStokesAssembler::
 assembleConstantMatrices()
 {
-    assembleStiffness();
+    printlog(GREEN, "Assembling constant matrices ...\n", M_verbose);
+    assembleStiffnessMatrix();
+    assembleDivergenceMatrix();
+    assembleMassMatrix();
+    printlog(GREEN, "done\n", M_verbose);
 }
 
 void
 NavierStokesAssembler::
-assembleStiffness()
+assembleStiffnessMatrix()
 {
-    M_stiffness.reset(new Matrix(M_velocityFESpace->map()));
-
-    double viscosity = M_datafile("fluid/viscosity", 1.0);
     using namespace LifeV::ExpressionAssembly;
 
-    integrate(elements(M_velocityFESpaceETA->mesh()),
-              M_velocityFESpace->qr(),
-              M_velocityFESpaceETA,
-              M_velocityFESpaceETA,
-              value(0.5 * viscosity) *
-              dot(grad(phi_i) + transpose(grad(phi_i)),
-              grad(phi_j) + transpose(grad(phi_j)))
-    ) >> M_stiffness;
+    printlog(YELLOW, "Assembling stiffness ...\n", M_verbose);
+    M_A.reset(new Matrix(M_velocityFESpace->map()));
 
-    M_stiffness->globalAssemble();
+    double viscosity = M_datafile("fluid/viscosity", 1.0);
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+               M_velocityFESpace->qr(),
+               M_velocityFESpaceETA,
+               M_velocityFESpaceETA,
+               value(0.5 * viscosity) *
+               dot(grad(phi_i) + transpose(grad(phi_i)),
+               grad(phi_j) + transpose(grad(phi_j)))
+              ) >> M_A;
+
+    M_A->globalAssemble();
 }
 
 void
@@ -85,14 +90,39 @@ assembleDivergenceMatrix()
 {
     using namespace LifeV::ExpressionAssembly;
 
+    printlog(YELLOW, "Assembling divergence matrix ...\n", M_verbose);
+    M_B.reset(new Matrix(M_pressureFESpace->map()));
+
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+               M_pressureFESpace->qr(),
+               M_pressureFESpaceETA,
+               M_velocityFESpaceETA,
+               phi_i * div(phi_j)
+              ) >> M_B;
+
+    M_B->globalAssemble(M_velocityFESpace->mapPtr(),
+                        M_pressureFESpace->mapPtr());
+
 }
 
 void
 NavierStokesAssembler::
-assembleMass()
+assembleMassMatrix()
 {
     using namespace LifeV::ExpressionAssembly;
 
+    printlog(YELLOW, "Assembling mass matrix ...\n", M_verbose);
+    M_M.reset(new Matrix(M_velocityFESpace->map()));
+
+    double density = M_datafile("fluid/density", 1.0);
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+               M_velocityFESpace->qr(),
+               M_velocityFESpaceETA,
+               M_velocityFESpaceETA,
+               value(density) * dot (phi_i, phi_j)
+              ) >> M_M;
+
+    M_M->globalAssemble();
 }
 
 }  // namespace RedMA

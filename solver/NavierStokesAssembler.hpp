@@ -42,16 +42,18 @@ public:
 protected:
     void assembleConstantMatrices();
 
-    void assembleStiffness();
+    void assembleStiffnessMatrix();
     void assembleDivergenceMatrix();
-    void assembleMass();
+    void assembleMassMatrix();
 
     FESpacePtr              M_velocityFESpace;
     FESpacePtr              M_pressureFESpace;
     ETFESpaceVelocityPtr    M_velocityFESpaceETA;
     ETFESpacePressurePtr    M_pressureFESpaceETA;
 
-    MatrixPtr               M_stiffness;
+    MatrixPtr               M_A;
+    MatrixPtr               M_B;
+    MatrixPtr               M_M;
 };
 
 }  // namespace RedMA
