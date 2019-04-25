@@ -75,6 +75,8 @@ public:
 
     void createRandom(unsigned int blocksNumber, std::shared_ptr<Epetra_Comm> comm);
 
+    std::map<unsigned int, TreeNodePtr> getNodesMap();
+
 private:
 
     TreeNodePtr M_root;

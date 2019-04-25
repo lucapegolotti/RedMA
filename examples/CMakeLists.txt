@@ -1,3 +1,7 @@
+add_executable(Playground Playground.cpp ${SOURCES})
+target_link_libraries(Playground ${LINKED_LIBRARIES})
+target_include_directories(Playground PRIVATE ${HEADERS_DIRS})
+
 add_subdirectory(ExportImportXML)
 add_subdirectory(ReadXML)
 add_subdirectory(BendBifurcation)

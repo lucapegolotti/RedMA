@@ -222,4 +222,11 @@ getRoot()
     return M_root;
 }
 
+std::map<unsigned int, TreeStructure::TreeNodePtr>
+TreeStructure::
+getNodesMap()
+{
+    return M_nodesMap;
+}
+
 }  // namespace RedMA

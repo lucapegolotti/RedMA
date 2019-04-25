@@ -8,6 +8,7 @@ set(LINKED_LIBRARIES )
 
 set(HEADERS_DIRS
     ${CMAKE_SOURCE_DIR}/geometric_structure
+    ${CMAKE_SOURCE_DIR}/solver
     ${CMAKE_SOURCE_DIR}/utils
     ${TPL_MPI_INCLUDE_DIRS}
     ${TPL_Trilinos_INCLUDE_DIRS}
@@ -86,6 +87,7 @@ include_directories(${HEADERS_DIRS})
 link_directories(${LIBRARIES_DIRS})
 
 add_subdirectory(geometric_structure)
+add_subdirectory(solver)
 add_subdirectory(utils)
 add_subdirectory(examples)
 add_subdirectory(tests)

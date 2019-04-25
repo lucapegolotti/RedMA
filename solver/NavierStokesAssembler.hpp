@@ -14,29 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
+#ifndef NAVIERSTOKESASSEMBLER_HPP
+#define NAVIERSTOKESASSEMBLER_HPP
 
-#include <GlobalSolver.hpp>
+#include <AbstractAssembler.hpp>
 
-using namespace RedMA;
-
-int main(int argc, char **argv)
+namespace RedMA
 {
-    #ifdef HAVE_MPI
-    MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
-    #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
-    #endif
 
-    // GlobalSolver gs;
+class NavierStokesAssembler : public AbstractAssembler
+{
+public:
+    NavierStokesAssembler();
 
+    NavierStokesAssembler(const TreeNodePtr& treeNode);
 
-    return 0;
-}
+protected:
+};
+
+}  // namespace RedMA
+
+#endif  // NAVIERSTOKESASSEMBLER_HPP
