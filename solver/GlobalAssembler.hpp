@@ -39,7 +39,8 @@ class GlobalAssembler
     typedef std::shared_ptr<Epetra_Comm>                    commPtr_Type;
 
 public:
-    GlobalAssembler(const GetPot& datafile, commPtr_Type comm);
+    GlobalAssembler(const GetPot& datafile, commPtr_Type comm,
+                    bool verbose = false);
 
     void buildPrimalStructures(TreeStructure& tree, MapVectorPtr& mapVector,
                                MatrixStructuredPtr& matrixStructure);
@@ -48,6 +49,7 @@ private:
     std::map<unsigned int, AssemblerTypePtr> M_assemblersMap;
     GetPot                                   M_datafile;
     commPtr_Type                             M_comm;
+    bool                                     M_verbose;
 };
 
 }  // namespace RedMA

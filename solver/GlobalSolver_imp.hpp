@@ -9,7 +9,8 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
   M_geometryParser(datafile("geometric_structure/xmlfile","tree.xml"),
                    comm, verbose),
   M_datafile(datafile),
-  M_comm(comm)
+  M_comm(comm),
+  M_verbose(verbose)
 {
     M_tree = M_geometryParser.getTree();
 
@@ -19,8 +20,9 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();
 
-    GlobalAssembler<AssemblerType> globalAssembler(M_datafile, M_comm);
+    GlobalAssembler<AssemblerType> globalAssembler(M_datafile, M_comm, M_verbose);
 
+    M_mapVector.reset(new MapVector());
     globalAssembler.buildPrimalStructures(M_tree, M_mapVector, M_globalMatrix);
 }
 

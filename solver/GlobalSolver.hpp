@@ -41,7 +41,8 @@ class GlobalSolver
     typedef std::shared_ptr<MatrixStructured>               MatrixStructuredPtr;
 
 public:
-    GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose);
+    GlobalSolver(const GetPot& datafile, commPtr_Type comm,
+                 bool verbose = false);
 
 private:
     GeometryParser          M_geometryParser;
@@ -50,6 +51,7 @@ private:
     MatrixStructuredPtr     M_globalMatrix;
     GetPot                  M_datafile;
     commPtr_Type            M_comm;
+    bool                    M_verbose;
 };
 
 }  // namespace RedMA

@@ -38,10 +38,9 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    // std::string treeFilename = "tree7.xml";
-    // std::string geometryDir = "../../geometries/";
     GetPot datafile("data");
-    GlobalSolver<NavierStokesAssembler> gs(datafile, comm, true);
+    bool verbose = comm->MyPID() == 0;
+    GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
 
     return 0;
 }

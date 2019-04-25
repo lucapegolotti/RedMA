@@ -3,6 +3,6 @@
 #-------------------------------------------------------------
 
 [geometric_structure]
-	xmlfile = tree7.xml
+	xmlfile = tree3.xml
 	geometries_dir = ../../geometries
 [../]

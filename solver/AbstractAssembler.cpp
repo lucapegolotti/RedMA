@@ -5,10 +5,11 @@ namespace RedMA
 
 AbstractAssembler::
 AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
-                  const TreeNodePtr& treeNode) :
+                  const TreeNodePtr& treeNode, bool verbose) :
   M_datafile(datafile),
   M_comm(comm),
-  M_treeNode(treeNode)
+  M_treeNode(treeNode),
+  M_verbose(verbose)
 {
 }
 

@@ -18,9 +18,11 @@
 #define ABSTRACTASSEMBLER_HPP
 
 #include <TreeStructure.hpp>
+#include <PrintLog.hpp>
 
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/filter/GetPot.hpp>
+#include <lifev/core/array/MatrixEpetra.hpp>
 
 namespace RedMA
 {
@@ -45,10 +47,12 @@ protected:
     typedef std::shared_ptr<FESpace>                       FESpacePtr;
     typedef LifeV::VectorEpetra                            Vector;
     typedef std::shared_ptr<Vector>                        VectorPtr;
+    typedef LifeV::MatrixEpetra<double>                    Matrix;
+    typedef std::shared_ptr<Matrix>                        MatrixPtr;
 
 public:
     AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
-                      const TreeNodePtr& treeNode);
+                      const TreeNodePtr& treeNode, bool verbose = false);
 
     void addMapsToVector(MapVectorPtr& mapVector);
 
@@ -62,6 +66,7 @@ protected:
     std::vector<MapEpetraPtr>   M_maps;
     GetPot                      M_datafile;
     commPtr_Type                M_comm;
+    bool                        M_verbose;
 };
 
 }  // namespace RedMA

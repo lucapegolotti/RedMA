@@ -19,20 +19,39 @@
 
 #include <AbstractAssembler.hpp>
 
+#include <lifev/eta/fem/ETFESpace.hpp>
+
 namespace RedMA
 {
 
 class NavierStokesAssembler : public AbstractAssembler
 {
+protected:
+    typedef LifeV::ETFESpace<Mesh, Map, 3, 3>   ETFESpaceVelocity;
+    typedef std::shared_ptr<ETFESpaceVelocity>  ETFESpaceVelocityPtr;
+    typedef LifeV::ETFESpace<Mesh, Map, 3, 1>   ETFESpacePressure;
+    typedef std::shared_ptr<ETFESpacePressure>  ETFESpacePressurePtr;
+
+
 public:
     NavierStokesAssembler(const GetPot& datafile, commPtr_Type comm,
-                          const TreeNodePtr& treeNode);
+                          const TreeNodePtr& treeNode, bool verbose = false);
 
     void setup();
 
 protected:
-    FESpacePtr M_velocityFESpace;
-    FESpacePtr M_pressureFESpace;
+    void assembleConstantMatrices();
+
+    void assembleStiffness();
+    void assembleDivergenceMatrix();
+    void assembleMass();
+
+    FESpacePtr              M_velocityFESpace;
+    FESpacePtr              M_pressureFESpace;
+    ETFESpaceVelocityPtr    M_velocityFESpaceETA;
+    ETFESpacePressurePtr    M_pressureFESpaceETA;
+
+    MatrixPtr               M_stiffness;
 };
 
 }  // namespace RedMA
