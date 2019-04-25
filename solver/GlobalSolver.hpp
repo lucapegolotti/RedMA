@@ -24,6 +24,7 @@
 
 #include <lifev/core/array/MapVector.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
+#include <lifev/core/filter/GetPot.hpp>
 
 namespace RedMA
 {
@@ -40,13 +41,14 @@ class GlobalSolver
     typedef std::shared_ptr<MatrixStructured>               MatrixStructuredPtr;
 
 public:
-    GlobalSolver(std::string xmlFile, std::string geometriesDir,
-                 commPtr_Type comm, bool verbose);
+    GlobalSolver(GetPot datafile, commPtr_Type comm, bool verbose);
+
 private:
     GeometryParser M_geometryParser;
     TreeStructure M_tree;
     MapVectorPtr M_mapVector;
     MatrixStructuredPtr M_globalMatrix;
+    GetPot M_datafile;
 };
 
 }  // namespace RedMA

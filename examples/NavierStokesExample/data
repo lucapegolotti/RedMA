@@ -1,0 +1,8 @@
+#-------------------------------------------------------------
+#           Data file for NavierStokesExample
+#-------------------------------------------------------------
+
+[geometric_structure]
+	xmlfile = tree7.xml
+	geometries_dir = ../../geometries
+[../]

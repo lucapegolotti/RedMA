@@ -43,6 +43,8 @@ public:
 
     void addMapsToVector(MapVectorPtr& mapVector);
 
+    void assemble();
+
 protected:
     TreeNodePtr               M_treeNode;
     std::vector<MapEpetraPtr> M_maps;

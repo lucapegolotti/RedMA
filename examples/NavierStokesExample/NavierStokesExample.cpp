@@ -24,6 +24,9 @@
 
 #include <GlobalSolver.hpp>
 #include <NavierStokesAssembler.hpp>
+
+#include <lifev/core/filter/GetPot.hpp>
+
 using namespace RedMA;
 
 int main(int argc, char **argv)
@@ -35,9 +38,10 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    std::string treeFilename = "tree7.xml";
-    std::string geometryDir = "../../geometries/";
-    GlobalSolver<NavierStokesAssembler> gs(treeFilename, geometryDir, comm, true);
+    // std::string treeFilename = "tree7.xml";
+    // std::string geometryDir = "../../geometries/";
+    GetPot datafile("data");
+    GlobalSolver<NavierStokesAssembler> gs(datafile, comm, true);
 
     return 0;
 }
