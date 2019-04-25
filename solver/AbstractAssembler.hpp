@@ -28,26 +28,40 @@ namespace RedMA
 class AbstractAssembler
 {
 protected:
-    typedef std::shared_ptr<TreeNode>                       TreeNodePtr;
-    typedef LifeV::MapEpetra                                MapEpetra;
-    typedef std::shared_ptr<MapEpetra>                      MapEpetraPtr;
-    typedef LifeV::MapEpetra                                map_Type;
-    typedef std::shared_ptr<map_Type>                       mapPtr_Type;
-    typedef LifeV::MapVector<map_Type>                      MapVector;
-    typedef std::shared_ptr<MapVector>                      MapVectorPtr;
-    typedef std::vector<MapEpetraPtr>                       MapVectorSTD;
+    typedef std::shared_ptr<TreeNode>                      TreeNodePtr;
+    typedef LifeV::MapEpetra                               MapEpetra;
+    typedef std::shared_ptr<MapEpetra>                     MapEpetraPtr;
+    typedef LifeV::MapEpetra                               Map;
+    typedef std::shared_ptr<Map>                           MapPtr;
+    typedef LifeV::MapVector<Map>                          MapVector;
+    typedef std::shared_ptr<MapVector>                     MapVectorPtr;
+    typedef std::vector<MapEpetraPtr>                      MapVectorSTD;
+    typedef LifeV::RegionMesh<LifeV::LinearTetra>          Mesh;
+    typedef std::shared_ptr<Mesh>                          MeshPtr;
+    typedef std::shared_ptr<Epetra_Comm>                   commPtr_Type;
+    typedef LifeV::VectorSmall<3>                          Vector3D;
+    typedef LifeV::MatrixSmall<3,3>                        Matrix3D;
+    typedef LifeV::FESpace<Mesh, Map>                      FESpace;
+    typedef std::shared_ptr<FESpace>                       FESpacePtr;
+    typedef LifeV::VectorEpetra                            Vector;
+    typedef std::shared_ptr<Vector>                        VectorPtr;
 
 public:
-    AbstractAssembler(const GetPot& datafile, const TreeNodePtr& treeNode);
+    AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
+                      const TreeNodePtr& treeNode);
 
     void addMapsToVector(MapVectorPtr& mapVector);
 
-    void assemble();
+    // this method should be used to:
+    // 1) create the finite element spaces
+    // 2) assemble the constant matrices
+    virtual void setup() = 0;
 
 protected:
-    TreeNodePtr               M_treeNode;
-    std::vector<MapEpetraPtr> M_maps;
-    GetPot                    M_datafile;
+    TreeNodePtr                 M_treeNode;
+    std::vector<MapEpetraPtr>   M_maps;
+    GetPot                      M_datafile;
+    commPtr_Type                M_comm;
 };
 
 }  // namespace RedMA

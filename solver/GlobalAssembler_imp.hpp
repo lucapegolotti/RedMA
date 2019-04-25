@@ -5,8 +5,9 @@ namespace RedMA
 
 template <class AssemblerType>
 GlobalAssembler<AssemblerType>::
-GlobalAssembler(const GetPot& datafile) :
-  M_datafile(datafile)
+GlobalAssembler(const GetPot& datafile, commPtr_Type comm) :
+  M_datafile(datafile),
+  M_comm(comm)
 {
 
 }
@@ -23,7 +24,8 @@ buildPrimalStructures(TreeStructure& tree, MapVectorPtr& mapVector,
 
     for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
     {
-        AssemblerTypePtr newAssembler(new AssemblerType(M_datafile, it->second));
+        AssemblerTypePtr newAssembler(new AssemblerType(M_datafile, M_comm,
+                                                        it->second));
         newAssembler->addMapsToVector(mapVector);
         M_assemblersMap[it->first] = newAssembler;
     }

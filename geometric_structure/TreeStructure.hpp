@@ -40,16 +40,16 @@ public:
     TreeNode(std::shared_ptr<BuildingBlock> block, unsigned int id);
 
     std::vector<std::shared_ptr<TreeNode> > M_children;
-    std::shared_ptr<BuildingBlock> M_block;
-    unsigned int M_ID;
-    unsigned int M_depth;
-    unsigned int M_nChildren;
+    std::shared_ptr<BuildingBlock>          M_block;
+    unsigned int                            M_ID;
+    unsigned int                            M_depth;
+    unsigned int                            M_nChildren;
 };
 
 class TreeStructure
 {
 private:
-    typedef std::shared_ptr<TreeNode> TreeNodePtr;
+    typedef std::shared_ptr<TreeNode>      TreeNodePtr;
     typedef std::shared_ptr<BuildingBlock> BuildingBlockPtr;
 public:
     TreeStructure(bool verbose = false);
@@ -79,11 +79,11 @@ public:
 
 private:
 
-    TreeNodePtr M_root;
-    unsigned int M_maxID;
+    TreeNodePtr                         M_root;
+    unsigned int                        M_maxID;
     std::map<unsigned int, TreeNodePtr> M_nodesMap;
-    unsigned int M_depth;
-    bool M_verbose;
+    unsigned int                        M_depth;
+    bool                                M_verbose;
 };
 
 }  // namespace RedMA

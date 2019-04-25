@@ -25,9 +25,14 @@ namespace RedMA
 class NavierStokesAssembler : public AbstractAssembler
 {
 public:
-    NavierStokesAssembler(const GetPot& datafile, const TreeNodePtr& treeNode);
+    NavierStokesAssembler(const GetPot& datafile, commPtr_Type comm,
+                          const TreeNodePtr& treeNode);
+
+    void setup();
 
 protected:
+    FESpacePtr M_velocityFESpace;
+    FESpacePtr M_pressureFESpace;
 };
 
 }  // namespace RedMA

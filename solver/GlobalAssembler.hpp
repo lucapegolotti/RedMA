@@ -36,9 +36,10 @@ class GlobalAssembler
     typedef std::shared_ptr<MapVector>                      MapVectorPtr;
     typedef LifeV::MatrixEpetraStructured<double>           MatrixStructured;
     typedef std::shared_ptr<MatrixStructured>               MatrixStructuredPtr;
+    typedef std::shared_ptr<Epetra_Comm>                    commPtr_Type;
 
 public:
-    GlobalAssembler(const GetPot& datafile);
+    GlobalAssembler(const GetPot& datafile, commPtr_Type comm);
 
     void buildPrimalStructures(TreeStructure& tree, MapVectorPtr& mapVector,
                                MatrixStructuredPtr& matrixStructure);
@@ -46,6 +47,7 @@ public:
 private:
     std::map<unsigned int, AssemblerTypePtr> M_assemblersMap;
     GetPot                                   M_datafile;
+    commPtr_Type                             M_comm;
 };
 
 }  // namespace RedMA

@@ -4,8 +4,10 @@ namespace RedMA
 {
 
 AbstractAssembler::
-AbstractAssembler(const GetPot& datafile, const TreeNodePtr& treeNode) :
+AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
+                  const TreeNodePtr& treeNode) :
   M_datafile(datafile),
+  M_comm(comm),
   M_treeNode(treeNode)
 {
 }

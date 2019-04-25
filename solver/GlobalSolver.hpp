@@ -49,6 +49,7 @@ private:
     MapVectorPtr            M_mapVector;
     MatrixStructuredPtr     M_globalMatrix;
     GetPot                  M_datafile;
+    commPtr_Type            M_comm;
 };
 
 }  // namespace RedMA
