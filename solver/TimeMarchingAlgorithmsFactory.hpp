@@ -33,7 +33,7 @@ TimeMarchingAlgorithmsFactory(const GetPot& datafile)
     std::string marchingAlgorithmString =
         datafile("time_discretization/algorithm", "rosenbrock");
 
-    if (std::strcmp(marchingAlgorithmString.c_str(), "rosenbrock"))
+    if (!std::strcmp(marchingAlgorithmString.c_str(), "rosenbrock"))
     {
         typedef RosenbrockAlgorithm<AssemblerType>  ReturnType;
         std::shared_ptr<ReturnType>
