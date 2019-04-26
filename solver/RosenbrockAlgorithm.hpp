@@ -14,33 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
+#ifndef ROSENBROCKALGORITHM_HPP
+#define ROSENBROCKALGORITHM_HPP
 
-#include <GlobalSolver.hpp>
-#include <NavierStokesAssembler.hpp>
+#include <TimeMarchingAlgorithm.hpp>
 
-#include <lifev/core/filter/GetPot.hpp>
-
-using namespace RedMA;
-
-int main(int argc, char **argv)
+namespace RedMA
 {
-    #ifdef HAVE_MPI
-    MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
-    #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm());
-    #endif
 
-    GetPot datafile("data");
-    bool verbose = comm->MyPID() == 0;
-    GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
+template <class AssemblerType>
+class RosenbrockAlgorithm : public TimeMarchingAlgorithm<AssemblerType>
+{
+protected:
+    typedef GlobalAssembler<AssemblerType>      GlobalAssemblerType;
 
-    return 0;
-}
+public:
+    RosenbrockAlgorithm(const GetPot& datafile);
+
+    virtual void solveTimestep(const double &time, double &dt,
+                               const GlobalAssemblerType& assembler);
+
+};
+
+}  // namespace RedMA
+
+#include <RosenbrockAlgorithm_imp.hpp>
+
+#endif  // ROSENBROCKALGORITHM_HPP

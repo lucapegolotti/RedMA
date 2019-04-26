@@ -27,7 +27,7 @@ setup()
           std::to_string(M_velocityFESpace->dof().numTotalDof()) + "\n";
     printlog(GREEN, msg, M_verbose);
 
-    std::string orderPressure = M_datafile("fluid/velocity_pressure", "P1");
+    std::string orderPressure = M_datafile("fluid/pressure_order", "P1");
     M_pressureFESpace.reset(new FESpace(mesh, orderPressure, 1, M_comm));
 
     msg = std::string("Pressure FE space of size ") +

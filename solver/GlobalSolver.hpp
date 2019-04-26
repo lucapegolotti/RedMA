@@ -25,6 +25,7 @@
 #include <lifev/core/array/MapVector.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/filter/GetPot.hpp>
+#include <TimeMarchingAlgorithmsFactory.hpp>
 
 namespace RedMA
 {
@@ -32,26 +33,34 @@ namespace RedMA
 template <class AssemblerType>
 class GlobalSolver
 {
-    typedef LifeV::MatrixEpetraStructured<double>           MatrixStructured;
-    typedef std::shared_ptr<Epetra_Comm>                    commPtr_Type;
-    typedef LifeV::MapEpetra                                map_Type;
-	typedef std::shared_ptr<map_Type>                       mapPtr_Type;
-    typedef LifeV::MapVector<map_Type>                      MapVector;
-    typedef std::shared_ptr<MapVector>                      MapVectorPtr;
-    typedef std::shared_ptr<MatrixStructured>               MatrixStructuredPtr;
+    typedef LifeV::MatrixEpetraStructured<double>      MatrixStructured;
+    typedef std::shared_ptr<Epetra_Comm>               commPtr_Type;
+    typedef LifeV::MapEpetra                           map_Type;
+	typedef std::shared_ptr<map_Type>                  mapPtr_Type;
+    typedef LifeV::MapVector<map_Type>                 MapVector;
+    typedef std::shared_ptr<MapVector>                 MapVectorPtr;
+    typedef std::shared_ptr<MatrixStructured>          MatrixStructuredPtr;
+    typedef TimeMarchingAlgorithm<AssemblerType>       TimeMarchingAlgorithmType;
+    typedef std::shared_ptr<TimeMarchingAlgorithmType> TimeMarchingAlgorithmPtr;
 
 public:
     GlobalSolver(const GetPot& datafile, commPtr_Type comm,
                  bool verbose = false);
 
+    void solve();
 private:
-    GeometryParser          M_geometryParser;
-    TreeStructure           M_tree;
-    MapVectorPtr            M_mapVector;
-    MatrixStructuredPtr     M_globalMatrix;
-    GetPot                  M_datafile;
-    commPtr_Type            M_comm;
-    bool                    M_verbose;
+    // we pass dt as reference to allow for time adaptvity
+    void solveTimestep(const double& time, double& dt);
+
+    GeometryParser                 M_geometryParser;
+    TreeStructure                  M_tree;
+    MapVectorPtr                   M_mapVector;
+    MatrixStructuredPtr            M_globalMatrix;
+    GetPot                         M_datafile;
+    commPtr_Type                   M_comm;
+    bool                           M_verbose;
+    GlobalAssembler<AssemblerType> M_globalAssembler;
+    TimeMarchingAlgorithmPtr       M_timeMarchingAlgorithm;
 };
 
 }  // namespace RedMA

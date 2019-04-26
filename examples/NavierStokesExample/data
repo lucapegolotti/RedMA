@@ -6,3 +6,16 @@
 	xmlfile = tree3.xml
 	geometries_dir = ../../geometries
 [../]
+
+[fluid]
+	velocity_order = P2
+	pressure_order = P1
+[../]
+
+[time_discretization]
+	algorithm = rosenbrock
+	scheme = ROS3Pw
+	t0 = 0
+	T = 1
+	dt = 0.01
+[../]
