@@ -14,33 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef TIMEMARCHINGALGORITHM_HPP
-#define TIMEMARCHINGALGORITHM_HPP
+#ifndef LINEARSOLVER_HPP
+#define LINEARSOLVER_HPP
 
-#include <GlobalAssembler.hpp>
+#include <lifev/core/array/VectorEpetraStructured.hpp>
+#include <lifev/core/array/MatrixEpetraStructured.hpp>
 
 namespace RedMA
 {
 
-template <class AssemblerType>
-class TimeMarchingAlgorithm
+class LinearSolver
 {
 protected:
-    typedef GlobalAssembler<AssemblerType>      GlobalAssemblerType;
+    typedef LifeV::VectorEpetraStructured                Vector;
+    typedef std::shared_ptr<Vector>                      VectorPtr;
+    typedef LifeV::MatrixEpetraStructured<double>        Matrix;
+    typedef std::shared_ptr<Matrix>                      MatrixPtr;
 
 public:
-    TimeMarchingAlgorithm(const GetPot& datafile);
+    LinearSolver();
 
-    virtual void solveTimestep(const double &time, double &dt,
-                               const GlobalAssemblerType& assembler,
-                               const LinearSolver& linearSolver) = 0;
+    unsigned int solve(VectorPtr& solution, MatrixPtr matrix, VectorPtr rhs) const;
 
-protected:
-    GetPot  M_datafile;
 };
 
 }  // namespace RedMA
 
-#include <TimeMarchingAlgorithm_imp.hpp>
-
-#endif  // TIMEMARCHINGALGORITHM_HPP
+#endif  // LINEARSOLVER_HPP

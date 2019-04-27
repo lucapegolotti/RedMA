@@ -21,6 +21,7 @@
 #include <TreeStructure.hpp>
 #include <GeometryParser.hpp>
 #include <TreeStructure.hpp>
+#include <LinearSolver.hpp>
 
 #include <lifev/core/array/MapVector.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
@@ -54,13 +55,12 @@ private:
 
     GeometryParser                 M_geometryParser;
     TreeStructure                  M_tree;
-    MapVectorPtr                   M_mapVector;
-    MatrixStructuredPtr            M_globalMatrix;
     GetPot                         M_datafile;
     commPtr_Type                   M_comm;
     bool                           M_verbose;
     GlobalAssembler<AssemblerType> M_globalAssembler;
     TimeMarchingAlgorithmPtr       M_timeMarchingAlgorithm;
+    LinearSolver                   M_linearSolver;
 };
 
 }  // namespace RedMA

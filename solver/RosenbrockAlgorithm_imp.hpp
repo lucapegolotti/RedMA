@@ -6,7 +6,8 @@ namespace RedMA
 template <class AssemblerType>
 RosenbrockAlgorithm<AssemblerType>::
 RosenbrockAlgorithm(const GetPot& datafile) :
-  TimeMarchingAlgorithm<AssemblerType>(datafile)
+  TimeMarchingAlgorithm<AssemblerType>(datafile),
+  M_coefficients(datafile("time_discretization/scheme", "ROS3Pw"))
 {
 }
 
@@ -14,9 +15,76 @@ template <class AssemblerType>
 void
 RosenbrockAlgorithm<AssemblerType>::
 solveTimestep(const double &time, double &dt,
-              const GlobalAssemblerType& assembler)
+              const GlobalAssemblerType& assembler,
+              const LinearSolver& linearSolver)
 {
-    std::cout << "Hey I am solving!" << std::endl;
+    typedef LifeV::VectorEpetra         VectorEpetra;
+    unsigned int s = M_coefficients.numberStages();
+
+    MapVectorPtr mapVector = assembler.getMapVector();
+
+    MatrixPtr globalMass = assembler.getGlobalMass();
+    MatrixPtr globalJac = assembler.assembleJacobianF(time, M_solution);
+
+    MatrixPtr systemMatrix(new Matrix(*globalJac));
+    *systemMatrix *= (-dt * M_coefficients.gamma());
+    *systemMatrix += (*globalMass);
+
+    std::vector<VectorPtr> stages(s);
+
+    for (int i = 0; i < s; i++)
+    {
+        VectorPtr yTilde(new Vector(*mapVector));
+        *yTilde = *M_solution;
+
+        double alphai = 0;
+        double gammai = 0;
+
+        for (int j = 0; j <= i; j++)
+        {
+            alphai += M_coefficients.alpha(i,j);
+            gammai += M_coefficients.gamma(i,j);
+        }
+
+        for (int j = 0; j < i; j++)
+        {
+            VectorEpetra part = M_coefficients.alphaHat(i,j) * (*(stages[j]));
+            *yTilde += part;
+        }
+        VectorPtr F = assembler.computeF(time + dt * alphai, yTilde);
+        *F *= (M_coefficients.gamma() * dt);
+
+        VectorPtr sumStages(new Vector(*mapVector));
+        sumStages->zero();
+        for (int j = 0; j < i; j++)
+        {
+            VectorEpetra part = M_coefficients.invGamma(i,j) * (*(stages[j]));
+            *sumStages += (-M_coefficients.gamma() * part);
+        }
+
+        VectorEpetra prod = (*globalMass) * (*sumStages);
+        *F += prod;
+
+        VectorPtr Fder = assembler.computeFder(time, M_solution);
+        double coeff = M_coefficients.gamma() * gammai * dt * dt;
+        *Fder *= (coeff);
+
+        *F += *Fder;
+
+        // here we need to apply the bcs
+
+        VectorPtr newStage(new Vector(*mapVector));
+        linearSolver.solve(newStage, systemMatrix, F);
+        stages[i] = newStage;
+    }
+
+    // retrieve solution
+    for (int i = 0; i < s; i++)
+    {
+        VectorEpetra part = M_coefficients.mHigh(i) * (*(stages[i]));
+        *M_solution += (dt * part);
+    }
+
 }
 
 }  // namespace RedMA

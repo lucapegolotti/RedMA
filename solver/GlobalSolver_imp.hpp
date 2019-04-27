@@ -24,8 +24,7 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();
 
-    M_mapVector.reset(new MapVector());
-    M_globalAssembler.buildPrimalStructures(M_tree, M_mapVector, M_globalMatrix);
+    M_globalAssembler.buildPrimalStructures(M_tree);
 }
 
 template <class AssemblerType>
@@ -51,7 +50,8 @@ void
 GlobalSolver<AssemblerType>::
 solveTimestep(const double& time, double& dt)
 {
-    M_timeMarchingAlgorithm->solveTimestep(time, dt, M_globalAssembler);
+    M_timeMarchingAlgorithm->solveTimestep(time, dt, M_globalAssembler,
+                                           M_linearSolver);
 }
 
 }  // namespace RedMA

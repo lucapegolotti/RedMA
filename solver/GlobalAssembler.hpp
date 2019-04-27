@@ -21,6 +21,7 @@
 
 #include <lifev/core/array/MapVector.hpp>
 #include <lifev/core/array/MatrixEpetraStructured.hpp>
+#include <lifev/core/array/VectorEpetraStructured.hpp>
 
 namespace RedMA
 {
@@ -34,22 +35,35 @@ class GlobalAssembler
 	typedef std::shared_ptr<map_Type>                       mapPtr_Type;
     typedef LifeV::MapVector<map_Type>                      MapVector;
     typedef std::shared_ptr<MapVector>                      MapVectorPtr;
-    typedef LifeV::MatrixEpetraStructured<double>           MatrixStructured;
-    typedef std::shared_ptr<MatrixStructured>               MatrixStructuredPtr;
+    typedef LifeV::VectorEpetraStructured                   Vector;
+    typedef std::shared_ptr<Vector>                         VectorPtr;
+    typedef LifeV::MatrixEpetraStructured<double>           Matrix;
+    typedef std::shared_ptr<Matrix>                         MatrixPtr;
     typedef std::shared_ptr<Epetra_Comm>                    commPtr_Type;
 
 public:
     GlobalAssembler(const GetPot& datafile, commPtr_Type comm,
                     bool verbose = false);
 
-    void buildPrimalStructures(TreeStructure& tree, MapVectorPtr& mapVector,
-                               MatrixStructuredPtr& matrixStructure);
+    void buildPrimalStructures(TreeStructure& tree);
+
+    MapVectorPtr getMapVector() const;
+
+    MatrixPtr getGlobalMass() const;
+
+    MatrixPtr assembleJacobianF(const double& time, VectorPtr u) const;
+
+    VectorPtr computeF(const double& time, VectorPtr u) const;
+
+    VectorPtr computeFder(const double& time, VectorPtr u) const;
 
 private:
     std::map<unsigned int, AssemblerTypePtr> M_assemblersMap;
     GetPot                                   M_datafile;
     commPtr_Type                             M_comm;
     bool                                     M_verbose;
+    MapVectorPtr                             M_mapVector;
+    MatrixPtr                                M_massMatrix;
 };
 
 }  // namespace RedMA

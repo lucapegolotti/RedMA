@@ -18,6 +18,12 @@
 #define ROSENBROCKALGORITHM_HPP
 
 #include <TimeMarchingAlgorithm.hpp>
+#include <LinearSolver.hpp>
+
+#include <lifev/core/array/VectorBlockStructure.hpp>
+#include <lifev/core/array/MatrixBlockStructure.hpp>
+
+#include <lifev/navier_stokes_blocks/solver/RosenbrockCoeff.hpp>
 
 namespace RedMA
 {
@@ -26,14 +32,25 @@ template <class AssemblerType>
 class RosenbrockAlgorithm : public TimeMarchingAlgorithm<AssemblerType>
 {
 protected:
-    typedef GlobalAssembler<AssemblerType>      GlobalAssemblerType;
+    typedef GlobalAssembler<AssemblerType>              GlobalAssemblerType;
+    typedef LifeV::VectorEpetraStructured               Vector;
+    typedef std::shared_ptr<Vector>                     VectorPtr;
+    typedef LifeV::MatrixEpetraStructured<double>       Matrix;
+    typedef std::shared_ptr<Matrix>                     MatrixPtr;
+    typedef LifeV::MapEpetra                            map_Type;
+    typedef LifeV::MapVector<map_Type>                  MapVector;
+    typedef std::shared_ptr<MapVector>                  MapVectorPtr;
 
 public:
     RosenbrockAlgorithm(const GetPot& datafile);
 
     virtual void solveTimestep(const double &time, double &dt,
-                               const GlobalAssemblerType& assembler);
+                               const GlobalAssemblerType& assembler,
+                               const LinearSolver& linearSolver);
 
+private:
+    LifeV::RosenbrockCoeff  M_coefficients;
+    VectorPtr               M_solution;
 };
 
 }  // namespace RedMA
