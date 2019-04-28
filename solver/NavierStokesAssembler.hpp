@@ -41,6 +41,9 @@ public:
 
     MatrixPtr getMassMatrix();
 
+    inline unsigned int numberOfBlocks() {return 2;}
+    inline void massLocation(unsigned int& i, unsigned int& j){i = 0; j = 0;}
+
 protected:
     void assembleConstantMatrices();
 

@@ -50,12 +50,14 @@ public:
     AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
                       const TreeNodePtr& treeNode, bool verbose = false);
 
-    void addMaps(MapEpetraPtr& globalMap);
+    void addMaps(MapEpetraPtr& globalMap, std::vector<unsigned int>& dimensions);
 
     // this method should be used to:
     // 1) create the finite element spaces
     // 2) assemble the constant matrices
     virtual void setup() = 0;
+
+    inline virtual unsigned int numberOfBlocks() = 0;
 
 protected:
     TreeNodePtr                 M_treeNode;

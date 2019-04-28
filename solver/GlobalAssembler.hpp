@@ -22,6 +22,7 @@
 #include <lifev/core/array/MapVector.hpp>
 #include <lifev/core/array/MatrixEpetraStructured.hpp>
 #include <lifev/core/array/VectorEpetraStructured.hpp>
+#include <lifev/core/array/MatrixEpetraStructuredUtility.hpp>
 
 namespace RedMA
 {
@@ -64,6 +65,7 @@ private:
     bool                                     M_verbose;
     MapEpetraPtr                             M_globalMap;
     MatrixPtr                                M_massMatrix;
+    std::vector<unsigned int>                M_dimensionsVector;
 };
 
 }  // namespace RedMA

@@ -28,7 +28,7 @@ buildPrimalStructures(TreeStructure& tree)
                                                         it->second, M_verbose));
         newAssembler->setup();
 
-        newAssembler->addMaps(M_globalMap);
+        newAssembler->addMaps(M_globalMap, M_dimensionsVector);
         M_assemblersMap[it->first] = newAssembler;
     }
 }
@@ -86,19 +86,33 @@ void
 GlobalAssembler<AssemblerType>::
 assembleGlobalMass()
 {
+    using namespace LifeV::MatrixEpetraStructuredUtility;
     typedef std::map<unsigned int, AssemblerTypePtr> AssemblersMap;
 
-    // M_massMatrix.reset(new Matrix(*M_globalMap));
-    // M_massMatrix->zero();
-    //
-    // for (typename AssemblersMap::iterator it = M_assemblersMap.begin();
-    //      it != M_assemblersMap.end(); it++)
-    // {
-    //     unsigned int blockIndex = it->first;
-    //
-    //     *M_massMatrix->block(blockIndex,blockIndex) =
-    //         *it->second->getMassMatrix();
-    // }
+    M_massMatrix.reset(new Matrix(*M_globalMap));
+
+    LifeV::MatrixBlockStructure structure;
+    structure.setBlockStructure(M_dimensionsVector,
+                                M_dimensionsVector);
+
+    M_massMatrix->zero();
+
+    unsigned int countBlocks = 0;
+    for (typename AssemblersMap::iterator it = M_assemblersMap.begin();
+         it != M_assemblersMap.end(); it++)
+    {
+        unsigned int blockIndex = it->first;
+        unsigned int i, j;
+
+        it->second->massLocation(i, j);
+        i += countBlocks;
+        j += countBlocks;
+
+        std::shared_ptr<LifeV::MatrixEpetraStructuredView<double> > newBlock;
+        newBlock = createBlockView(M_massMatrix, structure, i, j);
+
+        countBlocks += it->second->numberOfBlocks();
+    }
 }
 
 }  // namespace RedMA
