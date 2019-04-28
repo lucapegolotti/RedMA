@@ -31,13 +31,11 @@ class GlobalAssembler
 {
     typedef std::shared_ptr<TreeNode>                       TreeNodePtr;
     typedef std::shared_ptr<AssemblerType>                  AssemblerTypePtr;
-    typedef LifeV::MapEpetra                                map_Type;
-	typedef std::shared_ptr<map_Type>                       mapPtr_Type;
-    typedef LifeV::MapVector<map_Type>                      MapVector;
-    typedef std::shared_ptr<MapVector>                      MapVectorPtr;
-    typedef LifeV::VectorEpetraStructured                   Vector;
+    typedef LifeV::MapEpetra                                MapEpetra;
+	typedef std::shared_ptr<MapEpetra>                      MapEpetraPtr;
+    typedef LifeV::VectorEpetra                             Vector;
     typedef std::shared_ptr<Vector>                         VectorPtr;
-    typedef LifeV::MatrixEpetraStructured<double>           Matrix;
+    typedef LifeV::MatrixEpetra<double>                     Matrix;
     typedef std::shared_ptr<Matrix>                         MatrixPtr;
     typedef std::shared_ptr<Epetra_Comm>                    commPtr_Type;
 
@@ -47,7 +45,7 @@ public:
 
     void buildPrimalStructures(TreeStructure& tree);
 
-    MapVectorPtr getMapVector() const;
+    MapEpetraPtr getGlobalMap() const;
 
     MatrixPtr getGlobalMass() const;
 
@@ -57,12 +55,14 @@ public:
 
     VectorPtr computeFder(const double& time, VectorPtr u) const;
 
+    void assembleGlobalMass();
+
 private:
     std::map<unsigned int, AssemblerTypePtr> M_assemblersMap;
     GetPot                                   M_datafile;
     commPtr_Type                             M_comm;
     bool                                     M_verbose;
-    MapVectorPtr                             M_mapVector;
+    MapEpetraPtr                             M_globalMap;
     MatrixPtr                                M_massMatrix;
 };
 

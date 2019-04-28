@@ -125,4 +125,11 @@ assembleMassMatrix()
     M_M->globalAssemble();
 }
 
+NavierStokesAssembler::MatrixPtr
+NavierStokesAssembler::
+getMassMatrix()
+{
+    return M_M;
+}
+
 }  // namespace RedMA

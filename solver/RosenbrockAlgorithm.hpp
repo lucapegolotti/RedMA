@@ -33,13 +33,12 @@ class RosenbrockAlgorithm : public TimeMarchingAlgorithm<AssemblerType>
 {
 protected:
     typedef GlobalAssembler<AssemblerType>              GlobalAssemblerType;
-    typedef LifeV::VectorEpetraStructured               Vector;
+    typedef LifeV::VectorEpetra                         Vector;
     typedef std::shared_ptr<Vector>                     VectorPtr;
-    typedef LifeV::MatrixEpetraStructured<double>       Matrix;
+    typedef LifeV::MatrixEpetra<double>                 Matrix;
     typedef std::shared_ptr<Matrix>                     MatrixPtr;
-    typedef LifeV::MapEpetra                            map_Type;
-    typedef LifeV::MapVector<map_Type>                  MapVector;
-    typedef std::shared_ptr<MapVector>                  MapVectorPtr;
+    typedef LifeV::MapEpetra                            MapEpetra;
+    typedef std::shared_ptr<MapEpetra>                  MapEpetraPtr;
 
 public:
     RosenbrockAlgorithm(const GetPot& datafile);

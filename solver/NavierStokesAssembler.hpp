@@ -27,10 +27,10 @@ namespace RedMA
 class NavierStokesAssembler : public AbstractAssembler
 {
 protected:
-    typedef LifeV::ETFESpace<Mesh, Map, 3, 3>   ETFESpaceVelocity;
-    typedef std::shared_ptr<ETFESpaceVelocity>  ETFESpaceVelocityPtr;
-    typedef LifeV::ETFESpace<Mesh, Map, 3, 1>   ETFESpacePressure;
-    typedef std::shared_ptr<ETFESpacePressure>  ETFESpacePressurePtr;
+    typedef LifeV::ETFESpace<Mesh, MapEpetra, 3, 3>   ETFESpaceVelocity;
+    typedef std::shared_ptr<ETFESpaceVelocity>        ETFESpaceVelocityPtr;
+    typedef LifeV::ETFESpace<Mesh, MapEpetra, 3, 1>   ETFESpacePressure;
+    typedef std::shared_ptr<ETFESpacePressure>        ETFESpacePressurePtr;
 
 
 public:
@@ -38,6 +38,8 @@ public:
                           const TreeNodePtr& treeNode, bool verbose = false);
 
     void setup();
+
+    MatrixPtr getMassMatrix();
 
 protected:
     void assembleConstantMatrices();

@@ -25,6 +25,8 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
     M_tree.traverseAndDeformGeometries();
 
     M_globalAssembler.buildPrimalStructures(M_tree);
+
+    M_globalAssembler.assembleGlobalMass();
 }
 
 template <class AssemblerType>

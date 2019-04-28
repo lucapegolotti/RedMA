@@ -15,10 +15,10 @@ AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
 
 void
 AbstractAssembler::
-addMapsToVector(MapVectorPtr& mapVector)
+addMaps(MapEpetraPtr& globalMap)
 {
     for (MapVectorSTD::iterator it = M_maps.begin(); it != M_maps.end(); it++)
-        mapVector->addMap(*(*it));
+        *globalMap += *(*it);
 }
 
 }  // namespace RedMA

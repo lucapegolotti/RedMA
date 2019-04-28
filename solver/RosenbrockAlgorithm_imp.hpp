@@ -21,7 +21,7 @@ solveTimestep(const double &time, double &dt,
     typedef LifeV::VectorEpetra         VectorEpetra;
     unsigned int s = M_coefficients.numberStages();
 
-    MapVectorPtr mapVector = assembler.getMapVector();
+    MapEpetraPtr globalMap = assembler.getGlobalMap();
 
     MatrixPtr globalMass = assembler.getGlobalMass();
     MatrixPtr globalJac = assembler.assembleJacobianF(time, M_solution);
@@ -34,7 +34,7 @@ solveTimestep(const double &time, double &dt,
 
     for (int i = 0; i < s; i++)
     {
-        VectorPtr yTilde(new Vector(*mapVector));
+        VectorPtr yTilde(new Vector(*globalMap));
         *yTilde = *M_solution;
 
         double alphai = 0;
@@ -54,7 +54,7 @@ solveTimestep(const double &time, double &dt,
         VectorPtr F = assembler.computeF(time + dt * alphai, yTilde);
         *F *= (M_coefficients.gamma() * dt);
 
-        VectorPtr sumStages(new Vector(*mapVector));
+        VectorPtr sumStages(new Vector(*globalMap));
         sumStages->zero();
         for (int j = 0; j < i; j++)
         {
@@ -73,8 +73,8 @@ solveTimestep(const double &time, double &dt,
 
         // here we need to apply the bcs
 
-        VectorPtr newStage(new Vector(*mapVector));
-        linearSolver.solve(newStage, systemMatrix, F);
+        VectorPtr newStage(new Vector(*globalMap));
+        // linearSolver.solve(newStage, systemMatrix, F);
         stages[i] = newStage;
     }
 

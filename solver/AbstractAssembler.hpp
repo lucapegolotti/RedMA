@@ -33,17 +33,13 @@ protected:
     typedef std::shared_ptr<TreeNode>                      TreeNodePtr;
     typedef LifeV::MapEpetra                               MapEpetra;
     typedef std::shared_ptr<MapEpetra>                     MapEpetraPtr;
-    typedef LifeV::MapEpetra                               Map;
-    typedef std::shared_ptr<Map>                           MapPtr;
-    typedef LifeV::MapVector<Map>                          MapVector;
-    typedef std::shared_ptr<MapVector>                     MapVectorPtr;
     typedef std::vector<MapEpetraPtr>                      MapVectorSTD;
     typedef LifeV::RegionMesh<LifeV::LinearTetra>          Mesh;
     typedef std::shared_ptr<Mesh>                          MeshPtr;
     typedef std::shared_ptr<Epetra_Comm>                   commPtr_Type;
     typedef LifeV::VectorSmall<3>                          Vector3D;
     typedef LifeV::MatrixSmall<3,3>                        Matrix3D;
-    typedef LifeV::FESpace<Mesh, Map>                      FESpace;
+    typedef LifeV::FESpace<Mesh, MapEpetra>                FESpace;
     typedef std::shared_ptr<FESpace>                       FESpacePtr;
     typedef LifeV::VectorEpetra                            Vector;
     typedef std::shared_ptr<Vector>                        VectorPtr;
@@ -54,7 +50,7 @@ public:
     AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
                       const TreeNodePtr& treeNode, bool verbose = false);
 
-    void addMapsToVector(MapVectorPtr& mapVector);
+    void addMaps(MapEpetraPtr& globalMap);
 
     // this method should be used to:
     // 1) create the finite element spaces

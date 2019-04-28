@@ -34,13 +34,11 @@ namespace RedMA
 template <class AssemblerType>
 class GlobalSolver
 {
-    typedef LifeV::MatrixEpetraStructured<double>      MatrixStructured;
     typedef std::shared_ptr<Epetra_Comm>               commPtr_Type;
     typedef LifeV::MapEpetra                           map_Type;
 	typedef std::shared_ptr<map_Type>                  mapPtr_Type;
     typedef LifeV::MapVector<map_Type>                 MapVector;
     typedef std::shared_ptr<MapVector>                 MapVectorPtr;
-    typedef std::shared_ptr<MatrixStructured>          MatrixStructuredPtr;
     typedef TimeMarchingAlgorithm<AssemblerType>       TimeMarchingAlgorithmType;
     typedef std::shared_ptr<TimeMarchingAlgorithmType> TimeMarchingAlgorithmPtr;
 
