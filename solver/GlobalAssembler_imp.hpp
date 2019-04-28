@@ -29,7 +29,7 @@ buildPrimalStructures(TreeStructure& tree)
         newAssembler->setup();
 
         newAssembler->addMaps(M_globalMap, M_dimensionsVector);
-        M_assemblersMap[it->first] = newAssembler;
+        M_assemblersVector.push_back(std::make_pair(it->first,newAssembler));
     }
 }
 
@@ -87,7 +87,10 @@ GlobalAssembler<AssemblerType>::
 assembleGlobalMass()
 {
     using namespace LifeV::MatrixEpetraStructuredUtility;
-    typedef std::map<unsigned int, AssemblerTypePtr> AssemblersMap;
+    typedef std::vector<std::pair<unsigned int, AssemblerTypePtr> >
+                AssemblersVector;
+
+    typedef LifeV::MatrixEpetraStructuredView<double> MatrixView;
 
     M_massMatrix.reset(new Matrix(*M_globalMap));
 
@@ -98,21 +101,35 @@ assembleGlobalMass()
     M_massMatrix->zero();
 
     unsigned int countBlocks = 0;
-    for (typename AssemblersMap::iterator it = M_assemblersMap.begin();
-         it != M_assemblersMap.end(); it++)
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
     {
         unsigned int blockIndex = it->first;
         unsigned int i, j;
 
-        it->second->massLocation(i, j);
-        i += countBlocks;
-        j += countBlocks;
+        std::cout << blockIndex << std::endl;
 
-        std::shared_ptr<LifeV::MatrixEpetraStructuredView<double> > newBlock;
-        newBlock = createBlockView(M_massMatrix, structure, i, j);
+        it->second->massLocation(i, j);
+
+        std::shared_ptr<MatrixView> blockGlobalView;
+        blockGlobalView = createBlockView(M_massMatrix, structure,
+                                          i + countBlocks, j + countBlocks);
+
+        LifeV::MatrixBlockStructure massBlockStructure;
+        std::vector<unsigned int> rows(1), cols(1);
+        rows[0] = M_dimensionsVector[i + countBlocks];
+        cols[0] = M_dimensionsVector[j + countBlocks];
+        massBlockStructure.setBlockStructure(rows, cols);
+
+        MatrixPtr localMass = it->second->getMassMatrix();
+        std::shared_ptr<MatrixView> blockLocalView;
+        blockLocalView =
+            createBlockView(localMass, massBlockStructure, i, j);
+        copyBlock(blockLocalView, blockGlobalView);
 
         countBlocks += it->second->numberOfBlocks();
     }
+    M_massMatrix->globalAssemble();
 }
 
 }  // namespace RedMA

@@ -59,13 +59,13 @@ public:
     void assembleGlobalMass();
 
 private:
-    std::map<unsigned int, AssemblerTypePtr> M_assemblersMap;
-    GetPot                                   M_datafile;
-    commPtr_Type                             M_comm;
-    bool                                     M_verbose;
-    MapEpetraPtr                             M_globalMap;
-    MatrixPtr                                M_massMatrix;
-    std::vector<unsigned int>                M_dimensionsVector;
+    std::vector<std::pair<unsigned int, AssemblerTypePtr> > M_assemblersVector;
+    GetPot                                                  M_datafile;
+    commPtr_Type                                            M_comm;
+    bool                                                    M_verbose;
+    MapEpetraPtr                                            M_globalMap;
+    MatrixPtr                                               M_massMatrix;
+    std::vector<unsigned int>                               M_dimensionsVector;
 };
 
 }  // namespace RedMA

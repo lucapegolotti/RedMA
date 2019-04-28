@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     GetPot datafile("data");
     bool verbose = comm->MyPID() == 0;
     GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
-    gs.solve();
+    // gs.solve();
 
     return 0;
 }

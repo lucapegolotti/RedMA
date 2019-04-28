@@ -56,8 +56,8 @@ NavierStokesAssembler::
 assembleConstantMatrices()
 {
     printlog(GREEN, "Assembling constant matrices ...\n", M_verbose);
-    assembleStiffnessMatrix();
-    assembleDivergenceMatrix();
+    // assembleStiffnessMatrix();
+    // assembleDivergenceMatrix();
     assembleMassMatrix();
     printlog(GREEN, "done\n", M_verbose);
 }
