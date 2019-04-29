@@ -107,8 +107,6 @@ assembleGlobalMass()
         unsigned int blockIndex = it->first;
         unsigned int i, j;
 
-        std::cout << blockIndex << std::endl;
-
         it->second->massLocation(i, j);
 
         std::shared_ptr<MatrixView> blockGlobalView;

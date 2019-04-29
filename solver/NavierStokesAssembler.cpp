@@ -132,4 +132,84 @@ getMassMatrix()
     return M_M;
 }
 
+void
+NavierStokesAssembler::
+assembleConvectiveMatrix(std::vector<VectorPtr> solution)
+{
+    using namespace LifeV::ExpressionAssembly;
+
+    VectorPtr velocity = solution[0];
+
+    printlog(YELLOW, "Assembling convective matrix ...\n", M_verbose);
+    M_C.reset(new Matrix(M_velocityFESpace->map()));
+
+    double density = M_datafile("fluid/density", 1.0);
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+               M_velocityFESpace->qr(),
+               M_velocityFESpaceETA,
+               M_velocityFESpaceETA,
+               dot(value(density) *
+                   value(M_velocityFESpaceETA , *velocity) * grad(phi_j), phi_i)
+             ) >> M_C;
+
+    M_C->globalAssemble();
+}
+
+void
+NavierStokesAssembler::
+assembleJacobianConvectiveMatrix(std::vector<VectorPtr> solution)
+{
+    using namespace LifeV::ExpressionAssembly;
+
+    VectorPtr velocity = solution[0];
+
+    printlog(YELLOW, "Assembling convective matrix jacobian ...\n", M_verbose);
+    M_J.reset(new Matrix(M_velocityFESpace->map()));
+
+    double density = M_datafile("fluid/density", 1.0);
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+               M_velocityFESpace->qr(),
+               M_velocityFESpaceETA,
+               M_velocityFESpaceETA,
+               dot(density * phi_j *
+                   grad(M_velocityFESpaceETA, *velocity), phi_i)
+             ) >> M_J;
+
+    M_J->globalAssemble();
+}
+
+void
+NavierStokesAssembler::
+updateNonLinearTerms(const double& time, std::vector<VectorPtr> solution)
+{
+    assembleRhs(time);
+    assembleConvectiveMatrix(solution);
+    assembleJacobianConvectiveMatrix(solution);
+}
+
+void
+NavierStokesAssembler::
+assembleRhs(const double& time)
+{
+    if (!M_M)
+    {
+        std::string errorMsg = "Mass matrix has not been assembled yet!\n";
+        throw Exception(errorMsg);
+    }
+
+    M_rhs.reset(new Vector(M_velocityFESpace->map()));
+    if (!M_rhsFunction)
+    {
+        M_rhs->zero();
+        return;
+    }
+
+    VectorPtr rhsInterp;
+    rhsInterp.reset(new Vector(M_velocityFESpace->map()));
+
+    M_velocityFESpace->interpolate(M_rhsFunction, *rhsInterp, time);
+    *M_rhs = (*M_M) * (*rhsInterp);
+}
+
+
 }  // namespace RedMA
