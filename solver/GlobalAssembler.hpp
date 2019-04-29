@@ -59,6 +59,9 @@ public:
     void assembleGlobalMass();
 
 private:
+    template<typename FunctionType>
+    void fillGlobalMatrix(MatrixPtr& matrixToFill, FunctionType getMatrixMethod);
+
     std::vector<std::pair<unsigned int, AssemblerTypePtr> > M_assemblersVector;
     GetPot                                                  M_datafile;
     commPtr_Type                                            M_comm;

@@ -138,9 +138,13 @@ assembleMassMatrix()
 
 NavierStokesAssembler::MatrixPtr
 NavierStokesAssembler::
-getMassMatrix()
+getMassMatrix(const unsigned int& blockrow,
+              const unsigned int& blockcol)
 {
-    return M_M;
+    if (blockrow == 0 && blockcol == 0)
+        return M_M;
+
+    return nullptr;
 }
 
 void
@@ -248,8 +252,7 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
     }
     else if (blockrow == 1 && blockcol == 1)
     {
-        retJacobian.reset(new Matrix(M_pressureFESpace->map()));
-        retJacobian->zero();
+        retJacobian = nullptr;
     }
     else
     {

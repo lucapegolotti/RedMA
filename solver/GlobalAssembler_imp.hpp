@@ -87,47 +87,71 @@ GlobalAssembler<AssemblerType>::
 assembleGlobalMass()
 {
     using namespace LifeV::MatrixEpetraStructuredUtility;
+
     typedef std::vector<std::pair<unsigned int, AssemblerTypePtr> >
                 AssemblersVector;
 
     typedef LifeV::MatrixEpetraStructuredView<double> MatrixView;
 
-    M_massMatrix.reset(new Matrix(*M_globalMap));
+    fillGlobalMatrix(M_massMatrix, &AssemblerType::getMassMatrix);
+    M_massMatrix->spy("mass");
+}
+
+template<class AssemblerType>
+template<typename FunctionType>
+void
+GlobalAssembler<AssemblerType>::
+fillGlobalMatrix(MatrixPtr& matrixToFill, FunctionType getMatrixMethod)
+{
+    using namespace LifeV::MatrixEpetraStructuredUtility;
+
+    typedef std::vector<std::pair<unsigned int, AssemblerTypePtr> >
+                AssemblersVector;
+
+    typedef LifeV::MatrixEpetraStructuredView<double> MatrixView;
+
+    matrixToFill.reset(new Matrix(*M_globalMap));
+    matrixToFill->zero();
 
     LifeV::MatrixBlockStructure structure;
     structure.setBlockStructure(M_dimensionsVector,
                                 M_dimensionsVector);
-
-    M_massMatrix->zero();
 
     unsigned int countBlocks = 0;
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
          it != M_assemblersVector.end(); it++)
     {
         unsigned int blockIndex = it->first;
-        unsigned int i, j;
+        unsigned int numberBlocks = it->second->numberOfBlocks();
+        for (int i = 0; i < numberBlocks; i++)
+        {
+            for (int j = 0; j < numberBlocks; j++)
+            {
+                AssemblerType& curAssembler = *it->second;
+                MatrixPtr localMatrix = (curAssembler.*getMatrixMethod)(i, j);
+                if (localMatrix)
+                {
+                    std::shared_ptr<MatrixView> blockGlobalView;
+                    blockGlobalView = createBlockView(matrixToFill, structure,
+                                                      i + countBlocks,
+                                                      j + countBlocks);
 
-        it->second->massLocation(i, j);
+                    LifeV::MatrixBlockStructure blockStructure;
+                    std::vector<unsigned int> rows(1), cols(1);
+                    rows[0] = M_dimensionsVector[i + countBlocks];
+                    cols[0] = M_dimensionsVector[j + countBlocks];
+                    blockStructure.setBlockStructure(rows, cols);
 
-        std::shared_ptr<MatrixView> blockGlobalView;
-        blockGlobalView = createBlockView(M_massMatrix, structure,
-                                          i + countBlocks, j + countBlocks);
-
-        LifeV::MatrixBlockStructure massBlockStructure;
-        std::vector<unsigned int> rows(1), cols(1);
-        rows[0] = M_dimensionsVector[i + countBlocks];
-        cols[0] = M_dimensionsVector[j + countBlocks];
-        massBlockStructure.setBlockStructure(rows, cols);
-
-        MatrixPtr localMass = it->second->getMassMatrix();
-        std::shared_ptr<MatrixView> blockLocalView;
-        blockLocalView =
-            createBlockView(localMass, massBlockStructure, i, j);
-        copyBlock(blockLocalView, blockGlobalView);
-
-        countBlocks += it->second->numberOfBlocks();
+                    std::shared_ptr<MatrixView> blockLocalView;
+                    blockLocalView =
+                        createBlockView(localMatrix, blockStructure, 0, 0);
+                    copyBlock(blockLocalView, blockGlobalView);
+                }
+            }
+        }
+        countBlocks += numberBlocks;
     }
-    M_massMatrix->globalAssemble();
+    matrixToFill->globalAssemble();
 }
 
 }  // namespace RedMA

@@ -47,14 +47,13 @@ public:
 
     void setup();
 
-    MatrixPtr getMassMatrix();
+    MatrixPtr getMassMatrix(const unsigned int& blockrow,
+                            const unsigned int& blockcol);
 
     MatrixPtr getJacobian(const unsigned int& blockrow,
                           const unsigned int& blockcol);
 
     inline unsigned int numberOfBlocks() {return 2;}
-
-    inline void massLocation(unsigned int& i, unsigned int& j){i = 0; j = 0;}
 
     void updateNonLinearTerms(const double& time,
                               std::vector<VectorPtr> solution);
