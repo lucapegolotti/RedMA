@@ -59,6 +59,8 @@ public:
 
     inline virtual unsigned int numberOfBlocks() = 0;
 
+    std::vector<MapEpetraPtr> getMapVector();
+
 protected:
     TreeNodePtr                 M_treeNode;
     std::vector<MapEpetraPtr>   M_maps;

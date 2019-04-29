@@ -44,7 +44,7 @@ public:
     RosenbrockAlgorithm(const GetPot& datafile);
 
     virtual void solveTimestep(const double &time, double &dt,
-                               const GlobalAssemblerType& assembler,
+                               GlobalAssemblerType& assembler,
                                const LinearSolver& linearSolver);
 
 private:

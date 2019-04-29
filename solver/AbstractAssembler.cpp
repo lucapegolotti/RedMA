@@ -24,4 +24,11 @@ addMaps(MapEpetraPtr& globalMap, std::vector<unsigned int>& dimensions)
     }
 }
 
+std::vector<AbstractAssembler::MapEpetraPtr>
+AbstractAssembler::
+getMapVector()
+{
+    return M_maps;
+}
+
 }  // namespace RedMA

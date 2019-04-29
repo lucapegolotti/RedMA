@@ -32,7 +32,7 @@ public:
     TimeMarchingAlgorithm(const GetPot& datafile);
 
     virtual void solveTimestep(const double &time, double &dt,
-                               const GlobalAssemblerType& assembler,
+                               GlobalAssemblerType& assembler,
                                const LinearSolver& linearSolver) = 0;
 
 protected:

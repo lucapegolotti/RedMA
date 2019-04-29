@@ -50,7 +50,7 @@ public:
 
     MatrixPtr getGlobalMass() const;
 
-    MatrixPtr assembleJacobianF(const double& time, VectorPtr u) const;
+    MatrixPtr getJacobianF();
 
     VectorPtr computeF(const double& time, VectorPtr u) const;
 
@@ -58,9 +58,12 @@ public:
 
     void assembleGlobalMass();
 
+    void updateNonLinearTerms(const double& time, VectorPtr solution);
+
 private:
     template<typename FunctionType>
-    void fillGlobalMatrix(MatrixPtr& matrixToFill, FunctionType getMatrixMethod);
+    void fillGlobalMatrix(MatrixPtr& matrixToFill,
+                          FunctionType getMatrixMethod);
 
     std::vector<std::pair<unsigned int, AssemblerTypePtr> > M_assemblersVector;
     GetPot                                                  M_datafile;

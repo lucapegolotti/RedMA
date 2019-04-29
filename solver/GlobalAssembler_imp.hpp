@@ -52,10 +52,10 @@ getGlobalMass() const
 template <class AssemblerType>
 typename GlobalAssembler<AssemblerType>::MatrixPtr
 GlobalAssembler<AssemblerType>::
-assembleJacobianF(const double& time, VectorPtr u) const
+getJacobianF()
 {
-    MatrixPtr jacobian(new Matrix(*M_globalMap));
-
+    MatrixPtr jacobian;
+    fillGlobalMatrix(jacobian, &AssemblerType::getJacobian);
     return jacobian;
 }
 
@@ -86,15 +86,7 @@ void
 GlobalAssembler<AssemblerType>::
 assembleGlobalMass()
 {
-    using namespace LifeV::MatrixEpetraStructuredUtility;
-
-    typedef std::vector<std::pair<unsigned int, AssemblerTypePtr> >
-                AssemblersVector;
-
-    typedef LifeV::MatrixEpetraStructuredView<double> MatrixView;
-
     fillGlobalMatrix(M_massMatrix, &AssemblerType::getMassMatrix);
-    M_massMatrix->spy("mass");
 }
 
 template<class AssemblerType>
@@ -152,6 +144,40 @@ fillGlobalMatrix(MatrixPtr& matrixToFill, FunctionType getMatrixMethod)
         countBlocks += numberBlocks;
     }
     matrixToFill->globalAssemble();
+}
+
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+updateNonLinearTerms(const double& time, VectorPtr solution)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+    typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
+    typedef std::vector<MapEpetraPtr>                    MapVector;
+
+
+    unsigned int offset = 0;
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        std::vector<VectorPtr> localSolutions;
+        MapVector maps = it->second->getMapVector();
+        unsigned int offsetlocal = 0;
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            VectorPtr subSolution;
+            subSolution.reset(new Vector(curLocalMap));
+            subSolution->zero();
+            subSolution->subset(*solution, curLocalMap, offset + offsetlocal, 0);
+            localSolutions.push_back(subSolution);
+            offsetlocal += curLocalMap.mapSize();
+        }
+        offset += offsetlocal;
+        it->second->updateNonLinearTerms(time, localSolutions);
+    }
 }
 
 }  // namespace RedMA

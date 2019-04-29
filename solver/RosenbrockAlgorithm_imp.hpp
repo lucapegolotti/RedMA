@@ -15,16 +15,16 @@ template <class AssemblerType>
 void
 RosenbrockAlgorithm<AssemblerType>::
 solveTimestep(const double &time, double &dt,
-              const GlobalAssemblerType& assembler,
+              GlobalAssemblerType& assembler,
               const LinearSolver& linearSolver)
 {
     typedef LifeV::VectorEpetra         VectorEpetra;
     unsigned int s = M_coefficients.numberStages();
+    assembler.updateNonLinearTerms(time, M_solution);
 
     MapEpetraPtr globalMap = assembler.getGlobalMap();
-
     MatrixPtr globalMass = assembler.getGlobalMass();
-    MatrixPtr globalJac = assembler.assembleJacobianF(time, M_solution);
+    MatrixPtr globalJac = assembler.getJacobianF();
 
     MatrixPtr systemMatrix(new Matrix(*globalJac));
     *systemMatrix *= (-dt * M_coefficients.gamma());
