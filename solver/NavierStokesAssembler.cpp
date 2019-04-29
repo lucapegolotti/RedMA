@@ -103,6 +103,17 @@ assembleDivergenceMatrix()
     M_B->globalAssemble(M_velocityFESpace->mapPtr(),
                         M_pressureFESpace->mapPtr());
 
+    M_Bt.reset(new Matrix(M_velocityFESpace->map()));
+
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+               M_velocityFESpace->qr(),
+               M_velocityFESpaceETA,
+               M_pressureFESpaceETA,
+               phi_j * div(phi_i)
+              ) >> M_Bt;
+
+    M_Bt->globalAssemble(M_pressureFESpace->mapPtr(),
+                         M_velocityFESpace->mapPtr());
 }
 
 void
@@ -204,6 +215,8 @@ assembleRhs(const double& time)
         return;
     }
 
+    printlog(YELLOW, "Assembling right hand side ...\n", M_verbose);
+
     VectorPtr rhsInterp;
     rhsInterp.reset(new Vector(M_velocityFESpace->map()));
 
@@ -211,5 +224,42 @@ assembleRhs(const double& time)
     *M_rhs = (*M_M) * (*rhsInterp);
 }
 
+NavierStokesAssembler::MatrixPtr
+NavierStokesAssembler::
+getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
+{
+    MatrixPtr retJacobian;
+
+    if (blockrow == 0 && blockcol == 0)
+    {
+        retJacobian.reset(new Matrix(M_velocityFESpace->map()));
+        retJacobian->zero();
+        *retJacobian += *M_A;
+        *retJacobian += *M_C;
+        *retJacobian += *M_J;
+    }
+    else if (blockrow == 0 && blockcol == 1)
+    {
+        retJacobian = M_Bt;
+    }
+    else if (blockrow == 1 && blockcol == 0)
+    {
+        retJacobian = M_B;
+    }
+    else if (blockrow == 1 && blockcol == 1)
+    {
+        retJacobian.reset(new Matrix(M_pressureFESpace->map()));
+        retJacobian->zero();
+    }
+    else
+    {
+        std::string errorMsg = "row = " + std::to_string(blockrow) + ", col = " +
+                    std::to_string(blockcol) + " is an invalid combination of " +
+                    "block indices for NavierStokesAssembler!";
+        throw Exception(errorMsg);
+    }
+
+    return retJacobian;
+}
 
 }  // namespace RedMA

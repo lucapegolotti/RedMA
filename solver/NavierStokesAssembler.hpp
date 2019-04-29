@@ -49,8 +49,8 @@ public:
 
     MatrixPtr getMassMatrix();
 
-    MatrixPtr getJacobian(const unsigned int blockrow,
-                          const unsigned int blockcol);
+    MatrixPtr getJacobian(const unsigned int& blockrow,
+                          const unsigned int& blockcol);
 
     inline unsigned int numberOfBlocks() {return 2;}
 
@@ -81,6 +81,7 @@ protected:
 
     MatrixPtr               M_A;
     MatrixPtr               M_B;
+    MatrixPtr               M_Bt;
     MatrixPtr               M_M;
     MatrixPtr               M_C;
     MatrixPtr               M_J;
