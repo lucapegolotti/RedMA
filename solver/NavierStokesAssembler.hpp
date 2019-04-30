@@ -58,6 +58,10 @@ public:
     void setTimeAndPrevSolution(const double& time,
                                 std::vector<VectorPtr> solution);
 
+    std::vector<VectorPtr> computeF();
+
+    std::vector<VectorPtr> computeFder();
+
 protected:
     void assembleConstantMatrices();
 

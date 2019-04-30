@@ -243,7 +243,11 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
         retJacobian.reset(new Matrix(M_velocityFESpace->map()));
         retJacobian->zero();
         *retJacobian += *M_A;
+        if (!M_C)
+            assembleConvectiveMatrix(M_prevSolution);
         *retJacobian += *M_C;
+        if (!M_J)
+            assembleJacobianConvectiveMatrix(M_prevSolution);
         *retJacobian += *M_J;
     }
     else if (blockrow == 0 && blockcol == 1)
@@ -277,6 +281,51 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
         *retJacobian *= (-1.0);
 
     return retJacobian;
+}
+
+std::vector<NavierStokesAssembler::VectorPtr>
+NavierStokesAssembler::
+computeF()
+{
+    std::vector<VectorPtr> Fs;
+    VectorPtr velocity = M_prevSolution[0];
+    VectorPtr pressure = M_prevSolution[1];
+
+    // assemble F first component
+    VectorPtr F1;
+    F1.reset(new Vector(M_velocityFESpace->map()));
+    F1->zero();
+
+    if (!M_forcingTerm)
+        assembleForcingterm(M_time);
+
+    *F1 += *M_forcingTerm;
+
+    if (!M_C)
+        assembleConvectiveMatrix(M_prevSolution);
+
+    *F1 -= (*M_A) * (*velocity);
+    *F1 -= (*M_C) * (*velocity);
+    *F1 -= (*M_Bt) * (*pressure);
+    // assemble F second component
+    VectorPtr F2;
+    F2.reset(new Vector(M_pressureFESpace->map()));
+    F2->zero();
+
+    *F2 = (*M_B) * (*velocity);
+    *F2 *= (-1);
+
+    Fs.push_back(F1);
+    Fs.push_back(F2);
+
+    return Fs;
+}
+
+std::vector<NavierStokesAssembler::VectorPtr>
+NavierStokesAssembler::
+computeFder()
+{
+
 }
 
 }  // namespace RedMA

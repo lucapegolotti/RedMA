@@ -32,7 +32,7 @@ solveTimestep(const double &time, double &dt,
 
     std::vector<VectorPtr> stages(s);
 
-    VectorPtr Fder = assembler.computeFder(time, M_solution);
+    VectorPtr Fder = assembler.computeFder();
 
     for (int i = 0; i < s; i++)
     {
@@ -53,7 +53,8 @@ solveTimestep(const double &time, double &dt,
             VectorEpetra part = M_coefficients.alphaHat(i,j) * (*(stages[j]));
             *yTilde += part;
         }
-        VectorPtr F = assembler.computeF(time + dt * alphai, yTilde);
+        // VectorPtr F = assembler.computeF(time + dt * alphai, yTilde);
+        VectorPtr F = assembler.computeF();
         *F *= (M_coefficients.gamma() * dt);
 
         VectorPtr sumStages(new Vector(*globalMap));

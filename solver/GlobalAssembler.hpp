@@ -52,9 +52,9 @@ public:
 
     MatrixPtr getJacobianF();
 
-    VectorPtr computeF(const double& time, VectorPtr u) const;
+    VectorPtr computeF() const;
 
-    VectorPtr computeFder(const double& time, VectorPtr u) const;
+    VectorPtr computeFder() const;
 
     void assembleGlobalMass();
 
@@ -64,6 +64,10 @@ private:
     template<typename FunctionType>
     void fillGlobalMatrix(MatrixPtr& matrixToFill,
                           FunctionType getMatrixMethod);
+
+    template<typename FunctionType>
+    void fillGlobalVector(VectorPtr& vectorToFill,
+                          FunctionType getVectorMethod);
 
     std::vector<std::pair<unsigned int, AssemblerTypePtr> > M_assemblersVector;
     GetPot                                                  M_datafile;

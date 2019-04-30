@@ -62,7 +62,7 @@ getJacobianF()
 template <class AssemblerType>
 typename GlobalAssembler<AssemblerType>::VectorPtr
 GlobalAssembler<AssemblerType>::
-computeF(const double& time, VectorPtr u) const
+computeF() const
 {
     VectorPtr f(new Vector(*M_globalMap));
 
@@ -73,7 +73,7 @@ computeF(const double& time, VectorPtr u) const
 template <class AssemblerType>
 typename GlobalAssembler<AssemblerType>::VectorPtr
 GlobalAssembler<AssemblerType>::
-computeFder(const double& time, VectorPtr u) const
+computeFder() const
 {
     VectorPtr fder(new Vector(*M_globalMap));
 
@@ -144,6 +144,43 @@ fillGlobalMatrix(MatrixPtr& matrixToFill, FunctionType getMatrixMethod)
         countBlocks += numberBlocks;
     }
     matrixToFill->globalAssemble();
+}
+
+template<class AssemblerType>
+template<typename FunctionType>
+void
+GlobalAssembler<AssemblerType>::
+fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
+{
+    using namespace LifeV::MatrixEpetraStructuredUtility;
+
+    typedef std::vector<std::pair<unsigned int, AssemblerTypePtr> >
+                AssemblersVector;
+
+    typedef std::vector<MapEpetraPtr>                    MapVector;
+
+    vectorToFill.reset(new Vector(*M_globalMap));
+    vectorToFill->zero();
+
+    unsigned int offset = 0;
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        std::vector<VectorPtr> localSolutions;
+        MapVector maps = it->second->getMapVector();
+        std::vector<VectorPtr> localVectors = it->second->getVectorMethod();
+        unsigned int index = 0;
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            // we fill only if the vector corresponding to map i exists!
+            if (localVectors[index])
+                vectorToFill->subset(*localVectors[index], curLocalMap, 0, offset);
+            offset += curLocalMap.mapSize();
+            index++;
+        }
+    }
 }
 
 template<class AssemblerType>
