@@ -384,4 +384,77 @@ computeFder()
     return Fs;
 }
 
+void
+NavierStokesAssembler::
+createBCHandler()
+{
+    LifeV::BCFunctionBase zeroFunction (fZero);
+
+    M_boundaryConditions.reset(new LifeV::BCHandler);
+
+    const unsigned int wallInlet = 1;
+    const unsigned int wallFlag = 10;
+
+    // if this is the root node, we impose dirichlet boundary conditions at
+    // inlet too
+    if (M_treeNode->M_ID == 0)
+    {
+
+        auto inflowBoundaryCondition = std::bind(poiseulleInflow,
+                                                 std::placeholders::_1,
+                                                 std::placeholders::_2,
+                                                 std::placeholders::_3,
+                                                 std::placeholders::_4,
+                                                 std::placeholders::_5,
+                                                 M_treeNode->M_block->getInlet(),
+                                                 M_maxVelocityLaw);
+
+        LifeV::BCFunctionBase inflowFunction(inflowBoundaryCondition);
+        M_boundaryConditions->addBC("Inlet", wallInlet,
+                                    LifeV::Essential, LifeV::Full,
+                                    inflowFunction, 3);
+    }
+
+    M_boundaryConditions->addBC("Wall",  wallFlag,  LifeV::Essential,
+                                LifeV::Full, zeroFunction, 3);
+}
+
+double
+NavierStokesAssembler::
+fZero(const double& t, const double& x, const double& y, const double& z,
+      const unsigned int& i)
+{
+    return 0.0;
+}
+
+double
+NavierStokesAssembler::
+poiseulleInflow(const double& t, const double& x, const double& y,
+                const double& z, const unsigned int& i,
+                const GeometricFace& face,
+                std::function<double(double)> maxLaw)
+{
+    typedef LifeV::VectorSmall<3>   Vector3D;
+
+    const Vector3D& center = face.M_center;
+    const Vector3D& normal = face.M_normal;
+    double radius = face.M_radius;
+
+    Vector3D curPoint(x,y,z);
+    Vector3D diff = curPoint - center;
+    double normDiff = radius - diff.norm();
+
+    double inflowNorm = maxLaw(t) * normDiff * normDiff / (radius * radius);
+    Vector3D inflow = -inflowNorm * normal;
+    return normal[i];
+}
+
+void
+NavierStokesAssembler::
+setMaxVelocityLawInflow(std::function<double(double)> maxLaw)
+{
+    M_maxVelocityLaw = maxLaw;
+}
+
+
 }  // namespace RedMA

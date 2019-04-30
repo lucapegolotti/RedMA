@@ -21,6 +21,7 @@
 #include <Exception.hpp>
 
 #include <lifev/eta/fem/ETFESpace.hpp>
+#include <lifev/core/fem/BCHandler.hpp>
 
 #include <functional>
 
@@ -40,6 +41,7 @@ protected:
                                  double const&,
                                  unsigned int const& )> FunctionType;
 
+    typedef std::shared_ptr<LifeV::BCHandler>           BoundaryConditionPtr;
 
 public:
     NavierStokesAssembler(const GetPot& datafile, commPtr_Type comm,
@@ -57,6 +59,8 @@ public:
 
     void setTimeAndPrevSolution(const double& time,
                                 std::vector<VectorPtr> solution);
+
+    void setMaxVelocityLawInflow(std::function<double(double)> maxLaw);
 
     std::vector<VectorPtr> computeF();
 
@@ -79,25 +83,42 @@ protected:
 
     void assembleForcingTermTimeDerivative();
 
+    void createBCHandler();
 
-    FESpacePtr              M_velocityFESpace;
-    FESpacePtr              M_pressureFESpace;
-    ETFESpaceVelocityPtr    M_velocityFESpaceETA;
-    ETFESpacePressurePtr    M_pressureFESpaceETA;
+    static double fZero(const double& t,
+                        const double& x,
+                        const double& y,
+                        const double& z,
+                        const unsigned int& i);
 
-    MatrixPtr               M_A;
-    MatrixPtr               M_B;
-    MatrixPtr               M_Bt;
-    MatrixPtr               M_M;
-    MatrixPtr               M_C;
-    MatrixPtr               M_J;
-    VectorPtr               M_forcingTerm;
-    VectorPtr               M_forcingTermTimeDer;
-    std::vector<VectorPtr>  M_prevSolution;
-    double                  M_time;
+    static double poiseulleInflow(const double& t,
+                                  const double& x,
+                                  const double& y,
+                                  const double& z,
+                                  const unsigned int& i,
+                                  const GeometricFace& face,
+                                  std::function<double(double)> maxLaw);
 
-    FunctionType            M_forceFunction;
-    FunctionType            M_forceTimeDerFunction;
+    FESpacePtr                      M_velocityFESpace;
+    FESpacePtr                      M_pressureFESpace;
+    ETFESpaceVelocityPtr            M_velocityFESpaceETA;
+    ETFESpacePressurePtr            M_pressureFESpaceETA;
+
+    MatrixPtr                       M_A;
+    MatrixPtr                       M_B;
+    MatrixPtr                       M_Bt;
+    MatrixPtr                       M_M;
+    MatrixPtr                       M_C;
+    MatrixPtr                       M_J;
+    VectorPtr                       M_forcingTerm;
+    VectorPtr                       M_forcingTermTimeDer;
+    std::vector<VectorPtr>          M_prevSolution;
+    double                          M_time;
+
+    FunctionType                    M_forceFunction;
+    FunctionType                    M_forceTimeDerFunction;
+    BoundaryConditionPtr            M_boundaryConditions;
+    std::function<double(double)>   M_maxVelocityLaw;
 };
 
 }  // namespace RedMA
