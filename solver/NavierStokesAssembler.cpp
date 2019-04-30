@@ -56,8 +56,8 @@ NavierStokesAssembler::
 assembleConstantMatrices()
 {
     printlog(GREEN, "Assembling constant matrices ...\n", M_verbose);
-    // assembleStiffnessMatrix();
-    // assembleDivergenceMatrix();
+    assembleStiffnessMatrix();
+    assembleDivergenceMatrix();
     assembleMassMatrix();
     printlog(GREEN, "done\n", M_verbose);
 }
@@ -237,6 +237,12 @@ NavierStokesAssembler::MatrixPtr
 NavierStokesAssembler::
 getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
 {
+    std::string blockStr = std::string("(") + std::to_string(blockrow) + "," +
+                           std::to_string(blockcol) + ")";
+
+    printlog(GREEN, "Constructing jacobian, block " + blockStr +
+                    " ...\n", M_verbose);
+
     MatrixPtr retJacobian;
 
     if (blockrow == 0 && blockcol == 0)
@@ -250,6 +256,7 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
         if (!M_J)
             assembleJacobianConvectiveMatrix();
         *retJacobian += *M_J;
+        retJacobian->globalAssemble();
     }
     else if (blockrow == 0 && blockcol == 1)
     {
@@ -280,7 +287,6 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
     // H du/dt = F(t,u)
     if (retJacobian)
         *retJacobian *= (-1.0);
-
     return retJacobian;
 }
 

@@ -18,7 +18,6 @@
 #define ROSENBROCKALGORITHM_HPP
 
 #include <TimeMarchingAlgorithm.hpp>
-#include <LinearSolver.hpp>
 
 #include <lifev/core/array/VectorBlockStructure.hpp>
 #include <lifev/core/array/MatrixBlockStructure.hpp>

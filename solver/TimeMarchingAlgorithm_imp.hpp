@@ -32,7 +32,7 @@ solveLinearSystem(MatrixPtr matrix, VectorPtr rhs, VectorPtr sol)
                                        Teuchos::rcp(new Teuchos::ParameterList);
 
     std::string xmlSolverData = M_datafile("solver/XMLdatafile",
-                                           "SolversOptionsFast.xml");
+                                           "SolverParamList.xml");
 
     aztecList = Teuchos::getParametersFromXmlFile(xmlSolverData);
     linearSolver.setParameters(*aztecList);

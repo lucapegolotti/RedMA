@@ -54,8 +54,7 @@ void
 GlobalSolver<AssemblerType>::
 solveTimestep(const double& time, double& dt)
 {
-    M_timeMarchingAlgorithm->solveTimestep(time, dt, M_globalAssembler,
-                                           M_linearSolver);
+    M_timeMarchingAlgorithm->solveTimestep(time, dt);
 }
 
 }  // namespace RedMA

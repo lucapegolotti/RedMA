@@ -74,8 +74,7 @@ solveTimestep(const double &time, double &dt)
         *F += *Fder;
 
         *Fder *= (1.0/coeff) * (*Fder);
-
-        // here we need to apply the bcs
+        // here we need to apply the bcs to the right hand side
 
         VectorPtr newStage(new Vector(*globalMap));
         solveLinearSystem(systemMatrix, F, newStage);
