@@ -97,7 +97,7 @@ assembleDivergenceMatrix()
                M_pressureFESpace->qr(),
                M_pressureFESpaceETA,
                M_velocityFESpaceETA,
-               phi_i * div(phi_j)
+               value(-1.0) * phi_i * div(phi_j)
               ) >> M_B;
 
     M_B->globalAssemble(M_velocityFESpace->mapPtr(),
@@ -109,7 +109,7 @@ assembleDivergenceMatrix()
                M_velocityFESpace->qr(),
                M_velocityFESpaceETA,
                M_pressureFESpaceETA,
-               phi_j * div(phi_i)
+               value(-1.0) * phi_j * div(phi_i)
               ) >> M_Bt;
 
     M_Bt->globalAssemble(M_pressureFESpace->mapPtr(),
@@ -195,16 +195,20 @@ assembleJacobianConvectiveMatrix(std::vector<VectorPtr> solution)
 
 void
 NavierStokesAssembler::
-updateNonLinearTerms(const double& time, std::vector<VectorPtr> solution)
+setTimeAndPrevSolution(const double& time, std::vector<VectorPtr> solution)
 {
-    assembleRhs(time);
-    assembleConvectiveMatrix(solution);
-    assembleJacobianConvectiveMatrix(solution);
+    M_time = time;
+    M_prevSolution = solution;
+
+    // reset all things that need to be recomputed
+    M_C = nullptr;
+    M_J = nullptr;
+    M_forcingTerm = nullptr;
 }
 
 void
 NavierStokesAssembler::
-assembleRhs(const double& time)
+assembleForcingterm(const double& time)
 {
     if (!M_M)
     {
@@ -212,20 +216,20 @@ assembleRhs(const double& time)
         throw Exception(errorMsg);
     }
 
-    M_rhs.reset(new Vector(M_velocityFESpace->map()));
-    if (!M_rhsFunction)
+    M_forcingTerm.reset(new Vector(M_velocityFESpace->map()));
+    if (!M_forceFunction)
     {
-        M_rhs->zero();
+        M_forcingTerm->zero();
         return;
     }
 
     printlog(YELLOW, "Assembling right hand side ...\n", M_verbose);
 
-    VectorPtr rhsInterp;
-    rhsInterp.reset(new Vector(M_velocityFESpace->map()));
+    VectorPtr forcingTermInterp;
+    forcingTermInterp.reset(new Vector(M_velocityFESpace->map()));
 
-    M_velocityFESpace->interpolate(M_rhsFunction, *rhsInterp, time);
-    *M_rhs = (*M_M) * (*rhsInterp);
+    M_velocityFESpace->interpolate(M_forceFunction, *forcingTermInterp, time);
+    *M_forcingTerm = (*M_M) * (*forcingTermInterp);
 }
 
 NavierStokesAssembler::MatrixPtr
@@ -244,11 +248,17 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
     }
     else if (blockrow == 0 && blockcol == 1)
     {
-        retJacobian = M_Bt;
+        retJacobian.reset(new Matrix(M_velocityFESpace->map()));
+        *retJacobian = *M_Bt;
+        retJacobian->globalAssemble(M_pressureFESpace->mapPtr(),
+                                    M_velocityFESpace->mapPtr());
     }
     else if (blockrow == 1 && blockcol == 0)
     {
-        retJacobian = M_B;
+        retJacobian.reset(new Matrix(M_pressureFESpace->map()));
+        *retJacobian = *M_B;
+        retJacobian->globalAssemble(M_velocityFESpace->mapPtr(),
+                                    M_pressureFESpace->mapPtr());
     }
     else if (blockrow == 1 && blockcol == 1)
     {
@@ -261,6 +271,10 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
                     "block indices for NavierStokesAssembler!";
         throw Exception(errorMsg);
     }
+    // we multiply by -1 because it is at the right hand side when writing
+    // H du/dt = F(t,u)
+    if (retJacobian)
+        *retJacobian *= (-1.0);
 
     return retJacobian;
 }

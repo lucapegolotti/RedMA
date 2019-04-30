@@ -149,13 +149,12 @@ fillGlobalMatrix(MatrixPtr& matrixToFill, FunctionType getMatrixMethod)
 template<class AssemblerType>
 void
 GlobalAssembler<AssemblerType>::
-updateNonLinearTerms(const double& time, VectorPtr solution)
+setTimeAndPrevSolution(const double& time, VectorPtr solution)
 {
     typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
     typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
     typedef std::vector<MapEpetraPtr>                    MapVector;
-
 
     unsigned int offset = 0;
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
@@ -163,7 +162,6 @@ updateNonLinearTerms(const double& time, VectorPtr solution)
     {
         std::vector<VectorPtr> localSolutions;
         MapVector maps = it->second->getMapVector();
-        unsigned int offsetlocal = 0;
         for (MapVector::iterator itmap = maps.begin();
              itmap != maps.end(); itmap++)
         {
@@ -171,12 +169,11 @@ updateNonLinearTerms(const double& time, VectorPtr solution)
             VectorPtr subSolution;
             subSolution.reset(new Vector(curLocalMap));
             subSolution->zero();
-            subSolution->subset(*solution, curLocalMap, offset + offsetlocal, 0);
+            subSolution->subset(*solution, curLocalMap, offset, 0);
             localSolutions.push_back(subSolution);
-            offsetlocal += curLocalMap.mapSize();
+            offset += curLocalMap.mapSize();
         }
-        offset += offsetlocal;
-        it->second->updateNonLinearTerms(time, localSolutions);
+        it->second->setTimeAndPrevSolution(time, localSolutions);
     }
 }
 

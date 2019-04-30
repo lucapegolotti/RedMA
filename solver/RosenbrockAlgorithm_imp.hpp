@@ -20,7 +20,7 @@ solveTimestep(const double &time, double &dt,
 {
     typedef LifeV::VectorEpetra         VectorEpetra;
     unsigned int s = M_coefficients.numberStages();
-    assembler.updateNonLinearTerms(time, M_solution);
+    assembler.setTimeAndPrevSolution(time, M_solution);
 
     MapEpetraPtr globalMap = assembler.getGlobalMap();
     MatrixPtr globalMass = assembler.getGlobalMass();
@@ -31,6 +31,8 @@ solveTimestep(const double &time, double &dt,
     *systemMatrix += (*globalMass);
 
     std::vector<VectorPtr> stages(s);
+
+    VectorPtr Fder = assembler.computeFder(time, M_solution);
 
     for (int i = 0; i < s; i++)
     {
@@ -65,11 +67,12 @@ solveTimestep(const double &time, double &dt,
         VectorEpetra prod = (*globalMass) * (*sumStages);
         *F += prod;
 
-        VectorPtr Fder = assembler.computeFder(time, M_solution);
         double coeff = M_coefficients.gamma() * gammai * dt * dt;
         *Fder *= (coeff);
 
         *F += *Fder;
+
+        *Fder *= (1.0/coeff) * (*Fder);
 
         // here we need to apply the bcs
 

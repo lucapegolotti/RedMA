@@ -58,7 +58,7 @@ public:
 
     void assembleGlobalMass();
 
-    void updateNonLinearTerms(const double& time, VectorPtr solution);
+    void setTimeAndPrevSolution(const double& time, VectorPtr solution);
 
 private:
     template<typename FunctionType>

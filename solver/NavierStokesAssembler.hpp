@@ -55,8 +55,8 @@ public:
 
     inline unsigned int numberOfBlocks() {return 2;}
 
-    void updateNonLinearTerms(const double& time,
-                              std::vector<VectorPtr> solution);
+    void setTimeAndPrevSolution(const double& time,
+                                std::vector<VectorPtr> solution);
 
 protected:
     void assembleConstantMatrices();
@@ -71,7 +71,7 @@ protected:
 
     void assembleJacobianConvectiveMatrix(std::vector<VectorPtr> solution);
 
-    void assembleRhs(const double& time);
+    void assembleForcingterm(const double& time);
 
     FESpacePtr              M_velocityFESpace;
     FESpacePtr              M_pressureFESpace;
@@ -84,9 +84,11 @@ protected:
     MatrixPtr               M_M;
     MatrixPtr               M_C;
     MatrixPtr               M_J;
-    VectorPtr               M_rhs;
+    VectorPtr               M_forcingTerm;
+    std::vector<VectorPtr>  M_prevSolution;
+    double                  M_time;
 
-    FunctionType            M_rhsFunction;
+    FunctionType            M_forceFunction;
 };
 
 }  // namespace RedMA
