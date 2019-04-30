@@ -71,11 +71,14 @@ protected:
 
     void assembleMassMatrix();
 
-    void assembleConvectiveMatrix(std::vector<VectorPtr> solution);
+    void assembleConvectiveMatrix();
 
-    void assembleJacobianConvectiveMatrix(std::vector<VectorPtr> solution);
+    void assembleJacobianConvectiveMatrix();
 
-    void assembleForcingterm(const double& time);
+    void assembleForcingTerm();
+
+    void assembleForcingTermTimeDerivative();
+
 
     FESpacePtr              M_velocityFESpace;
     FESpacePtr              M_pressureFESpace;
@@ -89,10 +92,12 @@ protected:
     MatrixPtr               M_C;
     MatrixPtr               M_J;
     VectorPtr               M_forcingTerm;
+    VectorPtr               M_forcingTermTimeDer;
     std::vector<VectorPtr>  M_prevSolution;
     double                  M_time;
 
     FunctionType            M_forceFunction;
+    FunctionType            M_forceTimeDerFunction;
 };
 
 }  // namespace RedMA

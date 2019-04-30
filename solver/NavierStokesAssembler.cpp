@@ -149,11 +149,11 @@ getMassMatrix(const unsigned int& blockrow,
 
 void
 NavierStokesAssembler::
-assembleConvectiveMatrix(std::vector<VectorPtr> solution)
+assembleConvectiveMatrix()
 {
     using namespace LifeV::ExpressionAssembly;
 
-    VectorPtr velocity = solution[0];
+    VectorPtr velocity = M_prevSolution[0];
 
     printlog(YELLOW, "Assembling convective matrix ...\n", M_verbose);
     M_C.reset(new Matrix(M_velocityFESpace->map()));
@@ -172,11 +172,11 @@ assembleConvectiveMatrix(std::vector<VectorPtr> solution)
 
 void
 NavierStokesAssembler::
-assembleJacobianConvectiveMatrix(std::vector<VectorPtr> solution)
+assembleJacobianConvectiveMatrix()
 {
     using namespace LifeV::ExpressionAssembly;
 
-    VectorPtr velocity = solution[0];
+    VectorPtr velocity = M_prevSolution[0];
 
     printlog(YELLOW, "Assembling convective matrix jacobian ...\n", M_verbose);
     M_J.reset(new Matrix(M_velocityFESpace->map()));
@@ -204,11 +204,12 @@ setTimeAndPrevSolution(const double& time, std::vector<VectorPtr> solution)
     M_C = nullptr;
     M_J = nullptr;
     M_forcingTerm = nullptr;
+    M_forcingTermTimeDer = nullptr;
 }
 
 void
 NavierStokesAssembler::
-assembleForcingterm(const double& time)
+assembleForcingTerm()
 {
     if (!M_M)
     {
@@ -228,7 +229,7 @@ assembleForcingterm(const double& time)
     VectorPtr forcingTermInterp;
     forcingTermInterp.reset(new Vector(M_velocityFESpace->map()));
 
-    M_velocityFESpace->interpolate(M_forceFunction, *forcingTermInterp, time);
+    M_velocityFESpace->interpolate(M_forceFunction, *forcingTermInterp, M_time);
     *M_forcingTerm = (*M_M) * (*forcingTermInterp);
 }
 
@@ -244,10 +245,10 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
         retJacobian->zero();
         *retJacobian += *M_A;
         if (!M_C)
-            assembleConvectiveMatrix(M_prevSolution);
+            assembleConvectiveMatrix();
         *retJacobian += *M_C;
         if (!M_J)
-            assembleJacobianConvectiveMatrix(M_prevSolution);
+            assembleJacobianConvectiveMatrix();
         *retJacobian += *M_J;
     }
     else if (blockrow == 0 && blockcol == 1)
@@ -297,12 +298,12 @@ computeF()
     F1->zero();
 
     if (!M_forcingTerm)
-        assembleForcingterm(M_time);
+        assembleForcingTerm();
 
     *F1 += *M_forcingTerm;
 
     if (!M_C)
-        assembleConvectiveMatrix(M_prevSolution);
+        assembleConvectiveMatrix();
 
     *F1 -= (*M_A) * (*velocity);
     *F1 -= (*M_C) * (*velocity);
@@ -321,11 +322,60 @@ computeF()
     return Fs;
 }
 
+void
+NavierStokesAssembler::
+assembleForcingTermTimeDerivative()
+{
+    if (!M_M)
+    {
+        std::string errorMsg = "Mass matrix has not been assembled yet!\n";
+        throw Exception(errorMsg);
+    }
+
+    M_forcingTermTimeDer.reset(new Vector(M_velocityFESpace->map()));
+    if (!M_forceTimeDerFunction)
+    {
+        M_forcingTermTimeDer->zero();
+        return;
+    }
+
+    printlog(YELLOW, "Assembling right hand side derivative ...\n", M_verbose);
+
+    VectorPtr forcingTermDerInterp;
+    forcingTermDerInterp.reset(new Vector(M_velocityFESpace->map()));
+
+    M_velocityFESpace->interpolate(M_forceTimeDerFunction, *forcingTermDerInterp,
+                                   M_time);
+    *M_forcingTermTimeDer = (*M_M) * (*forcingTermDerInterp);
+}
+
 std::vector<NavierStokesAssembler::VectorPtr>
 NavierStokesAssembler::
 computeFder()
 {
+    std::vector<VectorPtr> Fs;
+    VectorPtr velocity = M_prevSolution[0];
+    VectorPtr pressure = M_prevSolution[1];
 
+    // assemble F first component
+    VectorPtr F1;
+    F1.reset(new Vector(M_velocityFESpace->map()));
+    F1->zero();
+
+    if (!M_forcingTermTimeDer)
+        assembleForcingTermTimeDerivative();
+
+    *F1 += *M_forcingTermTimeDer;
+
+    // assemble F second component
+    VectorPtr F2;
+    F2.reset(new Vector(M_pressureFESpace->map()));
+    F2->zero();
+
+    Fs.push_back(F1);
+    Fs.push_back(F2);
+
+    return Fs;
 }
 
 }  // namespace RedMA
