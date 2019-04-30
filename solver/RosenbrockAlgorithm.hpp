@@ -34,18 +34,28 @@ class RosenbrockAlgorithm : public TimeMarchingAlgorithm<AssemblerType>
     using TimeMarchingAlgorithm<AssemblerType>::M_datafile;
     using TimeMarchingAlgorithm<AssemblerType>::M_solution;
     using TimeMarchingAlgorithm<AssemblerType>::M_globalAssembler;
-protected:
-    typedef GlobalAssembler<AssemblerType>              GlobalAssemblerType;
-    typedef LifeV::VectorEpetra                         Vector;
-    typedef std::shared_ptr<Vector>                     VectorPtr;
-    typedef LifeV::MatrixEpetra<double>                 Matrix;
-    typedef std::shared_ptr<Matrix>                     MatrixPtr;
-    typedef LifeV::MapEpetra                            MapEpetra;
-    typedef std::shared_ptr<MapEpetra>                  MapEpetraPtr;
-
+    using TimeMarchingAlgorithm<AssemblerType>::solveLinearSystem;
 public:
+    typedef typename TimeMarchingAlgorithm<AssemblerType>::GlobalAssemblerType
+                     GlobalAssemblerType;
+    typedef typename TimeMarchingAlgorithm<AssemblerType>::Vector
+                     Vector;
+    typedef typename TimeMarchingAlgorithm<AssemblerType>::VectorPtr
+                     VectorPtr;
+    typedef typename TimeMarchingAlgorithm<AssemblerType>::Matrix
+                     Matrix;
+    typedef typename TimeMarchingAlgorithm<AssemblerType>::MatrixPtr
+                     MatrixPtr;
+    typedef typename TimeMarchingAlgorithm<AssemblerType>::MapEpetra
+                     MapEpetra;
+    typedef typename TimeMarchingAlgorithm<AssemblerType>::MapEpetraPtr
+                     MapEpetraPtr;
+    typedef typename TimeMarchingAlgorithm<AssemblerType>::commPtr_Type
+                     commPtr_Type;
+
     RosenbrockAlgorithm(const GetPot& datafile,
-                        GlobalAssemblerType* assembler);
+                        GlobalAssemblerType* assembler,
+                        commPtr_Type comm);
 
     virtual void solveTimestep(const double &time, double &dt);
 

@@ -19,6 +19,8 @@
 
 #include <GlobalAssembler.hpp>
 
+#include <lifev/core/algorithm/SolverAztecOO.hpp>
+
 namespace RedMA
 {
 
@@ -29,17 +31,26 @@ protected:
     typedef GlobalAssembler<AssemblerType>                  GlobalAssemblerType;
     typedef LifeV::VectorEpetra                             Vector;
     typedef std::shared_ptr<Vector>                         VectorPtr;
+    typedef std::shared_ptr<Epetra_Comm>                    commPtr_Type;
+    typedef LifeV::MatrixEpetra<double>                     Matrix;
+    typedef std::shared_ptr<Matrix>                         MatrixPtr;
+    typedef LifeV::MapEpetra                                MapEpetra;
+    typedef std::shared_ptr<MapEpetra>                      MapEpetraPtr;
 
 public:
     TimeMarchingAlgorithm(const GetPot& datafile,
-                          GlobalAssemblerType* assembler);
+                          GlobalAssemblerType* assembler,
+                          commPtr_Type comm);
 
     virtual void solveTimestep(const double &time, double &dt) = 0;
+
+    void solveLinearSystem(MatrixPtr matrix, VectorPtr rhs, VectorPtr sol);
 
 protected:
     GetPot                  M_datafile;
     VectorPtr               M_solution;
     GlobalAssemblerType*    M_globalAssembler;
+    commPtr_Type            M_comm;
 };
 
 }  // namespace RedMA

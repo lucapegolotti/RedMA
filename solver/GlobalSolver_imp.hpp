@@ -27,7 +27,8 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
 
     M_timeMarchingAlgorithm =
             TimeMarchingAlgorithmsFactory<AssemblerType>(datafile,
-                                                         &M_globalAssembler);
+                                                         &M_globalAssembler,
+                                                         M_comm);
 }
 
 template <class AssemblerType>

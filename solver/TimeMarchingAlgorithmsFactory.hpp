@@ -29,7 +29,8 @@ namespace RedMA
 template <class AssemblerType>
 std::shared_ptr<TimeMarchingAlgorithm<AssemblerType> >
 TimeMarchingAlgorithmsFactory(const GetPot& datafile,
-                              GlobalAssembler<AssemblerType>* assembler)
+                              GlobalAssembler<AssemblerType>* assembler,
+                              std::shared_ptr<Epetra_Comm> comm)
 {
     std::string marchingAlgorithmString =
         datafile("time_discretization/algorithm", "rosenbrock");
@@ -39,7 +40,8 @@ TimeMarchingAlgorithmsFactory(const GetPot& datafile,
         typedef RosenbrockAlgorithm<AssemblerType>  ReturnType;
         std::shared_ptr<ReturnType>
                 returnPtr(new RosenbrockAlgorithm<AssemblerType>(datafile,
-                                                                 assembler));
+                                                                 assembler,
+                                                                 comm));
 
         return returnPtr;
     }

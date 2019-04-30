@@ -6,8 +6,9 @@ namespace RedMA
 template <class AssemblerType>
 RosenbrockAlgorithm<AssemblerType>::
 RosenbrockAlgorithm(const GetPot& datafile,
-                    GlobalAssemblerType* assembler) :
-  TimeMarchingAlgorithm<AssemblerType>(datafile, assembler),
+                    GlobalAssemblerType* assembler,
+                    commPtr_Type comm) :
+  TimeMarchingAlgorithm<AssemblerType>(datafile, assembler, comm),
   M_coefficients(datafile("time_discretization/scheme", "ROS2"))
 {
 }
@@ -77,7 +78,7 @@ solveTimestep(const double &time, double &dt)
         // here we need to apply the bcs
 
         VectorPtr newStage(new Vector(*globalMap));
-        // linearSolver.solve(newStage, systemMatrix, F);
+        solveLinearSystem(systemMatrix, F, newStage);
         stages[i] = newStage;
     }
 

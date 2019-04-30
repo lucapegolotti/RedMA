@@ -88,7 +88,7 @@ solveSystem()
     GetPot dummyDatafile;
     precRawPtr->setDataFromGetPot(dummyDatafile, "precMLL");
     std::shared_ptr<LifeV::Preconditioner> precPtr;
-    precPtr.reset ( precRawPtr );
+    precPtr.reset(precRawPtr);
 
     linearSolver.setPreconditioner(precPtr);
     linearSolver.setRightHandSide(M_rhs);
