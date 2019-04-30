@@ -5,26 +5,25 @@ namespace RedMA
 
 template <class AssemblerType>
 RosenbrockAlgorithm<AssemblerType>::
-RosenbrockAlgorithm(const GetPot& datafile) :
-  TimeMarchingAlgorithm<AssemblerType>(datafile),
-  M_coefficients(datafile("time_discretization/scheme", "ROS3Pw"))
+RosenbrockAlgorithm(const GetPot& datafile,
+                    GlobalAssemblerType* assembler) :
+  TimeMarchingAlgorithm<AssemblerType>(datafile, assembler),
+  M_coefficients(datafile("time_discretization/scheme", "ROS2"))
 {
 }
 
 template <class AssemblerType>
 void
 RosenbrockAlgorithm<AssemblerType>::
-solveTimestep(const double &time, double &dt,
-              GlobalAssemblerType& assembler,
-              const LinearSolver& linearSolver)
+solveTimestep(const double &time, double &dt)
 {
     typedef LifeV::VectorEpetra         VectorEpetra;
     unsigned int s = M_coefficients.numberStages();
-    assembler.setTimeAndPrevSolution(time, M_solution);
+    M_globalAssembler->setTimeAndPrevSolution(time, M_solution);
 
-    MapEpetraPtr globalMap = assembler.getGlobalMap();
-    MatrixPtr globalMass = assembler.getGlobalMass();
-    MatrixPtr globalJac = assembler.getJacobianF();
+    MapEpetraPtr globalMap = M_globalAssembler->getGlobalMap();
+    MatrixPtr globalMass = M_globalAssembler->getGlobalMass();
+    MatrixPtr globalJac = M_globalAssembler->getJacobianF();
 
     MatrixPtr systemMatrix(new Matrix(*globalJac));
     *systemMatrix *= (-dt * M_coefficients.gamma());
@@ -32,7 +31,7 @@ solveTimestep(const double &time, double &dt,
 
     std::vector<VectorPtr> stages(s);
 
-    VectorPtr Fder = assembler.computeFder();
+    VectorPtr Fder = M_globalAssembler->computeFder();
 
     for (int i = 0; i < s; i++)
     {
@@ -53,8 +52,8 @@ solveTimestep(const double &time, double &dt,
             VectorEpetra part = M_coefficients.alphaHat(i,j) * (*(stages[j]));
             *yTilde += part;
         }
-        // VectorPtr F = assembler.computeF(time + dt * alphai, yTilde);
-        VectorPtr F = assembler.computeF();
+        M_globalAssembler->setTimeAndPrevSolution(time + dt * alphai, yTilde);
+        VectorPtr F = M_globalAssembler->computeF();
         *F *= (M_coefficients.gamma() * dt);
 
         VectorPtr sumStages(new Vector(*globalMap));

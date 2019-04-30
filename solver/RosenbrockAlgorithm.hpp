@@ -31,6 +31,9 @@ namespace RedMA
 template <class AssemblerType>
 class RosenbrockAlgorithm : public TimeMarchingAlgorithm<AssemblerType>
 {
+    using TimeMarchingAlgorithm<AssemblerType>::M_datafile;
+    using TimeMarchingAlgorithm<AssemblerType>::M_solution;
+    using TimeMarchingAlgorithm<AssemblerType>::M_globalAssembler;
 protected:
     typedef GlobalAssembler<AssemblerType>              GlobalAssemblerType;
     typedef LifeV::VectorEpetra                         Vector;
@@ -41,15 +44,13 @@ protected:
     typedef std::shared_ptr<MapEpetra>                  MapEpetraPtr;
 
 public:
-    RosenbrockAlgorithm(const GetPot& datafile);
+    RosenbrockAlgorithm(const GetPot& datafile,
+                        GlobalAssemblerType* assembler);
 
-    virtual void solveTimestep(const double &time, double &dt,
-                               GlobalAssemblerType& assembler,
-                               const LinearSolver& linearSolver);
+    virtual void solveTimestep(const double &time, double &dt);
 
 private:
     LifeV::RosenbrockCoeff  M_coefficients;
-    VectorPtr               M_solution;
 };
 
 }  // namespace RedMA

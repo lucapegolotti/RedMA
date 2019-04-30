@@ -26,17 +26,20 @@ template <class AssemblerType>
 class TimeMarchingAlgorithm
 {
 protected:
-    typedef GlobalAssembler<AssemblerType>      GlobalAssemblerType;
+    typedef GlobalAssembler<AssemblerType>                  GlobalAssemblerType;
+    typedef LifeV::VectorEpetra                             Vector;
+    typedef std::shared_ptr<Vector>                         VectorPtr;
 
 public:
-    TimeMarchingAlgorithm(const GetPot& datafile);
+    TimeMarchingAlgorithm(const GetPot& datafile,
+                          GlobalAssemblerType* assembler);
 
-    virtual void solveTimestep(const double &time, double &dt,
-                               GlobalAssemblerType& assembler,
-                               const LinearSolver& linearSolver) = 0;
+    virtual void solveTimestep(const double &time, double &dt) = 0;
 
 protected:
-    GetPot  M_datafile;
+    GetPot                  M_datafile;
+    VectorPtr               M_solution;
+    GlobalAssemblerType*    M_globalAssembler;
 };
 
 }  // namespace RedMA

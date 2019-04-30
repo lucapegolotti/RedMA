@@ -18,15 +18,16 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
     std::string geometriesDir = datafile("geometric_structure/geometies_dir",
                                          "../../geometries/");
 
-    M_timeMarchingAlgorithm =
-            TimeMarchingAlgorithmsFactory<AssemblerType>(datafile);
-
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();
 
     M_globalAssembler.buildPrimalStructures(M_tree);
 
     M_globalAssembler.assembleGlobalMass();
+
+    M_timeMarchingAlgorithm =
+            TimeMarchingAlgorithmsFactory<AssemblerType>(datafile,
+                                                         &M_globalAssembler);
 }
 
 template <class AssemblerType>
