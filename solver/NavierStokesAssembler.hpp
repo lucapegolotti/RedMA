@@ -66,6 +66,12 @@ public:
 
     std::vector<VectorPtr> computeFder();
 
+    void applyBoundaryConditionsRhsRosenbrock(std::vector<VectorPtr> rhs,
+                                              std::vector<VectorPtr> utilde,
+                                              const double& time,
+                                              const double& dt,
+                                              const double& alphai,
+                                              const double& gammai);
 protected:
     void assembleConstantMatrices();
 
@@ -83,7 +89,7 @@ protected:
 
     void assembleForcingTermTimeDerivative();
 
-    void createBCHandler();
+    BoundaryConditionPtr createBCHandler(std::function<double(double)> law);
 
     static double fZero(const double& t,
                         const double& x,
@@ -98,6 +104,8 @@ protected:
                                   const unsigned int& i,
                                   const GeometricFace& face,
                                   std::function<double(double)> maxLaw);
+
+    void updateBCs(BoundaryConditionPtr bcToUpdate, FESpacePtr fespace);
 
     FESpacePtr                      M_velocityFESpace;
     FESpacePtr                      M_pressureFESpace;
@@ -117,8 +125,8 @@ protected:
 
     FunctionType                    M_forceFunction;
     FunctionType                    M_forceTimeDerFunction;
-    BoundaryConditionPtr            M_boundaryConditions;
     std::function<double(double)>   M_maxVelocityLaw;
+    std::function<double(double)>   M_maxVelocityDtLaw;
 };
 
 }  // namespace RedMA

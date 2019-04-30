@@ -384,15 +384,16 @@ computeFder()
     return Fs;
 }
 
-void
+NavierStokesAssembler::BoundaryConditionPtr
 NavierStokesAssembler::
-createBCHandler()
+createBCHandler(std::function<double(double)> law)
 {
     LifeV::BCFunctionBase zeroFunction (fZero);
 
-    M_boundaryConditions.reset(new LifeV::BCHandler);
+    BoundaryConditionPtr bcs;
+    bcs.reset(new LifeV::BCHandler);
 
-    const unsigned int wallInlet = 1;
+    const unsigned int inletFlag = 1;
     const unsigned int wallFlag = 10;
 
     // if this is the root node, we impose dirichlet boundary conditions at
@@ -407,16 +408,16 @@ createBCHandler()
                                                  std::placeholders::_4,
                                                  std::placeholders::_5,
                                                  M_treeNode->M_block->getInlet(),
-                                                 M_maxVelocityLaw);
+                                                 law);
 
         LifeV::BCFunctionBase inflowFunction(inflowBoundaryCondition);
-        M_boundaryConditions->addBC("Inlet", wallInlet,
-                                    LifeV::Essential, LifeV::Full,
-                                    inflowFunction, 3);
+        bcs->addBC("Inlet", inletFlag, LifeV::Essential, LifeV::Full,
+                    inflowFunction, 3);
     }
 
-    M_boundaryConditions->addBC("Wall",  wallFlag,  LifeV::Essential,
-                                LifeV::Full, zeroFunction, 3);
+    bcs->addBC("Wall", wallFlag, LifeV::Essential,
+                LifeV::Full, zeroFunction, 3);
+    return bcs;
 }
 
 double
@@ -454,6 +455,63 @@ NavierStokesAssembler::
 setMaxVelocityLawInflow(std::function<double(double)> maxLaw)
 {
     M_maxVelocityLaw = maxLaw;
+}
+
+void
+NavierStokesAssembler::
+applyBoundaryConditionsRhsRosenbrock(std::vector<VectorPtr> rhs,
+                                     std::vector<VectorPtr> utilde,
+                                     const double& time,
+                                     const double& dt,
+                                     const double& alphai,
+                                     const double& gammai)
+{
+    BoundaryConditionPtr bc = createBCHandler(M_maxVelocityLaw);
+
+    updateBCs(bc, M_velocityFESpace);
+
+    VectorPtr auxVec(new Vector(M_velocityFESpace->map()));
+    auxVec->zero();
+
+    bcManageRhs(*auxVec, *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+                *bc, M_velocityFESpace->feBd(), 1.0, time + dt * alphai);
+
+    BoundaryConditionPtr bcDt = createBCHandler(M_maxVelocityDtLaw);
+
+    updateBCs(bcDt, M_velocityFESpace);
+
+    VectorPtr auxVecDt(new Vector(M_velocityFESpace->map()));
+    auxVecDt->zero();
+
+    bcManageRhs(*auxVecDt, *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+                *bcDt, M_velocityFESpace->feBd(), 1.0, time);
+
+    VectorPtr rhsValues(new Vector(M_velocityFESpace->map()));
+    rhsValues->zero();
+
+    *rhsValues += *auxVecDt;
+    *rhsValues *= (gammai * dt);
+    *rhsValues += *auxVec;
+    *rhsValues -= *utilde[0];
+
+    BoundaryConditionPtr finalBcs(new LifeV::BCHandler);
+    LifeV::BCVector bcVectorDirichlet(*rhsValues,
+                                      M_velocityFESpace->map().mapSize()/3);
+
+    const unsigned int inletFlag = 1;
+    finalBcs->addBC("Inflow", inletFlag, LifeV::Essential,
+                    LifeV::Full, bcVectorDirichlet, 3);
+
+    updateBCs(finalBcs, M_velocityFESpace);
+    bcManageRhs(*rhs[0], *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+                *finalBcs, M_velocityFESpace->feBd(), 1.0, time);
+}
+
+void
+NavierStokesAssembler::
+updateBCs(BoundaryConditionPtr bcToUpdate, FESpacePtr fespace)
+{
+    bcToUpdate->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 }
 
 
