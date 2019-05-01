@@ -46,6 +46,11 @@ public:
                  bool verbose = false);
 
     void solve();
+
+    void setMaxVelocityLawInflow(std::function<double(double)> maxLaw);
+
+    void setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt);
+
 private:
     // we pass dt as reference to allow for time adaptvity
     void solveTimestep(const double& time, double& dt);

@@ -459,6 +459,13 @@ setMaxVelocityLawInflow(std::function<double(double)> maxLaw)
 
 void
 NavierStokesAssembler::
+setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt)
+{
+    M_maxVelocityDtLaw = maxLawDt;
+}
+
+void
+NavierStokesAssembler::
 applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
                       std::vector<VectorPtr> utilde,
                       const double& time,

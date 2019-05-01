@@ -274,5 +274,35 @@ applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
     }
 }
 
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+setMaxVelocityLawInflow(std::function<double(double)> maxLaw)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        it->second->setMaxVelocityLawInflow(maxLaw);
+    }
+}
+
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        it->second->setMaxVelocityDtLawInflow(maxLawDt);
+    }
+}
+
 
 }  // namespace RedMA

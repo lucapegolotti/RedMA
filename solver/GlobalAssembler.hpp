@@ -66,6 +66,10 @@ public:
                                const double& time, const double& dt,
                                const double& alphai, const double& gammai);
 
+    void setMaxVelocityLawInflow(std::function<double(double)> maxLaw);
+
+    void setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt);
+
 private:
     template<typename FunctionType>
     void fillGlobalMatrix(MatrixPtr& matrixToFill,

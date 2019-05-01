@@ -62,6 +62,8 @@ public:
 
     void setMaxVelocityLawInflow(std::function<double(double)> maxLaw);
 
+    void setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt);
+
     std::vector<VectorPtr> computeF();
 
     std::vector<VectorPtr> computeFder();
@@ -75,6 +77,7 @@ public:
 
     void applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
                         const unsigned int& iblock, const unsigned int& jblock);
+
 protected:
     void assembleConstantMatrices();
 

@@ -55,4 +55,20 @@ solveTimestep(const double& time, double& dt)
     M_timeMarchingAlgorithm->solveTimestep(time, dt);
 }
 
+template <class AssemblerType>
+void
+GlobalSolver<AssemblerType>::
+setMaxVelocityLawInflow(std::function<double(double)> maxLaw)
+{
+    M_globalAssembler->setMaxVelocityLawInflow(maxLaw);
+}
+
+template <class AssemblerType>
+void
+GlobalSolver<AssemblerType>::
+setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt)
+{
+    M_globalAssembler->setMaxVelocityDtLawInflow(maxLawDt);
+}
+
 }  // namespace RedMA
