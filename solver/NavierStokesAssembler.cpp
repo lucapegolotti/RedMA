@@ -48,6 +48,7 @@ setup()
                                                      M_comm));
 
     assembleConstantMatrices();
+    setExporter();
     printlog(MAGENTA, "done\n", M_verbose);
 }
 
@@ -526,22 +527,58 @@ NavierStokesAssembler::
 applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
                const unsigned int& iblock, const unsigned int& jblock)
 {
-    BoundaryConditionPtr bc = createBCHandler(M_maxVelocityLaw);
-    updateBCs(bc, M_velocityFESpace);
+    if (matrix)
+    {
+        BoundaryConditionPtr bc = createBCHandler(M_maxVelocityLaw);
+        updateBCs(bc, M_velocityFESpace);
 
-    if (iblock == 0 && jblock == 0)
-    {
-        bcManageMatrix(*matrix, *M_velocityFESpace->mesh(),
-                       M_velocityFESpace->dof(), *bc, M_velocityFESpace->feBd(),
-                       diagonalCoefficient, 0.0);
-    }
-    if (iblock == 0 && jblock == 1)
-    {
-        bcManageMatrix(*matrix, *M_velocityFESpace->mesh(),
-                       M_velocityFESpace->dof(), *bc, M_velocityFESpace->feBd(),
-                       0.0, 0.0);
+        if (iblock == 0 && jblock == 0)
+        {
+            bcManageMatrix(*matrix, *M_velocityFESpace->mesh(),
+                           M_velocityFESpace->dof(), *bc, M_velocityFESpace->feBd(),
+                           diagonalCoefficient, 0.0);
+        }
+        if (iblock == 0 && jblock == 1)
+        {
+            bcManageMatrix(*matrix, *M_velocityFESpace->mesh(),
+                           M_velocityFESpace->dof(), *bc, M_velocityFESpace->feBd(),
+                           0.0, 0.0);
+        }
     }
 }
 
+void
+NavierStokesAssembler::
+setExporter()
+{
+    std::string outputName = "block";
+    outputName += std::to_string(M_treeNode->M_ID);
+    double t0 = M_datafile("time_discretization/t0", 0.0);
+
+    std::string outdir = M_datafile("exporter/outdirectory", "solutions/");
+    boost::filesystem::create_directory(outdir);
+
+    M_exporter.reset(new Exporter(M_datafile, outputName));
+    M_exporter->setMeshProcId(M_velocityFESpace->mesh(), M_comm->MyPID());
+
+    M_velocityExporter.reset(new Vector(M_velocityFESpace->map()));
+    M_pressureExporter.reset(new Vector(M_pressureFESpace->map()));
+
+    M_exporter->addVariable(LifeV::ExporterData<Mesh>::VectorField,
+                         "velocity", M_velocityFESpace, M_velocityExporter, t0);
+
+    M_exporter->addVariable(LifeV::ExporterData<Mesh>::ScalarField,
+                         "pressure", M_pressureFESpace, M_pressureExporter, t0);
+    M_exporter->setPostDir(outdir);
+}
+
+void
+NavierStokesAssembler::
+exportSolutions(const double& time, std::vector<VectorPtr> solutions)
+{
+    M_velocityExporter = solutions[0];
+    M_pressureExporter = solutions[1];
+    M_exporter->postProcess(time);
+}
 
 }  // namespace RedMA

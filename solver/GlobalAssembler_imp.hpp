@@ -304,5 +304,39 @@ setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt)
     }
 }
 
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+exportSolutions(const double& time, VectorPtr solution)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+    typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
+    typedef std::vector<MapEpetraPtr>                    MapVector;
+
+    std::string solutionsDir;
+    solutionsDir = M_datafile("exporter/outdirectory", "solution");
+
+    unsigned int offset = 0;
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        std::vector<VectorPtr> localSolutions;
+        MapVector maps = it->second->getMapVector();
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            VectorPtr subSolution;
+            subSolution.reset(new Vector(curLocalMap));
+            subSolution->zero();
+            subSolution->subset(*solution, curLocalMap, offset, 0);
+            localSolutions.push_back(subSolution);
+            offset += curLocalMap.mapSize();
+        }
+        it->second->exportSolutions(time, localSolutions);
+    }
+}
+
 
 }  // namespace RedMA

@@ -22,12 +22,24 @@
 #include <Epetra_SerialComm.h>
 #endif
 
+#include <functional>
+
 #include <GlobalSolver.hpp>
 #include <NavierStokesAssembler.hpp>
 
 #include <lifev/core/filter/GetPot.hpp>
 
 using namespace RedMA;
+
+double maxLaw(double t)
+{
+    return 1.0 * sin(t);
+}
+
+double maxLawDt(double t)
+{
+    return 1.0 * cos(t);
+}
 
 int main(int argc, char **argv)
 {
@@ -41,6 +53,8 @@ int main(int argc, char **argv)
     GetPot datafile("data");
     bool verbose = comm->MyPID() == 0;
     GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
+    gs.setMaxVelocityLawInflow(std::function<double(double)>(maxLaw));
+    gs.setMaxVelocityDtLawInflow(std::function<double(double)>(maxLawDt));
     gs.solve();
 
     return 0;

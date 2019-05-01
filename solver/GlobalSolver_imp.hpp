@@ -39,11 +39,12 @@ solve()
     double dt = M_datafile("time_discretization/dt", 0.01);
 
     double t = t0;
-
+    TimeMarchingAlgorithmPtr hdlrAlgorithm = M_timeMarchingAlgorithm;
     while (t < T)
     {
         solveTimestep(t, dt);
         t += dt;
+        M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
     }
 }
 
@@ -60,7 +61,7 @@ void
 GlobalSolver<AssemblerType>::
 setMaxVelocityLawInflow(std::function<double(double)> maxLaw)
 {
-    M_globalAssembler->setMaxVelocityLawInflow(maxLaw);
+    M_globalAssembler.setMaxVelocityLawInflow(maxLaw);
 }
 
 template <class AssemblerType>
@@ -68,7 +69,7 @@ void
 GlobalSolver<AssemblerType>::
 setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt)
 {
-    M_globalAssembler->setMaxVelocityDtLawInflow(maxLawDt);
+    M_globalAssembler.setMaxVelocityDtLawInflow(maxLawDt);
 }
 
 }  // namespace RedMA

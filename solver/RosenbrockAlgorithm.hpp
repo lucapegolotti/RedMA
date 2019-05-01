@@ -18,7 +18,7 @@
 #define ROSENBROCKALGORITHM_HPP
 
 #include <TimeMarchingAlgorithm.hpp>
-
+#include <PrintLog.hpp>
 #include <lifev/core/array/VectorBlockStructure.hpp>
 #include <lifev/core/array/MatrixBlockStructure.hpp>
 
@@ -34,6 +34,7 @@ class RosenbrockAlgorithm : public TimeMarchingAlgorithm<AssemblerType>
     using TimeMarchingAlgorithm<AssemblerType>::M_solution;
     using TimeMarchingAlgorithm<AssemblerType>::M_globalAssembler;
     using TimeMarchingAlgorithm<AssemblerType>::solveLinearSystem;
+    using TimeMarchingAlgorithm<AssemblerType>::getSolution;
 public:
     typedef typename TimeMarchingAlgorithm<AssemblerType>::GlobalAssemblerType
                      GlobalAssemblerType;

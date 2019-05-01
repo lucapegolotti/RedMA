@@ -70,6 +70,8 @@ public:
 
     void setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt);
 
+    void exportSolutions(const double& t, VectorPtr solution);
+
 private:
     template<typename FunctionType>
     void fillGlobalMatrix(MatrixPtr& matrixToFill,

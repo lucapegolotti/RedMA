@@ -21,6 +21,10 @@ RosenbrockAlgorithm<AssemblerType>::
 solveTimestep(const double &time, double &dt)
 {
     typedef LifeV::VectorEpetra         VectorEpetra;
+
+    std::string msg("[RosenbrockAlgorithm] solving, time = ");
+    msg += std::to_string(time) + " ...\n";
+    printlog(MAGENTA, msg );
     unsigned int s = M_coefficients.numberStages();
     M_globalAssembler->setTimeAndPrevSolution(time, M_solution);
 

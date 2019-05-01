@@ -46,6 +46,8 @@ public:
 
     void solveLinearSystem(MatrixPtr matrix, VectorPtr rhs, VectorPtr sol);
 
+    VectorPtr getSolution();
+
 protected:
     GetPot                  M_datafile;
     VectorPtr               M_solution;

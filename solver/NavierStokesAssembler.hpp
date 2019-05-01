@@ -25,6 +25,8 @@
 
 #include <functional>
 
+#include <boost/filesystem.hpp>
+
 namespace RedMA
 {
 
@@ -42,6 +44,8 @@ protected:
                                  unsigned int const& )> FunctionType;
 
     typedef std::shared_ptr<LifeV::BCHandler>           BoundaryConditionPtr;
+    typedef LifeV::ExporterVTK<Mesh>                    Exporter;
+    typedef std::shared_ptr<Exporter>                   ExporterPtr;
 
 public:
     NavierStokesAssembler(const GetPot& datafile, commPtr_Type comm,
@@ -77,6 +81,10 @@ public:
 
     void applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
                         const unsigned int& iblock, const unsigned int& jblock);
+
+    void setExporter();
+
+    void exportSolutions(const double& time, std::vector<VectorPtr> solutions);
 
 protected:
     void assembleConstantMatrices();
@@ -133,6 +141,10 @@ protected:
     FunctionType                    M_forceTimeDerFunction;
     std::function<double(double)>   M_maxVelocityLaw;
     std::function<double(double)>   M_maxVelocityDtLaw;
+
+    ExporterPtr                     M_exporter;
+    VectorPtr                       M_velocityExporter;
+    VectorPtr                       M_pressureExporter;
 };
 
 }  // namespace RedMA

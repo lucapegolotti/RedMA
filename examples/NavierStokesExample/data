@@ -19,3 +19,12 @@
 	T = 1
 	dt = 0.01
 [../]
+
+[exporter]
+	outdir	   = solutions
+	type       = vtk
+	multimesh  = false
+	start      = 0
+	save       = 1
+	filename   = tube
+[../]

@@ -53,4 +53,12 @@ solveLinearSystem(MatrixPtr matrix, VectorPtr rhs, VectorPtr sol)
     linearSolver.solve(sol);
 }
 
+template <class AssemblerType>
+typename TimeMarchingAlgorithm<AssemblerType>::VectorPtr
+TimeMarchingAlgorithm<AssemblerType>::
+getSolution()
+{
+    return M_solution;
+}
+
 }  // namespace RedMA
