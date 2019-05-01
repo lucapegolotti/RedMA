@@ -72,6 +72,9 @@ public:
                                const double& dt,
                                const double& alphai,
                                const double& gammai);
+
+    void applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
+                        const unsigned int& iblock, const unsigned int& jblock);
 protected:
     void assembleConstantMatrices();
 

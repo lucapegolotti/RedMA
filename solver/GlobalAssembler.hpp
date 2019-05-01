@@ -50,13 +50,15 @@ public:
 
     MatrixPtr getGlobalMass() const;
 
-    MatrixPtr getJacobianF();
+    MatrixPtr getJacobianF(double* diagonalCoefficient = nullptr);
 
     VectorPtr computeF() const;
 
     VectorPtr computeFder() const;
 
-    void assembleGlobalMass();
+    // the diagonal coefficient is for the boundary conditions (if null, no
+    // bcs are applied)
+    void assembleGlobalMass(double* diagonalCoefficient = nullptr);
 
     void setTimeAndPrevSolution(const double& time, VectorPtr solution);
 
@@ -67,7 +69,8 @@ public:
 private:
     template<typename FunctionType>
     void fillGlobalMatrix(MatrixPtr& matrixToFill,
-                          FunctionType getMatrixMethod);
+                          FunctionType getMatrixMethod,
+                          double* diagonalCoefficient);
 
     template<typename FunctionType>
     void fillGlobalVector(VectorPtr& vectorToFill,

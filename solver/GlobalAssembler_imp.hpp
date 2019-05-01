@@ -52,10 +52,10 @@ getGlobalMass() const
 template <class AssemblerType>
 typename GlobalAssembler<AssemblerType>::MatrixPtr
 GlobalAssembler<AssemblerType>::
-getJacobianF()
+getJacobianF(double* diagonalCoefficient)
 {
     MatrixPtr jacobian;
-    fillGlobalMatrix(jacobian, &AssemblerType::getJacobian);
+    fillGlobalMatrix(jacobian, &AssemblerType::getJacobian, diagonalCoefficient);
     return jacobian;
 }
 
@@ -84,16 +84,18 @@ computeFder() const
 template <class AssemblerType>
 void
 GlobalAssembler<AssemblerType>::
-assembleGlobalMass()
+assembleGlobalMass(double* diagonalCoefficient)
 {
-    fillGlobalMatrix(M_massMatrix, &AssemblerType::getMassMatrix);
+    fillGlobalMatrix(M_massMatrix, &AssemblerType::getMassMatrix,
+                     diagonalCoefficient);
 }
 
 template<class AssemblerType>
 template<typename FunctionType>
 void
 GlobalAssembler<AssemblerType>::
-fillGlobalMatrix(MatrixPtr& matrixToFill, FunctionType getMatrixMethod)
+fillGlobalMatrix(MatrixPtr& matrixToFill, FunctionType getMatrixMethod,
+                 double* diagonalCoefficient)
 {
     using namespace LifeV::MatrixEpetraStructuredUtility;
 
@@ -121,6 +123,9 @@ fillGlobalMatrix(MatrixPtr& matrixToFill, FunctionType getMatrixMethod)
             {
                 AssemblerType& curAssembler = *it->second;
                 MatrixPtr localMatrix = (curAssembler.*getMatrixMethod)(i, j);
+                if (diagonalCoefficient)
+                    curAssembler.applyBCsMatrix(localMatrix, *diagonalCoefficient,
+                                                i, j);
                 if (localMatrix)
                 {
                     std::shared_ptr<MatrixView> blockGlobalView;

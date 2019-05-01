@@ -11,6 +11,8 @@ RosenbrockAlgorithm(const GetPot& datafile,
   TimeMarchingAlgorithm<AssemblerType>(datafile, assembler, comm),
   M_coefficients(datafile("time_discretization/scheme", "ROS2"))
 {
+    double diagonalCoefficient = 1.0;
+    assembler->assembleGlobalMass(&diagonalCoefficient);
 }
 
 template <class AssemblerType>
@@ -24,7 +26,9 @@ solveTimestep(const double &time, double &dt)
 
     MapEpetraPtr globalMap = M_globalAssembler->getGlobalMap();
     MatrixPtr globalMass = M_globalAssembler->getGlobalMass();
-    MatrixPtr globalJac = M_globalAssembler->getJacobianF();
+
+    double diagonalCoefficient = 0.0;
+    MatrixPtr globalJac = M_globalAssembler->getJacobianF(&diagonalCoefficient);
 
     MatrixPtr systemMatrix(new Matrix(*globalJac));
     *systemMatrix *= (-dt * M_coefficients.gamma());

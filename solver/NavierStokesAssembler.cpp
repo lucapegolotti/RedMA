@@ -514,5 +514,27 @@ updateBCs(BoundaryConditionPtr bcToUpdate, FESpacePtr fespace)
     bcToUpdate->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 }
 
+void
+NavierStokesAssembler::
+applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
+               const unsigned int& iblock, const unsigned int& jblock)
+{
+    BoundaryConditionPtr bc = createBCHandler(M_maxVelocityLaw);
+    updateBCs(bc, M_velocityFESpace);
+
+    if (iblock == 0 && jblock == 0)
+    {
+        bcManageMatrix(*matrix, *M_velocityFESpace->mesh(),
+                       M_velocityFESpace->dof(), *bc, M_velocityFESpace->feBd(),
+                       diagonalCoefficient, 0.0);
+    }
+    if (iblock == 0 && jblock == 1)
+    {
+        bcManageMatrix(*matrix, *M_velocityFESpace->mesh(),
+                       M_velocityFESpace->dof(), *bc, M_velocityFESpace->feBd(),
+                       0.0, 0.0);
+    }
+}
+
 
 }  // namespace RedMA
