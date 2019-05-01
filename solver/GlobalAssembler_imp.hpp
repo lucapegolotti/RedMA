@@ -176,7 +176,8 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
             LifeV::MapEpetra& curLocalMap = **itmap;
             // we fill only if the vector corresponding to map i exists!
             if (localVectors[index])
-                vectorToFill->subset(*localVectors[index], curLocalMap, 0, offset);
+                vectorToFill->subset(*localVectors[index], curLocalMap, 0,
+                                     offset);
             offset += curLocalMap.mapSize();
             index++;
         }
@@ -213,5 +214,60 @@ setTimeAndPrevSolution(const double& time, VectorPtr solution)
         it->second->setTimeAndPrevSolution(time, localSolutions);
     }
 }
+
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
+                      const double& time, const double& dt,
+                      const double& alphai, const double& gammai)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+    typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
+    typedef std::vector<MapEpetraPtr>                    MapVector;
+
+    unsigned int offset = 0;
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        std::vector<VectorPtr> rhss;
+        std::vector<VectorPtr> utildes;
+        MapVector maps = it->second->getMapVector();
+        unsigned int suboffset = 0;
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            VectorPtr subRhs;
+            VectorPtr subUtilde;
+            subRhs.reset(new Vector(curLocalMap));
+            subUtilde.reset(new Vector(curLocalMap));
+            subRhs->zero();
+            subUtilde->zero();
+            subRhs->subset(*rhs, curLocalMap, offset + suboffset, 0);
+            subUtilde->subset(*utilde, curLocalMap, offset + suboffset, 0);
+            rhss.push_back(subRhs);
+            utildes.push_back(subUtilde);
+            suboffset += curLocalMap.mapSize();
+        }
+        // apply bcs
+        it->second->applyBCsRhsRosenbrock(rhss, utildes, time, dt,
+                                          alphai, gammai);
+
+        suboffset = 0;
+        unsigned int count = 0;
+        // copy back to global vectors
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+          LifeV::MapEpetra& curLocalMap = **itmap;
+          rhs->subset(*rhss[count], curLocalMap, 0, offset + suboffset);
+          suboffset += curLocalMap.mapSize();
+          count++;
+        }
+    }
+}
+
 
 }  // namespace RedMA

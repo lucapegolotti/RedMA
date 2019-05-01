@@ -60,6 +60,10 @@ public:
 
     void setTimeAndPrevSolution(const double& time, VectorPtr solution);
 
+    void applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
+                               const double& time, const double& dt,
+                               const double& alphai, const double& gammai);
+
 private:
     template<typename FunctionType>
     void fillGlobalMatrix(MatrixPtr& matrixToFill,

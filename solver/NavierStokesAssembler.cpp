@@ -459,12 +459,12 @@ setMaxVelocityLawInflow(std::function<double(double)> maxLaw)
 
 void
 NavierStokesAssembler::
-applyBoundaryConditionsRhsRosenbrock(std::vector<VectorPtr> rhs,
-                                     std::vector<VectorPtr> utilde,
-                                     const double& time,
-                                     const double& dt,
-                                     const double& alphai,
-                                     const double& gammai)
+applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
+                      std::vector<VectorPtr> utilde,
+                      const double& time,
+                      const double& dt,
+                      const double& alphai,
+                      const double& gammai)
 {
     BoundaryConditionPtr bc = createBCHandler(M_maxVelocityLaw);
 

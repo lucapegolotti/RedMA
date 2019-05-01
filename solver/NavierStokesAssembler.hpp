@@ -66,12 +66,12 @@ public:
 
     std::vector<VectorPtr> computeFder();
 
-    void applyBoundaryConditionsRhsRosenbrock(std::vector<VectorPtr> rhs,
-                                              std::vector<VectorPtr> utilde,
-                                              const double& time,
-                                              const double& dt,
-                                              const double& alphai,
-                                              const double& gammai);
+    void applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
+                               std::vector<VectorPtr> utilde,
+                               const double& time,
+                               const double& dt,
+                               const double& alphai,
+                               const double& gammai);
 protected:
     void assembleConstantMatrices();
 
