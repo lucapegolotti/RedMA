@@ -35,8 +35,8 @@ setup()
     printlog(GREEN, msg, M_verbose);
 
     // add maps to vector
-    M_maps.push_back(M_velocityFESpace->mapPtr());
-    M_maps.push_back(M_pressureFESpace->mapPtr());
+    M_primalMaps.push_back(M_velocityFESpace->mapPtr());
+    M_primalMaps.push_back(M_pressureFESpace->mapPtr());
 
     // fespaces
     M_velocityFESpaceETA.reset(new ETFESpaceVelocity(M_velocityFESpace->mesh(),

@@ -50,7 +50,11 @@ public:
     AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
                       const TreeNodePtr& treeNode, bool verbose = false);
 
-    void addMaps(MapEpetraPtr& globalMap, std::vector<unsigned int>& dimensions);
+    void addPrimalMaps(MapEpetraPtr& globalMap,
+                       std::vector<unsigned int>& dimensions);
+
+    void addDualMaps(MapEpetraPtr& globalMap,
+                      std::vector<unsigned int>& dimensions);
 
     // this method should be used to:
     // 1) create the finite element spaces
@@ -59,11 +63,11 @@ public:
 
     inline virtual unsigned int numberOfBlocks() = 0;
 
-    std::vector<MapEpetraPtr> getMapVector();
+    std::vector<MapEpetraPtr> getPrimalMapVector();
 
 protected:
     TreeNodePtr                 M_treeNode;
-    std::vector<MapEpetraPtr>   M_maps;
+    std::vector<MapEpetraPtr>   M_primalMaps;
     GetPot                      M_datafile;
     commPtr_Type                M_comm;
     bool                        M_verbose;

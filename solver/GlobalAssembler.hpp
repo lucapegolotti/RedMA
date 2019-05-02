@@ -46,6 +46,8 @@ public:
 
     void buildPrimalStructures(TreeStructure& tree);
 
+    void buildDualStructures();
+
     MapEpetraPtr getGlobalMap() const;
 
     MatrixPtr getGlobalMass() const;

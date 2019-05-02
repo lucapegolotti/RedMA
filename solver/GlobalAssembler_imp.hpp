@@ -28,9 +28,17 @@ buildPrimalStructures(TreeStructure& tree)
                                                         it->second, M_verbose));
         newAssembler->setup();
 
-        newAssembler->addMaps(M_globalMap, M_dimensionsVector);
-        M_assemblersVector.push_back(std::make_pair(it->first,newAssembler));
+        newAssembler->addPrimalMaps(M_globalMap, M_dimensionsVector);
+        M_assemblersVector.push_back(std::make_pair(it->first, newAssembler));
     }
+}
+
+template <class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+buildDualStructures()
+{
+
 }
 
 template <class AssemblerType>
@@ -171,7 +179,7 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
          it != M_assemblersVector.end(); it++)
     {
         std::vector<VectorPtr> localSolutions;
-        MapVector maps = it->second->getMapVector();
+        MapVector maps = it->second->getPrimalMapVector();
         AssemblerType& curAssembler = *it->second;
         std::vector<VectorPtr> localVectors = (curAssembler.*getVectorMethod)();
         unsigned int index = 0;
@@ -204,7 +212,7 @@ setTimeAndPrevSolution(const double& time, VectorPtr solution)
          it != M_assemblersVector.end(); it++)
     {
         std::vector<VectorPtr> localSolutions;
-        MapVector maps = it->second->getMapVector();
+        MapVector maps = it->second->getPrimalMapVector();
         for (MapVector::iterator itmap = maps.begin();
              itmap != maps.end(); itmap++)
         {
@@ -238,7 +246,7 @@ applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
     {
         std::vector<VectorPtr> rhss;
         std::vector<VectorPtr> utildes;
-        MapVector maps = it->second->getMapVector();
+        MapVector maps = it->second->getPrimalMapVector();
         unsigned int suboffset = 0;
         for (MapVector::iterator itmap = maps.begin();
              itmap != maps.end(); itmap++)
@@ -323,7 +331,7 @@ exportSolutions(const double& time, VectorPtr solution)
          it != M_assemblersVector.end(); it++)
     {
         std::vector<VectorPtr> localSolutions;
-        MapVector maps = it->second->getMapVector();
+        MapVector maps = it->second->getPrimalMapVector();
         for (MapVector::iterator itmap = maps.begin();
              itmap != maps.end(); itmap++)
         {

@@ -15,20 +15,28 @@ AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
 
 void
 AbstractAssembler::
-addMaps(MapEpetraPtr& globalMap, std::vector<unsigned int>& dimensions)
+addPrimalMaps(MapEpetraPtr& globalMap, std::vector<unsigned int>& dimensions)
 {
-    for (MapVectorSTD::iterator it = M_maps.begin(); it != M_maps.end(); it++)
+    for (MapVectorSTD::iterator it = M_primalMaps.begin();
+         it != M_primalMaps.end(); it++)
     {
         *globalMap += *(*it);
         dimensions.push_back((*it)->map(LifeV::Unique)->NumGlobalElements());
     }
 }
 
+void
+AbstractAssembler::
+addDualMaps(MapEpetraPtr& globalMap, std::vector<unsigned int>& dimensions)
+{
+
+}
+
 std::vector<AbstractAssembler::MapEpetraPtr>
 AbstractAssembler::
-getMapVector()
+getPrimalMapVector()
 {
-    return M_maps;
+    return M_primalMaps;
 }
 
 }  // namespace RedMA
