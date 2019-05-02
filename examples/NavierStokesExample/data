@@ -14,9 +14,9 @@
 
 [time_discretization]
 	algorithm = rosenbrock
-	scheme = ROS3Pw
+	scheme = ROS2
 	t0 = 0
-	T = 1
+	T = 0.02
 	dt = 0.01
 [../]
 

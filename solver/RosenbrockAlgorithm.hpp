@@ -61,6 +61,7 @@ public:
 
 private:
     LifeV::RosenbrockCoeff  M_coefficients;
+    MatrixPtr               M_massMatrixNoBCs;    
 };
 
 }  // namespace RedMA

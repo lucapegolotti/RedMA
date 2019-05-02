@@ -52,13 +52,13 @@ public:
 
     MatrixPtr getJacobianF(double* diagonalCoefficient = nullptr);
 
-    VectorPtr computeF() const;
+    VectorPtr computeF();
 
-    VectorPtr computeFder() const;
+    VectorPtr computeFder();
 
     // the diagonal coefficient is for the boundary conditions (if null, no
     // bcs are applied)
-    void assembleGlobalMass(double* diagonalCoefficient = nullptr);
+    MatrixPtr assembleGlobalMass(double* diagonalCoefficient = nullptr);
 
     void setTimeAndPrevSolution(const double& time, VectorPtr solution);
 

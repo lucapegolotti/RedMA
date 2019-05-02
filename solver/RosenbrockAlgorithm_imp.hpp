@@ -12,6 +12,9 @@ RosenbrockAlgorithm(const GetPot& datafile,
   M_coefficients(datafile("time_discretization/scheme", "ROS2"))
 {
     double diagonalCoefficient = 1.0;
+    // first we store the mass with no boundary conditions
+    M_massMatrixNoBCs = assembler->assembleGlobalMass();
+
     assembler->assembleGlobalMass(&diagonalCoefficient);
 }
 
@@ -33,11 +36,11 @@ solveTimestep(const double &time, double &dt)
 
     double diagonalCoefficient = 0.0;
     MatrixPtr globalJac = M_globalAssembler->getJacobianF(&diagonalCoefficient);
-
     MatrixPtr systemMatrix(new Matrix(*globalJac));
     *systemMatrix *= (-dt * M_coefficients.gamma());
+    // systemMatrix->openCrsMatrix();
     *systemMatrix += (*globalMass);
-
+    // systemMatrix->globalAssemble();
     std::vector<VectorPtr> stages(s);
 
     VectorPtr Fder = M_globalAssembler->computeFder();
@@ -61,6 +64,7 @@ solveTimestep(const double &time, double &dt)
             VectorEpetra part = M_coefficients.alphaHat(i,j) * (*(stages[j]));
             *yTilde += part;
         }
+
         M_globalAssembler->setTimeAndPrevSolution(time + dt * alphai, yTilde);
         VectorPtr F = M_globalAssembler->computeF();
         *F *= (M_coefficients.gamma() * dt);
@@ -73,17 +77,16 @@ solveTimestep(const double &time, double &dt)
             *sumStages += (-M_coefficients.gamma() * part);
         }
 
-        VectorEpetra prod = (*globalMass) * (*sumStages);
+        VectorEpetra prod = (*M_massMatrixNoBCs) * (*sumStages);
         *F += prod;
 
         double coeff = M_coefficients.gamma() * gammai * dt * dt;
-        *Fder *= (coeff);
+        *Fder *= coeff;
 
         *F += *Fder;
 
         *Fder *= (1.0/coeff) * (*Fder);
         // here we need to apply the bcs to the right hand side
-
         M_globalAssembler->applyBCsRhsRosenbrock(F, yTilde, time, dt,
                                                  alphai, gammai);
 
@@ -98,7 +101,6 @@ solveTimestep(const double &time, double &dt)
         VectorEpetra part = M_coefficients.mHigh(i) * (*(stages[i]));
         *M_solution += (dt * part);
     }
-
 }
 
 }  // namespace RedMA

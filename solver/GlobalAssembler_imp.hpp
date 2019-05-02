@@ -62,32 +62,31 @@ getJacobianF(double* diagonalCoefficient)
 template <class AssemblerType>
 typename GlobalAssembler<AssemblerType>::VectorPtr
 GlobalAssembler<AssemblerType>::
-computeF() const
+computeF()
 {
     VectorPtr f(new Vector(*M_globalMap));
-
-    // implementation here
+    fillGlobalVector(f, &AssemblerType::computeF);
     return f;
 }
 
 template <class AssemblerType>
 typename GlobalAssembler<AssemblerType>::VectorPtr
 GlobalAssembler<AssemblerType>::
-computeFder() const
+computeFder()
 {
     VectorPtr fder(new Vector(*M_globalMap));
-
-    // implementation here
+    fillGlobalVector(fder, &AssemblerType::computeFder);
     return fder;
 }
 
 template <class AssemblerType>
-void
+typename GlobalAssembler<AssemblerType>::MatrixPtr
 GlobalAssembler<AssemblerType>::
 assembleGlobalMass(double* diagonalCoefficient)
 {
     fillGlobalMatrix(M_massMatrix, &AssemblerType::getMassMatrix,
                      diagonalCoefficient);
+    return M_massMatrix;
 }
 
 template<class AssemblerType>
@@ -173,7 +172,8 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
     {
         std::vector<VectorPtr> localSolutions;
         MapVector maps = it->second->getMapVector();
-        std::vector<VectorPtr> localVectors = it->second->getVectorMethod();
+        AssemblerType& curAssembler = *it->second;
+        std::vector<VectorPtr> localVectors = (curAssembler.*getVectorMethod)();
         unsigned int index = 0;
         for (MapVector::iterator itmap = maps.begin();
              itmap != maps.end(); itmap++)
@@ -262,6 +262,7 @@ applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
 
         suboffset = 0;
         unsigned int count = 0;
+        rhs->zero();
         // copy back to global vectors
         for (MapVector::iterator itmap = maps.begin();
              itmap != maps.end(); itmap++)

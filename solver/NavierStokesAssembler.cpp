@@ -143,7 +143,12 @@ getMassMatrix(const unsigned int& blockrow,
               const unsigned int& blockcol)
 {
     if (blockrow == 0 && blockcol == 0)
-        return M_M;
+    {
+        // we copy the matrix so that we cannot change M_M (e.g. by applying
+        // boundary conditions)
+        MatrixPtr returnMatrix(new Matrix(*M_M));
+        return returnMatrix;
+    }
 
     return nullptr;
 }
@@ -448,7 +453,7 @@ poiseulleInflow(const double& t, const double& x, const double& y,
 
     double inflowNorm = maxLaw(t) * normDiff * normDiff / (radius * radius);
     Vector3D inflow = -inflowNorm * normal;
-    return normal[i];
+    return inflow[i];
 }
 
 void
@@ -509,6 +514,13 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
     const unsigned int inletFlag = 1;
     finalBcs->addBC("Inflow", inletFlag, LifeV::Essential,
                     LifeV::Full, bcVectorDirichlet, 3);
+
+
+    LifeV::BCFunctionBase zeroFunction (fZero);
+
+    const unsigned int wallFlag = 10;
+    finalBcs->addBC("Wall", wallFlag, LifeV::Essential,
+                    LifeV::Full, zeroFunction, 3);
 
     updateBCs(finalBcs, M_velocityFESpace);
     bcManageRhs(*rhs[0], *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
@@ -576,8 +588,10 @@ void
 NavierStokesAssembler::
 exportSolutions(const double& time, std::vector<VectorPtr> solutions)
 {
-    M_velocityExporter = solutions[0];
-    M_pressureExporter = solutions[1];
+    *M_velocityExporter = *solutions[0];
+    *M_pressureExporter = *solutions[1];
+    *M_pressureExporter = *M_B * (*M_velocityExporter);
+    std::cout << "divergence is " << M_pressureExporter->norm2() << std::endl;
     M_exporter->postProcess(time);
 }
 

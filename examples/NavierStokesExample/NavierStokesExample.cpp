@@ -33,12 +33,12 @@ using namespace RedMA;
 
 double maxLaw(double t)
 {
-    return 1.0 * sin(t);
+    return 1.0 * sin(t * 2 * 3.1415);
 }
 
 double maxLawDt(double t)
 {
-    return 1.0 * cos(t);
+    return 1.0 * cos(t * 2 * 3.1415) * 2 * 3.1415;
 }
 
 int main(int argc, char **argv)

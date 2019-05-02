@@ -37,16 +37,22 @@ solveLinearSystem(MatrixPtr matrix, VectorPtr rhs, VectorPtr sol)
     aztecList = Teuchos::getParametersFromXmlFile(xmlSolverData);
     linearSolver.setParameters(*aztecList);
 
-    typedef LifeV::PreconditionerML         precML_type;
-    typedef std::shared_ptr<precML_type>    precMLPtr_type;
-    precML_type * precRawPtr;
-    precRawPtr = new precML_type;
+    typedef LifeV::PreconditionerIfpack             precIfpack_type;
+    typedef std::shared_ptr<precIfpack_type>        precIfpack_type;
+    precML_type* precRawPtr;
+    precRawPtr = new precIfpack_type;
     // we set to look for the "fake" precMLL entry in order to set the
     // default parameters of ML preconditioner
     GetPot dummyDatafile;
     precRawPtr->setDataFromGetPot(dummyDatafile, "precMLL");
     std::shared_ptr<LifeV::Preconditioner> precPtr;
     precPtr.reset(precRawPtr);
+    precPtr->parametersList().set( "precType", "Amesos" );
+    precPtr->parametersList().set( "overlap level", 2 );
+    precPtr->parametersList().set( "amesos: solver type",
+             M_datafile( "prec/ifpack/amesos/solvertype", "Amesos_Umfpack" ) );
+    // print information about the solver
+    // precPtr->parametersList().print ( std::cout );
 
     linearSolver.setPreconditioner(precPtr);
     linearSolver.setRightHandSide(rhs);
