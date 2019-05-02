@@ -539,6 +539,12 @@ NavierStokesAssembler::
 applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
                const unsigned int& iblock, const unsigned int& jblock)
 {
+    std::string msg = "[NavierStokesAssembler] applying boundary conditions to";
+    msg += " block (" + std::to_string(iblock) + "," + std::to_string(jblock) +
+            ") ...\n";
+
+    printlog(MAGENTA, msg, M_verbose);
+
     if (matrix)
     {
         BoundaryConditionPtr bc = createBCHandler(M_maxVelocityLaw);
@@ -588,11 +594,15 @@ void
 NavierStokesAssembler::
 exportSolutions(const double& time, std::vector<VectorPtr> solutions)
 {
+    printlog(MAGENTA, "[NavierStokesAssembler] exporting solution ...\n",
+             M_verbose);
     *M_velocityExporter = *solutions[0];
     *M_pressureExporter = *solutions[1];
-    *M_pressureExporter = *M_B * (*M_velocityExporter);
-    std::cout << "divergence is " << M_pressureExporter->norm2() << std::endl;
+    CoutRedirecter ct;
+    ct.redirect();
     M_exporter->postProcess(time);
+    printlog(CYAN, ct.restore(), M_verbose);
+    printlog(MAGENTA, "done\n", M_verbose);
 }
 
 }  // namespace RedMA

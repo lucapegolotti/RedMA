@@ -40,7 +40,8 @@ protected:
 public:
     TimeMarchingAlgorithm(const GetPot& datafile,
                           GlobalAssemblerType* assembler,
-                          commPtr_Type comm);
+                          commPtr_Type comm,
+                          bool verbose = false);
 
     virtual void solveTimestep(const double &time, double &dt) = 0;
 
@@ -53,6 +54,7 @@ protected:
     VectorPtr               M_solution;
     GlobalAssemblerType*    M_globalAssembler;
     commPtr_Type            M_comm;
+    bool                    M_verbose;
 };
 
 }  // namespace RedMA

@@ -30,7 +30,8 @@ template <class AssemblerType>
 std::shared_ptr<TimeMarchingAlgorithm<AssemblerType> >
 TimeMarchingAlgorithmsFactory(const GetPot& datafile,
                               GlobalAssembler<AssemblerType>* assembler,
-                              std::shared_ptr<Epetra_Comm> comm)
+                              std::shared_ptr<Epetra_Comm> comm,
+                              bool verbose)
 {
     std::string marchingAlgorithmString =
         datafile("time_discretization/algorithm", "rosenbrock");
@@ -41,7 +42,8 @@ TimeMarchingAlgorithmsFactory(const GetPot& datafile,
         std::shared_ptr<ReturnType>
                 returnPtr(new RosenbrockAlgorithm<AssemblerType>(datafile,
                                                                  assembler,
-                                                                 comm));
+                                                                 comm,
+                                                                 verbose));
 
         return returnPtr;
     }

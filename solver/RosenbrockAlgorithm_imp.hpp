@@ -7,8 +7,9 @@ template <class AssemblerType>
 RosenbrockAlgorithm<AssemblerType>::
 RosenbrockAlgorithm(const GetPot& datafile,
                     GlobalAssemblerType* assembler,
-                    commPtr_Type comm) :
-  TimeMarchingAlgorithm<AssemblerType>(datafile, assembler, comm),
+                    commPtr_Type comm,
+                    bool verbose) :
+  TimeMarchingAlgorithm<AssemblerType>(datafile, assembler, comm, verbose),
   M_coefficients(datafile("time_discretization/scheme", "ROS2"))
 {
     double diagonalCoefficient = 1.0;
@@ -27,7 +28,7 @@ solveTimestep(const double &time, double &dt)
 
     std::string msg("[RosenbrockAlgorithm] solving, time = ");
     msg += std::to_string(time) + " ...\n";
-    printlog(MAGENTA, msg );
+    printlog(MAGENTA, msg, M_verbose);
     unsigned int s = M_coefficients.numberStages();
     M_globalAssembler->setTimeAndPrevSolution(time, M_solution);
 
@@ -47,6 +48,9 @@ solveTimestep(const double &time, double &dt)
 
     for (int i = 0; i < s; i++)
     {
+        std::string msg_("Starting stage #");
+        msg_ += std::to_string(i+1) + "\n";
+        printlog(GREEN, msg_, M_verbose);
         VectorPtr yTilde(new Vector(*globalMap));
         *yTilde = *M_solution;
 
@@ -101,6 +105,7 @@ solveTimestep(const double &time, double &dt)
         VectorEpetra part = M_coefficients.mHigh(i) * (*(stages[i]));
         *M_solution += (dt * part);
     }
+    printlog(MAGENTA, "done\n", M_verbose);
 }
 
 }  // namespace RedMA

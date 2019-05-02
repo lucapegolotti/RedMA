@@ -7,10 +7,12 @@ template <class AssemblerType>
 TimeMarchingAlgorithm<AssemblerType>::
 TimeMarchingAlgorithm(const GetPot& datafile,
                       GlobalAssemblerType* assembler,
-                      commPtr_Type comm) :
+                      commPtr_Type comm,
+                      bool verbose) :
   M_datafile(datafile),
   M_globalAssembler(assembler),
-  M_comm(comm)
+  M_comm(comm),
+  M_verbose(verbose)
 {
     M_solution.reset(new Vector(assembler->getGlobalMap()));
     M_solution->zero();
@@ -37,10 +39,10 @@ solveLinearSystem(MatrixPtr matrix, VectorPtr rhs, VectorPtr sol)
     aztecList = Teuchos::getParametersFromXmlFile(xmlSolverData);
     linearSolver.setParameters(*aztecList);
 
-    typedef LifeV::PreconditionerIfpack             precIfpack_type;
-    typedef std::shared_ptr<precIfpack_type>        precIfpack_type;
-    precML_type* precRawPtr;
-    precRawPtr = new precIfpack_type;
+    typedef LifeV::PreconditionerIfpack             precIfpack;
+    // typedef std::shared_ptr<precIfpack>        precIfpackPtr;
+    precIfpack* precRawPtr = new precIfpack;
+
     // we set to look for the "fake" precMLL entry in order to set the
     // default parameters of ML preconditioner
     GetPot dummyDatafile;

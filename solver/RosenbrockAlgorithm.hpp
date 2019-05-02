@@ -33,6 +33,7 @@ class RosenbrockAlgorithm : public TimeMarchingAlgorithm<AssemblerType>
     using TimeMarchingAlgorithm<AssemblerType>::M_datafile;
     using TimeMarchingAlgorithm<AssemblerType>::M_solution;
     using TimeMarchingAlgorithm<AssemblerType>::M_globalAssembler;
+    using TimeMarchingAlgorithm<AssemblerType>::M_verbose;
     using TimeMarchingAlgorithm<AssemblerType>::solveLinearSystem;
     using TimeMarchingAlgorithm<AssemblerType>::getSolution;
 public:
@@ -55,13 +56,14 @@ public:
 
     RosenbrockAlgorithm(const GetPot& datafile,
                         GlobalAssemblerType* assembler,
-                        commPtr_Type comm);
+                        commPtr_Type comm,
+                        bool verbose = false);
 
     virtual void solveTimestep(const double &time, double &dt);
 
 private:
     LifeV::RosenbrockCoeff  M_coefficients;
-    MatrixPtr               M_massMatrixNoBCs;    
+    MatrixPtr               M_massMatrixNoBCs;
 };
 
 }  // namespace RedMA
