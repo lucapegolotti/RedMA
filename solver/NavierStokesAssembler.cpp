@@ -571,7 +571,6 @@ setExporter()
 {
     std::string outputName = "block";
     outputName += std::to_string(M_treeNode->M_ID);
-    double t0 = M_datafile("time_discretization/t0", 0.0);
 
     std::string outdir = M_datafile("exporter/outdirectory", "solutions/");
     boost::filesystem::create_directory(outdir);
@@ -583,10 +582,10 @@ setExporter()
     M_pressureExporter.reset(new Vector(M_pressureFESpace->map()));
 
     M_exporter->addVariable(LifeV::ExporterData<Mesh>::VectorField,
-                         "velocity", M_velocityFESpace, M_velocityExporter, t0);
+                         "velocity", M_velocityFESpace, M_velocityExporter, 0.0);
 
     M_exporter->addVariable(LifeV::ExporterData<Mesh>::ScalarField,
-                         "pressure", M_pressureFESpace, M_pressureExporter, t0);
+                         "pressure", M_pressureFESpace, M_pressureExporter, 0.0);
     M_exporter->setPostDir(outdir);
 }
 

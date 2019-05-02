@@ -40,6 +40,7 @@ solve()
 
     double t = t0;
     TimeMarchingAlgorithmPtr hdlrAlgorithm = M_timeMarchingAlgorithm;
+    M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
     while (t < T)
     {
         solveTimestep(t, dt);
