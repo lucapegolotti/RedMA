@@ -106,6 +106,8 @@ public:
 
     GeometricFace getOutlet(unsigned int indexFace) const;
 
+    std::vector<GeometricFace> getOutlets() const;
+
     GeometricFace getInlet() const;
 
     void mapChildInletToParentOutlet(GeometricFace parentOutlet);

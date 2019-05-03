@@ -47,6 +47,41 @@ setup()
                                                    &(M_pressureFESpace->refFE()),
                                                      M_comm));
 
+    std::string typeBasis = M_datafile("coupling/type", "fourier");
+
+    // we create a (scalar) eta fespace for integrating on the interfaces
+    ETFESpaceCouplingPtr M_couplingFESpaceETA;
+    M_couplingFESpaceETA.reset(new ETFESpaceCoupling(M_velocityFESpace->mesh(),
+                                                   &(M_velocityFESpace->refFE()),
+                                                     M_comm));
+    if (std::strcmp(typeBasis.c_str(), "fourier"))
+    {
+        unsigned int frequencies = M_datafile("coupling/frequencies", 1);
+
+        // build basis for the inlet only if the node is not root
+        if (M_treeNode->M_ID != 0)
+            buildLagrangeMultiplierBasisFourier(frequencies, 3,
+                                                M_couplingFESpaceETA,
+                                                M_primalMaps[0],
+                                                M_velocityFESpace,
+                                                M_treeNode->M_block->getInlet(),
+                                                1);
+
+        std::vector<GeometricFace> outlets = M_treeNode->M_block->getOutlets();
+        // outlets are numbered starting from 2 in increasing order
+        unsigned int count = 2;
+        for (std::vector<GeometricFace>::iterator it = outlets.begin();
+             it != outlets.end(); it++)
+        {
+            buildLagrangeMultiplierBasisFourier(frequencies, 3,
+                                                M_couplingFESpaceETA,
+                                                M_primalMaps[0],
+                                                M_velocityFESpace,
+                                                *it, count);
+            count++;
+        }
+    }
+
     assembleConstantMatrices();
     setExporter();
     printlog(MAGENTA, "done\n", M_verbose);

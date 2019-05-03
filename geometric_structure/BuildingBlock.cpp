@@ -409,6 +409,13 @@ getOutlet(unsigned int outletIndex) const
     return M_outlets[outletIndex];
 }
 
+std::vector<GeometricFace>
+BuildingBlock::
+getOutlets() const
+{
+    return M_outlets;
+}
+
 GeometricFace
 BuildingBlock::
 getInlet() const

@@ -19,6 +19,8 @@
 
 #include <TreeStructure.hpp>
 #include <PrintLog.hpp>
+#include <Exception.hpp>
+#include <FourierBasisFunction.hpp>
 
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/filter/GetPot.hpp>
@@ -45,6 +47,8 @@ protected:
     typedef std::shared_ptr<Vector>                        VectorPtr;
     typedef LifeV::MatrixEpetra<double>                    Matrix;
     typedef std::shared_ptr<Matrix>                        MatrixPtr;
+    typedef LifeV::ETFESpace<Mesh, MapEpetra, 3, 1>        ETFESpaceCoupling;
+    typedef std::shared_ptr<ETFESpaceCoupling>             ETFESpaceCouplingPtr;
 
 public:
     AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
@@ -65,12 +69,30 @@ public:
 
     std::vector<MapEpetraPtr> getPrimalMapVector();
 
+    void buildLagrangeMultiplierBasisFourier(const unsigned int& frequencies,
+                                             const unsigned int& nComponents,
+                                             ETFESpaceCouplingPtr couplingFespace,
+                                             MapEpetraPtr primalMap,
+                                             FESpacePtr primalFespace,
+                                             GeometricFace face,
+                                             const unsigned int& faceFlag);
+
+private:
+    void gramSchmidt(VectorPtr* basis, MatrixPtr massMatrix,
+                     unsigned int& nVectors);
+
+    double dotProd(VectorPtr vector1, VectorPtr vector2, MatrixPtr massMatrix);
+
 protected:
-    TreeNodePtr                 M_treeNode;
-    std::vector<MapEpetraPtr>   M_primalMaps;
-    GetPot                      M_datafile;
-    commPtr_Type                M_comm;
-    bool                        M_verbose;
+    TreeNodePtr                         M_treeNode;
+    std::vector<MapEpetraPtr>           M_primalMaps;
+    std::vector<MapEpetraPtr>           M_dualMaps;
+    GetPot                              M_datafile;
+    commPtr_Type                        M_comm;
+    bool                                M_verbose;
+    // maps of the coupling matrices (key = flag of corresponding face)
+    std::map<unsigned int, MatrixPtr>   M_mapQTs;
+    std::map<unsigned int, MatrixPtr>   M_mapQs;
 };
 
 }  // namespace RedMA
