@@ -34,8 +34,8 @@ Tube(commPtr_Type comm, bool verbose) :
     M_inletRadiusRef = 3.0;
     M_outletRadiusRef = 3.0;
 
-    GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef);
-    GeometricFace outlet(M_outletCenterRef, M_outletNormalRef, M_outletRadiusRef);
+    GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef, 1);
+    GeometricFace outlet(M_outletCenterRef, M_outletNormalRef, M_outletRadiusRef, 2);
 
     M_inlet = inlet;
     M_outlets.push_back(outlet);

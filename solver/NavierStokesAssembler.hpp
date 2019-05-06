@@ -61,6 +61,8 @@ public:
 
     inline unsigned int numberOfBlocks() {return 2;}
 
+    inline unsigned int numberOfComponents() {return 3;}
+
     void setTimeAndPrevSolution(const double& time,
                                 std::vector<VectorPtr> solution);
 

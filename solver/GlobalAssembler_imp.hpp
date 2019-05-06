@@ -36,9 +36,37 @@ buildPrimalStructures(TreeStructure& tree)
 template <class AssemblerType>
 void
 GlobalAssembler<AssemblerType>::
-buildDualStructures()
+buildDualStructures(TreeStructure& tree)
 {
+    typedef std::map<unsigned int, TreeNodePtr>     NodesMap;
+    typedef std::vector<TreeNodePtr>                NodesVector;
 
+    NodesMap nodesMap = tree.getNodesMap();
+
+    // construct a vector of pairs for the indices of the domains sharing
+    // interfaces.
+    // we identify the interface with the index in the vector
+    for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
+    {
+        NodesVector children = it->second->M_children;
+
+        unsigned int countOutlet = 0;
+        unsigned int myID = it->second->M_ID;
+        for (NodesVector::iterator itVector = children.begin();
+             itVector != children.end(); itVector++)
+        {
+            if (*itVector)
+            {
+                unsigned int otherID = (*itVector)->M_ID;
+                M_interfaces.push_back(std::make_pair(myID, otherID));
+                // within this function, we also add to the global maps
+                // the newly created map for the lagrange multiplier
+                assembleCouplingMatrix(*it, *itVector, countOutlet, M_globalMap,
+                                        M_dimensionsVector);
+            }
+            countOutlet++;
+        }
+    }
 }
 
 template <class AssemblerType>

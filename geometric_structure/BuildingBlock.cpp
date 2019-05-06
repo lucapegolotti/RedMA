@@ -8,15 +8,18 @@ GeometricFace::
 GeometricFace() :
   M_center(Vector3D(0.0,0.0,0.0)),
   M_normal(Vector3D(1.0,0.0,0.0)),
-  M_radius(1.0)
+  M_radius(1.0),
+  M_flag(0)
 {
 }
 
 GeometricFace::
-GeometricFace(Vector3D center, Vector3D normal, double radius) :
+GeometricFace(Vector3D center, Vector3D normal, double radius,
+              unsigned int flag) :
   M_center(center),
   M_normal(normal),
-  M_radius(radius)
+  M_radius(radius),
+  M_flag(flag)
 {
 }
 

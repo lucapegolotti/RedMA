@@ -57,15 +57,15 @@ public:
     void addPrimalMaps(MapEpetraPtr& globalMap,
                        std::vector<unsigned int>& dimensions);
 
-    void addDualMaps(MapEpetraPtr& globalMap,
-                      std::vector<unsigned int>& dimensions);
-
     // this method should be used to:
     // 1) create the finite element spaces
     // 2) assemble the constant matrices
     virtual void setup() = 0;
 
     inline virtual unsigned int numberOfBlocks() = 0;
+
+    // number of components of the variable involved in the coupling
+    inline virtual unsigned int numberOfComponents() = 0;
 
     std::vector<MapEpetraPtr> getPrimalMapVector();
 
@@ -77,12 +77,30 @@ public:
                                              GeometricFace face,
                                              const unsigned int& faceFlag);
 
+    friend void assembleCouplingMatrices(AbstractAssembler& father,
+                                         AbstractAssembler& child,
+                                         const unsigned int& indexOutlet,
+                                         MapEpetraPtr& globalMap,
+                                         std::vector<unsigned int>& dimensions);
+
 private:
-    void gramSchmidt(VectorPtr* basis, MatrixPtr massMatrix,
-                     unsigned int& nVectors);
+    static void gramSchmidt(VectorPtr* basis1, MatrixPtr massMatrix1,
+                            VectorPtr* basis2, MatrixPtr massMatrix2,
+                            unsigned int& nVectors);
 
-    double dotProd(VectorPtr vector1, VectorPtr vector2, MatrixPtr massMatrix);
+    static double dotProd(VectorPtr* basis1, VectorPtr* basis2, unsigned int index1,
+                          unsigned int index2, MatrixPtr mass1, MatrixPtr mass2);
 
+    VectorPtr* assembleCouplingVectorsFourier(const unsigned int& frequencies,
+                                              const unsigned int& nBasisFunctions,
+                                              GeometricFace face);
+
+    void fillMatricesWithVectors(VectorPtr* couplingVectors,
+                                 const unsigned int& nBasisFunctions,
+                                 MapEpetraPtr lagrangeMap,
+                                 GeometricFace face);
+
+    MatrixPtr assembleBoundaryMatrix(GeometricFace face);
 protected:
     TreeNodePtr                         M_treeNode;
     std::vector<MapEpetraPtr>           M_primalMaps;
@@ -93,6 +111,9 @@ protected:
     // maps of the coupling matrices (key = flag of corresponding face)
     std::map<unsigned int, MatrixPtr>   M_mapQTs;
     std::map<unsigned int, MatrixPtr>   M_mapQs;
+    ETFESpaceCouplingPtr                M_couplingFESpaceETA;
+    // index of the block to which the coupling must be applied
+    unsigned int                        M_indexCoupling;
 };
 
 }  // namespace RedMA

@@ -46,7 +46,7 @@ public:
 
     void buildPrimalStructures(TreeStructure& tree);
 
-    void buildDualStructures();
+    void buildDualStructures(TreeStructure& tree);
 
     MapEpetraPtr getGlobalMap() const;
 
@@ -91,6 +91,7 @@ private:
     MapEpetraPtr                                            M_globalMap;
     MatrixPtr                                               M_massMatrix;
     std::vector<unsigned int>                               M_dimensionsVector;
+    std::vector<std::pair<unsigned int, unsigned int> >     M_interfaces;
 };
 
 }  // namespace RedMA

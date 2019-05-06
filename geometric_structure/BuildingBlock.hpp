@@ -55,10 +55,12 @@ public:
 
     GeometricFace();
 
-    GeometricFace(Vector3D center, Vector3D normal, double radius);
+    GeometricFace(Vector3D center, Vector3D normal, double radius,
+                  unsigned int flag);
 
     void print();
 
+    unsigned int M_flag;
     Vector3D M_center;
     Vector3D M_normal;
     double M_radius;

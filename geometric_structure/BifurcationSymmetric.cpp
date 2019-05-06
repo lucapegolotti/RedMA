@@ -41,9 +41,9 @@ BifurcationSymmetric(commPtr_Type comm, bool verbose) :
     M_outlet1RadiusRef = 3.0;
     M_outlet2RadiusRef = 3.0;
 
-    GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef);
-    GeometricFace outlet1(M_outlet1CenterRef, M_outlet1NormalRef, M_outlet1RadiusRef);
-    GeometricFace outlet2(M_outlet2CenterRef, M_outlet2NormalRef, M_outlet2RadiusRef);
+    GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef, 1);
+    GeometricFace outlet1(M_outlet1CenterRef, M_outlet1NormalRef, M_outlet1RadiusRef, 2);
+    GeometricFace outlet2(M_outlet2CenterRef, M_outlet2NormalRef, M_outlet2RadiusRef, 3);
 
     M_inlet = inlet;
     M_outlets.push_back(outlet1);
