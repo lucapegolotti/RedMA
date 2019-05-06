@@ -38,8 +38,9 @@ void
 GlobalAssembler<AssemblerType>::
 buildDualStructures(TreeStructure& tree)
 {
-    typedef std::map<unsigned int, TreeNodePtr>     NodesMap;
-    typedef std::vector<TreeNodePtr>                NodesVector;
+    typedef std::map<unsigned int, TreeNodePtr>                     NodesMap;
+    typedef std::vector<TreeNodePtr>                                NodesVector;
+    typedef std::vector<std::pair<unsigned int, AssemblerTypePtr> > AssemblersVector;
 
     NodesMap nodesMap = tree.getNodesMap();
 
@@ -52,6 +53,19 @@ buildDualStructures(TreeStructure& tree)
 
         unsigned int countOutlet = 0;
         unsigned int myID = it->second->M_ID;
+        AssemblerTypePtr fatherAssembler;
+        // note: this is quite inefficient; might be necessary to switch to
+        // a map instead of a vector for constant time acces
+        for (typename AssemblersVector::iterator itAssembler =
+             M_assemblersVector.begin();
+             itAssembler != M_assemblersVector.end(); itAssembler++)
+        {
+            if (itAssembler->first == myID)
+            {
+                fatherAssembler = itAssembler->second;
+                break;
+            }
+        }
         for (NodesVector::iterator itVector = children.begin();
              itVector != children.end(); itVector++)
         {
@@ -59,10 +73,23 @@ buildDualStructures(TreeStructure& tree)
             {
                 unsigned int otherID = (*itVector)->M_ID;
                 M_interfaces.push_back(std::make_pair(myID, otherID));
+
+                AssemblerTypePtr childAssembler;
+                for (typename AssemblersVector::iterator
+                     itAssembler = M_assemblersVector.begin();
+                     itAssembler != M_assemblersVector.end(); itAssembler++)
+                {
+                    if (itAssembler->first == otherID)
+                    {
+                        childAssembler = itAssembler->second;
+                        break;
+                    }
+                }
                 // within this function, we also add to the global maps
                 // the newly created map for the lagrange multiplier
-                assembleCouplingMatrix(*it, *itVector, countOutlet, M_globalMap,
-                                        M_dimensionsVector);
+                fatherAssembler->assembleCouplingMatrices(*childAssembler,
+                                                        countOutlet, M_globalMap,
+                                                        M_dimensionsVector);
             }
             countOutlet++;
         }

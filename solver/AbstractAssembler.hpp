@@ -40,7 +40,7 @@ protected:
     typedef std::shared_ptr<Mesh>                          MeshPtr;
     typedef std::shared_ptr<Epetra_Comm>                   commPtr_Type;
     typedef LifeV::VectorSmall<3>                          Vector3D;
-    typedef LifeV::MatrixSmall<3,3>                        Matrix3D;
+    typedef LifeV::MatrixSmall<3, 3>                        Matrix3D;
     typedef LifeV::FESpace<Mesh, MapEpetra>                FESpace;
     typedef std::shared_ptr<FESpace>                       FESpacePtr;
     typedef LifeV::VectorEpetra                            Vector;
@@ -77,11 +77,11 @@ public:
                                              GeometricFace face,
                                              const unsigned int& faceFlag);
 
-    friend void assembleCouplingMatrices(AbstractAssembler& father,
-                                         AbstractAssembler& child,
-                                         const unsigned int& indexOutlet,
-                                         MapEpetraPtr& globalMap,
-                                         std::vector<unsigned int>& dimensions);
+    // this function must be called on the father
+    void assembleCouplingMatrices(AbstractAssembler& child,
+                                  const unsigned int& indexOutlet,
+                                  MapEpetraPtr& globalMap,
+                                  std::vector<unsigned int>& dimensions);
 
 private:
     static void gramSchmidt(VectorPtr* basis1, MatrixPtr massMatrix1,

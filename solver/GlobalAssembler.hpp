@@ -18,6 +18,7 @@
 #define GLOBALASSEMBLER_HPP
 
 #include <TreeStructure.hpp>
+#include <AbstractAssembler.hpp>
 
 #include <lifev/core/array/MapVector.hpp>
 #include <lifev/core/array/MatrixEpetraStructured.hpp>

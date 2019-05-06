@@ -390,64 +390,69 @@ fillMatricesWithVectors(VectorPtr* couplingVectors,
 }
 
 void
-assembleCouplingMatrices(AbstractAssembler& father, AbstractAssembler& child,
+AbstractAssembler::
+assembleCouplingMatrices(AbstractAssembler& child,
                          const unsigned int& indexOutlet,
                          AbstractAssembler::MapEpetraPtr& globalMap,
                          std::vector<unsigned int>& dimensions)
 {
-    unsigned int nComponents = father.numberOfComponents();
+    std::string msg("[AbstractAssembler] start ");
+    msg += "building coupling matrices between blocks with indices ";
+    msg += std::to_string(M_treeNode->M_ID);
+    msg += " and ";
+    msg += std::to_string(child.M_treeNode->M_ID);
+    msg += "\n";
+    printlog(MAGENTA, msg, M_verbose);
+
+    unsigned int nComponents = numberOfComponents();
     unsigned int nBasisFunctions;
-    AbstractAssembler::MapEpetraPtr lagrangeMultiplierMap;
+    MapEpetraPtr lagrangeMultiplierMap;
 
-    std::string typeBasis = father.M_datafile("coupling/type", "fourier");
+    std::string typeBasis = M_datafile("coupling/type", "fourier");
 
-    if (std::strcmp(typeBasis.c_str(), "fourier"))
+    if (!std::strcmp(typeBasis.c_str(), "fourier"))
     {
-        unsigned int frequencies = father.M_datafile("coupling/frequencies", 1);
+        unsigned int frequencies = M_datafile("coupling/frequencies", 1);
         nBasisFunctions = (2 * frequencies + 1) * (frequencies + 1);
         unsigned int mapSize = nComponents * nBasisFunctions;
 
-        GeometricFace outlet = father.M_treeNode->M_block->getOutlet(indexOutlet);
-        AbstractAssembler::VectorPtr* couplingVectorsFather =
-                father.assembleCouplingVectorsFourier(frequencies, nBasisFunctions,
-                                                      outlet);
-        AbstractAssembler::MatrixPtr massMatrixFather =
-                                          father.assembleBoundaryMatrix(outlet);
+        GeometricFace outlet = M_treeNode->M_block->getOutlet(indexOutlet);
+        VectorPtr* couplingVectorsFather =
+                    assembleCouplingVectorsFourier(frequencies, nBasisFunctions,
+                                                   outlet);
+        MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
 
-        GeometricFace inlet = father.M_treeNode->M_block->getInlet();
-        AbstractAssembler::VectorPtr* couplingVectorsChild =
-                child.assembleCouplingVectorsFourier(frequencies, nBasisFunctions,
+        GeometricFace inlet = child.M_treeNode->M_block->getInlet();
+        VectorPtr* couplingVectorsChild =
+              child.assembleCouplingVectorsFourier(frequencies, nBasisFunctions,
                                                      inlet);
-        AbstractAssembler::MatrixPtr massMatrixChild =
-                                            child.assembleBoundaryMatrix(inlet);
-
+        MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
         unsigned int prev = nBasisFunctions;
-        AbstractAssembler::gramSchmidt(couplingVectorsFather, massMatrixFather,
-                        couplingVectorsChild, massMatrixChild, nBasisFunctions);
+        gramSchmidt(couplingVectorsFather, massMatrixFather, couplingVectorsChild,
+                    massMatrixChild, nBasisFunctions);
 
-        std::string msg("[AbstractAssembler] GramSchmidt -> ");
+        msg = "GramSchmidt -> ";
         msg += "reducing number of bfs from " + std::to_string(prev) + " to" +
-               std::to_string(nBasisFunctions) + "\n";
-        printlog(MAGENTA, msg, father.M_verbose);
+               std::to_string(nBasisFunctions) + " \n";
+        printlog(GREEN, msg, M_verbose);
 
         // build map for the lagrange multipliers (nBasisFunctions has been
         // modified in gramSchmidt)
-        unsigned int myel = (nComponents * nBasisFunctions) /
-                            father.M_comm->NumProc();
+        unsigned int myel = (nComponents * nBasisFunctions) / M_comm->NumProc();
 
         // the first process takes care of the remainder
-        if (father.M_comm->MyPID() == 0)
+        if (M_comm->MyPID() == 0)
         {
-            myel += (nComponents * nBasisFunctions) % father.M_comm->NumProc();
+            myel += (nComponents * nBasisFunctions) % M_comm->NumProc();
         }
 
         lagrangeMultiplierMap.reset(new
                         AbstractAssembler::MapEpetra(mapSize, myel,
-                                                     0, father.M_comm));
-        father.M_dualMaps.push_back(lagrangeMultiplierMap);
+                                                     0, M_comm));
+        M_dualMaps.push_back(lagrangeMultiplierMap);
         child.M_dualMaps.push_back(lagrangeMultiplierMap);
 
-        father.fillMatricesWithVectors(couplingVectorsFather, nBasisFunctions,
+        fillMatricesWithVectors(couplingVectorsFather, nBasisFunctions,
                                         lagrangeMultiplierMap, outlet);
 
         child.fillMatricesWithVectors(couplingVectorsChild, nBasisFunctions,
