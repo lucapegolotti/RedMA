@@ -21,8 +21,7 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();
 
-    M_globalAssembler.buildPrimalStructures(M_tree);
-    M_globalAssembler.buildDualStructures(M_tree);
+    M_globalAssembler.setup(M_tree);
 
     M_timeMarchingAlgorithm =
             TimeMarchingAlgorithmsFactory<AssemblerType>(datafile,

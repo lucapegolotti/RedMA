@@ -72,6 +72,7 @@ solveTimestep(const double &time, double &dt)
 
         M_globalAssembler->setTimeAndPrevSolution(time + dt * alphai, yTilde);
         VectorPtr F = M_globalAssembler->computeF();
+
         *F *= (M_coefficients.gamma() * dt);
 
         VectorPtr sumStages(new Vector(*globalMap));

@@ -37,6 +37,26 @@ buildPrimalStructures(TreeStructure& tree)
 template <class AssemblerType>
 void
 GlobalAssembler<AssemblerType>::
+setup(TreeStructure& tree)
+{
+    buildPrimalStructures(tree);
+    buildDualStructures(tree);
+
+    M_offsets.push_back(0);
+
+    unsigned int offset = 0;
+    for (std::vector<unsigned int>::iterator it = M_dimensionsVector.begin();
+         it != M_dimensionsVector.end(); it++)
+    {
+        unsigned int val = *it;
+        M_offsets.push_back(offset + val);
+        offset += val;
+    }
+}
+
+template <class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
 buildDualStructures(TreeStructure& tree)
 {
     typedef std::map<unsigned int, TreeNodePtr>                     NodesMap;
@@ -48,6 +68,7 @@ buildDualStructures(TreeStructure& tree)
     // construct a vector of pairs for the indices of the domains sharing
     // interfaces.
     // we identify the interface with the index in the vector
+    unsigned int interfaceCount = 0;
     for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
     {
         NodesVector children = it->second->M_children;
@@ -55,18 +76,7 @@ buildDualStructures(TreeStructure& tree)
         unsigned int countOutlet = 0;
         unsigned int myID = it->second->M_ID;
         AssemblerTypePtr fatherAssembler;
-        // note: this is quite inefficient; might be necessary to switch to
-        // a map instead of a vector for constant time acces
-        // for (typename AssemblersVector::iterator itAssembler =
-        //      M_assemblersVector.begin();
-        //      itAssembler != M_assemblersVector.end(); itAssembler++)
-        // {
-        //     if (itAssembler->first == myID)
-        //     {
-        //         fatherAssembler = itAssembler->second;
-        //         break;
-        //     }
-        // }
+
         fatherAssembler = M_assemblersMap[myID];
         for (NodesVector::iterator itVector = children.begin();
              itVector != children.end(); itVector++)
@@ -77,24 +87,17 @@ buildDualStructures(TreeStructure& tree)
                 M_interfaces.push_back(std::make_pair(myID, otherID));
 
                 AssemblerTypePtr childAssembler;
-                // for (typename AssemblersVector::iterator
-                //      itAssembler = M_assemblersVector.begin();
-                //      itAssembler != M_assemblersVector.end(); itAssembler++)
-                // {
-                //     if (itAssembler->first == otherID)
-                //     {
-                //         childAssembler = itAssembler->second;
-                //         break;
-                //     }
-                // }
                 childAssembler = M_assemblersMap[otherID];
                 // within this function, we also add to the global maps
                 // the newly created map for the lagrange multiplier
                 fatherAssembler->assembleCouplingMatrices(*childAssembler,
-                                                        countOutlet, M_globalMap,
+                                                        countOutlet,
+                                                        interfaceCount,
+                                                        M_globalMap,
                                                         M_dimensionsVector);
             }
             countOutlet++;
+            interfaceCount++;
         }
     }
 }
@@ -303,6 +306,7 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
     vectorToFill.reset(new Vector(*M_globalMap));
     vectorToFill->zero();
 
+    unsigned int nAssemblers = M_assemblersVector.size();
     unsigned int offset = 0;
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
          it != M_assemblersVector.end(); it++)
@@ -323,6 +327,24 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
             offset += curLocalMap.mapSize();
             index++;
         }
+
+        // deal with the dual part. This is trickier because more assemblers
+        // contribute to the same subsets of vectofill
+        index = 0;
+        maps = it->second->getDualMapVector();
+        std::vector<unsigned int> indices = it->second->getInterfacesIndices();
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            VectorPtr aux(new Vector(curLocalMap));
+            aux->subset(*vectorToFill, curLocalMap,
+                        M_offsets[nAssemblers + indices[index]], 0);
+            *aux += *localVectors[index];
+            vectorToFill->subset(*aux, curLocalMap, 0,
+                                 M_offsets[nAssemblers + indices[index]]);
+            index++;
+        }
     }
 }
 
@@ -337,10 +359,12 @@ setTimeAndPrevSolution(const double& time, VectorPtr solution)
     typedef std::vector<MapEpetraPtr>                    MapVector;
 
     unsigned int offset = 0;
+    unsigned int nAssemblers = M_assemblersVector.size();
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
          it != M_assemblersVector.end(); it++)
     {
         std::vector<VectorPtr> localSolutions;
+        // first handle the primal solutions
         MapVector maps = it->second->getPrimalMapVector();
         for (MapVector::iterator itmap = maps.begin();
              itmap != maps.end(); itmap++)
@@ -352,6 +376,23 @@ setTimeAndPrevSolution(const double& time, VectorPtr solution)
             subSolution->subset(*solution, curLocalMap, offset, 0);
             localSolutions.push_back(subSolution);
             offset += curLocalMap.mapSize();
+        }
+
+        maps = it->second->getDualMapVector();
+        std::vector<unsigned int> indices = it->second->getInterfacesIndices();
+        unsigned int in = 0;
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            VectorPtr subSolution;
+            subSolution.reset(new Vector(curLocalMap));
+            subSolution->zero();
+            subSolution->subset(*solution, curLocalMap,
+                                M_offsets[nAssemblers + indices[in]], 0);
+            localSolutions.push_back(subSolution);
+            offset += curLocalMap.mapSize();
+            in++;
         }
         it->second->setTimeAndPrevSolution(time, localSolutions);
     }
@@ -399,7 +440,6 @@ applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
 
         suboffset = 0;
         unsigned int count = 0;
-        rhs->zero();
         // copy back to global vectors
         for (MapVector::iterator itmap = maps.begin();
              itmap != maps.end(); itmap++)
@@ -409,6 +449,7 @@ applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
           suboffset += curLocalMap.mapSize();
           count++;
         }
+        offset += suboffset;
     }
 }
 

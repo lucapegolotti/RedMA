@@ -45,6 +45,8 @@ public:
     GlobalAssembler(const GetPot& datafile, commPtr_Type comm,
                     bool verbose = false);
 
+    void setup(TreeStructure& tree);
+
     void buildPrimalStructures(TreeStructure& tree);
 
     void buildDualStructures(TreeStructure& tree);
@@ -97,6 +99,7 @@ private:
     MatrixPtr                                               M_massMatrix;
     std::vector<unsigned int>                               M_dimensionsVector;
     std::vector<std::pair<unsigned int, unsigned int> >     M_interfaces;
+    std::vector<unsigned int>                               M_offsets;
 };
 
 }  // namespace RedMA

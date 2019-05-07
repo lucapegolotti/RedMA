@@ -32,6 +32,13 @@ getPrimalMapVector()
     return M_primalMaps;
 }
 
+std::vector<AbstractAssembler::MapEpetraPtr>
+AbstractAssembler::
+getDualMapVector()
+{
+    return M_dualMaps;
+}
+
 // void
 // AbstractAssembler::
 // buildLagrangeMultiplierBasisFourier(const unsigned int& frequencies,
@@ -341,7 +348,6 @@ fillMatricesWithVectors(VectorPtr* couplingVectors,
 
     Epetra_Map primalMapEpetra = couplingVectors[0]->epetraMap();
     unsigned int numElements = primalMapEpetra.NumMyElements();
-    std::cout << numElements << std::endl;
     // unsigned int nTotalDofs = primalFespace->dof().numTotalDof();
     unsigned int nTotalDofs = couplingVectors[0]->size();
     for (unsigned int dim = 0; dim < numberOfComponents(); dim++)
@@ -391,6 +397,7 @@ void
 AbstractAssembler::
 assembleCouplingMatrices(AbstractAssembler& child,
                          const unsigned int& indexOutlet,
+                         const unsigned int& interfaceIndex,
                          AbstractAssembler::MapEpetraPtr& globalMap,
                          std::vector<unsigned int>& dimensions)
 {
@@ -460,6 +467,8 @@ assembleCouplingMatrices(AbstractAssembler& child,
     *globalMap += *lagrangeMultiplierMap;
     dimensions.push_back(lagrangeMultiplierMap->map(LifeV::Unique)
                                               ->NumGlobalElements());
+    M_interfacesIndices.push_back(interfaceIndex);
+    child.M_interfacesIndices.push_back(interfaceIndex);
     printlog(MAGENTA, "done\n", M_verbose);
 }
 
@@ -485,6 +494,13 @@ AbstractAssembler::
 getIndexCoupling()
 {
     return M_indexCoupling;
+}
+
+std::vector<unsigned int>
+AbstractAssembler::
+getInterfacesIndices()
+{
+    return M_interfacesIndices;
 }
 
 }  // namespace RedMA

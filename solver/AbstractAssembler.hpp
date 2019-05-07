@@ -69,6 +69,8 @@ public:
 
     std::vector<MapEpetraPtr> getPrimalMapVector();
 
+    std::vector<MapEpetraPtr> getDualMapVector();
+
     void buildLagrangeMultiplierBasisFourier(const unsigned int& frequencies,
                                              const unsigned int& nComponents,
                                              ETFESpaceCouplingPtr couplingFespace,
@@ -80,6 +82,7 @@ public:
     // this function must be called on the father
     void assembleCouplingMatrices(AbstractAssembler& child,
                                   const unsigned int& indexOutlet,
+                                  const unsigned int& interfaceIndex,
                                   MapEpetraPtr& globalMap,
                                   std::vector<unsigned int>& dimensions);
 
@@ -88,6 +91,8 @@ public:
     MatrixPtr getQ(const unsigned int& flag);
 
     unsigned int getIndexCoupling();
+
+    std::vector<unsigned int> getInterfacesIndices();
 
 private:
     static void gramSchmidt(VectorPtr* basis1, MatrixPtr massMatrix1,
@@ -122,6 +127,7 @@ protected:
     ETFESpaceCouplingPtr                M_couplingFESpaceETA;
     // index of the block to which the coupling must be applied
     unsigned int                        M_indexCoupling;
+    std::vector<unsigned int>           M_interfacesIndices;
 };
 
 }  // namespace RedMA
