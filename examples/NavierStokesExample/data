@@ -28,3 +28,8 @@
 	save       = 1
 	filename   = tube
 [../]
+
+[coupling]
+	type 	   	= fourier
+	frequencies = 0
+[../]

@@ -260,7 +260,7 @@ AbstractAssembler::VectorPtr*
 AbstractAssembler::
 assembleCouplingVectorsFourier(const unsigned int& frequencies,
                                const unsigned int& nBasisFunctions,
-                               GeometricFace face)
+                               GeometricFace face, const double& coeff)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -271,7 +271,6 @@ assembleCouplingVectorsFourier(const unsigned int& frequencies,
     basisFunction.reset(new FourierBasisFunction(face, frequencies));
 
     VectorPtr* couplingVectors = new VectorPtr[nBasisFunctions];
-
     MapEpetra couplingMap = M_couplingFESpaceETA->map();
     MatrixPtr boundaryMassMatrix(new Matrix(couplingMap));
 
@@ -283,15 +282,14 @@ assembleCouplingVectorsFourier(const unsigned int& frequencies,
         VectorPtr currentMode(new Vector(couplingMap, Repeated));
 
         basisFunction->setIndex(i);
-
         integrate(boundary(mesh, faceFlag),
                   boundaryQuadRule,
                   M_couplingFESpaceETA,
-                  eval(basisFunction, X) * phi_i
+                  value(coeff) * eval(basisFunction, X) * phi_i
               ) >> currentMode;
-
         couplingVectors[i] = currentMode;
     }
+
     return couplingVectors;
 }
 
@@ -327,12 +325,11 @@ AbstractAssembler::
 fillMatricesWithVectors(VectorPtr* couplingVectors,
                         const unsigned int& nBasisFunctions,
                         MapEpetraPtr lagrangeMap,
-                        GeometricFace face)
+                        const unsigned int& flagAdjacentDomain)
 {
     using namespace LifeV;
     const Real dropTolerance(2.0 * std::numeric_limits<Real>::min());
-
-    unsigned faceFlag = face.M_flag;
+    unsigned faceFlag = flagAdjacentDomain;
     // note:: we have to specify the second argument of the constructor (number
     // of elements per row)
     MatrixPtr QT(new Matrix(*M_primalMaps[M_indexCoupling],
@@ -344,6 +341,7 @@ fillMatricesWithVectors(VectorPtr* couplingVectors,
 
     Epetra_Map primalMapEpetra = couplingVectors[0]->epetraMap();
     unsigned int numElements = primalMapEpetra.NumMyElements();
+    std::cout << numElements << std::endl;
     // unsigned int nTotalDofs = primalFespace->dof().numTotalDof();
     unsigned int nTotalDofs = couplingVectors[0]->size();
     for (unsigned int dim = 0; dim < numberOfComponents(); dim++)
@@ -375,8 +373,8 @@ fillMatricesWithVectors(VectorPtr* couplingVectors,
     if (M_mapQTs.find(faceFlag) == M_mapQTs.end() &&
         M_mapQs.find(faceFlag) == M_mapQs.end())
     {
-        M_mapQTs[faceFlag] = QT;
-        M_mapQs[faceFlag] = Q;
+        M_mapQTs[flagAdjacentDomain] = QT;
+        M_mapQs[flagAdjacentDomain] = Q;
     }
     else
     {
@@ -414,38 +412,37 @@ assembleCouplingMatrices(AbstractAssembler& child,
     {
         unsigned int frequencies = M_datafile("coupling/frequencies", 1);
         nBasisFunctions = (2 * frequencies + 1) * (frequencies + 1);
-        unsigned int mapSize = nComponents * nBasisFunctions;
 
         GeometricFace outlet = M_treeNode->M_block->getOutlet(indexOutlet);
         VectorPtr* couplingVectorsFather =
                     assembleCouplingVectorsFourier(frequencies, nBasisFunctions,
-                                                   outlet);
+                                                   outlet, 1);
         MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
 
         GeometricFace inlet = child.M_treeNode->M_block->getInlet();
         VectorPtr* couplingVectorsChild =
               child.assembleCouplingVectorsFourier(frequencies, nBasisFunctions,
-                                                     inlet);
+                                                     inlet, -1);
         MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
         unsigned int prev = nBasisFunctions;
         gramSchmidt(couplingVectorsFather, massMatrixFather, couplingVectorsChild,
                     massMatrixChild, nBasisFunctions);
 
         msg = "GramSchmidt -> ";
-        msg += "reducing number of bfs from " + std::to_string(prev) + " to" +
-               std::to_string(nBasisFunctions) + " \n";
+        msg += "reducing number of bfs from " + std::to_string(prev) + " to " +
+               std::to_string(nBasisFunctions) + "\n";
         printlog(GREEN, msg, M_verbose);
 
         // build map for the lagrange multipliers (nBasisFunctions has been
         // modified in gramSchmidt)
         unsigned int myel = (nComponents * nBasisFunctions) / M_comm->NumProc();
-
         // the first process takes care of the remainder
         if (M_comm->MyPID() == 0)
         {
             myel += (nComponents * nBasisFunctions) % M_comm->NumProc();
         }
 
+        unsigned int mapSize = nComponents * nBasisFunctions;
         lagrangeMultiplierMap.reset(new
                         AbstractAssembler::MapEpetra(mapSize, myel,
                                                      0, M_comm));
@@ -453,15 +450,41 @@ assembleCouplingMatrices(AbstractAssembler& child,
         child.M_dualMaps.push_back(lagrangeMultiplierMap);
 
         fillMatricesWithVectors(couplingVectorsFather, nBasisFunctions,
-                                        lagrangeMultiplierMap, outlet);
+                                lagrangeMultiplierMap,
+                                child.M_treeNode->M_ID);
 
         child.fillMatricesWithVectors(couplingVectorsChild, nBasisFunctions,
-                                       lagrangeMultiplierMap, inlet);
+                                      lagrangeMultiplierMap, M_treeNode->M_ID);
     }
 
     *globalMap += *lagrangeMultiplierMap;
     dimensions.push_back(lagrangeMultiplierMap->map(LifeV::Unique)
                                               ->NumGlobalElements());
+    printlog(MAGENTA, "done\n", M_verbose);
+}
+
+// we copy the matrix in order to control boundary conditions
+AbstractAssembler::MatrixPtr
+AbstractAssembler::
+getQT(const unsigned int& flag)
+{
+    MatrixPtr retMatrix(new Matrix(*M_mapQTs[flag]));
+    return retMatrix;
+}
+
+AbstractAssembler::MatrixPtr
+AbstractAssembler::
+getQ(const unsigned int& flag)
+{
+    MatrixPtr retMatrix(new Matrix(*M_mapQs[flag]));
+    return retMatrix;
+}
+
+unsigned int
+AbstractAssembler::
+getIndexCoupling()
+{
+    return M_indexCoupling;
 }
 
 }  // namespace RedMA

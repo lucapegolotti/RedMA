@@ -53,7 +53,8 @@ public:
 
     MatrixPtr getGlobalMass() const;
 
-    MatrixPtr getJacobianF(double* diagonalCoefficient = nullptr);
+    MatrixPtr getJacobianF(bool addCoupling,
+                           double* diagonalCoefficient = nullptr);
 
     VectorPtr computeF();
 
@@ -61,7 +62,8 @@ public:
 
     // the diagonal coefficient is for the boundary conditions (if null, no
     // bcs are applied)
-    MatrixPtr assembleGlobalMass(double* diagonalCoefficient = nullptr);
+    MatrixPtr assembleGlobalMass(bool addCoupling,
+                                 double* diagonalCoefficient = nullptr);
 
     void setTimeAndPrevSolution(const double& time, VectorPtr solution);
 
@@ -78,6 +80,7 @@ public:
 private:
     template<typename FunctionType>
     void fillGlobalMatrix(MatrixPtr& matrixToFill,
+                          bool addCoupling,
                           FunctionType getMatrixMethod,
                           double* diagonalCoefficient);
 
@@ -86,6 +89,7 @@ private:
                           FunctionType getVectorMethod);
 
     std::vector<std::pair<unsigned int, AssemblerTypePtr> > M_assemblersVector;
+    std::map<unsigned int, AssemblerTypePtr>                M_assemblersMap;
     GetPot                                                  M_datafile;
     commPtr_Type                                            M_comm;
     bool                                                    M_verbose;

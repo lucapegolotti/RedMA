@@ -83,6 +83,12 @@ public:
                                   MapEpetraPtr& globalMap,
                                   std::vector<unsigned int>& dimensions);
 
+    MatrixPtr getQT(const unsigned int& flag);
+
+    MatrixPtr getQ(const unsigned int& flag);
+
+    unsigned int getIndexCoupling();
+
 private:
     static void gramSchmidt(VectorPtr* basis1, MatrixPtr massMatrix1,
                             VectorPtr* basis2, MatrixPtr massMatrix2,
@@ -93,14 +99,16 @@ private:
 
     VectorPtr* assembleCouplingVectorsFourier(const unsigned int& frequencies,
                                               const unsigned int& nBasisFunctions,
-                                              GeometricFace face);
+                                              GeometricFace face,
+                                              const double& coeff);
 
     void fillMatricesWithVectors(VectorPtr* couplingVectors,
                                  const unsigned int& nBasisFunctions,
                                  MapEpetraPtr lagrangeMap,
-                                 GeometricFace face);
+                                 const unsigned int& flagAdjacentDomain);
 
     MatrixPtr assembleBoundaryMatrix(GeometricFace face);
+
 protected:
     TreeNodePtr                         M_treeNode;
     std::vector<MapEpetraPtr>           M_primalMaps;

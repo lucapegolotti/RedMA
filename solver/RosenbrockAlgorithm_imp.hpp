@@ -14,9 +14,9 @@ RosenbrockAlgorithm(const GetPot& datafile,
 {
     double diagonalCoefficient = 1.0;
     // first we store the mass with no boundary conditions
-    M_massMatrixNoBCs = assembler->assembleGlobalMass();
+    M_massMatrixNoBCs = assembler->assembleGlobalMass(false);
 
-    assembler->assembleGlobalMass(&diagonalCoefficient);
+    assembler->assembleGlobalMass(false, &diagonalCoefficient);
 }
 
 template <class AssemblerType>
@@ -36,11 +36,12 @@ solveTimestep(const double &time, double &dt)
     MatrixPtr globalMass = M_globalAssembler->getGlobalMass();
 
     double diagonalCoefficient = 0.0;
-    MatrixPtr globalJac = M_globalAssembler->getJacobianF(&diagonalCoefficient);
+    MatrixPtr globalJac = M_globalAssembler->getJacobianF(true, &diagonalCoefficient);
     MatrixPtr systemMatrix(new Matrix(*globalJac));
     *systemMatrix *= (-dt * M_coefficients.gamma());
     // systemMatrix->openCrsMatrix();
     *systemMatrix += (*globalMass);
+    systemMatrix->spy("systemMatrix");
     // systemMatrix->globalAssemble();
     std::vector<VectorPtr> stages(s);
 

@@ -21,16 +21,17 @@ FourierBasisFunction(const GeometricFace& face, unsigned int nFrequencies) :
     M_thetaPhase.push_back(pid2);
     for (unsigned int i = 0; i < nFrequencies; i++)
     {
-        M_thetaFreq.push_back(i);
-        M_thetaFreq.push_back(i);
+        M_thetaFreq.push_back(i + 1);
+        M_thetaFreq.push_back(i + 1);
         M_thetaPhase.push_back(0.0);
         M_thetaPhase.push_back(pid2);
     }
 
     M_radialPhase.push_back(0.0);
+    M_radialFreq.push_back(0.0);
     for (unsigned int i = 0; i < nFrequencies; i++)
     {
-        M_radialFreq.push_back(i * radius);
+        M_radialFreq.push_back((i + 1) * radius);
         M_radialPhase.push_back(0.0);
     }
 
@@ -50,11 +51,11 @@ FourierBasisFunction(const GeometricFace& face, unsigned int nFrequencies) :
     // it is unitary (hence if normal[1] == 1 => normal = (1,0,0))
     if (std::abs(std::abs(normal[0]) - 1.0) > 1e-12)
     {
-        M_e[0] = 1.0; M_e[0] = 0.0; M_e[0] = 0.0;
+        M_e[0] = 1.0; M_e[1] = 0.0; M_e[2] = 0.0;
     }
     else
     {
-        M_e[0] = 0.0; M_e[0] = 1.0; M_e[0] = 0.0;
+        M_e[0] = 0.0; M_e[1] = 1.0; M_e[2] = 0.0;
     }
 
     // project the vector onto the face and orthonormalize
@@ -75,11 +76,15 @@ operator()(const Vector3D& pos)
     double theta = std::acos(diff.dot(M_e) / (diff.norm()));
     Vector3D crossProduct = diff.cross(M_e);
 
+    unsigned int indexTheta = M_auxIndicesTheta[M_index];
+    unsigned int indexRadial = M_auxIndicesRadial[M_index];
+
     if (crossProduct.dot(normal) < 0)
         theta = theta + M_PI;
-
-    return std::sin(M_thetaFreq[M_index] * theta + M_thetaPhase[M_index]) *
-           std::sin(M_radialFreq[M_index] * r + M_radialPhase[M_index]);
+    double returnVal =
+           std::sin(M_thetaFreq[indexTheta] * theta + M_thetaPhase[indexTheta]) *
+           std::cos(M_radialFreq[indexRadial] * r + M_radialPhase[indexRadial]);
+    return returnVal;
 }
 
 }  // namespace RedMA
