@@ -423,6 +423,7 @@ computeFder()
         MatrixPtr curCouplingMatrix = it->second;
         newF.reset(new Vector(*M_dualMaps[count]));
         newF->zero();
+        Fs.push_back(newF);
         count++;
     }
 

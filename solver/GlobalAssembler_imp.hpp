@@ -340,7 +340,7 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
             VectorPtr aux(new Vector(curLocalMap));
             aux->subset(*vectorToFill, curLocalMap,
                         M_offsets[nAssemblers + indices[index]], 0);
-            *aux += *localVectors[index];
+            *aux += *localVectors[index + it->second->numberOfBlocks()];
             vectorToFill->subset(*aux, curLocalMap, 0,
                                  M_offsets[nAssemblers + indices[index]]);
             index++;
@@ -444,10 +444,10 @@ applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
         for (MapVector::iterator itmap = maps.begin();
              itmap != maps.end(); itmap++)
         {
-          LifeV::MapEpetra& curLocalMap = **itmap;
-          rhs->subset(*rhss[count], curLocalMap, 0, offset + suboffset);
-          suboffset += curLocalMap.mapSize();
-          count++;
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            rhs->subset(*rhss[count], curLocalMap, 0, offset + suboffset);
+            suboffset += curLocalMap.mapSize();
+            count++;
         }
         offset += suboffset;
     }
