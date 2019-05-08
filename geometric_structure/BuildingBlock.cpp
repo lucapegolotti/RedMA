@@ -442,9 +442,18 @@ mapChildInletToParentOutlet(GeometricFace parentOutlet)
     M_inletTranslation = oCenter - iCenter;
 
     M_inletRotationAxis = iNormal.cross(oNormal);
-    M_inletRotationAxis = M_inletRotationAxis / M_inletRotationAxis.norm();
-    M_inletAngle = std::acos(iNormal.dot(oNormal) /
-                            (iNormal.norm() * oNormal.norm()));
+    // in this case we don't have to rotate
+    if (M_inletRotationAxis.norm() < 1e-15)
+    {
+        M_inletRotationAxis = oNormal;
+        M_inletAngle = 0;
+    }
+    else
+    {
+        M_inletRotationAxis = M_inletRotationAxis / M_inletRotationAxis.norm();
+        M_inletAngle = std::acos(iNormal.dot(oNormal) /
+                                (iNormal.norm() * oNormal.norm()));
+    }
 }
 
 void
