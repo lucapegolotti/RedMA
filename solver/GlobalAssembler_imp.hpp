@@ -39,6 +39,8 @@ void
 GlobalAssembler<AssemblerType>::
 setup(TreeStructure& tree)
 {
+    typedef std::vector<std::pair<unsigned int, AssemblerTypePtr> > AssemblersVector;
+
     buildPrimalStructures(tree);
     buildDualStructures(tree);
 
@@ -51,6 +53,13 @@ setup(TreeStructure& tree)
         unsigned int val = *it;
         M_offsets.push_back(offset + val);
         offset += val;
+    }
+
+    M_nPrimalBlocks = 0;
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        M_nPrimalBlocks += it->second->numberOfBlocks();
     }
 }
 
@@ -91,10 +100,10 @@ buildDualStructures(TreeStructure& tree)
                 // within this function, we also add to the global maps
                 // the newly created map for the lagrange multiplier
                 fatherAssembler->assembleCouplingMatrices(*childAssembler,
-                                                        countOutlet,
-                                                        interfaceCount,
-                                                        M_globalMap,
-                                                        M_dimensionsVector);
+                                                          countOutlet,
+                                                          interfaceCount,
+                                                          M_globalMap,
+                                                          M_dimensionsVector);
             }
             countOutlet++;
             interfaceCount++;
@@ -225,10 +234,7 @@ fillGlobalMatrix(MatrixPtr& matrixToFill, bool addCoupling,
         typedef std::vector<std::pair<unsigned int, unsigned int> >
                 InterfacesVector;
 
-        unsigned int offset = 0;
-        for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
-             it != M_assemblersVector.end(); it++)
-             offset += it->second->numberOfBlocks();
+        unsigned int offset = M_nPrimalBlocks;
 
         for (InterfacesVector::iterator it = M_interfaces.begin();
              it != M_interfaces.end(); it++)
@@ -241,14 +247,14 @@ fillGlobalMatrix(MatrixPtr& matrixToFill, bool addCoupling,
                 MatrixPtr Qt = curAssembler.getQT(indices[(i+1) % 2]);
                 unsigned int blockCoupling = curAssembler.getIndexCoupling();
 
-                curAssembler.applyBCsMatrix(Qt, 0.0,
-                                            blockCoupling, blockCoupling);
-
                 unsigned int blockIndex = blockCoupling +
                                 indices[i] * curAssembler.numberOfBlocks();
 
                 if (Qt)
                 {
+                    curAssembler.applyBCsMatrix(Qt, 0.0,
+                                                blockCoupling, blockCoupling);
+
                     std::shared_ptr<MatrixView> blockGlobalView;
                     blockGlobalView = createBlockView(matrixToFill, structure,
                                                       blockIndex, offset);
@@ -306,7 +312,6 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
     vectorToFill.reset(new Vector(*M_globalMap));
     vectorToFill->zero();
 
-    unsigned int nAssemblers = M_assemblersVector.size();
     unsigned int offset = 0;
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
          it != M_assemblersVector.end(); it++)
@@ -316,6 +321,7 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
         AssemblerType& curAssembler = *it->second;
         std::vector<VectorPtr> localVectors = (curAssembler.*getVectorMethod)();
         unsigned int index = 0;
+
         for (MapVector::iterator itmap = maps.begin();
              itmap != maps.end(); itmap++)
         {
@@ -329,7 +335,7 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
         }
 
         // deal with the dual part. This is trickier because more assemblers
-        // contribute to the same subsets of vectofill
+        // contribute to the same subsets of vectorfill
         index = 0;
         maps = it->second->getDualMapVector();
         std::vector<unsigned int> indices = it->second->getInterfacesIndices();
@@ -339,10 +345,10 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
             LifeV::MapEpetra& curLocalMap = **itmap;
             VectorPtr aux(new Vector(curLocalMap));
             aux->subset(*vectorToFill, curLocalMap,
-                        M_offsets[nAssemblers + indices[index]], 0);
+                        M_offsets[M_nPrimalBlocks + indices[index]], 0);
             *aux += *localVectors[index + it->second->numberOfBlocks()];
             vectorToFill->subset(*aux, curLocalMap, 0,
-                                 M_offsets[nAssemblers + indices[index]]);
+                                 M_offsets[M_nPrimalBlocks + indices[index]]);
             index++;
         }
     }
@@ -358,8 +364,7 @@ setTimeAndPrevSolution(const double& time, VectorPtr solution)
     typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
     typedef std::vector<MapEpetraPtr>                    MapVector;
 
-    unsigned int offset = 0;
-    unsigned int nAssemblers = M_assemblersVector.size();
+    unsigned int offsetPrimal = 0;
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
          it != M_assemblersVector.end(); it++)
     {
@@ -373,9 +378,9 @@ setTimeAndPrevSolution(const double& time, VectorPtr solution)
             VectorPtr subSolution;
             subSolution.reset(new Vector(curLocalMap));
             subSolution->zero();
-            subSolution->subset(*solution, curLocalMap, offset, 0);
+            subSolution->subset(*solution, curLocalMap, offsetPrimal, 0);
             localSolutions.push_back(subSolution);
-            offset += curLocalMap.mapSize();
+            offsetPrimal += curLocalMap.mapSize();
         }
 
         maps = it->second->getDualMapVector();
@@ -389,9 +394,8 @@ setTimeAndPrevSolution(const double& time, VectorPtr solution)
             subSolution.reset(new Vector(curLocalMap));
             subSolution->zero();
             subSolution->subset(*solution, curLocalMap,
-                                M_offsets[nAssemblers + indices[in]], 0);
+                                 M_offsets[M_nPrimalBlocks + indices[in]], 0);
             localSolutions.push_back(subSolution);
-            offset += curLocalMap.mapSize();
             in++;
         }
         it->second->setTimeAndPrevSolution(time, localSolutions);

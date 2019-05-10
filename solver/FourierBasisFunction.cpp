@@ -57,7 +57,6 @@ FourierBasisFunction(const GeometricFace& face, unsigned int nFrequencies) :
     {
         M_e[0] = 0.0; M_e[1] = 1.0; M_e[2] = 0.0;
     }
-
     // project the vector onto the face and orthonormalize
     M_e = M_e - M_e.dot(normal) * normal;
     M_e = M_e / M_e.norm();

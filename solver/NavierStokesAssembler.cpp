@@ -211,7 +211,10 @@ setTimeAndPrevSolution(const double& time, std::vector<VectorPtr> solution)
 {
     M_time = time;
     M_prevSolution = solution;
-
+    #if 1
+    *M_pressureExporter = *M_B * (*solution[0]);
+    std::cout << M_pressureExporter->norm2() << std::endl;
+    #endif
     // reset all things that need to be recomputed
     M_C = nullptr;
     M_J = nullptr;
@@ -309,7 +312,6 @@ computeF()
     std::vector<VectorPtr> Fs;
     VectorPtr velocity = M_prevSolution[0];
     VectorPtr pressure = M_prevSolution[1];
-
     // assemble F first component
     VectorPtr F1;
     F1.reset(new Vector(M_velocityFESpace->map()));
@@ -414,7 +416,6 @@ computeFder()
 
     Fs.push_back(F1);
     Fs.push_back(F2);
-
     unsigned int count = 0;
     for (std::map<unsigned int, MatrixPtr>::iterator it = M_mapQs.begin();
          it != M_mapQs.end(); it++)
@@ -426,7 +427,6 @@ computeFder()
         Fs.push_back(newF);
         count++;
     }
-
     return Fs;
 }
 

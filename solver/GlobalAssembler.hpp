@@ -100,6 +100,7 @@ private:
     std::vector<unsigned int>                               M_dimensionsVector;
     std::vector<std::pair<unsigned int, unsigned int> >     M_interfaces;
     std::vector<unsigned int>                               M_offsets;
+    unsigned int                                            M_nPrimalBlocks;
 };
 
 }  // namespace RedMA
