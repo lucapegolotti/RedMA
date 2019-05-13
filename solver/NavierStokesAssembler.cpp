@@ -211,10 +211,6 @@ setTimeAndPrevSolution(const double& time, std::vector<VectorPtr> solution)
 {
     M_time = time;
     M_prevSolution = solution;
-    #if 1
-    *M_pressureExporter = *M_B * (*solution[0]);
-    std::cout << M_pressureExporter->norm2() << std::endl;
-    #endif
     // reset all things that need to be recomputed
     M_C = nullptr;
     M_J = nullptr;
@@ -334,7 +330,6 @@ computeF()
          it != M_mapQTs.end(); it++)
     {
         *F1 -= (*it->second) * (*M_prevSolution[count]);
-        M_prevSolution[count]->showMe();
         count++;
     }
     // assemble F second component
@@ -356,9 +351,7 @@ computeF()
         MatrixPtr curCouplingMatrix = it->second;
         newF.reset(new Vector(*M_dualMaps[count]));
         newF->zero();
-        #if 1
         *newF -= (*curCouplingMatrix) * (*velocity);
-        #endif
         Fs.push_back(newF);
         count++;
     }
