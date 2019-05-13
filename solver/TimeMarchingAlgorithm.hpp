@@ -18,6 +18,7 @@
 #define TIMEMARCHINGALGORITHM_HPP
 
 #include <GlobalAssembler.hpp>
+#include <PrintLog.hpp>
 
 #include <lifev/core/algorithm/SolverAztecOO.hpp>
 
@@ -46,6 +47,11 @@ public:
     virtual void solveTimestep(const double &time, double &dt) = 0;
 
     void solveLinearSystem(MatrixPtr matrix, VectorPtr rhs, VectorPtr sol);
+
+    void solveNonLinearSystem(std::function<VectorPtr(VectorPtr)> fun,
+                              std::function<MatrixPtr(VectorPtr)> jac,
+                              VectorPtr sol, const double& tol,
+                              const unsigned int& itMax);
 
     VectorPtr getSolution();
 

@@ -81,6 +81,9 @@ public:
                                const double& alphai,
                                const double& gammai);
 
+    void applyBCsBackwardEuler(std::vector<VectorPtr> rhs, const double& coeff,
+                               const double& time);
+
     void applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
                         const unsigned int& iblock, const unsigned int& jblock);
 

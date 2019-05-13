@@ -69,4 +69,50 @@ getSolution()
     return M_solution;
 }
 
+template <class AssemblerType>
+void
+TimeMarchingAlgorithm<AssemblerType>::
+solveNonLinearSystem(std::function<VectorPtr(VectorPtr)> fun,
+                     std::function<MatrixPtr(VectorPtr)> jac,
+                     VectorPtr sol,
+                     const double& tol, const unsigned int& itMax)
+{
+    VectorPtr incr(new Vector(sol->map()));
+    double err = tol + 1;
+    unsigned int count = 1;
+    VectorPtr curF;
+    while (err > tol && count < itMax)
+    {
+        // VectorPtr curF(new Vector(x0->map()));
+        curF = fun(sol);
+        err = curF->norm2();
+        std::string msg("[SolveNonLinearSystem]");
+        msg += " solving, iteration = " + std::to_string(count) + ", ";
+        msg += " error = " + std::to_string(err) + "\n";
+        printlog(YELLOW, msg, M_verbose);
+        if (err > tol)
+        {
+            incr->zero();
+            MatrixPtr curJac = jac(sol);
+            solveLinearSystem(curJac, curF, incr);
+            *sol -= *incr;
+        }
+        count++;
+    }
+    // *sol = *curF;
+    if (count != itMax)
+    {
+        std::string msg("[SolveNonLinearSystem]");
+        msg += " convergence, iteration = " + std::to_string(count) + ", ";
+        msg += " error = " + std::to_string(err) + "\n";
+        printlog(YELLOW, msg, M_verbose);
+    }
+    else
+    {
+        std::string msg("[SolveNonLinearSystem]");
+        msg += " did not reach convergence!\n";
+        printlog(RED, msg, M_verbose);
+    }
+}
+
 }  // namespace RedMA

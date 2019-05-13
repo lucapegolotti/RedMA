@@ -73,6 +73,10 @@ public:
                                const double& time, const double& dt,
                                const double& alphai, const double& gammai);
 
+    template<typename FunctionType>
+    void applyBCsVector(VectorPtr rhs, const double& coeff, const double& time,
+                        FunctionType bcFunction);
+
     void setMaxVelocityLawInflow(std::function<double(double)> maxLaw);
 
     void setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt);

@@ -241,8 +241,11 @@ fillGlobalMatrix(MatrixPtr& matrixToFill, bool addCoupling,
         {
             unsigned int indices[2] = {it->first, it->second};
 
+            // for (int i = 0; i < 2; i++)
+            #if 1
             for (int i = 0; i < 2; i++)
             {
+            #endif
                 AssemblerType& curAssembler = *M_assemblersMap[indices[i]];
                 MatrixPtr Qt = curAssembler.getQT(indices[(i+1) % 2]);
                 unsigned int blockCoupling = curAssembler.getIndexCoupling();
@@ -348,7 +351,7 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
                         M_offsets[M_nPrimalBlocks + indices[index]], 0);
             *aux += *localVectors[index + it->second->numberOfBlocks()];
             vectorToFill->subset(*aux, curLocalMap, 0,
-                                 M_offsets[M_nPrimalBlocks + indices[index]]);
+                                  M_offsets[M_nPrimalBlocks + indices[index]]);
             index++;
         }
     }
@@ -441,6 +444,56 @@ applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
         // apply bcs
         it->second->applyBCsRhsRosenbrock(rhss, utildes, time, dt,
                                           alphai, gammai);
+
+        suboffset = 0;
+        unsigned int count = 0;
+        // copy back to global vectors
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            rhs->subset(*rhss[count], curLocalMap, 0, offset + suboffset);
+            suboffset += curLocalMap.mapSize();
+            count++;
+        }
+        offset += suboffset;
+    }
+}
+
+template<class AssemblerType>
+template<typename FunctionType>
+void
+GlobalAssembler<AssemblerType>::
+applyBCsVector(VectorPtr rhs, const double& coeff, const double& time,
+               FunctionType bcFunction)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+    typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
+    typedef std::vector<MapEpetraPtr>                    MapVector;
+
+    unsigned int offset = 0;
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        std::vector<VectorPtr> rhss;
+        std::vector<VectorPtr> utildes;
+        MapVector maps = it->second->getPrimalMapVector();
+        unsigned int suboffset = 0;
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            VectorPtr subRhs;
+            subRhs.reset(new Vector(curLocalMap));
+            subRhs->zero();
+            subRhs->subset(*rhs, curLocalMap, offset + suboffset, 0);
+            rhss.push_back(subRhs);
+            suboffset += curLocalMap.mapSize();
+        }
+        // apply bcs
+        AssemblerType& curAssembler = *it->second;
+        (curAssembler.*bcFunction)(rhss, coeff, time);
 
         suboffset = 0;
         unsigned int count = 0;

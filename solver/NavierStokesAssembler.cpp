@@ -334,6 +334,7 @@ computeF()
          it != M_mapQTs.end(); it++)
     {
         *F1 -= (*it->second) * (*M_prevSolution[count]);
+        M_prevSolution[count]->showMe();
         count++;
     }
     // assemble F second component
@@ -355,8 +356,9 @@ computeF()
         MatrixPtr curCouplingMatrix = it->second;
         newF.reset(new Vector(*M_dualMaps[count]));
         newF->zero();
-
+        #if 1
         *newF -= (*curCouplingMatrix) * (*velocity);
+        #endif
         Fs.push_back(newF);
         count++;
     }
@@ -565,6 +567,18 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
     updateBCs(finalBcs, M_velocityFESpace);
     bcManageRhs(*rhs[0], *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
                 *finalBcs, M_velocityFESpace->feBd(), 1.0, time);
+}
+
+void
+NavierStokesAssembler::
+applyBCsBackwardEuler(std::vector<VectorPtr> rhs, const double& coeff,
+                      const double& time)
+{
+    BoundaryConditionPtr bc = createBCHandler(M_maxVelocityLaw);
+    updateBCs(bc, M_velocityFESpace);
+
+    bcManageRhs(*rhs[0], *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+                *bc, M_velocityFESpace->feBd(), coeff, time);
 }
 
 void

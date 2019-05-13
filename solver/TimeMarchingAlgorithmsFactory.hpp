@@ -21,6 +21,7 @@
 
 #include <TimeMarchingAlgorithm.hpp>
 #include <RosenbrockAlgorithm.hpp>
+#include <BackwardEuler.hpp>
 #include <Exception.hpp>
 
 namespace RedMA
@@ -44,6 +45,17 @@ TimeMarchingAlgorithmsFactory(const GetPot& datafile,
                                                                  assembler,
                                                                  comm,
                                                                  verbose));
+
+        return returnPtr;
+    }
+    else if (!std::strcmp(marchingAlgorithmString.c_str(), "backward_euler"))
+    {
+        typedef BackwardEuler<AssemblerType>  ReturnType;
+        std::shared_ptr<ReturnType>
+                returnPtr(new BackwardEuler<AssemblerType>(datafile,
+                                                           assembler,
+                                                           comm,
+                                                           verbose));
 
         return returnPtr;
     }

@@ -95,10 +95,11 @@ solveTimestep(const double &time, double &dt)
         // here we need to apply the bcs to the right hand side
         M_globalAssembler->applyBCsRhsRosenbrock(F, yTilde, time, dt,
                                                  alphai, gammai);
-
+        F->spy("F" + std::to_string(i));
         VectorPtr newStage(new Vector(*globalMap));
         solveLinearSystem(systemMatrix, F, newStage);
         stages[i] = newStage;
+        stages[i]->spy("stages" + std::to_string(i));
     }
     // retrieve solution
     for (int i = 0; i < s; i++)
@@ -106,7 +107,7 @@ solveTimestep(const double &time, double &dt)
         VectorEpetra part = M_coefficients.mHigh(i) * (*(stages[i]));
         *M_solution += (dt * part);
     }
-    M_solution->spy("solution");
+    M_solution->spy("Msolution");
     printlog(MAGENTA, "done\n", M_verbose);
 }
 
