@@ -364,6 +364,8 @@ AbstractAssembler::
 getQT(const unsigned int& flag)
 {
     MatrixPtr retMatrix(new Matrix(*M_mapQTs[flag]));
+    // multiply by -1 because we are solving Hdu/dt = F!
+    *retMatrix *= (-1);
     return retMatrix;
 }
 
@@ -372,6 +374,8 @@ AbstractAssembler::
 getQ(const unsigned int& flag)
 {
     MatrixPtr retMatrix(new Matrix(*M_mapQs[flag]));
+    // multiply by -1 because we are solving Hdu/dt = F!
+    *retMatrix *= (-1);
     return retMatrix;
 }
 
