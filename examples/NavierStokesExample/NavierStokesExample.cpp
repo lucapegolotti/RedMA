@@ -33,13 +33,31 @@ using namespace RedMA;
 
 double maxLaw(double t)
 {
-    return 1.0 * sin(t * 2 * 3.1415);
+    const double U = 1.0;
+    const double T = 0.1;
+    if (t <= T)
+        return U * (1.0 - cos(M_PI * t / T)) / 2;
+    return U;
 }
 
 double maxLawDt(double t)
 {
-    return 0.0 * cos(t * 2 * 3.1415) * 2 * 3.1415;
+    const double U = 1.0;
+    const double T = 0.1;
+    if (t <= T)
+        return U * sin(M_PI * t / T) * M_PI  / (2 * T);
+    return 0.0;
 }
+
+// double maxLaw(double t)
+// {
+//     return 1.0;
+// }
+//
+// double maxLawDt(double t)
+// {
+//     return 0;
+// }
 
 int main(int argc, char **argv)
 {

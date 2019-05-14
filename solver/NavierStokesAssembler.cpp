@@ -547,13 +547,17 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
                                       M_velocityFESpace->map().mapSize()/3);
 
     const unsigned int inletFlag = 1;
-    finalBcs->addBC("Inflow", inletFlag, LifeV::Essential,
-                    LifeV::Full, bcVectorDirichlet, 3);
 
+    if (M_treeNode->M_ID == 0)
+    {
+        finalBcs->addBC("Inflow", inletFlag, LifeV::Essential,
+                        LifeV::Full, bcVectorDirichlet, 3);
+    }
 
     LifeV::BCFunctionBase zeroFunction (fZero);
 
     const unsigned int wallFlag = 10;
+
     finalBcs->addBC("Wall", wallFlag, LifeV::Essential,
                     LifeV::Full, zeroFunction, 3);
 
@@ -561,6 +565,71 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
     bcManageRhs(*rhs[0], *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
                 *finalBcs, M_velocityFESpace->feBd(), 1.0, time);
 }
+
+#if 0
+void
+NavierStokesAssembler::
+applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
+                      std::vector<VectorPtr> utilde,
+                      const double& time,
+                      const double& dt,
+                      const double& alphai,
+                      const double& gammai)
+{
+    std::cout << "1" << std::endl;
+    BoundaryConditionPtr finalBcs(new LifeV::BCHandler);
+
+    if (1)
+    {
+        BoundaryConditionPtr bc = createBCHandler(M_maxVelocityLaw);
+
+        updateBCs(bc, M_velocityFESpace);
+
+        VectorPtr auxVec(new Vector(M_velocityFESpace->map()));
+        auxVec->zero();
+
+        bcManageRhs(*auxVec, *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+                    *bc, M_velocityFESpace->feBd(), 1.0, time + dt * alphai);
+
+        BoundaryConditionPtr bcDt = createBCHandler(M_maxVelocityDtLaw);
+
+        updateBCs(bcDt, M_velocityFESpace);
+
+        VectorPtr auxVecDt(new Vector(M_velocityFESpace->map()));
+        auxVecDt->zero();
+        std::cout << "2" << std::endl;
+
+        bcManageRhs(*auxVecDt, *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+                    *bcDt, M_velocityFESpace->feBd(), 1.0, time);
+
+        VectorPtr rhsValues(new Vector(M_velocityFESpace->map()));
+        rhsValues->zero();
+
+        *rhsValues += *auxVecDt;
+        *rhsValues *= (gammai * dt);
+        *rhsValues += *auxVec;
+        *rhsValues -= *utilde[0];
+
+        const unsigned int inletFlag = 1;
+        LifeV::BCVector bcVectorDirichlet(*rhsValues,
+                                          M_velocityFESpace->map().mapSize()/3);
+        finalBcs->addBC("Inflow", inletFlag, LifeV::Essential,
+                        LifeV::Full, bcVectorDirichlet, 3);
+    }
+    std::cout << "3" << std::endl;
+
+    LifeV::BCFunctionBase zeroFunction(fZero);
+
+    const unsigned int wallFlag = 10;
+    finalBcs->addBC("Wall", wallFlag, LifeV::Essential,
+                    LifeV::Full, zeroFunction, 3);
+    std::cout << "4" << std::endl;
+    updateBCs(finalBcs, M_velocityFESpace);
+    bcManageRhs(*rhs[0], *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+                *finalBcs, M_velocityFESpace->feBd(), 1.0, time);
+    std::cout << "5" << std::endl;
+}
+#endif
 
 void
 NavierStokesAssembler::
