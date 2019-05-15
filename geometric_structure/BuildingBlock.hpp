@@ -93,7 +93,7 @@ public:
 
     int readMesh(std::string meshdir = "../geometries/");
 
-    virtual inline unsigned int expectedNumberOfChildren() = 0;
+    virtual unsigned int expectedNumberOfChildren() = 0;
 
     std::string name();
 
