@@ -26,7 +26,7 @@
 [../]
 
 [exporter]
-	outdir	   = solutions_rosenbrock
+	outdir	   = solutions_rosenbrock/
 	type       = vtk
 	multimesh  = false
 	start      = 0
@@ -35,6 +35,6 @@
 [../]
 
 [coupling]
-	type 	   	= fourier
+	type 	    = fourier
 	frequencies = 10
 [../]
