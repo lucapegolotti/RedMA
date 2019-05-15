@@ -688,7 +688,7 @@ setExporter()
     std::string outputName = "block";
     outputName += std::to_string(M_treeNode->M_ID);
 
-    std::string outdir = M_datafile("exporter/outdirectory", "solutions/");
+    std::string outdir = M_datafile("exporter/outdir", "solutions/");
     boost::filesystem::create_directory(outdir);
 
     M_exporter.reset(new Exporter(M_datafile, outputName));

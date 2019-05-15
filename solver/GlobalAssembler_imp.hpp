@@ -551,7 +551,6 @@ exportSolutions(const double& time, VectorPtr solution)
     typedef std::vector<MapEpetraPtr>                    MapVector;
 
     std::string solutionsDir;
-    solutionsDir = M_datafile("exporter/outdir", "solution");
 
     unsigned int offset = 0;
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();

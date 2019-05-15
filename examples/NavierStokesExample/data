@@ -14,9 +14,9 @@
 
 [time_discretization]
 	algorithm = rosenbrock # rosenbrock
-	scheme = ROS2
+	scheme = ROS3Pw
 	t0 = 0
-	T = 0.15
+	T = 0.02
 	dt = 0.01
 [../]
 
@@ -26,7 +26,7 @@
 [../]
 
 [exporter]
-	outdir	   = solutions
+	outdir	   = solutions_rosenbrock
 	type       = vtk
 	multimesh  = false
 	start      = 0
@@ -36,5 +36,5 @@
 
 [coupling]
 	type 	   	= fourier
-	frequencies = 15
+	frequencies = 10
 [../]
