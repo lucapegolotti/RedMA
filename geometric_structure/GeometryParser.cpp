@@ -76,7 +76,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
     std::string ref = "coarse";
     if (element->Attribute("refinement"))
     {
-        ref = std::stoi(element->Attribute("refinement"));
+        ref = element->Attribute("refinement");
     }
 
     if (!std::strcmp(element->Attribute("type"), "tube"))
