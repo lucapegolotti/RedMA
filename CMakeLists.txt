@@ -70,7 +70,6 @@ set(LINKED_LIBRARIES
     tinyxml2
     mpi
     mpi_cxx
-    blas
     lifevcore
     lifeveta
     lifevnavierstokesblocks
@@ -92,4 +91,3 @@ add_subdirectory(solver)
 add_subdirectory(utils)
 add_subdirectory(examples)
 add_subdirectory(tests)
-add_subdirectory(geometries)

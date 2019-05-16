@@ -4,7 +4,7 @@
 
 [geometric_structure]
 	xmlfile = tree3.xml
-	geometries_dir = ../../geometries
+	geometries_dir = ../../../meshes/
 [../]
 
 [fluid]

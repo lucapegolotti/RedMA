@@ -15,8 +15,8 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
 {
     M_tree = M_geometryParser.getTree();
 
-    std::string geometriesDir = datafile("geometric_structure/geometies_dir",
-                                         "../../geometries/");
+    std::string geometriesDir = datafile("geometric_structure/geometries_dir",
+                                         "../../../meshes/");
 
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();

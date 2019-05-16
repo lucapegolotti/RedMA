@@ -40,12 +40,12 @@ int main(int argc, char **argv)
     #endif
 
     BifurcationSymmetric bifurcation(comm, true);
-    bifurcation.readMesh("../../geometries/");
+    bifurcation.readMesh("../../../meshes/");
     bifurcation.setParameterValue("out1_alphax", 0.3);
     bifurcation.setParameterValue("out1_alpha_plane", 0.3);
     bifurcation.setParameterValue("out2_alphax", 0.3);
     bifurcation.setParameterValue("out2_alpha_plane", -0.3);
     bifurcation.applyGlobalTransformation();
-    bifurcation.dumpMesh("output/", "../../geometries/", "deformedBifurcation");
+    bifurcation.dumpMesh("output/", "../../../mesh/", "deformedBifurcation");
     return 0;
 }
