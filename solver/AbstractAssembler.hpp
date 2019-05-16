@@ -62,10 +62,10 @@ public:
     // 2) assemble the constant matrices
     virtual void setup() = 0;
 
-    inline virtual unsigned int numberOfBlocks() = 0;
+    virtual unsigned int numberOfBlocks() = 0;
 
     // number of components of the variable involved in the coupling
-    inline virtual unsigned int numberOfComponents() = 0;
+    virtual unsigned int numberOfComponents() = 0;
 
     std::vector<MapEpetraPtr> getPrimalMapVector();
 
