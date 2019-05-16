@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    BifurcationSymmetric bifurcation(comm, true);
+    BifurcationSymmetric bifurcation(comm, "coarse", true);
     bifurcation.readMesh("../../../meshes/");
     bifurcation.setParameterValue("out1_alphax", 0.3);
     bifurcation.setParameterValue("out1_alpha_plane", 0.3);

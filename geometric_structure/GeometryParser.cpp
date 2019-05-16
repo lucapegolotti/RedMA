@@ -73,11 +73,17 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
         outletParent = std::stoi(element->Attribute("outlet")) - 1;
     }
 
+    std::string ref = "coarse";
+    if (element->Attribute("refinement"))
+    {
+        ref = std::stoi(element->Attribute("refinement"));
+    }
+
     if (!std::strcmp(element->Attribute("type"), "tube"))
     {
         printlog(GREEN, std::string("[GeometryParser] parsing building block") +
                        " of type tube\n", M_verbose);
-        returnBlock.reset(new Tube(M_comm, M_verbose));
+        returnBlock.reset(new Tube(M_comm, ref, M_verbose));
     }
     else if (!std::strcmp(element->Attribute("type"),
                           "bifurcation_symmetric"))
@@ -85,7 +91,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
         std::string msg = std::string("[GeometryParser] parsing") +
                   " building block of type bifurcation symmetric\n";
         printlog(GREEN, msg, M_verbose);
-        returnBlock.reset(new BifurcationSymmetric(M_comm, M_verbose));
+        returnBlock.reset(new BifurcationSymmetric(M_comm, ref, M_verbose));
     }
     else
     {

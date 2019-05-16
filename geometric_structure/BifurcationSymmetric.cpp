@@ -4,12 +4,13 @@ namespace RedMA
 {
 
 BifurcationSymmetric::
-BifurcationSymmetric(commPtr_Type comm, bool verbose) :
-  BuildingBlock(comm, verbose)
+BifurcationSymmetric(commPtr_Type comm, std::string refinement,
+                     bool verbose) :
+  BuildingBlock(comm, refinement, verbose)
 {
     M_name = "BifurcationSymmetric";
 
-    M_datafileName = "bifurcation_symmetric_coarse_data";
+    M_datafileName = "bifurcation_symmetric_" + refinement + "_data";
 
     // values are referred to the reference configuration
 

@@ -4,12 +4,12 @@ namespace RedMA
 {
 
 Tube::
-Tube(commPtr_Type comm, bool verbose) :
-  BuildingBlock(comm, verbose)
+Tube(commPtr_Type comm, std::string refinement, bool verbose) :
+  BuildingBlock(comm, refinement, verbose)
 {
     M_name = "Tube";
 
-    M_datafileName = "tube_coarse_data";
+    M_datafileName = "tube_" + refinement + "_data";
 
     // center of inlet (reference configuration)
     M_inletCenterRef[0] = 0.0;

@@ -84,7 +84,7 @@ protected:
     typedef LifeV::MeshUtility::MeshTransformer<mesh_Type> Transformer;
 
 public:
-    BuildingBlock(commPtr_Type comm, bool verbose);
+    BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose);
 
     void setParameterValue(std::string key, double value);
 
@@ -142,6 +142,7 @@ protected:
     GeometricParametersHandler M_parametersHandler;
     std::string M_name;
 
+    std::string M_refinement;
     std::string M_meshName;
     meshPtr_Type M_mesh;
 

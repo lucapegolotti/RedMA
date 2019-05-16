@@ -26,7 +26,8 @@ namespace RedMA
 class Tube : public BuildingBlock
 {
 public:
-    Tube(commPtr_Type comm, bool verbose = false);
+    Tube(commPtr_Type comm, std::string refinement = "coarse",
+         bool verbose = false);
 
     virtual inline unsigned int expectedNumberOfChildren()
     {

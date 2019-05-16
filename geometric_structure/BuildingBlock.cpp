@@ -45,8 +45,9 @@ print()
 }
 
 BuildingBlock::
-BuildingBlock(commPtr_Type comm, bool verbose) :
+BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
   M_comm(comm),
+  M_refinement(refinement),
   M_verbose(verbose),
   M_isChild(false)
 {
