@@ -48,7 +48,7 @@ void subTest1(Test& test)
 void subTest2(Test& test)
 {
     Tube tube(test.getComm());
-    test.assertTrue(tube.readMesh("../geometries/") == 0);
+    test.assertTrue(tube.readMesh("../../meshes/") == 0);
 }
 
 void subTest3(Test& test)

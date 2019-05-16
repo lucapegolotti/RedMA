@@ -91,7 +91,7 @@ public:
     std::map<std::string,std::shared_ptr<GeometricParameter> >&
                                                              getParametersMap();
 
-    int readMesh(std::string meshdir = "../geometries/");
+    int readMesh(std::string meshdir = "../../meshes/");
 
     virtual inline unsigned int expectedNumberOfChildren() = 0;
 

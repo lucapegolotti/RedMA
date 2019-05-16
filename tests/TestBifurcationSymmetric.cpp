@@ -45,7 +45,7 @@ void subTest1(Test& test)
 void subTest2(Test& test)
 {
     BifurcationSymmetric bifurcation(test.getComm());
-    test.assertTrue(bifurcation.readMesh("../geometries/") == 0);
+    test.assertTrue(bifurcation.readMesh("../../meshes/") == 0);
 }
 
 int main()
