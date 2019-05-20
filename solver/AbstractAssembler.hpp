@@ -26,6 +26,8 @@
 #include <lifev/core/filter/GetPot.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
 
+#include <Epetra_LAPACK.h>
+
 namespace RedMA
 {
 
@@ -95,12 +97,21 @@ public:
     std::vector<unsigned int> getInterfacesIndices();
 
 private:
-    static void gramSchmidt(VectorPtr* basis1, MatrixPtr massMatrix1,
-                            VectorPtr* basis2, MatrixPtr massMatrix2,
+    static void gramSchmidt(VectorPtr* basis1, VectorPtr* basis2,
+                            MatrixPtr massMatrix1, MatrixPtr massMatrix2,
                             unsigned int& nVectors);
 
+    void POD(VectorPtr*& basis1, VectorPtr*& basis2,
+             MatrixPtr massMatrix1, MatrixPtr massMatrix2,
+             unsigned int& nVectors);
+
     static double dotProd(VectorPtr* basis1, VectorPtr* basis2, unsigned int index1,
-                          unsigned int index2, MatrixPtr mass1, MatrixPtr mass2);
+                          unsigned int index2, MatrixPtr mass1 = nullptr,
+                          MatrixPtr mass2 = nullptr);
+
+    static double* computeCorrelationMatrix(VectorPtr* basis1, VectorPtr* basis2,
+                                            MatrixPtr mass1, MatrixPtr mass2,
+                                            const unsigned int& nBasisFunctions);
 
     VectorPtr* assembleCouplingVectorsFourier(const unsigned int& frequencies,
                                               const unsigned int& nBasisFunctions,
@@ -113,6 +124,7 @@ private:
                                  const unsigned int& flagAdjacentDomain);
 
     MatrixPtr assembleBoundaryMatrix(GeometricFace face);
+
 
 protected:
     TreeNodePtr                         M_treeNode;

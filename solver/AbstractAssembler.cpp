@@ -42,8 +42,8 @@ getDualMapVector()
 void
 AbstractAssembler::
 gramSchmidt(AbstractAssembler::VectorPtr* basis1,
-            AbstractAssembler::MatrixPtr massMatrix1,
             AbstractAssembler::VectorPtr* basis2,
+            AbstractAssembler::MatrixPtr massMatrix1,
             AbstractAssembler::MatrixPtr massMatrix2,
             unsigned int& nVectors)
 {
@@ -60,8 +60,7 @@ gramSchmidt(AbstractAssembler::VectorPtr* basis1,
     double* norms = new double[nVectors];
     for (unsigned int i = 0; i < nVectors; i++)
     {
-        double u1 = std::sqrt(dotProd(basis1, basis2, i, i,
-                                      massMatrix1, massMatrix2));
+        double u1 = std::sqrt(dotProd(basis1, basis2, i, i));
         norms[i] = u1;
         quickSearch[i] = false;
         if (u1 < 5e-12)
@@ -77,10 +76,9 @@ gramSchmidt(AbstractAssembler::VectorPtr* basis1,
             {
                 if (!quickSearch[j])
                 {
-                    double u2 = dotProd(basis1, basis2, i, j,
-                                        massMatrix1, massMatrix2);
-                    double theta = std::acos(std::abs(u2)/(norms[i]*norms[j]));
-
+                    double u2 = dotProd(basis1, basis2, i, j);
+                    double ratio = std::abs(u2)/(norms[i]*norms[j]);
+                    double theta = std::acos(ratio);
                     if (std::abs(theta) < 5e-1)
                     {
                         quickSearch[i] = true;
@@ -108,8 +106,6 @@ gramSchmidt(AbstractAssembler::VectorPtr* basis1,
 
     nVectors -= vectorsZeroed;
 
-    // normalize vectors. WARNING: it might be that this must be done on the
-    // whole vector (comprising also the adjacent domain)
     for (unsigned int i = 0; i < nVectors; i++)
     {
         for (unsigned int j = 0; j < i; j++)
@@ -133,18 +129,136 @@ gramSchmidt(AbstractAssembler::VectorPtr* basis1,
     delete[] norms;
 }
 
+void
+AbstractAssembler::
+POD(VectorPtr*& basis1,
+    VectorPtr*& basis2,
+    MatrixPtr massMatrix1,
+    MatrixPtr massMatrix2, unsigned int& nVectors)
+{
+    double* correlationMatrix =
+            computeCorrelationMatrix(basis1, basis2, massMatrix1, massMatrix2,
+                                     nVectors);
+
+    double tol = M_datafile("coupling/pod_tolerance", 1e-3);
+
+    double* fieldVL;
+    double* eigenvalues;
+
+    unsigned int initialN = nVectors;
+    unsigned int length = nVectors * nVectors;
+
+    if (M_comm->MyPID() == 0)
+    {
+        Epetra_LAPACK lapack;
+
+        // double* singularValues = new double[M_nSnapshots];
+
+        eigenvalues = new double[nVectors];
+        fieldVL = new double[length];
+        double* fieldVR = new double[1];
+
+        int info;
+
+        int lwork(-1);
+        double* work(nullptr);
+        work = new double[1];
+
+        fieldVL = new double[length];
+        fieldVR = new double[1];
+
+        // compute optimal work in lwork
+        lapack.GESVD('A', 'N', nVectors, nVectors, correlationMatrix, nVectors,
+                      eigenvalues, fieldVL, nVectors, fieldVR, 1, work, &lwork,
+                      &info);
+
+        lwork = work[0];
+        work = new double[lwork];
+
+        lapack.GESVD('A', 'N', nVectors, nVectors, correlationMatrix, nVectors,
+                      eigenvalues, fieldVL, nVectors, fieldVR, 1, work, &lwork,
+                      &info);
+
+        double sumSVs = 0;
+
+        for (unsigned int i = 0; i < nVectors; i++)
+            sumSVs += eigenvalues[i];
+
+        // compute new number of nVectors
+
+        double partialSum = 0;
+        unsigned int i;
+        for (i = 0; i < nVectors; i++)
+        {
+            partialSum += eigenvalues[i];
+            if (partialSum / sumSVs >= 1 - tol * tol)
+                break;
+        }
+
+        nVectors = i;
+    }
+
+    int nVectorsInt = nVectors;
+    M_comm->Broadcast(&nVectorsInt, 1, 0);
+    M_comm->Barrier();
+    nVectors = nVectorsInt;
+
+    if (M_comm->MyPID() != 0)
+    {
+        fieldVL = new double[length];
+        eigenvalues = new double[nVectors];
+    }
+
+    M_comm->Broadcast(eigenvalues, nVectors, 0);
+    M_comm->Broadcast(fieldVL, length, 0);
+    M_comm->Barrier();
+
+    VectorPtr* newVectors1 = new VectorPtr[nVectors];
+    VectorPtr* newVectors2 = new VectorPtr[nVectors];
+    for (unsigned int i = 0; i < nVectors; i++)
+    {
+        double coeff = 1.0 / std::sqrt(eigenvalues[i]);
+
+        newVectors1[i].reset(new Vector(basis1[0]->map()));
+        newVectors2[i].reset(new Vector(basis2[0]->map()));
+        newVectors1[i]->zero();
+        newVectors2[i]->zero();
+
+        for (unsigned int j = 0; j < initialN; j++)
+        {
+            unsigned int index = i * initialN + j;
+
+            *newVectors1[i] += (coeff * fieldVL[index]) * (*basis1[j]);
+            *newVectors2[i] += (coeff * fieldVL[index]) * (*basis2[j]);
+        }
+    }
+    delete[] basis1;
+    delete[] basis2;
+
+    basis1 = newVectors1;
+    basis2 = newVectors2;
+}
+
 double
 AbstractAssembler::
 dotProd(VectorPtr* basis1, VectorPtr* basis2, unsigned int index1,
         unsigned int index2, MatrixPtr mass1, MatrixPtr mass2)
 {
     double prod1 = 0, prod2 = 0;
-    VectorPtr aux1(new Vector(basis1[index1]->map()));
-    VectorPtr aux2(new Vector(basis2[index2]->map()));
-    *aux1 = (*mass1) * (*basis1[index1]);
-    *aux2 = (*mass2) * (*basis2[index2]);
-    aux1->dot(*basis1[index1], prod1);
-    aux2->dot(*basis2[index2], prod2);
+    if (mass1 && mass2)
+    {
+        VectorPtr aux1(new Vector(basis1[index1]->map()));
+        VectorPtr aux2(new Vector(basis2[index1]->map()));
+        *aux1 = (*mass1) * (*basis1[index1]);
+        *aux2 = (*mass2) * (*basis2[index1]);
+        aux1->dot(*basis1[index2], prod1);
+        aux2->dot(*basis2[index2], prod2);
+    }
+    else
+    {
+        basis1[index1]->dot(*basis1[index2], prod1);
+        basis2[index1]->dot(*basis2[index2], prod2);
+    }
     return prod1 + prod2;
 }
 
@@ -315,19 +429,25 @@ assembleCouplingMatrices(AbstractAssembler& child,
         VectorPtr* couplingVectorsChild =
               child.assembleCouplingVectorsFourier(frequencies, nBasisFunctions,
                                                      inlet, -1);
-
         MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
         unsigned int prev = nBasisFunctions;
-        gramSchmidt(couplingVectorsFather, massMatrixFather, couplingVectorsChild,
-                    massMatrixChild, nBasisFunctions);
 
-        msg = "GramSchmidt -> ";
-        msg += "reducing number of bfs from " + std::to_string(prev) + " to " +
+        std::string orthStrategy = M_datafile("coupling/orthonormalization", "POD");
+
+        if (!std::strcmp(orthStrategy.c_str(), "POD"))
+            POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
+                massMatrixChild, nBasisFunctions);
+        else if (!std::strcmp(orthStrategy.c_str(), "gram_schmidt"))
+            gramSchmidt(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
+                        massMatrixChild, nBasisFunctions);
+
+        msg = "Orthonormalizing with " + orthStrategy;
+        msg += ": reducing number of bfs from " + std::to_string(prev) + " to " +
                std::to_string(nBasisFunctions) + "\n";
         printlog(GREEN, msg, M_verbose);
 
         // build map for the lagrange multipliers (nBasisFunctions has been
-        // modified in gramSchmidt)
+        // modified in orthonormalization)
         unsigned int myel = (nComponents * nBasisFunctions) / M_comm->NumProc();
         // the first process takes care of the remainder
         if (M_comm->MyPID() == 0)
@@ -391,6 +511,31 @@ AbstractAssembler::
 getInterfacesIndices()
 {
     return M_interfacesIndices;
+}
+
+double*
+AbstractAssembler::
+computeCorrelationMatrix(AbstractAssembler::VectorPtr* basis1,
+                         AbstractAssembler::VectorPtr* basis2,
+                         AbstractAssembler::MatrixPtr mass1,
+                         AbstractAssembler::MatrixPtr mass2,
+                         const unsigned int& nBasisFunctions)
+{
+    unsigned int matSize = nBasisFunctions * nBasisFunctions;
+
+    double* correlationMatrix = new double[matSize];
+
+    for (unsigned int i = 0; i < nBasisFunctions; i++)
+    {
+        for (unsigned int j = 0; j <= i; j++)
+        {
+            double prod = dotProd(basis1, basis2, i, j, mass1, mass2);
+            correlationMatrix[nBasisFunctions * i + j] = prod;
+            correlationMatrix[nBasisFunctions * j + i] = prod;
+        }
+    }
+
+    return correlationMatrix;
 }
 
 }  // namespace RedMA

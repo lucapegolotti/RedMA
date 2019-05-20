@@ -242,10 +242,8 @@ fillGlobalMatrix(MatrixPtr& matrixToFill, bool addCoupling,
             unsigned int indices[2] = {it->first, it->second};
 
             // for (int i = 0; i < 2; i++)
-            #if 1
             for (int i = 0; i < 2; i++)
             {
-            #endif
                 AssemblerType& curAssembler = *M_assemblersMap[indices[i]];
                 MatrixPtr Qt = curAssembler.getQT(indices[(i+1) % 2]);
                 unsigned int blockCoupling = curAssembler.getIndexCoupling();

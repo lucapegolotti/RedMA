@@ -35,6 +35,8 @@
 [../]
 
 [coupling]
-	type 	    = fourier
-	frequencies = 10
+	type               = fourier
+	frequencies        = 10
+	orthonormalization = POD
+	pod_tolerance      = 1e-3
 [../]
