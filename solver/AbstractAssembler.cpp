@@ -140,7 +140,7 @@ POD(VectorPtr*& basis1,
             computeCorrelationMatrix(basis1, basis2, massMatrix1, massMatrix2,
                                      nVectors);
 
-    double tol = M_datafile("coupling/pod_tolerance", 1e-3);
+    double tol = M_datafile("coupling/beta_threshold", 1e-1);
 
     double* fieldVL;
     double* eigenvalues;
@@ -179,21 +179,28 @@ POD(VectorPtr*& basis1,
                       eigenvalues, fieldVL, nVectors, fieldVR, 1, work, &lwork,
                       &info);
 
-        double sumSVs = 0;
+        // double sumSVs = 0;
 
-        for (unsigned int i = 0; i < nVectors; i++)
-            sumSVs += eigenvalues[i];
-
-        // compute new number of nVectors
-
-        double partialSum = 0;
         unsigned int i;
+        // compute new number of nVectors
         for (i = 0; i < nVectors; i++)
         {
-            partialSum += eigenvalues[i];
-            if (partialSum / sumSVs >= 1 - tol * tol)
+            std::cout << i << ": " << eigenvalues[i] << std::endl;
+            if (eigenvalues[i] < tol)
                 break;
+            // sumSVs += eigenvalues[i];
         }
+
+        // double partialSum = 0;
+        // unsigned int i;
+        // for (i = 0; i < nVectors; i++)
+        // {
+        //     partialSum += eigenvalues[i];
+        //     std::cout << partialSum / sumSVs << std::endl;
+        //     std::cout << "threshold = " << 1.0 - tol * tol << std::endl;
+        //     if (partialSum / sumSVs >= 1.0 - tol * tol)
+        //         break;
+        // }
 
         nVectors = i;
     }
@@ -264,7 +271,8 @@ dotProd(VectorPtr* basis1, VectorPtr* basis2, unsigned int index1,
 
 AbstractAssembler::VectorPtr*
 AbstractAssembler::
-assembleCouplingVectorsFourier(const unsigned int& frequencies,
+assembleCouplingVectorsFourier(const unsigned int& frequenciesTheta,
+                               const unsigned int& frequenciesRadial,
                                const unsigned int& nBasisFunctions,
                                GeometricFace face, const double& coeff)
 {
@@ -274,7 +282,8 @@ assembleCouplingVectorsFourier(const unsigned int& frequencies,
     QuadratureBoundary boundaryQuadRule(buildTetraBDQR(quadRuleTria7pt));
 
     std::shared_ptr<FourierBasisFunction> basisFunction;
-    basisFunction.reset(new FourierBasisFunction(face, frequencies));
+    basisFunction.reset(new FourierBasisFunction(face, frequenciesTheta,
+                                                       frequenciesRadial));
 
     VectorPtr* couplingVectors = new VectorPtr[nBasisFunctions];
     MapEpetra couplingMap = M_couplingFESpaceETA->map();
@@ -416,36 +425,53 @@ assembleCouplingMatrices(AbstractAssembler& child,
 
     if (!std::strcmp(typeBasis.c_str(), "fourier"))
     {
-        unsigned int frequencies = M_datafile("coupling/frequencies", 1);
-        nBasisFunctions = (2 * frequencies + 1) * (frequencies + 1);
+        unsigned int frequenciesTheta = M_datafile("coupling/frequencies_theta", 1);
+        unsigned int frequenciesRadial = M_datafile("coupling/frequencies_radial", 1);
+
+        nBasisFunctions = (2 * frequenciesTheta + 1) * (frequenciesRadial + 1);
 
         GeometricFace outlet = M_treeNode->M_block->getOutlet(indexOutlet);
         VectorPtr* couplingVectorsFather =
-                    assembleCouplingVectorsFourier(frequencies, nBasisFunctions,
+                    assembleCouplingVectorsFourier(frequenciesTheta,
+                                                   frequenciesRadial,
+                                                   nBasisFunctions,
                                                    outlet, 1);
         MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
 
         GeometricFace inlet = child.M_treeNode->M_block->getInlet();
         VectorPtr* couplingVectorsChild =
-              child.assembleCouplingVectorsFourier(frequencies, nBasisFunctions,
+              child.assembleCouplingVectorsFourier(frequenciesTheta,
+                                                   frequenciesRadial,
+                                                   nBasisFunctions,
                                                      inlet, -1);
         MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
         unsigned int prev = nBasisFunctions;
 
         std::string orthStrategy = M_datafile("coupling/orthonormalization", "POD");
+        // massMatrixFather = nullptr;
+        // massMatrixChild = nullptr;
+        // M_couplingVector.reset(new Vector(*couplingVectorsFather[100]));
+        // child.M_couplingVector.reset(new Vector(*couplingVectorsChild[100]));
+        if (std::strcmp(orthStrategy.c_str(), "none"))
+        {
+            if (!std::strcmp(orthStrategy.c_str(), "POD"))
+                POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
+                    massMatrixChild, nBasisFunctions);
+            else if (!std::strcmp(orthStrategy.c_str(), "gram_schmidt"))
+                gramSchmidt(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
+                            massMatrixChild, nBasisFunctions);
+            else
+            {
+                std::string errMsg = "Orthonormalization method " + orthStrategy;
+                errMsg += " does not exist!\n";
 
-        if (!std::strcmp(orthStrategy.c_str(), "POD"))
-            POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
-                massMatrixChild, nBasisFunctions);
-        else if (!std::strcmp(orthStrategy.c_str(), "gram_schmidt"))
-            gramSchmidt(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
-                        massMatrixChild, nBasisFunctions);
-
-        msg = "Orthonormalizing with " + orthStrategy;
-        msg += ": reducing number of bfs from " + std::to_string(prev) + " to " +
-               std::to_string(nBasisFunctions) + "\n";
-        printlog(GREEN, msg, M_verbose);
-
+                throw Exception(errMsg);
+            }
+            msg = "Orthonormalizing with " + orthStrategy;
+            msg += ": reducing number of bfs from " + std::to_string(prev) + " to " +
+                   std::to_string(nBasisFunctions) + "\n";
+            printlog(GREEN, msg, M_verbose);
+        }
         // build map for the lagrange multipliers (nBasisFunctions has been
         // modified in orthonormalization)
         unsigned int myel = (nComponents * nBasisFunctions) / M_comm->NumProc();

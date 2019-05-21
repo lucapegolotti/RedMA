@@ -4,14 +4,16 @@ namespace RedMA
 {
 
 FourierBasisFunction::
-FourierBasisFunction(const GeometricFace& face, unsigned int nFrequencies) :
+FourierBasisFunction(const GeometricFace& face,
+                     unsigned int nFrequenciesTheta,
+                     unsigned int nFrequenciesRadial) :
   BasisFunctionFunctor(face)
 {
-    M_nFrequencies = nFrequencies;
-
+    M_nFrequenciesTheta = nFrequenciesTheta;
+    M_nFrequenciesRadial = nFrequenciesRadial;
     // in the radial direction we only consider cos in order to ensure bfs
     // with continuous derivatives in the center
-    M_nBasisFunctions = (2 * nFrequencies + 1) * (nFrequencies + 1);
+    M_nBasisFunctions = (2 * nFrequenciesTheta + 1) * (nFrequenciesRadial + 1);
 
     double pid2 = M_PI / 2;
 
@@ -19,7 +21,7 @@ FourierBasisFunction(const GeometricFace& face, unsigned int nFrequencies) :
 
     M_thetaFreq.push_back(0.0);
     M_thetaPhase.push_back(pid2);
-    for (unsigned int i = 0; i < nFrequencies; i++)
+    for (unsigned int i = 0; i < nFrequenciesTheta; i++)
     {
         M_thetaFreq.push_back(i + 1);
         M_thetaFreq.push_back(i + 1);
@@ -29,15 +31,15 @@ FourierBasisFunction(const GeometricFace& face, unsigned int nFrequencies) :
 
     M_radialPhase.push_back(0.0);
     M_radialFreq.push_back(0.0);
-    for (unsigned int i = 0; i < nFrequencies; i++)
+    for (unsigned int i = 0; i < nFrequenciesRadial; i++)
     {
         M_radialFreq.push_back((i + 1) * radius);
         M_radialPhase.push_back(0.0);
     }
 
-    for (unsigned int i = 0; i < (2 * nFrequencies + 1); i++)
+    for (unsigned int i = 0; i < (2 * nFrequenciesTheta + 1); i++)
     {
-        for (unsigned int j = 0; j < nFrequencies + 1; j++)
+        for (unsigned int j = 0; j < nFrequenciesRadial + 1; j++)
         {
             M_auxIndicesTheta.push_back(i);
             M_auxIndicesRadial.push_back(j);

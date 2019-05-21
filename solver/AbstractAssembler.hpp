@@ -113,7 +113,8 @@ private:
                                             MatrixPtr mass1, MatrixPtr mass2,
                                             const unsigned int& nBasisFunctions);
 
-    VectorPtr* assembleCouplingVectorsFourier(const unsigned int& frequencies,
+    VectorPtr* assembleCouplingVectorsFourier(const unsigned int& frequenciesTheta,
+                                              const unsigned int& frequenciesRadial,
                                               const unsigned int& nBasisFunctions,
                                               GeometricFace face,
                                               const double& coeff);
@@ -140,6 +141,7 @@ protected:
     // index of the block to which the coupling must be applied
     unsigned int                        M_indexCoupling;
     std::vector<unsigned int>           M_interfacesIndices;
+    // VectorPtr                           M_couplingVector;
 };
 
 }  // namespace RedMA

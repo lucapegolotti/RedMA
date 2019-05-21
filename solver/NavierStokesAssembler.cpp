@@ -702,6 +702,7 @@ setExporter()
 
     M_exporter->addVariable(LifeV::ExporterData<Mesh>::ScalarField,
                          "pressure", M_pressureFESpace, M_pressureExporter, 0.0);
+
     M_exporter->setPostDir(outdir);
 }
 

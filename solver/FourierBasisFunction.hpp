@@ -25,12 +25,15 @@ namespace RedMA
 class FourierBasisFunction : public BasisFunctionFunctor
 {
 public:
-    FourierBasisFunction(const GeometricFace& face, unsigned int nFrequencies);
+    FourierBasisFunction(const GeometricFace& face,
+                         unsigned int nFrequenciesTheta,
+                         unsigned int nFrequenciesRadial);
 
     return_Type operator()(const Vector3D& pos);
 
 private:
-    unsigned int                M_nFrequencies;
+    unsigned int                M_nFrequenciesTheta;
+    unsigned int                M_nFrequenciesRadial;
     std::vector<double>         M_thetaFreq;
     std::vector<double>         M_radialFreq;
     std::vector<double>         M_thetaPhase;
