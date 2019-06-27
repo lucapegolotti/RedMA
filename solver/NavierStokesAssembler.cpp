@@ -165,7 +165,7 @@ assembleConvectiveMatrix()
 {
     using namespace LifeV::ExpressionAssembly;
 
-    VectorPtr velocity = M_prevSolution[0];
+    VectorPtr velocityRepeated(new Vector(*M_prevSolution[0], LifeV::Repeated));
 
     printlog(YELLOW, "Assembling convective matrix ...\n", M_verbose);
     M_C.reset(new Matrix(M_velocityFESpace->map()));
@@ -176,7 +176,8 @@ assembleConvectiveMatrix()
                M_velocityFESpaceETA,
                M_velocityFESpaceETA,
                dot(value(density) *
-                   value(M_velocityFESpaceETA , *velocity) * grad(phi_j), phi_i)
+                   value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j),
+                         phi_i)
              ) >> M_C;
 
     M_C->globalAssemble();
@@ -188,7 +189,7 @@ assembleJacobianConvectiveMatrix()
 {
     using namespace LifeV::ExpressionAssembly;
 
-    VectorPtr velocity = M_prevSolution[0];
+    VectorPtr velocityRepeated(new Vector(*M_prevSolution[0], LifeV::Repeated));
 
     printlog(YELLOW, "Assembling convective matrix jacobian ...\n", M_verbose);
     M_J.reset(new Matrix(M_velocityFESpace->map()));
@@ -199,7 +200,7 @@ assembleJacobianConvectiveMatrix()
                M_velocityFESpaceETA,
                M_velocityFESpaceETA,
                dot(density * phi_j *
-                   grad(M_velocityFESpaceETA, *velocity), phi_i)
+                   grad(M_velocityFESpaceETA, *velocityRepeated), phi_i)
              ) >> M_J;
 
     M_J->globalAssemble();
@@ -566,71 +567,6 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
                 *finalBcs, M_velocityFESpace->feBd(), 1.0, time);
 }
 
-#if 0
-void
-NavierStokesAssembler::
-applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
-                      std::vector<VectorPtr> utilde,
-                      const double& time,
-                      const double& dt,
-                      const double& alphai,
-                      const double& gammai)
-{
-    std::cout << "1" << std::endl;
-    BoundaryConditionPtr finalBcs(new LifeV::BCHandler);
-
-    if (1)
-    {
-        BoundaryConditionPtr bc = createBCHandler(M_maxVelocityLaw);
-
-        updateBCs(bc, M_velocityFESpace);
-
-        VectorPtr auxVec(new Vector(M_velocityFESpace->map()));
-        auxVec->zero();
-
-        bcManageRhs(*auxVec, *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
-                    *bc, M_velocityFESpace->feBd(), 1.0, time + dt * alphai);
-
-        BoundaryConditionPtr bcDt = createBCHandler(M_maxVelocityDtLaw);
-
-        updateBCs(bcDt, M_velocityFESpace);
-
-        VectorPtr auxVecDt(new Vector(M_velocityFESpace->map()));
-        auxVecDt->zero();
-        std::cout << "2" << std::endl;
-
-        bcManageRhs(*auxVecDt, *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
-                    *bcDt, M_velocityFESpace->feBd(), 1.0, time);
-
-        VectorPtr rhsValues(new Vector(M_velocityFESpace->map()));
-        rhsValues->zero();
-
-        *rhsValues += *auxVecDt;
-        *rhsValues *= (gammai * dt);
-        *rhsValues += *auxVec;
-        *rhsValues -= *utilde[0];
-
-        const unsigned int inletFlag = 1;
-        LifeV::BCVector bcVectorDirichlet(*rhsValues,
-                                          M_velocityFESpace->map().mapSize()/3);
-        finalBcs->addBC("Inflow", inletFlag, LifeV::Essential,
-                        LifeV::Full, bcVectorDirichlet, 3);
-    }
-    std::cout << "3" << std::endl;
-
-    LifeV::BCFunctionBase zeroFunction(fZero);
-
-    const unsigned int wallFlag = 10;
-    finalBcs->addBC("Wall", wallFlag, LifeV::Essential,
-                    LifeV::Full, zeroFunction, 3);
-    std::cout << "4" << std::endl;
-    updateBCs(finalBcs, M_velocityFESpace);
-    bcManageRhs(*rhs[0], *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
-                *finalBcs, M_velocityFESpace->feBd(), 1.0, time);
-    std::cout << "5" << std::endl;
-}
-#endif
-
 void
 NavierStokesAssembler::
 applyBCsBackwardEuler(std::vector<VectorPtr> rhs, const double& coeff,
@@ -694,8 +630,10 @@ setExporter()
     M_exporter.reset(new Exporter(M_datafile, outputName));
     M_exporter->setMeshProcId(M_velocityFESpace->mesh(), M_comm->MyPID());
 
-    M_velocityExporter.reset(new Vector(M_velocityFESpace->map()));
-    M_pressureExporter.reset(new Vector(M_pressureFESpace->map()));
+    M_velocityExporter.reset(new Vector(M_velocityFESpace->map(),
+                                        M_exporter->mapType()));
+    M_pressureExporter.reset(new Vector(M_pressureFESpace->map(),
+                                        M_exporter->mapType()));
 
     M_exporter->addVariable(LifeV::ExporterData<Mesh>::VectorField,
                          "velocity", M_velocityFESpace, M_velocityExporter, 0.0);
