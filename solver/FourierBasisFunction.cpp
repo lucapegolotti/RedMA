@@ -23,8 +23,8 @@ FourierBasisFunction(const GeometricFace& face,
     M_thetaPhase.push_back(pid2);
     for (unsigned int i = 0; i < nFrequenciesTheta; i++)
     {
-        M_thetaFreq.push_back(i + 1);
-        M_thetaFreq.push_back(i + 1);
+        M_thetaFreq.push_back((i + 1) * 2);
+        M_thetaFreq.push_back((i + 1) * 2);
         M_thetaPhase.push_back(0.0);
         M_thetaPhase.push_back(pid2);
     }
@@ -33,7 +33,7 @@ FourierBasisFunction(const GeometricFace& face,
     M_radialFreq.push_back(0.0);
     for (unsigned int i = 0; i < nFrequenciesRadial; i++)
     {
-        M_radialFreq.push_back((i + 1) * radius);
+        M_radialFreq.push_back((i + 1) * radius * 2);
         M_radialPhase.push_back(0.0);
     }
 
@@ -82,9 +82,13 @@ operator()(const Vector3D& pos)
 
     if (crossProduct.dot(normal) < 0)
         theta = theta + M_PI;
+    // we arbitrarily scale the basis functions in order to enduce an ordering
+    // in the POD
+    double scale = 1; // 1./ (std::pow(2, indexTheta + indexRadial));
     double returnVal =
            std::sin(M_thetaFreq[indexTheta] * theta + M_thetaPhase[indexTheta]) *
-           std::cos(M_radialFreq[indexRadial] * r + M_radialPhase[indexRadial]);
+           std::cos(M_radialFreq[indexRadial] * r + M_radialPhase[indexRadial]) *
+           scale;
     return returnVal;
 }
 
