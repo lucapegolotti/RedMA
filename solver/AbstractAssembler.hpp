@@ -103,7 +103,8 @@ private:
 
     void POD(VectorPtr*& basis1, VectorPtr*& basis2,
              MatrixPtr massMatrix1, MatrixPtr massMatrix2,
-             unsigned int& nVectors);
+             unsigned int& nVectors,
+             unsigned int offset = 0);
 
     static double dotProd(VectorPtr* basis1, VectorPtr* basis2, unsigned int index1,
                           unsigned int index2, MatrixPtr mass1 = nullptr,
