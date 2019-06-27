@@ -134,11 +134,19 @@ AbstractAssembler::
 POD(VectorPtr*& basis1,
     VectorPtr*& basis2,
     MatrixPtr massMatrix1,
-    MatrixPtr massMatrix2, unsigned int& nVectors)
+    MatrixPtr massMatrix2, unsigned int& nVectors,
+    unsigned int offset)
 {
+    // subtracting constant
+    nVectors = nVectors - offset;
     double* correlationMatrix =
-            computeCorrelationMatrix(basis1, basis2, massMatrix1, massMatrix2,
+            computeCorrelationMatrix(basis1 + offset, basis2 + offset, massMatrix1, massMatrix2,
                                      nVectors);
+
+    for (unsigned int i = 0; i < 10; i++)
+    {
+        std::cout << correlationMatrix[i] << std::endl;
+    }
 
     double tol = M_datafile("coupling/beta_threshold", 1e-1);
 
@@ -179,8 +187,6 @@ POD(VectorPtr*& basis1,
                       eigenvalues, fieldVL, nVectors, fieldVR, 1, work, &lwork,
                       &info);
 
-        // double sumSVs = 0;
-
         unsigned int i;
         // compute new number of nVectors
         for (i = 0; i < nVectors; i++)
@@ -220,23 +226,33 @@ POD(VectorPtr*& basis1,
     M_comm->Broadcast(fieldVL, length, 0);
     M_comm->Barrier();
 
-    VectorPtr* newVectors1 = new VectorPtr[nVectors];
-    VectorPtr* newVectors2 = new VectorPtr[nVectors];
+    // re-adding constant
+    VectorPtr* newVectors1 = new VectorPtr[nVectors + offset];
+    VectorPtr* newVectors2 = new VectorPtr[nVectors + offset];
+
+    for (unsigned int i = 0; i < offset; i++)
+    {
+        newVectors1[i].reset(new Vector(basis1[0]->map(), LifeV::Unique));
+        newVectors2[i].reset(new Vector(basis2[0]->map(), LifeV::Unique));
+        *newVectors1[i] = *basis1[i];
+        *newVectors2[i] = *basis2[i];
+    }
+
     for (unsigned int i = 0; i < nVectors; i++)
     {
         double coeff = 1.0 / std::sqrt(eigenvalues[i]);
 
-        newVectors1[i].reset(new Vector(basis1[0]->map()));
-        newVectors2[i].reset(new Vector(basis2[0]->map()));
-        newVectors1[i]->zero();
-        newVectors2[i]->zero();
+        newVectors1[i+offset].reset(new Vector(basis1[0]->map(), LifeV::Unique));
+        newVectors2[i+offset].reset(new Vector(basis2[0]->map(), LifeV::Unique));
+        newVectors1[i+offset]->zero();
+        newVectors2[i+offset]->zero();
 
         for (unsigned int j = 0; j < initialN; j++)
         {
             unsigned int index = i * initialN + j;
 
-            *newVectors1[i] += (coeff * fieldVL[index]) * (*basis1[j]);
-            *newVectors2[i] += (coeff * fieldVL[index]) * (*basis2[j]);
+            *newVectors1[i+offset] += (coeff * fieldVL[index]) * (*basis1[j+offset]);
+            *newVectors2[i+offset] += (coeff * fieldVL[index]) * (*basis2[j+offset]);
         }
     }
     delete[] basis1;
@@ -244,7 +260,44 @@ POD(VectorPtr*& basis1,
 
     basis1 = newVectors1;
     basis2 = newVectors2;
+    nVectors = nVectors + offset;
 }
+
+// void
+// AbstractAssembler::
+// QR(VectorPtr*& basis1, VectorPtr*& basis2, MatrixPtr massMatrix1,
+//    MatrixPtr massMatrix2, unsigned int& nVectors, unsigned int offset)
+// {
+//     double tol = M_datafile("coupling/beta_threshold", 1e-1);
+//     unsigned int length = nVectors * nVectors;
+//     double* Rmatrix = new double[length];
+//     for (unsigned int i = 0; i < nVectors; i++)
+//     {
+//         VectorPtr v1(new Vector(*basis1[i], LifeV::Unique));
+//         VectorPtr v2(new Vector(*basis2[i], LifeV::Unique));
+//         basis1[i] = v1;
+//         basis2[i] = v2;
+//     }
+//
+//     for (unsigned int i = 0; i < nVectors; i++)
+//     {
+//         for (unsigned int j = 0; j < i; j++)
+//         {
+//             double uv = AbstractAssembler::dotProd(basis1, basis2, i, j,
+//                                                    massMatrix1, massMatrix2);
+//             double uu = AbstractAssembler::dotProd(basis1, basis2, j, j,
+//                                                    massMatrix1, massMatrix2);
+//
+//             *basis1[i] += (-uv/uu) * (*basis1[j]);
+//             *basis2[i] += (-uv/uu) * (*basis2[j]);
+//         }
+//
+//         double curnorm = AbstractAssembler::dotProd(basis1, basis2, i, i,
+//                                                     massMatrix1, massMatrix2);
+//         *basis1[i] *= (1.0/std::sqrt(curnorm));
+//         *basis2[i] *= (1.0/std::sqrt(curnorm));
+//     }
+// }
 
 double
 AbstractAssembler::
@@ -455,8 +508,12 @@ assembleCouplingMatrices(AbstractAssembler& child,
         if (std::strcmp(orthStrategy.c_str(), "none"))
         {
             if (!std::strcmp(orthStrategy.c_str(), "POD"))
+            {
+                POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
+                    massMatrixChild, nBasisFunctions, 1);
                 POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
                     massMatrixChild, nBasisFunctions);
+            }
             else if (!std::strcmp(orthStrategy.c_str(), "gram_schmidt"))
                 gramSchmidt(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
                             massMatrixChild, nBasisFunctions);
@@ -548,6 +605,14 @@ computeCorrelationMatrix(AbstractAssembler::VectorPtr* basis1,
                          const unsigned int& nBasisFunctions)
 {
     unsigned int matSize = nBasisFunctions * nBasisFunctions;
+
+    for (unsigned int i = 0; i < nBasisFunctions; i++)
+    {
+        VectorPtr v1(new Vector(*basis1[i], LifeV::Unique));
+        VectorPtr v2(new Vector(*basis2[i], LifeV::Unique));
+        basis1[i] = v1;
+        basis2[i] = v2;
+    }
 
     double* correlationMatrix = new double[matSize];
 
