@@ -143,11 +143,6 @@ POD(VectorPtr*& basis1,
             computeCorrelationMatrix(basis1 + offset, basis2 + offset, massMatrix1, massMatrix2,
                                      nVectors);
 
-    for (unsigned int i = 0; i < 10; i++)
-    {
-        std::cout << correlationMatrix[i] << std::endl;
-    }
-
     double tol = M_datafile("coupling/beta_threshold", 9e-1);
 
     double* fieldVL;
@@ -306,15 +301,24 @@ assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
 
     for (unsigned int i = 0; i < nBasisFunctions; i++)
     {
+        CoutRedirecter ct;
+        ct.redirect();
+
         VectorPtr currentMode(new Vector(couplingMap, Repeated));
 
         basisFunction->setIndex(i);
-        integrate(boundary(mesh, faceFlag),
-                  boundaryQuadRule,
-                  M_couplingFESpaceETA,
-                  value(coeff) * eval(basisFunction, X) * phi_i
-              ) >> currentMode;
+
+        Function curFunction = basisFunction->function();
+        M_couplingFESpace->interpolate(curFunction, *currentMode, 0.0);
+
         couplingVectors[i] = currentMode;
+        ct.restore();
+        // integrate(boundary(mesh, faceFlag),
+        //           boundaryQuadRule,
+        //           M_couplingFESpaceETA,
+        //           value(coeff) * eval(basisFunction, X) * phi_i
+        //       ) >> currentMode;
+        // couplingVectors[i] = currentMode;
     }
     return couplingVectors;
 }
@@ -473,9 +477,9 @@ assembleCouplingMatrices(AbstractAssembler& child,
         if (!std::strcmp(orthStrategy.c_str(), "POD"))
         {
             POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
-                massMatrixChild, nBasisFunctions, 1);
-            POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
                 massMatrixChild, nBasisFunctions);
+            // POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
+            //     massMatrixChild, nBasisFunctions);
         }
         else if (!std::strcmp(orthStrategy.c_str(), "gram_schmidt"))
             gramSchmidt(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
@@ -492,6 +496,15 @@ assembleCouplingMatrices(AbstractAssembler& child,
                std::to_string(nBasisFunctions) + "\n";
         printlog(GREEN, msg, M_verbose);
     }
+
+    // up to this moment the coupling vectors contain only evaluation of basis functions
+    // at the nodes. We need to multiply by the boundary mass matrices
+    multiplyVectorsByMassMatrix(couplingVectorsFather, nBasisFunctions,
+                                massMatrixFather);
+
+    multiplyVectorsByMassMatrix(couplingVectorsChild, nBasisFunctions,
+                                massMatrixChild);
+
     // build map for the lagrange multipliers (nBasisFunctions has been
     // modified in orthonormalization)
     unsigned int myel = (nComponents * nBasisFunctions) / M_comm->NumProc();
@@ -588,6 +601,18 @@ computeCorrelationMatrix(AbstractAssembler::VectorPtr* basis1,
     }
 
     return correlationMatrix;
+}
+
+void
+AbstractAssembler::
+multiplyVectorsByMassMatrix(VectorPtr* couplingVectors,
+                            const unsigned int& nBasisFunctions,
+                            MatrixPtr massMatrix)
+{
+    for (int i = 0; i < nBasisFunctions; i++)
+    {
+        *couplingVectors[i] = (*massMatrix) * (*couplingVectors[i]);
+    }
 }
 
 }  // namespace RedMA

@@ -37,12 +37,16 @@ public:
 private:
     void fillFactorials(unsigned int nMax);
 
+    void computeOrthonormalizationCoefficient();
+
     unsigned int                              M_nMax;
     std::vector<int>                          M_ms;
     std::vector<int>                          M_ns;
     std::vector<std::vector<int> >            M_polyCoefs;
     std::vector<unsigned int>                 M_factorials;
     std::function<double(double)>             M_curFunction;
+    double                                    M_orthoCoefficient;
+    double                                    M_R;
     // versor to compute the normal
     Vector3D                                  M_e;
 };

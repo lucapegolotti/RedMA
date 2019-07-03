@@ -83,7 +83,6 @@ assembleJac(const double& time, VectorPtr tentativeSol, const double& dt)
     *retJac *= (-dt);
     *retJac += *M_globalAssembler->getGlobalMass();
 
-    retJac->spy("sytemMatrix");
     return retJac;
 }
 

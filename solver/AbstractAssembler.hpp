@@ -43,7 +43,7 @@ protected:
     typedef std::shared_ptr<Mesh>                          MeshPtr;
     typedef std::shared_ptr<Epetra_Comm>                   commPtr_Type;
     typedef LifeV::VectorSmall<3>                          Vector3D;
-    typedef LifeV::MatrixSmall<3, 3>                        Matrix3D;
+    typedef LifeV::MatrixSmall<3, 3>                       Matrix3D;
     typedef LifeV::FESpace<Mesh, MapEpetra>                FESpace;
     typedef std::shared_ptr<FESpace>                       FESpacePtr;
     typedef LifeV::VectorEpetra                            Vector;
@@ -52,6 +52,11 @@ protected:
     typedef std::shared_ptr<Matrix>                        MatrixPtr;
     typedef LifeV::ETFESpace<Mesh, MapEpetra, 3, 1>        ETFESpaceCoupling;
     typedef std::shared_ptr<ETFESpaceCoupling>             ETFESpaceCouplingPtr;
+    typedef std::function<double(double const&,
+                                 double const&,
+                                 double const&,
+                                 double const&,
+                                 unsigned int const& )>    Function;
 
 public:
     AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
@@ -118,6 +123,10 @@ private:
 
     MatrixPtr assembleBoundaryMatrix(GeometricFace face);
 
+    void multiplyVectorsByMassMatrix(VectorPtr* couplingVectors,
+                                     const unsigned int& nBasisFunctions,
+                                     MatrixPtr massMatrix);
+
 
 protected:
     TreeNodePtr                         M_treeNode;
@@ -129,6 +138,7 @@ protected:
     // maps of the coupling matrices (key = flag of corresponding face)
     std::map<unsigned int, MatrixPtr>   M_mapQTs;
     std::map<unsigned int, MatrixPtr>   M_mapQs;
+    FESpacePtr                          M_couplingFESpace;
     ETFESpaceCouplingPtr                M_couplingFESpaceETA;
     // index of the block to which the coupling must be applied
     unsigned int                        M_indexCoupling;

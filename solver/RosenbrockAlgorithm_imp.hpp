@@ -41,7 +41,6 @@ solveTimestep(const double &time, double &dt)
     *systemMatrix *= (-dt * M_coefficients.gamma());
     // systemMatrix->openCrsMatrix();
     *systemMatrix += (*globalMass);
-    systemMatrix->spy("systemMatrix");
     // systemMatrix->globalAssemble();
     std::vector<VectorPtr> stages(s);
 

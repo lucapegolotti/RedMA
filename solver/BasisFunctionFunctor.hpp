@@ -30,12 +30,21 @@ class BasisFunctionFunctor
 {
 public:
     typedef double                                            return_Type;
-    typedef std::function<double(const double, const double)> Function;
     typedef LifeV::VectorSmall<3>                             Vector3D;
+    typedef std::function<double(double const&,
+                                 double const&,
+                                 double const&,
+                                 double const&,
+                                 unsigned int const& )>       Function;
 
     BasisFunctionFunctor(const GeometricFace& face);
 
     virtual return_Type operator()(const Vector3D& pos) = 0;
+
+    Function function();
+
+    return_Type evaluateOperator(const double& x, const double& y, const double& z,
+                                 const double& t, unsigned int const& index);
 
     virtual void setIndex(const unsigned int& index);
 

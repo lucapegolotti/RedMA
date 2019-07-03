@@ -9,8 +9,7 @@ ZernikeBasisFunction(const GeometricFace& face,
   BasisFunctionFunctor(face)
 {
     M_nMax = nMax;
-
-    double radius = face.M_radius;
+    M_R = face.M_radius;
 
     fillFactorials(nMax);
 
@@ -69,6 +68,43 @@ setIndex(const unsigned int& index)
         M_curFunction = (double(*)(double))&std::sin;
     else
         M_curFunction = (double(*)(double))&std::cos;
+    computeOrthonormalizationCoefficient();
+}
+
+void
+ZernikeBasisFunction::
+computeOrthonormalizationCoefficient()
+{
+    unsigned int m = M_ms[M_index];
+    unsigned int n = M_ns[M_index];
+
+    std::vector<int> curCoefList = M_polyCoefs[M_index];
+    std::vector<int> exponents;
+    unsigned int nCoefs = curCoefList.size();
+
+    for (int k = 0; k < nCoefs; k++)
+    {
+        exponents.push_back(n - 2*k);
+    }
+
+    double coeff = 0;
+    for (int i = 0; i < nCoefs; i++)
+    {
+        for (int j = 0; j < nCoefs; j++)
+        {
+            unsigned c = exponents[i] + exponents[j] + 2;
+            coeff += curCoefList[i] * curCoefList[j] / (std::pow(M_R,c-2) * c);
+        }
+    }
+
+    if (m < 0)
+        coeff *= M_PI - std::sin(4 * M_PI * m) / (4 * m);
+    else if (m == 0)
+        coeff *= 2 * M_PI;
+    else
+        coeff *= std::sin(4 * M_PI * m) / (4 * m) - M_PI;
+
+    M_orthoCoefficient = std::sqrt(1/coeff);
 }
 
 void
@@ -107,9 +143,9 @@ operator()(const Vector3D& pos)
     std::vector<int>& coefList = M_polyCoefs[M_index];
     for (int k = 0; k <= (n-m)/2; k++)
     {
-        returnVal += coefList[k] * std::pow(r,n-2*k);
+        returnVal += coefList[k] * std::pow(r/M_R,n-2*k);
     }
-    returnVal *= M_curFunction(m * theta);
+    returnVal *= M_curFunction(m * theta) * M_orthoCoefficient;
     return returnVal;
 }
 
