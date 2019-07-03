@@ -21,6 +21,7 @@
 #include <PrintLog.hpp>
 #include <Exception.hpp>
 #include <FourierBasisFunction.hpp>
+#include <ZernikeBasisFunction.hpp>
 
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/filter/GetPot.hpp>
@@ -73,14 +74,6 @@ public:
 
     std::vector<MapEpetraPtr> getDualMapVector();
 
-    void buildLagrangeMultiplierBasisFourier(const unsigned int& frequencies,
-                                             const unsigned int& nComponents,
-                                             ETFESpaceCouplingPtr couplingFespace,
-                                             MapEpetraPtr primalMap,
-                                             FESpacePtr primalFespace,
-                                             GeometricFace face,
-                                             const unsigned int& faceFlag);
-
     // this function must be called on the father
     void assembleCouplingMatrices(AbstractAssembler& child,
                                   const unsigned int& indexOutlet,
@@ -117,6 +110,11 @@ private:
     VectorPtr* assembleCouplingVectorsFourier(const unsigned int& frequenciesTheta,
                                               const unsigned int& frequenciesRadial,
                                               const unsigned int& nBasisFunctions,
+                                              GeometricFace face,
+                                              const double& coeff);
+
+    VectorPtr* assembleCouplingVectorsZernike(const unsigned int& nMax,
+                                              unsigned int& nBasisFunctions,
                                               GeometricFace face,
                                               const double& coeff);
 

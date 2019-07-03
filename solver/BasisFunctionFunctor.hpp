@@ -37,7 +37,7 @@ public:
 
     virtual return_Type operator()(const Vector3D& pos) = 0;
 
-    void setIndex(const unsigned int& index);
+    virtual void setIndex(const unsigned int& index);
 
     unsigned int getNumBasisFunctions() const;
 

@@ -3,7 +3,7 @@
 #-------------------------------------------------------------
 
 [geometric_structure]
-	xmlfile = tree3.xml
+	xmlfile = tree2.xml
 	geometries_dir = ../../../meshes/
 [../]
 
@@ -35,9 +35,8 @@
 [../]
 
 [coupling]
-	type                = fourier
-	frequencies_theta   = 3
-	frequencies_radial  = 4
-	orthonormalization  = POD
-	beta_threshold      = 1e-3
+	type                = zernike
+	nMax                = 0
+	orthonormalization  = none
+	beta_threshold      = 0.9
 [../]

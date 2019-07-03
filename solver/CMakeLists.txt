@@ -4,5 +4,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesAssembler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BasisFunctionFunctor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FourierBasisFunction.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ZernikeBasisFunction.cpp
     CACHE INTERNAL ""
 )

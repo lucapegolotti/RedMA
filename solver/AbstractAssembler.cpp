@@ -148,7 +148,7 @@ POD(VectorPtr*& basis1,
         std::cout << correlationMatrix[i] << std::endl;
     }
 
-    double tol = M_datafile("coupling/beta_threshold", 1e-1);
+    double tol = M_datafile("coupling/beta_threshold", 9e-1);
 
     double* fieldVL;
     double* eigenvalues;
@@ -263,42 +263,6 @@ POD(VectorPtr*& basis1,
     nVectors = nVectors + offset;
 }
 
-// void
-// AbstractAssembler::
-// QR(VectorPtr*& basis1, VectorPtr*& basis2, MatrixPtr massMatrix1,
-//    MatrixPtr massMatrix2, unsigned int& nVectors, unsigned int offset)
-// {
-//     double tol = M_datafile("coupling/beta_threshold", 1e-1);
-//     unsigned int length = nVectors * nVectors;
-//     double* Rmatrix = new double[length];
-//     for (unsigned int i = 0; i < nVectors; i++)
-//     {
-//         VectorPtr v1(new Vector(*basis1[i], LifeV::Unique));
-//         VectorPtr v2(new Vector(*basis2[i], LifeV::Unique));
-//         basis1[i] = v1;
-//         basis2[i] = v2;
-//     }
-//
-//     for (unsigned int i = 0; i < nVectors; i++)
-//     {
-//         for (unsigned int j = 0; j < i; j++)
-//         {
-//             double uv = AbstractAssembler::dotProd(basis1, basis2, i, j,
-//                                                    massMatrix1, massMatrix2);
-//             double uu = AbstractAssembler::dotProd(basis1, basis2, j, j,
-//                                                    massMatrix1, massMatrix2);
-//
-//             *basis1[i] += (-uv/uu) * (*basis1[j]);
-//             *basis2[i] += (-uv/uu) * (*basis2[j]);
-//         }
-//
-//         double curnorm = AbstractAssembler::dotProd(basis1, basis2, i, i,
-//                                                     massMatrix1, massMatrix2);
-//         *basis1[i] *= (1.0/std::sqrt(curnorm));
-//         *basis2[i] *= (1.0/std::sqrt(curnorm));
-//     }
-// }
-
 double
 AbstractAssembler::
 dotProd(VectorPtr* basis1, VectorPtr* basis2, unsigned int index1,
@@ -359,6 +323,43 @@ assembleCouplingVectorsFourier(const unsigned int& frequenciesTheta,
     }
     return couplingVectors;
 }
+
+AbstractAssembler::VectorPtr*
+AbstractAssembler::
+assembleCouplingVectorsZernike(const unsigned int& nMax,
+                               unsigned int& nBasisFunctions,
+                               GeometricFace face, const double& coeff)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    QuadratureBoundary boundaryQuadRule(buildTetraBDQR(quadRuleTria7pt));
+
+    std::shared_ptr<ZernikeBasisFunction> basisFunction;
+    basisFunction.reset(new ZernikeBasisFunction(face, nMax));
+    nBasisFunctions = basisFunction->getNumBasisFunctions();
+
+    VectorPtr* couplingVectors = new VectorPtr[nBasisFunctions];
+    MapEpetra couplingMap = M_couplingFESpaceETA->map();
+
+    unsigned int faceFlag = face.M_flag;
+    MeshPtr mesh = M_couplingFESpaceETA->mesh();
+
+    for (unsigned int i = 0; i < nBasisFunctions; i++)
+    {
+        VectorPtr currentMode(new Vector(couplingMap, Repeated));
+
+        basisFunction->setIndex(i);
+        integrate(boundary(mesh, faceFlag),
+                  boundaryQuadRule,
+                  M_couplingFESpaceETA,
+                  value(coeff) * eval(basisFunction, X) * phi_i
+              ) >> currentMode;
+        couplingVectors[i] = currentMode;
+    }
+    return couplingVectors;
+}
+
 
 AbstractAssembler::MatrixPtr
 AbstractAssembler::
@@ -538,6 +539,71 @@ assembleCouplingMatrices(AbstractAssembler& child,
             myel += (nComponents * nBasisFunctions) % M_comm->NumProc();
         }
 
+        unsigned int mapSize = nComponents * nBasisFunctions;
+        lagrangeMultiplierMap.reset(new
+                        AbstractAssembler::MapEpetra(mapSize, myel,
+                                                     0, M_comm));
+        M_dualMaps.push_back(lagrangeMultiplierMap);
+        child.M_dualMaps.push_back(lagrangeMultiplierMap);
+
+        fillMatricesWithVectors(couplingVectorsFather, nBasisFunctions,
+                                lagrangeMultiplierMap,
+                                child.M_treeNode->M_ID);
+
+        child.fillMatricesWithVectors(couplingVectorsChild, nBasisFunctions,
+                                      lagrangeMultiplierMap, M_treeNode->M_ID);
+    }
+    else if (!std::strcmp(typeBasis.c_str(), "zernike"))
+    {
+        unsigned int nMax = M_datafile("coupling/nMax", 5);
+
+        GeometricFace outlet = M_treeNode->M_block->getOutlet(indexOutlet);
+        VectorPtr* couplingVectorsFather =
+                    assembleCouplingVectorsZernike(nMax, nBasisFunctions,
+                                                   outlet, 1);
+        MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
+
+        GeometricFace inlet = child.M_treeNode->M_block->getInlet();
+        VectorPtr* couplingVectorsChild =
+              child.assembleCouplingVectorsZernike(nMax, nBasisFunctions,
+                                                   inlet, -1);
+        MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
+        unsigned int prev = nBasisFunctions;
+
+        std::string orthStrategy = M_datafile("coupling/orthonormalization", "POD");
+
+        if (std::strcmp(orthStrategy.c_str(), "none"))
+        {
+            if (!std::strcmp(orthStrategy.c_str(), "POD"))
+            {
+                POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
+                    massMatrixChild, nBasisFunctions, 1);
+                POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
+                    massMatrixChild, nBasisFunctions);
+            }
+            else if (!std::strcmp(orthStrategy.c_str(), "gram_schmidt"))
+                gramSchmidt(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
+                            massMatrixChild, nBasisFunctions);
+            else
+            {
+                std::string errMsg = "Orthonormalization method " + orthStrategy;
+                errMsg += " does not exist!\n";
+
+                throw Exception(errMsg);
+            }
+            msg = "Orthonormalizing with " + orthStrategy;
+            msg += ": reducing number of bfs from " + std::to_string(prev) + " to " +
+                   std::to_string(nBasisFunctions) + "\n";
+            printlog(GREEN, msg, M_verbose);
+        }
+        // build map for the lagrange multipliers (nBasisFunctions has been
+        // modified in orthonormalization)
+        unsigned int myel = (nComponents * nBasisFunctions) / M_comm->NumProc();
+        // the first process takes care of the remainder
+        if (M_comm->MyPID() == 0)
+        {
+            myel += (nComponents * nBasisFunctions) % M_comm->NumProc();
+        }
         unsigned int mapSize = nComponents * nBasisFunctions;
         lagrangeMultiplierMap.reset(new
                         AbstractAssembler::MapEpetra(mapSize, myel,
