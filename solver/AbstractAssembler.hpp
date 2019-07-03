@@ -107,16 +107,9 @@ private:
                                             MatrixPtr mass1, MatrixPtr mass2,
                                             const unsigned int& nBasisFunctions);
 
-    VectorPtr* assembleCouplingVectorsFourier(const unsigned int& frequenciesTheta,
-                                              const unsigned int& frequenciesRadial,
-                                              const unsigned int& nBasisFunctions,
-                                              GeometricFace face,
-                                              const double& coeff);
-
-    VectorPtr* assembleCouplingVectorsZernike(const unsigned int& nMax,
-                                              unsigned int& nBasisFunctions,
-                                              GeometricFace face,
-                                              const double& coeff);
+    VectorPtr* assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> bf,
+                                       GeometricFace face,
+                                       const double& coeff);
 
     void fillMatricesWithVectors(VectorPtr* couplingVectors,
                                  const unsigned int& nBasisFunctions,

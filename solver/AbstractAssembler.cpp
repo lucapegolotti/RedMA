@@ -288,56 +288,15 @@ dotProd(VectorPtr* basis1, VectorPtr* basis2, unsigned int index1,
 
 AbstractAssembler::VectorPtr*
 AbstractAssembler::
-assembleCouplingVectorsFourier(const unsigned int& frequenciesTheta,
-                               const unsigned int& frequenciesRadial,
-                               const unsigned int& nBasisFunctions,
-                               GeometricFace face, const double& coeff)
+assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
+                        GeometricFace face, const double& coeff)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
     QuadratureBoundary boundaryQuadRule(buildTetraBDQR(quadRuleTria7pt));
 
-    std::shared_ptr<FourierBasisFunction> basisFunction;
-    basisFunction.reset(new FourierBasisFunction(face, frequenciesTheta,
-                                                       frequenciesRadial));
-
-    VectorPtr* couplingVectors = new VectorPtr[nBasisFunctions];
-    MapEpetra couplingMap = M_couplingFESpaceETA->map();
-    MatrixPtr boundaryMassMatrix(new Matrix(couplingMap));
-
-    unsigned int faceFlag = face.M_flag;
-    MeshPtr mesh = M_couplingFESpaceETA->mesh();
-
-    for (unsigned int i = 0; i < nBasisFunctions; i++)
-    {
-        VectorPtr currentMode(new Vector(couplingMap, Repeated));
-
-        basisFunction->setIndex(i);
-        integrate(boundary(mesh, faceFlag),
-                  boundaryQuadRule,
-                  M_couplingFESpaceETA,
-                  value(coeff) * eval(basisFunction, X) * phi_i
-              ) >> currentMode;
-        couplingVectors[i] = currentMode;
-    }
-    return couplingVectors;
-}
-
-AbstractAssembler::VectorPtr*
-AbstractAssembler::
-assembleCouplingVectorsZernike(const unsigned int& nMax,
-                               unsigned int& nBasisFunctions,
-                               GeometricFace face, const double& coeff)
-{
-    using namespace LifeV;
-    using namespace ExpressionAssembly;
-
-    QuadratureBoundary boundaryQuadRule(buildTetraBDQR(quadRuleTria7pt));
-
-    std::shared_ptr<ZernikeBasisFunction> basisFunction;
-    basisFunction.reset(new ZernikeBasisFunction(face, nMax));
-    nBasisFunctions = basisFunction->getNumBasisFunctions();
+    unsigned int nBasisFunctions = basisFunction->getNumBasisFunctions();
 
     VectorPtr* couplingVectors = new VectorPtr[nBasisFunctions];
     MapEpetra couplingMap = M_couplingFESpaceETA->map();
@@ -477,147 +436,83 @@ assembleCouplingMatrices(AbstractAssembler& child,
 
     std::string typeBasis = M_datafile("coupling/type", "fourier");
 
+
+    std::shared_ptr<BasisFunctionFunctor> basisFunction;
+
+    GeometricFace inlet = child.M_treeNode->M_block->getInlet();
+    GeometricFace outlet = M_treeNode->M_block->getOutlet(indexOutlet);
+
     if (!std::strcmp(typeBasis.c_str(), "fourier"))
     {
         unsigned int frequenciesTheta = M_datafile("coupling/frequencies_theta", 1);
         unsigned int frequenciesRadial = M_datafile("coupling/frequencies_radial", 1);
 
-        nBasisFunctions = (2 * frequenciesTheta + 1) * (frequenciesRadial + 1);
-
-        GeometricFace outlet = M_treeNode->M_block->getOutlet(indexOutlet);
-        VectorPtr* couplingVectorsFather =
-                    assembleCouplingVectorsFourier(frequenciesTheta,
-                                                   frequenciesRadial,
-                                                   nBasisFunctions,
-                                                   outlet, 1);
-        MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
-
-        GeometricFace inlet = child.M_treeNode->M_block->getInlet();
-        VectorPtr* couplingVectorsChild =
-              child.assembleCouplingVectorsFourier(frequenciesTheta,
-                                                   frequenciesRadial,
-                                                   nBasisFunctions,
-                                                     inlet, -1);
-        MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
-        unsigned int prev = nBasisFunctions;
-
-        std::string orthStrategy = M_datafile("coupling/orthonormalization", "POD");
-        // massMatrixFather = nullptr;
-        // massMatrixChild = nullptr;
-        // M_couplingVector.reset(new Vector(*couplingVectorsFather[100]));
-        // child.M_couplingVector.reset(new Vector(*couplingVectorsChild[100]));
-        if (std::strcmp(orthStrategy.c_str(), "none"))
-        {
-            if (!std::strcmp(orthStrategy.c_str(), "POD"))
-            {
-                POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
-                    massMatrixChild, nBasisFunctions, 1);
-                POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
-                    massMatrixChild, nBasisFunctions);
-            }
-            else if (!std::strcmp(orthStrategy.c_str(), "gram_schmidt"))
-                gramSchmidt(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
-                            massMatrixChild, nBasisFunctions);
-            else
-            {
-                std::string errMsg = "Orthonormalization method " + orthStrategy;
-                errMsg += " does not exist!\n";
-
-                throw Exception(errMsg);
-            }
-            msg = "Orthonormalizing with " + orthStrategy;
-            msg += ": reducing number of bfs from " + std::to_string(prev) + " to " +
-                   std::to_string(nBasisFunctions) + "\n";
-            printlog(GREEN, msg, M_verbose);
-        }
-        // build map for the lagrange multipliers (nBasisFunctions has been
-        // modified in orthonormalization)
-        unsigned int myel = (nComponents * nBasisFunctions) / M_comm->NumProc();
-        // the first process takes care of the remainder
-        if (M_comm->MyPID() == 0)
-        {
-            myel += (nComponents * nBasisFunctions) % M_comm->NumProc();
-        }
-
-        unsigned int mapSize = nComponents * nBasisFunctions;
-        lagrangeMultiplierMap.reset(new
-                        AbstractAssembler::MapEpetra(mapSize, myel,
-                                                     0, M_comm));
-        M_dualMaps.push_back(lagrangeMultiplierMap);
-        child.M_dualMaps.push_back(lagrangeMultiplierMap);
-
-        fillMatricesWithVectors(couplingVectorsFather, nBasisFunctions,
-                                lagrangeMultiplierMap,
-                                child.M_treeNode->M_ID);
-
-        child.fillMatricesWithVectors(couplingVectorsChild, nBasisFunctions,
-                                      lagrangeMultiplierMap, M_treeNode->M_ID);
+        basisFunction.reset(new FourierBasisFunction(inlet, frequenciesTheta,
+                                                     frequenciesRadial));
     }
     else if (!std::strcmp(typeBasis.c_str(), "zernike"))
     {
         unsigned int nMax = M_datafile("coupling/nMax", 5);
-
-        GeometricFace outlet = M_treeNode->M_block->getOutlet(indexOutlet);
-        VectorPtr* couplingVectorsFather =
-                    assembleCouplingVectorsZernike(nMax, nBasisFunctions,
-                                                   outlet, 1);
-        MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
-
-        GeometricFace inlet = child.M_treeNode->M_block->getInlet();
-        VectorPtr* couplingVectorsChild =
-              child.assembleCouplingVectorsZernike(nMax, nBasisFunctions,
-                                                   inlet, -1);
-        MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
-        unsigned int prev = nBasisFunctions;
-
-        std::string orthStrategy = M_datafile("coupling/orthonormalization", "POD");
-
-        if (std::strcmp(orthStrategy.c_str(), "none"))
-        {
-            if (!std::strcmp(orthStrategy.c_str(), "POD"))
-            {
-                POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
-                    massMatrixChild, nBasisFunctions, 1);
-                POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
-                    massMatrixChild, nBasisFunctions);
-            }
-            else if (!std::strcmp(orthStrategy.c_str(), "gram_schmidt"))
-                gramSchmidt(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
-                            massMatrixChild, nBasisFunctions);
-            else
-            {
-                std::string errMsg = "Orthonormalization method " + orthStrategy;
-                errMsg += " does not exist!\n";
-
-                throw Exception(errMsg);
-            }
-            msg = "Orthonormalizing with " + orthStrategy;
-            msg += ": reducing number of bfs from " + std::to_string(prev) + " to " +
-                   std::to_string(nBasisFunctions) + "\n";
-            printlog(GREEN, msg, M_verbose);
-        }
-        // build map for the lagrange multipliers (nBasisFunctions has been
-        // modified in orthonormalization)
-        unsigned int myel = (nComponents * nBasisFunctions) / M_comm->NumProc();
-        // the first process takes care of the remainder
-        if (M_comm->MyPID() == 0)
-        {
-            myel += (nComponents * nBasisFunctions) % M_comm->NumProc();
-        }
-        unsigned int mapSize = nComponents * nBasisFunctions;
-        lagrangeMultiplierMap.reset(new
-                        AbstractAssembler::MapEpetra(mapSize, myel,
-                                                     0, M_comm));
-        M_dualMaps.push_back(lagrangeMultiplierMap);
-        child.M_dualMaps.push_back(lagrangeMultiplierMap);
-
-        fillMatricesWithVectors(couplingVectorsFather, nBasisFunctions,
-                                lagrangeMultiplierMap,
-                                child.M_treeNode->M_ID);
-
-        child.fillMatricesWithVectors(couplingVectorsChild, nBasisFunctions,
-                                      lagrangeMultiplierMap, M_treeNode->M_ID);
+        basisFunction.reset(new ZernikeBasisFunction(inlet, nMax));
     }
+
+    nBasisFunctions = basisFunction->getNumBasisFunctions();
+    VectorPtr* couplingVectorsFather =
+                assembleCouplingVectors(basisFunction, outlet, 1);
+    MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
+
+    VectorPtr* couplingVectorsChild =
+          child.assembleCouplingVectors(basisFunction, inlet, -1);
+    MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
+    unsigned int prev = nBasisFunctions;
+
+    std::string orthStrategy = M_datafile("coupling/orthonormalization", "POD");
+
+    if (std::strcmp(orthStrategy.c_str(), "none"))
+    {
+        if (!std::strcmp(orthStrategy.c_str(), "POD"))
+        {
+            POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
+                massMatrixChild, nBasisFunctions, 1);
+            POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
+                massMatrixChild, nBasisFunctions);
+        }
+        else if (!std::strcmp(orthStrategy.c_str(), "gram_schmidt"))
+            gramSchmidt(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
+                        massMatrixChild, nBasisFunctions);
+        else
+        {
+            std::string errMsg = "Orthonormalization method " + orthStrategy;
+            errMsg += " does not exist!\n";
+
+            throw Exception(errMsg);
+        }
+        msg = "Orthonormalizing with " + orthStrategy;
+        msg += ": reducing number of bfs from " + std::to_string(prev) + " to " +
+               std::to_string(nBasisFunctions) + "\n";
+        printlog(GREEN, msg, M_verbose);
+    }
+    // build map for the lagrange multipliers (nBasisFunctions has been
+    // modified in orthonormalization)
+    unsigned int myel = (nComponents * nBasisFunctions) / M_comm->NumProc();
+    // the first process takes care of the remainder
+    if (M_comm->MyPID() == 0)
+    {
+        myel += (nComponents * nBasisFunctions) % M_comm->NumProc();
+    }
+    unsigned int mapSize = nComponents * nBasisFunctions;
+    lagrangeMultiplierMap.reset(new
+                    AbstractAssembler::MapEpetra(mapSize, myel,
+                                                 0, M_comm));
+    M_dualMaps.push_back(lagrangeMultiplierMap);
+    child.M_dualMaps.push_back(lagrangeMultiplierMap);
+
+    fillMatricesWithVectors(couplingVectorsFather, nBasisFunctions,
+                            lagrangeMultiplierMap,
+                            child.M_treeNode->M_ID);
+
+    child.fillMatricesWithVectors(couplingVectorsChild, nBasisFunctions,
+                                  lagrangeMultiplierMap, M_treeNode->M_ID);
 
     *globalMap += *lagrangeMultiplierMap;
     dimensions.push_back(lagrangeMultiplierMap->map(LifeV::Unique)
