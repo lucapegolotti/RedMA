@@ -17,6 +17,8 @@
 #ifndef GLOBALSOLVER_HPP
 #define GLOBALSOLVER_HPP
 
+#include <fstream>
+
 #include <GlobalAssembler.hpp>
 #include <TreeStructure.hpp>
 #include <GeometryParser.hpp>
@@ -51,6 +53,8 @@ public:
 
     void setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt);
 
+    void setExportNorms(std::string filename);
+
 private:
     // we pass dt as reference to allow for time adaptvity
     void solveTimestep(const double& time, double& dt);
@@ -60,6 +64,8 @@ private:
     GetPot                         M_datafile;
     commPtr_Type                   M_comm;
     bool                           M_verbose;
+    bool                           M_exportNorms;
+    std::string                    M_normsFilename;
     GlobalAssembler<AssemblerType> M_globalAssembler;
     TimeMarchingAlgorithmPtr       M_timeMarchingAlgorithm;
 };

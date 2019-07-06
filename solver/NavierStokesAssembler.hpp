@@ -91,6 +91,10 @@ public:
 
     void exportSolutions(const double& time, std::vector<VectorPtr> solutions);
 
+    std::vector<double> computeNorms(std::vector<VectorPtr> solutions);
+
+    static std::string normFileFirstLine();
+
 protected:
     void assembleConstantMatrices();
 

@@ -548,8 +548,6 @@ exportSolutions(const double& time, VectorPtr solution)
     typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
     typedef std::vector<MapEpetraPtr>                    MapVector;
 
-    std::string solutionsDir;
-
     unsigned int offset = 0;
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
          it != M_assemblersVector.end(); it++)
@@ -569,6 +567,72 @@ exportSolutions(const double& time, VectorPtr solution)
         }
         it->second->exportSolutions(time, localSolutions);
     }
+}
+
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+appendNormsToFile(const double& time, VectorPtr solution,
+                  std::ofstream& outFile)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+    typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
+    typedef std::vector<MapEpetraPtr>                    MapVector;
+
+    std::vector<double> norms;
+    unsigned int countDomains = 0;
+    unsigned int offset = 0;
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        std::vector<VectorPtr> localSolutions;
+        MapVector maps = it->second->getPrimalMapVector();
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            VectorPtr subSolution;
+            subSolution.reset(new Vector(curLocalMap));
+            subSolution->zero();
+            subSolution->subset(*solution, curLocalMap, offset, 0);
+            localSolutions.push_back(subSolution);
+            offset += curLocalMap.mapSize();
+        }
+        std::vector<double> localNorms = it->second->computeNorms(localSolutions);
+        if (countDomains == 0)
+        {
+            for (std::vector<double>::iterator itNorm = localNorms.begin();
+                 itNorm != localNorms.end(); itNorm++)
+            {
+                norms.push_back(*itNorm);
+            }
+        }
+        else
+        {
+            unsigned int count = 0;
+            for (std::vector<double>::iterator itNorm = localNorms.begin();
+                 itNorm != localNorms.end(); itNorm++)
+            {
+                double curNorm = *itNorm;
+                double newNorm = curNorm * curNorm +
+                                 norms[count] * norms[count];
+                norms[count] = std::sqrt(newNorm);
+                count++;
+            }
+        }
+        countDomains++;
+    }
+
+    std::string newLine = std::to_string(time);
+    for (std::vector<double>::iterator itNorm = norms.begin();
+         itNorm != norms.end(); itNorm++)
+    {
+        newLine += ",";
+        newLine += std::to_string(*itNorm);
+    }
+    newLine += "\n";
+    outFile << newLine << std::flush;
 }
 
 

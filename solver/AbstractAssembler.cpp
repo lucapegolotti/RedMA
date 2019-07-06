@@ -135,15 +135,16 @@ POD(VectorPtr*& basis1,
     VectorPtr*& basis2,
     MatrixPtr massMatrix1,
     MatrixPtr massMatrix2, unsigned int& nVectors,
+    double tol,
     unsigned int offset)
 {
+    std::string msg = "[AbstractAssembler] performing POD ...\n";
+    printlog(MAGENTA, msg, M_verbose);
     // subtracting constant
     nVectors = nVectors - offset;
     double* correlationMatrix =
             computeCorrelationMatrix(basis1 + offset, basis2 + offset, massMatrix1, massMatrix2,
                                      nVectors);
-
-    double tol = M_datafile("coupling/beta_threshold", 9e-1);
 
     double* fieldVL;
     double* eigenvalues;
@@ -186,22 +187,12 @@ POD(VectorPtr*& basis1,
         // compute new number of nVectors
         for (i = 0; i < nVectors; i++)
         {
-            std::cout << i << ": " << eigenvalues[i] << std::endl;
+            std::string eigMsg = std::to_string(i) + ": " +
+                                 std::to_string(std::sqrt(eigenvalues[i])) + "\n";
+            printlog(GREEN, eigMsg, M_verbose);
             if (eigenvalues[i] < tol)
                 break;
-            // sumSVs += eigenvalues[i];
         }
-
-        // double partialSum = 0;
-        // unsigned int i;
-        // for (i = 0; i < nVectors; i++)
-        // {
-        //     partialSum += eigenvalues[i];
-        //     std::cout << partialSum / sumSVs << std::endl;
-        //     std::cout << "threshold = " << 1.0 - tol * tol << std::endl;
-        //     if (partialSum / sumSVs >= 1.0 - tol * tol)
-        //         break;
-        // }
 
         nVectors = i;
     }
@@ -256,6 +247,9 @@ POD(VectorPtr*& basis1,
     basis1 = newVectors1;
     basis2 = newVectors2;
     nVectors = nVectors + offset;
+
+    msg = "[AbstractAssembler] done ...\n";
+    printlog(MAGENTA, msg, M_verbose);
 }
 
 double
@@ -287,7 +281,7 @@ assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
                         GeometricFace face, const double& coeff)
 {
     using namespace LifeV;
-    using namespace ExpressionAssembly;
+    // using namespace ExpressionAssembly;
 
     QuadratureBoundary boundaryQuadRule(buildTetraBDQR(quadRuleTria7pt));
 
@@ -301,16 +295,25 @@ assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
 
     for (unsigned int i = 0; i < nBasisFunctions; i++)
     {
+        // use repeated if you are integrated
+        // VectorPtr currentMode(new Vector(couplingMap, Repeated));
+        VectorPtr currentMode(new Vector(couplingMap, Unique));
+        basisFunction->setIndex(i);
+
         CoutRedirecter ct;
         ct.redirect();
 
-        VectorPtr currentMode(new Vector(couplingMap, Repeated));
+        BCFunctionBase bFunction(basisFunction->function());
 
-        basisFunction->setIndex(i);
+        BoundaryConditionPtr bcs;
+        bcs.reset(new BCHandler);
+
+        bcs->addBC("Boundary_function", faceFlag, LifeV::Essential, LifeV::Full,
+                    bFunction, 1);
 
         Function curFunction = basisFunction->function();
-        M_couplingFESpace->interpolate(curFunction, *currentMode, 0.0);
-
+        M_couplingFESpace->interpolateBC(*bcs, *currentMode, 0.0);
+        *currentMode *= coeff;
         couplingVectors[i] = currentMode;
         ct.restore();
         // integrate(boundary(mesh, faceFlag),
@@ -320,6 +323,7 @@ assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
         //       ) >> currentMode;
         // couplingVectors[i] = currentMode;
     }
+    M_couplingVector.reset(new Vector(*couplingVectors[1]));
     return couplingVectors;
 }
 
@@ -476,10 +480,12 @@ assembleCouplingMatrices(AbstractAssembler& child,
     {
         if (!std::strcmp(orthStrategy.c_str(), "POD"))
         {
+            double tol = M_datafile("coupling/beta_threshold", 9e-1);
+
             POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
-                massMatrixChild, nBasisFunctions);
-            // POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
-            //     massMatrixChild, nBasisFunctions);
+                massMatrixChild, nBasisFunctions, tol, 1);
+            POD(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
+                massMatrixChild, nBasisFunctions, 0);
         }
         else if (!std::strcmp(orthStrategy.c_str(), "gram_schmidt"))
             gramSchmidt(couplingVectorsFather, couplingVectorsChild, massMatrixFather,
@@ -609,9 +615,14 @@ multiplyVectorsByMassMatrix(VectorPtr* couplingVectors,
                             const unsigned int& nBasisFunctions,
                             MatrixPtr massMatrix)
 {
+    // std::cout << "------------" << std::endl;
     for (int i = 0; i < nBasisFunctions; i++)
     {
+        Vector c(*couplingVectors[i]);
         *couplingVectors[i] = (*massMatrix) * (*couplingVectors[i]);
+        // double prod;
+        // c.dot(*couplingVectors[i], prod);
+        // std::cout << "prod = " << prod << std::endl;
     }
 }
 

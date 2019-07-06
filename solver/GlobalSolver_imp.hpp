@@ -11,6 +11,7 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
   M_datafile(datafile),
   M_comm(comm),
   M_globalAssembler(M_datafile, M_comm, M_verbose),
+  M_exportNorms(false),
   M_verbose(verbose)
 {
     M_tree = M_geometryParser.getTree();
@@ -41,12 +42,34 @@ solve()
     double t = t0;
     TimeMarchingAlgorithmPtr hdlrAlgorithm = M_timeMarchingAlgorithm;
     M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
+    std::ofstream outFile;
+    if (M_exportNorms)
+    {
+        outFile.open(M_normsFilename);
+        outFile << AssemblerType::normFileFirstLine() << std::flush;
+    }
     while (t < T)
     {
         solveTimestep(t, dt);
         t += dt;
         M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
+        if (M_exportNorms)
+        {
+            M_globalAssembler.appendNormsToFile(t, hdlrAlgorithm->getSolution(),
+                                                outFile);
+        }
     }
+    if (M_exportNorms)
+        outFile.close();
+}
+
+template <class AssemblerType>
+void
+GlobalSolver<AssemblerType>::
+setExportNorms(std::string filename)
+{
+    M_exportNorms = true;
+    M_normsFilename = filename;
 }
 
 template <class AssemblerType>

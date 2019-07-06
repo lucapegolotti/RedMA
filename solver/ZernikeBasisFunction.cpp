@@ -10,7 +10,6 @@ ZernikeBasisFunction(const GeometricFace& face,
 {
     M_nMax = nMax;
     M_R = face.M_radius;
-
     fillFactorials(nMax);
 
     for (int n = 0; n <= nMax; n++)
@@ -23,9 +22,9 @@ ZernikeBasisFunction(const GeometricFace& face,
                 M_ns.push_back(n);
 
                 std::vector<int> curListCoefs;
-                unsigned int mult = -1;
-                unsigned int num;
-                unsigned int den;
+                int mult = -1;
+                int num;
+                int den;
                 for (int k = 0; k <= (n-std::abs(m))/2; k++)
                 {
                     mult = mult * (-1);
@@ -57,7 +56,7 @@ ZernikeBasisFunction(const GeometricFace& face,
     // project the vector onto the face and orthonormalize
     M_e = M_e - M_e.dot(normal) * normal;
     M_e = M_e / M_e.norm();
-}
+ }
 
 void
 ZernikeBasisFunction::
@@ -75,8 +74,8 @@ void
 ZernikeBasisFunction::
 computeOrthonormalizationCoefficient()
 {
-    unsigned int m = M_ms[M_index];
-    unsigned int n = M_ns[M_index];
+    int m = M_ms[M_index];
+    int n = M_ns[M_index];
 
     std::vector<int> curCoefList = M_polyCoefs[M_index];
     std::vector<int> exponents;
@@ -93,18 +92,18 @@ computeOrthonormalizationCoefficient()
         for (int j = 0; j < nCoefs; j++)
         {
             unsigned c = exponents[i] + exponents[j] + 2;
-            coeff += curCoefList[i] * curCoefList[j] / (std::pow(M_R,c-2) * c);
+            coeff += (1.0 * curCoefList[i] * curCoefList[j] * std::pow(M_R,2)) / c;
         }
     }
 
     if (m < 0)
-        coeff *= M_PI - std::sin(4 * M_PI * m) / (4 * m);
+        coeff *= (M_PI - std::sin(4. * M_PI * std::abs(m)) / (4. * std::abs(m)));
     else if (m == 0)
-        coeff *= 2 * M_PI;
+        coeff *= 2. * M_PI;
     else
-        coeff *= std::sin(4 * M_PI * m) / (4 * m) - M_PI;
+        coeff *= (std::sin(4. * M_PI * std::abs(m)) / (4. * std::abs(m)) + M_PI);
 
-    M_orthoCoefficient = std::sqrt(1/coeff);
+    M_orthoCoefficient = std::sqrt(1./coeff);
 }
 
 void
@@ -141,11 +140,14 @@ operator()(const Vector3D& pos)
     unsigned int n = M_ns[M_index];
     unsigned int m = std::abs(M_ms[M_index]);
     std::vector<int>& coefList = M_polyCoefs[M_index];
+
     for (int k = 0; k <= (n-m)/2; k++)
     {
         returnVal += coefList[k] * std::pow(r/M_R,n-2*k);
     }
+
     returnVal *= M_curFunction(m * theta) * M_orthoCoefficient;
+
     return returnVal;
 }
 

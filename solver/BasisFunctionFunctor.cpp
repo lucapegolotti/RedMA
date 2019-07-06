@@ -34,8 +34,8 @@ function()
 
 BasisFunctionFunctor::return_Type
 BasisFunctionFunctor::
-evaluateOperator(const double& x, const double& y, const double& z,
-                 const double& t, unsigned int const& index)
+evaluateOperator(const double& t, const double& x, const double& y,
+                 const double& z, unsigned int const& index)
 {
     Vector3D pos(x,y,z);
     return this->operator()(pos);

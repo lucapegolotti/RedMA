@@ -654,11 +654,39 @@ exportSolutions(const double& time, std::vector<VectorPtr> solutions)
              M_verbose);
     *M_velocityExporter = *solutions[0];
     *M_pressureExporter = *solutions[1];
+    // *M_pressureExporter = *M_couplingVector;
     CoutRedirecter ct;
     ct.redirect();
     M_exporter->postProcess(time);
     printlog(CYAN, ct.restore(), M_verbose);
     printlog(MAGENTA, "done\n", M_verbose);
 }
+
+std::vector<double>
+NavierStokesAssembler::
+computeNorms(std::vector<VectorPtr> solutions)
+{
+    printlog(MAGENTA, "[NavierStokesAssembler] writing norm solution ...\n",
+             M_verbose);
+
+    std::vector<double> norms;
+
+    VectorPtr velocityRepeated(new Vector(*solutions[0], LifeV::Repeated));
+    norms.push_back(M_velocityFESpace->l2Norm(*velocityRepeated));
+    norms.push_back(M_velocityFESpace->h1Norm(*velocityRepeated));
+    VectorPtr pressureRepeated(new Vector(*solutions[1], LifeV::Repeated));
+    norms.push_back(M_pressureFESpace->l2Norm(*pressureRepeated));
+
+    printlog(MAGENTA, "done\n", M_verbose);
+    return norms;
+}
+
+std::string
+NavierStokesAssembler::
+normFileFirstLine()
+{
+    return "time,ul2,uh1,l2p\n";
+}
+
 
 }  // namespace RedMA

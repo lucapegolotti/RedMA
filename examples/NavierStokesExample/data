@@ -36,7 +36,7 @@
 
 [coupling]
 	type                = zernike
-	nMax                = 0
-	orthonormalization  = none
-	beta_threshold      = 0.9
+	nMax                = 4
+	orthonormalization  = POD
+	beta_threshold      = 1.5
 [../]

@@ -27,6 +27,8 @@
 #include <lifev/core/filter/GetPot.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
 
+#include <lifev/core/fem/BCHandler.hpp>
+
 #include <Epetra_LAPACK.h>
 
 namespace RedMA
@@ -52,6 +54,7 @@ protected:
     typedef std::shared_ptr<Matrix>                        MatrixPtr;
     typedef LifeV::ETFESpace<Mesh, MapEpetra, 3, 1>        ETFESpaceCoupling;
     typedef std::shared_ptr<ETFESpaceCoupling>             ETFESpaceCouplingPtr;
+    typedef std::shared_ptr<LifeV::BCHandler>              BoundaryConditionPtr;
     typedef std::function<double(double const&,
                                  double const&,
                                  double const&,
@@ -102,6 +105,7 @@ private:
     void POD(VectorPtr*& basis1, VectorPtr*& basis2,
              MatrixPtr massMatrix1, MatrixPtr massMatrix2,
              unsigned int& nVectors,
+             double tol,
              unsigned int offset = 0);
 
     static double dotProd(VectorPtr* basis1, VectorPtr* basis2, unsigned int index1,
@@ -127,7 +131,6 @@ private:
                                      const unsigned int& nBasisFunctions,
                                      MatrixPtr massMatrix);
 
-
 protected:
     TreeNodePtr                         M_treeNode;
     std::vector<MapEpetraPtr>           M_primalMaps;
@@ -143,7 +146,7 @@ protected:
     // index of the block to which the coupling must be applied
     unsigned int                        M_indexCoupling;
     std::vector<unsigned int>           M_interfacesIndices;
-    // VectorPtr                           M_couplingVector;
+    VectorPtr                           M_couplingVector;
 };
 
 }  // namespace RedMA

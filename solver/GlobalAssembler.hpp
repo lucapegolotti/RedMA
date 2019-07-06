@@ -17,6 +17,8 @@
 #ifndef GLOBALASSEMBLER_HPP
 #define GLOBALASSEMBLER_HPP
 
+#include <fstream>
+
 #include <TreeStructure.hpp>
 #include <AbstractAssembler.hpp>
 
@@ -81,7 +83,10 @@ public:
 
     void setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt);
 
-    void exportSolutions(const double& t, VectorPtr solution);
+    void exportSolutions(const double& time, VectorPtr solution);
+
+    void appendNormsToFile(const double& time, VectorPtr solution,
+                           std::ofstream& outFile);
 
 private:
     template<typename FunctionType>

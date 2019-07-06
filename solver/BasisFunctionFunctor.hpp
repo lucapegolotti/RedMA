@@ -43,8 +43,8 @@ public:
 
     Function function();
 
-    return_Type evaluateOperator(const double& x, const double& y, const double& z,
-                                 const double& t, unsigned int const& index);
+    return_Type evaluateOperator(const double& t, const double& x, const double& y,
+                                 const double& z, unsigned int const& index);
 
     virtual void setIndex(const unsigned int& index);
 
