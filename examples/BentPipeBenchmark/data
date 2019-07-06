@@ -1,0 +1,42 @@
+#-------------------------------------------------------------
+#           Data file for NavierStokesExample
+#-------------------------------------------------------------
+
+[geometric_structure]
+	xmlfile = tree2.xml
+	geometries_dir = ../../../meshes/
+[../]
+
+[fluid]
+	velocity_order = P2
+	pressure_order = P1
+[../]
+
+[time_discretization]
+	algorithm = rosenbrock # rosenbrock
+	scheme = ROS3Pw
+	t0 = 0
+	T = 1
+	dt = 0.01
+[../]
+
+[newton_method]
+	tol = 1e-5
+	itmax = 5
+[../]
+
+[exporter]
+	outdir	   = solutions_rosenbrock/
+	type       = vtk
+	multimesh  = false
+	start      = 0
+	save       = 1
+	filename   = tube
+[../]
+
+[coupling]
+	type                = zernike
+	nMax                = 6
+	orthonormalization  = POD
+	beta_threshold      = 1
+[../]
