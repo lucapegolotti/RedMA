@@ -81,14 +81,22 @@ assembleStiffnessMatrix()
     M_A.reset(new Matrix(M_velocityFESpace->map()));
 
     double viscosity = M_datafile("fluid/viscosity", 1.0);
+    // integrate(elements(M_velocityFESpaceETA->mesh()),
+    //            M_velocityFESpace->qr(),
+    //            M_velocityFESpaceETA,
+    //            M_velocityFESpaceETA,
+    //            value(0.5 * viscosity) *
+    //            dot(grad(phi_i) + transpose(grad(phi_i)),
+    //            grad(phi_j) + transpose(grad(phi_j)))
+    //           ) >> M_A;
+
     integrate(elements(M_velocityFESpaceETA->mesh()),
-               M_velocityFESpace->qr(),
-               M_velocityFESpaceETA,
-               M_velocityFESpaceETA,
-               value(0.5 * viscosity) *
-               dot(grad(phi_i) + transpose(grad(phi_i)),
-               grad(phi_j) + transpose(grad(phi_j)))
-              ) >> M_A;
+             M_velocityFESpace->qr(),
+             M_velocityFESpaceETA,
+             M_velocityFESpaceETA,
+             value(viscosity) *
+             dot(grad(phi_i),grad(phi_j))
+            ) >> M_A;
 
     M_A->globalAssemble();
 }
@@ -170,7 +178,10 @@ assembleConvectiveMatrix()
     VectorPtr velocityRepeated(new Vector(*M_prevSolution[0], LifeV::Repeated));
 
     printlog(YELLOW, "Assembling convective matrix ...\n", M_verbose);
-    M_C.reset(new Matrix(M_velocityFESpace->map()));
+    if (M_C == nullptr)
+        M_C.reset(new Matrix(M_velocityFESpace->map()));
+    else
+        M_C->zero();
 
     double density = M_datafile("fluid/density", 1.0);
     integrate(elements(M_velocityFESpaceETA->mesh()),
@@ -194,7 +205,10 @@ assembleJacobianConvectiveMatrix()
     VectorPtr velocityRepeated(new Vector(*M_prevSolution[0], LifeV::Repeated));
 
     printlog(YELLOW, "Assembling convective matrix jacobian ...\n", M_verbose);
-    M_J.reset(new Matrix(M_velocityFESpace->map()));
+    if (M_J == nullptr)
+        M_J.reset(new Matrix(M_velocityFESpace->map()));
+    else
+        M_J->zero();
 
     double density = M_datafile("fluid/density", 1.0);
     integrate(elements(M_velocityFESpaceETA->mesh()),
