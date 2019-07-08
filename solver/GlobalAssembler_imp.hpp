@@ -28,7 +28,7 @@ buildPrimalStructures(TreeStructure& tree)
                                                         it->second, M_verbose));
         newAssembler->setup();
 
-        newAssembler->addPrimalMaps(M_globalMap, M_dimensionsVector);
+        newAssembler->addPrimalMaps(M_globalMap, M_maps, M_dimensionsVector);
         M_assemblersVector.push_back(std::make_pair(it->first, newAssembler));
         M_assemblersMap[it->first] = newAssembler;
     }
@@ -103,6 +103,7 @@ buildDualStructures(TreeStructure& tree)
                                                           countOutlet,
                                                           interfaceCount,
                                                           M_globalMap,
+                                                          M_maps,
                                                           M_dimensionsVector);
             }
             countOutlet++;
@@ -120,7 +121,7 @@ getGlobalMap() const
 }
 
 template <class AssemblerType>
-typename GlobalAssembler<AssemblerType>::MatrixPtr
+GlobalBlockMatrix
 GlobalAssembler<AssemblerType>::
 getGlobalMass() const
 {
@@ -128,11 +129,11 @@ getGlobalMass() const
 }
 
 template <class AssemblerType>
-typename GlobalAssembler<AssemblerType>::MatrixPtr
+GlobalBlockMatrix
 GlobalAssembler<AssemblerType>::
 getJacobianF(bool addCoupling, double* diagonalCoefficient)
 {
-    MatrixPtr jacobian;
+    GlobalBlockMatrix jacobian;
     fillGlobalMatrix(jacobian, addCoupling, &AssemblerType::getJacobian,
                      diagonalCoefficient);
     return jacobian;
@@ -159,7 +160,7 @@ computeFder()
 }
 
 template <class AssemblerType>
-typename GlobalAssembler<AssemblerType>::MatrixPtr
+GlobalBlockMatrix
 GlobalAssembler<AssemblerType>::
 assembleGlobalMass(bool addCoupling, double* diagonalCoefficient)
 {
@@ -172,23 +173,15 @@ template<class AssemblerType>
 template<typename FunctionType>
 void
 GlobalAssembler<AssemblerType>::
-fillGlobalMatrix(MatrixPtr& matrixToFill, bool addCoupling,
+fillGlobalMatrix(GlobalBlockMatrix& matrixToFill, bool addCoupling,
                  FunctionType getMatrixMethod, double* diagonalCoefficient)
 {
-    using namespace LifeV::MatrixEpetraStructuredUtility;
-
     typedef std::vector<std::pair<unsigned int, AssemblerTypePtr> >
                 AssemblersVector;
 
-    typedef LifeV::MatrixEpetraStructuredView<double> MatrixView;
-
-    matrixToFill.reset(new Matrix(*M_globalMap));
-    matrixToFill->zero();
-
-    LifeV::MatrixBlockStructure structure;
-    structure.setBlockStructure(M_dimensionsVector,
-                                M_dimensionsVector);
-
+    unsigned int totalNumberBlocks = M_nPrimalBlocks + M_interfaces.size();
+    matrixToFill.resize(totalNumberBlocks, totalNumberBlocks);
+    matrixToFill.setMaps(M_maps, M_maps);
     // we start with the primal blocks
     unsigned int countBlocks = 0;
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
@@ -205,24 +198,12 @@ fillGlobalMatrix(MatrixPtr& matrixToFill, bool addCoupling,
                 if (diagonalCoefficient)
                     curAssembler.applyBCsMatrix(localMatrix, *diagonalCoefficient,
                                                 i, j);
-                if (localMatrix)
-                {
-                    std::shared_ptr<MatrixView> blockGlobalView;
-                    blockGlobalView = createBlockView(matrixToFill, structure,
-                                                      i + countBlocks,
-                                                      j + countBlocks);
-
-                    LifeV::MatrixBlockStructure blockStructure;
-                    std::vector<unsigned int> rows(1), cols(1);
-                    rows[0] = M_dimensionsVector[i + countBlocks];
-                    cols[0] = M_dimensionsVector[j + countBlocks];
-                    blockStructure.setBlockStructure(rows, cols);
-
-                    std::shared_ptr<MatrixView> blockLocalView;
-                    blockLocalView =
-                        createBlockView(localMatrix, blockStructure, 0, 0);
-                    copyBlock(blockLocalView, blockGlobalView);
-                }
+                // Attention: this does not work if number of blocks is not constant
+                // over all the domains
+                std::cout << "Copying primal blocks" << std::endl << std::flush;
+                matrixToFill.copyBlock(countBlocks + i,
+                                       countBlocks + j,
+                                       localMatrix);
             }
         }
         countBlocks += numberBlocks;
@@ -241,9 +222,10 @@ fillGlobalMatrix(MatrixPtr& matrixToFill, bool addCoupling,
         {
             unsigned int indices[2] = {it->first, it->second};
 
-            // for (int i = 0; i < 2; i++)
             for (int i = 0; i < 2; i++)
             {
+                std::cout << "Copying dual blocks" << std::endl << std::flush;
+
                 AssemblerType& curAssembler = *M_assemblersMap[indices[i]];
                 MatrixPtr Qt = curAssembler.getQT(indices[(i+1) % 2]);
                 unsigned int blockCoupling = curAssembler.getIndexCoupling();
@@ -251,50 +233,16 @@ fillGlobalMatrix(MatrixPtr& matrixToFill, bool addCoupling,
                 unsigned int blockIndex = blockCoupling +
                                 indices[i] * curAssembler.numberOfBlocks();
 
-                if (Qt)
-                {
-                    curAssembler.applyBCsMatrix(Qt, 0.0,
-                                                blockCoupling, blockCoupling);
-
-                    std::shared_ptr<MatrixView> blockGlobalView;
-                    blockGlobalView = createBlockView(matrixToFill, structure,
-                                                      blockIndex, offset);
-
-                    LifeV::MatrixBlockStructure blockStructure;
-                    std::vector<unsigned int> rows(1), cols(1);
-                    rows[0] = M_dimensionsVector[blockIndex];
-                    cols[0] = M_dimensionsVector[offset];
-                    blockStructure.setBlockStructure(rows, cols);
-
-                    std::shared_ptr<MatrixView> blockLocalView;
-                    blockLocalView = createBlockView(Qt, blockStructure, 0, 0);
-                    copyBlock(blockLocalView, blockGlobalView);
-                }
+                curAssembler.applyBCsMatrix(Qt, 0.0,
+                                            blockCoupling, blockCoupling);
+                matrixToFill.copyBlock(blockIndex, offset, Qt);
 
                 MatrixPtr Q = curAssembler.getQ(indices[(i+1) % 2]);
-
-                if (Q)
-                {
-                    std::shared_ptr<MatrixView> blockGlobalView;
-                    blockGlobalView = createBlockView(matrixToFill, structure,
-                                                      offset, blockIndex);
-
-                    LifeV::MatrixBlockStructure blockStructure;
-                    std::vector<unsigned int> rows(1), cols(1);
-                    cols[0] = M_dimensionsVector[blockIndex];
-                    rows[0] = M_dimensionsVector[offset];
-                    blockStructure.setBlockStructure(rows, cols);
-
-                    std::shared_ptr<MatrixView> blockLocalView;
-                    blockLocalView = createBlockView(Q, blockStructure, 0, 0);
-                    copyBlock(blockLocalView, blockGlobalView);
-                }
+                matrixToFill.copyBlock(offset, blockIndex, Q);
             }
             offset++;
         }
     }
-
-    matrixToFill->globalAssemble();
 }
 
 template<class AssemblerType>

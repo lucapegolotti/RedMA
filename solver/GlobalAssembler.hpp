@@ -21,6 +21,7 @@
 
 #include <TreeStructure.hpp>
 #include <AbstractAssembler.hpp>
+#include <GlobalBlockMatrix.hpp>
 
 #include <lifev/core/array/MapVector.hpp>
 #include <lifev/core/array/MatrixEpetraStructured.hpp>
@@ -55,10 +56,10 @@ public:
 
     MapEpetraPtr getGlobalMap() const;
 
-    MatrixPtr getGlobalMass() const;
+    GlobalBlockMatrix getGlobalMass() const;
 
-    MatrixPtr getJacobianF(bool addCoupling,
-                           double* diagonalCoefficient = nullptr);
+    GlobalBlockMatrix getJacobianF(bool addCoupling,
+                                   double* diagonalCoefficient = nullptr);
 
     VectorPtr computeF();
 
@@ -66,8 +67,8 @@ public:
 
     // the diagonal coefficient is for the boundary conditions (if null, no
     // bcs are applied)
-    MatrixPtr assembleGlobalMass(bool addCoupling,
-                                 double* diagonalCoefficient = nullptr);
+    GlobalBlockMatrix assembleGlobalMass(bool addCoupling,
+                                         double* diagonalCoefficient = nullptr);
 
     void setTimeAndPrevSolution(const double& time, VectorPtr solution);
 
@@ -90,7 +91,7 @@ public:
 
 private:
     template<typename FunctionType>
-    void fillGlobalMatrix(MatrixPtr& matrixToFill,
+    void fillGlobalMatrix(GlobalBlockMatrix& matrixToFill,
                           bool addCoupling,
                           FunctionType getMatrixMethod,
                           double* diagonalCoefficient);
@@ -105,11 +106,12 @@ private:
     commPtr_Type                                            M_comm;
     bool                                                    M_verbose;
     MapEpetraPtr                                            M_globalMap;
-    MatrixPtr                                               M_massMatrix;
+    GlobalBlockMatrix                                       M_massMatrix;
     std::vector<unsigned int>                               M_dimensionsVector;
     std::vector<std::pair<unsigned int, unsigned int> >     M_interfaces;
     std::vector<unsigned int>                               M_offsets;
     unsigned int                                            M_nPrimalBlocks;
+    std::vector<MapEpetraPtr>                               M_maps;
 };
 
 }  // namespace RedMA

@@ -26,8 +26,6 @@ void
 BackwardEuler<AssemblerType>::
 solveTimestep(const double &time, double &dt)
 {
-    typedef LifeV::VectorEpetra         VectorEpetra;
-
     std::string msg("[BackwardEuler] solving, time = ");
     msg += std::to_string(time) + " ...\n";
     printlog(MAGENTA, msg, M_verbose);
@@ -38,7 +36,7 @@ solveTimestep(const double &time, double &dt)
           std::bind(&BackwardEuler<AssemblerType>::assembleF,
                     this, time + dt, std::placeholders::_1, dt);
 
-    std::function<MatrixPtr(VectorPtr)> mJac =
+    std::function<GlobalBlockMatrix(VectorPtr)> mJac =
           std::bind(&BackwardEuler<AssemblerType>::assembleJac,
                     this, time + dt, std::placeholders::_1, dt);
 
@@ -60,9 +58,9 @@ assembleF(const double& time, VectorPtr tentativeSol, const double& dt)
     VectorPtr retF(new Vector(M_solution->map()));
     retF->zero();
 
-    *retF = (*M_massMatrixNoBCs) * (*M_prevSolution);
+    *retF = (M_massMatrixNoBCs) * (*M_prevSolution);
     *retF *= (-1.0);
-    *retF += (*M_massMatrixNoBCs) * (*tentativeSol);
+    *retF += (M_massMatrixNoBCs) * (*tentativeSol);
     *retF -= (dt) * (*(M_globalAssembler->computeF()));
     M_globalAssembler->applyBCsVector(retF, 0.0, time,
                                       &AssemblerType::applyBCsBackwardEuler);
@@ -70,7 +68,7 @@ assembleF(const double& time, VectorPtr tentativeSol, const double& dt)
 }
 
 template <class AssemblerType>
-typename BackwardEuler<AssemblerType>::MatrixPtr
+GlobalBlockMatrix
 BackwardEuler<AssemblerType>::
 assembleJac(const double& time, VectorPtr tentativeSol, const double& dt)
 {
@@ -78,10 +76,10 @@ assembleJac(const double& time, VectorPtr tentativeSol, const double& dt)
     printlog(GREEN, msg, M_verbose);
     M_globalAssembler->setTimeAndPrevSolution(time, tentativeSol);
     double diagonalCoefficient = 0;
-    MatrixPtr retJac = M_globalAssembler->getJacobianF(true,
-                                                       &diagonalCoefficient);
-    *retJac *= (-dt);
-    *retJac += *M_globalAssembler->getGlobalMass();
+    GlobalBlockMatrix retJac = M_globalAssembler->getJacobianF(true,
+                                                          &diagonalCoefficient);
+    retJac *= (-dt);
+    retJac.add(M_globalAssembler->getGlobalMass());
 
     return retJac;
 }

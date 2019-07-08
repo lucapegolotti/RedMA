@@ -17,6 +17,7 @@
 #ifndef TIMEMARCHINGALGORITHM_HPP
 #define TIMEMARCHINGALGORITHM_HPP
 
+#include <GlobalBlockMatrix.hpp>
 #include <GlobalAssembler.hpp>
 #include <PrintLog.hpp>
 
@@ -46,10 +47,11 @@ public:
 
     virtual void solveTimestep(const double &time, double &dt) = 0;
 
-    void solveLinearSystem(MatrixPtr matrix, VectorPtr rhs, VectorPtr sol);
+    void solveLinearSystem(GlobalBlockMatrix matrix, VectorPtr rhs,
+                           VectorPtr sol);
 
     void solveNonLinearSystem(std::function<VectorPtr(VectorPtr)> fun,
-                              std::function<MatrixPtr(VectorPtr)> jac,
+                              std::function<GlobalBlockMatrix(VectorPtr)> jac,
                               VectorPtr sol, const double& tol,
                               const unsigned int& itMax);
 

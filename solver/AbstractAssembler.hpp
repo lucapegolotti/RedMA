@@ -66,6 +66,7 @@ public:
                       const TreeNodePtr& treeNode, bool verbose = false);
 
     void addPrimalMaps(MapEpetraPtr& globalMap,
+                       std::vector<MapEpetraPtr>& maps,
                        std::vector<unsigned int>& dimensions);
 
     // this method should be used to:
@@ -87,6 +88,7 @@ public:
                                   const unsigned int& indexOutlet,
                                   const unsigned int& interfaceIndex,
                                   MapEpetraPtr& globalMap,
+                                  std::vector<MapEpetraPtr>& maps,
                                   std::vector<unsigned int>& dimensions);
 
     MatrixPtr getQT(const unsigned int& flag);

@@ -15,12 +15,15 @@ AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
 
 void
 AbstractAssembler::
-addPrimalMaps(MapEpetraPtr& globalMap, std::vector<unsigned int>& dimensions)
+addPrimalMaps(MapEpetraPtr& globalMap,
+              std::vector<MapEpetraPtr>& maps,
+              std::vector<unsigned int>& dimensions)
 {
     for (MapVectorSTD::iterator it = M_primalMaps.begin();
          it != M_primalMaps.end(); it++)
     {
         *globalMap += *(*it);
+        maps.push_back(*it);
         dimensions.push_back((*it)->map(LifeV::Unique)->NumGlobalElements());
     }
 }
@@ -428,6 +431,7 @@ assembleCouplingMatrices(AbstractAssembler& child,
                          const unsigned int& indexOutlet,
                          const unsigned int& interfaceIndex,
                          AbstractAssembler::MapEpetraPtr& globalMap,
+                         std::vector<AbstractAssembler::MapEpetraPtr>& maps,
                          std::vector<unsigned int>& dimensions)
 {
     std::string msg("[AbstractAssembler] start ");
@@ -534,6 +538,7 @@ assembleCouplingMatrices(AbstractAssembler& child,
                                   lagrangeMultiplierMap, M_treeNode->M_ID);
 
     *globalMap += *lagrangeMultiplierMap;
+    maps.push_back(lagrangeMultiplierMap);
     dimensions.push_back(lagrangeMultiplierMap->map(LifeV::Unique)
                                               ->NumGlobalElements());
     M_interfacesIndices.push_back(interfaceIndex);

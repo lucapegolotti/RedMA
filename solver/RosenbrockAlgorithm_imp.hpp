@@ -33,14 +33,14 @@ solveTimestep(const double &time, double &dt)
     M_globalAssembler->setTimeAndPrevSolution(time, M_solution);
 
     MapEpetraPtr globalMap = M_globalAssembler->getGlobalMap();
-    MatrixPtr globalMass = M_globalAssembler->getGlobalMass();
+    GlobalBlockMatrix globalMass = M_globalAssembler->getGlobalMass();
 
     double diagonalCoefficient = 0.0;
-    MatrixPtr globalJac = M_globalAssembler->getJacobianF(true, &diagonalCoefficient);
-    MatrixPtr systemMatrix(new Matrix(*globalJac));
-    *systemMatrix *= (-dt * M_coefficients.gamma());
+    GlobalBlockMatrix globalJac = M_globalAssembler->getJacobianF(true, &diagonalCoefficient);
+    GlobalBlockMatrix systemMatrix(globalJac);
+    systemMatrix *= (-dt * M_coefficients.gamma());
     // systemMatrix->openCrsMatrix();
-    *systemMatrix += (*globalMass);
+    systemMatrix.add(globalMass);
     // systemMatrix->globalAssemble();
     std::vector<VectorPtr> stages(s);
 
@@ -81,7 +81,7 @@ solveTimestep(const double &time, double &dt)
             *sumStages += (-M_coefficients.gamma() * part);
         }
 
-        VectorEpetra prod = (*M_massMatrixNoBCs) * (*sumStages);
+        VectorEpetra prod = (M_massMatrixNoBCs) * (*sumStages);
         *F += prod;
 
         double coeff = M_coefficients.gamma() * gammai * dt * dt;

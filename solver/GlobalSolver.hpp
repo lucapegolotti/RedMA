@@ -23,6 +23,7 @@
 #include <TreeStructure.hpp>
 #include <GeometryParser.hpp>
 #include <TreeStructure.hpp>
+#include <GlobalSolverOperator.hpp>
 
 #include <lifev/core/array/MapVector.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
