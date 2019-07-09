@@ -20,9 +20,13 @@
 #include <GlobalBlockMatrix.hpp>
 #include <GlobalAssembler.hpp>
 #include <PrintLog.hpp>
+#include <GlobalSolverOperator.hpp>
+#include <GlobalSolverPreconditionerOperator.hpp>
+#include <GlobalSolverOperator.hpp>
+// #include <GlobalIdentityOperator.hpp>
 
 #include <lifev/core/algorithm/SolverAztecOO.hpp>
-
+#include <lifev/core/linear_algebra/InvertibleOperator.hpp>
 namespace RedMA
 {
 
@@ -38,6 +42,8 @@ protected:
     typedef std::shared_ptr<Matrix>                         MatrixPtr;
     typedef LifeV::MapEpetra                                MapEpetra;
     typedef std::shared_ptr<MapEpetra>                      MapEpetraPtr;
+    typedef Teuchos::ParameterList                          ParameterList;
+    typedef std::shared_ptr<ParameterList>                  ParameterListPtr;
 
 public:
     TimeMarchingAlgorithm(const GetPot& datafile,
@@ -55,14 +61,22 @@ public:
                               VectorPtr sol, const double& tol,
                               const unsigned int& itMax);
 
+    void setSolversOptions();
+
+    void buildPreconditioner();
+
     VectorPtr getSolution();
 
 protected:
-    GetPot                  M_datafile;
-    VectorPtr               M_solution;
-    GlobalAssemblerType*    M_globalAssembler;
-    commPtr_Type            M_comm;
-    bool                    M_verbose;
+    GetPot                                                                M_datafile;
+    VectorPtr                                                             M_solution;
+    GlobalAssemblerType*                                                  M_globalAssembler;
+    commPtr_Type                                                          M_comm;
+    bool                                                                  M_verbose;
+    std::shared_ptr<LifeV::Operators::GlobalSolverOperator>               M_oper;
+    std::shared_ptr<LifeV::Operators::IdentityOperator>                   M_prec;
+    std::shared_ptr<LifeV::Operators::InvertibleOperator>                 M_invOper;
+    ParameterListPtr                                                      M_pListLinSolver;
 };
 
 }  // namespace RedMA

@@ -200,7 +200,6 @@ fillGlobalMatrix(GlobalBlockMatrix& matrixToFill, bool addCoupling,
                                                 i, j);
                 // Attention: this does not work if number of blocks is not constant
                 // over all the domains
-                std::cout << "Copying primal blocks" << std::endl << std::flush;
                 matrixToFill.copyBlock(countBlocks + i,
                                        countBlocks + j,
                                        localMatrix);
@@ -224,8 +223,6 @@ fillGlobalMatrix(GlobalBlockMatrix& matrixToFill, bool addCoupling,
 
             for (int i = 0; i < 2; i++)
             {
-                std::cout << "Copying dual blocks" << std::endl << std::flush;
-
                 AssemblerType& curAssembler = *M_assemblersMap[indices[i]];
                 MatrixPtr Qt = curAssembler.getQT(indices[(i+1) % 2]);
                 unsigned int blockCoupling = curAssembler.getIndexCoupling();

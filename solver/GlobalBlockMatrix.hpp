@@ -65,7 +65,7 @@ public:
 
     GlobalBlockMatrix& operator*=(const double& coeff);
 
-    Grid& getGrid();
+    Grid getGrid();
 
     void setMaps(std::vector<MapPtr> rangeMaps, std::vector<MapPtr> domainMaps);
 

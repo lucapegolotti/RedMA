@@ -44,11 +44,11 @@ setUp(const std::shared_ptr<BlockEpetra_Map> & domainMap,
 
 void
 GlobalSolverOperator::
-setUp(const operatorPtrContainer_Type & blockOper, const commPtr_Type & comm)
+setUp(operatorPtrContainer_Type blockOper, const commPtr_Type & comm)
 {
-    M_comm = comm;
     M_nBlockRows = blockOper.size1();
     M_nBlockCols = blockOper.size2();
+    M_comm = comm;
 
     BlockEpetra_Map::mapPtrContainer_Type rangeBlockMaps(M_nBlockRows);
     BlockEpetra_Map::mapPtrContainer_Type domainBlockMaps(M_nBlockCols);

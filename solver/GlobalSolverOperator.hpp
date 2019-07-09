@@ -20,6 +20,7 @@
 #include <Epetra_Import.h>
 #include <boost/numeric/ublas/matrix.hpp>
 
+#include <GlobalBlockMatrix.hpp>
 #include <lifev/core/linear_algebra/BlockEpetra_Map.hpp>
 #include <lifev/core/linear_algebra/BlockEpetra_MultiVector.hpp>
 #include <lifev/core/linear_algebra/LinearOperatorAlgebra.hpp>
@@ -57,7 +58,7 @@ public:
                const std::shared_ptr<BlockEpetra_Map> & rangeMap,
                const commPtr_Type & comm);
 
-    void setUp(const operatorPtrContainer_Type & blockOper,
+    void setUp(operatorPtrContainer_Type blockOper,
                const commPtr_Type & comm);
 
     void setBlock(UInt iblock, UInt jblock, const operatorPtr_Type & operBlock);

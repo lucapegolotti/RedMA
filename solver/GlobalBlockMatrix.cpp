@@ -18,7 +18,6 @@ void
 GlobalBlockMatrix::
 resize(unsigned int numRows, unsigned int numCols)
 {
-    std::cout << "resize" << std::endl << std::flush;
     M_rows = numRows;
     M_cols = numCols;
     M_gridEpetra.resize(numRows, numCols);
@@ -34,7 +33,6 @@ resize(unsigned int numRows, unsigned int numCols)
 GlobalBlockMatrix::
 GlobalBlockMatrix(const GlobalBlockMatrix& other)
 {
-    std::cout << "copy" << std::endl << std::flush;
     resize(other.M_rows, other.M_cols);
 
     for (unsigned int i = 0; i < M_rows; i++)
@@ -59,7 +57,6 @@ GlobalBlockMatrix::MatrixEpetraPtr&
 GlobalBlockMatrix::
 block(unsigned int row, unsigned int col)
 {
-    std::cout << "block" << std::endl << std::flush;
     return M_gridEpetra(row, col);
 }
 
@@ -67,8 +64,6 @@ void
 GlobalBlockMatrix::
 add(const GlobalBlockMatrix& other)
 {
-    std::cout << "add" << std::endl << std::flush;
-
     if (M_rows != other.M_rows && M_cols != other.M_cols)
     {
         throw Exception("Dimensions must be consistent in sum of matrices!");
@@ -124,8 +119,6 @@ GlobalBlockMatrix&
 GlobalBlockMatrix::
 operator*=(const double& coeff)
 {
-    std::cout << "+=" << std::endl << std::flush;
-
     for (unsigned int i = 0; i < M_rows; i++)
     {
         for (unsigned int j = 0; j < M_cols; j++)
@@ -137,12 +130,10 @@ operator*=(const double& coeff)
     return *this;
 }
 
-GlobalBlockMatrix::Grid&
+GlobalBlockMatrix::Grid
 GlobalBlockMatrix::
 getGrid()
 {
-    std::cout << "getGrid" << std::endl << std::flush;
-
     M_grid.resize(M_rows, M_cols);
 
     for (unsigned int i = 0; i < M_rows; i++)
@@ -162,9 +153,6 @@ void
 GlobalBlockMatrix::
 copyBlock(unsigned int rows, unsigned int cols, MatrixEpetraPtr matrix)
 {
-    std::cout << "copyBlock" << std::endl << std::flush;
-    std::cout << "rows = " << rows << "/" << M_rows << std::endl;
-    std::cout << "cols = " << cols << "/" << M_cols << std::endl;
     if (matrix)
         M_gridEpetra(rows,cols).reset(new MatrixEpetra(*matrix));
 }
@@ -175,8 +163,6 @@ GlobalBlockMatrix::VectorEpetra
 GlobalBlockMatrix::
 operator*(const VectorEpetra& vector)
 {
-    std::cout << "operator*" << std::endl << std::flush;
-
     VectorEpetra newVector(*M_globalDomainMap);
     newVector.zero();
 
@@ -186,7 +172,6 @@ operator*(const VectorEpetra& vector)
     offsets.push_back(0);
     for (unsigned int i = 0; i < M_cols; i++)
     {
-        std::cout << "i = " << i << std::endl;
         VectorEpetraPtr rangeVector(new VectorEpetra(*M_rangeMaps[i]));
         rangeVector->subset(vector, *M_rangeMaps[i], offsets[i], 0);
         rangeVectors.push_back(rangeVector);
@@ -196,12 +181,10 @@ operator*(const VectorEpetra& vector)
     unsigned int offset = 0;
     for (unsigned int i = 0; i < M_rows; i++)
     {
-        std::cout << "i = " << i << std::endl;
         VectorEpetraPtr subVector(new VectorEpetra(*M_domainMaps[i]));
         subVector->zero();
         for (unsigned int j = 0; j < M_cols; j++)
         {
-            std::cout << "j = " << i << std::endl;
             if (M_gridEpetra(i,j) != nullptr)
             {
                 *subVector += (*M_gridEpetra(i,j)) * (*rangeVectors[j]);
@@ -218,8 +201,6 @@ void
 GlobalBlockMatrix::
 setMaps(std::vector<MapPtr> rangeMaps, std::vector<MapPtr> domainMaps)
 {
-    std::cout << "createMaps" << std::endl << std::flush;
-
     M_rangeMaps = rangeMaps;
     M_domainMaps = domainMaps;
 

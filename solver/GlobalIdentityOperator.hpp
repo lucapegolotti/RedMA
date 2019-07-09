@@ -31,8 +31,8 @@
 
 #include <GlobalSolverPreconditionerOperator.hpp>
 
-#ifndef IDENTITYOPERATOR_H
-#define IDENTITYOPERATOR_H 1
+#ifndef GLOBALIDENTITYOPERATOR_H
+#define GLOBALIDENTITYOPERATOR_H 1
 
 namespace LifeV
 {
@@ -132,4 +132,4 @@ NSPreconditionerFactory::instance().registerProduct("SIMPLE", &create_Identity);
 }
 }
 }
-#endif
+#endif // GLOBALIDENTITYOPERATOR_H
