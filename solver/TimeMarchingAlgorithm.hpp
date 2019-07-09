@@ -22,6 +22,7 @@
 #include <PrintLog.hpp>
 #include <GlobalSolverOperator.hpp>
 #include <GlobalSolverPreconditionerOperator.hpp>
+#include <GlobalSIMPLEOperator.hpp>
 #include <GlobalSolverOperator.hpp>
 // #include <GlobalIdentityOperator.hpp>
 
@@ -63,7 +64,7 @@ public:
 
     void setSolversOptions();
 
-    void buildPreconditioner();
+    void buildPreconditioner(GlobalBlockMatrix matrix);
 
     VectorPtr getSolution();
 
@@ -74,7 +75,7 @@ protected:
     commPtr_Type                                                          M_comm;
     bool                                                                  M_verbose;
     std::shared_ptr<LifeV::Operators::GlobalSolverOperator>               M_oper;
-    std::shared_ptr<LifeV::Operators::IdentityOperator>                   M_prec;
+    std::shared_ptr<LifeV::Operators::GlobalSolverPreconditionerOperator> M_prec;
     std::shared_ptr<LifeV::Operators::InvertibleOperator>                 M_invOper;
     ParameterListPtr                                                      M_pListLinSolver;
 };

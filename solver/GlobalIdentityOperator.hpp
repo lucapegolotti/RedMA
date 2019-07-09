@@ -68,7 +68,7 @@ public:
 
     virtual ~GlobalIdentityOperator();
 
-    void setUp();
+    virtual void setUp(operatorPtrContainer_Type oper, const commPtr_Type& comm);
 
     int SetUseTranspose(bool UseTranspose){M_useTranspose = UseTranspose; return 0;}
 
@@ -128,7 +128,7 @@ inline GlobalSolverPreconditionerOperator * create_Identity()
 namespace
 {
 static bool S_register_aSimple =
-NSPreconditionerFactory::instance().registerProduct("SIMPLE", &create_Identity);
+GlobalPreconditionerFactory::instance().registerProduct("SIMPLE", &create_Identity);
 }
 }
 }

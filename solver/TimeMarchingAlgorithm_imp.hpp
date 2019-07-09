@@ -30,7 +30,7 @@ solveLinearSystem(GlobalBlockMatrix matrix, VectorPtr rhs, VectorPtr sol)
     std::cout << grid.size1() << " " << grid.size2() << std::endl << std::flush;
     M_oper.reset(new LifeV::Operators::GlobalSolverOperator());
     M_oper->setUp(grid, M_comm);
-    buildPreconditioner();
+    buildPreconditioner(matrix);
 
     setSolversOptions();
     //(3) Set the solver for the linear system
@@ -78,9 +78,10 @@ solveLinearSystem(GlobalBlockMatrix matrix, VectorPtr rhs, VectorPtr sol)
 template <class AssemblerType>
 void
 TimeMarchingAlgorithm<AssemblerType>::
-buildPreconditioner( )
+buildPreconditioner(GlobalBlockMatrix matrix)
 {
-    M_prec.reset(new LifeV::Operators::IdentityOperator());
+    M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator());
+    M_prec->setUp(matrix.getGrid(), M_comm);
 }
 
 template <class AssemblerType>

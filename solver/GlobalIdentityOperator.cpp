@@ -29,7 +29,9 @@ GlobalIdentityOperator::~GlobalIdentityOperator()
 
 void GlobalIdentityOperator::showMe(){}
 
-void GlobalIdentityOperator::setUp()
+void
+GlobalIdentityOperator::
+setUp(operatorPtrContainer_Type oper, const commPtr_Type& comm)
 {
 }
 
