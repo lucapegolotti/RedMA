@@ -610,11 +610,13 @@ applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
     std::string msg = "[NavierStokesAssembler] applying boundary conditions to";
     msg += " block (" + std::to_string(iblock) + "," + std::to_string(jblock) +
             ") ...\n";
-
     printlog(MAGENTA, msg, M_verbose);
 
     if (matrix)
     {
+        MapEpetra domainMap = matrix->domainMap();
+        MapEpetra rangeMap = matrix->rangeMap();
+
         BoundaryConditionPtr bc = createBCHandler(M_maxVelocityLaw);
         updateBCs(bc, M_velocityFESpace);
 
@@ -630,6 +632,8 @@ applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
                            M_velocityFESpace->dof(), *bc, M_velocityFESpace->feBd(),
                            0.0, 0.0);
         }
+        matrix->globalAssemble(std::make_shared<MapEpetra>(domainMap),
+                               std::make_shared<MapEpetra>(rangeMap));
     }
 }
 
