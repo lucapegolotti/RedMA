@@ -67,7 +67,12 @@ public:
 
     virtual int ApplyInverse(const vector_Type& X, vector_Type& Y) const {};
 
-    virtual void setUp(operatorPtrContainer_Type oper, const commPtr_Type& comm) = 0;
+    virtual void setUp(RedMA::GlobalBlockMatrix matrix, const commPtr_Type& comm) = 0;
+
+    void setSolversOptions(const Teuchos::ParameterList& solversOptions)
+    {
+        M_solversOptions = solversOptions;
+    }
 
     virtual double NormInf() const {};
 
@@ -83,8 +88,8 @@ public:
 
     virtual const map_Type & OperatorRangeMap() const {};
 
-private:
-
+protected:
+    Teuchos::ParameterList M_solversOptions;
 };
 inline GlobalSolverPreconditionerOperator::GlobalSolverPreconditionerOperator()
 {

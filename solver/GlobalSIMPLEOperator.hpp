@@ -35,6 +35,8 @@
 #include <lifev/core/algorithm/Preconditioner.hpp>
 #include <lifev/core/algorithm/LinearSolver.hpp>
 
+#include <lifev/navier_stokes_blocks/solver/aSIMPLEOperator.hpp>
+
 #include <GlobalSolverPreconditionerOperator.hpp>
 
 namespace LifeV
@@ -60,11 +62,14 @@ public:
     typedef std::vector<vectorPtr_Type>                     vectorPtrContainer_Type;
     typedef std::vector<mapPtr_Type >                       mapPtrContainer_Type;
 
+    typedef std::shared_ptr<LifeV::Operators::NavierStokesPreconditionerOperator>
+                                                            PreconditionerPtr;
+
     GlobalSIMPLEOperator();
 
     virtual ~GlobalSIMPLEOperator();
 
-    void setUp(operatorPtrContainer_Type blockOper, const commPtr_Type & comm);
+    void setUp(RedMA::GlobalBlockMatrix matrix, const commPtr_Type & comm);
 
     int SetUseTranspose(bool UseTranspose){M_useTranspose = UseTranspose; return 0;}
 
@@ -85,6 +90,8 @@ public:
     const comm_Type & Comm() const {return *M_comm;}
 
 private:
+
+    std::vector<PreconditionerPtr> M_SIMPLEOperators;
 
     UInt M_nBlockRows;
 
@@ -111,7 +118,7 @@ inline GlobalSolverPreconditionerOperator * create_GlobalSIMPLE()
 }
 namespace
 {
-static bool S_register_aSimple =
+static bool S_register_aGlobalSimple =
 GlobalPreconditionerFactory::instance().registerProduct("GlobalSIMPLE", &create_GlobalSIMPLE);
 }
 }

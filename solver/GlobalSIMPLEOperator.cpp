@@ -29,9 +29,11 @@ GlobalSIMPLEOperator::~GlobalSIMPLEOperator()
 
 void
 GlobalSIMPLEOperator::
-setUp(operatorPtrContainer_Type blockOper,
+setUp(RedMA::GlobalBlockMatrix matrix,
       const commPtr_Type & comm)
 {
+    operatorPtrContainer_Type blockOper = matrix.getGrid();
+
     M_nBlockRows = blockOper.size1();
     M_nBlockCols = blockOper.size2();
     M_comm = comm;
@@ -40,6 +42,7 @@ setUp(operatorPtrContainer_Type blockOper,
     BlockEpetra_Map::mapPtrContainer_Type domainBlockMaps(M_nBlockCols);
 
     for (UInt iblock=0; iblock < M_nBlockRows; ++iblock)
+    {
         for (UInt jblock=0; jblock < M_nBlockCols; ++jblock)
         {
             if (blockOper(iblock,jblock) != 0 && rangeBlockMaps[iblock]==0)
@@ -49,7 +52,44 @@ setUp(operatorPtrContainer_Type blockOper,
                 jblock = M_nBlockCols;
             }
         }
+        if (iblock % 2 == 0 && blockOper(iblock,iblock) != 0)
+        {
+            // compute domain and range maps
+            BlockEpetra_Map::mapPtrContainer_Type localRangeBlockMaps(2);
+            BlockEpetra_Map::mapPtrContainer_Type localDomainBlockMaps(2);
 
+            localRangeBlockMaps[0].reset(new
+                    Epetra_Map(blockOper(iblock,iblock)->OperatorRangeMap()));
+
+            localRangeBlockMaps[1].reset(new
+                    Epetra_Map(blockOper(iblock,iblock+1)->OperatorRangeMap()));
+
+            localDomainBlockMaps[0].reset(new
+                    Epetra_Map(blockOper(iblock,iblock)->OperatorDomainMap()));
+
+            localDomainBlockMaps[1].reset(new
+                    Epetra_Map(blockOper(iblock+1,iblock)->OperatorDomainMap()));
+
+            // here we rely on the structure of the global matrix
+            PreconditionerPtr newPrec;
+            newPrec.reset(Operators::NSPreconditionerFactory::
+                          instance().createObject("SIMPLE"));
+            newPrec->setOptions(M_solversOptions);
+            newPrec->setUp(matrix.block(iblock,iblock),
+                           matrix.block(iblock,iblock+1),
+                           matrix.block(iblock+1,iblock));
+
+            std::shared_ptr<BlockEpetra_Map> localRangeMap(
+                                      new BlockEpetra_Map(localRangeBlockMaps));
+            std::shared_ptr<BlockEpetra_Map> localDomainMap(
+                                      new BlockEpetra_Map(localDomainBlockMaps));
+
+            newPrec->setRangeMap(localRangeMap);
+            newPrec->setDomainMap(localDomainMap);
+            // newPrec->updateApproximatedMomentumOperator();
+            // newPrec->updateApproximatedSchurComplementOperator();
+        }
+    }
     for (UInt jblock=0; jblock < M_nBlockCols; ++jblock)
         for (UInt iblock=0; iblock < M_nBlockRows; ++iblock)
         {

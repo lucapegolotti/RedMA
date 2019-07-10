@@ -68,7 +68,7 @@ public:
 
     virtual ~GlobalIdentityOperator();
 
-    virtual void setUp(operatorPtrContainer_Type oper, const commPtr_Type& comm);
+    virtual void setUp(RedMA::GlobalBlockMatrix matrix, const commPtr_Type& comm);
 
     int SetUseTranspose(bool UseTranspose){M_useTranspose = UseTranspose; return 0;}
 

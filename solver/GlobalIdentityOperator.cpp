@@ -31,7 +31,7 @@ void GlobalIdentityOperator::showMe(){}
 
 void
 GlobalIdentityOperator::
-setUp(operatorPtrContainer_Type oper, const commPtr_Type& comm)
+setUp(RedMA::GlobalBlockMatrix matrix, const commPtr_Type& comm)
 {
 }
 

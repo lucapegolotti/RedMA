@@ -78,6 +78,7 @@ protected:
     std::shared_ptr<LifeV::Operators::GlobalSolverPreconditionerOperator> M_prec;
     std::shared_ptr<LifeV::Operators::InvertibleOperator>                 M_invOper;
     ParameterListPtr                                                      M_pListLinSolver;
+    Teuchos::RCP<Teuchos::ParameterList>                                  M_solversOptions;
 };
 
 }  // namespace RedMA

@@ -16,6 +16,8 @@ TimeMarchingAlgorithm(const GetPot& datafile,
 {
     M_solution.reset(new Vector(assembler->getGlobalMap()));
     M_solution->zero();
+
+    setSolversOptions();
 }
 
 template <class AssemblerType>
@@ -31,8 +33,6 @@ solveLinearSystem(GlobalBlockMatrix matrix, VectorPtr rhs, VectorPtr sol)
     M_oper.reset(new LifeV::Operators::GlobalSolverOperator());
     M_oper->setUp(grid, M_comm);
     buildPreconditioner(matrix);
-
-    setSolversOptions();
     //(3) Set the solver for the linear system
     std::string solverType(M_pListLinSolver->get<std::string>("Linear Solver Type"));
     M_invOper.reset(LifeV::Operators::
@@ -81,7 +81,8 @@ TimeMarchingAlgorithm<AssemblerType>::
 buildPreconditioner(GlobalBlockMatrix matrix)
 {
     M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator());
-    M_prec->setUp(matrix.getGrid(), M_comm);
+    M_prec->setSolversOptions(*M_solversOptions);
+    M_prec->setUp(matrix, M_comm);
 }
 
 template <class AssemblerType>
@@ -100,12 +101,10 @@ setSolversOptions()
     std::string optionsPrec = M_datafile("fluid/options_preconditioner",
                                          "solversOptionsFast");
     optionsPrec += ".xml";
-    Teuchos::RCP<Teuchos::ParameterList> solversOptions =
-                                 Teuchos::getParametersFromXmlFile(optionsPrec);
-    // M_prec->setOptions(*solversOptions);
+    M_solversOptions = Teuchos::getParametersFromXmlFile(optionsPrec);
     std::shared_ptr<Teuchos::ParameterList> monolithicOptions;
     monolithicOptions.reset(
-        new Teuchos::ParameterList(solversOptions->sublist("MonolithicOperator")));
+        new Teuchos::ParameterList(M_solversOptions->sublist("MonolithicOperator")));
     M_pListLinSolver = monolithicOptions;
 }
 
