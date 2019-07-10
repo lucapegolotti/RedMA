@@ -29,7 +29,6 @@ solveLinearSystem(GlobalBlockMatrix matrix, VectorPtr rhs, VectorPtr sol)
     sol->zero();
 
     auto grid = matrix.getGrid();
-    std::cout << grid.size1() << " " << grid.size2() << std::endl << std::flush;
     M_oper.reset(new LifeV::Operators::GlobalSolverOperator());
     M_oper->setUp(grid, M_comm);
     buildPreconditioner(matrix);

@@ -32,6 +32,8 @@ GlobalSIMPLEOperator::
 setUp(RedMA::GlobalBlockMatrix matrix,
       const commPtr_Type & comm)
 {
+    M_matrix = matrix;
+
     operatorPtrContainer_Type blockOper = matrix.getGrid();
 
     M_nBlockRows = blockOper.size1();
@@ -41,6 +43,7 @@ setUp(RedMA::GlobalBlockMatrix matrix,
     BlockEpetra_Map::mapPtrContainer_Type rangeBlockMaps(M_nBlockRows);
     BlockEpetra_Map::mapPtrContainer_Type domainBlockMaps(M_nBlockCols);
 
+    M_nPrimalBlocks = 0;
     for (UInt iblock=0; iblock < M_nBlockRows; ++iblock)
     {
         for (UInt jblock=0; jblock < M_nBlockCols; ++jblock)
@@ -76,8 +79,8 @@ setUp(RedMA::GlobalBlockMatrix matrix,
                           instance().createObject("SIMPLE"));
             newPrec->setOptions(M_solversOptions);
             newPrec->setUp(matrix.block(iblock,iblock),
-                           matrix.block(iblock,iblock+1),
-                           matrix.block(iblock+1,iblock));
+                           matrix.block(iblock+1,iblock),
+                           matrix.block(iblock,iblock+1));
 
             std::shared_ptr<BlockEpetra_Map> localRangeMap(
                                       new BlockEpetra_Map(localRangeBlockMaps));
@@ -86,8 +89,11 @@ setUp(RedMA::GlobalBlockMatrix matrix,
 
             newPrec->setRangeMap(localRangeMap);
             newPrec->setDomainMap(localDomainMap);
-            // newPrec->updateApproximatedMomentumOperator();
-            // newPrec->updateApproximatedSchurComplementOperator();
+            newPrec->updateApproximatedMomentumOperator();
+            newPrec->updateApproximatedSchurComplementOperator();
+            M_SIMPLEOperators.push_back(newPrec);
+
+            M_nPrimalBlocks++;
         }
     }
     for (UInt jblock=0; jblock < M_nBlockCols; ++jblock)
@@ -106,6 +112,93 @@ setUp(RedMA::GlobalBlockMatrix matrix,
 
     M_oper = blockOper;
     fillComplete();
+
+    M_approximatedBAm1Binverses.resize(M_nBlockRows, M_nBlockCols);
+    computeBAm1BT_inverse(0,4);
+}
+
+void
+GlobalSIMPLEOperator::
+computeBAm1BT_inverse(unsigned int rowIndex, unsigned int colIndex)
+{
+    ASSERT_PRE(colIndex >= M_nPrimalBlocks * 2, "Wrong col index!");
+    ASSERT_PRE(rowIndex <  M_nPrimalBlocks * 2, "Wrong row index!");
+
+    matrixEpetraPtr_Type B = M_matrix.block(colIndex,rowIndex);
+    matrixEpetraPtr_Type BT = M_matrix.block(rowIndex,colIndex);
+
+    int numCols = BT->domainMap().mapSize();
+    int numRows = BT->rangeMap().mapSize();
+
+    // here we compute A^(-1) BT
+    matrixEpetraPtr_Type resMatrix(new matrixEpetra_Type(BT->rangeMap(), numCols));
+    resMatrix->zero();
+
+    // auxiliary vector that we use to select the columns from BT
+    vectorEpetra_Type aux(BT->domainMap());
+    vectorEpetra_Type col(BT->rangeMap());
+    vectorEpetra_Type res(BT->rangeMap());
+    vectorEpetra_Type fakePressure(
+                              M_matrix.block(rowIndex,rowIndex+1)->domainMap());
+    fakePressure.zero();
+    vectorEpetra_Type fakePressureResult(
+                              M_matrix.block(rowIndex,rowIndex+1)->domainMap());
+    fakePressureResult.zero();
+    map_Type rangeMapRaw = col.epetraMap();
+    unsigned int numElements = rangeMapRaw.NumMyElements();
+    double dropTolerance = 1e-12;
+    // retrieve vectors from matrix and apply simple operator to them
+    for (unsigned int i = 0; i < numCols; i++)
+    {
+        aux.zero();
+        col.zero();
+        // do this only if the current processor owns the dof
+        if (BT->domainMap().isOwned(i))
+            aux[i] = 1.0;
+
+        col = (*BT) * aux;
+
+        M_SIMPLEOperators[rowIndex / 2]->ApplyInverse(col, fakePressure,
+                                                      res, fakePressureResult);
+
+        for (unsigned int dof = 0; dof < numElements; dof++)
+        {
+            unsigned int gdof = rangeMapRaw.GID(dof);
+            if (col.isGlobalIDPresent(gdof))
+            {
+                double value(col[gdof]);
+                if (std::abs(value) > dropTolerance)
+                {
+                    resMatrix->addToCoefficient(gdof, i, value);
+                }
+            }
+        }
+    }
+    M_comm->Barrier();
+    std::shared_ptr<MapEpetra> domainMapPtr(new MapEpetra(BT->domainMap()));
+    std::shared_ptr<MapEpetra> rangeMapPtr(new MapEpetra(BT->rangeMap()));
+
+    resMatrix->globalAssemble(domainMapPtr, rangeMapPtr);
+
+    // compute product B * resMatrix
+    matrixEpetraPtr_Type BtildeBT(new matrixEpetra_Type(BT->domainMap()));
+    B->multiply(false,* resMatrix, false, *BtildeBT, false);
+
+    BtildeBT->globalAssemble(std::make_shared<MapEpetra>(BT->domainMap()),
+                             std::make_shared<MapEpetra>(BT->domainMap()));
+
+    // create invertible approximated matrix
+    M_approximatedBAm1Binverses(rowIndex, colIndex).reset(
+                                new Operators::ApproximatedInvertibleRowMatrix);
+
+    std::shared_ptr<Teuchos::ParameterList> globalSchurOptions;
+    globalSchurOptions.reset(new
+        Teuchos::ParameterList(M_solversOptions.sublist("GlobalSchurOperator")));
+    M_approximatedBAm1Binverses(rowIndex, colIndex)->
+                                            SetRowMatrix(BtildeBT->matrixPtr());
+    M_approximatedBAm1Binverses(rowIndex, colIndex)->
+                                          SetParameterList(*globalSchurOptions);
+    M_approximatedBAm1Binverses(rowIndex, colIndex)->Compute();
 }
 
 void

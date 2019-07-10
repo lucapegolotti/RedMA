@@ -57,8 +57,18 @@ public:
     typedef super::operatorPtr_Type                         operatorPtr_Type;
     typedef super::vector_Type                              vector_Type;
     typedef super::vectorPtr_Type                           vectorPtr_Type;
+    typedef MatrixEpetra<Real>                              matrixEpetra_Type;
+    typedef std::shared_ptr<matrixEpetra_Type>              matrixEpetraPtr_Type;
+    typedef VectorEpetra                                    vectorEpetra_Type;
+    typedef std::shared_ptr<vectorEpetra_Type>              vectorEpetraPtr_Type;
+    typedef LifeV::MapEpetra                                mapEpetra_Type;
+    typedef std::shared_ptr<mapEpetra_Type>                 mapEpetraPtr_Type;
 
     typedef boost::numeric::ublas::matrix<operatorPtr_Type> operatorPtrContainer_Type;
+    typedef std::shared_ptr<Operators::ApproximatedInvertibleRowMatrix>
+                                                  ApproximatedInvertedMatrixPtr;
+    typedef boost::numeric::ublas::matrix<ApproximatedInvertedMatrixPtr>
+                                           GridApproximatedInvertedMatricesPtrs;
     typedef std::vector<vectorPtr_Type>                     vectorPtrContainer_Type;
     typedef std::vector<mapPtr_Type >                       mapPtrContainer_Type;
 
@@ -72,6 +82,8 @@ public:
     void setUp(RedMA::GlobalBlockMatrix matrix, const commPtr_Type & comm);
 
     int SetUseTranspose(bool UseTranspose){M_useTranspose = UseTranspose; return 0;}
+
+    void computeBAm1BT_inverse(unsigned int rowIndex, unsigned int colIndex);
 
     int Apply(const vector_Type &/*X*/, vector_Type &/*Y*/) const {return -1;};
 
@@ -91,25 +103,19 @@ public:
 
 private:
 
-    std::vector<PreconditionerPtr> M_SIMPLEOperators;
-
-    UInt M_nBlockRows;
-
-    UInt M_nBlockCols;
-
-    std::string M_name;
-
-    commPtr_Type M_comm;
-
-    std::shared_ptr<BlockEpetra_Map> M_domainMap;
-
-    std::shared_ptr<BlockEpetra_Map> M_rangeMap;
-
-    operatorPtrContainer_Type M_oper;
-
-    std::string M_label;
-
-    bool M_useTranspose;
+    std::vector<PreconditionerPtr>       M_SIMPLEOperators;
+    RedMA::GlobalBlockMatrix             M_matrix;
+    UInt                                 M_nBlockRows;
+    UInt                                 M_nBlockCols;
+    std::string                          M_name;
+    commPtr_Type                         M_comm;
+    std::shared_ptr<BlockEpetra_Map>     M_domainMap;
+    std::shared_ptr<BlockEpetra_Map>     M_rangeMap;
+    operatorPtrContainer_Type            M_oper;
+    std::string                          M_label;
+    bool                                 M_useTranspose;
+    unsigned int                         M_nPrimalBlocks;
+    GridApproximatedInvertedMatricesPtrs M_approximatedBAm1Binverses;
 };
 
 inline GlobalSolverPreconditionerOperator * create_GlobalSIMPLE()

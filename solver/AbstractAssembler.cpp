@@ -403,6 +403,7 @@ fillMatricesWithVectors(VectorPtr* couplingVectors,
             }
         }
     }
+    M_comm->Barrier();
     QT->globalAssemble(lagrangeMap, M_primalMaps[M_indexCoupling]);
 
     Q = QT->transpose();
