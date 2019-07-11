@@ -101,6 +101,8 @@ public:
 
     const comm_Type & Comm() const {return *M_comm;}
 
+    void computeAllBAm1Binverses();
+
 private:
 
     std::vector<PreconditionerPtr>       M_SIMPLEOperators;

@@ -111,10 +111,9 @@ setUp(RedMA::GlobalBlockMatrix matrix,
     M_rangeMap.reset(new BlockEpetra_Map(rangeBlockMaps));
 
     M_oper = blockOper;
-    fillComplete();
 
-    M_approximatedBAm1Binverses.resize(M_nBlockRows, M_nBlockCols);
-    computeBAm1BT_inverse(0,4);
+    computeAllBAm1Binverses();
+    fillComplete();
 }
 
 void
@@ -199,6 +198,29 @@ computeBAm1BT_inverse(unsigned int rowIndex, unsigned int colIndex)
     M_approximatedBAm1Binverses(rowIndex, colIndex)->
                                           SetParameterList(*globalSchurOptions);
     M_approximatedBAm1Binverses(rowIndex, colIndex)->Compute();
+}
+
+void
+GlobalSIMPLEOperator::
+computeAllBAm1Binverses()
+{
+    M_approximatedBAm1Binverses.resize(M_nBlockRows, M_nBlockCols);
+
+    for (unsigned int i = 0; i < M_nPrimalBlocks; i++)
+    {
+        if (i % 2 == 0)
+        {
+            // run loop on interfaces
+            for (unsigned int j = M_nPrimalBlocks; j < M_nBlockCols; j++)
+            {
+                if (M_oper(i,j) != nullptr && M_oper(i,i) != nullptr)
+                {
+                    computeBAm1BT_inverse(i,j);
+                }
+            }
+        }
+    }
+
 }
 
 void
