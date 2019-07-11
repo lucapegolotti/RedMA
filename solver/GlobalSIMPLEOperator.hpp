@@ -30,6 +30,10 @@
 #include <Teuchos_XMLParameterListHelpers.hpp>
 #include <lifev/core/linear_algebra/LinearOperatorAlgebra.hpp>
 
+#include <lifev/core/array/MatrixEpetraStructured.hpp>
+#include <lifev/core/array/VectorEpetraStructured.hpp>
+#include <lifev/core/array/MatrixEpetraStructuredUtility.hpp>
+
 #include <lifev/core/array/VectorEpetra.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/algorithm/Preconditioner.hpp>
@@ -48,29 +52,30 @@ class GlobalSIMPLEOperator : public GlobalSolverPreconditionerOperator
 {
 public:
 
-    typedef LinearOperatorAlgebra                           super;
-    typedef super::comm_Type                                comm_Type;
-    typedef super::commPtr_Type                             commPtr_Type;
-    typedef super::map_Type                                 map_Type;
-    typedef super::mapPtr_Type                              mapPtr_Type;
-    typedef super::operator_Type                            operator_Type;
-    typedef super::operatorPtr_Type                         operatorPtr_Type;
-    typedef super::vector_Type                              vector_Type;
-    typedef super::vectorPtr_Type                           vectorPtr_Type;
-    typedef MatrixEpetra<Real>                              matrixEpetra_Type;
-    typedef std::shared_ptr<matrixEpetra_Type>              matrixEpetraPtr_Type;
-    typedef VectorEpetra                                    vectorEpetra_Type;
-    typedef std::shared_ptr<vectorEpetra_Type>              vectorEpetraPtr_Type;
-    typedef LifeV::MapEpetra                                mapEpetra_Type;
-    typedef std::shared_ptr<mapEpetra_Type>                 mapEpetraPtr_Type;
+    typedef LinearOperatorAlgebra                       super;
+    typedef super::comm_Type                            comm_Type;
+    typedef super::commPtr_Type                         commPtr_Type;
+    typedef super::map_Type                             map_Type;
+    typedef super::mapPtr_Type                          mapPtr_Type;
+    typedef super::operator_Type                        operator_Type;
+    typedef super::operatorPtr_Type                     operatorPtr_Type;
+    typedef super::vector_Type                          vector_Type;
+    typedef super::vectorPtr_Type                       vectorPtr_Type;
+    typedef MatrixEpetra<Real>                          matrixEpetra_Type;
+    typedef std::shared_ptr<matrixEpetra_Type>          matrixEpetraPtr_Type;
+    typedef VectorEpetra                                vectorEpetra_Type;
+    typedef std::shared_ptr<vectorEpetra_Type>          vectorEpetraPtr_Type;
+    typedef LifeV::MapEpetra                            mapEpetra_Type;
+    typedef std::shared_ptr<mapEpetra_Type>             mapEpetraPtr_Type;
 
-    typedef boost::numeric::ublas::matrix<operatorPtr_Type> operatorPtrContainer_Type;
-    typedef std::shared_ptr<Operators::ApproximatedInvertibleRowMatrix>
-                                                  ApproximatedInvertedMatrixPtr;
-    typedef boost::numeric::ublas::matrix<ApproximatedInvertedMatrixPtr>
-                                           GridApproximatedInvertedMatricesPtrs;
-    typedef std::vector<vectorPtr_Type>                     vectorPtrContainer_Type;
-    typedef std::vector<mapPtr_Type >                       mapPtrContainer_Type;
+    typedef boost::numeric::ublas::matrix<operatorPtr_Type>
+                                                  operatorPtrContainer_Type;
+    typedef Operators::ApproximatedInvertibleRowMatrix
+                                                  ApproximatedInvertibleMatrix;
+    typedef std::shared_ptr<ApproximatedInvertibleMatrix>
+                                                  ApproximatedInvertibleMatrixPtr;
+    typedef std::vector<vectorPtr_Type>                 vectorPtrContainer_Type;
+    typedef std::vector<mapPtr_Type >                   mapPtrContainer_Type;
 
     typedef std::shared_ptr<LifeV::Operators::NavierStokesPreconditionerOperator>
                                                             PreconditionerPtr;
@@ -83,7 +88,7 @@ public:
 
     int SetUseTranspose(bool UseTranspose){M_useTranspose = UseTranspose; return 0;}
 
-    void computeBAm1BT_inverse(unsigned int rowIndex, unsigned int colIndex);
+    void computeAm1BT(unsigned int rowIndex, unsigned int colIndex);
 
     int Apply(const vector_Type &/*X*/, vector_Type &/*Y*/) const {return -1;};
 
@@ -101,7 +106,16 @@ public:
 
     const comm_Type & Comm() const {return *M_comm;}
 
-    void computeAllBAm1Binverses();
+    void computeGlobalSchurComplement();
+
+    void applyEverySIMPLEOperator(const vectorEpetra_Type& X,
+                                  vectorEpetra_Type &Y) const;
+
+    void applyEveryB(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const;
+
+    void applyEveryBT(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const;
+
+    void applyEveryBAm1Binverse(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const;
 
 private:
 
@@ -117,7 +131,16 @@ private:
     std::string                          M_label;
     bool                                 M_useTranspose;
     unsigned int                         M_nPrimalBlocks;
-    GridApproximatedInvertedMatricesPtrs M_approximatedBAm1Binverses;
+    RedMA::GlobalBlockMatrix             M_Am1BT;
+    mapEpetraPtr_Type                    M_monolithicMap;
+    std::vector<mapEpetraPtr_Type>       M_allMaps;
+    mapEpetraPtr_Type                    M_primalMap;
+    std::vector<mapEpetraPtr_Type>       M_primalMaps;
+    mapEpetraPtr_Type                    M_dualMap;
+    std::vector<mapEpetraPtr_Type>       M_dualMaps;
+    matrixEpetraPtr_Type                 M_globalSchurComplement;
+    std::vector<unsigned int>            M_dimensionsInterfaces;
+    ApproximatedInvertibleMatrixPtr        M_approximatedGlobalSchurInverse;
 };
 
 inline GlobalSolverPreconditionerOperator * create_GlobalSIMPLE()

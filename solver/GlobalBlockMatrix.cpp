@@ -60,6 +60,13 @@ block(unsigned int row, unsigned int col)
     return M_gridEpetra(row, col);
 }
 
+GlobalBlockMatrix::MatrixEpetraPtr
+GlobalBlockMatrix::
+block(unsigned int row, unsigned int col) const
+{
+    return M_gridEpetra(row, col);
+}
+
 void
 GlobalBlockMatrix::
 add(const GlobalBlockMatrix& other)
@@ -223,7 +230,24 @@ setMaps(std::vector<MapPtr> rangeMaps, std::vector<MapPtr> domainMaps)
         else
             throw Exception("Not all domain maps were filled!");
     }
+}
 
+GlobalBlockMatrix::MapPtr
+GlobalBlockMatrix::
+rangeMap(unsigned int row, unsigned int col) const
+{
+    if (M_gridEpetra(row,col) != nullptr)
+        return std::make_shared<Map>(M_gridEpetra(row,col)->rangeMap());
+    return nullptr;
+}
+
+GlobalBlockMatrix::MapPtr
+GlobalBlockMatrix::
+domainMap(unsigned int row, unsigned int col) const
+{
+    if (M_gridEpetra(row,col) != nullptr)
+        return std::make_shared<Map>(M_gridEpetra(row,col)->domainMap());
+    return nullptr;
 }
 
 

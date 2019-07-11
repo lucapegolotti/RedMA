@@ -112,13 +112,13 @@ setUp(RedMA::GlobalBlockMatrix matrix,
 
     M_oper = blockOper;
 
-    computeAllBAm1Binverses();
     fillComplete();
+    computeGlobalSchurComplement();
 }
 
 void
 GlobalSIMPLEOperator::
-computeBAm1BT_inverse(unsigned int rowIndex, unsigned int colIndex)
+computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
 {
     ASSERT_PRE(colIndex >= M_nPrimalBlocks * 2, "Wrong col index!");
     ASSERT_PRE(rowIndex <  M_nPrimalBlocks * 2, "Wrong row index!");
@@ -179,80 +179,304 @@ computeBAm1BT_inverse(unsigned int rowIndex, unsigned int colIndex)
 
     resMatrix->globalAssemble(domainMapPtr, rangeMapPtr);
 
-    // compute product B * resMatrix
-    matrixEpetraPtr_Type BtildeBT(new matrixEpetra_Type(BT->domainMap()));
-    B->multiply(false,* resMatrix, false, *BtildeBT, false);
-
-    BtildeBT->globalAssemble(std::make_shared<MapEpetra>(BT->domainMap()),
-                             std::make_shared<MapEpetra>(BT->domainMap()));
-
-    // create invertible approximated matrix
-    M_approximatedBAm1Binverses(rowIndex, colIndex).reset(
-                                new Operators::ApproximatedInvertibleRowMatrix);
-
-    std::shared_ptr<Teuchos::ParameterList> globalSchurOptions;
-    globalSchurOptions.reset(new
-        Teuchos::ParameterList(M_solversOptions.sublist("GlobalSchurOperator")));
-    M_approximatedBAm1Binverses(rowIndex, colIndex)->
-                                            SetRowMatrix(BtildeBT->matrixPtr());
-    M_approximatedBAm1Binverses(rowIndex, colIndex)->
-                                          SetParameterList(*globalSchurOptions);
-    M_approximatedBAm1Binverses(rowIndex, colIndex)->Compute();
+    M_Am1BT.block(rowIndex, colIndex) = resMatrix;
 }
 
 void
 GlobalSIMPLEOperator::
-computeAllBAm1Binverses()
+computeGlobalSchurComplement()
 {
-    M_approximatedBAm1Binverses.resize(M_nBlockRows, M_nBlockCols);
+    using namespace LifeV::MatrixEpetraStructuredUtility;
+    typedef LifeV::MatrixEpetraStructuredView<double> MatrixView;
 
-    for (unsigned int i = 0; i < M_nPrimalBlocks; i++)
+    M_Am1BT.resize(M_nBlockRows,M_nBlockCols);
+
+
+    for (unsigned int i = 0; i < 2 * M_nPrimalBlocks; i++)
     {
         if (i % 2 == 0)
         {
-            // run loop on interfaces
-            for (unsigned int j = M_nPrimalBlocks; j < M_nBlockCols; j++)
+            // loop on interfaces
+            for (unsigned int j = M_nPrimalBlocks * 2; j < M_nBlockCols; j++)
             {
                 if (M_oper(i,j) != nullptr && M_oper(i,i) != nullptr)
                 {
-                    computeBAm1BT_inverse(i,j);
+                    computeAm1BT(i,j);
                 }
             }
         }
     }
 
+
+    M_globalSchurComplement.reset(new matrixEpetra_Type(*M_dualMap));
+
+    LifeV::MatrixBlockStructure structure;
+    structure.setBlockStructure(M_dimensionsInterfaces,
+                                M_dimensionsInterfaces);
+
+
+    unsigned int nDualBlocks = M_nBlockRows - 2 * M_nPrimalBlocks;
+    for (unsigned int i = 0; i < nDualBlocks; i++)
+    {
+        for (unsigned int j = 0; j < nDualBlocks; j++)
+        {
+            matrixEpetraPtr_Type curMatrix(new matrixEpetra_Type(*M_dualMaps[i]));
+            curMatrix->zero();
+            for (unsigned int k = 0; k < M_nPrimalBlocks; k++)
+            {
+                matrixEpetraPtr_Type prod(new matrixEpetra_Type(*M_dualMaps[i]));
+                prod->zero();
+                if (M_matrix.block(i + M_nPrimalBlocks * 2, k) != nullptr)
+                    M_matrix.block(i + M_nPrimalBlocks * 2, k)
+                            ->multiply(false,
+                                       *M_Am1BT.block(k, j + 2 * M_nPrimalBlocks),
+                                       false,
+                                       *prod,
+                                       false);
+                prod->globalAssemble(M_dualMaps[j], M_dualMaps[i]);
+                *curMatrix += *prod;
+            }
+            curMatrix->globalAssemble(M_dualMaps[j], M_dualMaps[i]);
+
+            // copy into the global (small) matrix
+            std::shared_ptr<MatrixView> blockGlobalView;
+            blockGlobalView = createBlockView(M_globalSchurComplement,
+                                              structure, i, j);
+
+            LifeV::MatrixBlockStructure blockStructure;
+            std::vector<unsigned int> rows(1), cols(1);
+            rows[0] = M_dimensionsInterfaces[i];
+            cols[0] = M_dimensionsInterfaces[j];
+            blockStructure.setBlockStructure(rows, cols);
+
+            std::shared_ptr<MatrixView> blockLocalView;
+            blockLocalView = createBlockView(curMatrix, blockStructure, 0, 0);
+            copyBlock(blockLocalView, blockGlobalView);
+        }
+    }
+    M_globalSchurComplement->globalAssemble();
+    // create invertible approximated matrix
+    M_approximatedGlobalSchurInverse.reset(new ApproximatedInvertibleMatrix);
+
+    std::shared_ptr<Teuchos::ParameterList> globalSchurOptions;
+    globalSchurOptions.reset(new
+        Teuchos::ParameterList(M_solversOptions.sublist("GlobalSchurOperator")));
+    M_approximatedGlobalSchurInverse->SetRowMatrix(
+                                         M_globalSchurComplement->matrixPtr());
+    M_approximatedGlobalSchurInverse->SetParameterList(*globalSchurOptions);
+    M_approximatedGlobalSchurInverse->Compute();
 }
 
 void
 GlobalSIMPLEOperator::
 fillComplete()
 {
-    // Filling the empty blocks with null operators
-    for (UInt iblock = 0; iblock < M_nBlockRows; ++iblock)
-        for (UInt jblock = 0; jblock < M_nBlockCols; ++jblock)
+    // compute monolithic map
+    M_monolithicMap.reset(new mapEpetra_Type());
+    M_primalMap.reset(new mapEpetra_Type());
+    M_dualMap.reset(new mapEpetra_Type());
+    for (unsigned int iblock = 0; iblock < M_nBlockRows; iblock++)
+    {
+        for (unsigned int jblock = 0; jblock < M_nBlockCols; jblock++)
         {
-            if (M_oper(iblock,jblock).get() == 0)
+            if (M_matrix.block(iblock,jblock) != nullptr)
             {
-                NullOperator * nullOp(new NullOperator);
-                nullOp->setUp(M_domainMap->blockMap(jblock), M_rangeMap->blockMap(iblock));
-                M_oper(iblock,jblock).reset(nullOp);
+                M_allMaps.push_back(M_matrix.rangeMap(iblock,jblock));
+                *M_monolithicMap +=  M_matrix.block(iblock,jblock)->rangeMap();
+                if (iblock < 2 * M_nPrimalBlocks)
+                {
+                    M_primalMaps.push_back(M_matrix.rangeMap(iblock,jblock));
+                    *M_primalMap += M_matrix.block(iblock,jblock)->rangeMap();
+                }
+                else
+                {
+                    M_dualMaps.push_back(M_matrix.rangeMap(iblock,jblock));
+                    *M_dualMap += M_matrix.block(iblock,jblock)->rangeMap();
+                    M_dimensionsInterfaces.push_back(
+                        M_matrix.block(iblock,jblock)->rangeMap().mapSize());
+                }
+                break;
             }
-            ASSERT(M_rangeMap->blockMap(iblock)->
-                   PointSameAs(M_oper(iblock,jblock)->OperatorRangeMap()),
-                   "Wrong range map");
-            ASSERT(M_domainMap->blockMap(jblock)->
-                   PointSameAs(M_oper(iblock,jblock)->OperatorDomainMap()),
-                   "Wrong domain map");
         }
+    }
 }
 
-
-int GlobalSIMPLEOperator::ApplyInverse(const vector_Type& X, vector_Type& Y) const
+void
+GlobalSIMPLEOperator::
+applyEverySIMPLEOperator(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
 {
-    ASSERT_PRE(X.NumVectors() == Y.NumVectors(), "X and Y must have the same number of vectors");
+    unsigned int offset = 0;
+    for (unsigned int i = 0; i < M_nPrimalBlocks; i++)
+    {
+        mapEpetra_Type rangeVelocity = *M_matrix.rangeMap(i*2,i*2);
+        mapEpetra_Type rangePressure = *M_matrix.rangeMap(i*2+1,i*2);
+        vectorEpetra_Type subVelocity(rangeVelocity);
+        vectorEpetra_Type subPressure(rangePressure);
+        subVelocity.zero();
+        subPressure.zero();
 
-    Y = X;
+        subVelocity.subset(X, rangeVelocity, offset, 0);
+        subPressure.subset(X, rangePressure,
+                                           offset + rangeVelocity.mapSize(), 0);
 
+        vectorEpetra_Type resVelocity(rangeVelocity);
+        vectorEpetra_Type resPressure(rangePressure);
+
+        M_SIMPLEOperators[i]->ApplyInverse(subVelocity, subPressure,
+                                           resVelocity, resPressure);
+
+        Y.subset(resVelocity, rangeVelocity, 0, offset);
+        Y.subset(resPressure, rangePressure, 0,
+                                           offset + rangeVelocity.mapSize());
+
+        offset += rangeVelocity.mapSize() + rangePressure.mapSize();
+    }
+}
+
+void
+GlobalSIMPLEOperator::
+applyEveryB(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
+{
+    unsigned int offset = 0;
+
+    std::vector<vectorEpetra_Type> Xs;
+    for (unsigned int i = 0; i < M_nPrimalBlocks * 2; i++)
+    {
+        vectorEpetra_Type newVec(*M_allMaps[i]);
+        newVec.subset(X, *M_allMaps[i], offset, 0);
+        Xs.push_back(newVec);
+        offset += M_allMaps[i]->mapSize();
+    }
+
+    offset = 0;
+    for (unsigned int i = M_nPrimalBlocks * 2; i < M_nBlockRows; i++)
+    {
+        mapEpetra_Type curRange = *M_allMaps[i];
+        vectorEpetra_Type subRes(curRange, LifeV::Unique);
+        subRes.zero();
+        for (unsigned int j = 0; j < M_nPrimalBlocks * 2; j++)
+        {
+            if (M_matrix.block(i,j))
+            {
+                subRes += (*M_matrix.block(i,j)) * Xs[j];
+            }
+        }
+        Y.subset(subRes, curRange, 0, offset);
+        offset += curRange.mapSize();
+    }
+}
+
+void
+GlobalSIMPLEOperator::
+applyEveryBAm1Binverse(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
+{
+    unsigned int offset = 0;
+
+    std::vector<vectorEpetra_Type> Xs;
+    for (unsigned int i = M_nPrimalBlocks * 2; i < M_nBlockCols; i++)
+    {
+        vectorEpetra_Type newVec(*M_allMaps[i]);
+        newVec.subset(X, *M_allMaps[i], offset, 0);
+        Xs.push_back(newVec);
+        offset += M_allMaps[i]->mapSize();
+    }
+
+    offset = 0;
+    for (unsigned int i = 0; i < 2 * M_nPrimalBlocks; i++)
+    {
+        mapEpetra_Type curRange = *M_allMaps[i];
+        vectorEpetra_Type subRes(curRange, LifeV::Unique);
+        subRes.zero();
+        for (unsigned int j = 2 * M_nPrimalBlocks; j < M_nBlockCols; j++)
+        {
+            if (M_matrix.block(i,j))
+            {
+                subRes += (*M_matrix.block(i,j)) * Xs[j-2*M_nPrimalBlocks];
+            }
+        }
+        Y.subset(subRes, curRange, 0, offset);
+        offset += curRange.mapSize();
+    }
+}
+
+void
+GlobalSIMPLEOperator::
+applyEveryBT(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
+{
+    unsigned int offset = 0;
+
+    std::vector<vectorEpetra_Type> Xs;
+    for (unsigned int i = M_nPrimalBlocks * 2; i < M_nBlockCols; i++)
+    {
+        vectorEpetra_Type newVec(*M_allMaps[i]);
+        newVec.subset(X, *M_allMaps[i], offset, 0);
+        Xs.push_back(newVec);
+        offset += M_allMaps[i]->mapSize();
+    }
+
+    offset = 0;
+    for (unsigned int i = 0; i < 2 * M_nPrimalBlocks; i++)
+    {
+        mapEpetra_Type curRange = *M_allMaps[i];
+        vectorEpetra_Type subRes(curRange, LifeV::Unique);
+        subRes.zero();
+        for (unsigned int j = 2 * M_nPrimalBlocks; j < M_nBlockCols; j++)
+        {
+            if (M_matrix.block(i,j))
+            {
+                subRes += (*M_matrix.block(i,j)) * Xs[j-2*M_nPrimalBlocks];
+            }
+        }
+        Y.subset(subRes, curRange, 0, offset);
+        offset += curRange.mapSize();
+    }
+}
+
+// application of the preconditioner corresponds to:
+// primal part = Am1 x - A-1 BT(Sm1 B Am1 x - Sm1 y)
+// dual part   = Sm1 (B Am1 x - y)
+// Sm1 is the inverse of the Schur complement. We call z = Am1 x
+int
+GlobalSIMPLEOperator::
+ApplyInverse(const vector_Type& X, vector_Type& Y) const
+{
+    ASSERT_PRE(X.NumVectors() == Y.NumVectors(),
+               "X and Y must have the same number of vectors");
+
+    const vectorEpetra_Type X_vectorEpetra(X, M_monolithicMap, LifeV::Unique);
+    vectorEpetra_Type Y_vectorEpetra(M_monolithicMap, LifeV::Unique);
+
+    vectorEpetra_Type X_primal(M_primalMap, LifeV::Unique);
+    vectorEpetra_Type X_dual(M_dualMap, LifeV::Unique);
+    X_primal.subset(X_vectorEpetra, *M_primalMap, 0, 0);
+    X_dual.subset(X_vectorEpetra, *M_dualMap, M_primalMap->mapSize(), 0);
+
+    // here we store the result
+    vectorEpetra_Type Y_primal(M_primalMap, LifeV::Unique);
+    vectorEpetra_Type Y_dual(M_dualMap, LifeV::Unique);
+
+    vectorEpetra_Type Z(M_primalMap, LifeV::Unique);
+    applyEverySIMPLEOperator(X_primal, Z);
+
+    vectorEpetra_Type Bz(M_dualMap, LifeV::Unique);
+
+    applyEveryB(Z, Bz);
+
+    M_approximatedGlobalSchurInverse->ApplyInverse((Bz - X_dual).epetraVector(),
+                                                   Y_dual.epetraVector());
+
+    vectorEpetra_Type BTy(M_primalMap, LifeV::Unique);
+    applyEveryBT(Y_dual, BTy);
+
+    vectorEpetra_Type Am1BTy(M_primalMap, LifeV::Unique);
+    applyEverySIMPLEOperator(BTy, Am1BTy);
+
+    Y_primal = Z - Am1BTy;
+
+    Y_vectorEpetra.subset(Y_primal, *M_primalMap, 0, 0);
+    Y_vectorEpetra.subset(Y_dual, *M_dualMap, 0, M_primalMap->mapSize());
+
+    Y = dynamic_cast<Epetra_MultiVector&>(Y_vectorEpetra.epetraVector());
     return 0;
 }
 }

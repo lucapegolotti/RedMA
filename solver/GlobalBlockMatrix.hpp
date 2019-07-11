@@ -54,6 +54,8 @@ public:
 
     MatrixEpetraPtr& block(unsigned int row, unsigned int col);
 
+    MatrixEpetraPtr block(unsigned int row, unsigned int col) const;
+
     void add(const GlobalBlockMatrix& other);
 
     // void multiply(const GlobalBlockMatrix& other, GlobalBlockMatrix& result);
@@ -62,6 +64,10 @@ public:
 
     void copyBlock(unsigned int rows, unsigned int cols,
                    MatrixEpetraPtr matrix);
+
+    MapPtr rangeMap(unsigned int row, unsigned int col) const;
+
+    MapPtr domainMap(unsigned int row, unsigned int col) const;
 
     GlobalBlockMatrix& operator*=(const double& coeff);
 
