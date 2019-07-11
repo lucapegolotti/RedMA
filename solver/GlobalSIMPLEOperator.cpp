@@ -113,7 +113,8 @@ setUp(RedMA::GlobalBlockMatrix matrix,
     M_oper = blockOper;
 
     fillComplete();
-    computeGlobalSchurComplement();
+    if (M_nPrimalBlocks > 1)
+        computeGlobalSchurComplement();
 }
 
 void
@@ -255,6 +256,7 @@ computeGlobalSchurComplement()
         }
     }
     M_globalSchurComplement->globalAssemble();
+    // M_globalSchurComplement *= (-1);
     // create invertible approximated matrix
     M_approximatedGlobalSchurInverse.reset(new ApproximatedInvertibleMatrix);
 
@@ -443,40 +445,47 @@ ApplyInverse(const vector_Type& X, vector_Type& Y) const
     ASSERT_PRE(X.NumVectors() == Y.NumVectors(),
                "X and Y must have the same number of vectors");
 
-    const vectorEpetra_Type X_vectorEpetra(X, M_monolithicMap, LifeV::Unique);
-    vectorEpetra_Type Y_vectorEpetra(M_monolithicMap, LifeV::Unique);
+    if (M_nPrimalBlocks > 1)
+    {
+        const vectorEpetra_Type X_vectorEpetra(X, M_monolithicMap, LifeV::Unique);
+        vectorEpetra_Type Y_vectorEpetra(M_monolithicMap, LifeV::Unique);
 
-    vectorEpetra_Type X_primal(M_primalMap, LifeV::Unique);
-    vectorEpetra_Type X_dual(M_dualMap, LifeV::Unique);
-    X_primal.subset(X_vectorEpetra, *M_primalMap, 0, 0);
-    X_dual.subset(X_vectorEpetra, *M_dualMap, M_primalMap->mapSize(), 0);
+        vectorEpetra_Type X_primal(M_primalMap, LifeV::Unique);
+        vectorEpetra_Type X_dual(M_dualMap, LifeV::Unique);
+        X_primal.subset(X_vectorEpetra, *M_primalMap, 0, 0);
+        X_dual.subset(X_vectorEpetra, *M_dualMap, M_primalMap->mapSize(), 0);
 
-    // here we store the result
-    vectorEpetra_Type Y_primal(M_primalMap, LifeV::Unique);
-    vectorEpetra_Type Y_dual(M_dualMap, LifeV::Unique);
+        // here we store the result
+        vectorEpetra_Type Y_primal(M_primalMap, LifeV::Unique);
+        vectorEpetra_Type Y_dual(M_dualMap, LifeV::Unique);
 
-    vectorEpetra_Type Z(M_primalMap, LifeV::Unique);
-    applyEverySIMPLEOperator(X_primal, Z);
+        vectorEpetra_Type Z(M_primalMap, LifeV::Unique);
+        applyEverySIMPLEOperator(X_primal, Z);
 
-    vectorEpetra_Type Bz(M_dualMap, LifeV::Unique);
+        vectorEpetra_Type Bz(M_dualMap, LifeV::Unique);
 
-    applyEveryB(Z, Bz);
+        applyEveryB(Z, Bz);
 
-    M_approximatedGlobalSchurInverse->ApplyInverse((Bz - X_dual).epetraVector(),
-                                                   Y_dual.epetraVector());
+        M_approximatedGlobalSchurInverse->ApplyInverse((Bz - X_dual).epetraVector(),
+                                                       Y_dual.epetraVector());
 
-    vectorEpetra_Type BTy(M_primalMap, LifeV::Unique);
-    applyEveryBT(Y_dual, BTy);
+        vectorEpetra_Type BTy(M_primalMap, LifeV::Unique);
+        applyEveryBT(Y_dual, BTy);
 
-    vectorEpetra_Type Am1BTy(M_primalMap, LifeV::Unique);
-    applyEverySIMPLEOperator(BTy, Am1BTy);
+        vectorEpetra_Type Am1BTy(M_primalMap, LifeV::Unique);
+        applyEverySIMPLEOperator(BTy, Am1BTy);
 
-    Y_primal = Z - Am1BTy;
+        Y_primal = Z - Am1BTy;
 
-    Y_vectorEpetra.subset(Y_primal, *M_primalMap, 0, 0);
-    Y_vectorEpetra.subset(Y_dual, *M_dualMap, 0, M_primalMap->mapSize());
+        Y_vectorEpetra.subset(Y_primal, *M_primalMap, 0, 0);
+        Y_vectorEpetra.subset(Y_dual, *M_dualMap, 0, M_primalMap->mapSize());
+        Y = dynamic_cast<Epetra_MultiVector&>(Y_vectorEpetra.epetraVector());
+    }
+    else
+    {
+        M_SIMPLEOperators[0]->ApplyInverse(X, Y);
+    }
 
-    Y = dynamic_cast<Epetra_MultiVector&>(Y_vectorEpetra.epetraVector());
     return 0;
 }
 }
