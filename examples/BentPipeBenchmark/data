@@ -26,8 +26,8 @@
 [../]
 
 [exporter]
-	outdir	   = solutions_rosenbrock/
-	type       = vtk
+	outdir	   = solutions/
+	type       = hdf5
 	multimesh  = false
 	start      = 0
 	save       = 1

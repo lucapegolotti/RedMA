@@ -25,6 +25,9 @@
 
 #include <functional>
 
+#include <lifev/core/filter/Exporter.hpp>
+#include <lifev/core/filter/ExporterVTK.hpp>
+#include <lifev/core/filter/ExporterHDF5.hpp>
 #include <boost/filesystem.hpp>
 
 namespace RedMA
@@ -44,7 +47,9 @@ protected:
                                  unsigned int const& )> FunctionType;
 
     typedef std::shared_ptr<LifeV::BCHandler>           BoundaryConditionPtr;
-    typedef LifeV::ExporterVTK<Mesh>                    Exporter;
+    typedef LifeV::ExporterVTK<Mesh>                    ExporterVTK;
+    typedef LifeV::ExporterHDF5<Mesh>                   ExporterHDF5;
+    typedef LifeV::Exporter<Mesh>                       Exporter;
     typedef std::shared_ptr<Exporter>                   ExporterPtr;
 
 public:

@@ -647,7 +647,11 @@ setExporter()
     std::string outdir = M_datafile("exporter/outdir", "solutions/");
     boost::filesystem::create_directory(outdir);
 
-    M_exporter.reset(new Exporter(M_datafile, outputName));
+    std::string format = M_datafile("exporter/type", "hdf5");
+    if (!std::strcmp(format.c_str(), "hdf5"))
+        M_exporter.reset(new ExporterHDF5(M_datafile, outputName));
+    else
+        M_exporter.reset(new ExporterVTK(M_datafile, outputName));
     M_exporter->setMeshProcId(M_velocityFESpace->mesh(), M_comm->MyPID());
 
     M_velocityExporter.reset(new Vector(M_velocityFESpace->map(),
