@@ -26,7 +26,7 @@ setup()
     M_couplingFESpace.reset(new FESpace(mesh, orderVelocity, 3, M_comm));
 
     msg = std::string("Velocity FE space of size ") +
-          std::to_string(M_velocityFESpace->dof().numTotalDof()) + "\n";
+          std::to_string(M_velocityFESpace->dof().numTotalDof() * 3) + "\n";
     printlog(GREEN, msg, M_verbose);
 
     std::string orderPressure = M_datafile("fluid/pressure_order", "P1");
