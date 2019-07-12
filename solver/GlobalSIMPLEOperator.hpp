@@ -115,8 +115,6 @@ public:
 
     void applyEveryBT(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const;
 
-    void applyEveryBAm1Binverse(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const;
-
 private:
 
     std::vector<PreconditionerPtr>       M_SIMPLEOperators;

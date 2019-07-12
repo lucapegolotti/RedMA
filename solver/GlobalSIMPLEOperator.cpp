@@ -192,7 +192,6 @@ computeGlobalSchurComplement()
 
     M_Am1BT.resize(M_nBlockRows,M_nBlockCols);
 
-
     for (unsigned int i = 0; i < 2 * M_nPrimalBlocks; i++)
     {
         if (i % 2 == 0)
@@ -223,17 +222,20 @@ computeGlobalSchurComplement()
         {
             matrixEpetraPtr_Type curMatrix(new matrixEpetra_Type(*M_dualMaps[i]));
             curMatrix->zero();
-            for (unsigned int k = 0; k < M_nPrimalBlocks; k++)
+            for (unsigned int k = 0; k < 2 * M_nPrimalBlocks; k++)
             {
                 matrixEpetraPtr_Type prod(new matrixEpetra_Type(*M_dualMaps[i]));
                 prod->zero();
-                if (M_matrix.block(i + M_nPrimalBlocks * 2, k) != nullptr)
+                if (M_matrix.block(i + M_nPrimalBlocks * 2, k) != nullptr &&
+                    M_Am1BT.block(k, j + 2 * M_nPrimalBlocks)  != nullptr)
+                {
                     M_matrix.block(i + M_nPrimalBlocks * 2, k)
                             ->multiply(false,
                                        *M_Am1BT.block(k, j + 2 * M_nPrimalBlocks),
                                        false,
                                        *prod,
                                        false);
+                }
                 prod->globalAssemble(M_dualMaps[j], M_dualMaps[i]);
                 *curMatrix += *prod;
             }
@@ -361,39 +363,6 @@ applyEveryB(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
             if (M_matrix.block(i,j))
             {
                 subRes += (*M_matrix.block(i,j)) * Xs[j];
-            }
-        }
-        Y.subset(subRes, curRange, 0, offset);
-        offset += curRange.mapSize();
-    }
-}
-
-void
-GlobalSIMPLEOperator::
-applyEveryBAm1Binverse(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
-{
-    unsigned int offset = 0;
-
-    std::vector<vectorEpetra_Type> Xs;
-    for (unsigned int i = M_nPrimalBlocks * 2; i < M_nBlockCols; i++)
-    {
-        vectorEpetra_Type newVec(*M_allMaps[i]);
-        newVec.subset(X, *M_allMaps[i], offset, 0);
-        Xs.push_back(newVec);
-        offset += M_allMaps[i]->mapSize();
-    }
-
-    offset = 0;
-    for (unsigned int i = 0; i < 2 * M_nPrimalBlocks; i++)
-    {
-        mapEpetra_Type curRange = *M_allMaps[i];
-        vectorEpetra_Type subRes(curRange, LifeV::Unique);
-        subRes.zero();
-        for (unsigned int j = 2 * M_nPrimalBlocks; j < M_nBlockCols; j++)
-        {
-            if (M_matrix.block(i,j))
-            {
-                subRes += (*M_matrix.block(i,j)) * Xs[j-2*M_nPrimalBlocks];
             }
         }
         Y.subset(subRes, curRange, 0, offset);
