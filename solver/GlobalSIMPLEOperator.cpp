@@ -32,6 +32,10 @@ GlobalSIMPLEOperator::
 setUp(RedMA::GlobalBlockMatrix matrix,
       const commPtr_Type & comm)
 {
+    LifeChrono chrono;
+    chrono.start();
+    RedMA::printlog(RedMA::MAGENTA, "[GlobalSIMPLEOperator] starting setup ...\n",
+                    M_verbose);
     M_matrix = matrix;
 
     operatorPtrContainer_Type blockOper = matrix.getGrid();
@@ -115,6 +119,11 @@ setUp(RedMA::GlobalBlockMatrix matrix,
     fillComplete();
     if (M_nPrimalBlocks > 1)
         computeGlobalSchurComplement();
+
+    std::string msg = "done, in ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    RedMA::printlog(RedMA::MAGENTA, msg, M_verbose);
 }
 
 void
@@ -123,6 +132,13 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
 {
     ASSERT_PRE(colIndex >= M_nPrimalBlocks * 2, "Wrong col index!");
     ASSERT_PRE(rowIndex <  M_nPrimalBlocks * 2, "Wrong row index!");
+
+    LifeChrono chrono;
+    chrono.start();
+
+    std::string msg = "Compute AM1BT for blocks (" + std::to_string(rowIndex) +
+                      "," + std::to_string(colIndex) + ") ...";
+    RedMA::printlog(RedMA::YELLOW, msg, M_verbose);
 
     matrixEpetraPtr_Type B = M_matrix.block(colIndex,rowIndex);
     matrixEpetraPtr_Type BT = M_matrix.block(rowIndex,colIndex);
@@ -150,6 +166,7 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
     // retrieve vectors from matrix and apply simple operator to them
     for (unsigned int i = 0; i < numCols; i++)
     {
+        std::cout << i << std::endl << std::flush;
         aux.zero();
         col.zero();
         // do this only if the current processor owns the dof
@@ -181,6 +198,11 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
     resMatrix->globalAssemble(domainMapPtr, rangeMapPtr);
 
     M_Am1BT.block(rowIndex, colIndex) = resMatrix;
+
+    msg = " done, in ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    RedMA::printlog(RedMA::YELLOW, msg , M_verbose);
 }
 
 void
@@ -189,6 +211,11 @@ computeGlobalSchurComplement()
 {
     using namespace LifeV::MatrixEpetraStructuredUtility;
     typedef LifeV::MatrixEpetraStructuredView<double> MatrixView;
+
+    std::string msg = "Assembling global Schur operator ...\n";
+    LifeChrono chrono;
+    chrono.start();
+    RedMA::printlog(RedMA::GREEN, msg, M_verbose);
 
     M_Am1BT.resize(M_nBlockRows,M_nBlockCols);
 
@@ -269,6 +296,10 @@ computeGlobalSchurComplement()
                                          M_globalSchurComplement->matrixPtr());
     M_approximatedGlobalSchurInverse->SetParameterList(*globalSchurOptions);
     M_approximatedGlobalSchurInverse->Compute();
+    msg = "done, in ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    RedMA::printlog(RedMA::GREEN, msg , M_verbose);
 }
 
 void

@@ -74,6 +74,8 @@ public:
         M_solversOptions = solversOptions;
     }
 
+    void setVerbose(bool verbose) {M_verbose = verbose;};
+
     virtual double NormInf() const {};
 
     virtual const char * Label() const {};
@@ -89,10 +91,12 @@ public:
     virtual const map_Type & OperatorRangeMap() const {};
 
 protected:
-    Teuchos::ParameterList M_solversOptions;
+    Teuchos::ParameterList               M_solversOptions;
+    bool                                 M_verbose;
 };
 inline GlobalSolverPreconditionerOperator::GlobalSolverPreconditionerOperator()
 {
+    M_verbose = false;
 }
 inline GlobalSolverPreconditionerOperator::~GlobalSolverPreconditionerOperator()
 {

@@ -39,6 +39,10 @@
 #include <lifev/core/algorithm/Preconditioner.hpp>
 #include <lifev/core/algorithm/LinearSolver.hpp>
 
+#include <lifev/core/util/LifeChrono.hpp>
+
+#include <PrintLog.hpp>
+
 #include <lifev/navier_stokes_blocks/solver/aSIMPLEOperator.hpp>
 
 #include <GlobalSolverPreconditionerOperator.hpp>
@@ -138,7 +142,7 @@ private:
     std::vector<mapEpetraPtr_Type>       M_dualMaps;
     matrixEpetraPtr_Type                 M_globalSchurComplement;
     std::vector<unsigned int>            M_dimensionsInterfaces;
-    ApproximatedInvertibleMatrixPtr        M_approximatedGlobalSchurInverse;
+    ApproximatedInvertibleMatrixPtr      M_approximatedGlobalSchurInverse;
 };
 
 inline GlobalSolverPreconditionerOperator * create_GlobalSIMPLE()

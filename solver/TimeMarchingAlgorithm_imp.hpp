@@ -80,6 +80,7 @@ TimeMarchingAlgorithm<AssemblerType>::
 buildPreconditioner(GlobalBlockMatrix matrix)
 {
     M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator());
+    M_prec->setVerbose(M_verbose);
     M_prec->setSolversOptions(*M_solversOptions);
     M_prec->setUp(matrix, M_comm);
 }
