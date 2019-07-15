@@ -166,7 +166,6 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
     // retrieve vectors from matrix and apply simple operator to them
     for (unsigned int i = 0; i < numCols; i++)
     {
-        std::cout << i << std::endl << std::flush;
         aux.zero();
         col.zero();
         // do this only if the current processor owns the dof
@@ -352,7 +351,7 @@ applyEverySIMPLEOperator(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
 
         subVelocity.subset(X, rangeVelocity, offset, 0);
         subPressure.subset(X, rangePressure,
-                                           offset + rangeVelocity.mapSize(), 0);
+                           offset + rangeVelocity.mapSize(), 0);
 
         vectorEpetra_Type resVelocity(rangeVelocity);
         vectorEpetra_Type resPressure(rangePressure);
@@ -362,7 +361,7 @@ applyEverySIMPLEOperator(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
 
         Y.subset(resVelocity, rangeVelocity, 0, offset);
         Y.subset(resPressure, rangePressure, 0,
-                                           offset + rangeVelocity.mapSize());
+                 offset + rangeVelocity.mapSize());
 
         offset += rangeVelocity.mapSize() + rangePressure.mapSize();
     }
@@ -463,7 +462,6 @@ ApplyInverse(const vector_Type& X, vector_Type& Y) const
         applyEverySIMPLEOperator(X_primal, Z);
 
         vectorEpetra_Type Bz(M_dualMap, LifeV::Unique);
-
         applyEveryB(Z, Bz);
 
         M_approximatedGlobalSchurInverse->ApplyInverse((Bz - X_dual).epetraVector(),
