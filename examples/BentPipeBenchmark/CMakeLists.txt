@@ -23,5 +23,11 @@ add_custom_command(
 add_custom_command(
         TARGET BentPipeBenchmark POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/SolverParamList_rbf3d.xml
+                ${CMAKE_CURRENT_BINARY_DIR}/SolverParamList_rbf3d.xml)
+
+add_custom_command(
+        TARGET BentPipeBenchmark POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/data
                 ${CMAKE_CURRENT_BINARY_DIR}/data)

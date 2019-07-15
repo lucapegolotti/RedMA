@@ -281,50 +281,58 @@ dotProd(VectorPtr* basis1, VectorPtr* basis2, unsigned int index1,
 AbstractAssembler::VectorPtr*
 AbstractAssembler::
 assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
-                        GeometricFace face, const double& coeff)
+                        GeometricFace face, const double& coeff,
+                        VectorPtr* otherInterfaceVectors,
+                        InterpolationPtr* interpolator)
 {
     using namespace LifeV;
     // using namespace ExpressionAssembly;
-
-    QuadratureBoundary boundaryQuadRule(buildTetraBDQR(quadRuleTria7pt));
-
     unsigned int nBasisFunctions = basisFunction->getNumBasisFunctions();
-
     VectorPtr* couplingVectors = new VectorPtr[nBasisFunctions];
-    MapEpetra couplingMap = M_couplingFESpaceETA->map();
 
-    unsigned int faceFlag = face.M_flag;
-    MeshPtr mesh = M_couplingFESpaceETA->mesh();
-
-    for (unsigned int i = 0; i < nBasisFunctions; i++)
+    if (otherInterfaceVectors == nullptr && interpolator == nullptr)
     {
-        // use repeated if you are integrated
-        // VectorPtr currentMode(new Vector(couplingMap, Repeated));
-        VectorPtr currentMode(new Vector(couplingMap, Unique));
-        basisFunction->setIndex(i);
+        QuadratureBoundary boundaryQuadRule(buildTetraBDQR(quadRuleTria7pt));
 
-        CoutRedirecter ct;
-        ct.redirect();
+        MapEpetra couplingMap = M_couplingFESpaceETA->map();
 
-        BCFunctionBase bFunction(basisFunction->function());
+        unsigned int faceFlag = face.M_flag;
+        MeshPtr mesh = M_couplingFESpaceETA->mesh();
 
-        BoundaryConditionPtr bcs;
-        bcs.reset(new BCHandler);
+        for (unsigned int i = 0; i < nBasisFunctions; i++)
+        {
+            // use repeated if you are integrated
+            // VectorPtr currentMode(new Vector(couplingMap, Repeated));
+            VectorPtr currentMode(new Vector(couplingMap, Unique));
+            basisFunction->setIndex(i);
 
-        bcs->addBC("Boundary_function", faceFlag, LifeV::Essential, LifeV::Full,
-                    bFunction, 1);
+            CoutRedirecter ct;
+            ct.redirect();
 
-        Function curFunction = basisFunction->function();
-        M_couplingFESpace->interpolateBC(*bcs, *currentMode, 0.0);
-        *currentMode *= coeff;
-        couplingVectors[i] = currentMode;
-        ct.restore();
-        // integrate(boundary(mesh, faceFlag),
-        //           boundaryQuadRule,
-        //           M_couplingFESpaceETA,
-        //           value(coeff) * eval(basisFunction, X) * phi_i
-        //       ) >> currentMode;
-        // couplingVectors[i] = currentMode;
+            BCFunctionBase bFunction(basisFunction->function());
+
+            BoundaryConditionPtr bcs;
+            bcs.reset(new BCHandler);
+
+            bcs->addBC("Boundary_function", faceFlag, LifeV::Essential, LifeV::Full,
+                        bFunction, 1);
+
+            Function curFunction = basisFunction->function();
+            M_couplingFESpace->interpolateBC(*bcs, *currentMode, 0.0);
+            *currentMode *= coeff;
+            couplingVectors[i] = currentMode;
+            ct.restore();
+            // integrate(boundary(mesh, faceFlag),
+            //           boundaryQuadRule,
+            //           M_couplingFESpaceETA,
+            //           value(coeff) * eval(basisFunction, X) * phi_i
+            //       ) >> currentMode;
+            // couplingVectors[i] = currentMode;
+        }
+    }
+    else
+    {
+
     }
     M_couplingVector.reset(new Vector(*couplingVectors[1]));
     return couplingVectors;
@@ -468,15 +476,79 @@ assembleCouplingMatrices(AbstractAssembler& child,
         unsigned int nMax = M_datafile("coupling/nMax", 5);
         basisFunction.reset(new ZernikeBasisFunction(inlet, nMax));
     }
-
     nBasisFunctions = basisFunction->getNumBasisFunctions();
-    VectorPtr* couplingVectorsFather =
-                assembleCouplingVectors(basisFunction, outlet, 1);
-    MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
 
-    VectorPtr* couplingVectorsChild =
-          child.assembleCouplingVectors(basisFunction, inlet, -1);
+    bool useInterpolation = M_datafile("coupling/use_interpolation", true);
+    VectorPtr* couplingVectorsFather;
+    VectorPtr* couplingVectorsChild;
+    if (useInterpolation)
+    {
+        AbstractAssembler* mainDomain;
+        AbstractAssembler* otherDomain;
+        // choose side with smaller h for interpolation
+        double hFather =
+            LifeV::MeshUtility::MeshStatistics::computeSize(
+                                            *M_couplingFESpace->mesh()).maxH;
+        double hChild =
+            LifeV::MeshUtility::MeshStatistics::computeSize(
+                                       *child.M_couplingFESpace->mesh()).maxH;
+
+        double coeff;
+        double meshSize;
+        GeometricFace* mainFace;
+        GeometricFace* otherFace;
+        // we use father as main mesh
+        if (hFather <= hChild)
+        {
+            mainDomain = this;
+            otherDomain = &child;
+            coeff = 1;
+            mainFace = &outlet;
+            otherFace = &inlet;
+            meshSize = hFather;
+        }
+        else
+        {
+            mainDomain = &child;
+            otherDomain = this;
+            coeff = -1;
+            mainFace = &inlet;
+            otherFace = &outlet;
+            meshSize = hChild;
+        }
+
+        VectorPtr* mainVectors = assembleCouplingVectors(basisFunction, *mainFace,
+                                                         coeff);
+
+        Teuchos::RCP< Teuchos::ParameterList > belosList = Teuchos::rcp (new Teuchos::ParameterList);
+        belosList = Teuchos::getParametersFromXmlFile ("SolverParamList_rbf3d.xml");
+
+        InterpolationPtr interpolator;
+        interpolator.reset(new Interpolation);
+        interpolator->setup(M_datafile, belosList);
+        interpolator->setMeshSize(meshSize);
+        interpolator->setFlag(mainFace->M_flag);
+        exit(1);
+        // interpolator->setVectors(fluid_known, structure_known);
+        // interpolator->buildTableDofs_known ( fluid_FESpace_whole );
+        // interpolator->buildTableDofs_unknown ( solid_FESpace_whole );
+        // interpolator->identifyNodes_known ( );
+        // interpolator->identifyNodes_unknown ( );
+        // interpolator->buildKnownInterfaceMap();
+        // interpolator->buildUnknownInterfaceMap();
+        // interpolator->buildOperators();
+        // interpolator->getKnownInterfaceMap(M_fluidInterfaceMap);
+    }
+    else
+    {
+
+        couplingVectorsFather = assembleCouplingVectors(basisFunction, outlet, 1);
+        couplingVectorsChild = child.assembleCouplingVectors(basisFunction,
+                                                             inlet, -1);
+    }
+    MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
     MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
+
     unsigned int prev = nBasisFunctions;
 
     std::string orthStrategy = M_datafile("coupling/orthonormalization", "POD");

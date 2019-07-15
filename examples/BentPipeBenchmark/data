@@ -39,4 +39,5 @@
 	nMax                = 6
 	orthonormalization  = POD
 	beta_threshold      = 1
+	use_interpolation   = true
 [../]

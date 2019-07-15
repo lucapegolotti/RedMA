@@ -26,6 +26,8 @@
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/filter/GetPot.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
+#include <lifev/core/interpolation/Interpolation.hpp>
+#include <lifev/core/mesh/MeshUtility.hpp>
 
 #include <lifev/core/fem/BCHandler.hpp>
 
@@ -60,7 +62,8 @@ protected:
                                  double const&,
                                  double const&,
                                  unsigned int const& )>    Function;
-
+    typedef LifeV::Interpolation                           Interpolation;
+    typedef std::shared_ptr<Interpolation>                 InterpolationPtr;
 public:
     AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
                       const TreeNodePtr& treeNode, bool verbose = false);
@@ -120,7 +123,9 @@ private:
 
     VectorPtr* assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> bf,
                                        GeometricFace face,
-                                       const double& coeff);
+                                       const double& coeff,
+                                       VectorPtr* otherInterfaceVectors = nullptr,
+                                       InterpolationPtr* interpolator = nullptr);
 
     void fillMatricesWithVectors(VectorPtr* couplingVectors,
                                  const unsigned int& nBasisFunctions,
