@@ -283,27 +283,28 @@ AbstractAssembler::
 assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
                         GeometricFace face, const double& coeff,
                         VectorPtr* otherInterfaceVectors,
-                        InterpolationPtr* interpolator)
+                        InterpolationPtr interpolator)
 {
     using namespace LifeV;
     // using namespace ExpressionAssembly;
     unsigned int nBasisFunctions = basisFunction->getNumBasisFunctions();
     VectorPtr* couplingVectors = new VectorPtr[nBasisFunctions];
+    MapEpetra couplingMap = M_couplingFESpaceETA->map();
 
     if (otherInterfaceVectors == nullptr && interpolator == nullptr)
     {
-        QuadratureBoundary boundaryQuadRule(buildTetraBDQR(quadRuleTria7pt));
-
-        MapEpetra couplingMap = M_couplingFESpaceETA->map();
+        // QuadratureBoundary boundaryQuadRule(buildTetraBDQR(quadRuleTria7pt));
 
         unsigned int faceFlag = face.M_flag;
         MeshPtr mesh = M_couplingFESpaceETA->mesh();
 
         for (unsigned int i = 0; i < nBasisFunctions; i++)
         {
-            // use repeated if you are integrated
+            // use repeated if you are integrating
             // VectorPtr currentMode(new Vector(couplingMap, Repeated));
             VectorPtr currentMode(new Vector(couplingMap, Unique));
+            currentMode->zero();
+
             basisFunction->setIndex(i);
 
             CoutRedirecter ct;
@@ -332,7 +333,27 @@ assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
     }
     else
     {
+        for (unsigned int i = 0; i < nBasisFunctions; i++)
+        {
+            VectorPtr currentMode(new Vector(couplingMap, Unique));
+            currentMode->zero();
 
+            VectorPtr otherVector3D(new Vector(M_couplingFESpace->map()));
+            // we need a 3D vector
+            otherVector3D->subset(*otherInterfaceVectors[i],
+                                 couplingMap,
+                                 0,
+                                 0);
+            interpolator->updateRhs(otherVector3D);
+            interpolator->interpolate();
+
+            VectorPtr currentMode3D(new Vector(M_couplingFESpace->map()));
+            interpolator->solution(currentMode3D);
+            currentMode->subset(*currentMode3D, couplingMap, 0, 0);
+
+            *currentMode *= coeff;
+            couplingVectors[i] = currentMode;
+        }
     }
     M_couplingVector.reset(new Vector(*couplingVectors[1]));
     return couplingVectors;
@@ -517,27 +538,55 @@ assembleCouplingMatrices(AbstractAssembler& child,
             meshSize = hChild;
         }
 
-        VectorPtr* mainVectors = assembleCouplingVectors(basisFunction, *mainFace,
-                                                         coeff);
+        VectorPtr* mainVectors =
+           mainDomain->assembleCouplingVectors(basisFunction, *mainFace, coeff);
 
         Teuchos::RCP< Teuchos::ParameterList > belosList = Teuchos::rcp (new Teuchos::ParameterList);
-        belosList = Teuchos::getParametersFromXmlFile ("SolverParamList_rbf3d.xml");
+        belosList = Teuchos::getParametersFromXmlFile("SolverParamList_rbf3d.xml");
 
         InterpolationPtr interpolator;
         interpolator.reset(new Interpolation);
         interpolator->setup(M_datafile, belosList);
         interpolator->setMeshSize(meshSize);
+
+        VectorPtr dummyVectorMain(new
+                               Vector(mainDomain->M_couplingFESpace->map()));
+        dummyVectorMain->zero();
+
+        VectorPtr dummyVectorOther(new
+                              Vector(otherDomain->M_couplingFESpace->map()));
+        dummyVectorOther->zero();
+
+        interpolator->setVectors(dummyVectorMain, dummyVectorOther);
         interpolator->setFlag(mainFace->M_flag);
-        exit(1);
-        // interpolator->setVectors(fluid_known, structure_known);
-        // interpolator->buildTableDofs_known ( fluid_FESpace_whole );
-        // interpolator->buildTableDofs_unknown ( solid_FESpace_whole );
-        // interpolator->identifyNodes_known ( );
-        // interpolator->identifyNodes_unknown ( );
-        // interpolator->buildKnownInterfaceMap();
-        // interpolator->buildUnknownInterfaceMap();
-        // interpolator->buildOperators();
-        // interpolator->getKnownInterfaceMap(M_fluidInterfaceMap);
+        interpolator->buildTableDofs_known(mainDomain->M_couplingFESpace);
+        interpolator->identifyNodes_known();
+        interpolator->buildKnownInterfaceMap();
+
+        interpolator->setFlag(otherFace->M_flag);
+        interpolator->buildTableDofs_unknown(otherDomain->M_couplingFESpace);
+        interpolator->identifyNodes_unknown();
+        interpolator->buildUnknownInterfaceMap();
+
+        interpolator->setFlag(mainFace->M_flag);
+        interpolator->buildOperators();
+
+        VectorPtr* otherVectors =
+                 otherDomain->assembleCouplingVectors(basisFunction, *otherFace,
+                                                      -1,
+                                                      mainVectors,
+                                                      interpolator);
+
+        if (hFather <= hChild)
+        {
+            couplingVectorsFather = mainVectors;
+            couplingVectorsChild  = otherVectors;
+        }
+        else
+        {
+            couplingVectorsFather = otherVectors;
+            couplingVectorsChild  = mainVectors;
+        }
     }
     else
     {

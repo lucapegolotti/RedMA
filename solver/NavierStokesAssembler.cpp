@@ -676,7 +676,7 @@ exportSolutions(const double& time, std::vector<VectorPtr> solutions)
              M_verbose);
     *M_velocityExporter = *solutions[0];
     *M_pressureExporter = *solutions[1];
-    // *M_pressureExporter = *M_couplingVector;
+    *M_pressureExporter = *M_couplingVector;
     CoutRedirecter ct;
     ct.redirect();
     M_exporter->postProcess(time);

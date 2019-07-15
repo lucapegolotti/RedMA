@@ -125,7 +125,7 @@ private:
                                        GeometricFace face,
                                        const double& coeff,
                                        VectorPtr* otherInterfaceVectors = nullptr,
-                                       InterpolationPtr* interpolator = nullptr);
+                                       InterpolationPtr interpolator = nullptr);
 
     void fillMatricesWithVectors(VectorPtr* couplingVectors,
                                  const unsigned int& nBasisFunctions,
