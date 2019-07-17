@@ -507,12 +507,21 @@ assembleCouplingMatrices(AbstractAssembler& child,
         AbstractAssembler* mainDomain;
         AbstractAssembler* otherDomain;
         // choose side with smaller h for interpolation
-        double hFather =
+        double hFatherLocal =
             LifeV::MeshUtility::MeshStatistics::computeSize(
                                             *M_couplingFESpace->mesh()).maxH;
-        double hChild =
+        double hChildLocal =
             LifeV::MeshUtility::MeshStatistics::computeSize(
                                        *child.M_couplingFESpace->mesh()).maxH;
+
+        // find global hmax
+        double hFather;
+        double hChild;
+
+        M_comm->MaxAll(&hFatherLocal, &hFather, 1);
+        M_comm->MaxAll(&hChildLocal, &hChild, 1);
+
+        // std::cout << "1" << std::endl << std::flush;
 
         double coeff;
         double meshSize;
@@ -527,6 +536,8 @@ assembleCouplingMatrices(AbstractAssembler& child,
             mainFace = &outlet;
             otherFace = &inlet;
             meshSize = hFather;
+            msg = "Selecting father building block for interpolation\n";
+            printlog(GREEN, msg, M_verbose);
         }
         else
         {
@@ -536,6 +547,8 @@ assembleCouplingMatrices(AbstractAssembler& child,
             mainFace = &inlet;
             otherFace = &outlet;
             meshSize = hChild;
+            msg = "Selecting child building block for interpolation\n";
+            printlog(GREEN, msg, M_verbose);
         }
 
         VectorPtr* mainVectors =
