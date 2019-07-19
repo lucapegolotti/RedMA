@@ -38,6 +38,7 @@ solve()
     double t0 = M_datafile("time_discretization/t0", 0.0);
     double T = M_datafile("time_discretization/T", 1.0);
     double dt = M_datafile("time_discretization/dt", 0.01);
+    unsigned int save_every = M_datafile("exporter/save_every", 1);
 
     double t = t0;
     TimeMarchingAlgorithmPtr hdlrAlgorithm = M_timeMarchingAlgorithm;
@@ -48,16 +49,19 @@ solve()
         outFile.open(M_normsFilename);
         outFile << AssemblerType::normFileFirstLine() << std::flush;
     }
-    while (t < T)
+    unsigned int count = 1;
+    while (T - t > dt/2)
     {
         solveTimestep(t, dt);
         t += dt;
-        M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
+        if (count % save_every == 0)
+            M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
         if (M_exportNorms)
         {
             M_globalAssembler.appendNormsToFile(t, hdlrAlgorithm->getSolution(),
                                                 outFile);
         }
+        count++;
     }
     if (M_exportNorms)
         outFile.close();
