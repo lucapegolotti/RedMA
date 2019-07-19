@@ -193,7 +193,7 @@ POD(VectorPtr*& basis1,
             std::string eigMsg = std::to_string(i) + ": " +
                                  std::to_string(std::sqrt(eigenvalues[i])) + "\n";
             printlog(GREEN, eigMsg, M_verbose);
-            if (eigenvalues[i] < tol)
+            if (std::sqrt(eigenvalues[i]) < tol)
                 break;
         }
 
