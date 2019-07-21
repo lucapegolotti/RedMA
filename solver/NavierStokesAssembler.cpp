@@ -343,8 +343,8 @@ computeF()
     *F1 -= (*M_Bt) * (*pressure);
 
     unsigned int count = 2;
-    for (std::map<unsigned int, MatrixPtr>::iterator it = M_mapQTs.begin();
-         it != M_mapQTs.end(); it++)
+    for (std::map<unsigned int, MatrixPtr>::iterator it = getMapsQTs().begin();
+         it != getMapsQTs().end(); it++)
     {
         *F1 -= (*it->second) * (*M_prevSolution[count]);
         count++;
@@ -361,18 +361,18 @@ computeF()
     Fs.push_back(F2);
 
     count = 0;
-    for (std::map<unsigned int, MatrixPtr>::iterator it = M_mapQs.begin();
-         it != M_mapQs.end(); it++)
+    for (std::map<unsigned int, MatrixPtr>::iterator it = getMapsQs().begin();
+         it != getMapsQs().end(); it++)
     {
         VectorPtr newF;
         MatrixPtr curCouplingMatrix = it->second;
         newF.reset(new Vector(*M_dualMaps[count]));
         newF->zero();
+
         *newF -= (*curCouplingMatrix) * (*velocity);
         Fs.push_back(newF);
         count++;
     }
-
     return Fs;
 }
 
@@ -429,8 +429,8 @@ computeFder()
     Fs.push_back(F1);
     Fs.push_back(F2);
     unsigned int count = 0;
-    for (std::map<unsigned int, MatrixPtr>::iterator it = M_mapQs.begin();
-         it != M_mapQs.end(); it++)
+    for (std::map<unsigned int, MatrixPtr>::iterator it = getMapsQs().begin();
+         it != getMapsQs().end(); it++)
     {
         VectorPtr newF;
         MatrixPtr curCouplingMatrix = it->second;
@@ -676,7 +676,7 @@ exportSolutions(const double& time, std::vector<VectorPtr> solutions)
              M_verbose);
     *M_velocityExporter = *solutions[0];
     *M_pressureExporter = *solutions[1];
-    *M_pressureExporter = *M_couplingVector;
+    // *M_pressureExporter = *M_couplingVector;
     CoutRedirecter ct;
     ct.redirect();
     M_exporter->postProcess(time);

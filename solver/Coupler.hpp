@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef ABSTRACTASSEMBLER_HPP
-#define ABSTRACTASSEMBLER_HPP
+#ifndef COUPLER_HPP
+#define COUPLER_HPP
 
 #include <TreeStructure.hpp>
 #include <PrintLog.hpp>
 #include <Exception.hpp>
 #include <FourierBasisFunction.hpp>
 #include <ZernikeBasisFunction.hpp>
-#include <Coupler.hpp>
 
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/filter/GetPot.hpp>
@@ -37,7 +36,7 @@
 namespace RedMA
 {
 
-class AbstractAssembler
+class Coupler
 {
 protected:
     typedef std::shared_ptr<TreeNode>                      TreeNodePtr;
@@ -66,71 +65,57 @@ protected:
     typedef LifeV::Interpolation                           Interpolation;
     typedef std::shared_ptr<Interpolation>                 InterpolationPtr;
 public:
-    AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
-                      const TreeNodePtr& treeNode, bool verbose = false);
-
-    void addPrimalMaps(MapEpetraPtr& globalMap,
-                       std::vector<MapEpetraPtr>& maps,
-                       std::vector<unsigned int>& dimensions);
-
-    // this method should be used to:
-    // 1) create the finite element spaces
-    // 2) assemble the constant matrices
-    virtual void setup() = 0;
-
-    virtual unsigned int numberOfBlocks() = 0;
-
-    // number of components of the variable involved in the coupling
-    virtual unsigned int numberOfComponents() = 0;
-
-    std::vector<MapEpetraPtr> getPrimalMapVector();
-
-    std::vector<MapEpetraPtr> getDualMapVector();
-
-    // this function must be called on the father
-    void assembleCouplingMatrices(AbstractAssembler& child,
-                                  const unsigned int& indexOutlet,
-                                  const unsigned int& interfaceIndex,
-                                  MapEpetraPtr& globalMap,
-                                  std::vector<MapEpetraPtr>& maps,
-                                  std::vector<unsigned int>& dimensions);
+    Coupler(commPtr_Type comm, bool verbose);
 
     MatrixPtr getQT(const unsigned int& flag);
 
     MatrixPtr getQ(const unsigned int& flag);
 
-    std::map<unsigned int, MatrixPtr>& getMapsQs();
+    static void gramSchmidt(VectorPtr* basis1, VectorPtr* basis2,
+                            MatrixPtr massMatrix1, MatrixPtr massMatrix2,
+                            unsigned int& nVectors);
+
+    void POD(VectorPtr*& basis1, VectorPtr*& basis2,
+             MatrixPtr massMatrix1, MatrixPtr massMatrix2,
+             unsigned int& nVectors,
+             double tol,
+             unsigned int offset = 0);
+
+    static double dotProd(VectorPtr* basis1, VectorPtr* basis2, unsigned int index1,
+                          unsigned int index2, MatrixPtr mass1 = nullptr,
+                          MatrixPtr mass2 = nullptr);
+
+    static double* computeCorrelationMatrix(VectorPtr* basis1, VectorPtr* basis2,
+                                            MatrixPtr mass1, MatrixPtr mass2,
+                                            const unsigned int& nBasisFunctions);
+
+    VectorPtr* assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> bf,
+                                       GeometricFace face,
+                                       const double& coeff,
+                                       FESpacePtr couplingFespace,
+                                       ETFESpaceCouplingPtr couplingFESpaceETA,
+                                       VectorPtr* otherInterfaceVectors = nullptr,
+                                       InterpolationPtr interpolator = nullptr);
+
+    void fillMatricesWithVectors(VectorPtr* couplingVectors,
+                                 const unsigned int& nBasisFunctions,
+                                 MapEpetraPtr lagrangeMap,
+                                 MapEpetraPtr map,
+                                 unsigned int numberOfComponents,
+                                 const unsigned int& flagAdjacentDomain);
 
     std::map<unsigned int, MatrixPtr>& getMapsQTs();
 
-    unsigned int getIndexCoupling();
-
-    std::vector<unsigned int> getInterfacesIndices();
-
-private:
-
-    MatrixPtr assembleBoundaryMatrix(GeometricFace face);
-
-    void multiplyVectorsByMassMatrix(VectorPtr* couplingVectors,
-                                     const unsigned int& nBasisFunctions,
-                                     MatrixPtr massMatrix);
+    std::map<unsigned int, MatrixPtr>& getMapsQs();
 
 protected:
-    TreeNodePtr                         M_treeNode;
-    std::vector<MapEpetraPtr>           M_primalMaps;
-    std::vector<MapEpetraPtr>           M_dualMaps;
-    GetPot                              M_datafile;
     commPtr_Type                        M_comm;
     bool                                M_verbose;
-    FESpacePtr                          M_couplingFESpace;
-    ETFESpaceCouplingPtr                M_couplingFESpaceETA;
-    // index of the block to which the coupling must be applied
-    unsigned int                        M_indexCoupling;
-    std::vector<unsigned int>           M_interfacesIndices;
-    VectorPtr                           M_couplingVector;
-    Coupler                             M_coupler;
+    // maps of the coupling matrices (key = flag of corresponding face)
+    std::map<unsigned int, MatrixPtr>   M_mapQTs;
+    std::map<unsigned int, MatrixPtr>   M_mapQs;
 };
 
 }  // namespace RedMA
 
-#endif  // ABSTRACTASSEMBLER_HPP
+#endif  // COUPLER_HPP

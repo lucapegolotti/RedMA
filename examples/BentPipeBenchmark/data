@@ -16,7 +16,7 @@
 	algorithm = backward_euler # rosenbrock
 	scheme = ROS3Pw
 	t0 = 0
-	T = 0.01
+	T = 1.00
 	dt = 0.01
 [../]
 
@@ -36,8 +36,8 @@
 
 [coupling]
 	type                = zernike
-	nMax                = 6
+	nMax                = 4
 	orthonormalization  = POD
-	beta_threshold      = 1
+	beta_threshold      = 0
 	use_interpolation   = true
 [../]

@@ -274,8 +274,10 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
             LifeV::MapEpetra& curLocalMap = **itmap;
             // we fill only if the vector corresponding to map i exists!
             if (localVectors[index])
+            {
                 vectorToFill->subset(*localVectors[index], curLocalMap, 0,
                                      offset);
+            }
             offset += curLocalMap.mapSize();
             index++;
         }
@@ -292,7 +294,8 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
             VectorPtr aux(new Vector(curLocalMap));
             aux->subset(*vectorToFill, curLocalMap,
                         M_offsets[M_nPrimalBlocks + indices[index]], 0);
-            *aux += *localVectors[index + it->second->numberOfBlocks()];
+            *aux += 0;
+            localVectors[index + it->second->numberOfBlocks()]->zero();
             vectorToFill->subset(*aux, curLocalMap, 0,
                                   M_offsets[M_nPrimalBlocks + indices[index]]);
             index++;
