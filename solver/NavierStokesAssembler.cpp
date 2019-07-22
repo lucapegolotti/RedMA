@@ -81,22 +81,25 @@ assembleStiffnessMatrix()
     M_A.reset(new Matrix(M_velocityFESpace->map()));
 
     double viscosity = M_datafile("fluid/viscosity", 1.0);
-    // integrate(elements(M_velocityFESpaceETA->mesh()),
-    //            M_velocityFESpace->qr(),
-    //            M_velocityFESpaceETA,
-    //            M_velocityFESpaceETA,
-    //            value(0.5 * viscosity) *
-    //            dot(grad(phi_i) + transpose(grad(phi_i)),
-    //            grad(phi_j) + transpose(grad(phi_j)))
-    //           ) >> M_A;
+    bool useFullStrain = M_datafile("fluid/use_strain", false);
 
-    integrate(elements(M_velocityFESpaceETA->mesh()),
-             M_velocityFESpace->qr(),
-             M_velocityFESpaceETA,
-             M_velocityFESpaceETA,
-             value(viscosity) *
-             dot(grad(phi_i),grad(phi_j))
-            ) >> M_A;
+    if (useFullStrain)
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                   M_velocityFESpace->qr(),
+                   M_velocityFESpaceETA,
+                   M_velocityFESpaceETA,
+                   value(0.5 * viscosity) *
+                   dot(grad(phi_i) + transpose(grad(phi_i)),
+                   grad(phi_j) + transpose(grad(phi_j)))
+                  ) >> M_A;
+    else
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                 M_velocityFESpace->qr(),
+                 M_velocityFESpaceETA,
+                 M_velocityFESpaceETA,
+                 value(viscosity) *
+                 dot(grad(phi_i),grad(phi_j))
+                ) >> M_A;
 
     M_A->globalAssemble();
 }

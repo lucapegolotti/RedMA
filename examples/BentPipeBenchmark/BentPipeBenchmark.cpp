@@ -31,6 +31,8 @@
 
 using namespace RedMA;
 
+#define COEFF 10
+
 double maxLaw(double t)
 {
     double poly = 0;
@@ -42,7 +44,7 @@ double maxLaw(double t)
         poly += coeffs[7-i] * mon;
         mon *= t;
     }
-    return poly;
+    return poly * COEFF;
 }
 
 double maxLawDt(double t)
@@ -56,7 +58,7 @@ double maxLawDt(double t)
         poly += coeffs[6-i] * mon;
         mon *= t;
     }
-    return poly;
+    return poly * COEFF;
 }
 
 int main(int argc, char **argv)
