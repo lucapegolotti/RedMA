@@ -30,7 +30,7 @@ public:
     ZernikeBasisFunction(const GeometricFace& face,
                       unsigned int nMax);
 
-    return_Type operator()(const Vector3D& pos);
+    return_Type operator()(const Vector3D& pos) override;
 
     virtual void setIndex(const unsigned int& index) override;
 

@@ -61,11 +61,11 @@ public:
 
     ~GlobalSolverPreconditionerOperator();
 
-    virtual int SetUseTranspose(bool UseTranspose){};
+    virtual int SetUseTranspose(bool UseTranspose){return -1;};
 
-    virtual int Apply(const vector_Type& X, vector_Type& Y) const {};
+    virtual int Apply(const vector_Type& X, vector_Type& Y) const {return -1;};
 
-    virtual int ApplyInverse(const vector_Type& X, vector_Type& Y) const {};
+    virtual int ApplyInverse(const vector_Type& X, vector_Type& Y) const {return -1;};
 
     virtual void setUp(RedMA::GlobalBlockMatrix matrix, const commPtr_Type& comm) = 0;
 
@@ -76,13 +76,13 @@ public:
 
     void setVerbose(bool verbose) {M_verbose = verbose;};
 
-    virtual double NormInf() const {};
+    virtual double NormInf() const {return -1.0;};
 
-    virtual const char * Label() const {};
+    virtual const char * Label() const {return nullptr;};
 
-    virtual bool UseTranspose() const {};
+    virtual bool UseTranspose() const {return false;};
 
-    virtual bool HasNormInf() const {};
+    virtual bool HasNormInf() const {return false;};
 
     virtual const comm_Type & Comm() const {};
 
