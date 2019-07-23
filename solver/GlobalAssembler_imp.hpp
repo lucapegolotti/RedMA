@@ -599,4 +599,20 @@ setTimeIntegrationOrder(unsigned int order)
     }
 }
 
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+setTimestep(double dt)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+
+    unsigned int offset = 0;
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        it->second->setTimestep(dt);
+    }
+}
+
 }  // namespace RedMA

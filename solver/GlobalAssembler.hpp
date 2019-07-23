@@ -91,6 +91,8 @@ public:
 
     void setTimeIntegrationOrder(unsigned int order);
 
+    void setTimestep(double dt);
+
 private:
     template<typename FunctionType>
     void fillGlobalMatrix(GlobalBlockMatrix& matrixToFill,

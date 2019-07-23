@@ -438,4 +438,13 @@ getMapsQTs()
 {
     return M_coupler.getMapsQTs();
 }
+
+void
+AbstractAssembler::
+setTimestep(double dt)
+{
+    M_dt = dt;
+}
+
+
 }  // namespace RedMA

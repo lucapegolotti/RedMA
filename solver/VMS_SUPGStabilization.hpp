@@ -80,7 +80,10 @@ private:
     MatrixPtr                       M_block10;
     MatrixPtr                       M_block01;
     MatrixPtr                       M_block11;
-    MatrixPtr                       M_blockMass;
+    MatrixPtr                       M_blockMass00;
+    MatrixPtr                       M_blockMass10;
+    MatrixPtr                       M_blockMass01;
+    MatrixPtr                       M_blockMass11;
     double                          M_C_I;
 };
 

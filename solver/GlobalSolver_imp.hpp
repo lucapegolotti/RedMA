@@ -54,6 +54,7 @@ solve()
     unsigned int count = 1;
     while (T - t > dt/2)
     {
+        M_globalAssembler.setTimestep(dt);
         solveTimestep(t, dt);
         t += dt;
         if (count % save_every == 0)

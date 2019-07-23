@@ -59,17 +59,6 @@ setup()
     setExporter();
 
     M_useStabilization = M_datafile("fluid/use_stabilization", false);
-    if (M_useStabilization)
-    {
-        M_stabilization.reset(new VMS_SUPGStabilization(this->M_timeIntegrationOrder,
-                                                        M_velocityFESpace,
-                                                        M_pressureFESpace,
-                                                        M_velocityFESpaceETA,
-                                                        M_pressureFESpaceETA));
-        double density = M_datafile("fluid/density", 1.0);
-        double viscosity = M_datafile("fluid/viscosity", 1.0);
-        M_stabilization->setDensityAndViscosity(density, viscosity);
-    }
     printlog(MAGENTA, "done\n", M_verbose);
 }
 
@@ -245,8 +234,10 @@ setTimeAndPrevSolution(const double& time, std::vector<VectorPtr> solution)
     M_time = time;
     M_prevSolution = solution;
     // reset all things that need to be recomputed
-    M_C = nullptr;
-    M_J = nullptr;
+    if (M_C != nullptr)
+        M_C->zero();
+    if (M_J != nullptr)
+        M_J->zero();
     M_forcingTerm = nullptr;
     M_forcingTermTimeDer = nullptr;
 }
@@ -341,6 +332,7 @@ computeF()
     std::vector<VectorPtr> Fs;
     VectorPtr velocity = M_prevSolution[0];
     VectorPtr pressure = M_prevSolution[1];
+
     // assemble F first component
     VectorPtr F1;
     F1.reset(new Vector(M_velocityFESpace->map()));
@@ -348,6 +340,25 @@ computeF()
 
     if (!M_forcingTerm)
         assembleForcingTerm();
+
+
+    if (M_useStabilization)
+    {
+        if (M_stabilization == nullptr)
+        {
+            M_stabilization.reset(new
+                         VMS_SUPGStabilization(this->M_timeIntegrationOrder,
+                                               M_velocityFESpace,
+                                               M_pressureFESpace,
+                                               M_velocityFESpaceETA,
+                                               M_pressureFESpaceETA));
+            double density = M_datafile("fluid/density", 1.0);
+            double viscosity = M_datafile("fluid/viscosity", 1.0);
+            M_stabilization->setDensityAndViscosity(density, viscosity);
+        }
+        M_stabilization->assembleBlocks(velocity, pressure,
+                                        M_forcingTerm, this->M_dt);
+    }
 
     *F1 += *M_forcingTerm;
 

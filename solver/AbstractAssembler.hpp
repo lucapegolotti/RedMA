@@ -109,6 +109,8 @@ public:
 
     void setTimeIntegrationOrder(unsigned int order);
 
+    void setTimestep(double dt);
+
 private:
 
     MatrixPtr assembleBoundaryMatrix(GeometricFace face);
@@ -132,6 +134,7 @@ protected:
     VectorPtr                           M_couplingVector;
     Coupler                             M_coupler;
     unsigned                            M_timeIntegrationOrder;
+    double                              M_dt;
 };
 
 }  // namespace RedMA
