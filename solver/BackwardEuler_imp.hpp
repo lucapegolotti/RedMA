@@ -19,6 +19,8 @@ BackwardEuler(const GetPot& datafile,
     assembler->assembleGlobalMass(false, &diagonalCoefficient);
     M_prevSolution.reset(new Vector(assembler->getGlobalMap()));
     M_prevSolution->zero();
+
+    this->M_order = 1;
 }
 
 template <class AssemblerType>

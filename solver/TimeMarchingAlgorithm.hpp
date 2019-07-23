@@ -68,6 +68,8 @@ public:
 
     VectorPtr getSolution();
 
+    unsigned int getOrder();
+
 protected:
     GetPot                                                                M_datafile;
     VectorPtr                                                             M_solution;
@@ -79,6 +81,7 @@ protected:
     std::shared_ptr<LifeV::Operators::InvertibleOperator>                 M_invOper;
     ParameterListPtr                                                      M_pListLinSolver;
     Teuchos::RCP<Teuchos::ParameterList>                                  M_solversOptions;
+    unsigned int                                                          M_order;
 };
 
 }  // namespace RedMA

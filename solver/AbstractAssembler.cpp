@@ -43,6 +43,14 @@ getDualMapVector()
     return M_dualMaps;
 }
 
+void
+AbstractAssembler::
+setTimeIntegrationOrder(unsigned int order)
+{
+    M_timeIntegrationOrder = order;
+}
+
+
 AbstractAssembler::MatrixPtr
 AbstractAssembler::
 assembleBoundaryMatrix(GeometricFace face)

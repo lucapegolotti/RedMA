@@ -17,6 +17,8 @@ RosenbrockAlgorithm(const GetPot& datafile,
     M_massMatrixNoBCs = assembler->assembleGlobalMass(false);
 
     assembler->assembleGlobalMass(false, &diagonalCoefficient);
+
+    this->M_order = M_coefficients.order();
 }
 
 template <class AssemblerType>

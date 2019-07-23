@@ -107,6 +107,8 @@ public:
 
     std::vector<unsigned int> getInterfacesIndices();
 
+    void setTimeIntegrationOrder(unsigned int order);
+
 private:
 
     MatrixPtr assembleBoundaryMatrix(GeometricFace face);
@@ -129,6 +131,7 @@ protected:
     std::vector<unsigned int>           M_interfacesIndices;
     VectorPtr                           M_couplingVector;
     Coupler                             M_coupler;
+    unsigned                            M_timeIntegrationOrder;
 };
 
 }  // namespace RedMA

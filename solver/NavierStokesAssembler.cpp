@@ -57,6 +57,19 @@ setup()
 
     assembleConstantMatrices();
     setExporter();
+
+    M_useStabilization = M_datafile("fluid/use_stabilization", false);
+    if (M_useStabilization)
+    {
+        M_stabilization.reset(new VMS_SUPGStabilization(this->M_timeIntegrationOrder,
+                                                        M_velocityFESpace,
+                                                        M_pressureFESpace,
+                                                        M_velocityFESpaceETA,
+                                                        M_pressureFESpaceETA));
+        double density = M_datafile("fluid/density", 1.0);
+        double viscosity = M_datafile("fluid/viscosity", 1.0);
+        M_stabilization->setDensityAndViscosity(density, viscosity);
+    }
     printlog(MAGENTA, "done\n", M_verbose);
 }
 

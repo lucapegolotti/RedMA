@@ -89,6 +89,8 @@ public:
     void appendNormsToFile(const double& time, VectorPtr solution,
                            std::ofstream& outFile);
 
+    void setTimeIntegrationOrder(unsigned int order);
+
 private:
     template<typename FunctionType>
     void fillGlobalMatrix(GlobalBlockMatrix& matrixToFill,

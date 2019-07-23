@@ -30,6 +30,8 @@
 #include <lifev/core/filter/ExporterHDF5.hpp>
 #include <boost/filesystem.hpp>
 
+#include <VMS_SUPGStabilization.hpp>
+
 namespace RedMA
 {
 
@@ -135,30 +137,33 @@ protected:
 
     void updateBCs(BoundaryConditionPtr bcToUpdate, FESpacePtr fespace);
 
-    FESpacePtr                      M_velocityFESpace;
-    FESpacePtr                      M_pressureFESpace;
-    ETFESpaceVelocityPtr            M_velocityFESpaceETA;
-    ETFESpacePressurePtr            M_pressureFESpaceETA;
+    FESpacePtr                              M_velocityFESpace;
+    FESpacePtr                              M_pressureFESpace;
+    ETFESpaceVelocityPtr                    M_velocityFESpaceETA;
+    ETFESpacePressurePtr                    M_pressureFESpaceETA;
 
-    MatrixPtr                       M_A;
-    MatrixPtr                       M_B;
-    MatrixPtr                       M_Bt;
-    MatrixPtr                       M_M;
-    MatrixPtr                       M_C;
-    MatrixPtr                       M_J;
-    VectorPtr                       M_forcingTerm;
-    VectorPtr                       M_forcingTermTimeDer;
-    std::vector<VectorPtr>          M_prevSolution;
-    double                          M_time;
+    MatrixPtr                               M_A;
+    MatrixPtr                               M_B;
+    MatrixPtr                               M_Bt;
+    MatrixPtr                               M_M;
+    MatrixPtr                               M_C;
+    MatrixPtr                               M_J;
+    VectorPtr                               M_forcingTerm;
+    VectorPtr                               M_forcingTermTimeDer;
+    std::vector<VectorPtr>                  M_prevSolution;
+    double                                  M_time;
 
-    FunctionType                    M_forceFunction;
-    FunctionType                    M_forceTimeDerFunction;
-    std::function<double(double)>   M_maxVelocityLaw;
-    std::function<double(double)>   M_maxVelocityDtLaw;
+    FunctionType                            M_forceFunction;
+    FunctionType                            M_forceTimeDerFunction;
+    std::function<double(double)>           M_maxVelocityLaw;
+    std::function<double(double)>           M_maxVelocityDtLaw;
 
-    ExporterPtr                     M_exporter;
-    VectorPtr                       M_velocityExporter;
-    VectorPtr                       M_pressureExporter;
+    ExporterPtr                             M_exporter;
+    VectorPtr                               M_velocityExporter;
+    VectorPtr                               M_pressureExporter;
+
+    bool                                    M_useStabilization;
+    std::shared_ptr<VMS_SUPGStabilization>  M_stabilization;
 };
 
 }  // namespace RedMA

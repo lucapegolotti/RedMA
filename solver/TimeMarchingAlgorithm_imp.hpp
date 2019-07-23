@@ -32,7 +32,7 @@ solveLinearSystem(GlobalBlockMatrix matrix, VectorPtr rhs, VectorPtr sol)
     M_oper.reset(new LifeV::Operators::GlobalSolverOperator());
     M_oper->setUp(grid, M_comm);
     buildPreconditioner(matrix);
-    //(3) Set the solver for the linear system
+
     std::string solverType(M_pListLinSolver->get<std::string>("Linear Solver Type"));
     M_invOper.reset(LifeV::Operators::
                 InvertibleOperatorFactory::instance().createObject(solverType));
@@ -42,36 +42,6 @@ solveLinearSystem(GlobalBlockMatrix matrix, VectorPtr rhs, VectorPtr sol)
     M_invOper->setPreconditioner(M_prec);
 
     M_invOper->ApplyInverse(rhs->epetraVector(), sol->epetraVector());
-
-    // Teuchos::RCP<Teuchos::ParameterList> aztecList =
-    //                                    Teuchos::rcp(new Teuchos::ParameterList);
-    //
-    // std::string xmlSolverData = M_datafile("solver/XMLdatafile",
-    //                                        "SolverParamList.xml");
-    //
-    // aztecList = Teuchos::getParametersFromXmlFile(xmlSolverData);
-    // linearSolver.setParameters(*aztecList);
-    //
-    // typedef LifeV::PreconditionerIfpack             precIfpack;
-    // // typedef std::shared_ptr<precIfpack>        precIfpackPtr;
-    // precIfpack* precRawPtr = new precIfpack;
-    //
-    // // we set to look for the "fake" precMLL entry in order to set the
-    // // default parameters of ML preconditioner
-    // GetPot dummyDatafile;
-    // precRawPtr->setDataFromGetPot(dummyDatafile, "precMLL");
-    // std::shared_ptr<LifeV::Preconditioner> precPtr;
-    // precPtr.reset(precRawPtr);
-    // precPtr->parametersList().set( "precType", "Amesos" );
-    // precPtr->parametersList().set( "overlap level", 2 );
-    // precPtr->parametersList().set( "amesos: solver type",
-    //          M_datafile( "prec/ifpack/amesos/solvertype", "Amesos_Umfpack" ) );
-    // // print information about the solver
-    // // precPtr->parametersList().print ( std::cout );
-    //
-    // linearSolver.setPreconditioner(precPtr);
-    // linearSolver.setRightHandSide(rhs);
-    // linearSolver.solve(sol);
 }
 
 template <class AssemblerType>
@@ -83,6 +53,14 @@ buildPreconditioner(GlobalBlockMatrix matrix)
     M_prec->setVerbose(M_verbose);
     M_prec->setSolversOptions(*M_solversOptions);
     M_prec->setUp(matrix, M_comm);
+}
+
+template <class AssemblerType>
+unsigned int
+TimeMarchingAlgorithm<AssemblerType>::
+getOrder()
+{
+    return M_order;
 }
 
 template <class AssemblerType>

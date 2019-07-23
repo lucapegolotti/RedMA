@@ -28,6 +28,8 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
             TimeMarchingAlgorithmsFactory<AssemblerType>(datafile,
                                                          &M_globalAssembler,
                                                          M_comm, M_verbose);
+
+    M_globalAssembler.setTimeIntegrationOrder(M_timeMarchingAlgorithm->getOrder());
 }
 
 template <class AssemblerType>

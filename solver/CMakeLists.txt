@@ -10,5 +10,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/GlobalIdentityOperator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/GlobalSIMPLEOperator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/GlobalBlockMatrix.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/VMS_SUPGStabilization.cpp
     CACHE INTERNAL ""
 )

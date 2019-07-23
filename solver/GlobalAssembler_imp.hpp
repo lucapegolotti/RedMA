@@ -583,5 +583,20 @@ appendNormsToFile(const double& time, VectorPtr solution,
     outFile << newLine << std::flush;
 }
 
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+setTimeIntegrationOrder(unsigned int order)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+
+    unsigned int offset = 0;
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        it->second->setTimeIntegrationOrder(order);
+    }
+}
 
 }  // namespace RedMA
