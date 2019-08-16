@@ -68,6 +68,38 @@ public:
     void assembleBlocks(VectorPtr velocity, VectorPtr pressure,
                         VectorPtr velocityRhs, double dt);
 
+    MatrixPtr block00(){return M_block00;}
+
+    MatrixPtr block10(){return M_block10;}
+
+    MatrixPtr block01(){return M_block01;}
+
+    MatrixPtr block11(){return M_block11;}
+
+    MatrixPtr blockMass00(){return M_blockMass00;}
+
+    MatrixPtr blockMass10(){return M_blockMass10;}
+
+    MatrixPtr blockMass01(){return M_blockMass01;}
+
+    MatrixPtr blockMass11(){return M_blockMass11;}
+
+    MatrixPtr block00Jac(){return M_block00Jac;}
+
+    MatrixPtr block10Jac(){return M_block10Jac;}
+
+    MatrixPtr block01Jac(){return M_block01Jac;}
+
+    MatrixPtr block11Jac(){return M_block11Jac;}
+
+    MatrixPtr blockMass00Jac(){return M_blockMass00Jac;}
+
+    MatrixPtr blockMass10Jac(){return M_blockMass10Jac;}
+
+    MatrixPtr blockMass01Jac(){return M_blockMass01Jac;}
+
+    MatrixPtr blockMass11Jac(){return M_blockMass11Jac;}
+
 private:
     double                          M_density;
     double                          M_viscosity;
@@ -76,6 +108,14 @@ private:
     FESpacePtr                      M_pressureFESpace;
     ETFESpaceVelocityPtr            M_velocityFESpaceETA;
     ETFESpacePressurePtr            M_pressureFESpaceETA;
+    MatrixPtr                       M_block00Jac;
+    MatrixPtr                       M_block10Jac;
+    MatrixPtr                       M_block01Jac;
+    MatrixPtr                       M_block11Jac;
+    MatrixPtr                       M_blockMass00Jac;
+    MatrixPtr                       M_blockMass10Jac;
+    MatrixPtr                       M_blockMass01Jac;
+    MatrixPtr                       M_blockMass11Jac;
     MatrixPtr                       M_block00;
     MatrixPtr                       M_block10;
     MatrixPtr                       M_block01;

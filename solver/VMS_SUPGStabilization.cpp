@@ -29,6 +29,10 @@ VMS_SUPGStabilization(unsigned int         order,
         M_C_I = 30;
     else if (order == 2)
         M_C_I = 60;
+    else if (order == 3)
+        M_C_I = 120;
+    else if (order == 4)
+        M_C_I = 240;
     else
     {
         std::string msg = "Please implement a suitable value for ";
@@ -52,9 +56,17 @@ assembleBlocks(VectorPtr velocity, VectorPtr pressure,
 {
     using namespace LifeV::ExpressionAssembly;
 
-    if (M_block00 == nullptr && M_block01 == nullptr &&
-        M_block10 == nullptr && M_block11 == nullptr)
+    if (M_block00Jac == nullptr && M_block01Jac == nullptr &&
+        M_block10Jac == nullptr && M_block11Jac == nullptr)
     {
+        M_blockMass00Jac.reset(new Matrix(M_velocityFESpace->map()));
+        M_blockMass01Jac.reset(new Matrix(M_velocityFESpace->map()));
+        M_blockMass10Jac.reset(new Matrix(M_pressureFESpace->map()));
+        M_blockMass11Jac.reset(new Matrix(M_pressureFESpace->map()));
+        M_block00Jac.reset(new Matrix(M_velocityFESpace->map()));
+        M_block01Jac.reset(new Matrix(M_velocityFESpace->map()));
+        M_block10Jac.reset(new Matrix(M_pressureFESpace->map()));
+        M_block11Jac.reset(new Matrix(M_pressureFESpace->map()));
         M_blockMass00.reset(new Matrix(M_velocityFESpace->map()));
         M_blockMass01.reset(new Matrix(M_velocityFESpace->map()));
         M_blockMass10.reset(new Matrix(M_pressureFESpace->map()));
@@ -65,6 +77,14 @@ assembleBlocks(VectorPtr velocity, VectorPtr pressure,
         M_block11.reset(new Matrix(M_pressureFESpace->map()));
     }
 
+    M_blockMass00Jac->zero();
+    M_blockMass01Jac->zero();
+    M_blockMass10Jac->zero();
+    M_blockMass11Jac->zero();
+    M_block00Jac->zero();
+    M_block01Jac->zero();
+    M_block10Jac->zero();
+    M_block11Jac->zero();
     M_blockMass00->zero();
     M_blockMass01->zero();
     M_blockMass10->zero();
@@ -86,62 +106,173 @@ assembleBlocks(VectorPtr velocity, VectorPtr pressure,
               M_velocityFESpace->qr(),
               M_velocityFESpaceETA,
               M_velocityFESpaceETA,
-               TAU_M*value(M_density*M_density)*dot(value(M_velocityFESpaceETA, *velocity)*grad(phi_i), phi_j)
-              +TAU_M*value(M_density*M_density)*dot(phi_j*grad(phi_i), value(M_velocityFESpaceETA, *velocity))
+               TAU_M * value(M_density*M_density) *
+                       dot(value(M_velocityFESpaceETA, *velocity) *
+                       grad(phi_i), phi_j)
+              +TAU_M * value(M_density*M_density) *
+                       dot(phi_j*grad(phi_i),
+                       value(M_velocityFESpaceETA, *velocity))
+          ) >> M_blockMass00Jac;
+
+    integrate(elements(M_velocityFESpace->mesh()),
+              M_velocityFESpace->qr(),
+              M_velocityFESpaceETA,
+              M_velocityFESpaceETA,
+               TAU_M * value(M_density*M_density) *
+                       dot(value(M_velocityFESpaceETA, *velocity) *
+                       grad(phi_i), phi_j)
           ) >> M_blockMass00;
+
+    integrate(elements(M_velocityFESpace->mesh()),
+              M_velocityFESpace->qr(),
+              M_velocityFESpaceETA,
+              M_velocityFESpaceETA,
+               TAU_M * value(M_density*M_density) *
+                       dot(value(M_velocityFESpaceETA, *velocity) *
+                       grad(phi_i), phi_j*grad(M_velocityFESpaceETA, *velocity))
+              +TAU_M * value(M_density*M_density) *
+                       dot(value(M_velocityFESpaceETA, *velocity) *
+                       grad(phi_i), value(M_velocityFESpaceETA, *velocity) *
+                       grad(phi_j))
+              -TAU_M * value(M_density*M_viscosity) *
+                       dot(value(M_velocityFESpaceETA, *velocity) *
+                       grad(phi_i), laplacian(phi_j))
+              -TAU_M * value(M_density*M_density) *
+                       dot(phi_j*grad(phi_i), value(M_velocityFESpaceETA, *velocityRhs))
+              +TAU_M * value(M_density*M_density) *
+                       dot(phi_j*grad(phi_i), value(M_velocityFESpaceETA, *velocity) *
+                       grad(M_velocityFESpaceETA, *velocity))
+              +TAU_M * value(M_density) *
+                       dot(phi_j*grad(phi_i), grad(M_pressureFESpaceETA, *pressure))
+              -TAU_M * value(M_density*M_viscosity) *
+                       dot(phi_j*grad(phi_i), laplacian(M_velocityFESpaceETA, *velocity))
+              +TAU_C * div(phi_i)*div(phi_j)
+              ) >> M_block00Jac;
+
+    integrate(elements(M_velocityFESpace->mesh()),
+              M_velocityFESpace->qr(),
+              M_velocityFESpaceETA,
+              M_velocityFESpaceETA,
+               TAU_M * value(M_density*M_density) *
+                       dot(value(M_velocityFESpaceETA, *velocity) *
+                       grad(phi_i), phi_j*grad(M_velocityFESpaceETA, *velocity))
+              +TAU_M * value(M_density*M_density) *
+                       dot(value(M_velocityFESpaceETA, *velocity) *
+                       grad(phi_i), value(M_velocityFESpaceETA, *velocity) *
+                       grad(phi_j))
+              -TAU_M * value(M_density*M_viscosity) *
+                       dot(value(M_velocityFESpaceETA, *velocity) *
+                       grad(phi_i), laplacian(phi_j))
+              -TAU_M * value(M_density*M_density) *
+                       dot(phi_j*grad(phi_i), value(M_velocityFESpaceETA, *velocityRhs))
+              +TAU_C * div(phi_i)*div(phi_j)
+              ) >> M_block00Jac;
+
+    integrate(elements(M_velocityFESpace->mesh()),
+              M_pressureFESpace->qr(),
+              M_pressureFESpaceETA,
+              M_velocityFESpaceETA,
+              TAU_M * value(M_density)*dot(grad(phi_i), phi_j)
+             ) >> M_blockMass10Jac;
+
+    integrate(elements(M_velocityFESpace->mesh()),
+           M_pressureFESpace->qr(),
+           M_pressureFESpaceETA,
+           M_velocityFESpaceETA,
+           TAU_M * value(M_density)*dot(grad(phi_i), phi_j)
+          ) >> M_blockMass10;
+
+    integrate(elements(M_velocityFESpace->mesh()),
+              M_pressureFESpace->qr(),
+              M_pressureFESpaceETA,
+              M_velocityFESpaceETA,
+               TAU_M * value(M_density) *
+                       dot(grad(phi_i), phi_j *
+                       grad(M_velocityFESpaceETA, *velocity))
+              +TAU_M * value(M_density) *
+                       dot(grad(phi_i), value(M_velocityFESpaceETA, *velocity) *
+                       grad(phi_j))
+              -TAU_M * value(M_viscosity) * dot(grad(phi_i), laplacian(phi_j))
+              ) >> M_block10Jac;
+
+    integrate(elements(M_velocityFESpace->mesh()),
+            M_pressureFESpace->qr(),
+            M_pressureFESpaceETA,
+            M_velocityFESpaceETA,
+             TAU_M * value(M_density) *
+                     dot(grad(phi_i), phi_j *
+                     grad(M_velocityFESpaceETA, *velocity))
+            -TAU_M * value(M_viscosity) * dot(grad(phi_i), laplacian(phi_j))
+            ) >> M_block10;
+
+    integrate(elements(M_velocityFESpace->mesh()),
+              M_velocityFESpace->qr(),
+              M_velocityFESpaceETA,
+              M_pressureFESpaceETA,
+              TAU_M * value(M_density) *
+                      dot(value(M_velocityFESpaceETA, *velocity) *
+                      grad(phi_i), grad(phi_j))
+              ) >> M_block01Jac;
+
+    integrate(elements(M_velocityFESpace->mesh()),
+           M_velocityFESpace->qr(),
+           M_velocityFESpaceETA,
+           M_pressureFESpaceETA,
+           TAU_M * value(M_density) *
+                   dot(value(M_velocityFESpaceETA, *velocity) *
+                   grad(phi_i), grad(phi_j))
+           ) >> M_block01;
+
+    integrate(elements(M_velocityFESpace->mesh()),
+              M_pressureFESpace->qr(),
+              M_pressureFESpaceETA,
+              M_pressureFESpaceETA,
+              TAU_M * dot(grad(phi_i), grad(phi_j))
+              ) >> M_block11Jac;
+
+    M_blockMass00Jac->globalAssemble();
     M_blockMass00->globalAssemble();
-
-    integrate(elements(M_velocityFESpace->mesh()),
-              M_velocityFESpace->qr(),
-              M_velocityFESpaceETA,
-              M_velocityFESpaceETA,
-               TAU_M*value(M_density*M_density)*dot(value(M_velocityFESpaceETA, *velocity)*grad(phi_i), phi_j*grad(M_velocityFESpaceETA, *velocity))
-              +TAU_M*value(M_density*M_density)*dot(value(M_velocityFESpaceETA, *velocity)*grad(phi_i), value(M_velocityFESpaceETA, *velocity)*grad(phi_j))
-              -TAU_M*value(M_density*M_viscosity)*dot(value(M_velocityFESpaceETA, *velocity)*grad(phi_i), laplacian(phi_j))
-              -TAU_M*value(M_density*M_density)*dot(phi_j*grad(phi_i), value(M_velocityFESpaceETA, *velocityRhs))
-              +TAU_M*value(M_density*M_density)*dot(phi_j*grad(phi_i), value(M_velocityFESpaceETA, *velocity)*grad(M_velocityFESpaceETA, *velocity))
-              +TAU_M*value(M_density)*dot(phi_j*grad(phi_i), grad(M_pressureFESpaceETA, *pressure))
-              -TAU_M*value(M_density*M_viscosity)*dot(phi_j*grad(phi_i), laplacian(M_velocityFESpaceETA, *velocity))
-              +TAU_C*div(phi_i)*div(phi_j)
-              ) >> M_block00;
+    M_block00Jac->globalAssemble();
     M_block00->globalAssemble();
-
-    integrate(elements(M_velocityFESpace->mesh()),
-              M_pressureFESpace->qr(),
-              M_pressureFESpaceETA,
-              M_velocityFESpaceETA,
-              TAU_M*value(M_density)*dot( grad(phi_i), phi_j)
-             ) >> M_blockMass10;
-    M_blockMass10->globalAssemble(M_pressureFESpace->mapPtr(),
-                                  M_velocityFESpace->mapPtr());
-
-    integrate(elements(M_velocityFESpace->mesh()),
-              M_pressureFESpace->qr(),
-              M_pressureFESpaceETA,
-              M_velocityFESpaceETA,
-               TAU_M*value(M_density)*dot( grad(phi_i), phi_j*grad(M_velocityFESpaceETA, *velocity))
-              +TAU_M*value(M_density)*dot( grad(phi_i), value(M_velocityFESpaceETA, *velocity)*grad(phi_j))
-              -TAU_M*value(M_viscosity)*dot(grad(phi_i), laplacian(phi_j))
-              ) >> M_block10;
-    M_block10->globalAssemble(M_pressureFESpace->mapPtr(),
-                              M_velocityFESpace->mapPtr());
-
-    integrate(elements(M_velocityFESpace->mesh()),
-              M_velocityFESpace->qr(),
-              M_velocityFESpaceETA,
-              M_pressureFESpaceETA,
-              TAU_M*value(M_density)*dot(value(M_velocityFESpaceETA, *velocity)*grad(phi_i), grad(phi_j))
-              ) >> M_block01;
+    M_blockMass10Jac->globalAssemble(M_velocityFESpace->mapPtr(),
+                                     M_pressureFESpace->mapPtr());
+    M_blockMass10->globalAssemble(M_velocityFESpace->mapPtr(),
+                                  M_pressureFESpace->mapPtr());
+    M_block10Jac->globalAssemble(M_velocityFESpace->mapPtr(),
+                               M_pressureFESpace->mapPtr());
+    M_block10->globalAssemble(M_velocityFESpace->mapPtr(),
+                              M_pressureFESpace->mapPtr());
+    M_block01Jac->globalAssemble(M_pressureFESpace->mapPtr(),
+                                 M_velocityFESpace->mapPtr());
     M_block01->globalAssemble(M_pressureFESpace->mapPtr(),
                               M_velocityFESpace->mapPtr());
-
-    integrate(elements(M_velocityFESpace->mesh()),
-              M_pressureFESpace->qr(),
-              M_pressureFESpaceETA,
-              M_pressureFESpaceETA,
-              TAU_M*dot(grad(phi_i), grad(phi_j))
-              ) >> M_block11;
+    M_blockMass01Jac->globalAssemble(M_pressureFESpace->mapPtr(),
+                                     M_velocityFESpace->mapPtr());
+    M_blockMass01->globalAssemble(M_pressureFESpace->mapPtr(),
+                                  M_velocityFESpace->mapPtr());
+    M_blockMass10Jac->globalAssemble(M_velocityFESpace->mapPtr(),
+                                     M_pressureFESpace->mapPtr());
+    M_blockMass10->globalAssemble(M_velocityFESpace->mapPtr(),
+                                  M_pressureFESpace->mapPtr());
+    M_block11Jac->globalAssemble();
     M_block11->globalAssemble();
+
+    M_blockMass00Jac->zero();
+    M_blockMass01Jac->zero();
+    M_blockMass10Jac->zero();
+    M_blockMass11Jac->zero();
+    M_block00Jac->zero();
+    M_block01Jac->zero();
+    M_block10Jac->zero();
+    M_block11Jac->zero();
+    M_blockMass00->zero();
+    M_blockMass01->zero();
+    M_blockMass10->zero();
+    M_blockMass11->zero();
+    M_block00->zero();
+    M_block01->zero();
+    M_block10->zero();
+    M_block11->zero();
 }
 
 }  // namespace RedMA

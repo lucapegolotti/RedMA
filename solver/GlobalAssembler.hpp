@@ -56,7 +56,9 @@ public:
 
     MapEpetraPtr getGlobalMap() const;
 
-    GlobalBlockMatrix getGlobalMass() const;
+    GlobalBlockMatrix getGlobalMass();
+
+    GlobalBlockMatrix getGlobalMassJac();
 
     GlobalBlockMatrix getJacobianF(bool addCoupling,
                                    double* diagonalCoefficient = nullptr);
@@ -111,11 +113,13 @@ private:
     bool                                                    M_verbose;
     MapEpetraPtr                                            M_globalMap;
     GlobalBlockMatrix                                       M_massMatrix;
+    GlobalBlockMatrix                                       M_updatedMassMatrix;
     std::vector<unsigned int>                               M_dimensionsVector;
     std::vector<std::pair<unsigned int, unsigned int> >     M_interfaces;
     std::vector<unsigned int>                               M_offsets;
     unsigned int                                            M_nPrimalBlocks;
     std::vector<MapEpetraPtr>                               M_maps;
+    bool                                                    M_updateMassMatrix;
 };
 
 }  // namespace RedMA

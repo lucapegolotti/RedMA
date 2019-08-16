@@ -291,12 +291,18 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
         if (!M_J)
             assembleJacobianConvectiveMatrix();
         *retJacobian += *M_J;
+        if (M_stabilization)
+            *retJacobian += (*M_stabilization->block00Jac());
         retJacobian->globalAssemble();
     }
     else if (blockrow == 0 && blockcol == 1)
     {
         retJacobian.reset(new Matrix(M_velocityFESpace->map()));
         *retJacobian = *M_Bt;
+
+        if (M_stabilization)
+            *retJacobian += (*M_stabilization->block01Jac());
+
         retJacobian->globalAssemble(M_pressureFESpace->mapPtr(),
                                     M_velocityFESpace->mapPtr());
     }
@@ -304,12 +310,21 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
     {
         retJacobian.reset(new Matrix(M_pressureFESpace->map()));
         *retJacobian = *M_B;
+
+        if (M_stabilization)
+            *retJacobian += (*M_stabilization->block10Jac());
+
         retJacobian->globalAssemble(M_velocityFESpace->mapPtr(),
                                     M_pressureFESpace->mapPtr());
     }
     else if (blockrow == 1 && blockcol == 1)
     {
         retJacobian = nullptr;
+        if (M_stabilization)
+        {
+            retJacobian.reset(new Matrix(*M_stabilization->block11Jac()));
+            retJacobian->globalAssemble();
+        }
     }
     else
     {
@@ -369,6 +384,12 @@ computeF()
     *F1 -= (*M_C) * (*velocity);
     *F1 -= (*M_Bt) * (*pressure);
 
+    if (M_stabilization)
+    {
+        *F1 -= (*M_stabilization->block00()) * (*velocity);
+        *F1 -= (*M_stabilization->block01()) * (*pressure);
+    }
+
     unsigned int count = 2;
     for (std::map<unsigned int, MatrixPtr>::iterator it = getMapsQTs().begin();
          it != getMapsQTs().end(); it++)
@@ -383,6 +404,12 @@ computeF()
 
     *F2 = (*M_B) * (*velocity);
     *F2 *= (-1);
+
+    if (M_stabilization)
+    {
+        *F2 -= (*M_stabilization->block10()) * (*velocity);
+        *F2 -= (*M_stabilization->block11()) * (*pressure);
+    }
 
     Fs.push_back(F1);
     Fs.push_back(F2);
@@ -467,6 +494,44 @@ computeFder()
         count++;
     }
     return Fs;
+}
+
+NavierStokesAssembler::MatrixPtr
+NavierStokesAssembler::
+getUpdateMass(const unsigned int& blockrow, const unsigned int& blockcol)
+{
+    if (M_stabilization)
+    {
+        if (blockrow == 0 && blockcol == 0)
+            return M_stabilization->blockMass00();
+        if (blockrow == 1 && blockcol == 0)
+            return M_stabilization->blockMass10();
+        if (blockrow == 0 && blockcol == 1)
+            return M_stabilization->blockMass01();
+        if (blockrow == 1 && blockcol == 1)
+            return M_stabilization->blockMass11();
+    }
+    return nullptr;
+}
+
+NavierStokesAssembler::MatrixPtr
+NavierStokesAssembler::
+getUpdateMassJac(const unsigned int& blockrow, const unsigned int& blockcol)
+{
+    if (M_stabilization)
+    {
+        if (blockrow == 0 && blockcol == 0)
+            return M_stabilization->blockMass00Jac();
+        if (blockrow == 1 && blockcol == 0)
+            return M_stabilization->blockMass10Jac();
+        if (blockrow == 0 && blockcol == 1)
+            // return nullptr;
+            return M_stabilization->blockMass01Jac();
+        if (blockrow == 1 && blockcol == 1)
+            return nullptr;
+            // return M_stabilization->blockMass11Jac();
+    }
+    return nullptr;
 }
 
 NavierStokesAssembler::BoundaryConditionPtr
@@ -641,8 +706,8 @@ applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
 
     if (matrix)
     {
-        MapEpetra domainMap = matrix->domainMap();
         MapEpetra rangeMap = matrix->rangeMap();
+        MapEpetra domainMap = matrix->domainMap();
 
         BoundaryConditionPtr bc = createBCHandler(M_maxVelocityLaw);
         updateBCs(bc, M_velocityFESpace);

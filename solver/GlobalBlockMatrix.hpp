@@ -52,6 +52,10 @@ public:
 
     void resize(unsigned int numRows, unsigned int numCols);
 
+    unsigned int getNumberRows();
+
+    unsigned int getNumberCols();
+
     MatrixEpetraPtr& block(unsigned int row, unsigned int col);
 
     MatrixEpetraPtr block(unsigned int row, unsigned int col) const;

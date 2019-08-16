@@ -14,8 +14,6 @@ BackwardEuler(const GetPot& datafile,
 {
     double diagonalCoefficient = 1.0;
     // first we store the mass with no boundary conditions
-    M_massMatrixNoBCs = assembler->assembleGlobalMass(false);
-
     assembler->assembleGlobalMass(false, &diagonalCoefficient);
     M_prevSolution.reset(new Vector(assembler->getGlobalMap()));
     M_prevSolution->zero();
@@ -60,9 +58,9 @@ assembleF(const double& time, VectorPtr tentativeSol, const double& dt)
     VectorPtr retF(new Vector(M_solution->map()));
     retF->zero();
 
-    *retF = (M_massMatrixNoBCs) * (*M_prevSolution);
+    *retF = (M_globalAssembler->getGlobalMass()) * (*M_prevSolution);
     *retF *= (-1.0);
-    *retF += (M_massMatrixNoBCs) * (*tentativeSol);
+    *retF += (M_globalAssembler->getGlobalMass()) * (*tentativeSol);
     *retF -= (dt) * (*(M_globalAssembler->computeF()));
     M_globalAssembler->applyBCsVector(retF, 0.0, time,
                                       &AssemblerType::applyBCsBackwardEuler);
@@ -81,7 +79,7 @@ assembleJac(const double& time, VectorPtr tentativeSol, const double& dt)
     GlobalBlockMatrix retJac = M_globalAssembler->getJacobianF(true,
                                                           &diagonalCoefficient);
     retJac *= (-dt);
-    retJac.add(M_globalAssembler->getGlobalMass());
+    retJac.add(M_globalAssembler->getGlobalMassJac());
 
     return retJac;
 }

@@ -82,9 +82,22 @@ setUp(RedMA::GlobalBlockMatrix matrix,
             newPrec.reset(Operators::NSPreconditionerFactory::
                           instance().createObject("SIMPLE"));
             newPrec->setOptions(M_solversOptions);
-            newPrec->setUp(matrix.block(iblock,iblock),
-                           matrix.block(iblock+1,iblock),
-                           matrix.block(iblock,iblock+1));
+
+            // then we are not considering stabilization
+            if (matrix.block(iblock+1,iblock+1) == nullptr)
+            {
+                newPrec->setUp(matrix.block(iblock,iblock),
+                               matrix.block(iblock+1,iblock),
+                               matrix.block(iblock,iblock+1));
+            }
+            // then we are using stabilization
+            else
+            {
+                newPrec->setUp(matrix.block(iblock,iblock),
+                               matrix.block(iblock+1,iblock),
+                               matrix.block(iblock,iblock+1),
+                               matrix.block(iblock+1,iblock+1));
+            }
 
             std::shared_ptr<BlockEpetra_Map> localRangeMap(
                                       new BlockEpetra_Map(localRangeBlockMaps));

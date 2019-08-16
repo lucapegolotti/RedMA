@@ -102,6 +102,12 @@ public:
 
     static std::string normFileFirstLine();
 
+    MatrixPtr getUpdateMass(const unsigned int& blockrow,
+                            const unsigned int& blockcol);
+
+    MatrixPtr getUpdateMassJac(const unsigned int& blockrow,
+                               const unsigned int& blockcol);
+
 protected:
     void assembleConstantMatrices();
 

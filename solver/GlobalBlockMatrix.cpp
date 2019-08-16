@@ -30,6 +30,20 @@ resize(unsigned int numRows, unsigned int numCols)
     }
 }
 
+unsigned int
+GlobalBlockMatrix::
+getNumberRows()
+{
+    return M_rows;
+}
+
+unsigned int
+GlobalBlockMatrix::
+getNumberCols()
+{
+    return M_cols;
+}
+
 GlobalBlockMatrix::
 GlobalBlockMatrix(const GlobalBlockMatrix& other)
 {
@@ -80,12 +94,20 @@ add(const GlobalBlockMatrix& other)
     {
         for (unsigned int j = 0; j < M_cols; j++)
         {
-            if (other.M_gridEpetra(i,j) != nullptr && M_gridEpetra(i,j) != nullptr)
+            if (M_gridEpetra(i,j) != nullptr && other.M_gridEpetra(i,j) != nullptr)
+            {
                 *M_gridEpetra(i,j) += *other.M_gridEpetra(i,j);
-            else if (M_gridEpetra(i,j) == nullptr && M_gridEpetra(i,j) != nullptr)
+            }
+            else if (M_gridEpetra(i,j) == nullptr && other.M_gridEpetra(i,j) != nullptr)
+            {
                 M_gridEpetra(i,j).reset(new MatrixEpetra(*other.M_gridEpetra(i,j)));
+            }
         }
     }
+    M_globalRangeMap = other.M_globalRangeMap;
+    M_globalDomainMap = other.M_globalDomainMap;
+    M_domainMaps = other.M_domainMaps;
+    M_rangeMaps = other.M_rangeMaps;
 }
 
 // void

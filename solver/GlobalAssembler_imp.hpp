@@ -123,9 +123,29 @@ getGlobalMap() const
 template <class AssemblerType>
 GlobalBlockMatrix
 GlobalAssembler<AssemblerType>::
-getGlobalMass() const
+getGlobalMass()
 {
-    return M_massMatrix;
+    GlobalBlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
+                                        M_massMatrix.getNumberCols());
+    double diagCoefficient = 0.0;
+    fillGlobalMatrix(updatedMassMatrix, false, &AssemblerType::getUpdateMass,
+                     &diagCoefficient);
+    updatedMassMatrix.add(M_massMatrix);
+    return updatedMassMatrix;
+}
+
+template <class AssemblerType>
+GlobalBlockMatrix
+GlobalAssembler<AssemblerType>::
+getGlobalMassJac()
+{
+    GlobalBlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
+                                        M_massMatrix.getNumberCols());
+    double diagCoefficient = 0.0;
+    fillGlobalMatrix(updatedMassMatrix, false, &AssemblerType::getUpdateMassJac,
+                     &diagCoefficient);
+    updatedMassMatrix.add(M_massMatrix);
+    return updatedMassMatrix;
 }
 
 template <class AssemblerType>

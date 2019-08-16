@@ -70,7 +70,6 @@ public:
 
 private:
     LifeV::RosenbrockCoeff  M_coefficients;
-    GlobalBlockMatrix       M_massMatrixNoBCs;
     VectorPtr               M_prevSolution;
 };
 
