@@ -80,7 +80,6 @@ assembleJac(const double& time, VectorPtr tentativeSol, const double& dt)
                                                           &diagonalCoefficient);
     retJac *= (-dt);
     retJac.add(M_globalAssembler->getGlobalMassJac());
-
     return retJac;
 }
 

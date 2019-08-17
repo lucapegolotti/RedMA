@@ -173,14 +173,14 @@ assembleBlocks(VectorPtr velocity, VectorPtr pressure,
               M_pressureFESpaceETA,
               M_velocityFESpaceETA,
               TAU_M * value(M_density)*dot(grad(phi_i), phi_j)
-             ) >> M_blockMass10Jac;
+              ) >> M_blockMass10Jac;
 
     integrate(elements(M_velocityFESpace->mesh()),
            M_pressureFESpace->qr(),
            M_pressureFESpaceETA,
            M_velocityFESpaceETA,
            TAU_M * value(M_density)*dot(grad(phi_i), phi_j)
-          ) >> M_blockMass10;
+              ) >> M_blockMass10;
 
     integrate(elements(M_velocityFESpace->mesh()),
               M_pressureFESpace->qr(),
@@ -196,14 +196,14 @@ assembleBlocks(VectorPtr velocity, VectorPtr pressure,
               ) >> M_block10Jac;
 
     integrate(elements(M_velocityFESpace->mesh()),
-            M_pressureFESpace->qr(),
-            M_pressureFESpaceETA,
-            M_velocityFESpaceETA,
-             TAU_M * value(M_density) *
-                     dot(grad(phi_i), phi_j *
-                     grad(M_velocityFESpaceETA, *velocity))
-            -TAU_M * value(M_viscosity) * dot(grad(phi_i), laplacian(phi_j))
-            ) >> M_block10;
+              M_pressureFESpace->qr(),
+              M_pressureFESpaceETA,
+              M_velocityFESpaceETA,
+              TAU_M * value(M_density) *
+                      dot(grad(phi_i), phi_j *
+                      grad(M_velocityFESpaceETA, *velocity))
+             -TAU_M * value(M_viscosity) * dot(grad(phi_i), laplacian(phi_j))
+              ) >> M_block10;
 
     integrate(elements(M_velocityFESpace->mesh()),
               M_velocityFESpace->qr(),
@@ -250,29 +250,27 @@ assembleBlocks(VectorPtr velocity, VectorPtr pressure,
                                      M_velocityFESpace->mapPtr());
     M_blockMass01->globalAssemble(M_pressureFESpace->mapPtr(),
                                   M_velocityFESpace->mapPtr());
-    M_blockMass10Jac->globalAssemble(M_velocityFESpace->mapPtr(),
-                                     M_pressureFESpace->mapPtr());
-    M_blockMass10->globalAssemble(M_velocityFESpace->mapPtr(),
-                                  M_pressureFESpace->mapPtr());
     M_block11Jac->globalAssemble();
     M_block11->globalAssemble();
+    M_blockMass11Jac->globalAssemble();
+    M_blockMass11->globalAssemble();
 
-    M_blockMass00Jac->zero();
-    M_blockMass01Jac->zero();
-    M_blockMass10Jac->zero();
-    M_blockMass11Jac->zero();
-    M_block00Jac->zero();
-    M_block01Jac->zero();
-    M_block10Jac->zero();
-    M_block11Jac->zero();
-    M_blockMass00->zero();
-    M_blockMass01->zero();
-    M_blockMass10->zero();
-    M_blockMass11->zero();
-    M_block00->zero();
-    M_block01->zero();
-    M_block10->zero();
-    M_block11->zero();
+    // M_blockMass00Jac->zero();
+    // M_blockMass01Jac->zero();
+    // M_blockMass10Jac->zero();
+    // M_blockMass11Jac->zero();
+    // M_block00Jac->zero();
+    // M_block01Jac->zero();
+    // M_block10Jac->zero();
+    // M_block11Jac->zero();
+    // M_blockMass00->zero();
+    // M_blockMass01->zero();
+    // M_blockMass10->zero();
+    // M_blockMass11->zero();
+    // M_block00->zero();
+    // M_block01->zero();
+    // M_block10->zero();
+    // M_block11->zero();
 }
 
 }  // namespace RedMA

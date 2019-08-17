@@ -144,7 +144,9 @@ getGlobalMassJac()
     double diagCoefficient = 0.0;
     fillGlobalMatrix(updatedMassMatrix, false, &AssemblerType::getUpdateMassJac,
                      &diagCoefficient);
-    updatedMassMatrix.add(M_massMatrix);
+    // TODO: fix this for backward euler without stabilization: we have to add
+    // the mass matrix
+    // updatedMassMatrix.add(M_massMatrix);
     return updatedMassMatrix;
 }
 

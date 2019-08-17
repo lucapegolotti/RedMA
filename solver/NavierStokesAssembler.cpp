@@ -525,11 +525,9 @@ getUpdateMassJac(const unsigned int& blockrow, const unsigned int& blockcol)
         if (blockrow == 1 && blockcol == 0)
             return M_stabilization->blockMass10Jac();
         if (blockrow == 0 && blockcol == 1)
-            // return nullptr;
             return M_stabilization->blockMass01Jac();
         if (blockrow == 1 && blockcol == 1)
-            return nullptr;
-            // return M_stabilization->blockMass11Jac();
+            return M_stabilization->blockMass11Jac();
     }
     return nullptr;
 }
