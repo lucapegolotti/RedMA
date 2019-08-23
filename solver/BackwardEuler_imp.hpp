@@ -92,7 +92,6 @@ assembleJac(const double& time, VectorPtr tentativeSol, const double& dt)
 
     retJac.add(massUn);
     retJac.add(M_globalAssembler->getGlobalMassJac());
-    retJac.printPattern();
     return retJac;
 }
 

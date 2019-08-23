@@ -30,7 +30,7 @@
 #include <lifev/core/filter/ExporterHDF5.hpp>
 #include <boost/filesystem.hpp>
 
-#include <VMS_SUPGStabilization.hpp>
+#include <SUPGStabilization.hpp>
 
 namespace RedMA
 {
