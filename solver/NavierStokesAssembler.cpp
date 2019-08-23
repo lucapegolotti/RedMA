@@ -119,7 +119,7 @@ assembleDivergenceMatrix()
                M_pressureFESpace->qr(),
                M_pressureFESpaceETA,
                M_velocityFESpaceETA,
-               value(-1.0) * phi_i * div(phi_j)
+               phi_i * div(phi_j)
               ) >> M_B;
 
     M_B->globalAssemble(M_velocityFESpace->mapPtr(),
@@ -229,17 +229,49 @@ assembleJacobianConvectiveMatrix()
 
 void
 NavierStokesAssembler::
-setTimeAndPrevSolution(const double& time, std::vector<VectorPtr> solution)
+setTimeAndPrevSolution(const double& time, std::vector<VectorPtr> solution,
+                       bool assembleBlocks)
 {
     M_time = time;
     M_prevSolution = solution;
     // reset all things that need to be recomputed
-    if (M_C != nullptr)
-        M_C->zero();
-    if (M_J != nullptr)
-        M_J->zero();
-    M_forcingTerm = nullptr;
-    M_forcingTermTimeDer = nullptr;
+
+    if (assembleBlocks)
+    {
+        assembleConvectiveMatrix();
+        assembleJacobianConvectiveMatrix();
+        assembleForcingTerm();
+        assembleForcingTermTimeDerivative();
+    }
+
+    if (M_useStabilization)
+    {
+        if (M_stabilization == nullptr)
+        {
+            std::string velocityOrder = M_datafile("fluid/velocity_order", "P1");
+            unsigned int uOrder;
+            if (!std::strcmp(velocityOrder.c_str(),"P1"))
+                uOrder = 1;
+            else if (!std::strcmp(velocityOrder.c_str(),"P2"))
+                uOrder = 2;
+            else
+                throw Exception("Implement suitable velocity order");
+
+            M_stabilization.reset(new
+                         VMS_SUPGStabilization(this->M_timeIntegrationOrder,
+                                               uOrder,
+                                               M_velocityFESpace,
+                                               M_pressureFESpace,
+                                               M_velocityFESpaceETA,
+                                               M_pressureFESpaceETA));
+            double density = M_datafile("fluid/density", 1.0);
+            double viscosity = M_datafile("fluid/viscosity", 1.0);
+            M_stabilization->setDensityAndViscosity(density, viscosity);
+        }
+        if (assembleBlocks)
+            M_stabilization->assembleBlocks(M_prevSolution[0], M_prevSolution[1],
+                                            M_forcingTerm, this->M_dt);
+    }
 }
 
 void
@@ -285,13 +317,9 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
         retJacobian.reset(new Matrix(M_velocityFESpace->map()));
         retJacobian->zero();
         *retJacobian += *M_A;
-        if (!M_C)
-            assembleConvectiveMatrix();
         *retJacobian += *M_C;
-        if (!M_J)
-            assembleJacobianConvectiveMatrix();
         *retJacobian += *M_J;
-        if (M_stabilization)
+        if (M_useStabilization)
             *retJacobian += (*M_stabilization->block00Jac());
         retJacobian->globalAssemble();
     }
@@ -300,7 +328,7 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
         retJacobian.reset(new Matrix(M_velocityFESpace->map()));
         *retJacobian = *M_Bt;
 
-        if (M_stabilization)
+        if (M_useStabilization)
             *retJacobian += (*M_stabilization->block01Jac());
 
         retJacobian->globalAssemble(M_pressureFESpace->mapPtr(),
@@ -311,7 +339,7 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
         retJacobian.reset(new Matrix(M_pressureFESpace->map()));
         *retJacobian = *M_B;
 
-        if (M_stabilization)
+        if (M_useStabilization)
             *retJacobian += (*M_stabilization->block10Jac());
 
         retJacobian->globalAssemble(M_velocityFESpace->mapPtr(),
@@ -320,7 +348,7 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
     else if (blockrow == 1 && blockcol == 1)
     {
         retJacobian = nullptr;
-        if (M_stabilization)
+        if (M_useStabilization)
         {
             retJacobian.reset(new Matrix(*M_stabilization->block11Jac()));
             retJacobian->globalAssemble();
@@ -353,41 +381,15 @@ computeF()
     F1.reset(new Vector(M_velocityFESpace->map()));
     F1->zero();
 
-    if (!M_forcingTerm)
-        assembleForcingTerm();
-
-
-    if (M_useStabilization)
-    {
-        if (M_stabilization == nullptr)
-        {
-            M_stabilization.reset(new
-                         VMS_SUPGStabilization(this->M_timeIntegrationOrder,
-                                               M_velocityFESpace,
-                                               M_pressureFESpace,
-                                               M_velocityFESpaceETA,
-                                               M_pressureFESpaceETA));
-            double density = M_datafile("fluid/density", 1.0);
-            double viscosity = M_datafile("fluid/viscosity", 1.0);
-            M_stabilization->setDensityAndViscosity(density, viscosity);
-        }
-        M_stabilization->assembleBlocks(velocity, pressure,
-                                        M_forcingTerm, this->M_dt);
-    }
-
     *F1 += *M_forcingTerm;
-
-    if (!M_C)
-        assembleConvectiveMatrix();
-
     *F1 -= (*M_A) * (*velocity);
     *F1 -= (*M_C) * (*velocity);
     *F1 -= (*M_Bt) * (*pressure);
 
-    if (M_stabilization)
+    if (M_useStabilization)
     {
-        *F1 -= (*M_stabilization->block00()) * (*velocity);
-        *F1 -= (*M_stabilization->block01()) * (*pressure);
+        *F1 -= *M_stabilization->velocityResidual(velocity, pressure,
+                                                  M_forcingTerm, this->M_dt);
     }
 
     unsigned int count = 2;
@@ -405,10 +407,10 @@ computeF()
     *F2 = (*M_B) * (*velocity);
     *F2 *= (-1);
 
-    if (M_stabilization)
+    if (M_useStabilization)
     {
-        *F2 -= (*M_stabilization->block10()) * (*velocity);
-        *F2 -= (*M_stabilization->block11()) * (*pressure);
+        *F2 -= *M_stabilization->pressureResidual(velocity, pressure,
+                                                  M_forcingTerm, this->M_dt);
     }
 
     Fs.push_back(F1);
@@ -470,9 +472,6 @@ computeFder()
     F1.reset(new Vector(M_velocityFESpace->map()));
     F1->zero();
 
-    if (!M_forcingTermTimeDer)
-        assembleForcingTermTimeDerivative();
-
     *F1 += *M_forcingTermTimeDer;
 
     // assemble F second component
@@ -500,7 +499,7 @@ NavierStokesAssembler::MatrixPtr
 NavierStokesAssembler::
 getUpdateMass(const unsigned int& blockrow, const unsigned int& blockcol)
 {
-    if (M_stabilization)
+    if (M_useStabilization)
     {
         if (blockrow == 0 && blockcol == 0)
             return M_stabilization->blockMass00();
@@ -518,7 +517,7 @@ NavierStokesAssembler::MatrixPtr
 NavierStokesAssembler::
 getUpdateMassJac(const unsigned int& blockrow, const unsigned int& blockcol)
 {
-    if (M_stabilization)
+    if (M_useStabilization)
     {
         if (blockrow == 0 && blockcol == 0)
             return M_stabilization->blockMass00Jac();
@@ -528,6 +527,19 @@ getUpdateMassJac(const unsigned int& blockrow, const unsigned int& blockcol)
             return M_stabilization->blockMass01Jac();
         if (blockrow == 1 && blockcol == 1)
             return M_stabilization->blockMass11Jac();
+    }
+    return nullptr;
+}
+
+NavierStokesAssembler::MatrixPtr
+NavierStokesAssembler::
+getUpdateMassJacVelocity(const unsigned int& blockrow, const unsigned int& blockcol)
+{
+    if (M_useStabilization)
+    {
+        if (blockrow == 0 && blockcol == 0)
+            return M_stabilization->assembleMassWithVelocity(M_prevSolution[0],
+                                                             this->M_dt);
     }
     return nullptr;
 }
@@ -791,6 +803,125 @@ computeNorms(std::vector<VectorPtr> solutions)
 
     printlog(MAGENTA, "done\n", M_verbose);
     return norms;
+}
+
+void
+NavierStokesAssembler::
+checkResidual(std::vector<VectorPtr> solutions,
+              std::vector<VectorPtr> prevSolutions, double dt)
+{
+    std::cout << "Checking residuals" << std::endl;
+
+    VectorPtr F1;
+    F1.reset(new Vector(M_velocityFESpace->map()));
+    F1->zero();
+
+    *F1 = *M_forcingTerm;
+    *F1 *= (-1);
+    *F1 = (*M_A) * (*solutions[0]);
+
+    M_prevSolution[0] = solutions[0];
+
+    assembleConvectiveMatrix();
+
+    *F1 += (*M_C) * (*solutions[0]);
+    *F1 += (*M_Bt) * (*solutions[1]);
+    *F1 *= (dt);
+
+    VectorPtr Fmass;
+    Fmass.reset(new Vector(M_velocityFESpace->map()));
+    Fmass->zero();
+
+    *Fmass = (*M_M) * (*solutions[0]);
+    *Fmass -= (*M_M) * (*prevSolutions[0]);
+
+    *F1 += *Fmass;
+
+    std::vector<VectorPtr> ff;
+    ff.push_back(F1);
+    applyBCsBackwardEuler(ff,0,0);
+    std::cout << "Residual 1 = " << F1->norm2() << std::endl << std::flush;
+
+    if (M_useStabilization)
+    {
+        M_stabilization->assembleBlocks(solutions[0], solutions[1],
+                                        M_forcingTerm, dt);
+        *F1 += (*M_stabilization->blockMass00()) * (*solutions[0]);
+        *F1 -= (*M_stabilization->blockMass00()) * (*prevSolutions[0]);
+        *F1 += (dt) * (*M_stabilization->velocityResidual(solutions[0], solutions[1],
+                                             M_forcingTerm, dt));
+
+        applyBCsBackwardEuler(ff,0,0);
+        std::cout << "Residual 1 after stabilization = " << F1->norm2() << std::endl << std::flush;
+    }
+    else
+    {
+        std::string velocityOrder = M_datafile("fluid/velocity_order", "P1");
+        unsigned int uOrder;
+        if (!std::strcmp(velocityOrder.c_str(),"P1"))
+            uOrder = 1;
+        else if (!std::strcmp(velocityOrder.c_str(),"P2"))
+            uOrder = 2;
+        else
+            throw Exception("Implement suitable velocity order");
+
+        M_stabilization.reset(new
+                     VMS_SUPGStabilization(this->M_timeIntegrationOrder,
+                                           uOrder,
+                                           M_velocityFESpace,
+                                           M_pressureFESpace,
+                                           M_velocityFESpaceETA,
+                                           M_pressureFESpaceETA));
+        double density = M_datafile("fluid/density", 1.0);
+        double viscosity = M_datafile("fluid/viscosity", 1.0);
+        M_stabilization->setDensityAndViscosity(density, viscosity);
+
+        M_stabilization->assembleBlocks(solutions[0], solutions[1],
+                                        M_forcingTerm, this->M_dt);
+
+        VectorPtr fstab;
+        fstab.reset(new Vector(M_velocityFESpace->map()));
+        fstab->zero();
+
+        *fstab += (*M_stabilization->blockMass00()) * (*solutions[0]);
+        *fstab -= (*M_stabilization->blockMass00()) * (*prevSolutions[0]);
+        *fstab += (dt) * (*M_stabilization->velocityResidual(solutions[0], solutions[1],
+                                             M_forcingTerm, dt));
+
+        std::cout << "Residual of the stabilization 1 = " << fstab->norm2() << std::endl;
+    }
+    VectorPtr F2;
+    F2.reset(new Vector(M_pressureFESpace->map()));
+    F2->zero();
+
+    *F2 += (*M_B) * (*solutions[0]);
+    *F2 *= (dt);
+
+    std::cout << "Residual 2 = " << F2->norm2() << std::endl << std::flush;
+
+    if (M_useStabilization)
+    {
+        *F2 += (*M_stabilization->blockMass10()) * (*solutions[0]);
+        *F2 -= (*M_stabilization->blockMass10()) * (*prevSolutions[0]);
+        *F2 += (dt) * (*M_stabilization->pressureResidual(solutions[0], solutions[1],
+                                             M_forcingTerm, dt));
+
+        std::cout << "Residual 2 after stabilization = " << F2->norm2() << std::endl << std::flush;
+    }
+    else
+    {
+        VectorPtr fstab;
+        fstab.reset(new Vector(M_pressureFESpace->map()));
+        fstab->zero();
+
+        *fstab += (*M_stabilization->blockMass10()) * (*solutions[0]);
+        *fstab -= (*M_stabilization->blockMass10()) * (*prevSolutions[0]);
+        *fstab += (dt) * (*M_stabilization->pressureResidual(solutions[0], solutions[1],
+                                             M_forcingTerm, dt));
+
+        std::cout << "Residual of the stabilization 2 = " << fstab->norm2() << std::endl;
+    }
+    std::cout << "Total residual = " << std::sqrt(F1->norm2() * F1->norm2() +  F2->norm2() * F2->norm2()) << std::endl << std::flush;
 }
 
 std::string

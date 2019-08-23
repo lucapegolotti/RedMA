@@ -69,7 +69,6 @@ public:
                                   const double& dt);
 
 private:
-    LifeV::RosenbrockCoeff  M_coefficients;
     VectorPtr               M_prevSolution;
 };
 

@@ -79,6 +79,8 @@ public:
 
     void setMaps(std::vector<MapPtr> rangeMaps, std::vector<MapPtr> domainMaps);
 
+    void printPattern();
+
 private:
     Grid                 M_grid;
     GridEpetra           M_gridEpetra;

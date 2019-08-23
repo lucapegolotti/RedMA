@@ -38,7 +38,8 @@ solveTimestep(const double &time, double &dt)
     GlobalBlockMatrix globalMass = M_globalAssembler->getGlobalMass();
 
     double diagonalCoefficient = 0.0;
-    GlobalBlockMatrix globalJac = M_globalAssembler->getJacobianF(true, &diagonalCoefficient);
+    GlobalBlockMatrix globalJac = M_globalAssembler->getJacobianF(true,
+                                                          &diagonalCoefficient);
     GlobalBlockMatrix systemMatrix(globalJac);
     systemMatrix *= (-dt * M_coefficients.gamma());
     // systemMatrix->openCrsMatrix();

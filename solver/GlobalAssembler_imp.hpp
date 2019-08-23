@@ -132,6 +132,7 @@ getGlobalMass()
                      &diagCoefficient);
     updatedMassMatrix.add(M_massMatrix);
     return updatedMassMatrix;
+    // return M_massMatrix;
 }
 
 template <class AssemblerType>
@@ -144,9 +145,21 @@ getGlobalMassJac()
     double diagCoefficient = 0.0;
     fillGlobalMatrix(updatedMassMatrix, false, &AssemblerType::getUpdateMassJac,
                      &diagCoefficient);
-    // TODO: fix this for backward euler without stabilization: we have to add
-    // the mass matrix
-    // updatedMassMatrix.add(M_massMatrix);
+    updatedMassMatrix.add(M_massMatrix);
+    // return updatedMassMatrix;
+    return updatedMassMatrix;
+}
+
+template <class AssemblerType>
+GlobalBlockMatrix
+GlobalAssembler<AssemblerType>::
+getGlobalMassJacVelocity()
+{
+    GlobalBlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
+                                        M_massMatrix.getNumberCols());
+    double diagCoefficient = 0.0;
+    fillGlobalMatrix(updatedMassMatrix, false, &AssemblerType::getUpdateMassJacVelocity,
+                     &diagCoefficient);
     return updatedMassMatrix;
 }
 
@@ -328,7 +341,7 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
 template<class AssemblerType>
 void
 GlobalAssembler<AssemblerType>::
-setTimeAndPrevSolution(const double& time, VectorPtr solution)
+setTimeAndPrevSolution(const double& time, VectorPtr solution, bool doAssembly)
 {
     typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
@@ -369,7 +382,7 @@ setTimeAndPrevSolution(const double& time, VectorPtr solution)
             localSolutions.push_back(subSolution);
             in++;
         }
-        it->second->setTimeAndPrevSolution(time, localSolutions);
+        it->second->setTimeAndPrevSolution(time, localSolutions, doAssembly);
     }
 }
 
@@ -618,6 +631,65 @@ setTimeIntegrationOrder(unsigned int order)
          it != M_assemblersVector.end(); it++)
     {
         it->second->setTimeIntegrationOrder(order);
+    }
+}
+
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+checkResidual(VectorPtr solution, VectorPtr prevSolution, double dt)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+    typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
+    typedef std::vector<MapEpetraPtr>                    MapVector;
+
+    unsigned int offsetPrimal = 0;
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        std::vector<VectorPtr> localSolutions;
+        std::vector<VectorPtr> localPrevSolutions;
+        // first handle the primal solutions
+        MapVector maps = it->second->getPrimalMapVector();
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            VectorPtr subSolution;
+            subSolution.reset(new Vector(curLocalMap));
+            subSolution->zero();
+            subSolution->subset(*solution, curLocalMap, offsetPrimal, 0);
+            localSolutions.push_back(subSolution);
+            subSolution.reset(new Vector(curLocalMap));
+            subSolution->zero();
+            subSolution->subset(*prevSolution, curLocalMap, offsetPrimal, 0);
+            localPrevSolutions.push_back(subSolution);
+            offsetPrimal += curLocalMap.mapSize();
+        }
+
+        maps = it->second->getDualMapVector();
+        std::vector<unsigned int> indices = it->second->getInterfacesIndices();
+        unsigned int in = 0;
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            VectorPtr subSolution;
+            subSolution.reset(new Vector(curLocalMap));
+            subSolution->zero();
+            subSolution->subset(*solution, curLocalMap,
+                                 M_offsets[M_nPrimalBlocks + indices[in]], 0);
+            localSolutions.push_back(subSolution);
+            subSolution.reset(new Vector(curLocalMap));
+            subSolution->zero();
+            subSolution->subset(*prevSolution, curLocalMap,
+                                 M_offsets[M_nPrimalBlocks + indices[in]], 0);
+            localPrevSolutions.push_back(subSolution);
+            in++;
+        }
+
+        it->second->checkResidual(localSolutions,localPrevSolutions,dt);
     }
 }
 

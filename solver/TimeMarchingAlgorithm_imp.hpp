@@ -113,8 +113,8 @@ solveNonLinearSystem(std::function<VectorPtr(VectorPtr)> fun,
             GlobalBlockMatrix curJac = jac(sol);
             solveLinearSystem(curJac, curF, incr);
             *sol -= *incr;
+            count++;
         }
-        count++;
     }
     // *sol = *curF;
     if (count != itMax)

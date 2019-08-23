@@ -96,7 +96,13 @@ add(const GlobalBlockMatrix& other)
         {
             if (M_gridEpetra(i,j) != nullptr && other.M_gridEpetra(i,j) != nullptr)
             {
-                *M_gridEpetra(i,j) += *other.M_gridEpetra(i,j);
+                // we do this because if the matrix is zero then we must
+                // use the sparsity pattern of the other matrix
+                if (M_gridEpetra(i,j)->meanNumEntries() > 0 &&
+                    other.M_gridEpetra(i,j)->meanNumEntries() > 0)
+                    *M_gridEpetra(i,j) += *other.M_gridEpetra(i,j);
+                else if (M_gridEpetra(i,j)->meanNumEntries() == 0)
+                    M_gridEpetra(i,j).reset(new MatrixEpetra(*other.M_gridEpetra(i,j)));
             }
             else if (M_gridEpetra(i,j) == nullptr && other.M_gridEpetra(i,j) != nullptr)
             {
@@ -272,5 +278,22 @@ domainMap(unsigned int row, unsigned int col) const
     return nullptr;
 }
 
+void
+GlobalBlockMatrix::
+printPattern()
+{
+    for (unsigned int i = 0; i < M_rows; i++)
+    {
+        for (unsigned int j = 0; j < M_cols; j++)
+        {
+            if (M_gridEpetra(i,j) != nullptr &&
+                M_gridEpetra(i,j)->meanNumEntries() > 0)
+                std::cout << "x\t";
+            else
+                std::cout << "o\t";
+        }
+        std::cout << std::endl;
+    }
+}
 
 } // namespace RedMA

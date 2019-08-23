@@ -60,6 +60,8 @@ public:
 
     GlobalBlockMatrix getGlobalMassJac();
 
+    GlobalBlockMatrix getGlobalMassJacVelocity();
+
     GlobalBlockMatrix getJacobianF(bool addCoupling,
                                    double* diagonalCoefficient = nullptr);
 
@@ -72,7 +74,8 @@ public:
     GlobalBlockMatrix assembleGlobalMass(bool addCoupling,
                                          double* diagonalCoefficient = nullptr);
 
-    void setTimeAndPrevSolution(const double& time, VectorPtr solution);
+    void setTimeAndPrevSolution(const double& time, VectorPtr solution,
+                                bool doAssembly = true);
 
     void applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
                                const double& time, const double& dt,
@@ -94,6 +97,8 @@ public:
     void setTimeIntegrationOrder(unsigned int order);
 
     void setTimestep(double dt);
+
+    void checkResidual(VectorPtr solution, VectorPtr prevSolution, double dt);
 
 private:
     template<typename FunctionType>

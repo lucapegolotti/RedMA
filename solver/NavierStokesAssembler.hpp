@@ -71,7 +71,8 @@ public:
     inline unsigned int numberOfComponents() {return 3;}
 
     void setTimeAndPrevSolution(const double& time,
-                                std::vector<VectorPtr> solution);
+                                std::vector<VectorPtr> solution,
+                                bool assembleBlocks = true);
 
     void setMaxVelocityLawInflow(std::function<double(double)> maxLaw);
 
@@ -107,6 +108,13 @@ public:
 
     MatrixPtr getUpdateMassJac(const unsigned int& blockrow,
                                const unsigned int& blockcol);
+
+    MatrixPtr getUpdateMassJacVelocity(const unsigned int& blockrow,
+                                       const unsigned int& blockcol);
+
+    // note this is specific to backward euler! To use only for debugging
+    void checkResidual(std::vector<VectorPtr> solutions,
+                       std::vector<VectorPtr> prevSolutions, double dt);
 
 protected:
     void assembleConstantMatrices();

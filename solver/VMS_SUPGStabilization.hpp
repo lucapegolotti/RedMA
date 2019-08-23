@@ -57,24 +57,17 @@ protected:
     typedef LifeV::MatrixEpetra<double>                 Matrix;
     typedef std::shared_ptr<Matrix>                     MatrixPtr;
 public:
-    VMS_SUPGStabilization(unsigned int        order,
-                         FESpacePtr           fespaceVelocity,
-                         FESpacePtr           fespacePressure,
-                         ETFESpaceVelocityPtr etfespaceVelocity,
-                         ETFESpacePressurePtr etfespacePressure);
+    VMS_SUPGStabilization(unsigned int         order,
+                          unsigned int         velocityOrder,
+                          FESpacePtr           fespaceVelocity,
+                          FESpacePtr           fespacePressure,
+                          ETFESpaceVelocityPtr etfespaceVelocity,
+                          ETFESpacePressurePtr etfespacePressure);
 
     void setDensityAndViscosity(double density, double viscosity);
 
     void assembleBlocks(VectorPtr velocity, VectorPtr pressure,
                         VectorPtr velocityRhs, double dt);
-
-    MatrixPtr block00(){return M_block00;}
-
-    MatrixPtr block10(){return M_block10;}
-
-    MatrixPtr block01(){return M_block01;}
-
-    MatrixPtr block11(){return M_block11;}
 
     MatrixPtr blockMass00(){return M_blockMass00;}
 
@@ -100,10 +93,21 @@ public:
 
     MatrixPtr blockMass11Jac(){return M_blockMass11Jac;}
 
+    MatrixPtr assembleMassWithVelocity(VectorPtr velocity, double dt);
+
+    VectorPtr velocityResidual(VectorPtr velocity, VectorPtr pressure,
+                               VectorPtr velocityRhs, double dt);
+
+    VectorPtr pressureResidual(VectorPtr velocity, VectorPtr pressure,
+                               VectorPtr velocityRhs, double dt);
+
+
+
 private:
     double                          M_density;
     double                          M_viscosity;
-    unsigned int                    M_order;
+    unsigned int                    M_timeOrder;
+    unsigned int                    M_velocityOrder;
     FESpacePtr                      M_velocityFESpace;
     FESpacePtr                      M_pressureFESpace;
     ETFESpaceVelocityPtr            M_velocityFESpaceETA;
@@ -116,10 +120,6 @@ private:
     MatrixPtr                       M_blockMass10Jac;
     MatrixPtr                       M_blockMass01Jac;
     MatrixPtr                       M_blockMass11Jac;
-    MatrixPtr                       M_block00;
-    MatrixPtr                       M_block10;
-    MatrixPtr                       M_block01;
-    MatrixPtr                       M_block11;
     MatrixPtr                       M_blockMass00;
     MatrixPtr                       M_blockMass10;
     MatrixPtr                       M_blockMass01;
