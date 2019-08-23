@@ -10,4 +10,11 @@ PseudoFSI(const GetPot& datafile, commPtr_Type comm,
 {
 }
 
+void
+PseudoFSI::
+assembleMassMatrix()
+{
+    NavierStokesAssembler::assembleMassMatrix();
+}
+
 }  // namespace RedMA

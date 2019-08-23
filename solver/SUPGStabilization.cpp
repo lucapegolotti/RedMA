@@ -1,5 +1,5 @@
 // implementation inspired by StabilizationSUPG.cpp in LifeV
-#include "VMS_SUPGStabilization.hpp"
+#include "SUPGStabilization.hpp"
 
 // MACRO TO DEFINE TAU_M
 // #define TAU_M 	       value(1.0)/(eval(squareroot,TAU_M_DEN))

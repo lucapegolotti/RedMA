@@ -123,7 +123,7 @@ protected:
 
     void assembleDivergenceMatrix();
 
-    void assembleMassMatrix();
+    virtual void assembleMassMatrix();
 
     void assembleConvectiveMatrix();
 

@@ -45,6 +45,7 @@ public:
     PseudoFSI(const GetPot& datafile, commPtr_Type comm,
               const TreeNodePtr& treeNode, bool verbose = false);
 
+    void assembleMassMatrix() override;
 
 protected:
 
