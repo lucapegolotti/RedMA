@@ -57,6 +57,7 @@ solve()
         M_globalAssembler.setTimestep(dt);
         solveTimestep(t, dt);
         t += dt;
+        M_globalAssembler.postProcess();
         if (count % save_every == 0)
             M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
         if (M_exportNorms)
@@ -90,17 +91,17 @@ solveTimestep(const double& time, double& dt)
 template <class AssemblerType>
 void
 GlobalSolver<AssemblerType>::
-setMaxVelocityLawInflow(std::function<double(double)> maxLaw)
+setLawInflow(std::function<double(double)> maxLaw)
 {
-    M_globalAssembler.setMaxVelocityLawInflow(maxLaw);
+    M_globalAssembler.setLawInflow(maxLaw);
 }
 
 template <class AssemblerType>
 void
 GlobalSolver<AssemblerType>::
-setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt)
+setLawDtInflow(std::function<double(double)> maxLawDt)
 {
-    M_globalAssembler.setMaxVelocityDtLawInflow(maxLawDt);
+    M_globalAssembler.setLawDtInflow(maxLawDt);
 }
 
 }  // namespace RedMA

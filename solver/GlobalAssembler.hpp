@@ -85,9 +85,9 @@ public:
     void applyBCsVector(VectorPtr rhs, const double& coeff, const double& time,
                         FunctionType bcFunction);
 
-    void setMaxVelocityLawInflow(std::function<double(double)> maxLaw);
+    void setLawInflow(std::function<double(double)> maxLaw);
 
-    void setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt);
+    void setLawDtInflow(std::function<double(double)> maxLawDt);
 
     void exportSolutions(const double& time, VectorPtr solution);
 
@@ -99,6 +99,8 @@ public:
     void setTimestep(double dt);
 
     void checkResidual(VectorPtr solution, VectorPtr prevSolution, double dt);
+
+    void postProcess();
 
 private:
     template<typename FunctionType>

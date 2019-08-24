@@ -18,6 +18,7 @@
 #define PSEUDOFSI_HPP
 
 #include <NavierStokesAssembler.hpp>
+#include <lifev/core/fem/TimeAndExtrapolationHandler.hpp>
 
 namespace RedMA
 {
@@ -45,10 +46,28 @@ public:
     PseudoFSI(const GetPot& datafile, commPtr_Type comm,
               const TreeNodePtr& treeNode, bool verbose = false);
 
-    void assembleMassMatrix() override;
+    void setTimestep(double dt) override;
+
+    std::vector<VectorPtr> computeF() override;
+
+    void postProcess() override;
+
+    void setExporter() override;
+
+    void setup() override;
 
 protected:
+    void assembleMassMatrix() override;
 
+    void assembleStiffnessMatrix() override;
+
+    void computeLameConstants();
+
+    LifeV::TimeAndExtrapolationHandler M_timeExtrapolator;
+    double                             M_lameI;
+    double                             M_lameII;
+    MatrixPtr                          M_boundaryStiffness;
+    VectorPtr                          M_displacementExporter;
 };
 
 }  // namespace RedMA

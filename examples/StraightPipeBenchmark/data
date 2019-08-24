@@ -13,13 +13,14 @@
 	viscosity      = 1
 	density        = 1
 	use_stabilization = true
+	inflow_bc      = neumann
 [../]
 
 [structure]
 	time_integration_order = 1
-	poisson      = 0.5
+	poisson      = 0.3
 	num_young    = 1
-	young    	 = 2.07e7 # 1.07e7 4.07e6'
+	young    	 = 3.e+6 # 1.07e7 4.07e6'
 	thickness    = 0.1 # 0.2 0.15'
 	density	     = 1.2
 	flag = 10
@@ -33,8 +34,8 @@
 	algorithm = backward_euler # rosenbrock
 	scheme = ROS3Pw
 	t0 = 0
-	T = 1.00
-	dt = 0.01
+	T = 0.16
+	dt = 0.005
 [../]
 
 [newton_method]

@@ -50,9 +50,9 @@ public:
 
     void solve();
 
-    void setMaxVelocityLawInflow(std::function<double(double)> maxLaw);
+    void setLawInflow(std::function<double(double)> maxLaw);
 
-    void setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt);
+    void setLawDtInflow(std::function<double(double)> maxLawDt);
 
     void setExportNorms(std::string filename);
 

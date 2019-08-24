@@ -107,9 +107,11 @@ public:
 
     std::vector<unsigned int> getInterfacesIndices();
 
-    void setTimeIntegrationOrder(unsigned int order);
+    virtual void setTimeIntegrationOrder(unsigned int order);
 
-    void setTimestep(double dt);
+    virtual void setTimestep(double dt);
+
+    virtual void postProcess(){};
 
 private:
 

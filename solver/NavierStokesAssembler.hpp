@@ -58,7 +58,7 @@ public:
     NavierStokesAssembler(const GetPot& datafile, commPtr_Type comm,
                           const TreeNodePtr& treeNode, bool verbose = false);
 
-    void setup();
+    virtual void setup();
 
     MatrixPtr getMassMatrix(const unsigned int& blockrow,
                             const unsigned int& blockcol);
@@ -74,11 +74,11 @@ public:
                                 std::vector<VectorPtr> solution,
                                 bool assembleBlocks = true);
 
-    void setMaxVelocityLawInflow(std::function<double(double)> maxLaw);
+    void setLawInflow(std::function<double(double)> maxLaw);
 
-    void setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt);
+    void setLawDtInflow(std::function<double(double)> maxLawDt);
 
-    std::vector<VectorPtr> computeF();
+    virtual std::vector<VectorPtr> computeF();
 
     std::vector<VectorPtr> computeFder();
 
@@ -95,7 +95,7 @@ public:
     void applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
                         const unsigned int& iblock, const unsigned int& jblock);
 
-    void setExporter();
+    virtual void setExporter();
 
     void exportSolutions(const double& time, std::vector<VectorPtr> solutions);
 
@@ -119,7 +119,7 @@ public:
 protected:
     void assembleConstantMatrices();
 
-    void assembleStiffnessMatrix();
+    virtual void assembleStiffnessMatrix();
 
     void assembleDivergenceMatrix();
 
@@ -132,6 +132,8 @@ protected:
     void assembleForcingTerm();
 
     void assembleForcingTermTimeDerivative();
+
+    void applyNeumannBCs(VectorPtr vector, std::function<double(double)> law);
 
     BoundaryConditionPtr createBCHandler(std::function<double(double)> law);
 
@@ -148,6 +150,10 @@ protected:
                                   const unsigned int& i,
                                   const GeometricFace& face,
                                   std::function<double(double)> maxLaw);
+
+    static double neumannInflow(const double& t, const double& x, const double& y,
+                                const double& z, const unsigned int& i,
+                                std::function<double(double)> maxLaw);
 
     void updateBCs(BoundaryConditionPtr bcToUpdate, FESpacePtr fespace);
 
@@ -169,8 +175,8 @@ protected:
 
     FunctionType                            M_forceFunction;
     FunctionType                            M_forceTimeDerFunction;
-    std::function<double(double)>           M_maxVelocityLaw;
-    std::function<double(double)>           M_maxVelocityDtLaw;
+    std::function<double(double)>           M_inflowLaw;
+    std::function<double(double)>           M_inflowLawDt;
 
     ExporterPtr                             M_exporter;
     VectorPtr                               M_velocityExporter;
@@ -178,6 +184,7 @@ protected:
 
     bool                                    M_useStabilization;
     std::shared_ptr<VMS_SUPGStabilization>  M_stabilization;
+    bool                                    M_addNoslipBC;
 };
 
 }  // namespace RedMA

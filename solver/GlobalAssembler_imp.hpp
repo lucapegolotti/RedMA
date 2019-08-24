@@ -494,7 +494,7 @@ applyBCsVector(VectorPtr rhs, const double& coeff, const double& time,
 template<class AssemblerType>
 void
 GlobalAssembler<AssemblerType>::
-setMaxVelocityLawInflow(std::function<double(double)> maxLaw)
+setLawInflow(std::function<double(double)> maxLaw)
 {
     typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
@@ -502,14 +502,14 @@ setMaxVelocityLawInflow(std::function<double(double)> maxLaw)
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
          it != M_assemblersVector.end(); it++)
     {
-        it->second->setMaxVelocityLawInflow(maxLaw);
+        it->second->setLawInflow(maxLaw);
     }
 }
 
 template<class AssemblerType>
 void
 GlobalAssembler<AssemblerType>::
-setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt)
+setLawDtInflow(std::function<double(double)> maxLawDt)
 {
     typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
@@ -517,7 +517,7 @@ setMaxVelocityDtLawInflow(std::function<double(double)> maxLawDt)
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
          it != M_assemblersVector.end(); it++)
     {
-        it->second->setMaxVelocityDtLawInflow(maxLawDt);
+        it->second->setLawDtInflow(maxLawDt);
     }
 }
 
@@ -706,6 +706,22 @@ setTimestep(double dt)
          it != M_assemblersVector.end(); it++)
     {
         it->second->setTimestep(dt);
+    }
+}
+
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+postProcess()
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+
+    unsigned int offset = 0;
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        it->second->postProcess();
     }
 }
 

@@ -34,33 +34,44 @@ using namespace RedMA;
 
 #define COEFF 10
 
+// double maxLaw(double t)
+// {
+//     double poly = 0;
+//     const double coeffs[8] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6, 0.0};
+//
+//     double mon = 1.0;
+//     for (int i = 0; i < 8; i++)
+//     {
+//         poly += coeffs[7-i] * mon;
+//         mon *= t;
+//     }
+//     return poly * COEFF;
+// }
+//
+// double maxLawDt(double t)
+// {
+//     double poly = 0;
+//     const double coeffs[7] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6};
+//
+//     double mon = 1.0;
+//     for (int i = 0; i < 7; i++)
+//     {
+//         poly += coeffs[6-i] * mon;
+//         mon *= t;
+//     }
+//     return poly * COEFF;
+// }
+
 double maxLaw(double t)
 {
-    double poly = 0;
-    const double coeffs[8] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6, 0.0};
-
-    double mon = 1.0;
-    for (int i = 0; i < 8; i++)
-    {
-        poly += coeffs[7-i] * mon;
-        mon *= t;
-    }
-    return poly * COEFF;
+    return -10;
 }
 
 double maxLawDt(double t)
 {
-    double poly = 0;
-    const double coeffs[7] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6};
-
-    double mon = 1.0;
-    for (int i = 0; i < 7; i++)
-    {
-        poly += coeffs[6-i] * mon;
-        mon *= t;
-    }
-    return poly * COEFF;
+    return 0;
 }
+
 
 int main(int argc, char **argv)
 {
@@ -73,7 +84,7 @@ int main(int argc, char **argv)
 
     GetPot datafile("data");
     bool verbose = comm->MyPID() == 0;
-    GlobalSolver<PseudoFSI> gs(datafile, comm, verbose);
+    GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
     gs.setExportNorms("norms_nonconforming.txt");
     gs.setLawInflow(std::function<double(double)>(maxLaw));
     gs.setLawDtInflow(std::function<double(double)>(maxLawDt));
