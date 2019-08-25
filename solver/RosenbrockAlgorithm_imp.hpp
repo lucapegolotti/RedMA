@@ -84,7 +84,9 @@ solveTimestep(const double &time, double &dt)
             *sumStages += (-M_coefficients.gamma() * part);
         }
 
-        VectorEpetra prod = (M_massMatrixNoBCs) * (*sumStages);
+
+        // VectorEpetra prod = (M_massMatrixNoBCs) * (*sumStages);
+        VectorEpetra prod = M_globalAssembler->getGlobalMass() * (*sumStages);
         *F += prod;
 
         double coeff = M_coefficients.gamma() * gammai * dt * dt;
