@@ -113,6 +113,8 @@ public:
 
     virtual void postProcess(){};
 
+    VectorPtr reconstructLagrangeMultipliers(std::vector<VectorPtr> solutions, unsigned int offset);
+
 private:
 
     MatrixPtr assembleBoundaryMatrix(GeometricFace face);

@@ -384,8 +384,65 @@ fillMatricesWithVectors(VectorPtr* couplingVectors,
 
         throw Exception(errorMsg);
     }
+}
 
-    delete[] couplingVectors;
+void
+Coupler::
+fillMatrixWithVectorsInterpolated(VectorPtr* couplingVectors,
+                                  const unsigned int& nBasisFunctions,
+                                  MapEpetraPtr lagrangeMap,
+                                  MapEpetraPtr map,
+                                  unsigned int numberOfComponents,
+                                  const unsigned int& flagAdjacentDomain)
+{
+    using namespace LifeV;
+    const Real dropTolerance(2.0 * std::numeric_limits<Real>::min());
+    unsigned faceFlag = flagAdjacentDomain;
+    // note:: we have to specify the second argument of the constructor (number
+    // of elements per row)
+    MatrixPtr QT(new Matrix(*map, nBasisFunctions, false));
+    QT->zero();
+
+    Epetra_Map primalMapEpetra = couplingVectors[0]->epetraMap();
+    unsigned int numElements = primalMapEpetra.NumMyElements();
+    // unsigned int nTotalDofs = primalFespace->dof().numTotalDof();
+    unsigned int nTotalDofs = couplingVectors[0]->size();
+    for (unsigned int dim = 0; dim < numberOfComponents; dim++)
+    {
+        for (unsigned int i = 0; i < nBasisFunctions; i++)
+        {
+            Vector couplingVectorUnique(*couplingVectors[i], Unique);
+            for (unsigned int dof = 0; dof < numElements; dof++)
+            {
+                unsigned int gdof = primalMapEpetra.GID(dof);
+                if (couplingVectorUnique.isGlobalIDPresent(gdof))
+                {
+                    double value(couplingVectorUnique[gdof]);
+                    if (std::abs(value) > dropTolerance)
+                    {
+                        // this must be changed to insert coefficients
+                        QT->addToCoefficient(gdof + dim * nTotalDofs,
+                                             i + dim * nBasisFunctions,
+                                             value);
+                    }
+                }
+            }
+        }
+    }
+    M_comm->Barrier();
+    QT->globalAssemble(lagrangeMap, map);
+
+    if (M_mapQTsInterpolated.find(faceFlag) == M_mapQTsInterpolated.end())
+    {
+        M_mapQTsInterpolated[faceFlag] = QT;
+    }
+    else
+    {
+        std::string errorMsg("Coupling matrix interpolated with key = ");
+        errorMsg += std::to_string(faceFlag) + " have already been assembled!\n";
+
+        throw Exception(errorMsg);
+    }
 }
 
 Coupler::MatrixPtr
@@ -440,6 +497,13 @@ Coupler::
 getMapsQTs()
 {
     return M_mapQTs;
+}
+
+std::map<unsigned int, Coupler::MatrixPtr>&
+Coupler::
+getMapsQTsInterpolated()
+{
+    return M_mapQTsInterpolated;
 }
 
 std::map<unsigned int, Coupler::MatrixPtr>&

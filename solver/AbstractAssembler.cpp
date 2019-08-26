@@ -333,14 +333,6 @@ assembleCouplingMatrices(AbstractAssembler& child,
         printlog(GREEN, msg, M_verbose);
     }
 
-    // up to this moment the coupling vectors contain only evaluation of basis functions
-    // at the nodes. We need to multiply by the boundary mass matrices
-    multiplyVectorsByMassMatrix(couplingVectorsFather, nBasisFunctions,
-                                massMatrixFather);
-
-    multiplyVectorsByMassMatrix(couplingVectorsChild, nBasisFunctions,
-                                massMatrixChild);
-
     // build map for the lagrange multipliers (nBasisFunctions has been
     // modified in orthonormalization)
     unsigned int myel = (nComponents * nBasisFunctions) / M_comm->NumProc();
@@ -355,6 +347,28 @@ assembleCouplingMatrices(AbstractAssembler& child,
                                                  0, M_comm));
     M_dualMaps.push_back(lagrangeMultiplierMap);
     child.M_dualMaps.push_back(lagrangeMultiplierMap);
+
+    M_coupler.fillMatrixWithVectorsInterpolated(couplingVectorsFather,
+                                                nBasisFunctions,
+                                                lagrangeMultiplierMap,
+                                                M_primalMaps[M_indexCoupling],
+                                                numberOfComponents(),
+                                                child.M_treeNode->M_ID);
+
+    child.M_coupler.fillMatrixWithVectorsInterpolated(couplingVectorsChild,
+                                                      nBasisFunctions,
+                                                      lagrangeMultiplierMap,
+                                                      child.M_primalMaps[M_indexCoupling],
+                                                      child.numberOfComponents(),
+                                                      M_treeNode->M_ID);
+
+    // up to this moment the coupling vectors contain only evaluation of basis functions
+    // at the nodes. We need to multiply by the boundary mass matrices
+    multiplyVectorsByMassMatrix(couplingVectorsFather, nBasisFunctions,
+                                massMatrixFather);
+
+    multiplyVectorsByMassMatrix(couplingVectorsChild, nBasisFunctions,
+                                massMatrixChild);
 
     M_coupler.fillMatricesWithVectors(couplingVectorsFather, nBasisFunctions,
                                       lagrangeMultiplierMap,
@@ -375,7 +389,29 @@ assembleCouplingMatrices(AbstractAssembler& child,
     M_interfacesIndices.push_back(interfaceIndex);
     child.M_interfacesIndices.push_back(interfaceIndex);
     printlog(MAGENTA, "done\n", M_verbose);
+
+    delete[] couplingVectorsFather;
+    delete[] couplingVectorsChild;
 }
+
+AbstractAssembler::VectorPtr
+AbstractAssembler::
+reconstructLagrangeMultipliers(std::vector<VectorPtr> solutions, unsigned int offset)
+{
+    VectorPtr lagrangeMultipliers(new Vector(M_couplingFESpace->map()));
+    lagrangeMultipliers->zero();
+    unsigned int count = offset;
+    for (std::map<unsigned int, MatrixPtr>::iterator it = M_coupler.getMapsQTsInterpolated().begin();
+         it != M_coupler.getMapsQTsInterpolated().end(); it++)
+    {
+        std::cout << "----" << std::endl;
+        *lagrangeMultipliers += (*it->second) * (*solutions[count]);
+        solutions[count]->showMe();
+        count++;
+    }
+    return lagrangeMultipliers;
+}
+
 
 // we copy the matrix in order to control boundary conditions
 AbstractAssembler::MatrixPtr
@@ -420,7 +456,6 @@ multiplyVectorsByMassMatrix(VectorPtr* couplingVectors,
 {
     for (int i = 0; i < nBasisFunctions; i++)
     {
-        Vector c(*couplingVectors[i]);
         *couplingVectors[i] = (*massMatrix) * (*couplingVectors[i]);
     }
 }

@@ -181,6 +181,7 @@ protected:
     ExporterPtr                             M_exporter;
     VectorPtr                               M_velocityExporter;
     VectorPtr                               M_pressureExporter;
+    VectorPtr                               M_lagrangeMultiplierExporter;
 
     bool                                    M_useStabilization;
     std::shared_ptr<VMS_SUPGStabilization>  M_stabilization;

@@ -561,31 +561,45 @@ createBCHandler(std::function<double(double)> law)
 
     const unsigned int inletFlag = 1;
     const unsigned int wallFlag = 10;
+    const unsigned int inletRing = 30;
+    const unsigned int outletRing = 31;
 
     // if this is the root node, we impose dirichlet boundary conditions at
     // inlet too (if inflow conditions are dirichlet)
     std::string inflowBCType = M_datafile("fluid/inflow_bc","dirichlet");
-    if (M_treeNode->M_ID == 0 &&
-        std::strcmp(inflowBCType.c_str(),"dirichlet") == 0)
+    if (M_treeNode->M_ID == 0)
     {
+        if (std::strcmp(inflowBCType.c_str(),"dirichlet") == 0)
+        {
 
-        auto inflowBoundaryCondition = std::bind(poiseulleInflow,
-                                                 std::placeholders::_1,
-                                                 std::placeholders::_2,
-                                                 std::placeholders::_3,
-                                                 std::placeholders::_4,
-                                                 std::placeholders::_5,
-                                                 M_treeNode->M_block->getInlet(),
-                                                 law);
+            auto inflowBoundaryCondition = std::bind(poiseulleInflow,
+                                                     std::placeholders::_1,
+                                                     std::placeholders::_2,
+                                                     std::placeholders::_3,
+                                                     std::placeholders::_4,
+                                                     std::placeholders::_5,
+                                                     M_treeNode->M_block->getInlet(),
+                                                     law);
 
-        LifeV::BCFunctionBase inflowFunction(inflowBoundaryCondition);
-        bcs->addBC("Inlet", inletFlag, LifeV::Essential, LifeV::Full,
-                    inflowFunction, 3);
+            LifeV::BCFunctionBase inflowFunction(inflowBoundaryCondition);
+            bcs->addBC("Inlet", inletFlag, LifeV::Essential, LifeV::Full,
+                        inflowFunction, 3);
+        }
     }
 
     if (M_addNoslipBC)
         bcs->addBC("Wall", wallFlag, LifeV::Essential,
                     LifeV::Full, zeroFunction, 3);
+    // clamping the root and leaf nodes
+    else
+    {
+        if (M_treeNode->M_ID == 0)
+            bcs->addBC("InletRing", inletRing, LifeV::EssentialEdges,
+                       LifeV::Full, zeroFunction,   3);
+        if (M_treeNode->M_nChildren == 0)
+            bcs->addBC("OutletRing", outletRing, LifeV::EssentialEdges,
+                       LifeV::Full, zeroFunction,   3);
+    }
     return bcs;
 }
 
@@ -718,8 +732,9 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
                                       M_velocityFESpace->map().mapSize()/3);
 
     const unsigned int inletFlag = 1;
-
-    if (M_treeNode->M_ID == 0)
+    std::string inflowBCType = M_datafile("fluid/inflow_bc","dirichlet");
+    if (M_treeNode->M_ID == 0 &&
+        std::strcmp(inflowBCType.c_str(),"dirichlet") == 0)
     {
         finalBcs->addBC("Inflow", inletFlag, LifeV::Essential,
                         LifeV::Full, bcVectorDirichlet, 3);
@@ -812,12 +827,17 @@ setExporter()
                                         M_exporter->mapType()));
     M_pressureExporter.reset(new Vector(M_pressureFESpace->map(),
                                         M_exporter->mapType()));
+    M_lagrangeMultiplierExporter.reset(new Vector(M_velocityFESpace->map(),
+                                       M_exporter->mapType()));
 
     M_exporter->addVariable(LifeV::ExporterData<Mesh>::VectorField,
                          "velocity", M_velocityFESpace, M_velocityExporter, 0.0);
 
     M_exporter->addVariable(LifeV::ExporterData<Mesh>::ScalarField,
                          "pressure", M_pressureFESpace, M_pressureExporter, 0.0);
+
+    M_exporter->addVariable(LifeV::ExporterData<Mesh>::VectorField,
+                         "lagrange_multiplier", M_velocityFESpace, M_lagrangeMultiplierExporter, 0.0);
 
     M_exporter->setPostDir(outdir);
 }
@@ -830,7 +850,7 @@ exportSolutions(const double& time, std::vector<VectorPtr> solutions)
              M_verbose);
     *M_velocityExporter = *solutions[0];
     *M_pressureExporter = *solutions[1];
-    // *M_pressureExporter = *M_couplingVector;
+    *M_lagrangeMultiplierExporter = *reconstructLagrangeMultipliers(solutions, 2);
     CoutRedirecter ct;
     ct.redirect();
     M_exporter->postProcess(time);

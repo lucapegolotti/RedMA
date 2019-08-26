@@ -548,6 +548,23 @@ exportSolutions(const double& time, VectorPtr solution)
             localSolutions.push_back(subSolution);
             offset += curLocalMap.mapSize();
         }
+
+        maps = it->second->getDualMapVector();
+        std::vector<unsigned int> indices = it->second->getInterfacesIndices();
+        unsigned int in = 0;
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            VectorPtr subSolution;
+            subSolution.reset(new Vector(curLocalMap));
+            subSolution->zero();
+            subSolution->subset(*solution, curLocalMap,
+                                 M_offsets[M_nPrimalBlocks + indices[in]], 0);
+            localSolutions.push_back(subSolution);
+            in++;
+        }
+
         it->second->exportSolutions(time, localSolutions);
     }
 }

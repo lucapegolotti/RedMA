@@ -104,7 +104,16 @@ public:
                                  unsigned int numberOfComponents,
                                  const unsigned int& flagAdjacentDomain);
 
+    void fillMatrixWithVectorsInterpolated(VectorPtr* couplingVectors,
+                                           const unsigned int& nBasisFunctions,
+                                           MapEpetraPtr lagrangeMap,
+                                           MapEpetraPtr map,
+                                           unsigned int numberOfComponents,
+                                           const unsigned int& flagAdjacentDomain);
+
     std::map<unsigned int, MatrixPtr>& getMapsQTs();
+
+    std::map<unsigned int, MatrixPtr>& getMapsQTsInterpolated();
 
     std::map<unsigned int, MatrixPtr>& getMapsQs();
 
@@ -114,6 +123,7 @@ protected:
     // maps of the coupling matrices (key = flag of corresponding face)
     std::map<unsigned int, MatrixPtr>   M_mapQTs;
     std::map<unsigned int, MatrixPtr>   M_mapQs;
+    std::map<unsigned int, MatrixPtr>   M_mapQTsInterpolated;
 };
 
 }  // namespace RedMA
