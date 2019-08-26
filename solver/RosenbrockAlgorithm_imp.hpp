@@ -94,12 +94,13 @@ solveTimestep(const double &time, double &dt)
 
         *F += *Fder;
 
-        *Fder *= (1.0/coeff) * (*Fder);
+        *Fder *= (1.0/coeff); // * (*Fder);
 
         // here we need to apply the bcs to the right hand side
         M_globalAssembler->applyBCsRhsRosenbrock(F, yTilde, time, dt,
                                                  alphai, gammai);
         VectorPtr newStage(new Vector(*globalMap));
+        std::cout << F->norm2() << std::endl << std::flush;
         solveLinearSystem(systemMatrix, F, newStage);
         stages[i] = newStage;
     }

@@ -32,6 +32,8 @@ setup()
     M_timeExtrapolator.setBDForder(orderBDF);
     M_timeExtrapolator.setMaximumExtrapolationOrder(orderBDF);
 
+    computeLameConstants();
+
     NavierStokesAssembler::setup();
 
     Vector velocityInitial(M_velocityFESpace->map());
@@ -41,8 +43,6 @@ setup()
         initialStateVelocity.push_back(velocityInitial);
 
     M_timeExtrapolator.initialize(initialStateVelocity);
-
-    computeLameConstants();
 }
 
 void
@@ -109,8 +109,8 @@ assembleStiffnessMatrix()
                 + transpose(grad(phi_j) - grad(phi_j)*outerProduct(Nface, Nface)),
                 (grad (phi_i) - grad(phi_i)*outerProduct(Nface, Nface))) +
                 M_lameI *
-                dot(value(Eye),(grad(phi_j) - grad (phi_j)*outerProduct(Nface, Nface))) *
-                dot(value(Eye),(grad(phi_i) - grad (phi_i)*outerProduct(Nface, Nface))))
+                dot(value(Eye),(grad(phi_j) - grad(phi_j)*outerProduct(Nface, Nface))) *
+                dot(value(Eye),(grad(phi_i) - grad(phi_i)*outerProduct(Nface, Nface))))
               ) >>  M_boundaryStiffness;
 
     M_boundaryStiffness->globalAssemble();
@@ -125,8 +125,8 @@ computeLameConstants()
     double young = M_datafile("structure/young", 4e6);
     double thickness = M_datafile("structure/thickness", 1.0);
 
-    M_lameI = (thickness * young * poisson)/((1. - poisson * poisson));
-    M_lameII = thickness * young/(2. * (1. + young));
+    M_lameI = (thickness * young * poisson)/((1. - 2*poisson)*(1. + poisson));
+    M_lameII = thickness * young/(2. * (1. + poisson));
 }
 
 std::vector<PseudoFSI::VectorPtr>
@@ -138,7 +138,7 @@ computeF()
     VectorPtr rhsDisplacement(new Vector(M_velocityFESpace->map()));
     M_timeExtrapolator.rhsContribution(*rhsDisplacement);
 
-    *retVec[0] += *M_boundaryStiffness * (*rhsDisplacement);
+    *retVec[0] -= *M_boundaryStiffness * (*rhsDisplacement);
 
     return retVec;
 }
@@ -155,9 +155,8 @@ postProcess()
     M_timeExtrapolator.rhsContribution(*rhsDisplacement);
 
     curDisplacement->zero();
-
     *curDisplacement = *M_prevSolution[0];
-    *curDisplacement -= *rhsDisplacement;
+    *curDisplacement += *rhsDisplacement;
     *curDisplacement *= (this->M_dt / M_timeExtrapolator.alpha());
     *M_displacementExporter = *curDisplacement;
     M_timeExtrapolator.shift(*curDisplacement);
@@ -172,7 +171,7 @@ setExporter()
                                             M_exporter->mapType()));
 
     M_exporter->addVariable(LifeV::ExporterData<Mesh>::VectorField,
-                         "displacement", M_velocityFESpace, M_velocityExporter, 0.0);
+                         "displacement", M_velocityFESpace, M_displacementExporter, 0.0);
 }
 
 }  // namespace RedMA

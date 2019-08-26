@@ -10,14 +10,14 @@
 [fluid]
 	velocity_order = P1
 	pressure_order = P1
-	viscosity      = 1
+	viscosity      = 0.03
 	density        = 1
 	use_stabilization = true
 	inflow_bc      = neumann
 [../]
 
 [structure]
-	time_integration_order = 1
+	time_integration_order = 3
 	poisson      = 0.3
 	num_young    = 1
 	young    	 = 3.e+6 # 1.07e7 4.07e6'
@@ -31,11 +31,11 @@
 [../]
 
 [time_discretization]
-	algorithm = backward_euler # rosenbrock
+	algorithm = rosenbrock # rosenbrock
 	scheme = ROS3Pw
 	t0 = 0
-	T = 0.16
-	dt = 0.005
+	T = 0.016
+	dt = 0.0002
 [../]
 
 [newton_method]
@@ -54,8 +54,8 @@
 
 [coupling]
 	type                = zernike
-	nMax                = 4
+	nMax                = 5
 	orthonormalization  = POD
 	beta_threshold      = 0
-	use_interpolation   = true
+	use_interpolation   = false
 [../]

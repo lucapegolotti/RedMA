@@ -64,14 +64,27 @@ using namespace RedMA;
 
 double maxLaw(double t)
 {
-    return -10;
+    const double T = 3e-3;
+    const double omega = 2.0 * M_PI / (T);
+    const double Pmax = 13300.0;
+    if (t <= T)
+    {
+        return -0.5 * (1.0 - cos(omega * t) ) * Pmax;
+    }
+    return 0;
 }
 
 double maxLawDt(double t)
 {
-    return 0;
+    const double T = 3e-3;
+    const double omega = 2.0 * M_PI / (T);
+    const double Pmax = 13300.0;
+    if (t <= T)
+    {
+        return -0.5 * omega * sin(omega * t) * Pmax;
+    }
+    return 0.0;
 }
-
 
 int main(int argc, char **argv)
 {
@@ -84,7 +97,7 @@ int main(int argc, char **argv)
 
     GetPot datafile("data");
     bool verbose = comm->MyPID() == 0;
-    GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
+    GlobalSolver<PseudoFSI> gs(datafile, comm, verbose);
     gs.setExportNorms("norms_nonconforming.txt");
     gs.setLawInflow(std::function<double(double)>(maxLaw));
     gs.setLawDtInflow(std::function<double(double)>(maxLawDt));

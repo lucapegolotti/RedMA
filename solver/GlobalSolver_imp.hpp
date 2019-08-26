@@ -57,6 +57,10 @@ solve()
         M_globalAssembler.setTimestep(dt);
         solveTimestep(t, dt);
         t += dt;
+        // we do this so that the single assemblers are aware of the
+        // solution (e.g. for post processing)
+        M_globalAssembler.setTimeAndPrevSolution(t,
+                                                 hdlrAlgorithm->getSolution());
         M_globalAssembler.postProcess();
         if (count % save_every == 0)
             M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
