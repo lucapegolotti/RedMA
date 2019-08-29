@@ -100,7 +100,6 @@ solveTimestep(const double &time, double &dt)
         M_globalAssembler->applyBCsRhsRosenbrock(F, yTilde, time, dt,
                                                  alphai, gammai);
         VectorPtr newStage(new Vector(*globalMap));
-        std::cout << F->norm2() << std::endl << std::flush;
         solveLinearSystem(systemMatrix, F, newStage);
         stages[i] = newStage;
     }

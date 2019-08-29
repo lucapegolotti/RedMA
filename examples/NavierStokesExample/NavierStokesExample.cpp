@@ -26,38 +26,43 @@
 
 #include <GlobalSolver.hpp>
 #include <NavierStokesAssembler.hpp>
+#include <PseudoFSI.hpp>
 
 #include <lifev/core/filter/GetPot.hpp>
 
 using namespace RedMA;
 
+#define COEFF 200
+#define HEARTBEAT 0.8
 double maxLaw(double t)
 {
-    const double U = 1.0;
-    const double T = 0.1;
-    if (t <= T)
-        return U * (1.0 - cos(M_PI * t / T)) / 2;
-    return U;
+    double tt = std::fmod(t,HEARTBEAT);
+    double poly = 0;
+    const double coeffs[8] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6, 0.0};
+
+    double mon = 1.0;
+    for (int i = 0; i < 8; i++)
+    {
+        poly += coeffs[7-i] * mon;
+        mon *= tt / HEARTBEAT;
+    }
+    return poly * COEFF;
 }
 
 double maxLawDt(double t)
 {
-    const double U = 1.0;
-    const double T = 0.1;
-    if (t <= T)
-        return U * sin(M_PI * t / T) * M_PI  / (2 * T);
-    return 0.0;
-}
+    double tt = std::fmod(t,HEARTBEAT);
+    double poly = 0;
+    const double coeffs[7] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6};
 
-// double maxLaw(double t)
-// {
-//     return 1.0;
-// }
-//
-// double maxLawDt(double t)
-// {
-//     return 0;
-// }
+    double mon = 1.0;
+    for (int i = 0; i < 7; i++)
+    {
+        poly += coeffs[6-i] * mon;
+        mon *= tt / HEARTBEAT;
+    }
+    return poly * COEFF;
+}
 
 int main(int argc, char **argv)
 {
@@ -71,8 +76,9 @@ int main(int argc, char **argv)
     GetPot datafile("data");
     bool verbose = comm->MyPID() == 0;
     GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
-    gs.setMaxVelocityLawInflow(std::function<double(double)>(maxLaw));
-    gs.setMaxVelocityDtLawInflow(std::function<double(double)>(maxLawDt));
+    gs.setExportNorms("norms_nonconforming.txt");
+    gs.setLawInflow(std::function<double(double)>(maxLaw));
+    gs.setLawDtInflow(std::function<double(double)>(maxLawDt));
     gs.solve();
 
     return 0;

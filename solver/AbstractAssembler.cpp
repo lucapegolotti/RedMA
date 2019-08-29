@@ -404,9 +404,7 @@ reconstructLagrangeMultipliers(std::vector<VectorPtr> solutions, unsigned int of
     for (std::map<unsigned int, MatrixPtr>::iterator it = M_coupler.getMapsQTsInterpolated().begin();
          it != M_coupler.getMapsQTsInterpolated().end(); it++)
     {
-        std::cout << "----" << std::endl;
         *lagrangeMultipliers += (*it->second) * (*solutions[count]);
-        solutions[count]->showMe();
         count++;
     }
     return lagrangeMultipliers;

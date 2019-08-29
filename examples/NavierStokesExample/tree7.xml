@@ -1,4 +1,4 @@
-<buildingblock type="tube">
+<buildingblock type="tube"  refinement="normal">
     <L_ratio>0.77608558982610698</L_ratio>
     <Rout_ratio>0.81641018390655518</Rout_ratio>
     <alpha_axis>-6.1017653017595865</alpha_axis>
@@ -11,9 +11,9 @@
     <bz>0</bz>
     <scale>1</scale>
     <use_linear_elasticity>0</use_linear_elasticity>
-    <buildingblock type="tube" outlet="1">
+    <buildingblock type="tube" outlet="1"  refinement="normal">
         <L_ratio>0.77128572463989253</L_ratio>
-        <Rout_ratio>0.67931461930274961</Rout_ratio>
+        <Rout_ratio>0.3</Rout_ratio>
         <alpha_axis>1.2823907113490947</alpha_axis>
         <alphax>0</alphax>
         <alphay>0</alphay>
@@ -50,9 +50,9 @@
                 <out2_alpha_plane>0.19513925313949582</out2_alpha_plane>
                 <out2_alphax>0.10524823665618899</out2_alphax>
                 <scale>1</scale>
-                <buildingblock type="tube" outlet="1">
+                <buildingblock type="tube" outlet="1"  refinement="normal">
                     <L_ratio>0.80951283574104305</L_ratio>
-                    <Rout_ratio>0.66578805446624756</Rout_ratio>
+                    <Rout_ratio>0.4</Rout_ratio>
                     <alpha_axis>-3.146085988915245</alpha_axis>
                     <alphax>0</alphax>
                     <alphay>0</alphay>
@@ -64,9 +64,9 @@
                     <scale>1</scale>
                     <use_linear_elasticity>0</use_linear_elasticity>
                 </buildingblock>
-                <buildingblock type="tube" outlet="2">
+                <buildingblock type="tube" outlet="2"  refinement="normal">
                     <L_ratio>0.84567904174327846</L_ratio>
-                    <Rout_ratio>0.94206509590148924</Rout_ratio>
+                    <Rout_ratio>0.4</Rout_ratio>
                     <alpha_axis>2.7662931684255341</alpha_axis>
                     <alphax>0</alphax>
                     <alphay>0</alphay>
@@ -79,19 +79,19 @@
                     <use_linear_elasticity>0</use_linear_elasticity>
                 </buildingblock>
             </buildingblock>
-            <buildingblock type="bifurcation_symmetric" outlet="2">
-                <alpha_axis>5.1298804273563707</alpha_axis>
+            <buildingblock type="tube" outlet="2"  refinement="normal">
+                <L_ratio>0.84567904174327846</L_ratio>
+                <Rout_ratio>0.5</Rout_ratio>
+                <alpha_axis>2.7662931684255341</alpha_axis>
                 <alphax>0</alphax>
                 <alphay>0</alphay>
                 <alphaz>0</alphaz>
+                <bend>0.6</bend>
                 <bx>0</bx>
                 <by>0</by>
                 <bz>0</bz>
-                <out1_alpha_plane>0.0012856364250183328</out1_alpha_plane>
-                <out1_alphax>0.0074683427810668945</out1_alphax>
-                <out2_alpha_plane>0.12062265872955324</out2_alpha_plane>
-                <out2_alphax>-0.094872826337814326</out2_alphax>
                 <scale>1</scale>
+                <use_linear_elasticity>0</use_linear_elasticity>
             </buildingblock>
         </buildingblock>
     </buildingblock>

@@ -39,8 +39,13 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
+    unsigned int nSub = 10;
+
+    if (argc > 1)
+        nSub = std::atoi(argv[1]);
+
     TreeStructure tree(true);
-    tree.createRandom(20, comm);
+    tree.createRandom(nSub, comm);
     tree.readMeshes("../../../meshes/");
     tree.traverseAndDeformGeometries();
     tree.dump("output_original/","../../../meshes/");
