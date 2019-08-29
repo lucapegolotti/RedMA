@@ -63,11 +63,15 @@ protected:
 
     void computeLameConstants();
 
+    void computeBoundaryIndicator();
+
     LifeV::TimeAndExtrapolationHandler M_timeExtrapolator;
     double                             M_lameI;
     double                             M_lameII;
     MatrixPtr                          M_boundaryStiffness;
+    MatrixPtr                          M_boundaryMass;
     VectorPtr                          M_displacementExporter;
+    VectorPtr                          M_boundaryIndicator;
 };
 
 }  // namespace RedMA

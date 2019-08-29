@@ -143,6 +143,12 @@ protected:
                         const double& z,
                         const unsigned int& i);
 
+    static double fOne(const double& t,
+                       const double& x,
+                       const double& y,
+                       const double& z,
+                       const unsigned int& i);
+
     static double poiseulleInflow(const double& t,
                                   const double& x,
                                   const double& y,

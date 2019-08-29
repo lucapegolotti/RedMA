@@ -613,6 +613,14 @@ fZero(const double& t, const double& x, const double& y, const double& z,
 
 double
 NavierStokesAssembler::
+fOne(const double& t, const double& x, const double& y, const double& z,
+      const unsigned int& i)
+{
+    return 1.0;
+}
+
+double
+NavierStokesAssembler::
 poiseulleInflow(const double& t, const double& x, const double& y,
                 const double& z, const unsigned int& i,
                 const GeometricFace& face,

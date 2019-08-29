@@ -43,6 +43,7 @@ setup()
         initialStateVelocity.push_back(velocityInitial);
 
     M_timeExtrapolator.initialize(initialStateVelocity);
+    computeBoundaryIndicator();
 }
 
 void
@@ -57,20 +58,48 @@ assembleMassMatrix()
 
     LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
 
-    MatrixPtr boundaryMass(new Matrix(M_velocityFESpace->map()));
+    M_boundaryMass.reset(new Matrix(M_velocityFESpace->map()));
+    M_boundaryMass->zero();
 
-    double density = M_datafile("structure/density", 1.0);
-    double thickness = M_datafile("structure/thickness", 1.0);
+    double density = M_datafile("structure/density", 1.2);
+    double thickness = M_datafile("structure/thickness", 0.1);
     unsigned int wallFlag = M_datafile("structure/flag", 10);
     integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
                myBDQR,
                M_velocityFESpaceETA,
                M_velocityFESpaceETA,
                value(density * thickness) * dot (phi_i, phi_j)
-              ) >> boundaryMass;
+              ) >> M_boundaryMass;
 
-    boundaryMass->globalAssemble();
-    *M_M += *boundaryMass;
+    M_boundaryMass->globalAssemble();
+    *M_M += *M_boundaryMass;
+}
+
+void
+PseudoFSI::
+computeBoundaryIndicator()
+{
+    // VectorPtr aux(new Vector(M_velocityFESpace->map()));
+    // aux->zero();
+    M_boundaryIndicator.reset(new Vector(M_velocityFESpace->map()));
+    M_boundaryIndicator->zero();
+    // *aux += 1.0;
+    // *M_boundaryIndicator = *M_boundaryMass * (*aux);
+    // *M_boundaryIndicator = (*M_boundaryIndicator != 0);
+    LifeV::BCFunctionBase oneFunction(fOne);
+
+    BoundaryConditionPtr bcs;
+    bcs.reset(new LifeV::BCHandler);
+
+    const unsigned int wallFlag = 10;
+
+    bcs->addBC("Wall", wallFlag, LifeV::Essential,
+                LifeV::Full, oneFunction, 3);
+
+    updateBCs(bcs, M_velocityFESpace);
+
+    bcManageRhs(*M_boundaryIndicator, *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+                *bcs, M_velocityFESpace->feBd(), 1.0, 0.0);
 }
 
 void
@@ -123,7 +152,7 @@ computeLameConstants()
 {
     double poisson = M_datafile("structure/poisson", 0.45);
     double young = M_datafile("structure/young", 4e6);
-    double thickness = M_datafile("structure/thickness", 1.0);
+    double thickness = M_datafile("structure/thickness", 0.1);
 
     M_lameI = (thickness * young * poisson)/((1. - 2*poisson)*(1. + poisson));
     M_lameII = thickness * young/(2. * (1. + poisson));
@@ -155,7 +184,7 @@ postProcess()
     M_timeExtrapolator.rhsContribution(*rhsDisplacement);
 
     curDisplacement->zero();
-    *curDisplacement = *M_prevSolution[0];
+    *curDisplacement = (*M_prevSolution[0]) * (*M_boundaryIndicator);
     *curDisplacement += *rhsDisplacement;
     *curDisplacement *= (this->M_dt / M_timeExtrapolator.alpha());
     *M_displacementExporter = *curDisplacement;

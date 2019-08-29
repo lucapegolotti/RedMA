@@ -17,6 +17,8 @@
 #ifndef TIMEMARCHINGALGORITHM_HPP
 #define TIMEMARCHINGALGORITHM_HPP
 
+#include <sstream>
+
 #include <GlobalBlockMatrix.hpp>
 #include <GlobalAssembler.hpp>
 #include <PrintLog.hpp>

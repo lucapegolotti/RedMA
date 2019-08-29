@@ -105,7 +105,9 @@ solveNonLinearSystem(std::function<VectorPtr(VectorPtr)> fun,
         err = curF->norm2();
         std::string msg("[SolveNonLinearSystem]");
         msg += " solving, iteration = " + std::to_string(count) + ", ";
-        msg += " error = " + std::to_string(err) + "\n";
+        std::ostringstream streamOb;
+        streamOb << err;
+        msg += " error = " + streamOb.str() + "\n";
         printlog(YELLOW, msg, M_verbose);
         if (err > tol)
         {
