@@ -131,7 +131,12 @@ operator()(const Vector3D& pos)
     Vector3D diff = pos - center;
     double r = diff.norm();
 
-    double theta = std::acos(diff.dot(M_e) / (diff.norm()));
+    double theta;
+    if (r < 1e-16)
+        theta = 0;
+    else
+        theta = std::acos(diff.dot(M_e) / r);
+
     Vector3D crossProduct = diff.cross(M_e);
 
     if (crossProduct.dot(normal) < 0)
@@ -147,9 +152,7 @@ operator()(const Vector3D& pos)
     {
         returnVal += coefList[k] * std::pow(r/M_R,n-2*k);
     }
-
     returnVal *= M_curFunction(m * theta) * M_orthoCoefficient;
-
     return returnVal;
 }
 
