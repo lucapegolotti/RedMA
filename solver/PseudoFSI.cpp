@@ -12,38 +12,23 @@ PseudoFSI(const GetPot& datafile, commPtr_Type comm,
     M_addNoslipBC = false;
 }
 
-
-void
-PseudoFSI::
-setTimestep(double dt)
-{
-    AbstractAssembler::setTimestep(dt);
-    // watch out: this might be a problem when using time adaptivity
-    M_timeExtrapolator.setTimeStep(this->M_dt);
-}
-
 void
 PseudoFSI::
 setup()
 {
-    // first we need to setup the time extrapolator in order to have alpha for bdf
-    // see boundary stiffness matrix
-    unsigned int orderBDF = M_datafile("structure/time_integration_order", 1);
-    M_timeExtrapolator.setBDForder(orderBDF);
-    M_timeExtrapolator.setMaximumExtrapolationOrder(orderBDF);
-
     computeLameConstants();
 
     NavierStokesAssembler::setup();
 
-    Vector velocityInitial(M_velocityFESpace->map());
-    velocityInitial.zero();
-    std::vector<Vector> initialStateVelocity;
-    for (unsigned int i = 0; i < orderBDF; ++i)
-        initialStateVelocity.push_back(velocityInitial);
-
-    M_timeExtrapolator.initialize(initialStateVelocity);
     computeBoundaryIndicator();
+
+    // set mass displacement to identity
+    M_massDisplacement.reset(new Matrix(M_velocityFESpace->map()));
+    M_massDisplacement->insertOneDiagonal();
+    M_massDisplacement->globalAssemble();
+
+    // adding map for displacement
+    M_primalMaps.push_back(M_velocityFESpace->mapPtr());
 }
 
 void
@@ -79,13 +64,9 @@ void
 PseudoFSI::
 computeBoundaryIndicator()
 {
-    // VectorPtr aux(new Vector(M_velocityFESpace->map()));
-    // aux->zero();
     M_boundaryIndicator.reset(new Vector(M_velocityFESpace->map()));
     M_boundaryIndicator->zero();
-    // *aux += 1.0;
-    // *M_boundaryIndicator = *M_boundaryMass * (*aux);
-    // *M_boundaryIndicator = (*M_boundaryIndicator != 0);
+
     LifeV::BCFunctionBase oneFunction(fOne);
 
     BoundaryConditionPtr bcs;
@@ -100,6 +81,51 @@ computeBoundaryIndicator()
 
     bcManageRhs(*M_boundaryIndicator, *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
                 *bcs, M_velocityFESpace->feBd(), 1.0, 0.0);
+}
+
+NavierStokesAssembler::MatrixPtr
+PseudoFSI::
+getMassMatrix(const unsigned int& blockrow,
+              const unsigned int& blockcol)
+{
+    if (blockrow == 0 && blockcol == 0)
+    {
+        // we copy the matrix so that we cannot change M_M (e.g. by applying
+        // boundary conditions)
+        MatrixPtr returnMatrix(new Matrix(*M_M));
+        return returnMatrix;
+    }
+    else if (blockrow == 2 && blockcol == 2)
+    {
+        MatrixPtr returnMatrix(new Matrix(*M_massDisplacement));
+        return returnMatrix;
+    }
+
+    return nullptr;
+}
+
+
+NavierStokesAssembler::MatrixPtr
+PseudoFSI::
+getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
+{
+    if (blockrow < 2 && blockcol < 2)
+        return NavierStokesAssembler::getJacobian(blockrow,blockcol);
+    if (blockrow == 2 && blockcol == 0)
+    {
+        MatrixPtr returnMatrix(new Matrix(*M_massDisplacement));
+        // *returnMatrix *= (-1.0);
+        returnMatrix->globalAssemble();
+        return returnMatrix;
+    }
+    if (blockrow == 0 && blockcol == 2)
+    {
+        MatrixPtr returnMatrix(new Matrix(*M_boundaryStiffness));
+        *returnMatrix *= (-1.0);
+        returnMatrix->globalAssemble();
+        return returnMatrix;
+    }
+    return nullptr;
 }
 
 void
@@ -131,8 +157,7 @@ assembleStiffnessMatrix()
                 myBDQR,
                 M_velocityFESpaceETA,
                 M_velocityFESpaceETA,
-                dt / M_timeExtrapolator.alpha() * (
-                2  *  M_lameII *
+                ( 2  *  M_lameII *
                 0.5 * dot(
                 (grad(phi_j) - grad(phi_j)*outerProduct(Nface, Nface))
                 + transpose(grad(phi_j) - grad(phi_j)*outerProduct(Nface, Nface)),
@@ -143,7 +168,6 @@ assembleStiffnessMatrix()
               ) >>  M_boundaryStiffness;
 
     M_boundaryStiffness->globalAssemble();
-    *M_A += *M_boundaryStiffness;
 }
 
 void
@@ -162,12 +186,40 @@ std::vector<PseudoFSI::VectorPtr>
 PseudoFSI::
 computeF()
 {
-    std::vector<VectorPtr> retVec = NavierStokesAssembler::computeF();
+    std::vector<VectorPtr> retVec;
+    std::vector<VectorPtr> retVecNS = NavierStokesAssembler::computeF();
 
-    VectorPtr rhsDisplacement(new Vector(M_velocityFESpace->map()));
-    M_timeExtrapolator.rhsContribution(*rhsDisplacement);
+    // N.B: we want the coupling part to be in the last position of the residual
+    *retVecNS[0] -= *M_boundaryStiffness * (*M_prevSolution[2]);
 
-    *retVec[0] -= *M_boundaryStiffness * (*rhsDisplacement);
+    retVec.push_back(retVecNS[0]);
+    retVec.push_back(retVecNS[1]);
+
+    VectorPtr F3(new Vector(M_velocityFESpace->map()));
+    *F3 += *M_prevSolution[0];
+    retVec.push_back(F3);
+    for (unsigned int i = 2; i < retVecNS.size(); i++)
+        retVec.push_back(retVecNS[i]);
+
+    return retVec;
+}
+
+std::vector<NavierStokesAssembler::VectorPtr>
+PseudoFSI::
+computeFder()
+{
+    std::vector<VectorPtr> retVec;
+    std::vector<VectorPtr> retVecNS = NavierStokesAssembler::computeF();
+
+    retVec.push_back(retVecNS[0]);
+    retVec.push_back(retVecNS[1]);
+
+    VectorPtr F3(new Vector(M_velocityFESpace->map()));
+    F3->zero();
+
+    retVec.push_back(F3);
+    for (unsigned int i = 2; i < retVecNS.size(); i++)
+        retVec.push_back(retVecNS[i]);
 
     return retVec;
 }
@@ -178,17 +230,7 @@ void
 PseudoFSI::
 postProcess()
 {
-    VectorPtr rhsDisplacement(new Vector(M_velocityFESpace->map()));
-    VectorPtr curDisplacement(new Vector(M_velocityFESpace->map()));
-
-    M_timeExtrapolator.rhsContribution(*rhsDisplacement);
-
-    curDisplacement->zero();
-    *curDisplacement = (*M_prevSolution[0]) * (*M_boundaryIndicator);
-    *curDisplacement += *rhsDisplacement;
-    *curDisplacement *= (this->M_dt / M_timeExtrapolator.alpha());
-    *M_displacementExporter = *curDisplacement;
-    M_timeExtrapolator.shift(*curDisplacement);
+    *M_displacementExporter = *M_prevSolution[2] * (*M_boundaryIndicator);
 }
 
 void

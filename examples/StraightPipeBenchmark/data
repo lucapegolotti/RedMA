@@ -31,7 +31,7 @@
 [../]
 
 [time_discretization]
-	algorithm = rosenbrock # rosenbrock
+	algorithm = backward_euler # rosenbrock
 	scheme = ROS3Pw
 	t0 = 0
 	T = 0.016

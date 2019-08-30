@@ -60,13 +60,13 @@ public:
 
     virtual void setup();
 
-    MatrixPtr getMassMatrix(const unsigned int& blockrow,
-                            const unsigned int& blockcol);
+    virtual MatrixPtr getMassMatrix(const unsigned int& blockrow,
+                                    const unsigned int& blockcol);
 
-    MatrixPtr getJacobian(const unsigned int& blockrow,
-                          const unsigned int& blockcol);
+    virtual MatrixPtr getJacobian(const unsigned int& blockrow,
+                                  const unsigned int& blockcol);
 
-    inline unsigned int numberOfBlocks() {return 2;}
+    virtual unsigned int numberOfBlocks() {return 2;}
 
     inline unsigned int numberOfComponents() {return 3;}
 
@@ -80,7 +80,7 @@ public:
 
     virtual std::vector<VectorPtr> computeF();
 
-    std::vector<VectorPtr> computeFder();
+    virtual std::vector<VectorPtr> computeFder();
 
     void applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
                                std::vector<VectorPtr> utilde,

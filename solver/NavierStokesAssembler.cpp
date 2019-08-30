@@ -355,7 +355,7 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
             retJacobian->globalAssemble();
         }
     }
-    else
+    else if (blockrow > numberOfBlocks() || blockcol > numberOfBlocks())
     {
         std::string errorMsg = "row = " + std::to_string(blockrow) + ", col = " +
                     std::to_string(blockcol) + " is an invalid combination of " +
@@ -393,7 +393,7 @@ computeF()
                                                   M_forcingTerm, this->M_dt);
     }
 
-    unsigned int count = 2;
+    unsigned int count = numberOfBlocks();
     for (std::map<unsigned int, MatrixPtr>::iterator it = getMapsQTs().begin();
          it != getMapsQTs().end(); it++)
     {

@@ -46,15 +46,25 @@ public:
     PseudoFSI(const GetPot& datafile, commPtr_Type comm,
               const TreeNodePtr& treeNode, bool verbose = false);
 
-    void setTimestep(double dt) override;
-
     std::vector<VectorPtr> computeF() override;
+
+    std::vector<VectorPtr> computeFder() override;
 
     void postProcess() override;
 
     void setExporter() override;
 
     void setup() override;
+
+    virtual unsigned int numberOfBlocks() override {return 3;};
+
+    void getMassMatix();
+
+    virtual MatrixPtr getMassMatrix(const unsigned int& blockrow,
+                                    const unsigned int& blockcol) override;
+
+    virtual MatrixPtr getJacobian(const unsigned int& blockrow,
+                                  const unsigned int& blockcol) override;
 
 protected:
     void assembleMassMatrix() override;
@@ -65,11 +75,11 @@ protected:
 
     void computeBoundaryIndicator();
 
-    LifeV::TimeAndExtrapolationHandler M_timeExtrapolator;
     double                             M_lameI;
     double                             M_lameII;
     MatrixPtr                          M_boundaryStiffness;
     MatrixPtr                          M_boundaryMass;
+    MatrixPtr                          M_massDisplacement;
     VectorPtr                          M_displacementExporter;
     VectorPtr                          M_boundaryIndicator;
 };

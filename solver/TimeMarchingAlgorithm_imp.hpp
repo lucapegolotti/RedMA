@@ -49,7 +49,11 @@ void
 TimeMarchingAlgorithm<AssemblerType>::
 buildPreconditioner(GlobalBlockMatrix matrix)
 {
-    M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator());
+    AssemblerType as(M_datafile, M_comm, nullptr, false);
+    if (as.numberOfBlocks() == 2)
+        M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator());
+    else
+        M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperatorPseudoFSI());
     M_prec->setVerbose(M_verbose);
     M_prec->setSolversOptions(*M_solversOptions);
     M_prec->setUp(matrix, M_comm);

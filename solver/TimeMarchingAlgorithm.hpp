@@ -25,6 +25,7 @@
 #include <GlobalSolverOperator.hpp>
 #include <GlobalSolverPreconditionerOperator.hpp>
 #include <GlobalSIMPLEOperator.hpp>
+#include <GlobalSIMPLEOperatorPseudoFSI.hpp>
 #include <GlobalSolverOperator.hpp>
 // #include <GlobalIdentityOperator.hpp>
 

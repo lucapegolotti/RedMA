@@ -62,9 +62,11 @@ assembleF(const double& time, VectorPtr tentativeSol, const double& dt)
     *retF = (M_globalAssembler->getGlobalMass()) * (*M_prevSolution);
     *retF *= (-1.0);
     *retF += (M_globalAssembler->getGlobalMass()) * (*tentativeSol);
+
     *retF -= (dt) * (*(M_globalAssembler->computeF()));
     M_globalAssembler->applyBCsVector(retF, 0.0, time,
                                       &AssemblerType::applyBCsBackwardEuler);
+
     return retF;
 }
 

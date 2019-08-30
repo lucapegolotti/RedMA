@@ -98,10 +98,10 @@ add(const GlobalBlockMatrix& other)
             {
                 // we do this because if the matrix is zero then we must
                 // use the sparsity pattern of the other matrix
-                if (M_gridEpetra(i,j)->meanNumEntries() > 0 &&
-                    other.M_gridEpetra(i,j)->meanNumEntries() > 0)
+                if (M_gridEpetra(i,j)->norm1() > 0 &&
+                    other.M_gridEpetra(i,j)->norm1() > 0)
                     *M_gridEpetra(i,j) += *other.M_gridEpetra(i,j);
-                else if (M_gridEpetra(i,j)->meanNumEntries() == 0)
+                else if (M_gridEpetra(i,j)->norm1() == 0)
                     M_gridEpetra(i,j).reset(new MatrixEpetra(*other.M_gridEpetra(i,j)));
             }
             else if (M_gridEpetra(i,j) == nullptr && other.M_gridEpetra(i,j) != nullptr)
@@ -189,7 +189,10 @@ GlobalBlockMatrix::
 copyBlock(unsigned int rows, unsigned int cols, MatrixEpetraPtr matrix)
 {
     if (matrix)
+    {
         M_gridEpetra(rows,cols).reset(new MatrixEpetra(*matrix));
+    }
+
 }
 
 // Attention: we assume that the global matrix is square (i.e. dimensions of
@@ -287,7 +290,7 @@ printPattern()
         for (unsigned int j = 0; j < M_cols; j++)
         {
             if (M_gridEpetra(i,j) != nullptr &&
-                M_gridEpetra(i,j)->meanNumEntries() > 0)
+                M_gridEpetra(i,j)->norm1() > 0)
                 std::cout << "x\t";
             else
                 std::cout << "o\t";
