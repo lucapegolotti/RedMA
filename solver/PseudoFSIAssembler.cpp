@@ -1,10 +1,10 @@
-#include <PseudoFSI.hpp>
+#include <PseudoFSIAssembler.hpp>
 
 namespace RedMA
 {
 
-PseudoFSI::
-PseudoFSI(const GetPot& datafile, commPtr_Type comm,
+PseudoFSIAssembler::
+PseudoFSIAssembler(const GetPot& datafile, commPtr_Type comm,
           const TreeNodePtr& treeNode, bool verbose) :
   NavierStokesAssembler(datafile, comm, treeNode, verbose)
 {
@@ -13,7 +13,7 @@ PseudoFSI(const GetPot& datafile, commPtr_Type comm,
 }
 
 void
-PseudoFSI::
+PseudoFSIAssembler::
 setup()
 {
     computeLameConstants();
@@ -32,7 +32,7 @@ setup()
 }
 
 void
-PseudoFSI::
+PseudoFSIAssembler::
 assembleMassMatrix()
 {
     using namespace LifeV::ExpressionAssembly;
@@ -61,7 +61,7 @@ assembleMassMatrix()
 }
 
 void
-PseudoFSI::
+PseudoFSIAssembler::
 computeBoundaryIndicator()
 {
     M_boundaryIndicator.reset(new Vector(M_velocityFESpace->map()));
@@ -84,7 +84,7 @@ computeBoundaryIndicator()
 }
 
 NavierStokesAssembler::MatrixPtr
-PseudoFSI::
+PseudoFSIAssembler::
 getMassMatrix(const unsigned int& blockrow,
               const unsigned int& blockcol)
 {
@@ -106,7 +106,7 @@ getMassMatrix(const unsigned int& blockrow,
 
 
 NavierStokesAssembler::MatrixPtr
-PseudoFSI::
+PseudoFSIAssembler::
 getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
 {
     if (blockrow < 2 && blockcol < 2)
@@ -129,7 +129,7 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
 }
 
 void
-PseudoFSI::
+PseudoFSIAssembler::
 assembleStiffnessMatrix()
 {
     using namespace LifeV::ExpressionAssembly;
@@ -171,7 +171,7 @@ assembleStiffnessMatrix()
 }
 
 void
-PseudoFSI::
+PseudoFSIAssembler::
 computeLameConstants()
 {
     double poisson = M_datafile("structure/poisson", 0.45);
@@ -182,8 +182,8 @@ computeLameConstants()
     M_lameII = thickness * young/(2. * (1. + poisson));
 }
 
-std::vector<PseudoFSI::VectorPtr>
-PseudoFSI::
+std::vector<PseudoFSIAssembler::VectorPtr>
+PseudoFSIAssembler::
 computeF()
 {
     std::vector<VectorPtr> retVec;
@@ -205,7 +205,7 @@ computeF()
 }
 
 std::vector<NavierStokesAssembler::VectorPtr>
-PseudoFSI::
+PseudoFSIAssembler::
 computeFder()
 {
     std::vector<VectorPtr> retVec;
@@ -227,14 +227,14 @@ computeFder()
 // attention: here we assume that the solutions in prevSolutions are the ones
 // we have to use to update the displacement field..
 void
-PseudoFSI::
+PseudoFSIAssembler::
 postProcess()
 {
     *M_displacementExporter = *M_prevSolution[2] * (*M_boundaryIndicator);
 }
 
 void
-PseudoFSI::
+PseudoFSIAssembler::
 setExporter()
 {
     NavierStokesAssembler::setExporter();

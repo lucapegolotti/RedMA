@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef PSEUDOFSI_HPP
-#define PSEUDOFSI_HPP
+#ifndef PSEUDOFSIASSEMBLER_HPP
+#define PSEUDOFSIASSEMBLER_HPP
 
 #include <NavierStokesAssembler.hpp>
 #include <lifev/core/fem/TimeAndExtrapolationHandler.hpp>
@@ -23,7 +23,7 @@
 namespace RedMA
 {
 
-class PseudoFSI : public NavierStokesAssembler
+class PseudoFSIAssembler : public NavierStokesAssembler
 {
 protected:
     typedef LifeV::ETFESpace<Mesh, MapEpetra, 3, 3>     ETFESpaceVelocity;
@@ -43,7 +43,7 @@ protected:
     typedef std::shared_ptr<Exporter>                   ExporterPtr;
 
 public:
-    PseudoFSI(const GetPot& datafile, commPtr_Type comm,
+    PseudoFSIAssembler(const GetPot& datafile, commPtr_Type comm,
               const TreeNodePtr& treeNode, bool verbose = false);
 
     std::vector<VectorPtr> computeF() override;
@@ -86,4 +86,4 @@ protected:
 
 }  // namespace RedMA
 
-#endif  // PSEUDOFSI_HPP
+#endif  // PSEUDOFSIASSEMBLER_HPP

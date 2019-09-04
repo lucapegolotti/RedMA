@@ -94,8 +94,15 @@ public:
                                        const double& coeff,
                                        FESpacePtr couplingFespace,
                                        ETFESpaceCouplingPtr couplingFESpaceETA,
+                                       unsigned int nBasisFunctions,
                                        VectorPtr* otherInterfaceVectors = nullptr,
                                        InterpolationPtr interpolator = nullptr);
+
+    VectorPtr* assembleCouplingVectorsTraces(GeometricFace face,
+                                             const double& coeff,
+                                             FESpacePtr couplingFespace,
+                                             ETFESpaceCouplingPtr couplingFESpaceETA,
+                                             unsigned int& numBasisFunctions);
 
     void fillMatricesWithVectors(VectorPtr* couplingVectors,
                                  const unsigned int& nBasisFunctions,
@@ -116,6 +123,9 @@ public:
     std::map<unsigned int, MatrixPtr>& getMapsQTsInterpolated();
 
     std::map<unsigned int, MatrixPtr>& getMapsQs();
+
+    static double fOne(const double& t, const double& x, const double& y,
+                       const double& z, const unsigned int& i);
 
 protected:
     commPtr_Type                        M_comm;

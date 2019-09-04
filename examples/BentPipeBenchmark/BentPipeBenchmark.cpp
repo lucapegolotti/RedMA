@@ -26,7 +26,7 @@
 
 #include <GlobalSolver.hpp>
 #include <NavierStokesAssembler.hpp>
-#include <PseudoFSI.hpp>
+#include <PseudoFSIAssembler.hpp>
 
 #include <lifev/core/filter/GetPot.hpp>
 
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 
     GetPot datafile("data");
     bool verbose = comm->MyPID() == 0;
-    GlobalSolver<PseudoFSI> gs(datafile, comm, verbose);
+    GlobalSolver<PseudoFSIAssembler> gs(datafile, comm, verbose);
     gs.setExportNorms("norms_nonconforming.txt");
     gs.setLawInflow(std::function<double(double)>(maxLaw));
     gs.setLawDtInflow(std::function<double(double)>(maxLawDt));

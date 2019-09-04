@@ -31,7 +31,7 @@
 [../]
 
 [time_discretization]
-	algorithm = backward_euler # rosenbrock
+	algorithm = rosenbrock # rosenbrock
 	scheme = ROS3Pw
 	t0 = 0
 	T = 0.016
@@ -53,9 +53,9 @@
 [../]
 
 [coupling]
-	type                = zernike
+	type                = traces
 	nMax                = 5
-	orthonormalization  = POD
+	orthonormalization  = none
 	beta_threshold      = 0
-	use_interpolation   = false
+	use_interpolation   = true
 [../]

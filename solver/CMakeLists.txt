@@ -12,6 +12,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/GlobalSIMPLEOperatorPseudoFSI.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/GlobalBlockMatrix.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/PseudoFSI.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PseudoFSIAssembler.cpp
     CACHE INTERNAL ""
 )

@@ -176,9 +176,22 @@ assembleCouplingMatrices(AbstractAssembler& child,
         unsigned int nMax = M_datafile("coupling/nMax", 5);
         basisFunction.reset(new ZernikeBasisFunction(inlet, nMax));
     }
-    nBasisFunctions = basisFunction->getNumBasisFunctions();
+    else if (!std::strcmp(typeBasis.c_str(), "traces"))
+    {
+
+    }
+
+    if (std::strcmp(typeBasis.c_str(), "traces"))
+        nBasisFunctions = basisFunction->getNumBasisFunctions();
 
     bool useInterpolation = M_datafile("coupling/use_interpolation", true);
+    if (!std::strcmp(typeBasis.c_str(), "traces") && !useInterpolation)
+    {
+        std::string msg;
+        msg = "It is necessary to use interpolation ";
+        msg +=  "when using trace basis functions!\n";
+        throw Exception(msg);
+    }
     VectorPtr* couplingVectorsFather;
     VectorPtr* couplingVectorsChild;
     if (useInterpolation)
@@ -228,11 +241,24 @@ assembleCouplingMatrices(AbstractAssembler& child,
             printlog(GREEN, msg, M_verbose);
         }
 
-        VectorPtr* mainVectors =
-           mainDomain->M_coupler.assembleCouplingVectors(basisFunction, *mainFace,
-                                                         coeff,
-                                                         mainDomain->M_couplingFESpace,
-                                                         mainDomain->M_couplingFESpaceETA);
+        VectorPtr* mainVectors;
+
+        if (std::strcmp(typeBasis.c_str(), "traces"))
+            mainVectors = mainDomain->
+                          M_coupler.assembleCouplingVectors(basisFunction,
+                                                            *mainFace,
+                                                            coeff,
+                                                            mainDomain->M_couplingFESpace,
+                                                            mainDomain->M_couplingFESpaceETA,
+                                                            nBasisFunctions);
+        else
+            mainVectors = mainDomain->
+                          M_coupler.assembleCouplingVectorsTraces(*mainFace,
+                                                                  coeff,
+                                                                  mainDomain->M_couplingFESpace,
+                                                                  mainDomain->M_couplingFESpaceETA,
+                                                                  nBasisFunctions);
+
 
         Teuchos::RCP< Teuchos::ParameterList > belosList =
                                       Teuchos::rcp (new Teuchos::ParameterList);
@@ -264,15 +290,16 @@ assembleCouplingMatrices(AbstractAssembler& child,
 
         interpolator->setFlag(mainFace->M_flag);
         interpolator->buildOperators();
-
         VectorPtr* otherVectors =
                  otherDomain->M_coupler.assembleCouplingVectors(basisFunction,
                                                                 *otherFace,
                                                                 -1,
                                                                 M_couplingFESpace,
                                                                 M_couplingFESpaceETA,
+                                                                nBasisFunctions,
                                                                 mainVectors,
                                                                 interpolator);
+
 
         if (hFather <= hChild)
         {
@@ -291,11 +318,13 @@ assembleCouplingMatrices(AbstractAssembler& child,
         couplingVectorsFather = M_coupler.assembleCouplingVectors(basisFunction,
                                                                   outlet, 1,
                                                                   M_couplingFESpace,
-                                                                  M_couplingFESpaceETA);
+                                                                  M_couplingFESpaceETA,
+                                                                  nBasisFunctions);
         couplingVectorsChild = child.M_coupler.assembleCouplingVectors(basisFunction,
                                                                        inlet, -1,
                                                                        child.M_couplingFESpace,
-                                                                       child.M_couplingFESpaceETA);
+                                                                       child.M_couplingFESpaceETA,
+                                                                       nBasisFunctions);
     }
     MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
     MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
@@ -404,7 +433,11 @@ reconstructLagrangeMultipliers(std::vector<VectorPtr> solutions, unsigned int of
     for (std::map<unsigned int, MatrixPtr>::iterator it = M_coupler.getMapsQTsInterpolated().begin();
          it != M_coupler.getMapsQTsInterpolated().end(); it++)
     {
+        // VectorPtr vcopy(new Vector(*solutions[count]));
+        // vcopy->zero();
+        // vcopy->operator[](10) = 1;
         *lagrangeMultipliers += (*it->second) * (*solutions[count]);
+        *lagrangeMultipliers += (*it->second) * (*vcopy);
         count++;
     }
     return lagrangeMultipliers;

@@ -251,12 +251,12 @@ assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
                         GeometricFace face, const double& coeff,
                         FESpacePtr couplingFespace,
                         ETFESpaceCouplingPtr couplingFESpaceETA,
+                        unsigned int nBasisFunctions,
                         VectorPtr* otherInterfaceVectors,
                         InterpolationPtr interpolator)
 {
     using namespace LifeV;
     // using namespace ExpressionAssembly;
-    unsigned int nBasisFunctions = basisFunction->getNumBasisFunctions();
     VectorPtr* couplingVectors = new VectorPtr[nBasisFunctions];
     MapEpetra couplingMap = couplingFESpaceETA->map();
 
@@ -318,6 +318,82 @@ assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
     }
     return couplingVectors;
 }
+
+Coupler::VectorPtr*
+Coupler::
+assembleCouplingVectorsTraces(GeometricFace face, const double& coeff,
+                              FESpacePtr couplingFespace,
+                              ETFESpaceCouplingPtr couplingFESpaceETA,
+                              unsigned int& numBasisFunctions)
+{
+    // find indices of nodes on the interface
+    unsigned int faceFlag = face.M_flag;
+    MeshPtr mesh = couplingFESpaceETA->mesh();
+    MapEpetra couplingMap = couplingFESpaceETA->map();
+
+    VectorPtr indicatorFc(new Vector(couplingMap, LifeV::Unique));
+    indicatorFc->zero();
+
+    CoutRedirecter ct;
+    ct.redirect();
+
+    LifeV::BCFunctionBase bFunction(fOne);
+
+    BoundaryConditionPtr bcs;
+    bcs.reset(new LifeV::BCHandler);
+
+    bcs->addBC("Boundary_function", faceFlag, LifeV::Essential, LifeV::Full,
+                bFunction, 1);
+
+    couplingFespace->interpolateBC(*bcs, *indicatorFc, 0.0);
+    ct.restore();
+
+    Epetra_Map primalMapEpetra = indicatorFc->epetraMap();
+    unsigned int numElements = primalMapEpetra.NumMyElements();
+
+    numBasisFunctions = 0;
+    for (unsigned int dof = 0; dof < numElements; dof++)
+    {
+        unsigned int gdof = primalMapEpetra.GID(dof);
+        if (indicatorFc->isGlobalIDPresent(gdof))
+        {
+            double value(indicatorFc->operator[](gdof));
+            if (std::abs(value-1) < 1e-15)
+            {
+                numBasisFunctions++;
+            }
+        }
+    }
+    VectorPtr* couplingVectors = new VectorPtr[numBasisFunctions];
+    unsigned int count = 0;
+    for (unsigned int dof = 0; dof < numElements; dof++)
+    {
+        unsigned int gdof = primalMapEpetra.GID(dof);
+        if (indicatorFc->isGlobalIDPresent(gdof))
+        {
+            double value(indicatorFc->operator[](gdof));
+            if (std::abs(value-1) < 1e-15)
+            {
+                VectorPtr newVector(new Vector(*indicatorFc));
+                newVector->zero();
+                newVector->operator[](gdof) = 1;
+                couplingVectors[count] = newVector;
+                *couplingVectors[count] *= coeff;
+                count++;
+            }
+        }
+    }
+    return couplingVectors;
+}
+
+double
+Coupler::
+fOne(const double& t, const double& x, const double& y, const double& z,
+     const unsigned int& i)
+{
+    return 1.0;
+}
+
 
 void
 Coupler::

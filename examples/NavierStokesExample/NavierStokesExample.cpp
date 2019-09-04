@@ -26,7 +26,7 @@
 
 #include <GlobalSolver.hpp>
 #include <NavierStokesAssembler.hpp>
-#include <PseudoFSI.hpp>
+#include <PseudoFSIAssembler.hpp>
 
 #include <lifev/core/filter/GetPot.hpp>
 
