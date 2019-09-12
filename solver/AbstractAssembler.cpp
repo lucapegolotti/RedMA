@@ -333,7 +333,7 @@ assembleCouplingMatrices(AbstractAssembler& child,
 
     std::string orthStrategy = M_datafile("coupling/orthonormalization", "POD");
 
-    if (std::strcmp(orthStrategy.c_str(), "none"))
+    if (std::strcmp(orthStrategy.c_str(), "none") && nBasisFunctions > 1)
     {
         if (!std::strcmp(orthStrategy.c_str(), "POD"))
         {
@@ -433,10 +433,15 @@ reconstructLagrangeMultipliers(std::vector<VectorPtr> solutions, unsigned int of
     for (std::map<unsigned int, MatrixPtr>::iterator it = M_coupler.getMapsQTsInterpolated().begin();
          it != M_coupler.getMapsQTsInterpolated().end(); it++)
     {
-        // VectorPtr vcopy(new Vector(*solutions[count]));
-        // vcopy->zero();
-        // vcopy->operator[](10) = 1;
-        *lagrangeMultipliers += (*it->second) * (*solutions[count]);
+        VectorPtr vcopy(new Vector(*solutions[count]));
+        vcopy->zero();
+        vcopy->operator[](7) = 1;
+        vcopy->operator[](12) = 1;
+        vcopy->operator[](18) = 1;
+        vcopy->operator[](23) = 1;
+        vcopy->operator[](30) = 1;
+        vcopy->operator[](33) = 1;
+        // *lagrangeMultipliers += (*it->second) * (*solutions[count]);
         *lagrangeMultipliers += (*it->second) * (*vcopy);
         count++;
     }

@@ -53,6 +53,9 @@ saveToFile(TreeStructure& tree, std::string name,
                 if (!std::strcmp(curNode->M_block->name().c_str(),
                                 "BifurcationSymmetric"))
                     typeName = "bifurcation_symmetric";
+                if (!std::strcmp(curNode->M_block->name().c_str(),
+                                "BifurcationAsymmetric"))
+                    typeName = "bifurcation_asymmetric";
                 pNewElement->SetAttribute("type", typeName.c_str());
 
                 if (outletIndex != -1)

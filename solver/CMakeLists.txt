@@ -13,5 +13,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/GlobalBlockMatrix.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PseudoFSIAssembler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interpolation.cpp
     CACHE INTERNAL ""
 )

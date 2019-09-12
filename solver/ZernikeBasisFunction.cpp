@@ -132,10 +132,18 @@ operator()(const Vector3D& pos)
     double r = diff.norm();
 
     double theta;
-    if (r < 1e-16)
+    if (r < 1e-15)
         theta = 0;
     else
-        theta = std::acos(diff.dot(M_e) / r);
+    {
+        double ratio = diff.dot(M_e) / r;
+        std::cout << "ratio = " << r << std::endl << std::flush;
+        if (std::abs(ratio + 1) < 1e-15)
+            theta = M_PI;
+        else
+            theta = std::acos(ratio);
+        std::cout << "theta = " << theta << std::endl << std::flush;
+    }
 
     Vector3D crossProduct = diff.cross(M_e);
 
@@ -152,7 +160,13 @@ operator()(const Vector3D& pos)
     {
         returnVal += coefList[k] * std::pow(r/M_R,n-2*k);
     }
+    std::cout << "diff.dot(M_e) = " << diff.dot(M_e) << std::endl << std::flush;
+    std::cout << "r = " << r << std::endl;
+    std::cout << "returnVal = " << returnVal << std::endl << std::flush;
+    std::cout << "M_orthoCoefficient = " << M_orthoCoefficient << std::endl << std::flush;
     returnVal *= M_curFunction(m * theta) * M_orthoCoefficient;
+    if (returnVal != returnVal)
+        exit(1);
     return returnVal;
 }
 

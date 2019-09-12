@@ -274,8 +274,8 @@ assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
 
             basisFunction->setIndex(i);
 
-            CoutRedirecter ct;
-            ct.redirect();
+            // CoutRedirecter ct;
+            // ct.redirect();
 
             BCFunctionBase bFunction(basisFunction->function());
 
@@ -289,7 +289,7 @@ assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
             couplingFespace->interpolateBC(*bcs, *currentMode, 0.0);
             *currentMode *= coeff;
             couplingVectors[i] = currentMode;
-            ct.restore();
+            // ct.restore();
         }
     }
     else

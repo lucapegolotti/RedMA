@@ -1,0 +1,70 @@
+<buildingblock type="tube" refinement="normal">
+    <L_ratio>0.9</L_ratio>
+    <Rout_ratio>1.0</Rout_ratio>
+    <alpha_axis>1.1</alpha_axis>
+    <alphax>1.2</alphax>
+    <alphay>-2.1</alphay>
+    <alphaz>2</alphaz>
+    <bend>0.15</bend>
+    <bx>21.064212601613463</bx>
+    <by>24.123550212249867</by>
+    <bz>73.16505174721874</bz>
+    <scale>0.59</scale>
+    <use_linear_elasticity>0</use_linear_elasticity>
+        <buildingblock type="bifurcation_asymmetric" outlet="1" refinement="normal">
+            <alpha_axis>-0.4</alpha_axis>
+            <alphax>0</alphax>
+            <alphay>0</alphay>
+            <alphaz>0</alphaz>
+            <bx>0</bx>
+            <by>0</by>
+            <bz>0</bz>
+            <out1_alpha_plane>-0.3</out1_alpha_plane>
+            <out1_alphax>0.06</out1_alphax>
+            <out2_alpha_plane>0.13</out2_alpha_plane>
+            <out2_alphax>-0.1</out2_alphax>
+            <scale>1</scale>
+            <buildingblock type="tube" refinement="normal">
+                <L_ratio>1.3</L_ratio>
+                <Rout_ratio>1.0</Rout_ratio>
+                <alpha_axis>-1</alpha_axis>
+                <alphax>0</alphax>
+                <alphay>0</alphay>
+                <alphaz>0</alphaz>
+                <bend>0.45</bend>
+                <bx>0</bx>
+                <by>0</by>
+                <bz>0</bz>
+                <scale>1</scale>
+                <use_linear_elasticity>0</use_linear_elasticity>
+                <buildingblock type="bifurcation_asymmetric" outlet="1" refinement="normal">
+                    <alpha_axis>4.1</alpha_axis>
+                    <alphax>0</alphax>
+                    <alphay>0</alphay>
+                    <alphaz>0</alphaz>
+                    <bx>0</bx>
+                    <by>0</by>
+                    <bz>0</bz>
+                    <out1_alpha_plane>-0.3</out1_alpha_plane>
+                    <out1_alphax>-1</out1_alphax>
+                    <out2_alpha_plane>-0.26</out2_alpha_plane>
+                    <out2_alphax>-0.3</out2_alphax>
+                    <scale>1</scale>
+		    <buildingblock type="bifurcation_asymmetric" outlet="1" refinement="normal">
+                    <alpha_axis>4.1</alpha_axis>
+                    <alphax>0</alphax>
+                    <alphay>0</alphay>
+                    	<alphaz>0</alphaz>
+                    	<bx>0</bx>
+                    	<by>0</by>
+                    	<bz>0</bz>
+                    	<out1_alpha_plane>-0.3</out1_alpha_plane>
+                    	<out1_alphax>-1</out1_alphax>
+                    	<out2_alpha_plane>-0.26</out2_alpha_plane>
+                    	<out2_alphax>-0.3</out2_alphax>
+                    	<scale>1</scale>
+                    </buildingblock>
+                </buildingblock>
+            </buildingblock>
+        </buildingblock>
+</buildingblock>

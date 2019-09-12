@@ -25,6 +25,7 @@
 #include <BuildingBlock.hpp>
 #include <Tube.hpp>
 #include <BifurcationSymmetric.hpp>
+#include <BifurcationAsymmetric.hpp>
 #include <TreeStructure.hpp>
 
 #include <Epetra_SerialComm.h>

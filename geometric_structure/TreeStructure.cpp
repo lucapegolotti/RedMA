@@ -189,11 +189,17 @@ createRandom(unsigned int blocksNumber, std::shared_ptr<Epetra_Comm> comm)
             printlog(MAGENTA, "[TreeStructure] Initializing tube\n", M_verbose);
             newBlock.reset(new Tube(comm, ref, M_verbose));
         }
+        // else
+        // {
+        //     printlog(MAGENTA, std::string("[TreeStructure] Initializing ") +
+        //                       " bifurcation symmetric\n", M_verbose);
+        //     newBlock.reset(new BifurcationSymmetric(comm, ref, M_verbose));
+        // }
         else
         {
             printlog(MAGENTA, std::string("[TreeStructure] Initializing ") +
-                              " bifurcation symmetric\n", M_verbose);
-            newBlock.reset(new BifurcationSymmetric(comm, ref, M_verbose));
+                              " bifurcation asymmetric\n", M_verbose);
+            newBlock.reset(new BifurcationAsymmetric(comm, ref, M_verbose));
         }
         newBlock->setRandom();
 

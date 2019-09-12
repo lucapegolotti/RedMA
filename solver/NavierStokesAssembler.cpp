@@ -861,6 +861,7 @@ exportSolutions(const double& time, std::vector<VectorPtr> solutions)
     *M_lagrangeMultiplierExporter = *reconstructLagrangeMultipliers(solutions, 2);
     CoutRedirecter ct;
     ct.redirect();
+    solutions[2]->showMe();
     M_exporter->postProcess(time);
     printlog(CYAN, ct.restore(), M_verbose);
     printlog(MAGENTA, "done\n", M_verbose);
