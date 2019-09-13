@@ -98,11 +98,12 @@ public:
                                        VectorPtr* otherInterfaceVectors = nullptr,
                                        InterpolationPtr interpolator = nullptr);
 
-    VectorPtr* assembleCouplingVectorsTraces(GeometricFace face,
-                                             const double& coeff,
-                                             FESpacePtr couplingFespace,
-                                             ETFESpaceCouplingPtr couplingFESpaceETA,
-                                             unsigned int& numBasisFunctions);
+    VectorPtr* assembleTraces(GeometricFace face,
+                              const double& coeff,
+                              FESpacePtr couplingFespace,
+                              ETFESpaceCouplingPtr couplingFESpaceETA,
+                              unsigned int& numBasisFunctions,
+                              bool keepZeros = true);
 
     void fillMatricesWithVectors(VectorPtr* couplingVectors,
                                  const unsigned int& nBasisFunctions,
@@ -118,6 +119,15 @@ public:
                                            unsigned int numberOfComponents,
                                            const unsigned int& flagAdjacentDomain);
 
+    void buildInterpolationMatrices(VectorPtr* mainTraces,
+                                    const unsigned int mainNumTraces,
+                                    VectorPtr* otherTraces,
+                                    const unsigned int otherNumTraces);
+
+    void buildInterpolators(GetPot datafile, double mainMeshize, double otherMeshSize,
+                            FESpacePtr mainFESpace, FESpacePtr otherFESpace,
+                            GeometricFace* mainFace, GeometricFace* otherFace);
+
     std::map<unsigned int, MatrixPtr>& getMapsQTs();
 
     std::map<unsigned int, MatrixPtr>& getMapsQTsInterpolated();
@@ -128,12 +138,28 @@ public:
                        const double& z, const unsigned int& i);
 
 protected:
+    InterpolationPtr buildSingleInterpolator(GetPot datafile, double meshSize,
+                                             FESpacePtr FESpaceFrom,
+                                             FESpacePtr FESpaceTo,
+                                             GeometricFace* faceFrom,
+                                             GeometricFace* faceTo);
+
+    MatrixPtr buildSingleInterpolationMatrix(VectorPtr* vectors,
+                                             const unsigned int numVectors,
+                                             MapEpetraPtr fromMap,
+                                             MapEpetraPtr toMap,
+                                             InterpolationPtr interpolation);
+
     commPtr_Type                        M_comm;
     bool                                M_verbose;
     // maps of the coupling matrices (key = flag of corresponding face)
     std::map<unsigned int, MatrixPtr>   M_mapQTs;
     std::map<unsigned int, MatrixPtr>   M_mapQs;
     std::map<unsigned int, MatrixPtr>   M_mapQTsInterpolated;
+    InterpolationPtr                    M_interpolatorMainToOther;
+    InterpolationPtr                    M_interpolatorOtherToMain;
+    MatrixPtr                           M_matrixInterpolationMainToOther;
+    MatrixPtr                           M_matrixInterpolationOtherToMain;
 };
 
 }  // namespace RedMA

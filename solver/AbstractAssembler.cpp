@@ -134,6 +134,174 @@ assembleBoundaryMatrix(GeometricFace face)
     return boundaryMassMatrix;
 }
 
+std::shared_ptr<BasisFunctionFunctor>
+AbstractAssembler::
+castBasisFunction(std::string type, GeometricFace inlet)
+{
+    std::shared_ptr<BasisFunctionFunctor> basisFunction;
+
+    if (!std::strcmp(type.c_str(), "fourier"))
+    {
+        unsigned int frequenciesTheta = M_datafile("coupling/frequencies_theta", 1);
+        unsigned int frequenciesRadial = M_datafile("coupling/frequencies_radial", 1);
+
+        basisFunction.reset(new FourierBasisFunction(inlet, frequenciesTheta,
+                                                     frequenciesRadial));
+    }
+    else if (!std::strcmp(type.c_str(), "zernike"))
+    {
+        unsigned int nMax = M_datafile("coupling/nMax", 5);
+        basisFunction.reset(new ZernikeBasisFunction(inlet, nMax));
+    }
+
+    return basisFunction;
+}
+
+void
+AbstractAssembler::
+assembleCouplingMatricesInterpolation(AbstractAssembler& child,
+                                      const unsigned int& indexOutlet,
+                                      const unsigned int& interfaceIndex,
+                                      std::shared_ptr<BasisFunctionFunctor> basisFunction,
+                                      MapEpetraPtr& globalMap,
+                                      std::vector<MapEpetraPtr>& maps,
+                                      std::vector<unsigned int>& dimensions,
+                                      std::string typeBasis)
+{
+    AbstractAssembler* mainDomain;
+    AbstractAssembler* otherDomain;
+    // choose side with smaller h for interpolation
+    double hFatherLocal =
+        LifeV::MeshUtility::MeshStatistics::computeSize(
+                                        *M_couplingFESpace->mesh()).maxH;
+    double hChildLocal =
+        LifeV::MeshUtility::MeshStatistics::computeSize(
+                                  *child.M_couplingFESpace->mesh()).maxH;
+
+    // find global hmax
+    double hFather;
+    double hChild;
+
+    M_comm->MaxAll(&hFatherLocal, &hFather, 1);
+    M_comm->MaxAll(&hChildLocal, &hChild, 1);
+
+    GeometricFace inlet = child.M_treeNode->M_block->getInlet();
+    GeometricFace outlet = M_treeNode->M_block->getOutlet(indexOutlet);
+
+    double coeff;
+    double mainMeshSize;
+    double otherMeshSize;
+    GeometricFace* mainFace;
+    GeometricFace* otherFace;
+    // we use father as main mesh
+    if (hFather <= hChild)
+    {
+        mainDomain = this;
+        otherDomain = &child;
+        coeff = 1;
+        mainFace = &outlet;
+        otherFace = &inlet;
+        mainMeshSize = hFather;
+        otherMeshSize = hChild;
+        std::string msg = "Selecting father building block for interpolation\n";
+        printlog(GREEN, msg, M_verbose);
+    }
+    else
+    {
+        mainDomain = &child;
+        otherDomain = this;
+        coeff = -1;
+        mainFace = &inlet;
+        otherFace = &outlet;
+        mainMeshSize = hChild;
+        otherMeshSize = hFather;
+        std::string msg = "Selecting child building block for interpolation\n";
+        printlog(GREEN, msg, M_verbose);
+    }
+
+    // create traces on both subdomains (to assemble the interpolation matrices)
+    unsigned int mainNumTraces;
+    VectorPtr* mainTraces;
+    mainTraces = mainDomain->M_coupler.assembleTraces(*mainFace, 1.0,
+                                                      mainDomain->M_couplingFESpace,
+                                                      mainDomain->M_couplingFESpaceETA,
+                                                      mainNumTraces);
+
+    unsigned int otherNumTraces;
+    VectorPtr* otherTraces;
+    otherTraces =
+      otherDomain->M_coupler.assembleTraces(*otherFace, 1.0,
+                                            otherDomain->M_couplingFESpace,
+                                            otherDomain->M_couplingFESpaceETA,
+                                            otherNumTraces);
+    M_coupler.buildInterpolators(M_datafile, mainMeshSize, otherMeshSize,
+                                 mainDomain->getCouplingFESpace(),
+                                 otherDomain->getCouplingFESpace(),
+                                 mainFace, otherFace);
+
+    M_coupler.buildInterpolationMatrices(mainTraces, mainNumTraces,
+                                         otherTraces, otherNumTraces);
+
+    unsigned int nBasisFunctions = 0;
+    if (std::strcmp(typeBasis.c_str(), "traces"))
+        nBasisFunctions = basisFunction->getNumBasisFunctions();
+
+    VectorPtr* mainVectors;
+    if (std::strcmp(typeBasis.c_str(), "traces"))
+        mainVectors = mainDomain->
+                      M_coupler.assembleCouplingVectors(basisFunction,
+                                                        *mainFace,
+                                                        coeff,
+                                                        mainDomain->M_couplingFESpace,
+                                                        mainDomain->M_couplingFESpaceETA,
+                                                        nBasisFunctions);
+    else
+        mainVectors = mainDomain->
+                      M_coupler.assembleTraces(*mainFace, 1.0,
+                                               mainDomain->M_couplingFESpace,
+                                               mainDomain->M_couplingFESpaceETA,
+                                               nBasisFunctions, false);
+
+    MapEpetraPtr lagrangeMultiplierMap = buildLagrangeMultiplierMap(nBasisFunctions);
+
+    MapEpetraPtr primalMap = mainDomain->M_primalMaps[mainDomain->M_indexCoupling];
+
+    mainDomain->M_coupler.fillMatrixWithVectorsInterpolated(mainVectors,
+                                                            nBasisFunctions,
+                                                            lagrangeMultiplierMap,
+                                                            primalMap,
+                                                            mainDomain->numberOfComponents(),
+                                                            otherDomain->M_treeNode->M_ID);
+
+    MatrixPtr massMatrixMain = mainDomain->assembleBoundaryMatrix(*mainFace);
+    MatrixPtr massMatrixOther = otherDomain->assembleBoundaryMatrix(*otherFace);
+
+    exit(1);
+}
+
+AbstractAssembler::MapEpetraPtr
+AbstractAssembler::
+buildLagrangeMultiplierMap(const unsigned int nBasisFunctions)
+{
+    MapEpetraPtr lagrangeMultiplierMap;
+
+    // build map for the lagrange multipliers (nBasisFunctions has been
+    // modified in orthonormalization)
+    unsigned int myel = (numberOfComponents() * nBasisFunctions) / M_comm->NumProc();
+    // the first process takes care of the remainder
+    if (M_comm->MyPID() == 0)
+    {
+        myel += (numberOfComponents() * nBasisFunctions) % M_comm->NumProc();
+    }
+    unsigned int mapSize = numberOfComponents() * nBasisFunctions;
+    lagrangeMultiplierMap.reset(new
+                    AbstractAssembler::MapEpetra(mapSize, myel,
+                                                 0, M_comm));
+
+    return lagrangeMultiplierMap;
+}
+
+
 void
 AbstractAssembler::
 assembleCouplingMatrices(AbstractAssembler& child,
@@ -155,31 +323,13 @@ assembleCouplingMatrices(AbstractAssembler& child,
     unsigned int nBasisFunctions;
     MapEpetraPtr lagrangeMultiplierMap;
 
-    std::string typeBasis = M_datafile("coupling/type", "fourier");
-
-
-    std::shared_ptr<BasisFunctionFunctor> basisFunction;
+    std::string typeBasis = M_datafile("coupling/type", "zernike");
 
     GeometricFace inlet = child.M_treeNode->M_block->getInlet();
     GeometricFace outlet = M_treeNode->M_block->getOutlet(indexOutlet);
 
-    if (!std::strcmp(typeBasis.c_str(), "fourier"))
-    {
-        unsigned int frequenciesTheta = M_datafile("coupling/frequencies_theta", 1);
-        unsigned int frequenciesRadial = M_datafile("coupling/frequencies_radial", 1);
-
-        basisFunction.reset(new FourierBasisFunction(inlet, frequenciesTheta,
-                                                     frequenciesRadial));
-    }
-    else if (!std::strcmp(typeBasis.c_str(), "zernike"))
-    {
-        unsigned int nMax = M_datafile("coupling/nMax", 5);
-        basisFunction.reset(new ZernikeBasisFunction(inlet, nMax));
-    }
-    else if (!std::strcmp(typeBasis.c_str(), "traces"))
-    {
-
-    }
+    std::shared_ptr<BasisFunctionFunctor> basisFunction;
+    basisFunction = castBasisFunction(typeBasis, inlet);
 
     if (std::strcmp(typeBasis.c_str(), "traces"))
         nBasisFunctions = basisFunction->getNumBasisFunctions();
@@ -196,136 +346,24 @@ assembleCouplingMatrices(AbstractAssembler& child,
     VectorPtr* couplingVectorsChild;
     if (useInterpolation)
     {
-        AbstractAssembler* mainDomain;
-        AbstractAssembler* otherDomain;
-        // choose side with smaller h for interpolation
-        double hFatherLocal =
-            LifeV::MeshUtility::MeshStatistics::computeSize(
-                                            *M_couplingFESpace->mesh()).maxH;
-        double hChildLocal =
-            LifeV::MeshUtility::MeshStatistics::computeSize(
-                                       *child.M_couplingFESpace->mesh()).maxH;
-
-        // find global hmax
-        double hFather;
-        double hChild;
-
-        M_comm->MaxAll(&hFatherLocal, &hFather, 1);
-        M_comm->MaxAll(&hChildLocal, &hChild, 1);
-
-        double coeff;
-        double meshSize;
-        GeometricFace* mainFace;
-        GeometricFace* otherFace;
-        // we use father as main mesh
-        if (hFather <= hChild)
-        {
-            mainDomain = this;
-            otherDomain = &child;
-            coeff = 1;
-            mainFace = &outlet;
-            otherFace = &inlet;
-            meshSize = hFather;
-            msg = "Selecting father building block for interpolation\n";
-            printlog(GREEN, msg, M_verbose);
-        }
-        else
-        {
-            mainDomain = &child;
-            otherDomain = this;
-            coeff = -1;
-            mainFace = &inlet;
-            otherFace = &outlet;
-            meshSize = hChild;
-            msg = "Selecting child building block for interpolation\n";
-            printlog(GREEN, msg, M_verbose);
-        }
-
-        VectorPtr* mainVectors;
-
-        if (std::strcmp(typeBasis.c_str(), "traces"))
-            mainVectors = mainDomain->
-                          M_coupler.assembleCouplingVectors(basisFunction,
-                                                            *mainFace,
-                                                            coeff,
-                                                            mainDomain->M_couplingFESpace,
-                                                            mainDomain->M_couplingFESpaceETA,
-                                                            nBasisFunctions);
-        else
-            mainVectors = mainDomain->
-                          M_coupler.assembleCouplingVectorsTraces(*mainFace,
-                                                                  coeff,
-                                                                  mainDomain->M_couplingFESpace,
-                                                                  mainDomain->M_couplingFESpaceETA,
-                                                                  nBasisFunctions);
-
-
-        Teuchos::RCP< Teuchos::ParameterList > belosList =
-                                      Teuchos::rcp (new Teuchos::ParameterList);
-        belosList = Teuchos::getParametersFromXmlFile("SolverParamList_rbf3d.xml");
-
-        InterpolationPtr interpolator;
-        interpolator.reset(new Interpolation);
-        interpolator->setup(M_datafile, belosList);
-        interpolator->setMeshSize(meshSize);
-
-        VectorPtr dummyVectorMain(new
-                               Vector(mainDomain->M_couplingFESpace->map()));
-        dummyVectorMain->zero();
-
-        VectorPtr dummyVectorOther(new
-                              Vector(otherDomain->M_couplingFESpace->map()));
-        dummyVectorOther->zero();
-
-        interpolator->setVectors(dummyVectorMain, dummyVectorOther);
-        interpolator->setFlag(mainFace->M_flag);
-        interpolator->buildTableDofs_known(mainDomain->M_couplingFESpace);
-        interpolator->identifyNodes_known();
-        interpolator->buildKnownInterfaceMap();
-
-        interpolator->setFlag(otherFace->M_flag);
-        interpolator->buildTableDofs_unknown(otherDomain->M_couplingFESpace);
-        interpolator->identifyNodes_unknown();
-        interpolator->buildUnknownInterfaceMap();
-
-        interpolator->setFlag(mainFace->M_flag);
-        interpolator->buildOperators();
-        VectorPtr* otherVectors =
-                 otherDomain->M_coupler.assembleCouplingVectors(basisFunction,
-                                                                *otherFace,
-                                                                -1,
-                                                                M_couplingFESpace,
-                                                                M_couplingFESpaceETA,
-                                                                nBasisFunctions,
-                                                                mainVectors,
-                                                                interpolator);
-
-
-        if (hFather <= hChild)
-        {
-            couplingVectorsFather = mainVectors;
-            couplingVectorsChild  = otherVectors;
-        }
-        else
-        {
-            couplingVectorsFather = otherVectors;
-            couplingVectorsChild  = mainVectors;
-        }
+        assembleCouplingMatricesInterpolation(child, indexOutlet, interfaceIndex,
+                                              basisFunction, globalMap,
+                                              maps, dimensions, typeBasis);
+        return;
     }
-    else
-    {
 
-        couplingVectorsFather = M_coupler.assembleCouplingVectors(basisFunction,
-                                                                  outlet, 1,
-                                                                  M_couplingFESpace,
-                                                                  M_couplingFESpaceETA,
-                                                                  nBasisFunctions);
-        couplingVectorsChild = child.M_coupler.assembleCouplingVectors(basisFunction,
-                                                                       inlet, -1,
-                                                                       child.M_couplingFESpace,
-                                                                       child.M_couplingFESpaceETA,
-                                                                       nBasisFunctions);
-    }
+
+    couplingVectorsFather = M_coupler.assembleCouplingVectors(basisFunction,
+                                                              outlet, 1,
+                                                              M_couplingFESpace,
+                                                              M_couplingFESpaceETA,
+                                                              nBasisFunctions);
+    couplingVectorsChild = child.M_coupler.assembleCouplingVectors(basisFunction,
+                                                                   inlet, -1,
+                                                                   child.M_couplingFESpace,
+                                                                   child.M_couplingFESpaceETA,
+                                                                   nBasisFunctions);
+
     MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
     MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
 
@@ -362,18 +400,8 @@ assembleCouplingMatrices(AbstractAssembler& child,
         printlog(GREEN, msg, M_verbose);
     }
 
-    // build map for the lagrange multipliers (nBasisFunctions has been
-    // modified in orthonormalization)
-    unsigned int myel = (nComponents * nBasisFunctions) / M_comm->NumProc();
-    // the first process takes care of the remainder
-    if (M_comm->MyPID() == 0)
-    {
-        myel += (nComponents * nBasisFunctions) % M_comm->NumProc();
-    }
-    unsigned int mapSize = nComponents * nBasisFunctions;
-    lagrangeMultiplierMap.reset(new
-                    AbstractAssembler::MapEpetra(mapSize, myel,
-                                                 0, M_comm));
+    lagrangeMultiplierMap = buildLagrangeMultiplierMap(nBasisFunctions);
+
     M_dualMaps.push_back(lagrangeMultiplierMap);
     child.M_dualMaps.push_back(lagrangeMultiplierMap);
 

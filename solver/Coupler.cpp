@@ -321,10 +321,11 @@ assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
 
 Coupler::VectorPtr*
 Coupler::
-assembleCouplingVectorsTraces(GeometricFace face, const double& coeff,
-                              FESpacePtr couplingFespace,
-                              ETFESpaceCouplingPtr couplingFESpaceETA,
-                              unsigned int& numBasisFunctions)
+assembleTraces(GeometricFace face, const double& coeff,
+               FESpacePtr couplingFespace,
+               ETFESpaceCouplingPtr couplingFESpaceETA,
+               unsigned int& numBasisFunctions,
+               bool keepZeros)
 {
     // find indices of nodes on the interface
     unsigned int faceFlag = face.M_flag;
@@ -348,42 +349,229 @@ assembleCouplingVectorsTraces(GeometricFace face, const double& coeff,
     couplingFespace->interpolateBC(*bcs, *indicatorFc, 0.0);
     ct.restore();
 
+    indicatorFc->spy("indicator");
+    exit(1);
+
     Epetra_Map primalMapEpetra = indicatorFc->epetraMap();
     unsigned int numElements = primalMapEpetra.NumMyElements();
 
     numBasisFunctions = 0;
-    for (unsigned int dof = 0; dof < numElements; dof++)
+
+    VectorPtr* couplingVectors;
+
+    // add vectors also for the entries that are not on the boundary. Note
+    // we are assembling scalar vectors even for 3D fields (because we are
+    // using the map in FESpaceETA)
+    if (keepZeros)
     {
-        unsigned int gdof = primalMapEpetra.GID(dof);
-        if (indicatorFc->isGlobalIDPresent(gdof))
+        numBasisFunctions = numElements;
+        couplingVectors = new VectorPtr[numBasisFunctions];
+
+        for (unsigned int dof = 0; dof < numElements; dof++)
         {
-            double value(indicatorFc->operator[](gdof));
-            if (std::abs(value-1) < 1e-15)
+            VectorPtr newVector(new Vector(*indicatorFc));
+            newVector->zero();
+            unsigned int gdof = primalMapEpetra.GID(dof);
+            if (indicatorFc->isGlobalIDPresent(gdof))
             {
-                numBasisFunctions++;
+                double value(indicatorFc->operator[](gdof));
+                if (std::abs(value-1) < 1e-15)
+                {
+                    newVector->operator[](gdof) = 1;
+                }
             }
+            couplingVectors[dof] = newVector;
+            *couplingVectors[dof] *= coeff;
         }
     }
-    VectorPtr* couplingVectors = new VectorPtr[numBasisFunctions];
-    unsigned int count = 0;
-    for (unsigned int dof = 0; dof < numElements; dof++)
+    else
     {
-        unsigned int gdof = primalMapEpetra.GID(dof);
-        if (indicatorFc->isGlobalIDPresent(gdof))
+        for (unsigned int dof = 0; dof < numElements; dof++)
         {
-            double value(indicatorFc->operator[](gdof));
-            if (std::abs(value-1) < 1e-15)
+            unsigned int gdof = primalMapEpetra.GID(dof);
+            if (indicatorFc->isGlobalIDPresent(gdof))
             {
-                VectorPtr newVector(new Vector(*indicatorFc));
-                newVector->zero();
-                newVector->operator[](gdof) = 1;
-                couplingVectors[count] = newVector;
-                *couplingVectors[count] *= coeff;
-                count++;
+                double value(indicatorFc->operator[](gdof));
+                if (std::abs(value-1) < 1e-15)
+                {
+                    numBasisFunctions++;
+                }
+            }
+        }
+        couplingVectors = new VectorPtr[numBasisFunctions];
+        unsigned int count = 0;
+        for (unsigned int dof = 0; dof < numElements; dof++)
+        {
+            unsigned int gdof = primalMapEpetra.GID(dof);
+            if (indicatorFc->isGlobalIDPresent(gdof))
+            {
+                double value(indicatorFc->operator[](gdof));
+                if (std::abs(value-1) < 1e-15)
+                {
+                    VectorPtr newVector(new Vector(*indicatorFc));
+                    newVector->zero();
+                    newVector->operator[](gdof) = 1;
+                    couplingVectors[count] = newVector;
+                    *couplingVectors[count] *= coeff;
+                    count++;
+                }
             }
         }
     }
     return couplingVectors;
+}
+
+Coupler::MatrixPtr
+Coupler::
+buildSingleInterpolationMatrix(VectorPtr* vectors,
+                               const unsigned int numVectors,
+                               MapEpetraPtr fromMap,
+                               MapEpetraPtr toMap,
+                               InterpolationPtr interpolator)
+{
+    using namespace LifeV;
+    const Real dropTolerance(2.0 * std::numeric_limits<Real>::min());
+
+    MapEpetraPtr fromCompleteMap = interpolator->getKnownMap();
+    MapEpetraPtr toCompleteMap = interpolator->getUnknownMap();
+
+    VectorPtr* interpolatedVectors = new VectorPtr[numVectors];
+    for (unsigned int i = 0; i < numVectors; i++)
+    {
+
+        VectorPtr fromVector3D(new Vector(*fromCompleteMap));
+            // we need a 3D vector
+        fromVector3D->subset(*vectors[i], *fromMap, 0, 0);
+
+        interpolator->updateRhs(fromVector3D);
+        interpolator->interpolate();
+
+        VectorPtr toVector(new Vector(*toMap, Unique));
+        toVector->zero();
+
+        VectorPtr toVector3D(new Vector(*toCompleteMap, Unique));
+        interpolator->solution(toVector3D);
+        toVector->subset(*toVector3D, *toMap, 0, 0);
+
+        interpolatedVectors[i] = toVector;
+    }
+
+    MatrixPtr retMatrix(new Matrix(*toMap, numVectors, false));
+    retMatrix->zero();
+
+    Epetra_Map toMapEpetra = interpolatedVectors[0]->epetraMap();
+    unsigned int toNumElements = toMapEpetra.NumMyElements();
+    unsigned int toNDimensions = 3; // note: interpolation does not work for
+                                    // non-threedimensional fields
+    unsigned int toNTotalDofs = interpolatedVectors[0]->size();
+
+    Epetra_Map fromMapEpetra = vectors[0]->epetraMap();
+    unsigned int fromNumElements = fromMapEpetra.NumMyElements();
+    unsigned int fromNDimensions = 3;
+    unsigned int fromNTotalDofs = vectors[0]->size();
+    // std::cout << numVectors << std::endl << std::flush;
+    // std::cout << numElements << std::endl << std::flush;
+    exit(1);
+    for (unsigned int dim = 0; dim < toNDimensions; dim++)
+    {
+        for (unsigned int i = 0; i < numVectors; i++)
+        {
+            Vector vectorUnique(*interpolatedVectors[i], Unique);
+            for (unsigned int dof = 0; dof < toNumElements; dof++)
+            {
+                unsigned int gdof = toMapEpetra.GID(dof);
+                if (vectorUnique.isGlobalIDPresent(gdof))
+                {
+                    double value(vectorUnique[gdof]);
+                    if (std::abs(value) > dropTolerance)
+                    {
+                        retMatrix->addToCoefficient(gdof + dim * toNTotalDofs,
+                                                    i + dim * fromNTotalDofs,
+                                                    value);
+                    }
+                }
+            }
+        }
+    }
+
+    M_comm->Barrier();
+    retMatrix->globalAssemble(fromCompleteMap, toCompleteMap);
+}
+
+
+void
+Coupler::
+buildInterpolationMatrices(VectorPtr* mainTraces, const unsigned int mainNumTraces,
+                           VectorPtr* otherTraces, const unsigned int otherNumTraces)
+{
+    MapEpetraPtr mainMap =  mainTraces[0]->mapPtr();
+    MapEpetraPtr otherMap =  otherTraces[0]->mapPtr();
+
+    M_matrixInterpolationMainToOther =
+                      buildSingleInterpolationMatrix(mainTraces, mainNumTraces,
+                                                     mainMap, otherMap,
+                                                     M_interpolatorMainToOther);
+    exit(1);
+    M_matrixInterpolationOtherToMain =
+                      buildSingleInterpolationMatrix(otherTraces, otherNumTraces,
+                                                     otherMap, mainMap,
+                                                     M_interpolatorOtherToMain);
+}
+
+void
+Coupler::
+buildInterpolators(GetPot datafile, double mainMeshSize, double otherMeshSize,
+                   FESpacePtr mainFESpace, FESpacePtr otherFESpace,
+                   GeometricFace* mainFace, GeometricFace* otherFace)
+{
+    M_interpolatorMainToOther = buildSingleInterpolator(datafile, mainMeshSize,
+                                                 mainFESpace, otherFESpace,
+                                                 mainFace, otherFace);
+    M_interpolatorOtherToMain = buildSingleInterpolator(datafile, otherMeshSize,
+                                                 otherFESpace, mainFESpace,
+                                                 otherFace, mainFace);
+}
+
+Coupler::InterpolationPtr
+Coupler::
+buildSingleInterpolator(GetPot datafile, double meshSize,
+                        FESpacePtr FESpaceFrom,
+                        FESpacePtr FESpaceTo,
+                        GeometricFace* faceFrom,
+                        GeometricFace* faceTo)
+{
+    Teuchos::RCP<Teuchos::ParameterList> belosList =
+                                  Teuchos::rcp (new Teuchos::ParameterList);
+    belosList = Teuchos::getParametersFromXmlFile("SolverParamList_rbf3d.xml");
+
+    InterpolationPtr interpolator;
+    interpolator.reset(new Interpolation);
+    interpolator->setup(datafile, belosList);
+    interpolator->setMeshSize(meshSize);
+
+    VectorPtr dummyVectorFrom(new
+                           Vector(FESpaceFrom->map()));
+    dummyVectorFrom->zero();
+
+    VectorPtr dummyVectorTo(new
+                          Vector(FESpaceTo->map()));
+    dummyVectorTo->zero();
+
+    interpolator->setVectors(dummyVectorFrom, dummyVectorTo);
+    interpolator->setFlag(faceFrom->M_flag);
+    interpolator->buildTableDofs_known(FESpaceFrom);
+    interpolator->identifyNodes_known();
+    interpolator->buildKnownInterfaceMap();
+
+    interpolator->setFlag(faceTo->M_flag);
+    interpolator->buildTableDofs_unknown(FESpaceTo);
+    interpolator->identifyNodes_unknown();
+    interpolator->buildUnknownInterfaceMap();
+
+    interpolator->setFlag(faceFrom->M_flag);
+    interpolator->buildOperators();
+
+    return interpolator;
 }
 
 double

@@ -35,7 +35,7 @@ class Interpolation
 {
 public:
 
-	typedef RegionMesh<LinearTetra> mesh_Type;
+    typedef RegionMesh<LinearTetra> mesh_Type;
     typedef std::shared_ptr<mesh_Type> meshPtr_Type;
     typedef VectorEpetra vector_Type;
     typedef std::shared_ptr<vector_Type> vectorPtr_Type;
@@ -105,9 +105,14 @@ public:
 
     void setMeshSize(const Real& mesh_size ) { M_links = (1.5*mesh_size); };
 
-	void gatherVectorsAcrossProcessors( int* globalMarker, double* globalXs,
-									    double* globalYs, double* globalZs,
-									    std::vector<std::vector<int > >& conn );
+    void gatherVectorsAcrossProcessors( int* globalMarker, double* globalXs,
+                                        double* globalYs, double* globalZs,
+                                        std::vector<std::vector<int > >& conn );
+
+    inline mapPtr_Type getKnownMap() {return M_knownField->mapPtr();};
+
+    inline mapPtr_Type getUnknownMap() {return M_unknownField->mapPtr();};
+
 private:
 
     void buildInterpolationOperatorMap();
@@ -131,10 +136,10 @@ private:
     std::vector<Real>   M_ycoord_unknown;
     std::vector<Real>   M_zcoord_unknown;
 
-    std::vector<Int>   M_marker_known;
-    std::vector<Int>   M_marker_unknown;
+    std::vector<Int>    M_marker_known;
+    std::vector<Int>    M_marker_unknown;
 
-    UInt 				M_flag;
+    UInt                M_flag;
 
     std::set<ID>        M_GIdsKnownMesh_common;
     std::set<ID>        M_GIdsUnknownMesh_common;
@@ -153,7 +158,7 @@ private:
     std::vector<vectorPtr_Type> M_numerationInterfaceKnownColumns;
     int M_pid;
 
-	std::shared_ptr<Epetra_Comm> M_comm;
+    std::shared_ptr<Epetra_Comm> M_comm;
 
     mapPtr_Type         M_interpolationOperatorMap;
     mapPtr_Type         M_interpolationOperatorMapVectorial;

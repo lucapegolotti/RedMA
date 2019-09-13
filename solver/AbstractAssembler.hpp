@@ -115,6 +115,8 @@ public:
 
     VectorPtr reconstructLagrangeMultipliers(std::vector<VectorPtr> solutions, unsigned int offset);
 
+    inline FESpacePtr getCouplingFESpace() {return M_couplingFESpace;};
+
 private:
 
     MatrixPtr assembleBoundaryMatrix(GeometricFace face);
@@ -122,6 +124,20 @@ private:
     void multiplyVectorsByMassMatrix(VectorPtr* couplingVectors,
                                      const unsigned int& nBasisFunctions,
                                      MatrixPtr massMatrix);
+
+    std::shared_ptr<BasisFunctionFunctor> castBasisFunction(std::string type,
+                                                            GeometricFace inlet);
+
+    void assembleCouplingMatricesInterpolation(AbstractAssembler& child,
+                                               const unsigned int& indexOutlet,
+                                               const unsigned int& interfaceIndex,
+                                               std::shared_ptr<BasisFunctionFunctor> basisFunction,
+                                               MapEpetraPtr& globalMap,
+                                               std::vector<MapEpetraPtr>& maps,
+                                               std::vector<unsigned int>& dimensions,
+                                               std::string typeBasis);
+
+    MapEpetraPtr buildLagrangeMultiplierMap(const unsigned int nBasisFunctions);
 
 protected:
     TreeNodePtr                         M_treeNode;

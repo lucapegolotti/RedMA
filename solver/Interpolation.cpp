@@ -930,7 +930,7 @@ interpolate()
     }
 
     // Solving for component x
-    LinearSolver solverRBF1;
+     LinearSolver solverRBF1;
     solverRBF1.setCommunicator ( M_knownField->mapPtr()->commPtr() );
     solverRBF1.setParameters ( *M_belosList );
     solverRBF1.setPreconditioner ( M_precPtr );
