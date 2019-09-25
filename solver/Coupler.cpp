@@ -349,9 +349,6 @@ assembleTraces(GeometricFace face, const double& coeff,
     couplingFespace->interpolateBC(*bcs, *indicatorFc, 0.0);
     ct.restore();
 
-    indicatorFc->spy("indicator");
-    exit(1);
-
     Epetra_Map primalMapEpetra = indicatorFc->epetraMap();
     unsigned int numElements = primalMapEpetra.NumMyElements();
 
@@ -430,33 +427,39 @@ buildSingleInterpolationMatrix(VectorPtr* vectors,
                                InterpolationPtr interpolator)
 {
     using namespace LifeV;
-    const Real dropTolerance(2.0 * std::numeric_limits<Real>::min());
+    const Real dropTolerance(1e-14);
 
     MapEpetraPtr fromCompleteMap = interpolator->getKnownMap();
     MapEpetraPtr toCompleteMap = interpolator->getUnknownMap();
 
     VectorPtr* interpolatedVectors = new VectorPtr[numVectors];
+    bool* indicesZeros = new bool[numVectors];
     for (unsigned int i = 0; i < numVectors; i++)
     {
-
-        VectorPtr fromVector3D(new Vector(*fromCompleteMap));
-            // we need a 3D vector
-        fromVector3D->subset(*vectors[i], *fromMap, 0, 0);
-
-        interpolator->updateRhs(fromVector3D);
-        interpolator->interpolate();
-
+        indicesZeros[i] = false;
         VectorPtr toVector(new Vector(*toMap, Unique));
         toVector->zero();
 
-        VectorPtr toVector3D(new Vector(*toCompleteMap, Unique));
-        interpolator->solution(toVector3D);
-        toVector->subset(*toVector3D, *toMap, 0, 0);
+        VectorPtr fromVector3D(new Vector(*fromCompleteMap));
+        // we need a 3D vector
+        fromVector3D->subset(*vectors[i], *fromMap, 0, 0);
+        if (vectors[i]->norm1() > 0)
+        {
+            interpolator->updateRhs(fromVector3D);
+            interpolator->interpolate();
 
+            VectorPtr toVector3D(new Vector(*toCompleteMap, Unique));
+            interpolator->solution(toVector3D);
+            toVector->subset(*toVector3D, *toMap, 0, 0);
+        }
+        else
+        {
+            indicesZeros[i] = true;
+        }
         interpolatedVectors[i] = toVector;
     }
 
-    MatrixPtr retMatrix(new Matrix(*toMap, numVectors, false));
+    MatrixPtr retMatrix(new Matrix(*toCompleteMap, numVectors, false));
     retMatrix->zero();
 
     Epetra_Map toMapEpetra = interpolatedVectors[0]->epetraMap();
@@ -469,25 +472,26 @@ buildSingleInterpolationMatrix(VectorPtr* vectors,
     unsigned int fromNumElements = fromMapEpetra.NumMyElements();
     unsigned int fromNDimensions = 3;
     unsigned int fromNTotalDofs = vectors[0]->size();
-    // std::cout << numVectors << std::endl << std::flush;
-    // std::cout << numElements << std::endl << std::flush;
-    exit(1);
+
     for (unsigned int dim = 0; dim < toNDimensions; dim++)
     {
         for (unsigned int i = 0; i < numVectors; i++)
         {
-            Vector vectorUnique(*interpolatedVectors[i], Unique);
-            for (unsigned int dof = 0; dof < toNumElements; dof++)
+            if (!indicesZeros[i])
             {
-                unsigned int gdof = toMapEpetra.GID(dof);
-                if (vectorUnique.isGlobalIDPresent(gdof))
+                Vector vectorUnique(*interpolatedVectors[i], Unique);
+                for (unsigned int dof = 0; dof < toNumElements; dof++)
                 {
-                    double value(vectorUnique[gdof]);
-                    if (std::abs(value) > dropTolerance)
+                    unsigned int gdof = toMapEpetra.GID(dof);
+                    if (vectorUnique.isGlobalIDPresent(gdof))
                     {
-                        retMatrix->addToCoefficient(gdof + dim * toNTotalDofs,
-                                                    i + dim * fromNTotalDofs,
-                                                    value);
+                        double value(vectorUnique[gdof]);
+                        if (std::abs(value) > dropTolerance)
+                        {
+                            retMatrix->addToCoefficient(gdof + dim * toNTotalDofs,
+                                                        i + dim * fromNTotalDofs,
+                                                        value);
+                        }
                     }
                 }
             }
@@ -496,6 +500,9 @@ buildSingleInterpolationMatrix(VectorPtr* vectors,
 
     M_comm->Barrier();
     retMatrix->globalAssemble(fromCompleteMap, toCompleteMap);
+
+    delete[] indicesZeros;
+    return retMatrix;
 }
 
 
@@ -511,7 +518,6 @@ buildInterpolationMatrices(VectorPtr* mainTraces, const unsigned int mainNumTrac
                       buildSingleInterpolationMatrix(mainTraces, mainNumTraces,
                                                      mainMap, otherMap,
                                                      M_interpolatorMainToOther);
-    exit(1);
     M_matrixInterpolationOtherToMain =
                       buildSingleInterpolationMatrix(otherTraces, otherNumTraces,
                                                      otherMap, mainMap,
@@ -650,7 +656,7 @@ fillMatricesWithVectors(VectorPtr* couplingVectors,
     }
 }
 
-void
+Coupler::MatrixPtr
 Coupler::
 fillMatrixWithVectorsInterpolated(VectorPtr* couplingVectors,
                                   const unsigned int& nBasisFunctions,
@@ -707,6 +713,70 @@ fillMatrixWithVectorsInterpolated(VectorPtr* couplingVectors,
 
         throw Exception(errorMsg);
     }
+    return QT;
+}
+
+void
+Coupler::
+buildCouplingMatrices(MatrixPtr myMass,
+                      const unsigned int& flagAdjacentDomain,
+                      MatrixPtr matrixToInterpolate,
+                      MatrixPtr otherMass)
+{
+    MatrixPtr Qs;
+    MatrixPtr QTs;
+    // then we should have already computed our own coupling matrices and we
+    // can just multiply by the mass matrix
+    if (matrixToInterpolate == nullptr)
+    {
+        MatrixPtr QTsInt = M_mapQTsInterpolated[flagAdjacentDomain];
+
+        MapEpetra map1 = QTsInt->rangeMap();
+        MapEpetra map2 = QTsInt->domainMap();
+
+        Qs.reset(new Matrix(map2));
+        QTs.reset(new Matrix(map1));
+
+        myMass->multiply(false, *QTsInt, false, *QTs, true);
+        QTsInt->multiply(true, *myMass, false, *Qs, true);
+    }
+    // we need to use the interpolation matrices. We suppose that we are on the
+    // "other" domain (the one towards which we interpolate)
+    else
+    {
+        MapEpetra map = myMass->rangeMap();
+
+        // first we handle the transpose matrix
+        QTs.reset(new Matrix(map));
+        MatrixPtr res(new Matrix(map));
+
+        M_matrixInterpolationMainToOther->multiply(false, *matrixToInterpolate,
+                                                   false, *res, true);
+
+        myMass->multiply(false, *res, false, *QTs, true);
+
+        // here we put the res as our own matrix (for exporting solution)
+        M_mapQTsInterpolated[flagAdjacentDomain] =  res;
+        *M_mapQTsInterpolated[flagAdjacentDomain] *= (-1.0);
+
+        // handle non transpose matrix
+        map = otherMass->rangeMap();
+        res.reset(new Matrix(map));
+
+        otherMass->multiply(false, *M_matrixInterpolationOtherToMain, false,
+                            *res, true);
+        // otherMass->multiply(false, *M_matrixInterpolationMainToOther, true,
+        //                     *res, true);
+
+        map = matrixToInterpolate->domainMap();
+        Qs.reset(new Matrix(map));
+
+        matrixToInterpolate->multiply(true, *res, false, *Qs, true);
+        *Qs *= (-1.0);
+        *QTs *= (-1.0);
+    }
+    M_mapQTs[flagAdjacentDomain] = QTs;
+    M_mapQs[flagAdjacentDomain] = Qs;
 }
 
 Coupler::MatrixPtr

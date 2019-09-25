@@ -75,7 +75,11 @@ gatherVectorsAcrossProcessors( int* globalMarker, double* globalXs,
     conn.resize(sizesConnectivity);
     for (Int i = 0; i < numtasks; i++)
     {
-        for (Int j = 0; j < sizesConnectivity; j++)
+        Int* sizeCurrConnectivity = new Int[1];
+        if (M_pid == 0)
+            *sizeCurrConnectivity = sizesConnectivity;
+        M_comm->Broadcast(sizeCurrConnectivity, 1, M_pid);
+        for (Int j = 0; j < *sizeCurrConnectivity; j++)
         {
             Int* sizeCurList = new Int[1];
             if (M_pid == i)
@@ -94,15 +98,14 @@ gatherVectorsAcrossProcessors( int* globalMarker, double* globalXs,
 
             M_comm->Broadcast(curList, *sizeCurList, i);
 
-            if (curList[0] != 0)
-            {
-                for (Int k = 0; k < *sizeCurList; k++)
-                    conn[j].push_back(curList[k]);
-            }
+
+            for (Int k = 0; k < *sizeCurList; k++)
+                conn[j].push_back(curList[k]);
 
             delete[] curList;
             delete[] sizeCurList;
         }
+        delete[] sizeCurrConnectivity;
     }
 }
 
@@ -153,19 +156,6 @@ projectionOperator()
                 }
             }
         }
-
-		std::cout << "-------" << std::endl;
-		double x = M_xcoord_unknown[*it];
-		double y = M_ycoord_unknown[*it];
-		double z = M_zcoord_unknown[*it];
-        std::cout << "x1 = " << x << " y1 = " << y << " z1 = " << z << std::endl;
-		std::cout << "x2 = " << globalXs[nearestPoint] << " y2 = " << globalYs[nearestPoint] << " z2 = " << globalZs[nearestPoint] << std::endl;
-
-		if (std::abs(std::sqrt(x*x + y*y) - 3))
-		{
-			std::cout << std::sqrt(x*x + y*y) << std::endl;
-			// exit(1);
-		}
         // For each of them, identify the neighbors on the other mesh within a certain number of circles M_links
         MatrixGraph[k] = dof_connectivity_known[nearestPoint];
         // RBF_radius[k] = computeRBFradius_unknown ( *it, MatrixGraph[k]);
@@ -347,6 +337,7 @@ buildTableDofs_known ( const FESpacePtr_Type& fespace )
                 // the rings still belong to the faces);
                 if ( lDof1 < 3 )
                     FaceDof[lDof1] = M_flag; // fespace->mesh()->boundaryFacet ( i ).point ( lDof1 ).markerID ();
+                    // FaceDof[lDof1] =fespace->mesh()->boundaryFacet ( i ).point ( lDof1 ).markerID ();
 
             }
 
@@ -518,6 +509,7 @@ buildTableDofs_unknown ( const FESpacePtr_Type& fespace )
                 // the rings still belong to the faces);
                 if ( lDof1 < 3 )
                     FaceDof[lDof1] = M_flag; // fespace->mesh()->boundaryFacet ( i ).point ( lDof1 ).markerID ();
+                    // FaceDof[lDof1] = fespace->mesh()->boundaryFacet ( i ).point ( lDof1 ).markerID ();
             }
 
             if ( localToGlobalMapOnBFacet1.size() > 3 )

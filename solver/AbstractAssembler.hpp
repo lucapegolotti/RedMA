@@ -55,7 +55,9 @@ protected:
     typedef std::shared_ptr<Vector>                        VectorPtr;
     typedef LifeV::MatrixEpetra<double>                    Matrix;
     typedef std::shared_ptr<Matrix>                        MatrixPtr;
-    typedef LifeV::ETFESpace<Mesh, MapEpetra, 3, 1>        ETFESpaceCoupling;
+    typedef LifeV::ETFESpace<Mesh, MapEpetra, 3, 1>        ETFESpaceCouplingScalar;
+    typedef std::shared_ptr<ETFESpaceCouplingScalar>       ETFESpaceCouplingScalarPtr;
+    typedef LifeV::ETFESpace<Mesh, MapEpetra, 3, 3>        ETFESpaceCoupling;
     typedef std::shared_ptr<ETFESpaceCoupling>             ETFESpaceCouplingPtr;
     typedef std::shared_ptr<LifeV::BCHandler>              BoundaryConditionPtr;
     typedef std::function<double(double const&,
@@ -137,7 +139,11 @@ private:
                                                std::vector<unsigned int>& dimensions,
                                                std::string typeBasis);
 
-    MapEpetraPtr buildLagrangeMultiplierMap(const unsigned int nBasisFunctions);
+    MapEpetraPtr buildLagrangeMultiplierMap(const unsigned int nBasisFunctions,
+                                            AbstractAssembler& child,
+                                            MapEpetraPtr& globalMap,
+                                            std::vector<MapEpetraPtr>& maps,
+                                            std::vector<unsigned int>& dimensions);
 
 protected:
     TreeNodePtr                         M_treeNode;
@@ -147,6 +153,7 @@ protected:
     commPtr_Type                        M_comm;
     bool                                M_verbose;
     FESpacePtr                          M_couplingFESpace;
+    ETFESpaceCouplingScalarPtr          M_couplingFESpaceScalarETA;
     ETFESpaceCouplingPtr                M_couplingFESpaceETA;
     // index of the block to which the coupling must be applied
     unsigned int                        M_indexCoupling;

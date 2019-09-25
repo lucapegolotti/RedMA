@@ -14,7 +14,7 @@
         <buildingblock type="tube" outlet="1" refinement="coarse">
             <L_ratio>1</L_ratio>
             <Rout_ratio>1</Rout_ratio>
-            <alpha_axis>0.8</alpha_axis>
+            <alpha_axis>0</alpha_axis>
             <alphax>0</alphax>
             <alphay>0</alphay>
             <alphaz>0</alphaz>

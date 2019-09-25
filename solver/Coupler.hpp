@@ -112,12 +112,12 @@ public:
                                  unsigned int numberOfComponents,
                                  const unsigned int& flagAdjacentDomain);
 
-    void fillMatrixWithVectorsInterpolated(VectorPtr* couplingVectors,
-                                           const unsigned int& nBasisFunctions,
-                                           MapEpetraPtr lagrangeMap,
-                                           MapEpetraPtr map,
-                                           unsigned int numberOfComponents,
-                                           const unsigned int& flagAdjacentDomain);
+    MatrixPtr fillMatrixWithVectorsInterpolated(VectorPtr* couplingVectors,
+                                                const unsigned int& nBasisFunctions,
+                                                MapEpetraPtr lagrangeMap,
+                                                MapEpetraPtr map,
+                                                unsigned int numberOfComponents,
+                                                const unsigned int& flagAdjacentDomain);
 
     void buildInterpolationMatrices(VectorPtr* mainTraces,
                                     const unsigned int mainNumTraces,
@@ -136,6 +136,11 @@ public:
 
     static double fOne(const double& t, const double& x, const double& y,
                        const double& z, const unsigned int& i);
+
+    void buildCouplingMatrices(MatrixPtr myMass,
+                               const unsigned int& flagAdjacentDomain,
+                               MatrixPtr matrixToInterpolate = nullptr,
+                               MatrixPtr otherMass = nullptr);
 
 protected:
     InterpolationPtr buildSingleInterpolator(GetPot datafile, double meshSize,

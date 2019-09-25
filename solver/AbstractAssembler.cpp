@@ -119,7 +119,7 @@ assembleBoundaryMatrix(GeometricFace face)
     unsigned int faceFlag = face.M_flag;
     MeshPtr mesh = M_couplingFESpaceETA->mesh();
 
-    MapEpetra couplingMap = M_couplingFESpaceETA->map();
+    MapEpetra couplingMap = M_couplingFESpace->map();
     MatrixPtr boundaryMassMatrix(new Matrix(couplingMap));
 
     // assemble boundary mass matrix to orthonormalize w.r.t. L2 product
@@ -127,7 +127,7 @@ assembleBoundaryMatrix(GeometricFace face)
               boundaryQuadRule,
               M_couplingFESpaceETA,
               M_couplingFESpaceETA,
-              phi_i * phi_j
+              dot(phi_i, phi_j)
               ) >> boundaryMassMatrix;
     boundaryMassMatrix->globalAssemble();
 
@@ -193,7 +193,7 @@ assembleCouplingMatricesInterpolation(AbstractAssembler& child,
     double otherMeshSize;
     GeometricFace* mainFace;
     GeometricFace* otherFace;
-    // we use father as main mesh
+    // we use father as main mesh if it has smaller mesh size
     if (hFather <= hChild)
     {
         mainDomain = this;
@@ -224,7 +224,7 @@ assembleCouplingMatricesInterpolation(AbstractAssembler& child,
     VectorPtr* mainTraces;
     mainTraces = mainDomain->M_coupler.assembleTraces(*mainFace, 1.0,
                                                       mainDomain->M_couplingFESpace,
-                                                      mainDomain->M_couplingFESpaceETA,
+                                                      mainDomain->M_couplingFESpaceScalarETA,
                                                       mainNumTraces);
 
     unsigned int otherNumTraces;
@@ -232,15 +232,17 @@ assembleCouplingMatricesInterpolation(AbstractAssembler& child,
     otherTraces =
       otherDomain->M_coupler.assembleTraces(*otherFace, 1.0,
                                             otherDomain->M_couplingFESpace,
-                                            otherDomain->M_couplingFESpaceETA,
+                                            otherDomain->M_couplingFESpaceScalarETA,
                                             otherNumTraces);
-    M_coupler.buildInterpolators(M_datafile, mainMeshSize, otherMeshSize,
-                                 mainDomain->getCouplingFESpace(),
-                                 otherDomain->getCouplingFESpace(),
-                                 mainFace, otherFace);
 
-    M_coupler.buildInterpolationMatrices(mainTraces, mainNumTraces,
-                                         otherTraces, otherNumTraces);
+    otherDomain->M_coupler.buildInterpolators(M_datafile, mainMeshSize,
+                                              otherMeshSize,
+                                              mainDomain->getCouplingFESpace(),
+                                              otherDomain->getCouplingFESpace(),
+                                              mainFace, otherFace);
+
+    otherDomain->M_coupler.buildInterpolationMatrices(mainTraces, mainNumTraces,
+                                                      otherTraces, otherNumTraces);
 
     unsigned int nBasisFunctions = 0;
     if (std::strcmp(typeBasis.c_str(), "traces"))
@@ -253,35 +255,54 @@ assembleCouplingMatricesInterpolation(AbstractAssembler& child,
                                                         *mainFace,
                                                         coeff,
                                                         mainDomain->M_couplingFESpace,
-                                                        mainDomain->M_couplingFESpaceETA,
+                                                        mainDomain->M_couplingFESpaceScalarETA,
                                                         nBasisFunctions);
     else
         mainVectors = mainDomain->
-                      M_coupler.assembleTraces(*mainFace, 1.0,
+                      M_coupler.assembleTraces(*mainFace, coeff,
                                                mainDomain->M_couplingFESpace,
-                                               mainDomain->M_couplingFESpaceETA,
+                                               mainDomain->M_couplingFESpaceScalarETA,
                                                nBasisFunctions, false);
 
-    MapEpetraPtr lagrangeMultiplierMap = buildLagrangeMultiplierMap(nBasisFunctions);
+    MapEpetraPtr lagrangeMultiplierMap = buildLagrangeMultiplierMap(nBasisFunctions,
+                                                                    child,
+                                                                    globalMap,
+                                                                    maps,
+                                                                    dimensions);
 
     MapEpetraPtr primalMap = mainDomain->M_primalMaps[mainDomain->M_indexCoupling];
 
-    mainDomain->M_coupler.fillMatrixWithVectorsInterpolated(mainVectors,
-                                                            nBasisFunctions,
-                                                            lagrangeMultiplierMap,
-                                                            primalMap,
-                                                            mainDomain->numberOfComponents(),
-                                                            otherDomain->M_treeNode->M_ID);
+    MatrixPtr couplingMatrix;
+    couplingMatrix = mainDomain->M_coupler.fillMatrixWithVectorsInterpolated(mainVectors,
+                                               nBasisFunctions,
+                                               lagrangeMultiplierMap,
+                                               primalMap,
+                                               mainDomain->numberOfComponents(),
+                                               otherDomain->M_treeNode->M_ID);
 
     MatrixPtr massMatrixMain = mainDomain->assembleBoundaryMatrix(*mainFace);
     MatrixPtr massMatrixOther = otherDomain->assembleBoundaryMatrix(*otherFace);
 
-    exit(1);
+    mainDomain->M_coupler.buildCouplingMatrices(massMatrixMain,
+                                                otherDomain->M_treeNode->M_ID);
+
+
+    otherDomain->M_coupler.buildCouplingMatrices(massMatrixOther,
+                                                 mainDomain->M_treeNode->M_ID,
+                                                 couplingMatrix,
+                                                 massMatrixMain);
+
+    delete[] mainTraces;
+    delete[] otherTraces;
 }
 
 AbstractAssembler::MapEpetraPtr
 AbstractAssembler::
-buildLagrangeMultiplierMap(const unsigned int nBasisFunctions)
+buildLagrangeMultiplierMap(const unsigned int nBasisFunctions,
+                           AbstractAssembler& child,
+                           AbstractAssembler::MapEpetraPtr& globalMap,
+                           std::vector<AbstractAssembler::MapEpetraPtr>& maps,
+                           std::vector<unsigned int>& dimensions)
 {
     MapEpetraPtr lagrangeMultiplierMap;
 
@@ -297,6 +318,14 @@ buildLagrangeMultiplierMap(const unsigned int nBasisFunctions)
     lagrangeMultiplierMap.reset(new
                     AbstractAssembler::MapEpetra(mapSize, myel,
                                                  0, M_comm));
+
+    M_dualMaps.push_back(lagrangeMultiplierMap);
+    child.M_dualMaps.push_back(lagrangeMultiplierMap);
+
+    *globalMap += *lagrangeMultiplierMap;
+    maps.push_back(lagrangeMultiplierMap);
+    dimensions.push_back(lagrangeMultiplierMap->map(LifeV::Unique)
+                                        ->NumGlobalElements());
 
     return lagrangeMultiplierMap;
 }
@@ -319,9 +348,11 @@ assembleCouplingMatrices(AbstractAssembler& child,
     msg += "\n";
     printlog(MAGENTA, msg, M_verbose);
 
+    M_interfacesIndices.push_back(interfaceIndex);
+    child.M_interfacesIndices.push_back(interfaceIndex);
+
     unsigned int nComponents = numberOfComponents();
     unsigned int nBasisFunctions;
-    MapEpetraPtr lagrangeMultiplierMap;
 
     std::string typeBasis = M_datafile("coupling/type", "zernike");
 
@@ -342,8 +373,7 @@ assembleCouplingMatrices(AbstractAssembler& child,
         msg +=  "when using trace basis functions!\n";
         throw Exception(msg);
     }
-    VectorPtr* couplingVectorsFather;
-    VectorPtr* couplingVectorsChild;
+
     if (useInterpolation)
     {
         assembleCouplingMatricesInterpolation(child, indexOutlet, interfaceIndex,
@@ -352,99 +382,131 @@ assembleCouplingMatrices(AbstractAssembler& child,
         return;
     }
 
-
+    VectorPtr* couplingVectorsFather;
+    VectorPtr* couplingVectorsChild;
     couplingVectorsFather = M_coupler.assembleCouplingVectors(basisFunction,
                                                               outlet, 1,
                                                               M_couplingFESpace,
-                                                              M_couplingFESpaceETA,
+                                                              M_couplingFESpaceScalarETA,
                                                               nBasisFunctions);
     couplingVectorsChild = child.M_coupler.assembleCouplingVectors(basisFunction,
                                                                    inlet, -1,
                                                                    child.M_couplingFESpace,
-                                                                   child.M_couplingFESpaceETA,
+                                                                   child.M_couplingFESpaceScalarETA,
                                                                    nBasisFunctions);
+
+    MapEpetraPtr lagrangeMultiplierMap = buildLagrangeMultiplierMap(nBasisFunctions,
+                                                                    child,
+                                                                    globalMap,
+                                                                    maps,
+                                                                    dimensions);
 
     MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
     MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
 
-    unsigned int prev = nBasisFunctions;
-
-    std::string orthStrategy = M_datafile("coupling/orthonormalization", "POD");
-
-    if (std::strcmp(orthStrategy.c_str(), "none") && nBasisFunctions > 1)
-    {
-        if (!std::strcmp(orthStrategy.c_str(), "POD"))
-        {
-            double tol = M_datafile("coupling/beta_threshold", 9e-1);
-
-            M_coupler.POD(couplingVectorsFather, couplingVectorsChild,
-                          massMatrixFather, massMatrixChild, nBasisFunctions,
-                          tol, 1);
-            M_coupler.POD(couplingVectorsFather, couplingVectorsChild,
-                          massMatrixFather, massMatrixChild, nBasisFunctions, 0);
-        }
-        else if (!std::strcmp(orthStrategy.c_str(), "gram_schmidt"))
-            M_coupler.gramSchmidt(couplingVectorsFather, couplingVectorsChild,
-                                  massMatrixFather, massMatrixChild,
-                                  nBasisFunctions);
-        else
-        {
-            std::string errMsg = "Orthonormalization method " + orthStrategy;
-            errMsg += " does not exist!\n";
-
-            throw Exception(errMsg);
-        }
-        msg = "Orthonormalizing with " + orthStrategy;
-        msg += ": reducing number of bfs from " + std::to_string(prev) + " to " +
-               std::to_string(nBasisFunctions) + "\n";
-        printlog(GREEN, msg, M_verbose);
-    }
-
-    lagrangeMultiplierMap = buildLagrangeMultiplierMap(nBasisFunctions);
-
-    M_dualMaps.push_back(lagrangeMultiplierMap);
-    child.M_dualMaps.push_back(lagrangeMultiplierMap);
+    MapEpetraPtr primalMap = M_primalMaps[M_indexCoupling];
 
     M_coupler.fillMatrixWithVectorsInterpolated(couplingVectorsFather,
                                                 nBasisFunctions,
                                                 lagrangeMultiplierMap,
-                                                M_primalMaps[M_indexCoupling],
+                                                primalMap,
                                                 numberOfComponents(),
                                                 child.M_treeNode->M_ID);
+
+    primalMap = child.M_primalMaps[child.M_indexCoupling];
 
     child.M_coupler.fillMatrixWithVectorsInterpolated(couplingVectorsChild,
                                                       nBasisFunctions,
                                                       lagrangeMultiplierMap,
-                                                      child.M_primalMaps[M_indexCoupling],
+                                                      primalMap,
                                                       child.numberOfComponents(),
-                                                      M_treeNode->M_ID);
+                                                      this->M_treeNode->M_ID);
 
-    // up to this moment the coupling vectors contain only evaluation of basis functions
-    // at the nodes. We need to multiply by the boundary mass matrices
-    multiplyVectorsByMassMatrix(couplingVectorsFather, nBasisFunctions,
-                                massMatrixFather);
 
-    multiplyVectorsByMassMatrix(couplingVectorsChild, nBasisFunctions,
-                                massMatrixChild);
+    M_coupler.buildCouplingMatrices(massMatrixFather, child.M_treeNode->M_ID);
+    child.M_coupler.buildCouplingMatrices(massMatrixChild, this->M_treeNode->M_ID);
 
-    M_coupler.fillMatricesWithVectors(couplingVectorsFather, nBasisFunctions,
-                                      lagrangeMultiplierMap,
-                                      M_primalMaps[M_indexCoupling],
-                                      numberOfComponents(),
-                                      child.M_treeNode->M_ID);
 
-    child.M_coupler.fillMatricesWithVectors(couplingVectorsChild, nBasisFunctions,
-                                            lagrangeMultiplierMap,
-                                            child.M_primalMaps[M_indexCoupling],
-                                            child.numberOfComponents(),
-                                            M_treeNode->M_ID);
+    // unsigned int prev = nBasisFunctions;
+    //
+    // std::string orthStrategy = M_datafile("coupling/orthonormalization", "POD");
+    //
+    // if (std::strcmp(orthStrategy.c_str(), "none") && nBasisFunctions > 1)
+    // {
+    //     if (!std::strcmp(orthStrategy.c_str(), "POD"))
+    //     {
+    //         double tol = M_datafile("coupling/beta_threshold", 9e-1);
+    //
+    //         M_coupler.POD(couplingVectorsFather, couplingVectorsChild,
+    //                       massMatrixFather, massMatrixChild, nBasisFunctions,
+    //                       tol, 1);
+    //         M_coupler.POD(couplingVectorsFather, couplingVectorsChild,
+    //                       massMatrixFather, massMatrixChild, nBasisFunctions, 0);
+    //     }
+    //     else if (!std::strcmp(orthStrategy.c_str(), "gram_schmidt"))
+    //         M_coupler.gramSchmidt(couplingVectorsFather, couplingVectorsChild,
+    //                               massMatrixFather, massMatrixChild,
+    //                               nBasisFunctions);
+    //     else
+    //     {
+    //         std::string errMsg = "Orthonormalization method " + orthStrategy;
+    //         errMsg += " does not exist!\n";
+    //
+    //         throw Exception(errMsg);
+    //     }
+    //     msg = "Orthonormalizing with " + orthStrategy;
+    //     msg += ": reducing number of bfs from " + std::to_string(prev) + " to " +
+    //            std::to_string(nBasisFunctions) + "\n";
+    //     printlog(GREEN, msg, M_verbose);
+    // }
 
-    *globalMap += *lagrangeMultiplierMap;
-    maps.push_back(lagrangeMultiplierMap);
-    dimensions.push_back(lagrangeMultiplierMap->map(LifeV::Unique)
-                                              ->NumGlobalElements());
-    M_interfacesIndices.push_back(interfaceIndex);
-    child.M_interfacesIndices.push_back(interfaceIndex);
+    // lagrangeMultiplierMap = buildLagrangeMultiplierMap(nBasisFunctions,
+    //                                                    child,
+    //                                                    globalMap,
+    //                                                    maps,
+    //                                                    dimensions);
+    //
+    //
+    // M_coupler.fillMatrixWithVectorsInterpolated(couplingVectorsFather,
+    //                                             nBasisFunctions,
+    //                                             lagrangeMultiplierMap,
+    //                                             M_primalMaps[M_indexCoupling],
+    //                                             numberOfComponents(),
+    //                                             child.M_treeNode->M_ID);
+    //
+    // child.M_coupler.fillMatrixWithVectorsInterpolated(couplingVectorsChild,
+    //                                                   nBasisFunctions,
+    //                                                   lagrangeMultiplierMap,
+    //                                                   child.M_primalMaps[M_indexCoupling],
+    //                                                   child.numberOfComponents(),
+    //                                                   M_treeNode->M_ID);
+    //
+    // // up to this moment the coupling vectors contain only evaluation of basis functions
+    // // at the nodes. We need to multiply by the boundary mass matrices
+    // multiplyVectorsByMassMatrix(couplingVectorsFather, nBasisFunctions,
+    //                             massMatrixFather);
+    //
+    // multiplyVectorsByMassMatrix(couplingVectorsChild, nBasisFunctions,
+    //                             massMatrixChild);
+    //
+    // M_coupler.fillMatricesWithVectors(couplingVectorsFather, nBasisFunctions,
+    //                                   lagrangeMultiplierMap,
+    //                                   M_primalMaps[M_indexCoupling],
+    //                                   numberOfComponents(),
+    //                                   child.M_treeNode->M_ID);
+    //
+    // child.M_coupler.fillMatricesWithVectors(couplingVectorsChild, nBasisFunctions,
+    //                                         lagrangeMultiplierMap,
+    //                                         child.M_primalMaps[M_indexCoupling],
+    //                                         child.numberOfComponents(),
+    //                                         M_treeNode->M_ID);
+
+    // *globalMap += *lagrangeMultiplierMap;
+    // maps.push_back(lagrangeMultiplierMap);
+    // dimensions.push_back(lagrangeMultiplierMap->map(LifeV::Unique)
+    //                                           ->NumGlobalElements());
+    // M_interfacesIndices.push_back(interfaceIndex);
+    // child.M_interfacesIndices.push_back(interfaceIndex);
     printlog(MAGENTA, "done\n", M_verbose);
 
     delete[] couplingVectorsFather;
@@ -469,6 +531,8 @@ reconstructLagrangeMultipliers(std::vector<VectorPtr> solutions, unsigned int of
         vcopy->operator[](23) = 1;
         vcopy->operator[](30) = 1;
         vcopy->operator[](33) = 1;
+        vcopy->operator[](37) = 1;
+
         // *lagrangeMultipliers += (*it->second) * (*solutions[count]);
         *lagrangeMultipliers += (*it->second) * (*vcopy);
         count++;

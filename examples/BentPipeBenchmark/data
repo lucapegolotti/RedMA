@@ -52,8 +52,8 @@
 [../]
 
 [coupling]
-	type                = traces
-	nMax                = 7
+	type                = zernike
+	nMax                = 3
 	orthonormalization  = none
 	beta_threshold      = 0
 	use_interpolation   = true

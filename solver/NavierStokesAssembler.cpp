@@ -50,6 +50,10 @@ setup()
                                                    &(M_pressureFESpace->refFE()),
                                                      M_comm));
 
+    M_couplingFESpaceScalarETA.reset(new ETFESpaceCouplingScalar(M_velocityFESpace->mesh(),
+                                                               &(M_velocityFESpace->refFE()),
+                                                                 M_comm));
+
     M_couplingFESpaceETA.reset(new ETFESpaceCoupling(M_velocityFESpace->mesh(),
                                                    &(M_velocityFESpace->refFE()),
                                                      M_comm));
@@ -861,7 +865,6 @@ exportSolutions(const double& time, std::vector<VectorPtr> solutions)
     *M_lagrangeMultiplierExporter = *reconstructLagrangeMultipliers(solutions, 2);
     CoutRedirecter ct;
     ct.redirect();
-    solutions[2]->showMe();
     M_exporter->postProcess(time);
     printlog(CYAN, ct.restore(), M_verbose);
     printlog(MAGENTA, "done\n", M_verbose);
