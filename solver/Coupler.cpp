@@ -363,7 +363,6 @@ assembleTraces(GeometricFace face, const double& coeff,
     {
         numBasisFunctions = numElements;
         couplingVectors = new VectorPtr[numBasisFunctions];
-
         for (unsigned int dof = 0; dof < numElements; dof++)
         {
             VectorPtr newVector(new Vector(*indicatorFc));
@@ -765,6 +764,7 @@ buildCouplingMatrices(MatrixPtr myMass,
 
         otherMass->multiply(false, *M_matrixInterpolationOtherToMain, false,
                             *res, true);
+
         // otherMass->multiply(false, *M_matrixInterpolationMainToOther, true,
         //                     *res, true);
 

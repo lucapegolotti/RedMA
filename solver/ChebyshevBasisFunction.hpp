@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef ZERNIKEBASISFUNCTION_HPP
-#define ZERNIKEBASISFUNCTION_HPP
+// these are taken from https://arxiv.org/pdf/1701.02709.pdf (formula 3.8)
+
+#ifndef CHEBYSHEVBASISFUNCTION_HPP
+#define CHEBYSHEVBASISFUNCTION_HPP
 
 #include <functional>
 
@@ -24,31 +26,26 @@
 namespace RedMA
 {
 
-class ZernikeBasisFunction : public BasisFunctionFunctor
+class ChebyshevBasisFunction : public BasisFunctionFunctor
 {
 public:
-    ZernikeBasisFunction(const GeometricFace& face,
-                      unsigned int nMax);
+    ChebyshevBasisFunction(const GeometricFace& face,
+                           unsigned int nMax);
 
     return_Type operator()(const Vector3D& pos) override;
 
-    virtual void setIndex(const unsigned int& index) override;
-
 private:
-    void fillFactorials(unsigned int nMax);
-
-    void computeOrthonormalizationCoefficient();
+    double chebyshevU(const double& x, const unsigned int& n);
 
     unsigned int                              M_nMax;
-    std::vector<int>                          M_ms;
+    std::vector<int>                          M_ks;
     std::vector<int>                          M_ns;
-    std::vector<std::vector<int> >            M_polyCoefs;
-    std::vector<unsigned int>                 M_factorials;
-    std::function<double(double)>             M_curFunction;
-    double                                    M_orthoCoefficient;
     double                                    M_R;
+    // versor to compute the normal
+    Vector3D                                  M_e;
+    const double                              M_sqrtPIm1;
 };
 
 }  // namespace RedMA
 
-#endif  // FOURIERBASISFUNCTION_HPP
+#endif  // CHEBYSHEVBASISFUNCTION_HPP

@@ -153,6 +153,11 @@ castBasisFunction(std::string type, GeometricFace inlet)
         unsigned int nMax = M_datafile("coupling/nMax", 5);
         basisFunction.reset(new ZernikeBasisFunction(inlet, nMax));
     }
+    else if (!std::strcmp(type.c_str(), "chebyshev"))
+    {
+        unsigned int nMax = M_datafile("coupling/nMax", 5);
+        basisFunction.reset(new ChebyshevBasisFunction(inlet, nMax));
+    }
 
     return basisFunction;
 }
@@ -523,18 +528,18 @@ reconstructLagrangeMultipliers(std::vector<VectorPtr> solutions, unsigned int of
     for (std::map<unsigned int, MatrixPtr>::iterator it = M_coupler.getMapsQTsInterpolated().begin();
          it != M_coupler.getMapsQTsInterpolated().end(); it++)
     {
-        VectorPtr vcopy(new Vector(*solutions[count]));
-        vcopy->zero();
-        vcopy->operator[](7) = 1;
-        vcopy->operator[](12) = 1;
-        vcopy->operator[](18) = 1;
-        vcopy->operator[](23) = 1;
-        vcopy->operator[](30) = 1;
-        vcopy->operator[](33) = 1;
-        vcopy->operator[](37) = 1;
+        // VectorPtr vcopy(new Vector(*solutions[count]));
+        // vcopy->zero();
+        // vcopy->operator[](7) = 1;
+        // vcopy->operator[](12) = 1;
+        // vcopy->operator[](18) = 1;
+        // vcopy->operator[](23) = 1;
+        // vcopy->operator[](30) = 1;
+        // vcopy->operator[](33) = 1;
+        // vcopy->operator[](37) = 1;
 
-        // *lagrangeMultipliers += (*it->second) * (*solutions[count]);
-        *lagrangeMultipliers += (*it->second) * (*vcopy);
+        *lagrangeMultipliers += (*it->second) * (*solutions[count]);
+        // *lagrangeMultipliers += (*it->second) * (*vcopy);
         count++;
     }
     return lagrangeMultipliers;

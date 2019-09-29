@@ -37,28 +37,8 @@ ZernikeBasisFunction(const GeometricFace& face,
             }
         }
     }
-
     M_nBasisFunctions = M_polyCoefs.size();
-
-    Vector3D& normal = M_face.M_normal;
-
-    // arbitrary vector to measure the angle
-    // we check just the first component of the normal because we trust that
-    // it is unitary (hence if normal[1] == 1 => normal = (1,0,0))
-    if (std::abs(std::abs(normal[0]) - 1.0) > 1e-12)
-    {
-        M_e[0] = 1.0; M_e[1] = 0.0; M_e[2] = 0.0;
-    }
-    else
-    {
-        M_e[0] = 0.0; M_e[1] = 1.0; M_e[2] = 0.0;
-    }
-    M_e[0] = 0.0; M_e[1] = 1.0; M_e[2] = 0.0;
-    // project the vector onto the face and orthonormalize
-    M_e = M_e - M_e.dot(normal) * normal;
-    M_e = M_e / M_e.norm();
-    // std::cout << " " << M_e[0] << " " << M_e[1] << " " << M_e[2] << std::endl;
- }
+}
 
 void
 ZernikeBasisFunction::
@@ -125,28 +105,10 @@ ZernikeBasisFunction::return_Type
 ZernikeBasisFunction::
 operator()(const Vector3D& pos)
 {
-    Vector3D& center = M_face.M_center;
-    Vector3D& normal = M_face.M_normal;
-
-    Vector3D diff = pos - center;
-    double r = diff.norm();
-
     double theta;
-    if (r < 1e-15)
-        theta = 0;
-    else
-    {
-        double ratio = diff.dot(M_e) / r;
-        if (std::abs(ratio + 1) < 1e-15)
-            theta = M_PI;
-        else
-            theta = std::acos(ratio);
-    }
+    double r;
 
-    Vector3D crossProduct = diff.cross(M_e);
-
-    if (crossProduct.dot(normal) < 0)
-        theta = theta + M_PI;
+    getThetaAndRadius(pos, theta, r);
 
     double returnVal = 0;
 

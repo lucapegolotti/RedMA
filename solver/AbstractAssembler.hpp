@@ -22,6 +22,7 @@
 #include <Exception.hpp>
 #include <FourierBasisFunction.hpp>
 #include <ZernikeBasisFunction.hpp>
+#include <ChebyshevBasisFunction.hpp>
 #include <Coupler.hpp>
 
 #include <lifev/core/array/MapEpetra.hpp>

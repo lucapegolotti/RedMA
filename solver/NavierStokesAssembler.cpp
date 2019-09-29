@@ -88,7 +88,7 @@ assembleStiffnessMatrix()
     M_A.reset(new Matrix(M_velocityFESpace->map()));
 
     double viscosity = M_datafile("fluid/viscosity", 1.0);
-    bool useFullStrain = M_datafile("fluid/use_strain", false);
+    bool useFullStrain = M_datafile("fluid/use_strain", true);
 
     if (useFullStrain)
         integrate(elements(M_velocityFESpaceETA->mesh()),
@@ -592,8 +592,15 @@ createBCHandler(std::function<double(double)> law)
     }
 
     if (M_addNoslipBC)
+    {
         bcs->addBC("Wall", wallFlag, LifeV::Essential,
                     LifeV::Full, zeroFunction, 3);
+        // we also add boundary conditions to the rings in this case
+        bcs->addBC("InletRing", inletRing, LifeV::EssentialEdges,
+                   LifeV::Full, zeroFunction,   3);
+        bcs->addBC("OutletRing", outletRing, LifeV::EssentialEdges,
+                   LifeV::Full, zeroFunction,   3);
+    }
     // clamping the root and leaf nodes
     else
     {

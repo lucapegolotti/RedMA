@@ -51,10 +51,16 @@ public:
     unsigned int getNumBasisFunctions() const;
 
 protected:
+    void getLocalXAndY(const Vector3D& pos, double& x, double& y);
+
+    void getThetaAndRadius(const Vector3D& pos, double& theta, double& radius);
+
     GeometricFace           M_face;
     unsigned int            M_index;
     unsigned int            M_nBasisFunctions;
-
+    // versor to compute the normal
+    Vector3D                M_e;
+    Vector3D                M_eOrth;
 };
 
 }  // namespace RedMA

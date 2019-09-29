@@ -45,43 +45,20 @@ FourierBasisFunction(const GeometricFace& face,
             M_auxIndicesRadial.push_back(j);
         }
     }
-
-    Vector3D& normal = M_face.M_normal;
-
-    // arbitrary vector to measure the angle
-    // we check just the first component of the normal because we trust that
-    // it is unitary (hence if normal[1] == 1 => normal = (1,0,0))
-    if (std::abs(std::abs(normal[0]) - 1.0) > 1e-12)
-    {
-        M_e[0] = 1.0; M_e[1] = 0.0; M_e[2] = 0.0;
-    }
-    else
-    {
-        M_e[0] = 0.0; M_e[1] = 1.0; M_e[2] = 0.0;
-    }
-    // project the vector onto the face and orthonormalize
-    M_e = M_e - M_e.dot(normal) * normal;
-    M_e = M_e / M_e.norm();
 }
 
 FourierBasisFunction::return_Type
 FourierBasisFunction::
 operator()(const Vector3D& pos)
 {
-    Vector3D& center = M_face.M_center;
-    Vector3D& normal = M_face.M_normal;
+    double theta;
+    double r;
 
-    Vector3D diff = pos - center;
-    double r = diff.norm();
-
-    double theta = std::acos(diff.dot(M_e) / (diff.norm()));
-    Vector3D crossProduct = diff.cross(M_e);
+    getThetaAndRadius(pos, theta, r);
 
     unsigned int indexTheta = M_auxIndicesTheta[M_index];
     unsigned int indexRadial = M_auxIndicesRadial[M_index];
 
-    if (crossProduct.dot(normal) < 0)
-        theta = theta + M_PI;
     // we arbitrarily scale the basis functions in order to enduce an ordering
     // in the POD
     double scale = 1; // 1./ (std::pow(2, indexTheta + indexRadial));
