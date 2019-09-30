@@ -1,19 +1,6 @@
-set(SOURCES
-    ${SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractAssembler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Coupler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesAssembler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/BasisFunctionFunctor.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/FourierBasisFunction.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ZernikeBasisFunction.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/GlobalSolverOperator.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/GlobalIdentityOperator.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/GlobalSIMPLEOperator.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/GlobalSIMPLEOperatorPseudoFSI.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/GlobalBlockMatrix.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/PseudoFSIAssembler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interpolation.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ChebyshevBasisFunction.cpp
-    CACHE INTERNAL ""
-)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/array)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/assemblers)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basis_functions)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/coupling)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/linear_solve)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/time_marching_algorithms)

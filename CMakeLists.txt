@@ -10,6 +10,12 @@ set(HEADERS_DIRS
     ${CMAKE_SOURCE_DIR}/geometric_structure
     ${CMAKE_SOURCE_DIR}/solver
     ${CMAKE_SOURCE_DIR}/utils
+    ${CMAKE_SOURCE_DIR}/solver/array
+    ${CMAKE_SOURCE_DIR}/solver/assemblers
+    ${CMAKE_SOURCE_DIR}/solver/basis_functions
+    ${CMAKE_SOURCE_DIR}/solver/coupling
+    ${CMAKE_SOURCE_DIR}/solver/linear_solve
+    ${CMAKE_SOURCE_DIR}/solver/time_marching_algorithms
     ${TPL_MPI_INCLUDE_DIRS}
     ${TPL_Trilinos_INCLUDE_DIRS}
     ${TPL_LifeV_INCLUDE_DIRS}
