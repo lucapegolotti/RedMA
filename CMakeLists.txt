@@ -4,18 +4,11 @@ set (CMAKE_CXX_STANDARD 11)
 
 project(RedMA VERSION 1.0.0 DESCRIPTION "Reduced Modeling of Arteries")
 
-set(LINKED_LIBRARIES )
-
 set(HEADERS_DIRS
     ${CMAKE_SOURCE_DIR}/geometric_structure
     ${CMAKE_SOURCE_DIR}/solver
     ${CMAKE_SOURCE_DIR}/utils
     ${CMAKE_SOURCE_DIR}/solver/array
-    ${CMAKE_SOURCE_DIR}/solver/assemblers
-    ${CMAKE_SOURCE_DIR}/solver/basis_functions
-    ${CMAKE_SOURCE_DIR}/solver/coupling
-    ${CMAKE_SOURCE_DIR}/solver/linear_solve
-    ${CMAKE_SOURCE_DIR}/solver/time_marching_algorithms
     ${TPL_MPI_INCLUDE_DIRS}
     ${TPL_Trilinos_INCLUDE_DIRS}
     ${TPL_LifeV_INCLUDE_DIRS}
@@ -99,7 +92,6 @@ endif()
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-include_directories(${HEADERS_DIRS})
 link_directories(${LIBRARIES_DIRS})
 
 add_subdirectory(geometric_structure)
@@ -107,3 +99,5 @@ add_subdirectory(solver)
 add_subdirectory(utils)
 add_subdirectory(examples)
 add_subdirectory(tests)
+
+include_directories(${HEADERS_DIRS})
