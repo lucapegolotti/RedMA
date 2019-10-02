@@ -22,6 +22,7 @@ ChebyshevBasisFunction(const GeometricFace& face,
     }
 
     M_nBasisFunctions = M_ns.size();
+    M_type = "chebyshev";
 }
 
 double

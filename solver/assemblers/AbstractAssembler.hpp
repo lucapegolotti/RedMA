@@ -20,9 +20,7 @@
 #include <TreeStructure.hpp>
 #include <PrintLog.hpp>
 #include <Exception.hpp>
-#include <FourierBasisFunction.hpp>
-#include <ZernikeBasisFunction.hpp>
-#include <ChebyshevBasisFunction.hpp>
+#include <BasisFunctionFactory.hpp>
 #include <Coupler.hpp>
 
 #include <lifev/core/array/MapEpetra.hpp>
@@ -128,8 +126,7 @@ private:
                                      const unsigned int& nBasisFunctions,
                                      MatrixPtr massMatrix);
 
-    std::shared_ptr<BasisFunctionFunctor> castBasisFunction(std::string type,
-                                                            GeometricFace inlet);
+    std::shared_ptr<BasisFunctionFunctor> castBasisFunction(GeometricFace inlet);
 
     void assembleCouplingMatricesInterpolation(AbstractAssembler& child,
                                                const unsigned int& indexOutlet,
@@ -137,8 +134,7 @@ private:
                                                std::shared_ptr<BasisFunctionFunctor> basisFunction,
                                                MapEpetraPtr& globalMap,
                                                std::vector<MapEpetraPtr>& maps,
-                                               std::vector<unsigned int>& dimensions,
-                                               std::string typeBasis);
+                                               std::vector<unsigned int>& dimensions);
 
     MapEpetraPtr buildLagrangeMultiplierMap(const unsigned int nBasisFunctions,
                                             AbstractAssembler& child,

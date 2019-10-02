@@ -45,6 +45,7 @@ FourierBasisFunction(const GeometricFace& face,
             M_auxIndicesRadial.push_back(j);
         }
     }
+    M_type = "fourier";
 }
 
 FourierBasisFunction::return_Type

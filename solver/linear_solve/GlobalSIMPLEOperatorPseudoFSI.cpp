@@ -42,7 +42,6 @@ setUp(RedMA::GlobalBlockMatrix matrix,
     M_nBlockRows = blockOper.size1();
     M_nBlockCols = blockOper.size2();
     M_comm = comm;
-    matrix.printPattern();
     BlockEpetra_Map::mapPtrContainer_Type rangeBlockMaps(M_nBlockRows);
     BlockEpetra_Map::mapPtrContainer_Type domainBlockMaps(M_nBlockCols);
 

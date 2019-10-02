@@ -50,6 +50,8 @@ public:
 
     unsigned int getNumBasisFunctions() const;
 
+    std::string getType() const {return M_type;};
+
 protected:
     void getLocalXAndY(const Vector3D& pos, double& x, double& y);
 
@@ -61,6 +63,7 @@ protected:
     // versor to compute the normal
     Vector3D                M_e;
     Vector3D                M_eOrth;
+    std::string             M_type;
 };
 
 }  // namespace RedMA

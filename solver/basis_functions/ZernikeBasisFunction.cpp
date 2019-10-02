@@ -38,6 +38,7 @@ ZernikeBasisFunction(const GeometricFace& face,
         }
     }
     M_nBasisFunctions = M_polyCoefs.size();
+    M_type = "zernike";
 }
 
 void
