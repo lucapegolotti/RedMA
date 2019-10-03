@@ -116,40 +116,6 @@ add(const GlobalBlockMatrix& other)
     M_rangeMaps = other.M_rangeMaps;
 }
 
-// void
-// GlobalBlockMatrix::
-// multiply(const GlobalBlockMatrix& other, GlobalBlockMatrix& result)
-// {
-//     if (M_cols != other.M_rows)
-//     {
-//         throw Exception("Inner dimensions must be the same in multiplication!");
-//     }
-//
-//     result.resize(M_rows, other.M_cols);
-//
-//     for (unsigned int i = 0; i < M_rows; i++)
-//     {
-//         for (unsigned int j = 0; j < other.M_cols; j++)
-//         {
-//             MatrixEpetraPtr newMatrix = nullptr;
-//             for (unsigned int k = 0; k < M_cols; k++)
-//             {
-//                 if (M_gridEpetra(i,j) != nullptr && other.M_gridEpetra(i,j) != nullptr)
-//                 {
-//                     if (newMatrix == nullptr)
-//                     {
-//                         newMatrix.reset(new MatrixEpetra(*M_gridEpetra(i,k)));
-//                         *newMatrix *= *other.M_gridEpetra(k,j);
-//                     }
-//                     else
-//                         *newMatrix += (*M_gridEpetra(i,k)) * (*other.M_gridEpetra(k,j));
-//                 }
-//             }
-//             result(i,j) = newMatrix;
-//         }
-//     }
-// }
-
 GlobalBlockMatrix&
 GlobalBlockMatrix::
 operator*=(const double& coeff)
@@ -296,6 +262,41 @@ printPattern()
                 std::cout << "o\t";
         }
         std::cout << std::endl;
+    }
+}
+
+void
+GlobalBlockMatrix::
+spy()
+{
+    for (unsigned int i = 0; i < M_rows; i++)
+    {
+        for (unsigned int j = 0; j < M_cols; j++)
+        {
+            if (M_gridEpetra(i,j) != nullptr &&
+                M_gridEpetra(i,j)->norm1() > 0)
+                M_gridEpetra(i,j)->spy("block" + std::to_string(i) + "_"
+                                               + std::to_string(j));
+        }
+    }
+}
+
+void
+GlobalBlockMatrix::
+singleNorms1()
+{
+    for (unsigned int i = 0; i < M_rows; i++)
+    {
+        for (unsigned int j = 0; j < M_cols; j++)
+        {
+            if (M_gridEpetra(i,j) != nullptr &&
+                M_gridEpetra(i,j)->norm1() > 0)
+            {
+                std::cout << "Block(" << std::to_string(i) << ","
+                          << std::to_string(j) << ") = ";
+                std::cout << M_gridEpetra(i,j)->norm1() << std::endl;
+            }
+        }
     }
 }
 

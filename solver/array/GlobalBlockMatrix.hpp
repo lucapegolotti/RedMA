@@ -77,6 +77,10 @@ public:
 
     Grid getGrid();
 
+    void spy();
+
+    void singleNorms1();
+
     void setMaps(std::vector<MapPtr> rangeMaps, std::vector<MapPtr> domainMaps);
 
     void printPattern();

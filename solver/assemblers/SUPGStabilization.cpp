@@ -21,8 +21,8 @@
 namespace RedMA
 {
 
-VMS_SUPGStabilization::
-VMS_SUPGStabilization(unsigned int         timeOrder,
+SUPGStabilization::
+SUPGStabilization(unsigned int         timeOrder,
                       unsigned int         velocityOrder,
                       FESpacePtr           fespaceVelocity,
                       FESpacePtr           fespacePressure,
@@ -52,7 +52,7 @@ VMS_SUPGStabilization(unsigned int         timeOrder,
 }
 
 void
-VMS_SUPGStabilization::
+SUPGStabilization::
 setDensityAndViscosity(double density, double viscosity)
 {
     M_density = density;
@@ -60,7 +60,7 @@ setDensityAndViscosity(double density, double viscosity)
 }
 
 void
-VMS_SUPGStabilization::
+SUPGStabilization::
 assembleBlocks(VectorPtr velocity, VectorPtr pressure,
                VectorPtr velocityRhs, double dt)
 {
@@ -171,7 +171,7 @@ assembleBlocks(VectorPtr velocity, VectorPtr pressure,
               M_velocityFESpaceETA,
               TAU_M * (dot(grad(phi_i),
                        value(M_density) *
-                       phi_j * grad(M_velocityFESpaceETA, *velocity)
+                       phi_j * grad(M_velocityFESpaceETA, *velocityRep)
                     +  value(M_density) *
                        value(M_velocityFESpaceETA, *velocityRep) * grad(phi_j)
                     -  value(M_viscosity) *
@@ -214,8 +214,8 @@ assembleBlocks(VectorPtr velocity, VectorPtr pressure,
     M_blockMass11->globalAssemble();
 }
 
-VMS_SUPGStabilization::MatrixPtr
-VMS_SUPGStabilization::
+SUPGStabilization::MatrixPtr
+SUPGStabilization::
 assembleMassWithVelocity(VectorPtr velocity, double dt)
 {
     using namespace LifeV::ExpressionAssembly;
@@ -240,8 +240,8 @@ assembleMassWithVelocity(VectorPtr velocity, double dt)
     return retMatrix;
 }
 
-VMS_SUPGStabilization::VectorPtr
-VMS_SUPGStabilization::
+SUPGStabilization::VectorPtr
+SUPGStabilization::
 velocityResidual(VectorPtr velocity, VectorPtr pressure,
                  VectorPtr velocityRhs, double dt)
 {
@@ -253,7 +253,7 @@ velocityResidual(VectorPtr velocity, VectorPtr pressure,
 
     std::shared_ptr<LifeV::SquareRoot> squareroot(new LifeV::SquareRoot());
 
-    VectorPtr retVec(new Vector(M_velocityFESpace->map()));
+    VectorPtr retVec(new Vector(M_velocityFESpace->map(), LifeV::Unique));
     retVec->zero();
 
     integrate(elements(M_velocityFESpace->mesh()),
@@ -271,12 +271,13 @@ velocityResidual(VectorPtr velocity, VectorPtr pressure,
                        laplacian(M_velocityFESpaceETA, *velocityRep)))
               +TAU_C * div(phi_i) * trace(grad(M_velocityFESpaceETA, *velocityRep))
             ) >> retVec;
+    retVec->globalAssemble();
 
     return retVec;
 }
 
-VMS_SUPGStabilization::VectorPtr
-VMS_SUPGStabilization::
+SUPGStabilization::VectorPtr
+SUPGStabilization::
 pressureResidual(VectorPtr velocity, VectorPtr pressure,
                  VectorPtr velocityRhs, double dt)
 {
@@ -304,6 +305,7 @@ pressureResidual(VectorPtr velocity, VectorPtr pressure,
                      -  value(M_viscosity) *
                         laplacian(M_velocityFESpaceETA, *velocityRep)))
              ) >> retVec;
+    retVec->globalAssemble();
 
     return retVec;
 }

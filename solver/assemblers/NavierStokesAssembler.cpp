@@ -263,7 +263,7 @@ setTimeAndPrevSolution(const double& time, std::vector<VectorPtr> solution,
                 throw Exception("Implement suitable velocity order");
 
             M_stabilization.reset(new
-                         VMS_SUPGStabilization(this->M_timeIntegrationOrder,
+                             SUPGStabilization(this->M_timeIntegrationOrder,
                                                uOrder,
                                                M_velocityFESpace,
                                                M_pressureFESpace,
@@ -795,10 +795,10 @@ NavierStokesAssembler::
 applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
                const unsigned int& iblock, const unsigned int& jblock)
 {
-    std::string msg = "[NavierStokesAssembler] applying boundary conditions to";
-    msg += " block (" + std::to_string(iblock) + "," + std::to_string(jblock) +
-            ") ...\n";
-    printlog(MAGENTA, msg, M_verbose);
+    // std::string msg = "[NavierStokesAssembler] applying boundary conditions to";
+    // msg += " block (" + std::to_string(iblock) + "," + std::to_string(jblock) +
+    //         ") ...\n";
+    // printlog(MAGENTA, msg, M_verbose);
 
     if (matrix)
     {
@@ -957,7 +957,7 @@ checkResidual(std::vector<VectorPtr> solutions,
             throw Exception("Implement suitable velocity order");
 
         M_stabilization.reset(new
-                     VMS_SUPGStabilization(this->M_timeIntegrationOrder,
+                         SUPGStabilization(this->M_timeIntegrationOrder,
                                            uOrder,
                                            M_velocityFESpace,
                                            M_pressureFESpace,

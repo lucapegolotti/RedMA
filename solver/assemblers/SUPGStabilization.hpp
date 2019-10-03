@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef VMSSUPGSTABILIZATION_HPP
-#define VMSSUPGSTABILIZATION_HPP
+#ifndef SUPGSTABILIZATION_HPP
+#define SUPGSTABILIZATION_HPP
 
 #include <AbstractAssembler.hpp>
 #include <Exception.hpp>
@@ -36,7 +36,7 @@
 namespace RedMA
 {
 
-class VMS_SUPGStabilization
+class SUPGStabilization
 {
 protected:
     typedef LifeV::RegionMesh<LifeV::LinearTetra>       Mesh;
@@ -57,7 +57,7 @@ protected:
     typedef LifeV::MatrixEpetra<double>                 Matrix;
     typedef std::shared_ptr<Matrix>                     MatrixPtr;
 public:
-    VMS_SUPGStabilization(unsigned int         order,
+    SUPGStabilization(unsigned int         order,
                           unsigned int         velocityOrder,
                           FESpacePtr           fespaceVelocity,
                           FESpacePtr           fespacePressure,
@@ -129,4 +129,4 @@ private:
 
 }  // namespace RedMA
 
-#endif  // VMSSUPGSTABILIZATION_HPP
+#endif  // SUPGSTABILIZATION_HPP

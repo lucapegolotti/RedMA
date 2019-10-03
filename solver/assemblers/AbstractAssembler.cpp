@@ -427,9 +427,9 @@ reconstructLagrangeMultipliers(std::vector<VectorPtr> solutions, unsigned int of
         // vcopy->operator[](30) = 1;
         // vcopy->operator[](33) = 1;
         // vcopy->operator[](37) = 1;
+        // *lagrangeMultipliers += (*it->second) * (*vcopy);
 
         *lagrangeMultipliers += (*it->second) * (*solutions[count]);
-        // *lagrangeMultipliers += (*it->second) * (*vcopy);
         count++;
     }
     return lagrangeMultipliers;

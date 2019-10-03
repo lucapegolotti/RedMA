@@ -190,7 +190,7 @@ protected:
     VectorPtr                               M_lagrangeMultiplierExporter;
 
     bool                                    M_useStabilization;
-    std::shared_ptr<VMS_SUPGStabilization>  M_stabilization;
+    std::shared_ptr<SUPGStabilization>      M_stabilization;
     bool                                    M_addNoslipBC;
 };
 

@@ -34,7 +34,7 @@
 	algorithm = rosenbrock # rosenbrock
 	scheme = ROS3Pw
 	t0 = 0
-	T = 0.016
+	T = 0.0004
 	dt = 0.0002
 [../]
 
@@ -53,9 +53,9 @@
 [../]
 
 [coupling]
-	type                = traces
+	type                = chebyshev
 	nMax                = 5
 	orthonormalization  = none
 	beta_threshold      = 0
-	use_interpolation   = true
+	use_interpolation   = false
 [../]
