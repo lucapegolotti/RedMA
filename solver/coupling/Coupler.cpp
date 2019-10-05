@@ -350,7 +350,7 @@ assembleTraces(GeometricFace face, const double& coeff,
     ct.restore();
 
     Epetra_Map primalMapEpetra = indicatorFc->epetraMap();
-    unsigned int numElements = primalMapEpetra.NumMyElements();
+    unsigned int numElements = primalMapEpetra.NumGlobalElements();
 
     numBasisFunctions = 0;
 
@@ -363,25 +363,27 @@ assembleTraces(GeometricFace face, const double& coeff,
     {
         numBasisFunctions = numElements;
         couplingVectors = new VectorPtr[numBasisFunctions];
-        for (unsigned int dof = 0; dof < numElements; dof++)
+        for (int dof = 0; dof < numElements; dof++)
         {
             VectorPtr newVector(new Vector(*indicatorFc));
             newVector->zero();
-            unsigned int gdof = primalMapEpetra.GID(dof);
-            if (indicatorFc->isGlobalIDPresent(gdof))
+            int ldof = primalMapEpetra.LID(dof);
+            if (ldof >= 0)
             {
-                double value(indicatorFc->operator[](gdof));
+                double value(indicatorFc->operator[](dof));
                 if (std::abs(value-1) < 1e-15)
                 {
-                    newVector->operator[](gdof) = 1;
+                    newVector->operator[](dof) = 1;
                 }
             }
             couplingVectors[dof] = newVector;
             *couplingVectors[dof] *= coeff;
+            M_comm->Barrier();
         }
     }
     else
     {
+        int myCount = 0;
         for (unsigned int dof = 0; dof < numElements; dof++)
         {
             unsigned int gdof = primalMapEpetra.GID(dof);
@@ -390,27 +392,40 @@ assembleTraces(GeometricFace face, const double& coeff,
                 double value(indicatorFc->operator[](gdof));
                 if (std::abs(value-1) < 1e-15)
                 {
-                    numBasisFunctions++;
+                    myCount++;
                 }
             }
         }
+        int totalCount;
+        M_comm->SumAll(&myCount, &totalCount, 1);
+        numBasisFunctions = totalCount;
         couplingVectors = new VectorPtr[numBasisFunctions];
         unsigned int count = 0;
         for (unsigned int dof = 0; dof < numElements; dof++)
         {
             unsigned int gdof = primalMapEpetra.GID(dof);
+            int isPresent = 0;
+            bool ownByMe = false;
             if (indicatorFc->isGlobalIDPresent(gdof))
             {
                 double value(indicatorFc->operator[](gdof));
                 if (std::abs(value-1) < 1e-15)
                 {
-                    VectorPtr newVector(new Vector(*indicatorFc));
-                    newVector->zero();
-                    newVector->operator[](gdof) = 1;
-                    couplingVectors[count] = newVector;
-                    *couplingVectors[count] *= coeff;
-                    count++;
+                    isPresent++;
+                    ownByMe = true;
                 }
+            }
+            int isGloballyPresent = 0;
+            M_comm->SumAll(&isPresent, &isGloballyPresent, 1);
+            if (isGloballyPresent)
+            {
+                VectorPtr newVector(new Vector(*indicatorFc));
+                newVector->zero();
+                if (ownByMe)
+                    newVector->operator[](gdof) = 1;
+                couplingVectors[count] = newVector;
+                *couplingVectors[count] *= coeff;
+                count++;
             }
         }
     }
@@ -752,6 +767,7 @@ buildCouplingMatrices(MatrixPtr myMass,
         M_matrixInterpolationMainToOther->multiply(false, *matrixToInterpolate,
                                                    false, *res, true);
 
+
         myMass->multiply(false, *res, false, *QTs, true);
 
         // here we put the res as our own matrix (for exporting solution)
@@ -765,15 +781,14 @@ buildCouplingMatrices(MatrixPtr myMass,
         otherMass->multiply(false, *M_matrixInterpolationOtherToMain, false,
                             *res, true);
 
-        // otherMass->multiply(false, *M_matrixInterpolationMainToOther, true,
-        //                     *res, true);
-
         map = matrixToInterpolate->domainMap();
         Qs.reset(new Matrix(map));
 
         matrixToInterpolate->multiply(true, *res, false, *Qs, true);
         *Qs *= (-1.0);
         *QTs *= (-1.0);
+        // std::cout << "Qs = " << Qs->norm1() << std::endl;
+        // std::cout << "QTs = " << QTs->norm1() << std::endl << std::flush;
     }
     M_mapQTs[flagAdjacentDomain] = QTs;
     M_mapQs[flagAdjacentDomain] = Qs;

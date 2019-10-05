@@ -57,5 +57,5 @@
 	nMax                = 5
 	orthonormalization  = none
 	beta_threshold      = 0
-	use_interpolation   = false
+	use_interpolation   = true
 [../]

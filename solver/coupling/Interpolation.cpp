@@ -76,9 +76,10 @@ gatherVectorsAcrossProcessors( int* globalMarker, double* globalXs,
     for (Int i = 0; i < numtasks; i++)
     {
         Int* sizeCurrConnectivity = new Int[1];
-        if (M_pid == 0)
+        if (M_pid == i)
             *sizeCurrConnectivity = sizesConnectivity;
-        M_comm->Broadcast(sizeCurrConnectivity, 1, M_pid);
+        M_comm->Barrier();
+        M_comm->Broadcast(sizeCurrConnectivity, 1, i);
         for (Int j = 0; j < *sizeCurrConnectivity; j++)
         {
             Int* sizeCurList = new Int[1];
