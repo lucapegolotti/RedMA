@@ -137,6 +137,9 @@ public:
     static double fOne(const double& t, const double& x, const double& y,
                        const double& z, const unsigned int& i);
 
+    static double fZero(const double& t, const double& x, const double& y,
+                        const double& z, const unsigned int& i);
+
     void buildCouplingMatrices(MatrixPtr myMass,
                                const unsigned int& flagAdjacentDomain,
                                MatrixPtr matrixToInterpolate = nullptr,

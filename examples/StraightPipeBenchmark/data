@@ -13,7 +13,7 @@
 	viscosity      = 0.03
 	density        = 1
 	use_stabilization = true
-	inflow_bc      = neumann
+	inflow_bc      = dirichlet
 [../]
 
 [structure]
@@ -53,7 +53,7 @@
 [../]
 
 [coupling]
-	type                = chebyshev
+	type                = traces
 	nMax                = 5
 	orthonormalization  = none
 	beta_threshold      = 0

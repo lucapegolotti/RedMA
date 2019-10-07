@@ -329,6 +329,13 @@ assembleTraces(GeometricFace face, const double& coeff,
 {
     // find indices of nodes on the interface
     unsigned int faceFlag = face.M_flag;
+    unsigned int diskFlag = face.M_diskFlag;
+
+    if (diskFlag == 0)
+    {
+        throw Exception("Please implement disk flag for current building block");
+    }
+
     MeshPtr mesh = couplingFESpaceETA->mesh();
     MapEpetra couplingMap = couplingFESpaceETA->map();
 
@@ -339,6 +346,7 @@ assembleTraces(GeometricFace face, const double& coeff,
     ct.redirect();
 
     LifeV::BCFunctionBase bFunction(fOne);
+    LifeV::BCFunctionBase bFunctionZero(fZero);
 
     BoundaryConditionPtr bcs;
     bcs.reset(new LifeV::BCHandler);
@@ -346,7 +354,33 @@ assembleTraces(GeometricFace face, const double& coeff,
     bcs->addBC("Boundary_function", faceFlag, LifeV::Essential, LifeV::Full,
                 bFunction, 1);
 
+    bcs->bcUpdate(*couplingFespace->mesh(),
+                   couplingFespace->feBd(),
+                   couplingFespace->dof());
+
     couplingFespace->interpolateBC(*bcs, *indicatorFc, 0.0);
+
+    // we assume that we don't want zeros when we use traces bases functions
+    // so when we don't keep the zeros.
+    if (!keepZeros)
+    {
+        BoundaryConditionPtr bcsDisk;
+        bcsDisk.reset(new LifeV::BCHandler);
+
+        bcsDisk->addBC("Boundary_function", diskFlag, LifeV::EssentialEdges,
+                       LifeV::Full, bFunctionZero, 1);
+
+       // bcsDisk->addBC("Boundary_function", 30, LifeV::EssentialEdges,
+       //                LifeV::Full, bFunction, 1);
+
+        bcsDisk->bcUpdate(*couplingFespace->mesh(),
+                           couplingFespace->feBd(),
+                           couplingFespace->dof());
+
+        bcManageRhs(*indicatorFc, *couplingFespace->mesh(), couplingFespace->dof(),
+                    *bcsDisk, couplingFespace->feBd(), 1.0, 0.0);
+    }
+
     ct.restore();
 
     Epetra_Map primalMapEpetra = indicatorFc->epetraMap();
@@ -384,31 +418,32 @@ assembleTraces(GeometricFace face, const double& coeff,
     else
     {
         int myCount = 0;
-        for (unsigned int dof = 0; dof < numElements; dof++)
+        for (int dof = 0; dof < numElements; dof++)
         {
-            unsigned int gdof = primalMapEpetra.GID(dof);
-            if (indicatorFc->isGlobalIDPresent(gdof))
+            int ldof = primalMapEpetra.LID(dof);
+            if (ldof >= 0)
             {
-                double value(indicatorFc->operator[](gdof));
+                double value(indicatorFc->operator[](dof));
                 if (std::abs(value-1) < 1e-15)
                 {
                     myCount++;
                 }
             }
         }
+
         int totalCount;
         M_comm->SumAll(&myCount, &totalCount, 1);
         numBasisFunctions = totalCount;
         couplingVectors = new VectorPtr[numBasisFunctions];
         unsigned int count = 0;
-        for (unsigned int dof = 0; dof < numElements; dof++)
+        for (int dof = 0; dof < numElements; dof++)
         {
-            unsigned int gdof = primalMapEpetra.GID(dof);
+            int ldof = primalMapEpetra.LID(dof);
             int isPresent = 0;
             bool ownByMe = false;
-            if (indicatorFc->isGlobalIDPresent(gdof))
+            if (ldof >= 0)
             {
-                double value(indicatorFc->operator[](gdof));
+                double value(indicatorFc->operator[](dof));
                 if (std::abs(value-1) < 1e-15)
                 {
                     isPresent++;
@@ -422,7 +457,7 @@ assembleTraces(GeometricFace face, const double& coeff,
                 VectorPtr newVector(new Vector(*indicatorFc));
                 newVector->zero();
                 if (ownByMe)
-                    newVector->operator[](gdof) = 1;
+                    newVector->operator[](dof) = 1;
                 couplingVectors[count] = newVector;
                 *couplingVectors[count] *= coeff;
                 count++;
@@ -602,6 +637,14 @@ fOne(const double& t, const double& x, const double& y, const double& z,
     return 1.0;
 }
 
+double
+Coupler::
+fZero(const double& t, const double& x, const double& y, const double& z,
+     const unsigned int& i)
+{
+    return 0.0;
+}
+
 
 void
 Coupler::
@@ -752,6 +795,7 @@ buildCouplingMatrices(MatrixPtr myMass,
         QTs.reset(new Matrix(map1));
 
         myMass->multiply(false, *QTsInt, false, *QTs, true);
+        // Qs.reset(new Matrix(*QTsInt->transpose()));
         QTsInt->multiply(true, *myMass, false, *Qs, true);
     }
     // we need to use the interpolation matrices. We suppose that we are on the
@@ -781,10 +825,13 @@ buildCouplingMatrices(MatrixPtr myMass,
         otherMass->multiply(false, *M_matrixInterpolationOtherToMain, false,
                             *res, true);
 
+        otherMass->spy("mass");
+
         map = matrixToInterpolate->domainMap();
         Qs.reset(new Matrix(map));
 
         matrixToInterpolate->multiply(true, *res, false, *Qs, true);
+        // matrixToInterpolate->multiply(true, *M_matrixInterpolationOtherToMain, false, *Qs, true);
         *Qs *= (-1.0);
         *QTs *= (-1.0);
         // std::cout << "Qs = " << Qs->norm1() << std::endl;

@@ -34,57 +34,57 @@ using namespace RedMA;
 
 #define COEFF 10
 
-// double maxLaw(double t)
-// {
-//     double poly = 0;
-//     const double coeffs[8] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6, 0.0};
-//
-//     double mon = 1.0;
-//     for (int i = 0; i < 8; i++)
-//     {
-//         poly += coeffs[7-i] * mon;
-//         mon *= t;
-//     }
-//     return poly * COEFF;
-// }
-//
-// double maxLawDt(double t)
-// {
-//     double poly = 0;
-//     const double coeffs[7] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6};
-//
-//     double mon = 1.0;
-//     for (int i = 0; i < 7; i++)
-//     {
-//         poly += coeffs[6-i] * mon;
-//         mon *= t;
-//     }
-//     return poly * COEFF;
-// }
-
 double maxLaw(double t)
 {
-    const double T = 3e-3;
-    const double omega = 2.0 * M_PI / (T);
-    const double Pmax = 13300.0;
-    if (t <= T)
+    double poly = 0;
+    const double coeffs[8] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6, 0.0};
+
+    double mon = 1.0;
+    for (int i = 0; i < 8; i++)
     {
-        return -0.5 * (1.0 - cos(omega * t) ) * Pmax;
+        poly += coeffs[7-i] * mon;
+        mon *= t;
     }
-    return 0;
+    return poly * COEFF;
 }
 
 double maxLawDt(double t)
 {
-    const double T = 3e-3;
-    const double omega = 2.0 * M_PI / (T);
-    const double Pmax = 13300.0;
-    if (t <= T)
+    double poly = 0;
+    const double coeffs[7] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6};
+
+    double mon = 1.0;
+    for (int i = 0; i < 7; i++)
     {
-        return -0.5 * omega * sin(omega * t) * Pmax;
+        poly += coeffs[6-i] * mon;
+        mon *= t;
     }
-    return 0.0;
+    return poly * COEFF;
 }
+
+// double maxLaw(double t)
+// {
+//     const double T = 3e-3;
+//     const double omega = 2.0 * M_PI / (T);
+//     const double Pmax = 13300.0;
+//     if (t <= T)
+//     {
+//         return -0.5 * (1.0 - cos(omega * t) ) * Pmax;
+//     }
+//     return 0;
+// }
+//
+// double maxLawDt(double t)
+// {
+//     const double T = 3e-3;
+//     const double omega = 2.0 * M_PI / (T);
+//     const double Pmax = 13300.0;
+//     if (t <= T)
+//     {
+//         return -0.5 * omega * sin(omega * t) * Pmax;
+//     }
+//     return 0.0;
+// }
 
 int main(int argc, char **argv)
 {

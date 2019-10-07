@@ -58,9 +58,13 @@ public:
     GeometricFace(Vector3D center, Vector3D normal, double radius,
                   unsigned int flag);
 
+    GeometricFace(Vector3D center, Vector3D normal, double radius,
+                  unsigned int flag, unsigned int flagDisk);
+
     void print();
 
     unsigned int M_flag;
+    unsigned int M_diskFlag;
     Vector3D M_center;
     Vector3D M_normal;
     double M_radius;
