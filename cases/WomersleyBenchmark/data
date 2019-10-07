@@ -1,0 +1,61 @@
+#-------------------------------------------------------------
+#           Data file for NavierStokesExample
+#-------------------------------------------------------------
+
+[geometric_structure]
+	xmlfile = tree2.xml
+	geometries_dir = ../../../meshes/
+[../]
+
+[fluid]
+	velocity_order = P1
+	pressure_order = P1
+	viscosity      = 0.03
+	density        = 1
+	use_stabilization = true
+	inflow_bc      = dirichlet
+[../]
+
+[structure]
+	time_integration_order = 3
+	poisson      = 0.3
+	num_young    = 1
+	young    	 = 3.e+6 # 1.07e7 4.07e6'
+	thickness    = 0.1 # 0.2 0.15'
+	density	     = 1.2
+	flag = 10
+	[./external_wall]
+		elastic = 1e4
+		plastic = 1e4
+	[../]
+[../]
+
+[time_discretization]
+	algorithm = rosenbrock # rosenbrock
+	scheme = ROS3Pw
+	t0 = 0
+	T = 0.0004
+	dt = 0.0002
+[../]
+
+[newton_method]
+	tol = 1e-5
+	maxit = 10
+[../]
+
+[exporter]
+	outdir	   = solutions/
+	type       = hdf5
+	multimesh  = false
+	start      = 0
+	save_every = 1
+	filename   = tube
+[../]
+
+[coupling]
+	type                = traces
+	nMax                = 5
+	orthonormalization  = none
+	beta_threshold      = 0
+	use_interpolation   = true
+[../]

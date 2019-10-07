@@ -97,6 +97,7 @@ link_directories(${LIBRARIES_DIRS})
 add_subdirectory(geometric_structure)
 add_subdirectory(solver)
 add_subdirectory(utils)
+add_subdirectory(cases)
 add_subdirectory(examples)
 add_subdirectory(tests)
 
