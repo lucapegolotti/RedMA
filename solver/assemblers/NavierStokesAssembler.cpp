@@ -689,7 +689,6 @@ applyNeumannBCs(VectorPtr vector, std::function<double(double)> law)
     if (M_treeNode->M_ID == 0 &&
         std::strcmp(inflowBCType.c_str(),"neumann") == 0)
     {
-
         auto inflowBoundaryCondition = std::bind(neumannInflow,
                                                  std::placeholders::_1,
                                                  std::placeholders::_2,

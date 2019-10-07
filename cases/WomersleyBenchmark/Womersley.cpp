@@ -82,7 +82,7 @@ Womersley::
 pexact(const double& t, const double& x,
        const double& /*y*/, const double& /*z*/, const ID& /* i */)
 {
-    return S_A / S_L * (S_L - x) * std::cos (S_w * t);
+    return S_A / S_L * (S_L - x) * std::cos(S_w * t);
 }
 
 double
@@ -90,7 +90,7 @@ Womersley::
 pexact_dt(const double& t, const double& x,
           const double& /*y*/, const double& /*z*/, const ID& /* i */)
 {
-    return S_A / S_L * (S_L - x) * S_w * std::cos (S_w * t);
+    return S_A / S_L * (S_L - x) * S_w * std::cos(S_w * t);
 }
 
 double
@@ -103,7 +103,7 @@ grad_u(const UInt& icoor, const double& t, const double& /*x*/,
     z2 = 2.*r / S_D * S_z1;
     bessel::cbessjy01(z2, b2, S_cj1, S_cy0, S_cy1, S_cj0p, S_cj1p, S_cy0p, S_cy1p);
     b2 = -2. / S_D * S_z1 * S_cj0p;
-    double u_r = real(S_A / S_L / S_rho / S_wi * +b2 / S_b1 * std::exp (S_wi * t) );
+    double u_r = real(S_A / S_L / S_rho / S_wi * +b2 / S_b1 * std::exp(S_wi * t) );
 
     switch (icoor)
     {
@@ -378,9 +378,9 @@ setParamsFromGetPot(const GetPot& dataFile )
     S_flagStrain = dataFile("fluid/flag_strain", 0);
     S_nu = S_mu / dataFile("fluid/density", 1.);
     S_D = dataFile("fluid/D", 6.);
-    S_T = dataFile("fluid/T", 15.);
+    S_T = dataFile("fluid/T", 1.);
     S_rho = dataFile("fluid/density", 1.);
-    S_L = dataFile("fluid/L", 1.);
+    S_L = dataFile("fluid/L", 30.);
     S_A = dataFile("fluid/A", 16 * S_mu / S_D / S_D * S_L * S_L);
     computeQuantities();
 }

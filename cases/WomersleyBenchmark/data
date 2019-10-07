@@ -13,7 +13,8 @@
 	viscosity      = 0.03
 	density        = 1
 	use_stabilization = true
-	inflow_bc      = dirichlet
+	inflow_bc      = neumann
+	L			   = 30
 [../]
 
 [structure]

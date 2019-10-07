@@ -34,8 +34,6 @@
 
 using namespace RedMA;
 
-#define COEFF 10
-
 double maxLaw(double t)
 {
     return LifeV::pressureWomerTime(t,0,0,0,0);
@@ -56,6 +54,8 @@ int main(int argc, char **argv)
     #endif
 
     GetPot datafile("data");
+    LifeV::Womersley::setParamsFromGetPot(datafile);
+
     bool verbose = comm->MyPID() == 0;
     GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
     gs.setExportNorms("norms_nonconforming.txt");
