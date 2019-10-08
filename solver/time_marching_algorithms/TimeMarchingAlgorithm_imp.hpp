@@ -78,6 +78,14 @@ getSolution()
 template <class AssemblerType>
 void
 TimeMarchingAlgorithm<AssemblerType>::
+setInitialCondition(VectorPtr initalCondition)
+{
+    M_solution = initalCondition;
+}
+
+template <class AssemblerType>
+void
+TimeMarchingAlgorithm<AssemblerType>::
 setSolversOptions()
 {
     std::string optionsPrec = M_datafile("fluid/options_preconditioner",

@@ -101,7 +101,12 @@ public:
 
     std::vector<double> computeNorms(std::vector<VectorPtr> solutions);
 
+    std::vector<double> computeErrors(std::vector<VectorPtr> solutions,
+                                      const double& time);
+
     static std::string normFileFirstLine();
+
+    static std::string errorsFileFirstLine();
 
     MatrixPtr getUpdateMass(const unsigned int& blockrow,
                             const unsigned int& blockcol);
@@ -111,6 +116,8 @@ public:
 
     MatrixPtr getUpdateMassJacVelocity(const unsigned int& blockrow,
                                        const unsigned int& blockcol);
+
+    std::vector<VectorPtr> initialCondition();
 
     // note this is specific to backward euler! To use only for debugging
     void checkResidual(std::vector<VectorPtr> solutions,

@@ -12,6 +12,7 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
   M_comm(comm),
   M_globalAssembler(M_datafile, M_comm, M_verbose),
   M_exportNorms(false),
+  M_exportErrors(false),
   M_verbose(verbose)
 {
     M_tree = M_geometryParser.getTree();
@@ -44,12 +45,20 @@ solve()
 
     double t = t0;
     TimeMarchingAlgorithmPtr hdlrAlgorithm = M_timeMarchingAlgorithm;
+    hdlrAlgorithm->setInitialCondition(M_globalAssembler.getInitialCondition());
     M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
     std::ofstream outFile;
     if (M_exportNorms)
     {
-        outFile.open(M_normsFilename);
+        outFile.open(M_filename);
         outFile << AssemblerType::normFileFirstLine() << std::flush;
+    }
+    if (M_exportErrors)
+    {
+        outFile.open(M_filename);
+        outFile << AssemblerType::errorsFileFirstLine() << std::flush;
+        M_globalAssembler.appendErrorsToFile(t, hdlrAlgorithm->getSolution(),
+                                             outFile);
     }
     unsigned int count = 1;
     while (T - t > dt/2)
@@ -69,9 +78,14 @@ solve()
             M_globalAssembler.appendNormsToFile(t, hdlrAlgorithm->getSolution(),
                                                 outFile);
         }
+        if (M_exportErrors)
+        {
+            M_globalAssembler.appendErrorsToFile(t, hdlrAlgorithm->getSolution(),
+                                                 outFile);
+        }
         count++;
     }
-    if (M_exportNorms)
+    if (M_exportNorms || M_exportErrors)
         outFile.close();
 }
 
@@ -81,7 +95,16 @@ GlobalSolver<AssemblerType>::
 setExportNorms(std::string filename)
 {
     M_exportNorms = true;
-    M_normsFilename = filename;
+    M_filename = filename;
+}
+
+template <class AssemblerType>
+void
+GlobalSolver<AssemblerType>::
+setExportErrors(std::string filename)
+{
+    M_exportErrors = true;
+    M_filename = filename;
 }
 
 template <class AssemblerType>
@@ -98,6 +121,14 @@ GlobalSolver<AssemblerType>::
 setLawInflow(std::function<double(double)> maxLaw)
 {
     M_globalAssembler.setLawInflow(maxLaw);
+}
+
+template <class AssemblerType>
+void
+GlobalSolver<AssemblerType>::
+setExactSolution(AbstractFunctor* exactSolution)
+{
+    M_globalAssembler.setExactSolution(exactSolution);
 }
 
 template <class AssemblerType>

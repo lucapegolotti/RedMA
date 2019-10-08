@@ -27,6 +27,7 @@
 #include <GlobalSolver.hpp>
 #include <NavierStokesAssembler.hpp>
 #include <PseudoFSIAssembler.hpp>
+#include "WomersleySolution.hpp"
 
 #include <lifev/core/filter/GetPot.hpp>
 
@@ -58,10 +59,16 @@ int main(int argc, char **argv)
 
     bool verbose = comm->MyPID() == 0;
     GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
-    gs.setExportNorms("norms_nonconforming.txt");
+    gs.setExportErrors("errors.txt");
+
+    AbstractFunctor* womerlseySolution = new WomersleySolution;
+    gs.setExactSolution(womerlseySolution);
+
     gs.setLawInflow(std::function<double(double)>(maxLaw));
     gs.setLawDtInflow(std::function<double(double)>(maxLawDt));
     gs.solve();
+
+    delete womerlseySolution;
 
     return 0;
 }

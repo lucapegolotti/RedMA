@@ -13,8 +13,8 @@ uexact(const double& t, const double& /*x*/, const double& y,
     double r = std::sqrt (z * z + y * y);
     std::complex<double> z2, b2;
     z2 = 2.*r / S_D * S_z1;
-    bessel::cbessjy01 (z2, b2, S_cj1, S_cy0, S_cy1, S_cj0p, S_cj1p, S_cy0p, S_cy1p);
-    double u = real(S_A / S_L / S_rho / S_wi * (1. - b2 / S_b1) * std::exp (S_wi * t) );
+    bessel::cbessjy01(z2, b2, S_cj1, S_cy0, S_cy1, S_cj0p, S_cj1p, S_cy0p, S_cy1p);
+    double u = real(S_A / S_L / S_rho / S_wi * (1. - b2 / S_b1) * std::exp(S_wi * t));
     switch (i)
     {
         case 0:  //u_1
@@ -37,8 +37,8 @@ uexact_dt(const double& t, const double& /*x*/, const double& y,
     double r = std::sqrt (z * z + y * y);
     std::complex<double> z2, b2;
     z2 = 2.*r / S_D * S_z1;
-    bessel::cbessjy01 (z2, b2, S_cj1, S_cy0, S_cy1, S_cj0p, S_cj1p, S_cy0p, S_cy1p);
-    double ut = real (S_A / S_L / S_rho * (1. - b2 / S_b1) * std::exp (S_wi * t) );
+    bessel::cbessjy01(z2, b2, S_cj1, S_cy0, S_cy1, S_cj0p, S_cj1p, S_cy0p, S_cy1p);
+    double ut = real(S_A / S_L / S_rho * (1. - b2 / S_b1) * std::exp(S_wi * t));
     switch (i)
     {
         case 0:  //u_1
@@ -61,8 +61,8 @@ uexact_dtdt(const double& t, const double& /*x*/,
     double r = std::sqrt (z * z + y * y);
     std::complex<double> z2, b2;
     z2 = 2.*r / S_D * S_z1;
-    bessel::cbessjy01 (z2, b2, S_cj1, S_cy0, S_cy1, S_cj0p, S_cj1p, S_cy0p, S_cy1p);
-    double utt =  real(S_wi * S_A / S_L / S_rho * (1. - b2 / S_b1) * std::exp (S_wi * t));
+    bessel::cbessjy01(z2, b2, S_cj1, S_cy0, S_cy1, S_cj0p, S_cj1p, S_cy0p, S_cy1p);
+    double utt = real(S_wi * S_A / S_L / S_rho * (1. - b2 / S_b1) * std::exp(S_wi * t));
     switch (i)
     {
         case 0:  //u_1
@@ -98,12 +98,12 @@ Womersley::
 grad_u(const UInt& icoor, const double& t, const double& /*x*/,
        const double& y, const double& z, const ID& i )
 {
-    double r = std::sqrt (y * y + z * z);
+    double r = std::sqrt(y * y + z * z);
     std::complex<double> z2, b2;
     z2 = 2.*r / S_D * S_z1;
     bessel::cbessjy01(z2, b2, S_cj1, S_cy0, S_cy1, S_cj0p, S_cj1p, S_cy0p, S_cy1p);
     b2 = -2. / S_D * S_z1 * S_cj0p;
-    double u_r = real(S_A / S_L / S_rho / S_wi * +b2 / S_b1 * std::exp(S_wi * t) );
+    double u_r = real(S_A / S_L / S_rho / S_wi * +b2 / S_b1 * std::exp(S_wi * t));
 
     switch (icoor)
     {
@@ -177,9 +177,9 @@ xexact(const double& t, const double& x, const double& y,
     {
         case 0:  //u_1
         case 1:  //u_2
-            return uexact (t, x, y, z, i);
+            return uexact(t, x, y, z, i);
         case 2:  //pressure
-            return pexact (t, x, y, z, 1);
+            return pexact(t, x, y, z, 1);
             break;
         default:
             exit (1);
@@ -192,7 +192,7 @@ Womersley::
 x0(const double& t, const double& x,
    const double& y, const double& z, const ID& i)
 {
-    return xexact (t, x, y, z, i);
+    return xexact(t, x, y, z, i);
 }
 
 // Initial velocity
@@ -201,7 +201,7 @@ Womersley::
 u0(const double& t, const double& x, const double& y,
    const double& z, const ID& i)
 {
-    return uexact (t, x, y, z, i);
+    return uexact(t, x, y, z, i);
 }
 
 // Initial pressure
@@ -210,7 +210,7 @@ Womersley::
 p0(const double& t, const double& x, const double& y,
    const double& z, const ID& /*i*/ )
 {
-    return pexact (t, x, y, z, 0);
+    return pexact(t, x, y, z, 0);
 }
 
 //we suppose that the problem geometry is the cylinder having axis x, origin (0,0,0), diameter D and height L
@@ -219,14 +219,14 @@ Womersley::
 fNeumann(const double& t, const double& x, const double& y,
          const double& z, const ID& i )
 {
-    double r = std::sqrt (y * y + z * z);
+    double r = std::sqrt(y * y + z * z);
     double n[3] = {0., 0., 0.};
     double out = 0.;
-    if        (x < 1e-6 / S_L )
+    if (x < 1e-6 / S_L)
     {
         n[0] = -1.;
     }
-    else if (x >  S_L * (1 - 1e-6) )
+    else if (x >  S_L * (1 - 1e-6))
     {
         n[0] =  1.;
     }
@@ -262,13 +262,13 @@ Womersley::
 normalVector(const double& /*t*/, const double& x, const double& y,
              const double& z, const ID& i )
 {
-    double r = std::sqrt (y * y + z * z);
+    double r = std::sqrt(y * y + z * z);
     double n[3] = {0., 0., 0.};
-    if        (x < 1e-6 / S_L )
+    if (x < 1e-6 / S_L)
     {
         n[0] = -1.;
     }
-    else if (x >  S_L * (1 - 1e-6) )
+    else if (x >  S_L * (1 - 1e-6))
     {
         n[0] =  1.;
     }
@@ -372,7 +372,7 @@ fWallShearStress(const double& t, const double& x, const double& y,
 
 void
 Womersley::
-setParamsFromGetPot(const GetPot& dataFile )
+setParamsFromGetPot(const GetPot& dataFile)
 {
     S_mu = dataFile("fluid/viscosity", 1.);
     S_flagStrain = dataFile("fluid/flag_strain", 0);

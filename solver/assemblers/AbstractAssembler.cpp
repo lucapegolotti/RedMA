@@ -10,6 +10,7 @@ AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
   M_comm(comm),
   M_coupler(comm, verbose),
   M_treeNode(treeNode),
+  M_exactSolution(nullptr),
   M_verbose(verbose)
 {
 }
@@ -502,6 +503,13 @@ AbstractAssembler::
 setTimestep(double dt)
 {
     M_dt = dt;
+}
+
+void
+AbstractAssembler::
+setExactSolution(AbstractFunctor* exactSolution)
+{
+    M_exactSolution = exactSolution;
 }
 
 

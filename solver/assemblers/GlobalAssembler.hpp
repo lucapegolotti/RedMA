@@ -19,6 +19,8 @@
 
 #include <fstream>
 
+#include <AbstractFunctor.hpp>
+
 #include <TreeStructure.hpp>
 #include <AbstractAssembler.hpp>
 #include <GlobalBlockMatrix.hpp>
@@ -89,10 +91,15 @@ public:
 
     void setLawDtInflow(std::function<double(double)> maxLawDt);
 
+    void setExactSolution(AbstractFunctor* exactSolution);
+
     void exportSolutions(const double& time, VectorPtr solution);
 
     void appendNormsToFile(const double& time, VectorPtr solution,
                            std::ofstream& outFile);
+
+    void appendErrorsToFile(const double& time, VectorPtr solution,
+                            std::ofstream& outFile);
 
     void setTimeIntegrationOrder(unsigned int order);
 
@@ -101,6 +108,8 @@ public:
     void checkResidual(VectorPtr solution, VectorPtr prevSolution, double dt);
 
     void postProcess();
+
+    VectorPtr getInitialCondition();
 
 private:
     template<typename FunctionType>

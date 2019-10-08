@@ -73,6 +73,8 @@ public:
 
     unsigned int getOrder();
 
+    void setInitialCondition(VectorPtr initalCondition);
+
 protected:
     GetPot                                                                M_datafile;
     VectorPtr                                                             M_solution;

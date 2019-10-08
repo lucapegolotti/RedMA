@@ -134,6 +134,15 @@ getGlobalMass()
     return updatedMassMatrix;
     // return M_massMatrix;
 }
+template <class AssemblerType>
+typename GlobalAssembler<AssemblerType>::VectorPtr
+GlobalAssembler<AssemblerType>::
+getInitialCondition()
+{
+    VectorPtr f(new Vector(*M_globalMap));
+    fillGlobalVector(f, &AssemblerType::initialCondition);
+    return f;
+}
 
 template <class AssemblerType>
 GlobalBlockMatrix
@@ -299,8 +308,11 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
     {
         std::vector<VectorPtr> localSolutions;
         MapVector maps = it->second->getPrimalMapVector();
+
         AssemblerType& curAssembler = *it->second;
-        std::vector<VectorPtr> localVectors = (curAssembler.*getVectorMethod)();
+        std::vector<VectorPtr> localVectors;
+        localVectors = (curAssembler.*getVectorMethod)();
+
         unsigned int index = 0;
 
         for (MapVector::iterator itmap = maps.begin();
@@ -524,6 +536,21 @@ setLawDtInflow(std::function<double(double)> maxLawDt)
 template<class AssemblerType>
 void
 GlobalAssembler<AssemblerType>::
+setExactSolution(AbstractFunctor* exactSolution)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        it->second->setExactSolution(exactSolution);
+    }
+}
+
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
 exportSolutions(const double& time, VectorPtr solution)
 {
     typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
@@ -629,7 +656,77 @@ appendNormsToFile(const double& time, VectorPtr solution,
          itNorm != norms.end(); itNorm++)
     {
         newLine += ",";
-        newLine += std::to_string(*itNorm);
+        std::ostringstream streamOb;
+        streamOb << *itNorm;
+        newLine += streamOb.str();    }
+    newLine += "\n";
+    outFile << newLine << std::flush;
+}
+
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+appendErrorsToFile(const double& time, VectorPtr solution,
+                   std::ofstream& outFile)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+    typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
+    typedef std::vector<MapEpetraPtr>                    MapVector;
+
+    std::vector<double> errors;
+    unsigned int countDomains = 0;
+    unsigned int offset = 0;
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        std::vector<VectorPtr> localSolutions;
+        MapVector maps = it->second->getPrimalMapVector();
+        for (MapVector::iterator itmap = maps.begin();
+             itmap != maps.end(); itmap++)
+        {
+            LifeV::MapEpetra& curLocalMap = **itmap;
+            VectorPtr subSolution;
+            subSolution.reset(new Vector(curLocalMap));
+            subSolution->zero();
+            subSolution->subset(*solution, curLocalMap, offset, 0);
+            localSolutions.push_back(subSolution);
+            offset += curLocalMap.mapSize();
+        }
+        std::vector<double> localErrors = it->second->computeErrors(localSolutions,
+                                                                    time);
+        if (countDomains == 0)
+        {
+            for (std::vector<double>::iterator itError = localErrors.begin();
+                 itError != localErrors.end(); itError++)
+            {
+                errors.push_back(*itError);
+            }
+        }
+        else
+        {
+            unsigned int count = 0;
+            for (std::vector<double>::iterator itErrors = localErrors.begin();
+                 itErrors != localErrors.end(); itErrors++)
+            {
+                double curError = *itErrors;
+                double newError = curError * curError +
+                                  errors[count] * errors[count];
+                errors[count] = std::sqrt(newError);
+                count++;
+            }
+        }
+        countDomains++;
+    }
+
+    std::string newLine = std::to_string(time);
+    for (std::vector<double>::iterator itErrors = errors.begin();
+         itErrors != errors.end(); itErrors++)
+    {
+        newLine += ",";
+        std::ostringstream streamOb;
+        streamOb << *itErrors;
+        newLine += streamOb.str();
     }
     newLine += "\n";
     outFile << newLine << std::flush;

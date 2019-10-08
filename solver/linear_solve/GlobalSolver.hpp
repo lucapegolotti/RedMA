@@ -25,6 +25,8 @@
 #include <TreeStructure.hpp>
 #include <GlobalSolverOperator.hpp>
 
+#include <AbstractFunctor.hpp>
+
 #include <lifev/core/array/MapVector.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/filter/GetPot.hpp>
@@ -54,7 +56,11 @@ public:
 
     void setLawDtInflow(std::function<double(double)> maxLawDt);
 
+    void setExactSolution(AbstractFunctor* exactSolution);
+
     void setExportNorms(std::string filename);
+
+    void setExportErrors(std::string filename);
 
 private:
     // we pass dt as reference to allow for time adaptvity
@@ -66,7 +72,8 @@ private:
     commPtr_Type                   M_comm;
     bool                           M_verbose;
     bool                           M_exportNorms;
-    std::string                    M_normsFilename;
+    bool                           M_exportErrors;
+    std::string                    M_filename;
     GlobalAssembler<AssemblerType> M_globalAssembler;
     TimeMarchingAlgorithmPtr       M_timeMarchingAlgorithm;
 };

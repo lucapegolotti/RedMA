@@ -22,6 +22,7 @@
 #include <Exception.hpp>
 #include <BasisFunctionFactory.hpp>
 #include <Coupler.hpp>
+#include <AbstractFunctor.hpp>
 
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/filter/GetPot.hpp>
@@ -118,6 +119,8 @@ public:
 
     inline FESpacePtr getCouplingFESpace() {return M_couplingFESpace;};
 
+    void setExactSolution(AbstractFunctor* exactSolution);
+
 private:
 
     MatrixPtr assembleBoundaryMatrix(GeometricFace face);
@@ -159,6 +162,7 @@ protected:
     Coupler                             M_coupler;
     unsigned                            M_timeIntegrationOrder;
     double                              M_dt;
+    AbstractFunctor*                    M_exactSolution;
 };
 
 }  // namespace RedMA

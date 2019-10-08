@@ -375,6 +375,51 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
 
 std::vector<NavierStokesAssembler::VectorPtr>
 NavierStokesAssembler::
+initialCondition()
+{
+    bool setInitialCondition = M_datafile("time_discretization/set", true);
+    double t0 = M_datafile("time_discretization/t0", 0.0);
+
+    std::vector<VectorPtr> Fs;
+
+    VectorPtr F1;
+    F1.reset(new Vector(M_velocityFESpace->map()));
+    F1->zero();
+
+    if (setInitialCondition && M_exactSolution != nullptr)
+    {
+        M_velocityFESpace->interpolate(M_exactSolution->exactFunction(0), *F1, t0);
+    }
+
+    VectorPtr F2;
+    F2.reset(new Vector(M_pressureFESpace->map()));
+    F2->zero();
+
+    if (setInitialCondition && M_exactSolution != nullptr)
+    {
+        M_pressureFESpace->interpolate(M_exactSolution->exactFunction(1), *F2, t0);
+    }
+
+    Fs.push_back(F1);
+    Fs.push_back(F2);
+
+    unsigned int count = 0;
+    for (std::map<unsigned int, MatrixPtr>::iterator it = getMapsQs().begin();
+         it != getMapsQs().end(); it++)
+    {
+        VectorPtr newF;
+        MatrixPtr curCouplingMatrix = it->second;
+        newF.reset(new Vector(*M_dualMaps[count]));
+        newF->zero();
+
+        Fs.push_back(newF);
+        count++;
+    }
+    return Fs;
+}
+
+std::vector<NavierStokesAssembler::VectorPtr>
+NavierStokesAssembler::
 computeF()
 {
     std::vector<VectorPtr> Fs;
@@ -895,6 +940,39 @@ computeNorms(std::vector<VectorPtr> solutions)
     return norms;
 }
 
+std::vector<double>
+NavierStokesAssembler::
+computeErrors(std::vector<VectorPtr> solutions, const double& time)
+{
+    printlog(MAGENTA, "[NavierStokesAssembler] compute errors ...\n",
+             M_verbose);
+
+    std::vector<double> errors;
+
+    VectorPtr velocityRepeated(new Vector(*solutions[0], LifeV::Repeated));
+    VectorPtr pressureRepeated(new Vector(*solutions[1], LifeV::Repeated));
+
+    double l2uabs, h1uabs, l2pabs;
+    double l2u, h1u, l2p;
+    l2uabs = M_velocityFESpace->l2Error(M_exactSolution->exactFunction(0),
+                                       *velocityRepeated, time, &l2u);
+    h1uabs = M_velocityFESpace->h1Error(*M_exactSolution, *velocityRepeated,
+                                        time, &h1u);
+    l2pabs = M_pressureFESpace->l2Error(M_exactSolution->exactFunction(1),
+                                       *pressureRepeated, time, &l2p);
+    errors.push_back(l2uabs);
+    errors.push_back(h1uabs);
+    errors.push_back(l2pabs);
+    errors.push_back(l2u);
+    errors.push_back(h1u);
+    errors.push_back(l2p);
+
+    printlog(MAGENTA, "done\n", M_verbose);
+    return errors;
+}
+
+
+
 void
 NavierStokesAssembler::
 checkResidual(std::vector<VectorPtr> solutions,
@@ -1021,5 +1099,11 @@ normFileFirstLine()
     return "time,ul2,uh1,l2p\n";
 }
 
+std::string
+NavierStokesAssembler::
+errorsFileFirstLine()
+{
+    return "time,ul2abs,uh1abs,l2pabs,ul2rel,uh1rel,l2prel\n";
+}
 
 }  // namespace RedMA

@@ -794,8 +794,9 @@ buildCouplingMatrices(MatrixPtr myMass,
         Qs.reset(new Matrix(map2));
         QTs.reset(new Matrix(map1));
 
-        myMass->multiply(false, *QTsInt, false, *QTs, true);
+        // QTs.reset(new Matrix(*QTsInt));
         // Qs.reset(new Matrix(*QTsInt->transpose()));
+        myMass->multiply(false, *QTsInt, false, *QTs, true);
         QTsInt->multiply(true, *myMass, false, *Qs, true);
     }
     // we need to use the interpolation matrices. We suppose that we are on the
@@ -811,8 +812,8 @@ buildCouplingMatrices(MatrixPtr myMass,
         M_matrixInterpolationMainToOther->multiply(false, *matrixToInterpolate,
                                                    false, *res, true);
 
-
         myMass->multiply(false, *res, false, *QTs, true);
+        QTs.reset(new Matrix(*res));
 
         // here we put the res as our own matrix (for exporting solution)
         M_mapQTsInterpolated[flagAdjacentDomain] =  res;
@@ -824,8 +825,6 @@ buildCouplingMatrices(MatrixPtr myMass,
 
         otherMass->multiply(false, *M_matrixInterpolationOtherToMain, false,
                             *res, true);
-
-        otherMass->spy("mass");
 
         map = matrixToInterpolate->domainMap();
         Qs.reset(new Matrix(map));

@@ -10,11 +10,11 @@
 [fluid]
 	velocity_order = P1
 	pressure_order = P1
-	viscosity      = 0.03
+	viscosity      = 0.1
 	density        = 1
 	use_stabilization = true
 	inflow_bc      = neumann
-	L			   = 30
+	L              = 30
 [../]
 
 [structure]
@@ -32,11 +32,11 @@
 [../]
 
 [time_discretization]
-	algorithm = rosenbrock # rosenbrock
+	algorithm = backward_euler # rosenbrock
 	scheme = ROS3Pw
 	t0 = 0
-	T = 0.0004
-	dt = 0.0002
+	T = 1e-5
+	dt = 1e-5
 [../]
 
 [newton_method]
