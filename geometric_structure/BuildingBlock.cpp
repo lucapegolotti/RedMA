@@ -109,7 +109,8 @@ readMesh(std::string meshdir)
 
     meshPtr_Type fullMesh(new mesh_Type(M_comm));
     LifeV::MeshData meshData;
-    GetPot meshDatafile(meshdir + "datafiles/" + M_datafileName);
+    GetPot meshDatafile(meshdir + M_datafileName);
+    meshDatafile.set("mesh/mesh_file", M_meshName.c_str());
     meshData.setup(meshDatafile, "mesh");
     meshData.setMeshDir(meshdir);
 

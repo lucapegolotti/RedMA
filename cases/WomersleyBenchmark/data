@@ -8,13 +8,14 @@
 [../]
 
 [fluid]
-	velocity_order = P1
+	velocity_order = P2
 	pressure_order = P1
 	viscosity      = 0.1
 	density        = 1
+	use_strain     = false
 	use_stabilization = true
 	inflow_bc      = neumann
-	L              = 30
+	L              = 15
 [../]
 
 [structure]

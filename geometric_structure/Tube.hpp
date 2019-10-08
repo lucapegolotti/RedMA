@@ -36,6 +36,8 @@ public:
 
     virtual void applyNonAffineTransformation();
 
+    std::string getStringMesh(std::string refinement);
+
 private:
     void nonAffineScaling(const double& lengthRatio,
                           const double& outRadiusRatio,

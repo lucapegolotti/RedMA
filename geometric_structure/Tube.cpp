@@ -9,7 +9,8 @@ Tube(commPtr_Type comm, std::string refinement, bool verbose) :
 {
     M_name = "Tube";
 
-    M_datafileName = "tube_" + refinement + "_data";
+    M_datafileName = "data_mesh";
+    M_meshName = "tube/tube_" + getStringMesh(refinement) + ".mesh";
 
     // center of inlet (reference configuration)
     M_inletCenterRef[0] = 0.0;
@@ -51,6 +52,22 @@ Tube(commPtr_Type comm, std::string refinement, bool verbose) :
     M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.0, randomizible);
     M_parametersHandler.registerParameter("use_linear_elasticity", 0.0, 0.0, 1.0);
 }
+
+std::string
+Tube::
+getStringMesh(std::string refinement)
+{
+    if (refinement[0] == 'h')
+        return refinement;
+    if (!std::strcmp(refinement.c_str(),"coarse"))
+        return "h1.40";
+    if (!std::strcmp(refinement.c_str(),"normal"))
+        return "h0.80";
+    if (!std::strcmp(refinement.c_str(),"fine"))
+        return "h0.60";
+    return "h1.40";
+}
+
 
 void
 Tube::
