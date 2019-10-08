@@ -121,6 +121,8 @@ public:
 
     void setExactSolution(AbstractFunctor* exactSolution);
 
+    double getMeshSize() {return M_meshSize;};
+
 private:
 
     MatrixPtr assembleBoundaryMatrix(GeometricFace face);
@@ -163,6 +165,7 @@ protected:
     unsigned                            M_timeIntegrationOrder;
     double                              M_dt;
     AbstractFunctor*                    M_exactSolution;
+    double                              M_meshSize;
 };
 
 }  // namespace RedMA

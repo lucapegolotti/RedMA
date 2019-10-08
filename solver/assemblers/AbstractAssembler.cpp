@@ -13,6 +13,13 @@ AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
   M_exactSolution(nullptr),
   M_verbose(verbose)
 {
+    if (M_treeNode != nullptr)
+    {
+        double hLocal = LifeV::MeshUtility::MeshStatistics::computeSize(
+                                            *M_treeNode->M_block->getMesh()).maxH;
+
+        M_comm->MaxAll(&hLocal, &M_meshSize, 1);
+    }
 }
 
 void
@@ -154,20 +161,10 @@ assembleCouplingMatricesInterpolation(AbstractAssembler& child,
 {
     AbstractAssembler* mainDomain;
     AbstractAssembler* otherDomain;
-    // choose side with smaller h for interpolation
-    double hFatherLocal =
-        LifeV::MeshUtility::MeshStatistics::computeSize(
-                                        *M_couplingFESpace->mesh()).maxH;
-    double hChildLocal =
-        LifeV::MeshUtility::MeshStatistics::computeSize(
-                                  *child.M_couplingFESpace->mesh()).maxH;
 
     // find global hmax
-    double hFather;
-    double hChild;
-
-    M_comm->MaxAll(&hFatherLocal, &hFather, 1);
-    M_comm->MaxAll(&hChildLocal, &hChild, 1);
+    double hFather = M_meshSize;
+    double hChild = child.M_meshSize;
 
     GeometricFace inlet = child.M_treeNode->M_block->getInlet();
     GeometricFace outlet = M_treeNode->M_block->getOutlet(indexOutlet);

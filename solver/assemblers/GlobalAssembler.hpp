@@ -111,6 +111,8 @@ public:
 
     VectorPtr getInitialCondition();
 
+    void printMeshSize(std::string filename);
+
 private:
     template<typename FunctionType>
     void fillGlobalMatrix(GlobalBlockMatrix& matrixToFill,

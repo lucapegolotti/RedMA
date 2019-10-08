@@ -839,4 +839,24 @@ postProcess()
     }
 }
 
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+printMeshSize(std::string filename)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+
+    std::ofstream outFile;
+
+    outFile.open(filename);
+    outFile << "h\n";
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        outFile << it->second->getMeshSize() << "\n";
+    }
+    outFile.close();
+}
+
 }  // namespace RedMA

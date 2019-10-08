@@ -62,6 +62,8 @@ public:
 
     void setExportErrors(std::string filename);
 
+    void printMeshSize(std::string filename);
+
 private:
     // we pass dt as reference to allow for time adaptvity
     void solveTimestep(const double& time, double& dt);

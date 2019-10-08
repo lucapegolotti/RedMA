@@ -54,21 +54,40 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm());
     #endif
 
-    GetPot datafile("data");
+    GetPot datafile("datafiles/data");
     LifeV::Womersley::setParamsFromGetPot(datafile);
-
     bool verbose = comm->MyPID() == 0;
-    GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
-    gs.setExportErrors("errors.txt");
 
-    AbstractFunctor* womerlseySolution = new WomersleySolution;
-    gs.setExactSolution(womerlseySolution);
+    std::vector<std::string> refinements;
+    refinements.push_back("h0.80");
+    refinements.push_back("h0.70");
+    refinements.push_back("h0.60");
+    refinements.push_back("h0.50");
+    refinements.push_back("h0.40");
+    refinements.push_back("h0.30");
 
-    gs.setLawInflow(std::function<double(double)>(maxLaw));
-    gs.setLawDtInflow(std::function<double(double)>(maxLawDt));
-    gs.solve();
+    for (auto it = refinements.begin(); it != refinements.end(); it++)
+    {
+        std::string nameTree("datafiles/tree_");
+        nameTree += *it + std::string(".xml");
 
-    delete womerlseySolution;
+        datafile.set("geometric_structure/xmlfile",
+                     nameTree.c_str());
+
+        GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
+        gs.setExportErrors("errors" + *it + ".txt");
+
+        AbstractFunctor* womerlseySolution = new WomersleySolution;
+        gs.setExactSolution(womerlseySolution);
+
+        gs.printMeshSize("meshSizes" + *it + ".txt");
+
+        gs.setLawInflow(std::function<double(double)>(maxLaw));
+        gs.setLawDtInflow(std::function<double(double)>(maxLawDt));
+        gs.solve();
+
+        delete womerlseySolution;
+    }
 
     return 0;
 }

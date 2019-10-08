@@ -139,4 +139,13 @@ setLawDtInflow(std::function<double(double)> maxLawDt)
     M_globalAssembler.setLawDtInflow(maxLawDt);
 }
 
+template <class AssemblerType>
+void
+GlobalSolver<AssemblerType>::
+printMeshSize(std::string filename)
+{
+    M_globalAssembler.printMeshSize(filename);
+}
+
+
 }  // namespace RedMA
