@@ -70,7 +70,6 @@ set(LINKED_LIBRARIES
     boost_filesystem
     tinyxml2
     mpi
-    mpi_cxx
     lifevcore
     lifeveta
     lifevnavierstokesblocks
@@ -78,7 +77,6 @@ set(LINKED_LIBRARIES
     hdf5
     parmetis
     metis
-    lapack
     umfpack
     openblas
     amd
@@ -93,6 +91,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 link_directories(${LIBRARIES_DIRS})
+include_directories(${HEADERS_DIRS})
 
 add_subdirectory(geometric_structure)
 add_subdirectory(solver)
@@ -101,4 +100,3 @@ add_subdirectory(cases)
 add_subdirectory(examples)
 add_subdirectory(tests)
 
-include_directories(${HEADERS_DIRS})

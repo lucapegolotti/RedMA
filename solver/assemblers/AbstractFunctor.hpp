@@ -17,6 +17,8 @@
 #ifndef ABSTRACTFUNCTOR_H
 #define ABSTRACTFUNCTOR_H
 
+#include <functional>
+
 namespace RedMA
 {
 

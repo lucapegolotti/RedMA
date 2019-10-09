@@ -65,6 +65,8 @@ int main(int argc, char **argv)
     refinements.push_back("h0.50");
     refinements.push_back("h0.40");
     refinements.push_back("h0.30");
+    refinements.push_back("h0.25");
+    refinements.push_back("h0.20");
 
     for (auto it = refinements.begin(); it != refinements.end(); it++)
     {
