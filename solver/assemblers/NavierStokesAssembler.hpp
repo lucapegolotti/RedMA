@@ -142,7 +142,8 @@ protected:
 
     void applyNeumannBCs(VectorPtr vector, std::function<double(double)> law);
 
-    BoundaryConditionPtr createBCHandler(std::function<double(double)> law);
+    BoundaryConditionPtr createBCHandler(std::function<double(double)> law,
+                                         FunctionType* wallLaw = nullptr);
 
     static double fZero(const double& t,
                         const double& x,

@@ -57,6 +57,16 @@ public:
             retFunction = LifeV::Womersley::pexact;
         return retFunction;
     }
+
+    Function exactFunctionDt(const unsigned int& index) override
+    {
+        Function retFunction;
+        if (index == 0)
+            retFunction = LifeV::Womersley::uexact_dt;
+        else if (index == 1)
+            retFunction = LifeV::Womersley::pexact_dt;
+        return retFunction;
+    }
 };
 
 } //namespace RedMA

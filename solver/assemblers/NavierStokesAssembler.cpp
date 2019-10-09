@@ -601,7 +601,8 @@ getUpdateMassJacVelocity(const unsigned int& blockrow, const unsigned int& block
 
 NavierStokesAssembler::BoundaryConditionPtr
 NavierStokesAssembler::
-createBCHandler(std::function<double(double)> law)
+createBCHandler(std::function<double(double)> law,
+                FunctionType* wallLaw)
 {
     LifeV::BCFunctionBase zeroFunction (fZero);
 
@@ -638,8 +639,15 @@ createBCHandler(std::function<double(double)> law)
 
     if (M_addNoslipBC)
     {
-        bcs->addBC("Wall", wallFlag, LifeV::Essential,
-                    LifeV::Full, zeroFunction, 3);
+        if (wallLaw == nullptr)
+            bcs->addBC("Wall", wallFlag, LifeV::Essential,
+                        LifeV::Full, zeroFunction, 3);
+        else
+        {
+            LifeV::BCFunctionBase wallFunction(*wallLaw);
+            bcs->addBC("Wall", wallFlag, LifeV::Essential,
+                        LifeV::Full, wallFunction, 3);
+        }
         // we also add boundary conditions to the rings in this case
         bcs->addBC("InletRing", inletRing, LifeV::EssentialEdges,
                    LifeV::Full, zeroFunction,   3);
@@ -762,7 +770,15 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
                       const double& alphai,
                       const double& gammai)
 {
-    BoundaryConditionPtr bc = createBCHandler(M_inflowLaw);
+    BoundaryConditionPtr bc;
+
+    if (M_exactSolution == nullptr)
+        bc = createBCHandler(M_inflowLaw);
+    else
+    {
+        FunctionType exactFct = M_exactSolution->exactFunction(0);
+        bc = createBCHandler(M_inflowLaw, &exactFct);
+    }
 
     updateBCs(bc, M_velocityFESpace);
 
@@ -772,7 +788,14 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
     bcManageRhs(*auxVec, *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
                 *bc, M_velocityFESpace->feBd(), 1.0, time + dt * alphai);
 
-    BoundaryConditionPtr bcDt = createBCHandler(M_inflowLawDt);
+    BoundaryConditionPtr bcDt;
+    if (M_exactSolution != nullptr)
+        bcDt = createBCHandler(M_inflowLawDt);
+    else
+    {
+        FunctionType exactFct = M_exactSolution->exactFunctionDt(0);
+        bcDt = createBCHandler(M_inflowLaw, &exactFct);
+    }
 
     updateBCs(bcDt, M_velocityFESpace);
 
@@ -803,12 +826,19 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
                         LifeV::Full, bcVectorDirichlet, 3);
     }
 
-    LifeV::BCFunctionBase zeroFunction (fZero);
-
     const unsigned int wallFlag = 10;
+    if (M_exactSolution == nullptr)
+    {
+        finalBcs->addBC("Wall", wallFlag, LifeV::Essential,
+                        LifeV::Full, bcVectorDirichlet, 3);
+    }
+    else
+    {
+        LifeV::BCFunctionBase zeroFunction(fZero);
+        finalBcs->addBC("Wall", wallFlag, LifeV::Essential,
+                        LifeV::Full, zeroFunction, 3);
 
-    finalBcs->addBC("Wall", wallFlag, LifeV::Essential,
-                    LifeV::Full, zeroFunction, 3);
+    }
 
     updateBCs(finalBcs, M_velocityFESpace);
     bcManageRhs(*rhs[0], *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
@@ -820,7 +850,16 @@ NavierStokesAssembler::
 applyBCsBackwardEuler(std::vector<VectorPtr> rhs, const double& coeff,
                       const double& time)
 {
-    BoundaryConditionPtr bc = createBCHandler(M_inflowLaw);
+    BoundaryConditionPtr bc;
+
+    if (M_exactSolution == nullptr)
+        bc = createBCHandler(M_inflowLaw);
+    else
+    {
+        FunctionType exactFct = M_exactSolution->exactFunction(0);
+        bc = createBCHandler(M_inflowLaw, &exactFct);
+    }
+
     updateBCs(bc, M_velocityFESpace);
 
     bcManageRhs(*rhs[0], *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),

@@ -34,9 +34,9 @@
 
 [time_discretization]
 	algorithm = rosenbrock # rosenbrock
-	scheme = ROS3Pw
+	scheme = RODASP
 	t0 = 0
-	T = 1e-1
+	T = 2e-2
 	dt = 1e-2
 [../]
 
