@@ -770,6 +770,9 @@ fillMatrixWithVectorsInterpolated(VectorPtr* couplingVectors,
 
         throw Exception(errorMsg);
     }
+    couplingVectors[0]->spy("cv");
+    QT->spy("QT");
+    exit(1);
     return QT;
 }
 
