@@ -1,0 +1,28 @@
+<buildingblock type="tube" refinement="h0.13">
+    <L_ratio>1</L_ratio>
+    <Rout_ratio>1</Rout_ratio>
+    <alpha_axis>0</alpha_axis>
+    <alphax>0</alphax>
+    <alphay>-1.5707963268</alphay>
+    <alphaz>0</alphaz>
+    <bend>0</bend>
+    <bx>0</bx>
+    <by>0</by>
+    <bz>0</bz>
+    <scale>1</scale>
+    <use_linear_elasticity>0</use_linear_elasticity>
+    <buildingblock type="tube" refinement="h0.13">
+        <L_ratio>1</L_ratio>
+        <Rout_ratio>1</Rout_ratio>
+        <alpha_axis>0</alpha_axis>
+        <alphax>0</alphax>
+        <alphay>0</alphay>
+        <alphaz>0</alphaz>
+        <bend>0</bend>
+        <bx>0</bx>
+        <by>0</by>
+        <bz>0</bz>
+        <scale>1</scale>
+        <use_linear_elasticity>0</use_linear_elasticity>
+    </buildingblock>
+</buildingblock>

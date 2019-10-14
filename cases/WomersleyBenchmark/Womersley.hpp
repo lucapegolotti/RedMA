@@ -58,8 +58,14 @@ public:
     static double grad_u(const UInt& icoor, const double& t, const double& x, const double& y,
                        const double& z, const ID& i);
 
+    static double grad_u_dt(const UInt& icoor, const double& t, const double& x, const double& y,
+                            const double& z, const ID& i);
+
     static double fNeumann(const double& t, const double& x, const double& y,
                          const double& z, const ID& i);
+
+    static double fNeumann_dt(const double& t, const double& x, const double& y,
+                              const double& z, const ID& i);
 
     static double normalVector(const double& t, const double& x, const double& y,
                              const double& z, const ID& i);

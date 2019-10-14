@@ -119,10 +119,6 @@ public:
 
     std::vector<VectorPtr> initialCondition();
 
-    // note this is specific to backward euler! To use only for debugging
-    void checkResidual(std::vector<VectorPtr> solutions,
-                       std::vector<VectorPtr> prevSolutions, double dt);
-
 protected:
     void assembleConstantMatrices();
 
@@ -142,8 +138,13 @@ protected:
 
     void applyNeumannBCs(VectorPtr vector, std::function<double(double)> law);
 
-    BoundaryConditionPtr createBCHandler(std::function<double(double)> law,
-                                         FunctionType* wallLaw = nullptr);
+    void applyNeumannBCsWithExactFunction(VectorPtr vector,
+                                          FunctionType* exactFunction);
+
+    BoundaryConditionPtr createBCHandler(std::function<double(double)> law);
+
+    BoundaryConditionPtr createBCHandlerWithExactFunction(FunctionType*
+                                                          exactFunction);
 
     static double fZero(const double& t,
                         const double& x,

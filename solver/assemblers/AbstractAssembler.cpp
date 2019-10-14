@@ -229,6 +229,7 @@ assembleCouplingMatricesInterpolation(AbstractAssembler& child,
 
     VectorPtr* mainVectors;
     if (std::strcmp(basisFunction->getType().c_str(), "traces"))
+    {
         mainVectors = mainDomain->
                       M_coupler.assembleCouplingVectors(basisFunction,
                                                         *mainFace,
@@ -236,12 +237,15 @@ assembleCouplingMatricesInterpolation(AbstractAssembler& child,
                                                         mainDomain->M_couplingFESpace,
                                                         mainDomain->M_couplingFESpaceScalarETA,
                                                         nBasisFunctions);
+    }
     else
+    {
         mainVectors = mainDomain->
                       M_coupler.assembleTraces(*mainFace, coeff,
                                                mainDomain->M_couplingFESpace,
                                                mainDomain->M_couplingFESpaceScalarETA,
                                                nBasisFunctions, false);
+    }
 
     MapEpetraPtr lagrangeMultiplierMap = buildLagrangeMultiplierMap(nBasisFunctions,
                                                                     child,
@@ -258,6 +262,8 @@ assembleCouplingMatricesInterpolation(AbstractAssembler& child,
                                                primalMap,
                                                mainDomain->numberOfComponents(),
                                                otherDomain->M_treeNode->M_ID);
+
+    couplingMatrix->spy("couplingMatrix");
 
     MatrixPtr massMatrixMain = mainDomain->assembleBoundaryMatrix(*mainFace);
     MatrixPtr massMatrixOther = otherDomain->assembleBoundaryMatrix(*otherFace);
@@ -363,6 +369,7 @@ assembleCouplingMatrices(AbstractAssembler& child,
                                                               M_couplingFESpace,
                                                               M_couplingFESpaceScalarETA,
                                                               nBasisFunctions);
+
     couplingVectorsChild = child.M_coupler.assembleCouplingVectors(basisFunction,
                                                                    inlet, -1,
                                                                    child.M_couplingFESpace,

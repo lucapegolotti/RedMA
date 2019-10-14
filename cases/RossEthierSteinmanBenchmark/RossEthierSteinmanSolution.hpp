@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef WOMERSLEYSOLUTION_H
-#define WOMERSLEYSOLUTION_H
+#ifndef ROSSETHIERSTEINMANSOLUTION_H
+#define ROSSETHIERSTEINMANSOLUTION_H
 
 #include <AbstractFunctor.hpp>
-#include "Womersley.hpp"
+#include "RossEthierSteinmanDec.hpp"
 
 namespace RedMA
 {
 
-class WomersleySolution : public AbstractFunctor
+class RossEthierSteinmanSolution : public AbstractFunctor
 {
     typedef std::function<double(double const&,
                                  double const&,
@@ -31,7 +31,7 @@ class WomersleySolution : public AbstractFunctor
                                  double const&,
                                  unsigned int const& )>    Function;
 public:
-    ~WomersleySolution()
+    ~RossEthierSteinmanSolution()
     {
 
     }
@@ -39,22 +39,22 @@ public:
     double operator()(const double& t, const double& x, const double& y,
                       const double& z, const unsigned int& ic) const override
     {
-        return LifeV::Womersley::uexact(t, x, y, z, ic);
+        return LifeV::RossEthierSteinmanDec::uexact(t, x, y, z, ic);
     }
 
     double grad(unsigned int icoor, const double& t, const double& x, const double& y,
                 const double& z, const unsigned int& ic) const override
     {
-        return LifeV::Womersley::grad_u(icoor, t, x, y, z, ic);
+        return LifeV::RossEthierSteinmanDec::grad_u(icoor, t, x, y, z, ic);
     }
 
     Function exactFunction(const unsigned int& index) override
     {
         Function retFunction;
         if (index == 0)
-            retFunction = LifeV::Womersley::uexact;
+            retFunction = LifeV::RossEthierSteinmanDec::uexact;
         else if (index == 1)
-            retFunction = LifeV::Womersley::pexact;
+            retFunction = LifeV::RossEthierSteinmanDec::pexact;
         return retFunction;
     }
 
@@ -62,23 +62,23 @@ public:
     {
         Function retFunction;
         if (index == 0)
-            retFunction = LifeV::Womersley::uexact_dt;
+            retFunction = LifeV::RossEthierSteinmanDec::uexact_dt;
         else if (index == 1)
-            retFunction = LifeV::Womersley::pexact_dt;
+            retFunction = LifeV::RossEthierSteinmanDec::pexact_dt;
         return retFunction;
     }
 
     Function exactNeumann() override
     {
-        return LifeV::Womersley::fNeumann;
+        return LifeV::RossEthierSteinmanDec::fNeumann;
     }
 
     Function exactNeumannDt() override
     {
-        return LifeV::Womersley::fNeumann_dt;
+        return LifeV::RossEthierSteinmanDec::fNeumann_dt;
     }
 };
 
 } //namespace RedMA
 
-#endif  // WOMERSLEYSOLUTION_H_
+#endif  // ROSSETHIERSTEINMANSOLUTION_H

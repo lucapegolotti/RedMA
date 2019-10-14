@@ -770,9 +770,6 @@ fillMatrixWithVectorsInterpolated(VectorPtr* couplingVectors,
 
         throw Exception(errorMsg);
     }
-    couplingVectors[0]->spy("cv");
-    QT->spy("QT");
-    exit(1);
     return QT;
 }
 
@@ -801,6 +798,8 @@ buildCouplingMatrices(MatrixPtr myMass,
         // Qs.reset(new Matrix(*QTsInt->transpose()));
         myMass->multiply(false, *QTsInt, false, *QTs, true);
         QTsInt->multiply(true, *myMass, false, *Qs, true);
+        Qs->spy("Qs");
+        QTs->spy("QTs");
     }
     // we need to use the interpolation matrices. We suppose that we are on the
     // "other" domain (the one towards which we interpolate)
@@ -816,7 +815,7 @@ buildCouplingMatrices(MatrixPtr myMass,
                                                    false, *res, true);
 
         myMass->multiply(false, *res, false, *QTs, true);
-        QTs.reset(new Matrix(*res));
+        // QTs.reset(new Matrix(*res));
 
         // here we put the res as our own matrix (for exporting solution)
         M_mapQTsInterpolated[flagAdjacentDomain] =  res;
@@ -832,10 +831,14 @@ buildCouplingMatrices(MatrixPtr myMass,
         map = matrixToInterpolate->domainMap();
         Qs.reset(new Matrix(map));
 
+        matrixToInterpolate->spy("matrixToInterpolate");
+
         matrixToInterpolate->multiply(true, *res, false, *Qs, true);
         // matrixToInterpolate->multiply(true, *M_matrixInterpolationOtherToMain, false, *Qs, true);
         *Qs *= (-1.0);
         *QTs *= (-1.0);
+        Qs->spy("Qs");
+        QTs->spy("QTs");
         // std::cout << "Qs = " << Qs->norm1() << std::endl;
         // std::cout << "QTs = " << QTs->norm1() << std::endl << std::flush;
     }

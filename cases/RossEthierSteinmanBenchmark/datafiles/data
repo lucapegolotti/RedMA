@@ -15,7 +15,7 @@
 	use_strain     = false
 	use_stabilization = false
 	inflow_bc      = neumann
-	L              = 30
+	L              = 1
 [../]
 
 [structure]
