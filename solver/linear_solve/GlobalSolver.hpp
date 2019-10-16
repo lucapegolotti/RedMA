@@ -48,15 +48,13 @@ class GlobalSolver
 
 public:
     GlobalSolver(const GetPot& datafile, commPtr_Type comm,
-                 bool verbose = false);
+                 bool verbose = false, AbstractFunctor* exactSolution = nullptr);
 
     void solve();
 
     void setLawInflow(std::function<double(double)> maxLaw);
 
     void setLawDtInflow(std::function<double(double)> maxLawDt);
-
-    void setExactSolution(AbstractFunctor* exactSolution);
 
     void setExportNorms(std::string filename);
 
@@ -67,6 +65,8 @@ public:
 private:
     // we pass dt as reference to allow for time adaptvity
     void solveTimestep(const double& time, double& dt);
+
+    void setExactSolution(AbstractFunctor* exactSolution);
 
     GeometryParser                 M_geometryParser;
     TreeStructure                  M_tree;

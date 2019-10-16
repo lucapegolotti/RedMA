@@ -5,7 +5,8 @@ namespace RedMA
 
 template <class AssemblerType>
 GlobalSolver<AssemblerType>::
-GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
+GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose,
+             AbstractFunctor* exactSolution) :
   M_geometryParser(datafile("geometric_structure/xmlfile","tree.xml"),
                    comm, verbose),
   M_datafile(datafile),
@@ -25,6 +26,11 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose) :
 
     M_globalAssembler.setup(M_tree);
 
+    // we set it here because boundary conditions might be set in the constructor
+    // of the time advancing scheme
+    if (exactSolution != nullptr)
+        setExactSolution(exactSolution);
+
     M_timeMarchingAlgorithm =
             TimeMarchingAlgorithmsFactory<AssemblerType>(datafile,
                                                          &M_globalAssembler,
@@ -38,16 +44,8 @@ void
 GlobalSolver<AssemblerType>::
 solve()
 {
-    double t0 = M_datafile("time_discretization/t0", 0.0);
-    double T = M_datafile("time_discretization/T", 1.0);
-    double dt = M_datafile("time_discretization/dt", 0.01);
-    unsigned int save_every = M_datafile("exporter/save_every", 1);
-
-    double t = t0;
-    TimeMarchingAlgorithmPtr hdlrAlgorithm = M_timeMarchingAlgorithm;
-    hdlrAlgorithm->setInitialCondition(M_globalAssembler.getInitialCondition());
-    M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
     std::ofstream outFile;
+
     if (M_exportNorms)
     {
         outFile.open(M_filename);
@@ -57,33 +55,81 @@ solve()
     {
         outFile.open(M_filename);
         outFile << AssemblerType::errorsFileFirstLine() << std::flush;
-        M_globalAssembler.appendErrorsToFile(t, hdlrAlgorithm->getSolution(),
-                                             outFile);
     }
-    unsigned int count = 1;
-    while (T - t > dt/2)
+
+    bool steady = M_datafile("time_discretization/steady", false);
+    if (steady)
     {
-        M_globalAssembler.setTimestep(dt);
-        solveTimestep(t, dt);
-        t += dt;
-        // we do this so that the single assemblers are aware of the
-        // solution (e.g. for post processing)
-        M_globalAssembler.setTimeAndPrevSolution(t,
+        TimeMarchingAlgorithmPtr hdlrAlgorithm = M_timeMarchingAlgorithm;
+
+        double t0 = 0.0;
+        double dt = 0.0;
+
+        hdlrAlgorithm->setInitialCondition(M_globalAssembler.getInitialCondition());
+
+        solveTimestep(t0, dt);
+
+        M_globalAssembler.setTimeAndPrevSolution(t0,
                                                  hdlrAlgorithm->getSolution());
         M_globalAssembler.postProcess();
-        if (count % save_every == 0)
-            M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
+
+        M_globalAssembler.exportSolutions(t0, hdlrAlgorithm->getSolution());
+
         if (M_exportNorms)
         {
-            M_globalAssembler.appendNormsToFile(t, hdlrAlgorithm->getSolution(),
+            M_globalAssembler.appendNormsToFile(t0, hdlrAlgorithm->getSolution(),
                                                 outFile);
         }
+        if (M_exportErrors)
+        {
+            M_globalAssembler.appendErrorsToFile(t0, hdlrAlgorithm->getSolution(),
+                                                 outFile);
+        }
+
+    }
+    else
+    {
+        double t0 = M_datafile("time_discretization/t0", 0.0);
+        double T = M_datafile("time_discretization/T", 1.0);
+        double dt = M_datafile("time_discretization/dt", 0.01);
+        unsigned int save_every = M_datafile("exporter/save_every", 1);
+
+        double t = t0;
+        TimeMarchingAlgorithmPtr hdlrAlgorithm = M_timeMarchingAlgorithm;
+        hdlrAlgorithm->setInitialCondition(M_globalAssembler.getInitialCondition());
+        M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
+
         if (M_exportErrors)
         {
             M_globalAssembler.appendErrorsToFile(t, hdlrAlgorithm->getSolution(),
                                                  outFile);
         }
-        count++;
+
+        unsigned int count = 1;
+        while (T - t > dt/2)
+        {
+            M_globalAssembler.setTimestep(dt);
+            solveTimestep(t, dt);
+            t += dt;
+            // we do this so that the single assemblers are aware of the
+            // solution (e.g. for post processing)
+            M_globalAssembler.setTimeAndPrevSolution(t,
+                                                     hdlrAlgorithm->getSolution());
+            M_globalAssembler.postProcess();
+            if (count % save_every == 0)
+                M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
+            if (M_exportNorms)
+            {
+                M_globalAssembler.appendNormsToFile(t, hdlrAlgorithm->getSolution(),
+                                                    outFile);
+            }
+            if (M_exportErrors)
+            {
+                M_globalAssembler.appendErrorsToFile(t, hdlrAlgorithm->getSolution(),
+                                                     outFile);
+            }
+            count++;
+        }
     }
     if (M_exportNorms || M_exportErrors)
         outFile.close();

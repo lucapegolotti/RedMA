@@ -177,8 +177,8 @@
             <ParameterList name="options">
                 <Parameter name="Flexible Gmres" type="bool" value="false"/>
                 <Parameter name="Output Frequency" type="int" value="1"/>
-                <Parameter name="Block Size" type="int" value="200"/>
-                <Parameter name="Num Blocks" type="int" value="200"/>
+                <Parameter name="Block Size" type="int" value="2000"/>
+                <Parameter name="Num Blocks" type="int" value="2000"/>
                 <Parameter name="Maximum Restarts" type="int" value="0"/>
                 <Parameter name="Output Style" type="int" value="1"/>
                 <Parameter name="Convergence Tolerance" type="double" value="1e-15"/>

@@ -455,7 +455,7 @@ computeF()
     else
     {
         FunctionType exactFct = M_exactSolution->exactNeumann();
-        applyNeumannBCsWithExactFunction(F1,&exactFct);
+        applyNeumannBCsWithExactFunction(F1, &exactFct);
     }
 
     // assemble F second component
@@ -533,13 +533,12 @@ computeFder()
 
     *F1 += *M_forcingTermTimeDer;
 
-
     if (M_exactSolution == nullptr)
         applyNeumannBCs(F1, M_inflowLawDt);
     else
     {
         FunctionType exactFct = M_exactSolution->exactNeumannDt();
-        applyNeumannBCsWithExactFunction(F1,&exactFct);
+        applyNeumannBCsWithExactFunction(F1, &exactFct);
     }
 
     // assemble F second component
@@ -679,9 +678,10 @@ createBCHandlerWithExactFunction(FunctionType* exactFunction)
     bcs.reset(new LifeV::BCHandler);
 
     LifeV::BCFunctionBase bcFunction(*exactFunction);
+    LifeV::BCFunctionBase zeroFunction(fZero);
 
     const unsigned int inletFlag = 1;
-    const unsigned int outletFlag = 1;
+    const unsigned int outletFlag = 2;
     const unsigned int wallFlag = 10;
     const unsigned int inletRing = 30;
     const unsigned int outletRing = 31;
@@ -710,18 +710,18 @@ createBCHandlerWithExactFunction(FunctionType* exactFunction)
         bcs->addBC("Wall", wallFlag, LifeV::Essential,
                     LifeV::Full, bcFunction, 3);
         bcs->addBC("InletRing", inletRing, LifeV::EssentialEdges,
-                    LifeV::Full, bcFunction,   3);
+                    LifeV::Full, bcFunction, 3);
         bcs->addBC("OutletRing", outletRing, LifeV::EssentialEdges,
-                    LifeV::Full, bcFunction,   3);
+                    LifeV::Full, bcFunction, 3);
     }
     else
     {
         if (M_treeNode->M_ID == 0)
             bcs->addBC("InletRing", inletRing, LifeV::EssentialEdges,
-                       LifeV::Full, bcFunction,   3);
+                       LifeV::Full, bcFunction, 3);
         if (M_treeNode->M_nChildren == 0)
             bcs->addBC("OutletRing", outletRing, LifeV::EssentialEdges,
-                       LifeV::Full, bcFunction,   3);
+                       LifeV::Full, bcFunction, 3);
     }
 
     return bcs;
@@ -811,8 +811,8 @@ applyNeumannBCs(VectorPtr vector, std::function<double(double)> law)
                                                  law);
 
         LifeV::BCFunctionBase inflowFunction(inflowBoundaryCondition);
-        bcs->addBC("Inlet", inletFlag, LifeV::Natural, LifeV::Normal,
-                    inflowFunction);
+        bcs->addBC("Inlet", inletFlag, LifeV::Natural, LifeV::Full,
+                    inflowFunction, 3);
     }
 
     updateBCs(bcs, M_velocityFESpace);
@@ -837,14 +837,14 @@ applyNeumannBCsWithExactFunction(VectorPtr vector, FunctionType* exactFunction)
     std::string inflowBCType = M_datafile("fluid/inflow_bc","dirichlet");
     if (M_treeNode->M_ID == 0 &&
         std::strcmp(inflowBCType.c_str(),"neumann") == 0)
-            bcs->addBC("Inlet", inletFlag, LifeV::Natural, LifeV::Normal,
-                        bcFunction);
+            bcs->addBC("Inlet", inletFlag, LifeV::Natural, LifeV::Full,
+                        bcFunction, 3);
 
     std::string outflowBCType = M_datafile("fluid/outflow_bc","neumann");
     if (M_treeNode->M_nChildren == 0 &&
-        std::strcmp(inflowBCType.c_str(),"neumann") == 0)
-            bcs->addBC("Outlet", outletFlag, LifeV::Natural, LifeV::Normal,
-                        bcFunction);
+        std::strcmp(outflowBCType.c_str(),"neumann") == 0)
+            bcs->addBC("Outlet", outletFlag, LifeV::Natural, LifeV::Full,
+                        bcFunction, 3);
 
     updateBCs(bcs, M_velocityFESpace);
 
@@ -925,6 +925,7 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
     }
     else
     {
+        // am I sure about this?
         LifeV::BCFunctionBase zeroFunction(fZero);
         finalBcs->addBC("Wall", wallFlag, LifeV::Essential,
                         LifeV::Full, zeroFunction, 3);
@@ -976,7 +977,9 @@ applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
 
         BoundaryConditionPtr bc;
         if (M_exactSolution == nullptr)
+        {
             bc = createBCHandler(M_inflowLaw);
+        }
         else
         {
             FunctionType exactFct = M_exactSolution->exactFunction(0);
@@ -1040,8 +1043,30 @@ exportSolutions(const double& time, std::vector<VectorPtr> solutions)
 {
     printlog(MAGENTA, "[NavierStokesAssembler] exporting solution ...\n",
              M_verbose);
+
+
+     // VectorPtr F1;
+     // F1.reset(new Vector(M_velocityFESpace->map()));
+     // F1->zero();
+     //
+     // if (M_exactSolution != nullptr)
+     // {
+     //     M_velocityFESpace->interpolate(M_exactSolution->exactFunction(0), *F1, time);
+     // }
+     //
+     // VectorPtr F2;
+     // F2.reset(new Vector(M_pressureFESpace->map()));
+     // F2->zero();
+     //
+     // if (M_exactSolution != nullptr)
+     // {
+     //     M_pressureFESpace->interpolate(M_exactSolution->exactFunction(1), *F2, time);
+     // }
+
     *M_velocityExporter = *solutions[0];
+    // *M_velocityExporter -= *F1;
     *M_pressureExporter = *solutions[1];
+     // *M_pressureExporter -= *F2;
     *M_lagrangeMultiplierExporter = *reconstructLagrangeMultipliers(solutions, 2);
     CoutRedirecter ct;
     ct.redirect();

@@ -75,12 +75,10 @@ int main(int argc, char **argv)
         datafile.set("geometric_structure/xmlfile",
                      nameTree.c_str());
 
-        GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
-        gs.setExportErrors("errors" + *it + ".txt");
-
         AbstractFunctor* womerlseySolution = new WomersleySolution;
-        gs.setExactSolution(womerlseySolution);
-
+        GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose,
+                                               womerlseySolution);
+        gs.setExportErrors("errors" + *it + ".txt");
         gs.printMeshSize("meshSizes" + *it + ".txt");
 
         gs.setLawInflow(std::function<double(double)>(maxLaw));

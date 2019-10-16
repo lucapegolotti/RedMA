@@ -80,7 +80,7 @@ pexact_dt(const double& t, const double& x, const double& y,
                                              const double& z,
                                              const ID& /* i */)
 {
-    return - S_rho * S_a * S_a / 2. * std::exp(-2.*S_d * S_d * S_nu * t) * (-2.) *S_d * S_d * S_nu *
+    return - S_rho * S_a * S_a / 2. * std::exp(-2.*S_d * S_d * S_nu * t) * (-2.) * S_d * S_d * S_nu *
          (std::exp(2.*S_a * x) + std::exp(2.*S_a * y) + std::exp(2.*S_a * z) +
              2. * std::sin(S_a * x + S_d * y) * std::cos(S_a * z + S_d * x) * std::exp(S_a *(y + z)) +
              2. * std::sin(S_a * y + S_d * z) * std::cos(S_a * x + S_d * y) * std::exp(S_a *(z + x)) +
@@ -239,27 +239,27 @@ RossEthierSteinmanDec::fNeumann(const double& t,
 
     double n[3] = {0., 0., 0.};
     double out = 0.;
-    if (std::fabs(x + S_L) < 1e-14)
+    if (std::abs(x + S_L) < 1e-10)
     {
         n[0] = -1.;
     }
-    else if(std::fabs(x - S_L) < 1e-14)
+    else if(std::abs(x - S_L) < 1e-10)
     {
         n[0] =  1.;
     }
-    else if(std::fabs(y + S_L) < 1e-14)
+    else if(std::abs(y + S_L) < 1e-10)
     {
         n[1] = -1.;
     }
-    else if(std::fabs(x - S_L) < 1e-14)
+    else if(std::abs(x - S_L) < 1e-10)
     {
         n[1] =  1.;
     }
-    else if(std::fabs(z + S_L) < 1e-14)
+    else if(std::abs(z + S_L) < 1e-10)
     {
         n[2] = -1.;
     }
-    else if(std::fabs(z - S_L) < 1e-14)
+    else if(std::abs(z - S_L) < 1e-10)
     {
         n[2] =  1.;
     }
@@ -294,27 +294,27 @@ RossEthierSteinmanDec::fNeumann_dt(const double& t,
 
     double n[3] = {0., 0., 0.};
     double out = 0.;
-    if (std::fabs(x + S_L) < 1e-14)
+    if (std::abs(x + S_L) < 1e-10)
     {
         n[0] = -1.;
     }
-    else if(std::fabs(x - S_L) < 1e-14)
+    else if(std::abs(x - S_L) < 1e-10)
     {
         n[0] =  1.;
     }
-    else if(std::fabs(y + S_L) < 1e-14)
+    else if(std::abs(y + S_L) < 1e-10)
     {
         n[1] = -1.;
     }
-    else if(std::fabs(x - S_L) < 1e-14)
+    else if(std::abs(x - S_L) < 1e-10)
     {
         n[1] =  1.;
     }
-    else if(std::fabs(z + S_L) < 1e-14)
+    else if(std::abs(z + S_L) < 1e-10)
     {
         n[2] = -1.;
     }
-    else if(std::fabs(z - S_L) < 1e-14)
+    else if(std::abs(z - S_L) < 1e-10)
     {
         n[2] =  1.;
     }
@@ -342,7 +342,7 @@ RossEthierSteinmanDec::fNeumann_dt(const double& t,
 void RossEthierSteinmanDec::setParamsFromGetPot(const GetPot& dataFile)
 {
     S_a = dataFile("fluid/a", 1.) ;
-    S_d = dataFile("fluid/", 1.) ;
+    S_d = dataFile("fluid/d", 1.) ;
     S_mu = dataFile("fluid/viscosity", 1.);
     S_rho = dataFile("fluid/density", 1.);
     S_L = dataFile("fluid/L", 1.0);

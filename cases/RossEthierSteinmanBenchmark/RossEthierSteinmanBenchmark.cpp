@@ -48,12 +48,15 @@ int main(int argc, char **argv)
 
     std::vector<std::string> refinements;
     refinements.push_back("h0.80");
-    // refinements.push_back("h0.70");
-    // refinements.push_back("h0.60");
-    // refinements.push_back("h0.50");
-    // refinements.push_back("h0.40");
-    // refinements.push_back("h0.30");
-    // refinements.push_back("h0.25");
+    refinements.push_back("h0.70");
+    refinements.push_back("h0.60");
+    refinements.push_back("h0.50");
+    refinements.push_back("h0.40");
+    refinements.push_back("h0.30");
+    refinements.push_back("h0.25");
+    refinements.push_back("h0.20");
+    refinements.push_back("h0.15");
+    refinements.push_back("h0.13");
 
     for (auto it = refinements.begin(); it != refinements.end(); it++)
     {
@@ -63,12 +66,11 @@ int main(int argc, char **argv)
         datafile.set("geometric_structure/xmlfile",
                      nameTree.c_str());
 
-        GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
-        gs.setExportErrors("errors" + *it + ".txt");
-
         AbstractFunctor* RESSolution = new RossEthierSteinmanSolution;
-        gs.setExactSolution(RESSolution);
+        GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose,
+                                               RESSolution);
 
+        gs.setExportErrors("errors" + *it + ".txt");
         gs.printMeshSize("meshSizes" + *it + ".txt");
         gs.solve();
 
