@@ -65,7 +65,7 @@ solve()
         double t0 = 0.0;
         double dt = 0.0;
 
-        hdlrAlgorithm->setInitialCondition(M_globalAssembler.getInitialCondition());
+        // hdlrAlgorithm->setInitialCondition(M_globalAssembler.getInitialCondition());
 
         solveTimestep(t0, dt);
 
