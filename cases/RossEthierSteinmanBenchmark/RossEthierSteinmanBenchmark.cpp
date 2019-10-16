@@ -27,23 +27,11 @@
 #include <GlobalSolver.hpp>
 #include <NavierStokesAssembler.hpp>
 #include <PseudoFSIAssembler.hpp>
-#include "WomersleySolution.hpp"
+#include "RossEthierSteinmanSolution.hpp"
 
 #include <lifev/core/filter/GetPot.hpp>
 
-#include "ud_functions.hpp"
-
 using namespace RedMA;
-
-double maxLaw(double t)
-{
-    return LifeV::pressureWomerTime(t,0,0,0,0);
-}
-
-double maxLawDt(double t)
-{
-    return LifeV::pressuredtWomerTime(t,0,0,0,0);
-}
 
 int main(int argc, char **argv)
 {
@@ -55,7 +43,7 @@ int main(int argc, char **argv)
     #endif
 
     GetPot datafile("datafiles/data");
-    LifeV::Womersley::setParamsFromGetPot(datafile);
+    LifeV::RossEthierSteinmanDec::setParamsFromGetPot(datafile);
     bool verbose = comm->MyPID() == 0;
 
     std::vector<std::string> refinements;
@@ -67,6 +55,8 @@ int main(int argc, char **argv)
     refinements.push_back("h0.30");
     refinements.push_back("h0.25");
     refinements.push_back("h0.20");
+    refinements.push_back("h0.15");
+    refinements.push_back("h0.13");
 
     for (auto it = refinements.begin(); it != refinements.end(); it++)
     {
@@ -76,17 +66,15 @@ int main(int argc, char **argv)
         datafile.set("geometric_structure/xmlfile",
                      nameTree.c_str());
 
-        AbstractFunctor* womerlseySolution = new WomersleySolution;
+        AbstractFunctor* RESSolution = new RossEthierSteinmanSolution;
         GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose,
-                                               womerlseySolution);
+                                               RESSolution);
+
         gs.setExportErrors("errors" + *it + ".txt");
         gs.printMeshSize("meshSizes" + *it + ".txt");
-
-        gs.setLawInflow(std::function<double(double)>(maxLaw));
-        gs.setLawDtInflow(std::function<double(double)>(maxLawDt));
         gs.solve();
 
-        delete womerlseySolution;
+        delete RESSolution;
     }
 
     return 0;

@@ -151,6 +151,62 @@ grad_u(const UInt& icoor, const double& t, const double& /*x*/,
 
 double
 Womersley::
+grad_u_dt(const UInt& icoor, const double& t, const double& /*x*/,
+          const double& y, const double& z, const ID& i )
+{
+    double r = std::sqrt(y * y + z * z);
+    std::complex<double> z2, b2;
+    z2 = 2.*r / S_D * S_z1;
+    bessel::cbessjy01(z2, b2, S_cj1, S_cy0, S_cy1, S_cj0p, S_cj1p, S_cy0p, S_cy1p);
+    b2 = -2. / S_D * S_z1 * S_cj0p;
+    double u_r = real(S_A / S_L / S_rho / S_wi * +b2 / S_b1 * std::exp(S_wi * t) * S_wi);
+
+    switch (icoor)
+    {
+        case 0:
+            switch (i)
+            {
+                case 0:
+                    return 0.;
+                case 1:
+                    return 0.;
+                case 2:
+                    return 0.;
+                default:
+                    exit (1);
+            }
+        case 1:   // u_y
+            switch (i)
+            {
+                case 0:
+                    return u_r / r * y;
+                case 1:
+                    return 0.;
+                case 2:
+                    return 0.;
+                default:
+                    exit (1);
+            }
+        case 2:
+            switch (i)
+            {
+                case 0:
+                    return u_r / r * z;
+                case 1:
+                    return 0.;
+                case 2:
+                    return 0.;
+                default:
+                    exit (1);
+            }
+        default:
+            exit (1);
+    }
+    return 1.;
+}
+
+double
+Womersley::
 f(const double& /* t */, const double&  /*x*/, const double&  /*y*/,
   const double& /* z */, const ID& i )
 {
@@ -256,6 +312,50 @@ fNeumann(const double& t, const double& x, const double& y,
 
     return  out;
 }
+
+double
+Womersley::
+fNeumann_dt(const double& t, const double& x, const double& y,
+            const double& z, const ID& i )
+{
+    double r = std::sqrt(y * y + z * z);
+    double n[3] = {0., 0., 0.};
+    double out = 0.;
+    if (x < 1e-6 / S_L)
+    {
+        n[0] = -1.;
+    }
+    else if (x >  S_L * (1 - 1e-6))
+    {
+        n[0] =  1.;
+    }
+    else if (r > S_D / 2.*0.9 )
+    {
+        n[1] = y / r;
+        n[2] = z / r;
+    }
+    else
+    {
+        // std::cout << "strange point: x=" << x << " y=" << y << " z=" << z
+        //          << std::endl;
+    }
+
+    for (UInt k = 0; k < nDimensions; k++) //mu gradu n
+    {
+        out += S_mu * grad_u_dt(k, t, x, y, z, i) * n[k];
+    }
+
+    if (S_flagStrain)
+        for (UInt k = 0; k < nDimensions; k++) //mu gradu^T n
+        {
+            out += S_mu * grad_u_dt(i, t, x, y, z, k) * n[k];
+        }
+
+    out -= pexact_dt(t, x, y, z, i) * n[i];
+
+    return  out;
+}
+
 
 double
 Womersley::

@@ -40,6 +40,12 @@ public:
                         const double& z, const unsigned int& ic) const = 0;
 
     virtual Function exactFunction(const unsigned int& index) = 0;
+
+    virtual Function exactFunctionDt(const unsigned int& index) = 0;
+
+    virtual Function exactNeumann() = 0;
+
+    virtual Function exactNeumannDt() = 0;
 };
 }
 #endif

@@ -11,6 +11,7 @@
     <bz>0</bz>
     <scale>1</scale>
     <use_linear_elasticity>0</use_linear_elasticity>
+<<<<<<< HEAD
 <buildingblock type="tube" refinement="h0.20">
     <L_ratio>1</L_ratio>
     <Rout_ratio>1</Rout_ratio>

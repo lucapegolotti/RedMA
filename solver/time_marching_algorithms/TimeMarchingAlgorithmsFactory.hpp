@@ -22,6 +22,7 @@
 #include <TimeMarchingAlgorithm.hpp>
 #include <RosenbrockAlgorithm.hpp>
 #include <BackwardEuler.hpp>
+#include <SteadySolver.hpp>
 #include <Exception.hpp>
 
 namespace RedMA
@@ -34,6 +35,19 @@ TimeMarchingAlgorithmsFactory(const GetPot& datafile,
                               std::shared_ptr<Epetra_Comm> comm,
                               bool verbose)
 {
+    bool steady = datafile("time_discretization/steady", false);
+    if (steady)
+    {
+        typedef SteadySolver<AssemblerType>  ReturnType;
+        std::shared_ptr<ReturnType>
+                returnPtr(new SteadySolver<AssemblerType>(datafile,
+                                                          assembler,
+                                                          comm,
+                                                          verbose));
+
+        return returnPtr;
+    }
+
     std::string marchingAlgorithmString =
         datafile("time_discretization/algorithm", "rosenbrock");
 

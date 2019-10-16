@@ -813,7 +813,7 @@ buildCouplingMatrices(MatrixPtr myMass,
                                                    false, *res, true);
 
         myMass->multiply(false, *res, false, *QTs, true);
-        QTs.reset(new Matrix(*res));
+        // QTs.reset(new Matrix(*res));
 
         // here we put the res as our own matrix (for exporting solution)
         M_mapQTsInterpolated[flagAdjacentDomain] =  res;

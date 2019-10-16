@@ -450,7 +450,13 @@ computeF()
         count++;
     }
 
-    applyNeumannBCs(F1, M_inflowLaw);
+    if (M_exactSolution == nullptr)
+        applyNeumannBCs(F1, M_inflowLaw);
+    else
+    {
+        FunctionType exactFct = M_exactSolution->exactNeumann();
+        applyNeumannBCsWithExactFunction(F1, &exactFct);
+    }
 
     // assemble F second component
     VectorPtr F2;
@@ -527,7 +533,13 @@ computeFder()
 
     *F1 += *M_forcingTermTimeDer;
 
-    applyNeumannBCs(F1, M_inflowLawDt);
+    if (M_exactSolution == nullptr)
+        applyNeumannBCs(F1, M_inflowLawDt);
+    else
+    {
+        FunctionType exactFct = M_exactSolution->exactNeumannDt();
+        applyNeumannBCsWithExactFunction(F1, &exactFct);
+    }
 
     // assemble F second component
     VectorPtr F2;
@@ -640,13 +652,11 @@ createBCHandler(std::function<double(double)> law)
     {
         bcs->addBC("Wall", wallFlag, LifeV::Essential,
                     LifeV::Full, zeroFunction, 3);
-        // we also add boundary conditions to the rings in this case
         bcs->addBC("InletRing", inletRing, LifeV::EssentialEdges,
-                   LifeV::Full, zeroFunction,   3);
+                    LifeV::Full, zeroFunction,   3);
         bcs->addBC("OutletRing", outletRing, LifeV::EssentialEdges,
-                   LifeV::Full, zeroFunction,   3);
+                    LifeV::Full, zeroFunction,   3);
     }
-    // clamping the root and leaf nodes
     else
     {
         if (M_treeNode->M_ID == 0)
@@ -656,6 +666,64 @@ createBCHandler(std::function<double(double)> law)
             bcs->addBC("OutletRing", outletRing, LifeV::EssentialEdges,
                        LifeV::Full, zeroFunction,   3);
     }
+
+    return bcs;
+}
+
+NavierStokesAssembler::BoundaryConditionPtr
+NavierStokesAssembler::
+createBCHandlerWithExactFunction(FunctionType* exactFunction)
+{
+    BoundaryConditionPtr bcs;
+    bcs.reset(new LifeV::BCHandler);
+
+    LifeV::BCFunctionBase bcFunction(*exactFunction);
+    LifeV::BCFunctionBase zeroFunction(fZero);
+
+    const unsigned int inletFlag = 1;
+    const unsigned int outletFlag = 2;
+    const unsigned int wallFlag = 10;
+    const unsigned int inletRing = 30;
+    const unsigned int outletRing = 31;
+
+    // if this is the root node, we impose dirichlet boundary conditions at
+    // inlet too (if inflow conditions are dirichlet)
+    std::string inflowBCType = M_datafile("fluid/inflow_bc","dirichlet");
+    if (M_treeNode->M_ID == 0)
+    {
+        if (std::strcmp(inflowBCType.c_str(),"dirichlet") == 0)
+            bcs->addBC("Inlet", inletFlag, LifeV::Essential, LifeV::Full,
+                        bcFunction, 3);
+    }
+
+    std::string outflowBCType = M_datafile("fluid/outflow_bc","neumann");
+    // tree leaf
+    if (M_treeNode->M_nChildren == 0)
+    {
+        if (std::strcmp(outflowBCType.c_str(),"dirichlet") == 0)
+            bcs->addBC("Outlet", outletFlag, LifeV::Essential, LifeV::Full,
+                        bcFunction, 3);
+    }
+
+    if (M_addNoslipBC)
+    {
+        bcs->addBC("Wall", wallFlag, LifeV::Essential,
+                    LifeV::Full, bcFunction, 3);
+        bcs->addBC("InletRing", inletRing, LifeV::EssentialEdges,
+                    LifeV::Full, bcFunction, 3);
+        bcs->addBC("OutletRing", outletRing, LifeV::EssentialEdges,
+                    LifeV::Full, bcFunction, 3);
+    }
+    else
+    {
+        if (M_treeNode->M_ID == 0)
+            bcs->addBC("InletRing", inletRing, LifeV::EssentialEdges,
+                       LifeV::Full, bcFunction, 3);
+        if (M_treeNode->M_nChildren == 0)
+            bcs->addBC("OutletRing", outletRing, LifeV::EssentialEdges,
+                       LifeV::Full, bcFunction, 3);
+    }
+
     return bcs;
 }
 
@@ -743,9 +811,40 @@ applyNeumannBCs(VectorPtr vector, std::function<double(double)> law)
                                                  law);
 
         LifeV::BCFunctionBase inflowFunction(inflowBoundaryCondition);
-        bcs->addBC("Inlet", inletFlag, LifeV::Natural, LifeV::Normal,
-                    inflowFunction);
+        bcs->addBC("Inlet", inletFlag, LifeV::Natural, LifeV::Full,
+                    inflowFunction, 3);
     }
+
+    updateBCs(bcs, M_velocityFESpace);
+
+    bcManageRhs(*vector, *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+                *bcs, M_velocityFESpace->feBd(), 1.0, M_time);
+}
+
+void
+NavierStokesAssembler::
+applyNeumannBCsWithExactFunction(VectorPtr vector, FunctionType* exactFunction)
+{
+    BoundaryConditionPtr bcs;
+    bcs.reset(new LifeV::BCHandler);
+
+    LifeV::BCFunctionBase bcFunction(*exactFunction);
+
+    const unsigned int inletFlag = 1;
+    const unsigned int outletFlag = 2;
+    const unsigned int wallFlag = 10;
+
+    std::string inflowBCType = M_datafile("fluid/inflow_bc","dirichlet");
+    if (M_treeNode->M_ID == 0 &&
+        std::strcmp(inflowBCType.c_str(),"neumann") == 0)
+            bcs->addBC("Inlet", inletFlag, LifeV::Natural, LifeV::Full,
+                        bcFunction, 3);
+
+    std::string outflowBCType = M_datafile("fluid/outflow_bc","neumann");
+    if (M_treeNode->M_nChildren == 0 &&
+        std::strcmp(outflowBCType.c_str(),"neumann") == 0)
+            bcs->addBC("Outlet", outletFlag, LifeV::Natural, LifeV::Full,
+                        bcFunction, 3);
 
     updateBCs(bcs, M_velocityFESpace);
 
@@ -762,7 +861,15 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
                       const double& alphai,
                       const double& gammai)
 {
-    BoundaryConditionPtr bc = createBCHandler(M_inflowLaw);
+    BoundaryConditionPtr bc;
+
+    if (M_exactSolution == nullptr)
+        bc = createBCHandler(M_inflowLaw);
+    else
+    {
+        FunctionType exactFct = M_exactSolution->exactFunction(0);
+        bc = createBCHandlerWithExactFunction(&exactFct);
+    }
 
     updateBCs(bc, M_velocityFESpace);
 
@@ -772,7 +879,14 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
     bcManageRhs(*auxVec, *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
                 *bc, M_velocityFESpace->feBd(), 1.0, time + dt * alphai);
 
-    BoundaryConditionPtr bcDt = createBCHandler(M_inflowLawDt);
+    BoundaryConditionPtr bcDt;
+    if (M_exactSolution == nullptr)
+        bcDt = createBCHandler(M_inflowLawDt);
+    else
+    {
+        FunctionType exactFct = M_exactSolution->exactFunctionDt(0);
+        bcDt = createBCHandlerWithExactFunction(&exactFct);
+    }
 
     updateBCs(bcDt, M_velocityFESpace);
 
@@ -803,12 +917,20 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
                         LifeV::Full, bcVectorDirichlet, 3);
     }
 
-    LifeV::BCFunctionBase zeroFunction (fZero);
-
     const unsigned int wallFlag = 10;
+    if (M_exactSolution == nullptr)
+    {
+        finalBcs->addBC("Wall", wallFlag, LifeV::Essential,
+                        LifeV::Full, bcVectorDirichlet, 3);
+    }
+    else
+    {
+        // am I sure about this?
+        LifeV::BCFunctionBase zeroFunction(fZero);
+        finalBcs->addBC("Wall", wallFlag, LifeV::Essential,
+                        LifeV::Full, zeroFunction, 3);
 
-    finalBcs->addBC("Wall", wallFlag, LifeV::Essential,
-                    LifeV::Full, zeroFunction, 3);
+    }
 
     updateBCs(finalBcs, M_velocityFESpace);
     bcManageRhs(*rhs[0], *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
@@ -820,7 +942,16 @@ NavierStokesAssembler::
 applyBCsBackwardEuler(std::vector<VectorPtr> rhs, const double& coeff,
                       const double& time)
 {
-    BoundaryConditionPtr bc = createBCHandler(M_inflowLaw);
+    BoundaryConditionPtr bc;
+
+    if (M_exactSolution == nullptr)
+        bc = createBCHandler(M_inflowLaw);
+    else
+    {
+        FunctionType exactFct = M_exactSolution->exactFunction(0);
+        bc = createBCHandlerWithExactFunction(&exactFct);
+    }
+
     updateBCs(bc, M_velocityFESpace);
 
     bcManageRhs(*rhs[0], *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
@@ -839,31 +970,32 @@ NavierStokesAssembler::
 applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
                const unsigned int& iblock, const unsigned int& jblock)
 {
-    // std::string msg = "[NavierStokesAssembler] applying boundary conditions to";
-    // msg += " block (" + std::to_string(iblock) + "," + std::to_string(jblock) +
-    //         ") ...\n";
-    // printlog(MAGENTA, msg, M_verbose);
-
     if (matrix)
     {
         MapEpetra rangeMap = matrix->rangeMap();
         MapEpetra domainMap = matrix->domainMap();
 
-        BoundaryConditionPtr bc = createBCHandler(M_inflowLaw);
+        BoundaryConditionPtr bc;
+        if (M_exactSolution == nullptr)
+        {
+            bc = createBCHandler(M_inflowLaw);
+        }
+        else
+        {
+            FunctionType exactFct = M_exactSolution->exactFunction(0);
+            bc = createBCHandlerWithExactFunction(&exactFct);
+        }
+
         updateBCs(bc, M_velocityFESpace);
 
         if (iblock == 0 && jblock == 0)
-        {
             bcManageMatrix(*matrix, *M_velocityFESpace->mesh(),
                            M_velocityFESpace->dof(), *bc, M_velocityFESpace->feBd(),
                            diagonalCoefficient, 0.0);
-        }
         if (iblock == 0 && jblock == 1)
-        {
             bcManageMatrix(*matrix, *M_velocityFESpace->mesh(),
                            M_velocityFESpace->dof(), *bc, M_velocityFESpace->feBd(),
                            0.0, 0.0);
-        }
         matrix->globalAssemble(std::make_shared<MapEpetra>(domainMap),
                                std::make_shared<MapEpetra>(rangeMap));
     }
@@ -911,8 +1043,30 @@ exportSolutions(const double& time, std::vector<VectorPtr> solutions)
 {
     printlog(MAGENTA, "[NavierStokesAssembler] exporting solution ...\n",
              M_verbose);
+
+
+     // VectorPtr F1;
+     // F1.reset(new Vector(M_velocityFESpace->map()));
+     // F1->zero();
+     //
+     // if (M_exactSolution != nullptr)
+     // {
+     //     M_velocityFESpace->interpolate(M_exactSolution->exactFunction(0), *F1, time);
+     // }
+     //
+     // VectorPtr F2;
+     // F2.reset(new Vector(M_pressureFESpace->map()));
+     // F2->zero();
+     //
+     // if (M_exactSolution != nullptr)
+     // {
+     //     M_pressureFESpace->interpolate(M_exactSolution->exactFunction(1), *F2, time);
+     // }
+
     *M_velocityExporter = *solutions[0];
+    // *M_velocityExporter -= *F1;
     *M_pressureExporter = *solutions[1];
+     // *M_pressureExporter -= *F2;
     *M_lagrangeMultiplierExporter = *reconstructLagrangeMultipliers(solutions, 2);
     CoutRedirecter ct;
     ct.redirect();
@@ -969,127 +1123,6 @@ computeErrors(std::vector<VectorPtr> solutions, const double& time)
 
     printlog(MAGENTA, "done\n", M_verbose);
     return errors;
-}
-
-
-
-void
-NavierStokesAssembler::
-checkResidual(std::vector<VectorPtr> solutions,
-              std::vector<VectorPtr> prevSolutions, double dt)
-{
-    std::cout << "Checking residuals" << std::endl;
-
-    VectorPtr F1;
-    F1.reset(new Vector(M_velocityFESpace->map()));
-    F1->zero();
-
-    *F1 = *M_forcingTerm;
-    *F1 *= (-1);
-    *F1 = (*M_A) * (*solutions[0]);
-
-    M_prevSolution[0] = solutions[0];
-
-    assembleConvectiveMatrix();
-
-    *F1 += (*M_C) * (*solutions[0]);
-    *F1 += (*M_Bt) * (*solutions[1]);
-    *F1 *= (dt);
-
-    VectorPtr Fmass;
-    Fmass.reset(new Vector(M_velocityFESpace->map()));
-    Fmass->zero();
-
-    *Fmass = (*M_M) * (*solutions[0]);
-    *Fmass -= (*M_M) * (*prevSolutions[0]);
-
-    *F1 += *Fmass;
-
-    std::vector<VectorPtr> ff;
-    ff.push_back(F1);
-    applyBCsBackwardEuler(ff,0,0);
-    std::cout << "Residual 1 = " << F1->norm2() << std::endl << std::flush;
-
-    if (M_useStabilization)
-    {
-        M_stabilization->assembleBlocks(solutions[0], solutions[1],
-                                        M_forcingTerm, dt);
-        *F1 += (*M_stabilization->blockMass00()) * (*solutions[0]);
-        *F1 -= (*M_stabilization->blockMass00()) * (*prevSolutions[0]);
-        *F1 += (dt) * (*M_stabilization->velocityResidual(solutions[0], solutions[1],
-                                             M_forcingTerm, dt));
-
-        applyBCsBackwardEuler(ff,0,0);
-        std::cout << "Residual 1 after stabilization = " << F1->norm2() << std::endl << std::flush;
-    }
-    else
-    {
-        std::string velocityOrder = M_datafile("fluid/velocity_order", "P1");
-        unsigned int uOrder;
-        if (!std::strcmp(velocityOrder.c_str(),"P1"))
-            uOrder = 1;
-        else if (!std::strcmp(velocityOrder.c_str(),"P2"))
-            uOrder = 2;
-        else
-            throw Exception("Implement suitable velocity order");
-
-        M_stabilization.reset(new
-                         SUPGStabilization(this->M_timeIntegrationOrder,
-                                           uOrder,
-                                           M_velocityFESpace,
-                                           M_pressureFESpace,
-                                           M_velocityFESpaceETA,
-                                           M_pressureFESpaceETA));
-        double density = M_datafile("fluid/density", 1.0);
-        double viscosity = M_datafile("fluid/viscosity", 1.0);
-        M_stabilization->setDensityAndViscosity(density, viscosity);
-
-        M_stabilization->assembleBlocks(solutions[0], solutions[1],
-                                        M_forcingTerm, this->M_dt);
-
-        VectorPtr fstab;
-        fstab.reset(new Vector(M_velocityFESpace->map()));
-        fstab->zero();
-
-        *fstab += (*M_stabilization->blockMass00()) * (*solutions[0]);
-        *fstab -= (*M_stabilization->blockMass00()) * (*prevSolutions[0]);
-        *fstab += (dt) * (*M_stabilization->velocityResidual(solutions[0], solutions[1],
-                                             M_forcingTerm, dt));
-
-        std::cout << "Residual of the stabilization 1 = " << fstab->norm2() << std::endl;
-    }
-    VectorPtr F2;
-    F2.reset(new Vector(M_pressureFESpace->map()));
-    F2->zero();
-
-    *F2 += (*M_B) * (*solutions[0]);
-    *F2 *= (dt);
-
-    std::cout << "Residual 2 = " << F2->norm2() << std::endl << std::flush;
-
-    if (M_useStabilization)
-    {
-        *F2 += (*M_stabilization->blockMass10()) * (*solutions[0]);
-        *F2 -= (*M_stabilization->blockMass10()) * (*prevSolutions[0]);
-        *F2 += (dt) * (*M_stabilization->pressureResidual(solutions[0], solutions[1],
-                                             M_forcingTerm, dt));
-
-        std::cout << "Residual 2 after stabilization = " << F2->norm2() << std::endl << std::flush;
-    }
-    else
-    {
-        VectorPtr fstab;
-        fstab.reset(new Vector(M_pressureFESpace->map()));
-        fstab->zero();
-
-        *fstab += (*M_stabilization->blockMass10()) * (*solutions[0]);
-        *fstab -= (*M_stabilization->blockMass10()) * (*prevSolutions[0]);
-        *fstab += (dt) * (*M_stabilization->pressureResidual(solutions[0], solutions[1],
-                                             M_forcingTerm, dt));
-
-        std::cout << "Residual of the stabilization 2 = " << fstab->norm2() << std::endl;
-    }
-    std::cout << "Total residual = " << std::sqrt(F1->norm2() * F1->norm2() +  F2->norm2() * F2->norm2()) << std::endl << std::flush;
 }
 
 std::string
