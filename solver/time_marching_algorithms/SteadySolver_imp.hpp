@@ -31,9 +31,13 @@ solveTimestep(const double &time, double &dt)
           std::bind(&SteadySolver<AssemblerType>::assembleJac,
                     this, time + dt, std::placeholders::_1, dt);
 
+    std::function<GlobalBlockMatrix(VectorPtr)> mJacPrec =
+          std::bind(&SteadySolver<AssemblerType>::assembleJacPrec,
+                    this, time + dt, std::placeholders::_1, dt);
+
     double tol = M_datafile("newton_method/tol", 1e-5);
     double maxit = M_datafile("newton_method/maxit", 5);
-    this->solveNonLinearSystem(mFun, mJac, M_solution, tol, maxit);
+    this->solveNonLinearSystem(mFun, mJac, M_solution, tol, maxit, &mJacPrec);
 
     printlog(MAGENTA, "done\n", M_verbose);
 }
@@ -70,7 +74,23 @@ assembleJac(const double& time, VectorPtr tentativeSol, const double& dt)
     GlobalBlockMatrix retJac = M_globalAssembler->getJacobianF(true,
                                                           &diagonalCoefficient);
 
-    retJac.printPattern();
+    return retJac;
+}
+
+template <class AssemblerType>
+GlobalBlockMatrix
+SteadySolver<AssemblerType>::
+assembleJacPrec(const double& time, VectorPtr tentativeSol, const double& dt)
+{
+    std::string msg("assembling preconditioner Jacobian\n");
+    printlog(GREEN, msg, M_verbose);
+    // we don't assemble the blocks again because this function is called
+    // after assembleF (and the stabilization blocks are already assembled there)
+    M_globalAssembler->setTimeAndPrevSolution(time, tentativeSol, false);
+    double diagonalCoefficient = 1.0;
+    GlobalBlockMatrix retJac = M_globalAssembler->getJacobianFprec(true,
+                                                          &diagonalCoefficient);
+
     return retJac;
 }
 

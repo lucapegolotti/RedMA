@@ -23,7 +23,9 @@ TimeMarchingAlgorithm(const GetPot& datafile,
 template <class AssemblerType>
 void
 TimeMarchingAlgorithm<AssemblerType>::
-solveLinearSystem(GlobalBlockMatrix matrix, VectorPtr rhs, VectorPtr sol)
+solveLinearSystem(GlobalBlockMatrix matrix,
+                  VectorPtr rhs, VectorPtr sol,
+                  GlobalBlockMatrix* matrixPrec)
 {
     // reset solution vector
     sol->zero();
@@ -31,7 +33,10 @@ solveLinearSystem(GlobalBlockMatrix matrix, VectorPtr rhs, VectorPtr sol)
     auto grid = matrix.getGrid();
     M_oper.reset(new LifeV::Operators::GlobalSolverOperator());
     M_oper->setUp(grid, M_comm);
-    buildPreconditioner(matrix);
+    if (matrixPrec == nullptr)
+        buildPreconditioner(matrix);
+    else
+        buildPreconditioner(*matrixPrec);
 
     std::string solverType(M_pListLinSolver->get<std::string>("Linear Solver Type"));
     M_invOper.reset(LifeV::Operators::
@@ -51,7 +56,13 @@ buildPreconditioner(GlobalBlockMatrix matrix)
 {
     AssemblerType as(M_datafile, M_comm, nullptr, false);
     if (as.numberOfBlocks() == 2)
-        M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator());
+    {
+        bool steady = M_datafile("time_discretization/steady", false);
+        if (steady)
+            M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator("STEADY"));
+        else
+            M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator("SIMPLE"));
+    }
     else
         M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperatorPseudoFSI());
     M_prec->setVerbose(M_verbose);
@@ -104,7 +115,8 @@ TimeMarchingAlgorithm<AssemblerType>::
 solveNonLinearSystem(std::function<VectorPtr(VectorPtr)> fun,
                      std::function<GlobalBlockMatrix(VectorPtr)> jac,
                      VectorPtr sol,
-                     const double& tol, const unsigned int& itMax)
+                     const double& tol, const unsigned int& itMax,
+                     std::function<GlobalBlockMatrix(VectorPtr)>* jacPrec)
 {
     VectorPtr incr(new Vector(sol->map()));
     double err = tol + 1;
@@ -125,7 +137,14 @@ solveNonLinearSystem(std::function<VectorPtr(VectorPtr)> fun,
         {
             incr->zero();
             GlobalBlockMatrix curJac = jac(sol);
-            solveLinearSystem(curJac, curF, incr);
+            if (jacPrec == nullptr)
+                solveLinearSystem(curJac, curF, incr);
+            else
+            {
+                std::function<GlobalBlockMatrix(VectorPtr)> jacPrecRaw = *jacPrec;
+                GlobalBlockMatrix curJacPrec = jacPrecRaw(sol);
+                solveLinearSystem(curJac, curF, incr, &curJacPrec);
+            }
             *sol -= *incr;
             count++;
         }

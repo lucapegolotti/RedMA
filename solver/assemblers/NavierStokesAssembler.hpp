@@ -66,6 +66,9 @@ public:
     virtual MatrixPtr getJacobian(const unsigned int& blockrow,
                                   const unsigned int& blockcol);
 
+    virtual MatrixPtr getJacobianPrec(const unsigned int& blockrow,
+                                      const unsigned int& blockcol);
+
     virtual unsigned int numberOfBlocks() {return 2;}
 
     inline unsigned int numberOfComponents() {return 3;}
@@ -128,6 +131,8 @@ protected:
 
     virtual void assembleMassMatrix();
 
+    virtual void assembleMassMatrixPressure();
+
     void assembleConvectiveMatrix();
 
     void assembleJacobianConvectiveMatrix();
@@ -181,6 +186,7 @@ protected:
     MatrixPtr                               M_B;
     MatrixPtr                               M_Bt;
     MatrixPtr                               M_M;
+    MatrixPtr                               M_Mp;
     MatrixPtr                               M_C;
     MatrixPtr                               M_J;
     VectorPtr                               M_forcingTerm;

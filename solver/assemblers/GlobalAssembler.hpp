@@ -67,6 +67,9 @@ public:
     GlobalBlockMatrix getJacobianF(bool addCoupling,
                                    double* diagonalCoefficient = nullptr);
 
+    GlobalBlockMatrix getJacobianFprec(bool addCoupling,
+                                       double* diagonalCoefficient = nullptr);
+
     VectorPtr computeF();
 
     VectorPtr computeFder();

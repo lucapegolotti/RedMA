@@ -84,7 +84,7 @@ public:
     typedef std::shared_ptr<LifeV::Operators::NavierStokesPreconditionerOperator>
                                                             PreconditionerPtr;
 
-    GlobalSIMPLEOperator();
+    GlobalSIMPLEOperator(std::string singleOperatorType);
 
     virtual ~GlobalSIMPLEOperator();
 
@@ -121,7 +121,12 @@ public:
 
 private:
 
-    std::vector<PreconditionerPtr>       M_SIMPLEOperators;
+    PreconditionerPtr allocateSingleOperator(RedMA::GlobalBlockMatrix matrix,
+                                             UInt iblock,
+                                             BlockEpetra_Map::mapPtrContainer_Type localRangeBlockMaps,
+                                             BlockEpetra_Map::mapPtrContainer_Type localDomainBlockMaps);
+
+    std::vector<PreconditionerPtr>       M_SingleOperators;
     RedMA::GlobalBlockMatrix             M_matrix;
     UInt                                 M_nBlockRows;
     UInt                                 M_nBlockCols;
@@ -143,17 +148,9 @@ private:
     matrixEpetraPtr_Type                 M_globalSchurComplement;
     std::vector<unsigned int>            M_dimensionsInterfaces;
     ApproximatedInvertibleMatrixPtr      M_approximatedGlobalSchurInverse;
+    std::string                          M_singleOperatorType;
 };
 
-inline GlobalSolverPreconditionerOperator * create_GlobalSIMPLE()
-{
-    return new GlobalSIMPLEOperator ();
-}
-namespace
-{
-static bool S_register_aGlobalSimple =
-GlobalPreconditionerFactory::instance().registerProduct("GlobalSIMPLE", &create_GlobalSIMPLE);
-}
 }
 }
 #endif // GLOBALSIMPLEOPERATOR_H

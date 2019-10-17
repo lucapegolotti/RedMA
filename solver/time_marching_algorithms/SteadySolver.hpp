@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef SteadySolver_HPP
-#define SteadySolver_HPP
+#ifndef STEADYSOLVER_HPP
+#define STEADYSOLVER_HPP
+
+// This preconditioner is based on the on presented in
+// "Finite elements and Fast iterative Solvers" - Elman (formula 8.9)
 
 #include <TimeMarchingAlgorithm.hpp>
 #include <PrintLog.hpp>
@@ -67,6 +70,9 @@ public:
 
     GlobalBlockMatrix assembleJac(const double& time, VectorPtr tentativeSol,
                                   const double& dt);
+
+    GlobalBlockMatrix assembleJacPrec(const double& time, VectorPtr tentativeSol,
+                                      const double& dt);
 };
 
 }  // namespace RedMA

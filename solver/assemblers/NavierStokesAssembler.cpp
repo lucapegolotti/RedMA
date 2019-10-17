@@ -75,6 +75,12 @@ assembleConstantMatrices()
     assembleStiffnessMatrix();
     assembleDivergenceMatrix();
     assembleMassMatrix();
+
+    // we only assemble mass pressure only for preconditioner of steady case
+    bool steady = M_datafile("time_discretization/steady", false);
+    if (steady)
+        assembleMassMatrixPressure();
+
     printlog(GREEN, "done\n", M_verbose);
 }
 
@@ -157,10 +163,29 @@ assembleMassMatrix()
                M_velocityFESpace->qr(),
                M_velocityFESpaceETA,
                M_velocityFESpaceETA,
-               value(density) * dot (phi_i, phi_j)
+               value(density) * dot(phi_i, phi_j)
               ) >> M_M;
 
     M_M->globalAssemble();
+}
+
+void
+NavierStokesAssembler::
+assembleMassMatrixPressure()
+{
+    using namespace LifeV::ExpressionAssembly;
+
+    printlog(YELLOW, "Assembling mass matrix pressure ...\n", M_verbose);
+    M_Mp.reset(new Matrix(M_pressureFESpace->map()));
+
+    integrate(elements(M_pressureFESpaceETA->mesh()),
+               M_pressureFESpace->qr(),
+               M_pressureFESpaceETA,
+               M_pressureFESpaceETA,
+               phi_i * phi_j
+               ) >> M_Mp;
+
+    M_Mp->globalAssemble();
 }
 
 NavierStokesAssembler::MatrixPtr
@@ -198,7 +223,7 @@ assembleConvectiveMatrix()
                M_velocityFESpace->qr(),
                M_velocityFESpaceETA,
                M_velocityFESpaceETA,
-               dot(value(density) *
+               dot(value(0.0) *
                    value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j),
                          phi_i)
              ) >> M_C;
@@ -225,7 +250,7 @@ assembleJacobianConvectiveMatrix()
                M_velocityFESpace->qr(),
                M_velocityFESpaceETA,
                M_velocityFESpaceETA,
-               dot(density * phi_j *
+               dot(0.0 * phi_j *
                    grad(M_velocityFESpaceETA, *velocityRepeated), phi_i)
              ) >> M_J;
 
@@ -358,6 +383,60 @@ getJacobian(const unsigned int& blockrow, const unsigned int& blockcol)
             retJacobian.reset(new Matrix(*M_stabilization->block11Jac()));
             retJacobian->globalAssemble();
         }
+    }
+    else if (blockrow > numberOfBlocks() || blockcol > numberOfBlocks())
+    {
+        std::string errorMsg = "row = " + std::to_string(blockrow) + ", col = " +
+                    std::to_string(blockcol) + " is an invalid combination of " +
+                    "block indices for NavierStokesAssembler!";
+        throw Exception(errorMsg);
+    }
+    // we multiply by -1 because it is at the right hand side when writing
+    // H du/dt = F(t,u)
+    if (retJacobian)
+        *retJacobian *= (-1.0);
+    return retJacobian;
+}
+
+NavierStokesAssembler::MatrixPtr
+NavierStokesAssembler::
+getJacobianPrec(const unsigned int& blockrow, const unsigned int& blockcol)
+{
+    std::string blockStr = std::string("(") + std::to_string(blockrow) + "," +
+                           std::to_string(blockcol) + ")";
+
+    printlog(GREEN, "Constructing jacobian preconditioner, block " + blockStr +
+                    " ...\n", M_verbose);
+
+    MatrixPtr retJacobian;
+
+    if (blockrow == 0 && blockcol == 0)
+    {
+        retJacobian.reset(new Matrix(M_velocityFESpace->map()));
+        retJacobian->zero();
+        *retJacobian += *M_A;
+        *retJacobian += *M_C;
+        *retJacobian += *M_J;
+        if (M_useStabilization)
+            *retJacobian += (*M_stabilization->block00Jac());
+        retJacobian->globalAssemble();
+    }
+    else if (blockrow == 0 && blockcol == 1)
+    {
+        retJacobian.reset(new Matrix(M_velocityFESpace->map()));
+        *retJacobian = *M_Bt;
+
+        if (M_useStabilization)
+            *retJacobian += (*M_stabilization->block01Jac());
+
+        retJacobian->globalAssemble(M_pressureFESpace->mapPtr(),
+                                    M_velocityFESpace->mapPtr());
+    }
+    else if (blockrow == 1 && blockcol == 1)
+    {
+        retJacobian.reset(new Matrix(M_pressureFESpace->map()));
+        *retJacobian = *M_Mp;
+        retJacobian->globalAssemble();
     }
     else if (blockrow > numberOfBlocks() || blockcol > numberOfBlocks())
     {

@@ -15,9 +15,10 @@ namespace Operators
 {
 
 GlobalSIMPLEOperator::
-GlobalSIMPLEOperator() :
+GlobalSIMPLEOperator(std::string singleOperatorType) :
   M_label("GlobalSIMPLEOperator"),
-  M_useTranspose(false)
+  M_useTranspose(false),
+  M_singleOperatorType(singleOperatorType)
 {
 
 }
@@ -68,47 +69,28 @@ setUp(RedMA::GlobalBlockMatrix matrix,
             localRangeBlockMaps[0].reset(new
                     Epetra_Map(blockOper(iblock,iblock)->OperatorRangeMap()));
 
-            localRangeBlockMaps[1].reset(new
-                    Epetra_Map(blockOper(iblock,iblock+1)->OperatorRangeMap()));
+            // this could be the case in steady case for example
+            if (blockOper(iblock,iblock+1) != 0)
+                localRangeBlockMaps[1].reset(new
+                        Epetra_Map(blockOper(iblock,iblock+1)->OperatorRangeMap()));
+            else
+                localRangeBlockMaps[1].reset(new
+                        Epetra_Map(blockOper(iblock+1,iblock+1)->OperatorRangeMap()));
 
             localDomainBlockMaps[0].reset(new
                     Epetra_Map(blockOper(iblock,iblock)->OperatorDomainMap()));
 
-            localDomainBlockMaps[1].reset(new
-                    Epetra_Map(blockOper(iblock+1,iblock)->OperatorDomainMap()));
-
-            // here we rely on the structure of the global matrix
-            PreconditionerPtr newPrec;
-            newPrec.reset(Operators::NSPreconditionerFactory::
-                          instance().createObject("SIMPLE"));
-            newPrec->setOptions(M_solversOptions);
-
-            // then we are not considering stabilization
-            if (matrix.block(iblock+1,iblock+1) == nullptr)
-            {
-                newPrec->setUp(matrix.block(iblock,iblock),
-                               matrix.block(iblock+1,iblock),
-                               matrix.block(iblock,iblock+1));
-            }
-            // then we are using stabilization
+            if (blockOper(iblock+1,iblock) != 0)
+                localDomainBlockMaps[1].reset(new
+                        Epetra_Map(blockOper(iblock+1,iblock)->OperatorDomainMap()));
             else
-            {
-                newPrec->setUp(matrix.block(iblock,iblock),
-                               matrix.block(iblock+1,iblock),
-                               matrix.block(iblock,iblock+1),
-                               matrix.block(iblock+1,iblock+1));
-            }
+                localDomainBlockMaps[1].reset(new
+                        Epetra_Map(blockOper(iblock+1,iblock+1)->OperatorDomainMap()));
 
-            std::shared_ptr<BlockEpetra_Map> localRangeMap(
-                                      new BlockEpetra_Map(localRangeBlockMaps));
-            std::shared_ptr<BlockEpetra_Map> localDomainMap(
-                                      new BlockEpetra_Map(localDomainBlockMaps));
-
-            newPrec->setRangeMap(localRangeMap);
-            newPrec->setDomainMap(localDomainMap);
-            newPrec->updateApproximatedMomentumOperator();
-            newPrec->updateApproximatedSchurComplementOperator();
-            M_SIMPLEOperators.push_back(newPrec);
+            std::cout << "HEREEE" << std::endl << std::flush;
+            M_SingleOperators.push_back(allocateSingleOperator(matrix, iblock,
+                                                               localRangeBlockMaps,
+                                                               localDomainBlockMaps));
 
             M_nPrimalBlocks++;
         }
@@ -137,6 +119,85 @@ setUp(RedMA::GlobalBlockMatrix matrix,
     msg += std::to_string(chrono.diff());
     msg += " seconds\n";
     RedMA::printlog(RedMA::MAGENTA, msg, M_verbose);
+}
+
+GlobalSIMPLEOperator::PreconditionerPtr
+GlobalSIMPLEOperator::
+allocateSingleOperator(RedMA::GlobalBlockMatrix matrix, UInt iblock,
+                       BlockEpetra_Map::mapPtrContainer_Type localRangeBlockMaps,
+                       BlockEpetra_Map::mapPtrContainer_Type localDomainBlockMaps)
+{
+    std::cout << "starting allocating" << std::endl << std::flush;
+    // here we rely on the structure of the global matrix
+    PreconditionerPtr newPrec;
+    if (!std::strcmp(M_singleOperatorType.c_str(), "SIMPLE"))
+    {
+        newPrec.reset(Operators::NSPreconditionerFactory::
+                      instance().createObject("SIMPLE"));
+        newPrec->setOptions(M_solversOptions);
+
+        // then we are not considering stabilization
+        if (matrix.block(iblock+1,iblock+1) == nullptr)
+        {
+            newPrec->setUp(matrix.block(iblock,iblock),
+                           matrix.block(iblock+1,iblock),
+                           matrix.block(iblock,iblock+1));
+        }
+        // then we are using stabilization
+        else
+        {
+            newPrec->setUp(matrix.block(iblock,iblock),
+                           matrix.block(iblock+1,iblock),
+                           matrix.block(iblock,iblock+1),
+                           matrix.block(iblock+1,iblock+1));
+        }
+
+        std::shared_ptr<BlockEpetra_Map> localRangeMap(
+                                  new BlockEpetra_Map(localRangeBlockMaps));
+        std::shared_ptr<BlockEpetra_Map> localDomainMap(
+                                  new BlockEpetra_Map(localDomainBlockMaps));
+
+        newPrec->setRangeMap(localRangeMap);
+        newPrec->setDomainMap(localDomainMap);
+        newPrec->updateApproximatedMomentumOperator();
+        newPrec->updateApproximatedSchurComplementOperator();
+    }
+    else if (!std::strcmp(M_singleOperatorType.c_str(), "STEADY"))
+    {
+        newPrec.reset(Operators::NSPreconditionerFactory::
+                      instance().createObject("STEADY"));
+        newPrec->setOptions(M_solversOptions);
+
+        std::cout << 1 << std::endl<< std::flush;
+
+        newPrec->setUp(matrix.block(iblock,iblock),
+                       matrix.block(iblock,iblock+1),
+                       matrix.block(iblock+1,iblock+1));
+
+        std::cout << 2 << std::endl<< std::flush;
+
+        std::shared_ptr<BlockEpetra_Map> localRangeMap(
+                                  new BlockEpetra_Map(localRangeBlockMaps));
+        std::shared_ptr<BlockEpetra_Map> localDomainMap(
+                                  new BlockEpetra_Map(localDomainBlockMaps));
+
+        std::cout << 3 << std::endl<< std::flush;
+
+        newPrec->setRangeMap(localRangeMap);
+        newPrec->setDomainMap(localDomainMap);
+
+        std::cout << 4 << std::endl<< std::flush;
+
+        newPrec->updateApproximatedMomentumOperator();
+        std::cout << 5 << std::endl<< std::flush;
+
+        newPrec->updateApproximatedPressureMassOperator();
+
+        std::cout << 6 << std::endl<< std::flush;
+
+    }
+    std::cout << "finished allocating" << std::endl << std::flush;
+    return newPrec;
 }
 
 void
@@ -187,7 +248,7 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
 
         col = (*BT) * aux;
 
-        M_SIMPLEOperators[rowIndex / 2]->ApplyInverse(col, fakePressure,
+        M_SingleOperators[rowIndex / 2]->ApplyInverse(col, fakePressure,
                                                       res, fakePressureResult);
 
         for (unsigned int dof = 0; dof < numElements; dof++)
@@ -369,7 +430,7 @@ applyEverySIMPLEOperator(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
         vectorEpetra_Type resVelocity(rangeVelocity);
         vectorEpetra_Type resPressure(rangePressure);
 
-        M_SIMPLEOperators[i]->ApplyInverse(subVelocity, subPressure,
+        M_SingleOperators[i]->ApplyInverse(subVelocity, subPressure,
                                            resVelocity, resPressure);
 
         Y.subset(resVelocity, rangeVelocity, 0, offset);
@@ -494,7 +555,7 @@ ApplyInverse(const vector_Type& X, vector_Type& Y) const
     }
     else
     {
-        M_SIMPLEOperators[0]->ApplyInverse(X, Y);
+        M_SingleOperators[0]->ApplyInverse(X, Y);
     }
 
     return 0;

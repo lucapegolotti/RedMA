@@ -27,6 +27,8 @@
 #include <GlobalSIMPLEOperator.hpp>
 #include <GlobalSIMPLEOperatorPseudoFSI.hpp>
 #include <GlobalSolverOperator.hpp>
+#include <SteadySolverOperator.hpp>
+
 // #include <GlobalIdentityOperator.hpp>
 
 #include <lifev/core/algorithm/SolverAztecOO.hpp>
@@ -57,13 +59,16 @@ public:
 
     virtual void solveTimestep(const double &time, double &dt) = 0;
 
-    void solveLinearSystem(GlobalBlockMatrix matrix, VectorPtr rhs,
-                           VectorPtr sol);
+    void solveLinearSystem(GlobalBlockMatrix matrix,
+                           VectorPtr rhs,
+                           VectorPtr sol,
+                           GlobalBlockMatrix* matrixPrec = nullptr);
 
     void solveNonLinearSystem(std::function<VectorPtr(VectorPtr)> fun,
                               std::function<GlobalBlockMatrix(VectorPtr)> jac,
                               VectorPtr sol, const double& tol,
-                              const unsigned int& itMax);
+                              const unsigned int& itMax,
+                              std::function<GlobalBlockMatrix(VectorPtr)>* jacPrec = nullptr);
 
     void setSolversOptions();
 

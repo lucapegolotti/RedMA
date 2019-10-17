@@ -184,6 +184,17 @@ getJacobianF(bool addCoupling, double* diagonalCoefficient)
 }
 
 template <class AssemblerType>
+GlobalBlockMatrix
+GlobalAssembler<AssemblerType>::
+getJacobianFprec(bool addCoupling, double* diagonalCoefficient)
+{
+    GlobalBlockMatrix jacobian;
+    fillGlobalMatrix(jacobian, addCoupling, &AssemblerType::getJacobianPrec,
+                     diagonalCoefficient);
+    return jacobian;
+}
+
+template <class AssemblerType>
 typename GlobalAssembler<AssemblerType>::VectorPtr
 GlobalAssembler<AssemblerType>::
 computeF()

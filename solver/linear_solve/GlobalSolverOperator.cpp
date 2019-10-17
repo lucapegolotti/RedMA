@@ -145,7 +145,8 @@ ApplyInverse(const vector_Type & X, vector_Type & Y) const
     return -1;
 }
 
-const GlobalSolverOperator::operatorPtr_Type& GlobalSolverOperator::block(UInt iblock, UInt jblock) const
+const GlobalSolverOperator::
+operatorPtr_Type& GlobalSolverOperator::block(UInt iblock, UInt jblock) const
 {
     ASSERT (iblock<M_nBlockRows,"Error! Index out of bounds.\n");
     ASSERT (jblock<M_nBlockCols,"Error! Index out of bounds.\n");
