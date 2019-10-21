@@ -59,10 +59,11 @@
 [../]
 
 [coupling]
-	type                = fourier
+	type                = chebyshev
 	frequencies_theta   = 0
 	frequencies_radial  = 0
 	orthonormalization  = none
+	nMax                = 0
 	beta_threshold      = 0
 	use_interpolation   = false
 [../]

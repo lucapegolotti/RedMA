@@ -46,6 +46,10 @@ int main(int argc, char **argv)
     LifeV::RossEthierSteinmanDec::setParamsFromGetPot(datafile);
     bool verbose = comm->MyPID() == 0;
 
+    std::vector<std::string> basisFunctions;
+    basisFunctions.push_back("chebyshev");
+    basisFunctions.push_back("zernike");
+
     std::vector<std::string> refinements;
     refinements.push_back("h0.80");
     refinements.push_back("h0.70");
@@ -58,26 +62,45 @@ int main(int argc, char **argv)
     refinements.push_back("h0.15");
     refinements.push_back("h0.13");
 
-    for (auto it = refinements.begin(); it != refinements.end(); it++)
+    for (int nMax = 0; nMax < 3; nMax++)
     {
-        std::string nameTree("datafiles/tree_");
-        nameTree += *it + std::string(".xml");
+        std::string nMaxString(std::to_string(nMax));
+        datafile.set("coupling/nMax", nMaxString.c_str());
 
-        datafile.set("geometric_structure/xmlfile",
-                     nameTree.c_str());
+        for (auto itBfs = basisFunctions.begin(); itBfs != basisFunctions.end(); itBfs++)
+        {
+            datafile.set("coupling/type", itBfs->c_str());
 
-        AbstractFunctor* RESSolution = new RossEthierSteinmanSolution;
-        GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose,
-                                               RESSolution);
+            for (auto it = refinements.begin(); it != refinements.end(); it++)
+            {
+                std::string nameTree("datafiles/tree_");
+                nameTree += *it + std::string(".xml");
 
-        gs.setForcingFunction(LifeV::RossEthierSteinmanDec::f,
-                              LifeV::RossEthierSteinmanDec::f_dt);
+                datafile.set("geometric_structure/xmlfile", nameTree.c_str());
 
-        gs.setExportErrors("errors" + *it + ".txt");
-        gs.printMeshSize("meshSizes" + *it + ".txt");
-        gs.solve();
+                AbstractFunctor* RESSolution = new RossEthierSteinmanSolution;
+                GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose,
+                                                       RESSolution);
 
-        delete RESSolution;
+                gs.setForcingFunction(LifeV::RossEthierSteinmanDec::f,
+                                      LifeV::RossEthierSteinmanDec::f_dt);
+
+                std::string errorFile("errors");
+                errorFile += "_";
+                errorFile += *itBfs;
+                errorFile += "_";
+                errorFile += nMaxString;
+                errorFile += "_";
+                errorFile += *it;
+                errorFile += ".txt";
+
+                gs.setExportErrors(errorFile);
+                gs.printMeshSize("meshSizes" + *it + ".txt");
+                gs.solve();
+
+                delete RESSolution;
+            }
+        }
     }
 
     return 0;
