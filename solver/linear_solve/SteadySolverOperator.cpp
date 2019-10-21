@@ -130,11 +130,11 @@ updateApproximatedMomentumOperator()
     M_approximatedMomentumOperator->SetRowMatrix(M_F->matrixPtr());
     M_approximatedMomentumOperator->SetParameterList(*M_momentumOptions);
     if (!M_solveMomentumBelos) M_approximatedMomentumOperator->Compute();
-
-    Epetra_Vector diag(M_F->matrixPtr()->OperatorRangeMap());
-    M_invD.reset(new Epetra_Vector(M_F->matrixPtr()->OperatorRangeMap()));
-    M_F->matrixPtr()->ExtractDiagonalCopy(diag);
-    M_invD->Reciprocal(diag);
+    // 
+    // Epetra_Vector diag(M_F->matrixPtr()->OperatorRangeMap());
+    // M_invD.reset(new Epetra_Vector(M_F->matrixPtr()->OperatorRangeMap()));
+    // M_F->matrixPtr()->ExtractDiagonalCopy(diag);
+    // M_invD->Reciprocal(diag);
 }
 
 void
@@ -161,9 +161,9 @@ ApplyInverse(VectorEpetra_Type const& X_velocity,
 
     if (M_solveMomentumBelos)
     {
-        // M_linearSolver->setRightHandSide(M_X_velocity);
-        // M_linearSolver->solve(M_Z);
-        M_Z->epetraVector().Multiply(1.0, *M_invD, M_X_velocity->epetraVector(), 0.0);
+        M_linearSolver->setRightHandSide(M_X_velocity);
+        M_linearSolver->solve(M_Z);
+        // M_Z->epetraVector().Multiply(1.0, *M_invD, M_X_velocity->epetraVector(), 0.0);
     }
     else
         M_approximatedMomentumOperator->ApplyInverse(M_X_velocity->epetraVector(), M_Z->epetraVector());

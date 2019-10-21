@@ -87,7 +87,6 @@ setUp(RedMA::GlobalBlockMatrix matrix,
                 localDomainBlockMaps[1].reset(new
                         Epetra_Map(blockOper(iblock+1,iblock+1)->OperatorDomainMap()));
 
-            std::cout << "HEREEE" << std::endl << std::flush;
             M_SingleOperators.push_back(allocateSingleOperator(matrix, iblock,
                                                                localRangeBlockMaps,
                                                                localDomainBlockMaps));
@@ -127,7 +126,6 @@ allocateSingleOperator(RedMA::GlobalBlockMatrix matrix, UInt iblock,
                        BlockEpetra_Map::mapPtrContainer_Type localRangeBlockMaps,
                        BlockEpetra_Map::mapPtrContainer_Type localDomainBlockMaps)
 {
-    std::cout << "starting allocating" << std::endl << std::flush;
     // here we rely on the structure of the global matrix
     PreconditionerPtr newPrec;
     if (!std::strcmp(M_singleOperatorType.c_str(), "SIMPLE"))
@@ -167,7 +165,7 @@ allocateSingleOperator(RedMA::GlobalBlockMatrix matrix, UInt iblock,
         newPrec.reset(Operators::NSPreconditionerFactory::
                       instance().createObject("STEADY"));
         newPrec->setOptions(M_solversOptions);
-        newPrec->SetSolveMomentumBelos();
+        // newPrec->SetSolveMomentumBelos();
 
         newPrec->setUp(matrix.block(iblock,iblock),
                        matrix.block(iblock,iblock+1),
@@ -185,7 +183,6 @@ allocateSingleOperator(RedMA::GlobalBlockMatrix matrix, UInt iblock,
         newPrec->updateApproximatedMomentumOperator();
         newPrec->updateApproximatedPressureMassOperator();
     }
-    std::cout << "finished allocating" << std::endl << std::flush;
     return newPrec;
 }
 
