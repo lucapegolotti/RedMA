@@ -28,7 +28,7 @@
 #include <NavierStokesAssembler.hpp>
 #include <PseudoFSIAssembler.hpp>
 #include "RossEthierSteinmanSolution.hpp"
-
+#include <fstream>
 #include <lifev/core/filter/GetPot.hpp>
 
 using namespace RedMA;
@@ -93,11 +93,13 @@ int main(int argc, char **argv)
                 errorFile += "_";
                 errorFile += *it;
                 errorFile += ".txt";
-
-                gs.setExportErrors(errorFile);
-                gs.printMeshSize("meshSizes" + *it + ".txt");
-                gs.solve();
-
+                std::ifstream f(errorFile.c_str());
+                if (!f.good())
+                {
+                    gs.setExportErrors(errorFile);
+                    gs.printMeshSize("meshSizes" + *it + ".txt");
+                    gs.solve();
+                }
                 delete RESSolution;
             }
         }
