@@ -76,7 +76,7 @@ assembleConstantMatrices()
     assembleDivergenceMatrix();
     assembleMassMatrix();
 
-    // we only assemble mass pressure only for preconditioner of steady case
+    // we assemble mass pressure only for preconditioner of steady case
     bool steady = M_datafile("time_discretization/steady", false);
     if (steady)
         assembleMassMatrixPressure();
@@ -1152,30 +1152,12 @@ exportSolutions(const double& time, std::vector<VectorPtr> solutions)
     printlog(MAGENTA, "[NavierStokesAssembler] exporting solution ...\n",
              M_verbose);
 
-
-     VectorPtr F1;
-     F1.reset(new Vector(M_velocityFESpace->map()));
-     F1->zero();
-
-     if (M_exactSolution != nullptr)
-     {
-         M_velocityFESpace->interpolate(M_exactSolution->exactFunction(0), *F1, time);
-     }
-
-     VectorPtr F2;
-     F2.reset(new Vector(M_pressureFESpace->map()));
-     F2->zero();
-
-     if (M_exactSolution != nullptr)
-     {
-         M_pressureFESpace->interpolate(M_exactSolution->exactFunction(1), *F2, time);
-     }
-
     *M_velocityExporter = *solutions[0];
-    *M_velocityExporter -= *F1;
     *M_pressureExporter = *solutions[1];
-    *M_pressureExporter -= *F2;
     *M_lagrangeMultiplierExporter = *reconstructLagrangeMultipliers(solutions, 2);
+
+    computeAndExportErrors(time, solutions);
+
     CoutRedirecter ct;
     ct.redirect();
     M_exporter->postProcess(time);
@@ -1233,6 +1215,34 @@ computeErrors(std::vector<VectorPtr> solutions, const double& time)
     return errors;
 }
 
+void
+NavierStokesAssembler::
+computeAndExportErrors(const double& time, std::vector<VectorPtr> solutions)
+{
+    VectorPtr F1;
+    F1.reset(new Vector(M_velocityFESpace->map()));
+    F1->zero();
+
+    if (M_exactSolution != nullptr)
+    {
+        M_velocityFESpace->interpolate(M_exactSolution->exactFunction(0), *F1, time);
+    }
+
+    VectorPtr F2;
+    F2.reset(new Vector(M_pressureFESpace->map()));
+    F2->zero();
+
+    if (M_exactSolution != nullptr)
+    {
+        M_pressureFESpace->interpolate(M_exactSolution->exactFunction(1), *F2, time);
+    }
+
+    *M_velocityErrorExporter = *solutions[0];
+    *M_velocityErrorExporter -= *F1;
+    *M_pressureErrorExporter = *solutions[1];
+    *M_pressureErrorExporter -= *F2;
+}
+
 std::string
 NavierStokesAssembler::
 normFileFirstLine()
@@ -1246,5 +1256,26 @@ errorsFileFirstLine()
 {
     return "time,ul2abs,uh1abs,l2pabs,ul2rel,uh1rel,l2prel\n";
 }
+
+void
+NavierStokesAssembler::
+setExactSolution(AbstractFunctor* exactSolution)
+{
+    AbstractAssembler::setExactSolution(exactSolution);
+
+    // adding errors to exporter
+    M_velocityErrorExporter.reset(new Vector(M_velocityFESpace->map(),
+                                        M_exporter->mapType()));
+    M_pressureErrorExporter.reset(new Vector(M_pressureFESpace->map(),
+                                        M_exporter->mapType()));
+
+    M_exporter->addVariable(LifeV::ExporterData<Mesh>::VectorField,
+                         "velocity_error", M_velocityFESpace, M_velocityErrorExporter, 0.0);
+
+    M_exporter->addVariable(LifeV::ExporterData<Mesh>::ScalarField,
+                         "pressure_error", M_pressureFESpace, M_pressureErrorExporter, 0.0);
+
+}
+
 
 }  // namespace RedMA

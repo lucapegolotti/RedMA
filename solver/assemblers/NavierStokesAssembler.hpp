@@ -129,6 +129,8 @@ public:
 
     std::vector<VectorPtr> initialCondition();
 
+    virtual void setExactSolution(AbstractFunctor* exactSolution) override;
+
 protected:
     void assembleConstantMatrices();
 
@@ -157,6 +159,8 @@ protected:
 
     BoundaryConditionPtr createBCHandlerWithExactFunction(FunctionType*
                                                           exactFunction);
+
+    void computeAndExportErrors(const double& time, std::vector<VectorPtr> solutions);
 
     static double fZero(const double& t,
                         const double& x,
@@ -205,6 +209,8 @@ protected:
     ExporterPtr                             M_exporter;
     VectorPtr                               M_velocityExporter;
     VectorPtr                               M_pressureExporter;
+    VectorPtr                               M_velocityErrorExporter;
+    VectorPtr                               M_pressureErrorExporter;
     VectorPtr                               M_lagrangeMultiplierExporter;
 
     bool                                    M_useStabilization;

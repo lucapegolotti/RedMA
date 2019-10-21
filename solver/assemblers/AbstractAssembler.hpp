@@ -119,7 +119,7 @@ public:
 
     inline FESpacePtr getCouplingFESpace() {return M_couplingFESpace;};
 
-    void setExactSolution(AbstractFunctor* exactSolution);
+    virtual void setExactSolution(AbstractFunctor* exactSolution);
 
     double getMeshSize() {return M_meshSize;};
 
