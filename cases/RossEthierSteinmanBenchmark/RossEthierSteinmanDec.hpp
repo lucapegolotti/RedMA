@@ -19,6 +19,7 @@
 
 #include <lifev/core/LifeV.hpp>
 #include <lifev/core/filter/GetPot.hpp>
+#include <lifev/core/array/VectorSmall.hpp>
 
 namespace LifeV
 {
@@ -61,10 +62,10 @@ public:
                      const double& z, const ID& i);
 
     static double fNeumann(const double& t, const double& x, const double& y,
-                           const double& z, const ID& i);
+                           const double& z, const ID& i, const VectorSmall<3>& n);
 
     static double fNeumann_dt(const double& t, const double& x, const double& y,
-                              const double& z, const ID& i);
+                              const double& z, const ID& i, const VectorSmall<3>& n);
 
     static double normalVector(const double& t, const double& x, const double& y,
                                const double& z, const ID& i);

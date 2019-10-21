@@ -269,33 +269,12 @@ p0(const double& t, const double& x, const double& y,
     return pexact(t, x, y, z, 0);
 }
 
-//we suppose that the problem geometry is the cylinder having axis x, origin (0,0,0), diameter D and height L
 double
 Womersley::
 fNeumann(const double& t, const double& x, const double& y,
-         const double& z, const ID& i )
+         const double& z, const ID& i, const LifeV::VectorSmall<3>& n)
 {
-    double r = std::sqrt(y * y + z * z);
-    double n[3] = {0., 0., 0.};
     double out = 0.;
-    if (x < 1e-6 / S_L)
-    {
-        n[0] = -1.;
-    }
-    else if (x >  S_L * (1 - 1e-6))
-    {
-        n[0] =  1.;
-    }
-    else if (r > S_D / 2.*0.9 )
-    {
-        n[1] = y / r;
-        n[2] = z / r;
-    }
-    else
-    {
-        // std::cout << "strange point: x=" << x << " y=" << y << " z=" << z
-        //          << std::endl;
-    }
 
     for (UInt k = 0; k < nDimensions; k++) //mu gradu n
     {
@@ -316,29 +295,10 @@ fNeumann(const double& t, const double& x, const double& y,
 double
 Womersley::
 fNeumann_dt(const double& t, const double& x, const double& y,
-            const double& z, const ID& i )
+            const double& z, const ID& i, const LifeV::VectorSmall<3>& n)
 {
     double r = std::sqrt(y * y + z * z);
-    double n[3] = {0., 0., 0.};
     double out = 0.;
-    if (x < 1e-6 / S_L)
-    {
-        n[0] = -1.;
-    }
-    else if (x >  S_L * (1 - 1e-6))
-    {
-        n[0] =  1.;
-    }
-    else if (r > S_D / 2.*0.9 )
-    {
-        n[1] = y / r;
-        n[2] = z / r;
-    }
-    else
-    {
-        // std::cout << "strange point: x=" << x << " y=" << y << " z=" << z
-        //          << std::endl;
-    }
 
     for (UInt k = 0; k < nDimensions; k++) //mu gradu n
     {

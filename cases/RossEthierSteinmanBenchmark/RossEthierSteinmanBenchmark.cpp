@@ -47,7 +47,7 @@ int main(int argc, char **argv)
     bool verbose = comm->MyPID() == 0;
 
     std::vector<std::string> refinements;
-    refinements.push_back("h0.80");
+    // refinements.push_back("h0.80");
     refinements.push_back("h0.70");
     refinements.push_back("h0.60");
     refinements.push_back("h0.50");

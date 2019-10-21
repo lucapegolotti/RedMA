@@ -30,6 +30,13 @@ class RossEthierSteinmanSolution : public AbstractFunctor
                                  double const&,
                                  double const&,
                                  unsigned int const& )>    Function;
+
+     typedef std::function<double(double const&,
+                                  double const&,
+                                  double const&,
+                                  double const&,
+                                  unsigned int const&,
+                                  LifeV::VectorSmall<3> const&)>    FunctionNeumann;
 public:
     ~RossEthierSteinmanSolution()
     {
@@ -68,12 +75,12 @@ public:
         return retFunction;
     }
 
-    Function exactNeumann() override
+    FunctionNeumann exactNeumann() override
     {
         return LifeV::RossEthierSteinmanDec::fNeumann;
     }
 
-    Function exactNeumannDt() override
+    FunctionNeumann exactNeumannDt() override
     {
         return LifeV::RossEthierSteinmanDec::fNeumann_dt;
     }

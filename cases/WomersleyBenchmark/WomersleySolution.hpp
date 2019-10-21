@@ -30,6 +30,13 @@ class WomersleySolution : public AbstractFunctor
                                  double const&,
                                  double const&,
                                  unsigned int const& )>    Function;
+
+    typedef std::function<double(double const&,
+                                 double const&,
+                                 double const&,
+                                 double const&,
+                                 unsigned int const&,
+                                 LifeV::VectorSmall<3> const&)>    FunctionNeumann;
 public:
     ~WomersleySolution()
     {
@@ -68,12 +75,12 @@ public:
         return retFunction;
     }
 
-    Function exactNeumann() override
+    FunctionNeumann exactNeumann() override
     {
         return LifeV::Womersley::fNeumann;
     }
 
-    Function exactNeumannDt() override
+    FunctionNeumann exactNeumannDt() override
     {
         return LifeV::Womersley::fNeumann_dt;
     }

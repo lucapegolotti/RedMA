@@ -46,7 +46,14 @@ protected:
                                  double const&,
                                  double const&,
                                  double const&,
-                                 unsigned int const& )> FunctionType;
+                                 unsigned int const&)>  FunctionType;
+
+    typedef std::function<double(double const&,
+                                 double const&,
+                                 double const&,
+                                 double const&,
+                                 unsigned int const&,
+                                 LifeV::VectorSmall<3> const&)> FunctionNeumannType;
 
     typedef std::shared_ptr<LifeV::BCHandler>           BoundaryConditionPtr;
     typedef LifeV::ExporterVTK<Mesh>                    ExporterVTK;
@@ -144,7 +151,7 @@ protected:
     void applyNeumannBCs(VectorPtr vector, std::function<double(double)> law);
 
     void applyNeumannBCsWithExactFunction(VectorPtr vector,
-                                          FunctionType* exactFunction);
+                                          FunctionNeumannType* exactFunction);
 
     BoundaryConditionPtr createBCHandler(std::function<double(double)> law);
 

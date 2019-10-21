@@ -17,6 +17,9 @@
 #ifndef ABSTRACTFUNCTOR_H
 #define ABSTRACTFUNCTOR_H
 
+#include <lifev/core/LifeV.hpp>
+#include <lifev/core/array/VectorSmall.hpp>
+
 #include <functional>
 
 namespace RedMA
@@ -29,6 +32,13 @@ class AbstractFunctor
                                  double const&,
                                  double const&,
                                  unsigned int const& )>    Function;
+
+    typedef std::function<double(double const&,
+                                 double const&,
+                                 double const&,
+                                 double const&,
+                                 unsigned int const&,
+                                 LifeV::VectorSmall<3> const&)>    FunctionNeumann;
 
 public:
     virtual ~AbstractFunctor(){};
@@ -43,9 +53,9 @@ public:
 
     virtual Function exactFunctionDt(const unsigned int& index) = 0;
 
-    virtual Function exactNeumann() = 0;
+    virtual FunctionNeumann exactNeumann() = 0;
 
-    virtual Function exactNeumannDt() = 0;
+    virtual FunctionNeumann exactNeumannDt() = 0;
 };
 }
 #endif

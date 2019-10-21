@@ -236,48 +236,15 @@ RossEthierSteinmanDec::x0(const double& t, const double& x, const double& y,
     return xexact(t, x, y, z, i);
 }
 
-
-
-//we suppose that the problem geometry is the cube [-L,L]x[-L,L]x[-L,L].
 double
 RossEthierSteinmanDec::fNeumann(const double& t,
-                                        const double& x,
-                                        const double& y,
-                                        const double& z,
-                                        const ID& i)
+                                const double& x,
+                                const double& y,
+                                const double& z,
+                                const ID& i,
+                                const VectorSmall<3>& n)
 {
-
-    double n[3] = {0., 0., 0.};
     double out = 0.;
-    if (std::abs(x + S_L) < 1e-10)
-    {
-        n[0] = -1.;
-    }
-    else if(std::abs(x - S_L) < 1e-10)
-    {
-        n[0] =  1.;
-    }
-    else if(std::abs(y + S_L) < 1e-10)
-    {
-        n[1] = -1.;
-    }
-    else if(std::abs(x - S_L) < 1e-10)
-    {
-        n[1] =  1.;
-    }
-    else if(std::abs(z + S_L) < 1e-10)
-    {
-        n[2] = -1.;
-    }
-    else if(std::abs(z - S_L) < 1e-10)
-    {
-        n[2] =  1.;
-    }
-    else
-    {
-        std::cout << "strange point: x=" << x << " y=" << y << " z=" << z
-                  << std::endl;
-    }
 
     for(UInt k = 0; k < 3; k++) //mu grad_u n
     {
@@ -296,43 +263,13 @@ RossEthierSteinmanDec::fNeumann(const double& t,
 
 double
 RossEthierSteinmanDec::fNeumann_dt(const double& t,
-                                           const double& x,
-                                           const double& y,
-                                           const double& z,
-                                           const ID& i)
+                                   const double& x,
+                                   const double& y,
+                                   const double& z,
+                                   const ID& i,
+                                   const VectorSmall<3>& n)
 {
-
-    double n[3] = {0., 0., 0.};
     double out = 0.;
-    if (std::abs(x + S_L) < 1e-10)
-    {
-        n[0] = -1.;
-    }
-    else if(std::abs(x - S_L) < 1e-10)
-    {
-        n[0] =  1.;
-    }
-    else if(std::abs(y + S_L) < 1e-10)
-    {
-        n[1] = -1.;
-    }
-    else if(std::abs(x - S_L) < 1e-10)
-    {
-        n[1] =  1.;
-    }
-    else if(std::abs(z + S_L) < 1e-10)
-    {
-        n[2] = -1.;
-    }
-    else if(std::abs(z - S_L) < 1e-10)
-    {
-        n[2] =  1.;
-    }
-    else
-    {
-        std::cout << "strange point: x=" << x << " y=" << y << " z=" << z
-                  << std::endl;
-    }
 
     for(UInt k = 0; k < 3; k++) //mu grad_u n
     {

@@ -534,7 +534,7 @@ computeF()
         applyNeumannBCs(F1, M_inflowLaw);
     else
     {
-        FunctionType exactFct = M_exactSolution->exactNeumann();
+        FunctionNeumannType exactFct = M_exactSolution->exactNeumann();
         applyNeumannBCsWithExactFunction(F1, &exactFct);
     }
 
@@ -617,7 +617,7 @@ computeFder()
         applyNeumannBCs(F1, M_inflowLawDt);
     else
     {
-        FunctionType exactFct = M_exactSolution->exactNeumannDt();
+        FunctionNeumannType exactFct = M_exactSolution->exactNeumannDt();
         applyNeumannBCsWithExactFunction(F1, &exactFct);
     }
 
@@ -903,12 +903,12 @@ applyNeumannBCs(VectorPtr vector, std::function<double(double)> law)
 
 void
 NavierStokesAssembler::
-applyNeumannBCsWithExactFunction(VectorPtr vector, FunctionType* exactFunction)
+applyNeumannBCsWithExactFunction(VectorPtr vector, FunctionNeumannType* exactFunction)
 {
     BoundaryConditionPtr bcs;
     bcs.reset(new LifeV::BCHandler);
 
-    LifeV::BCFunctionBase bcFunction(*exactFunction);
+    // LifeV::BCFunctionBase bcFunction(*exactFunction);
 
     const unsigned int inletFlag = 1;
     const unsigned int outletFlag = 2;
@@ -917,14 +917,42 @@ applyNeumannBCsWithExactFunction(VectorPtr vector, FunctionType* exactFunction)
     std::string inflowBCType = M_datafile("fluid/inflow_bc","dirichlet");
     if (M_treeNode->M_ID == 0 &&
         std::strcmp(inflowBCType.c_str(),"neumann") == 0)
-            bcs->addBC("Inlet", inletFlag, LifeV::Natural, LifeV::Full,
-                        bcFunction, 3);
+    {
+        auto inflowBoundaryCondition = std::bind(*exactFunction,
+                                                 std::placeholders::_1,
+                                                 std::placeholders::_2,
+                                                 std::placeholders::_3,
+                                                 std::placeholders::_4,
+                                                 std::placeholders::_5,
+                                                 M_treeNode->M_block->getInlet().M_normal);
+
+        LifeV::BCFunctionBase bcFunction(inflowBoundaryCondition);
+
+        bcs->addBC("Inlet", inletFlag, LifeV::Natural, LifeV::Full,
+                    bcFunction, 3);
+    }
 
     std::string outflowBCType = M_datafile("fluid/outflow_bc","neumann");
     if (M_treeNode->M_nChildren == 0 &&
         std::strcmp(outflowBCType.c_str(),"neumann") == 0)
+    {
+        std::vector<GeometricFace> outlets = M_treeNode->M_block->getOutlets();
+        for (auto it = outlets.begin(); it != outlets.end(); it++)
+        {
+            auto outflowBoundaryCondition = std::bind(*exactFunction,
+                                                     std::placeholders::_1,
+                                                     std::placeholders::_2,
+                                                     std::placeholders::_3,
+                                                     std::placeholders::_4,
+                                                     std::placeholders::_5,
+                                                     it->M_normal);
+
+            LifeV::BCFunctionBase bcFunction(outflowBoundaryCondition);
+
             bcs->addBC("Outlet", outletFlag, LifeV::Natural, LifeV::Full,
                         bcFunction, 3);
+        }
+    }
 
     updateBCs(bcs, M_velocityFESpace);
 
