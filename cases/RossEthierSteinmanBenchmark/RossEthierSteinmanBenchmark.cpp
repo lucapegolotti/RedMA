@@ -70,6 +70,9 @@ int main(int argc, char **argv)
         GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose,
                                                RESSolution);
 
+        gs.setForcingFunction(LifeV::RossEthierSteinmanDec::f,
+                              LifeV::RossEthierSteinmanDec::f_dt);
+
         gs.setExportErrors("errors" + *it + ".txt");
         gs.printMeshSize("meshSizes" + *it + ".txt");
         gs.solve();

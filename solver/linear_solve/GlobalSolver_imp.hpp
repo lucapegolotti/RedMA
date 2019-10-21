@@ -156,6 +156,15 @@ setExportErrors(std::string filename)
 template <class AssemblerType>
 void
 GlobalSolver<AssemblerType>::
+setForcingFunction(FunctionType forcingFunction,
+                   FunctionType forcingFunctionDt)
+{
+    M_globalAssembler.setForcingFunction(forcingFunction, forcingFunctionDt);
+}
+
+template <class AssemblerType>
+void
+GlobalSolver<AssemblerType>::
 solveTimestep(const double& time, double& dt)
 {
     M_timeMarchingAlgorithm->solveTimestep(time, dt);

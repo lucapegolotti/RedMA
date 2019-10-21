@@ -29,6 +29,9 @@ public:
     static double f(const double& t, const double& x, const double& y,
                     const double& z, const ID& i);
 
+    static double f_dt(const double& t, const double& x, const double& y,
+                    const double& z, const ID& i);
+
     static double xexact(const double& t, const double& x, const double& y,
                          const double& z, const ID& i);
 

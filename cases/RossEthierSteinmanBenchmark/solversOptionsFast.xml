@@ -59,7 +59,7 @@
 
     <ParameterList name="PressureOperator">
         <Parameter name="use preconditioner as approximated inverse" type="bool" value="true"/>
-        <Parameter name="preconditioner type" type="string" value="ML"/>
+        <Parameter name="preconditioner type" type="string" value="Ifpack"/>
         <!-- ML, Ifpack, TwoLevel-->
         <ParameterList name="solver">
             <Parameter name="Linear Solver Type" type="string" value="AztecOO"/>
@@ -239,7 +239,7 @@
                 <Parameter name="Num Blocks" type="int" value="2000"/>
                 <Parameter name="Maximum Restarts" type="int" value="0"/>
                 <Parameter name="Output Style" type="int" value="1"/>
-                <Parameter name="Convergence Tolerance" type="double" value="1e-15"/>
+                <Parameter name="Convergence Tolerance" type="double" value="1e-8"/>
                 <Parameter name="Silent" type="bool" value="false"/>
             </ParameterList>
         </ParameterList>

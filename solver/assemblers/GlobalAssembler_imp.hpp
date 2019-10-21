@@ -562,6 +562,21 @@ setExactSolution(AbstractFunctor* exactSolution)
 template<class AssemblerType>
 void
 GlobalAssembler<AssemblerType>::
+setForcingFunction(Function forcingFunction, Function forcingFunctionDt)
+{
+    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::vector<Pair>                            AssemblersVector;
+
+    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+         it != M_assemblersVector.end(); it++)
+    {
+        it->second->setForcingFunction(forcingFunction, forcingFunctionDt);
+    }
+}
+
+template<class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
 exportSolutions(const double& time, VectorPtr solution)
 {
     typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;

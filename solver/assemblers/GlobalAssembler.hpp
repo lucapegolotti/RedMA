@@ -46,6 +46,12 @@ class GlobalAssembler
     typedef std::shared_ptr<Matrix>                         MatrixPtr;
     typedef std::shared_ptr<Epetra_Comm>                    commPtr_Type;
 
+    typedef std::function<double(double const&,
+                                 double const&,
+                                 double const&,
+                                 double const&,
+                                 unsigned int const& )>     Function;
+
 public:
     GlobalAssembler(const GetPot& datafile, commPtr_Type comm,
                     bool verbose = false);
@@ -115,6 +121,9 @@ public:
     VectorPtr getInitialCondition();
 
     void printMeshSize(std::string filename);
+
+    void setForcingFunction(Function forcingFunction,
+                            Function forcingFunctionDt);
 
 private:
     template<typename FunctionType>

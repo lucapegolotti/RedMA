@@ -6,9 +6,9 @@ namespace RedMA
 template <class AssemblerType>
 SteadySolver<AssemblerType>::
 SteadySolver(const GetPot& datafile,
-              GlobalAssemblerType* assembler,
-              commPtr_Type comm,
-              bool verbose) :
+             GlobalAssemblerType* assembler,
+             commPtr_Type comm,
+             bool verbose) :
   TimeMarchingAlgorithm<AssemblerType>(datafile, assembler, comm, verbose)
 {
     this->M_order = 0;
@@ -56,7 +56,6 @@ assembleF(const double& time, VectorPtr tentativeSol, const double& dt)
     *retF += *(M_globalAssembler->computeF());
     M_globalAssembler->applyBCsVector(retF, 0.0, time,
                                       &AssemblerType::applyBCsBackwardEuler);
-
     return retF;
 }
 
@@ -67,8 +66,7 @@ assembleJac(const double& time, VectorPtr tentativeSol, const double& dt)
 {
     std::string msg("assembling Jacobian\n");
     printlog(GREEN, msg, M_verbose);
-    // we don't assemble the blocks again because this function is called
-    // after assembleF (and the stabilization blocks are already assembled there)
+
     M_globalAssembler->setTimeAndPrevSolution(time, tentativeSol, false);
     double diagonalCoefficient = 1.0;
     GlobalBlockMatrix retJac = M_globalAssembler->getJacobianF(true,
@@ -90,7 +88,6 @@ assembleJacPrec(const double& time, VectorPtr tentativeSol, const double& dt)
     double diagonalCoefficient = 1.0;
     GlobalBlockMatrix retJac = M_globalAssembler->getJacobianFprec(true,
                                                           &diagonalCoefficient);
-
     return retJac;
 }
 

@@ -123,6 +123,8 @@ public:
 
     double getMeshSize() {return M_meshSize;};
 
+    void setForcingFunction(Function forcingFunction, Function functionDt);
+
 private:
 
     MatrixPtr assembleBoundaryMatrix(GeometricFace face);
@@ -166,6 +168,10 @@ protected:
     double                              M_dt;
     AbstractFunctor*                    M_exactSolution;
     double                              M_meshSize;
+    Function                            M_forceFunction;
+    Function                            M_forceTimeDerFunction;
+    VectorPtr                           M_forcingTerm;
+    VectorPtr                           M_forcingTermTimeDer;
 };
 
 }  // namespace RedMA

@@ -84,8 +84,6 @@ public:
     //! set the range map
     void setRangeMap(const std::shared_ptr<BlockEpetra_Map> & rangeMap){M_operatorRangeMap = rangeMap;}
 
-    void SetSolveMomentumBelos(){M_solveMomentumBelos = true;}
-
     int Apply(const vector_Type &/*X*/, vector_Type &/*Y*/) const {return -1;};
 
     int ApplyInverse( VectorEpetra_Type const& X_velocity,
@@ -117,6 +115,8 @@ public:
 
     void setPressureMassOptions(const parameterListPtr_Type & _oList);
 
+    void SetSolveMomentumBelos(){M_solveMomentumBelos = true;};
+
     void showMe();
 
     void setOptions(const Teuchos::ParameterList& solversOptions);
@@ -138,10 +138,6 @@ private:
 
     matrixEpetraPtr_Type M_Mp;
 
-    matrixEpetraPtr_Type M_D;
-
-    matrixEpetraPtr_Type M_schurComplement;
-
     commPtr_Type M_comm;
 
     bool M_useTranspose;
@@ -156,12 +152,15 @@ private:
 
     mapEpetraPtr_Type M_monolithicMap;
 
+    bool M_solveMomentumBelos;
 
     //! Label
     const std::string M_label;
 
     //! Vectors needed for the apply inverse
     std::shared_ptr<VectorEpetra_Type> M_Z;
+
+    std::shared_ptr<Epetra_Vector> M_invD;
 
     std::shared_ptr<VectorEpetra_Type> M_X_velocity;
     std::shared_ptr<VectorEpetra_Type> M_X_pressure;
@@ -170,7 +169,6 @@ private:
 
     bool M_useStabilization;
 
-    bool M_solveMomentumBelos;
     std::shared_ptr<LinearSolver>               M_linearSolver;
     precPtr_Type                                M_vStiffnessPreconditioner;
     Teuchos::RCP< Teuchos::ParameterList >      M_belosList;

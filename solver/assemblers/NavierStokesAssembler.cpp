@@ -223,7 +223,7 @@ assembleConvectiveMatrix()
                M_velocityFESpace->qr(),
                M_velocityFESpaceETA,
                M_velocityFESpaceETA,
-               dot(value(0.0) *
+               dot(value(density) *
                    value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j),
                          phi_i)
              ) >> M_C;
@@ -250,7 +250,7 @@ assembleJacobianConvectiveMatrix()
                M_velocityFESpace->qr(),
                M_velocityFESpaceETA,
                M_velocityFESpaceETA,
-               dot(0.0 * phi_j *
+               dot(density * phi_j *
                    grad(M_velocityFESpaceETA, *velocityRepeated), phi_i)
              ) >> M_J;
 
@@ -436,6 +436,7 @@ getJacobianPrec(const unsigned int& blockrow, const unsigned int& blockcol)
     {
         retJacobian.reset(new Matrix(M_pressureFESpace->map()));
         *retJacobian = *M_Mp;
+        *retJacobian *= (-1.0);
         retJacobian->globalAssemble();
     }
     else if (blockrow > numberOfBlocks() || blockcol > numberOfBlocks())
@@ -1124,28 +1125,28 @@ exportSolutions(const double& time, std::vector<VectorPtr> solutions)
              M_verbose);
 
 
-     // VectorPtr F1;
-     // F1.reset(new Vector(M_velocityFESpace->map()));
-     // F1->zero();
-     //
-     // if (M_exactSolution != nullptr)
-     // {
-     //     M_velocityFESpace->interpolate(M_exactSolution->exactFunction(0), *F1, time);
-     // }
-     //
-     // VectorPtr F2;
-     // F2.reset(new Vector(M_pressureFESpace->map()));
-     // F2->zero();
-     //
-     // if (M_exactSolution != nullptr)
-     // {
-     //     M_pressureFESpace->interpolate(M_exactSolution->exactFunction(1), *F2, time);
-     // }
+     VectorPtr F1;
+     F1.reset(new Vector(M_velocityFESpace->map()));
+     F1->zero();
+
+     if (M_exactSolution != nullptr)
+     {
+         M_velocityFESpace->interpolate(M_exactSolution->exactFunction(0), *F1, time);
+     }
+
+     VectorPtr F2;
+     F2.reset(new Vector(M_pressureFESpace->map()));
+     F2->zero();
+
+     if (M_exactSolution != nullptr)
+     {
+         M_pressureFESpace->interpolate(M_exactSolution->exactFunction(1), *F2, time);
+     }
 
     *M_velocityExporter = *solutions[0];
-    // *M_velocityExporter -= *F1;
+    *M_velocityExporter -= *F1;
     *M_pressureExporter = *solutions[1];
-     // *M_pressureExporter -= *F2;
+    *M_pressureExporter -= *F2;
     *M_lagrangeMultiplierExporter = *reconstructLagrangeMultipliers(solutions, 2);
     CoutRedirecter ct;
     ct.redirect();

@@ -16,7 +16,7 @@
 	use_stabilization = false
 	inflow_bc      = neumann
 	outflow_bc      = dirichlet
-	L              = 1
+	L              = 0.75
 	a              = 3
 	d              = 0
 [../]

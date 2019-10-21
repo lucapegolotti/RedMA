@@ -52,6 +52,34 @@ SteadySolverOperator::setUp(const matrixEpetraPtr_Type & F,
     M_Y_velocity.reset(new VectorEpetra_Type(M_F->map(), Unique));
     M_Y_pressure.reset(new VectorEpetra_Type(Mp->map(), Unique));
     M_useStabilization = false;
+
+    if (M_solveMomentumBelos)
+    {
+
+        typedef LifeV::PreconditionerML                                         precML_type;
+        typedef std::shared_ptr<PreconditionerML>                             precMLPtr_type;
+
+        typedef LifeV::PreconditionerIfpack                                     precIf_type;
+        typedef std::shared_ptr<precIf_type>                                  precIfPtr_type;
+
+        precML_type * precRawPtr;
+        precRawPtr = new precML_type;
+
+        // precIf_type * precRawPtr;
+        // precRawPtr = new precIf_type;
+
+        GetPot dataFile; // fake datafile
+        precRawPtr->setDataFromGetPot(dataFile, "precMLL");
+        M_vStiffnessPreconditioner.reset(precRawPtr);
+        M_vStiffnessPreconditioner->buildPreconditioner(M_F);
+
+        M_belosList = Teuchos::rcp (new Teuchos::ParameterList);
+        M_belosList = Teuchos::getParametersFromXmlFile("SolverParamList2.xml");
+        M_linearSolver.reset(new LinearSolver(M_comm));
+        M_linearSolver->setOperator(M_F);
+        M_linearSolver->setParameters(*M_belosList );
+        M_linearSolver->setPreconditioner(M_vStiffnessPreconditioner);
+    }
 }
 
 void
@@ -101,7 +129,12 @@ updateApproximatedMomentumOperator()
 {
     M_approximatedMomentumOperator->SetRowMatrix(M_F->matrixPtr());
     M_approximatedMomentumOperator->SetParameterList(*M_momentumOptions);
-    if(!M_solveMomentumBelos) M_approximatedMomentumOperator->Compute();
+    if (!M_solveMomentumBelos) M_approximatedMomentumOperator->Compute();
+
+    Epetra_Vector diag(M_F->matrixPtr()->OperatorRangeMap());
+    M_invD.reset(new Epetra_Vector(M_F->matrixPtr()->OperatorRangeMap()));
+    M_F->matrixPtr()->ExtractDiagonalCopy(diag);
+    M_invD->Reciprocal(diag);
 }
 
 void
@@ -121,28 +154,23 @@ ApplyInverse(VectorEpetra_Type const& X_velocity,
              VectorEpetra_Type & Y_velocity,
              VectorEpetra_Type & Y_pressure) const
 {
-
-
     M_approximatedPressureOperator->ApplyInverse((-X_pressure).epetraVector(), Y_pressure.epetraVector());
-    M_Y_pressure->epetraVector().Update(1.0, Y_pressure.epetraVector(), 1.0);
 
-    M_X_velocity->epetraVector().Update(1.0, X_velocity.epetraVector(), 1.0);
-    *M_X_velocity -= (*M_Btranspose) * (*M_Y_pressure);
+    *M_X_velocity = X_velocity;
+    *M_X_velocity -= (*M_Btranspose) * (Y_pressure);
 
-    if(M_solveMomentumBelos)
+    if (M_solveMomentumBelos)
     {
-        M_linearSolver->setRightHandSide(M_X_velocity);
-        M_linearSolver->solve(M_Z);
+        // M_linearSolver->setRightHandSide(M_X_velocity);
+        // M_linearSolver->solve(M_Z);
+        M_Z->epetraVector().Multiply(1.0, *M_invD, M_X_velocity->epetraVector(), 0.0);
     }
     else
-    {
         M_approximatedMomentumOperator->ApplyInverse(M_X_velocity->epetraVector(), M_Z->epetraVector());
-    }
 
     Y_velocity = *M_Z;
 
     return 0;
-
 }
 
 int

@@ -143,6 +143,7 @@ solveNonLinearSystem(std::function<VectorPtr(VectorPtr)> fun,
             {
                 std::function<GlobalBlockMatrix(VectorPtr)> jacPrecRaw = *jacPrec;
                 GlobalBlockMatrix curJacPrec = jacPrecRaw(sol);
+                curJacPrec.printPattern();
                 solveLinearSystem(curJac, curF, incr, &curJacPrec);
             }
             *sol -= *incr;

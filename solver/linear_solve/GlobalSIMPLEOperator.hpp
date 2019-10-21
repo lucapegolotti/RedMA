@@ -112,7 +112,7 @@ public:
 
     void computeGlobalSchurComplement();
 
-    void applyEverySIMPLEOperator(const vectorEpetra_Type& X,
+    void applyEverySimpleOperator(const vectorEpetra_Type& X,
                                   vectorEpetra_Type &Y) const;
 
     void applyEveryB(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const;

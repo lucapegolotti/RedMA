@@ -46,6 +46,12 @@ class GlobalSolver
     typedef TimeMarchingAlgorithm<AssemblerType>       TimeMarchingAlgorithmType;
     typedef std::shared_ptr<TimeMarchingAlgorithmType> TimeMarchingAlgorithmPtr;
 
+    typedef std::function<double(double const&,
+                                 double const&,
+                                 double const&,
+                                 double const&,
+                                 unsigned int const& )> FunctionType;
+
 public:
     GlobalSolver(const GetPot& datafile, commPtr_Type comm,
                  bool verbose = false, AbstractFunctor* exactSolution = nullptr);
@@ -61,6 +67,9 @@ public:
     void setExportErrors(std::string filename);
 
     void printMeshSize(std::string filename);
+
+    void setForcingFunction(FunctionType forcingFunction,
+                            FunctionType forcingFunctionDt);
 
 private:
     // we pass dt as reference to allow for time adaptvity

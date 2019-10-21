@@ -189,13 +189,9 @@ protected:
     MatrixPtr                               M_Mp;
     MatrixPtr                               M_C;
     MatrixPtr                               M_J;
-    VectorPtr                               M_forcingTerm;
-    VectorPtr                               M_forcingTermTimeDer;
     std::vector<VectorPtr>                  M_prevSolution;
     double                                  M_time;
 
-    FunctionType                            M_forceFunction;
-    FunctionType                            M_forceTimeDerFunction;
     std::function<double(double)>           M_inflowLaw;
     std::function<double(double)>           M_inflowLawDt;
 

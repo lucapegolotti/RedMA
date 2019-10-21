@@ -167,34 +167,23 @@ allocateSingleOperator(RedMA::GlobalBlockMatrix matrix, UInt iblock,
         newPrec.reset(Operators::NSPreconditionerFactory::
                       instance().createObject("STEADY"));
         newPrec->setOptions(M_solversOptions);
-
-        std::cout << 1 << std::endl<< std::flush;
+        newPrec->SetSolveMomentumBelos();
 
         newPrec->setUp(matrix.block(iblock,iblock),
                        matrix.block(iblock,iblock+1),
                        matrix.block(iblock+1,iblock+1));
 
-        std::cout << 2 << std::endl<< std::flush;
 
         std::shared_ptr<BlockEpetra_Map> localRangeMap(
                                   new BlockEpetra_Map(localRangeBlockMaps));
         std::shared_ptr<BlockEpetra_Map> localDomainMap(
                                   new BlockEpetra_Map(localDomainBlockMaps));
 
-        std::cout << 3 << std::endl<< std::flush;
-
         newPrec->setRangeMap(localRangeMap);
         newPrec->setDomainMap(localDomainMap);
 
-        std::cout << 4 << std::endl<< std::flush;
-
         newPrec->updateApproximatedMomentumOperator();
-        std::cout << 5 << std::endl<< std::flush;
-
         newPrec->updateApproximatedPressureMassOperator();
-
-        std::cout << 6 << std::endl<< std::flush;
-
     }
     std::cout << "finished allocating" << std::endl << std::flush;
     return newPrec;
@@ -411,13 +400,17 @@ fillComplete()
 
 void
 GlobalSIMPLEOperator::
-applyEverySIMPLEOperator(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
+applyEverySimpleOperator(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
 {
     unsigned int offset = 0;
     for (unsigned int i = 0; i < M_nPrimalBlocks; i++)
     {
         mapEpetra_Type rangeVelocity = *M_matrix.rangeMap(i*2,i*2);
-        mapEpetra_Type rangePressure = *M_matrix.rangeMap(i*2+1,i*2);
+        mapEpetra_Type rangePressure;
+        if (M_matrix.block(i*2+1,i*2) != nullptr)
+            rangePressure = *M_matrix.rangeMap(i*2+1,i*2);
+        else
+            rangePressure = *M_matrix.rangeMap(i*2+1,i*2+1);
         vectorEpetra_Type subVelocity(rangeVelocity);
         vectorEpetra_Type subPressure(rangePressure);
         subVelocity.zero();
@@ -533,7 +526,7 @@ ApplyInverse(const vector_Type& X, vector_Type& Y) const
         vectorEpetra_Type Y_dual(M_dualMap, LifeV::Unique);
 
         vectorEpetra_Type Z(M_primalMap, LifeV::Unique);
-        applyEverySIMPLEOperator(X_primal, Z);
+        applyEverySimpleOperator(X_primal, Z);
 
         vectorEpetra_Type Bz(M_dualMap, LifeV::Unique);
         applyEveryB(Z, Bz);
@@ -545,7 +538,7 @@ ApplyInverse(const vector_Type& X, vector_Type& Y) const
         applyEveryBT(Y_dual, BTy);
 
         vectorEpetra_Type Am1BTy(M_primalMap, LifeV::Unique);
-        applyEverySIMPLEOperator(BTy, Am1BTy);
+        applyEverySimpleOperator(BTy, Am1BTy);
 
         Y_primal = Z - Am1BTy;
 
