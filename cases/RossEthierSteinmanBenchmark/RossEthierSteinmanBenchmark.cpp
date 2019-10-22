@@ -42,68 +42,49 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm());
     #endif
 
-    GetPot datafile("datafiles/data");
-    LifeV::RossEthierSteinmanDec::setParamsFromGetPot(datafile);
     bool verbose = comm->MyPID() == 0;
 
-    std::vector<std::string> basisFunctions;
-    basisFunctions.push_back("chebyshev");
-    basisFunctions.push_back("zernike");
-
-    std::vector<std::string> refinements;
-    refinements.push_back("h0.80");
-    refinements.push_back("h0.70");
-    refinements.push_back("h0.60");
-    refinements.push_back("h0.50");
-    refinements.push_back("h0.40");
-    refinements.push_back("h0.30");
-    refinements.push_back("h0.25");
-    refinements.push_back("h0.20");
-    refinements.push_back("h0.15");
-    refinements.push_back("h0.13");
-
-    for (int nMax = 0; nMax < 3; nMax++)
+    if (argc < 4)
     {
-        std::string nMaxString(std::to_string(nMax));
-        datafile.set("coupling/nMax", nMaxString.c_str());
-
-        for (auto itBfs = basisFunctions.begin(); itBfs != basisFunctions.end(); itBfs++)
-        {
-            datafile.set("coupling/type", itBfs->c_str());
-
-            for (auto it = refinements.begin(); it != refinements.end(); it++)
-            {
-                std::string nameTree("datafiles/tree_");
-                nameTree += *it + std::string(".xml");
-
-                datafile.set("geometric_structure/xmlfile", nameTree.c_str());
-
-                AbstractFunctor* RESSolution = new RossEthierSteinmanSolution;
-                GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose,
-                                                       RESSolution);
-
-                gs.setForcingFunction(LifeV::RossEthierSteinmanDec::f,
-                                      LifeV::RossEthierSteinmanDec::f_dt);
-
-                std::string errorFile("errors");
-                errorFile += "_";
-                errorFile += *itBfs;
-                errorFile += "_";
-                errorFile += nMaxString;
-                errorFile += "_";
-                errorFile += *it;
-                errorFile += ".txt";
-                std::ifstream f(errorFile.c_str());
-                if (!f.good())
-                {
-                    gs.setExportErrors(errorFile);
-                    gs.printMeshSize("meshSizes" + *it + ".txt");
-                    gs.solve();
-                }
-                delete RESSolution;
-            }
-        }
+        std::cout << "Insufficient number of arguments!" << std::endl;
+        exit(1);
     }
+
+    std::string bf = argv[1];
+    std::string nMax = argv[2];
+    std::string ref = "h" + std::string(argv[3]);
+
+    GetPot datafile("datafiles/data");
+    LifeV::RossEthierSteinmanDec::setParamsFromGetPot(datafile);
+    datafile.set("coupling/nMax", nMax.c_str());
+    datafile.set("coupling/type", bf.c_str());
+
+    std::string nameTree("datafiles/tree_");
+    nameTree += ref + std::string(".xml");
+
+    datafile.set("geometric_structure/xmlfile", nameTree.c_str());
+
+    AbstractFunctor* RESSolution = new RossEthierSteinmanSolution;
+    GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose,
+                                           RESSolution);
+
+    gs.setForcingFunction(LifeV::RossEthierSteinmanDec::f,
+                          LifeV::RossEthierSteinmanDec::f_dt);
+
+    std::string errorFile("errors");
+    errorFile += "_";
+    errorFile += bf;
+    errorFile += "_";
+    errorFile += nMax;
+    errorFile += "_";
+    errorFile += ref;
+    errorFile += ".txt";
+    std::ifstream f(errorFile.c_str());
+
+    gs.setExportErrors(errorFile);
+    gs.printMeshSize("meshSizes" + ref + ".txt");
+    gs.solve();
+    delete RESSolution;
 
     return 0;
 }

@@ -31,3 +31,9 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/SolverParamList_rbf3d.xml
                 ${CMAKE_CURRENT_BINARY_DIR}/SolverParamList_rbf3d.xml)
+
+add_custom_command(
+        TARGET RossEthierSteinmanBenchmark POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/run_convergence.sh
+                ${CMAKE_CURRENT_BINARY_DIR}/run_convergence.sh)

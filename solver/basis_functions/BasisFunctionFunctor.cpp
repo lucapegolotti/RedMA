@@ -86,18 +86,28 @@ getThetaAndRadius(const Vector3D& pos, double& theta, double& radius)
         theta = 0;
     else
     {
-        double ratio = diff.dot(M_e) / radius;
+        double ratio;
+        if (diff.dot(M_eOrth) > 0)
+        {
+            ratio = diff.dot(M_e) / radius;
 
-        if (std::abs(ratio + 1) < 1e-15)
-            theta = M_PI;
+            if (std::abs(ratio + 1) < 1e-15)
+                theta = M_PI;
+            else
+                theta = std::acos(ratio);
+        }
         else
-            theta = std::acos(ratio);
+        {
+            ratio = -diff.dot(M_e) / radius;
+
+            if (std::abs(ratio + 1) < 1e-15)
+                theta = M_PI;
+            else
+                theta = std::acos(ratio);
+            theta += M_PI;
+        }
+
     }
-
-    Vector3D crossProduct = diff.cross(M_e);
-
-    if (crossProduct.dot(normal) < 0)
-        theta = theta + M_PI;
 }
 
 }  // namespace RedMA
