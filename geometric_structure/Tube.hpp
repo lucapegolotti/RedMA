@@ -27,7 +27,7 @@ class Tube : public BuildingBlock
 {
 public:
     Tube(commPtr_Type comm, std::string refinement = "coarse",
-         bool verbose = false);
+         bool verbose = false, int diameter = 1, int length = 1);
 
     virtual inline unsigned int expectedNumberOfChildren()
     {

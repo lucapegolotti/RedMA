@@ -2,14 +2,14 @@
     <L_ratio>1</L_ratio>
     <Rout_ratio>1</Rout_ratio>
     <alpha_axis>0</alpha_axis>
-    <alphax>1</alphax>
+    <alphax>0</alphax>
     <alphay>-1.5707963268</alphay>
-    <alphaz>1</alphaz>
-    <bend>1</bend>
-    <bx>-0.75</bx>
+    <alphaz>0</alphaz>
+    <bend>0</bend>
+    <bx>-0.5</bx>
     <by>0</by>
     <bz>0</bz>
-    <scale>0.05</scale>
+    <scale>0.5</scale>
     <use_linear_elasticity>0</use_linear_elasticity>
     <buildingblock type="tube" refinement="h0.15">
         <L_ratio>1</L_ratio>
@@ -19,10 +19,10 @@
         <alphay>-1.5707963268</alphay>
         <alphaz>0</alphaz>
         <bend>0</bend>
-        <bx>-0.75</bx>
+        <bx>0</bx>
         <by>0</by>
         <bz>0</bz>
-        <scale>0.05</scale>
+        <scale>1</scale>
         <use_linear_elasticity>0</use_linear_elasticity>
     </buildingblock>
 </buildingblock>

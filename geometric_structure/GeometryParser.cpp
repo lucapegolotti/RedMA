@@ -83,7 +83,22 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
     {
         printlog(GREEN, std::string("[GeometryParser] parsing building block") +
                        " of type tube\n", M_verbose);
-        returnBlock.reset(new Tube(M_comm, ref, M_verbose));
+
+        // diameter
+        int d = 1;
+        if (element->Attribute("d"))
+        {
+           ref = element->Attribute("d");
+        }
+
+        // length
+        int L = 1;
+        if (element->Attribute("L"))
+        {
+           ref = element->Attribute("L");
+        }
+
+        returnBlock.reset(new Tube(M_comm, ref, M_verbose, d, L));
     }
     else if (!std::strcmp(element->Attribute("type"),
                           "bifurcation_symmetric"))

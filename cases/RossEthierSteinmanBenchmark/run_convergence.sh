@@ -1,4 +1,7 @@
 #!/bash/bin
+trap "exit" INT
+
+source ~/lifev/loadmpi.sh
 
 for bfunctions in zernike chebyshev
 do

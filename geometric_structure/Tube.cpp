@@ -4,13 +4,17 @@ namespace RedMA
 {
 
 Tube::
-Tube(commPtr_Type comm, std::string refinement, bool verbose) :
+Tube(commPtr_Type comm, std::string refinement, bool verbose,
+     int diameter, int length) :
   BuildingBlock(comm, refinement, verbose)
 {
     M_name = "Tube";
-
+    std::string ratio = std::to_string(diameter);
+    ratio += "x";
+    ratio += std::to_string(length);
     M_datafileName = "data_mesh";
-    M_meshName = "tube/tube_" + getStringMesh(refinement) + ".mesh";
+    M_meshName = "tube_" + ratio + "/tube_" + ratio + "_" +
+                 getStringMesh(refinement) + ".mesh";
 
     // center of inlet (reference configuration)
     M_inletCenterRef[0] = 0.0;
@@ -20,7 +24,7 @@ Tube(commPtr_Type comm, std::string refinement, bool verbose) :
     // center of outlet (reference configuration)
     M_outletCenterRef[0] = 0.0;
     M_outletCenterRef[1] = 0.0;
-    M_outletCenterRef[2] = 15.0;
+    M_outletCenterRef[2] = length;
 
     // normal of inlet (reference configuration)
     M_inletNormalRef[0] = 0.0;
@@ -32,8 +36,8 @@ Tube(commPtr_Type comm, std::string refinement, bool verbose) :
     M_outletNormalRef[1] = 0.0;
     M_outletNormalRef[2] = 1.0;
 
-    M_inletRadiusRef = 3.0;
-    M_outletRadiusRef = 3.0;
+    M_inletRadiusRef = (diameter * 1.0) / 2.0;
+    M_outletRadiusRef = (diameter * 1.0) / 2.0;
 
     GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef, 1, 30);
     GeometricFace outlet(M_outletCenterRef, M_outletNormalRef, M_outletRadiusRef, 2, 31);
@@ -49,7 +53,7 @@ Tube(commPtr_Type comm, std::string refinement, bool verbose) :
 
     M_parametersHandler.registerParameter("bend", 0.0, 0.0, M_PI/2, randomizible);
     M_parametersHandler.registerParameter("L_ratio", 1.0, 0.7, 1.3, randomizible);
-    M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.0, randomizible);
+    M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.2, randomizible);
     M_parametersHandler.registerParameter("use_linear_elasticity", 0.0, 0.0, 1.0);
 }
 
@@ -60,12 +64,12 @@ getStringMesh(std::string refinement)
     if (refinement[0] == 'h')
         return refinement;
     if (!std::strcmp(refinement.c_str(),"coarse"))
-        return "h1.40";
+        return "h0.35";
     if (!std::strcmp(refinement.c_str(),"normal"))
-        return "h0.80";
+        return "h0.25";
     if (!std::strcmp(refinement.c_str(),"fine"))
-        return "h0.60";
-    return "h1.40";
+        return "h0.10";
+    return "h0.25";
 }
 
 
