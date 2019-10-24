@@ -247,13 +247,13 @@ dotProd(VectorPtr* basis1, VectorPtr* basis2, unsigned int index1,
 
 Coupler::VectorPtr*
 Coupler::
-assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
-                        GeometricFace face, const double& coeff,
-                        FESpacePtr couplingFespace,
-                        ETFESpaceCouplingPtr couplingFESpaceETA,
-                        unsigned int nBasisFunctions,
-                        VectorPtr* otherInterfaceVectors,
-                        InterpolationPtr interpolator)
+interpolateCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
+                           GeometricFace face, const double& coeff,
+                           FESpacePtr couplingFespace,
+                           ETFESpaceCouplingPtr couplingFESpaceETA,
+                           unsigned int nBasisFunctions,
+                           VectorPtr* otherInterfaceVectors,
+                           InterpolationPtr interpolator)
 {
     using namespace LifeV;
     // using namespace ExpressionAssembly;
@@ -317,6 +317,111 @@ assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
         }
     }
     return couplingVectors;
+}
+
+Coupler::VectorPtr*
+Coupler::
+assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> basisFunction,
+                        GeometricFace face, const double& coeff,
+                        FESpacePtr couplingFespace,
+                        ETFESpaceCouplingPtr couplingFESpaceETA,
+                        unsigned int nBasisFunctions)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    QuadratureBoundary boundaryQuadRule(buildTetraBDQR(*generateQuadratureRule("STRANG10")));
+
+    VectorPtr* couplingVectors = new VectorPtr[nBasisFunctions];
+    MapEpetra couplingMap = couplingFESpaceETA->map();
+
+    unsigned int faceFlag = face.M_flag;
+    MeshPtr mesh = couplingFESpaceETA->mesh();
+
+    for (unsigned int i = 0; i < nBasisFunctions; i++)
+    {
+        VectorPtr currentMode(new Vector(couplingMap, Repeated));
+
+        basisFunction->setIndex(i);
+        integrate(boundary(mesh, faceFlag),
+                  boundaryQuadRule,
+                  couplingFESpaceETA,
+                  value(coeff) * eval(basisFunction, X) * phi_i
+              ) >> currentMode;
+        couplingVectors[i] = currentMode;
+    }
+    return couplingVectors;
+}
+
+std::shared_ptr<LifeV::QuadratureRule>
+Coupler::
+generateQuadratureRule(std::string tag)
+{
+    using namespace LifeV;
+
+    std::shared_ptr<QuadratureRule> customRule;
+    if (!std::strcmp(tag.c_str(),"STRANG10"))
+    {
+        // rule taken from https://people.sc.fsu.edu/~jburkardt/datasets/quadrature_rules_tri/quadrature_rules_tri.html
+        customRule.reset(new QuadratureRule("STRANG10",TRIANGLE, 3, 7, 0));
+
+        QuadraturePoint p1(0.333333333333333,0.333333333333333,0,
+                           -0.149570044467670/2);
+        customRule->addPoint(p1);
+
+        QuadraturePoint p2(0.479308067841923,0.260345966079038,0,
+                           0.175615257433204/2);
+        customRule->addPoint(p2);
+
+        QuadraturePoint p3(0.260345966079038,0.479308067841923,0,
+                           0.175615257433204/2);
+        customRule->addPoint(p3);
+
+        QuadraturePoint p4(0.260345966079038,0.260345966079038,0,
+                           0.175615257433204/2);
+        customRule->addPoint(p4);
+
+        QuadraturePoint p5(0.869739794195568,0.065130102902216,0,
+                           0.053347235608839/2);
+        customRule->addPoint(p5);
+
+        QuadraturePoint p6(0.065130102902216,0.869739794195568,0,
+                           0.053347235608839/2);
+        customRule->addPoint(p6);
+
+        QuadraturePoint p7(0.065130102902216,0.065130102902216,0,
+                           0.053347235608839/2);
+        customRule->addPoint(p7);
+
+        QuadraturePoint p8(0.638444188569809,0.312865496004875,0,
+                           0.077113760890257/2);
+        customRule->addPoint(p8);
+
+        QuadraturePoint p9(0.638444188569809,0.048690315425316,0,
+                           0.077113760890257/2);
+        customRule->addPoint(p9);
+
+        QuadraturePoint p10(0.312865496004875,0.638444188569809,0,
+                           0.077113760890257/2);
+        customRule->addPoint(p10);
+
+        QuadraturePoint p11(0.312865496004875,0.048690315425316,0,
+                           0.077113760890257/2);
+        customRule->addPoint(p11);
+
+        QuadraturePoint p12(0.048690315425316,0.638444188569809,0,
+                           0.077113760890257/2);
+        customRule->addPoint(p12);
+
+        QuadraturePoint p13(0.048690315425316,0.312865496004875,0,
+                           0.077113760890257/2);
+        customRule->addPoint(p13);
+    }
+    else
+    {
+        throw new Exception("Quadrature rule " + tag + " not implemented!");
+    }
+    return customRule;
 }
 
 Coupler::VectorPtr*

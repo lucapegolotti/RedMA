@@ -89,14 +89,21 @@ public:
                                             MatrixPtr mass1, MatrixPtr mass2,
                                             const unsigned int& nBasisFunctions);
 
+    VectorPtr* interpolateCouplingVectors(std::shared_ptr<BasisFunctionFunctor> bf,
+                                          GeometricFace face,
+                                          const double& coeff,
+                                          FESpacePtr couplingFespace,
+                                          ETFESpaceCouplingPtr couplingFESpaceETA,
+                                          unsigned int nBasisFunctions,
+                                          VectorPtr* otherInterfaceVectors = nullptr,
+                                          InterpolationPtr interpolator = nullptr);
+
     VectorPtr* assembleCouplingVectors(std::shared_ptr<BasisFunctionFunctor> bf,
                                        GeometricFace face,
                                        const double& coeff,
                                        FESpacePtr couplingFespace,
                                        ETFESpaceCouplingPtr couplingFESpaceETA,
-                                       unsigned int nBasisFunctions,
-                                       VectorPtr* otherInterfaceVectors = nullptr,
-                                       InterpolationPtr interpolator = nullptr);
+                                       unsigned int nBasisFunctions);
 
     VectorPtr* assembleTraces(GeometricFace face,
                               const double& coeff,
@@ -145,6 +152,8 @@ public:
                                MatrixPtr matrixToInterpolate = nullptr,
                                MatrixPtr otherMass = nullptr);
 
+    static std::shared_ptr<LifeV::QuadratureRule> generateQuadratureRule(std::string tag);
+
 protected:
     InterpolationPtr buildSingleInterpolator(GetPot datafile, double meshSize,
                                              FESpacePtr FESpaceFrom,
@@ -157,6 +166,7 @@ protected:
                                              MapEpetraPtr fromMap,
                                              MapEpetraPtr toMap,
                                              InterpolationPtr interpolation);
+
 
     commPtr_Type                        M_comm;
     bool                                M_verbose;

@@ -66,63 +66,8 @@ assembleBoundaryMatrix(GeometricFace face)
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    // rule taken from https://people.sc.fsu.edu/~jburkardt/datasets/quadrature_rules_tri/quadrature_rules_tri.html
-    QuadratureRule customRule("STRANG10",TRIANGLE, 3, 7, 0);
-
-    QuadraturePoint p1(0.333333333333333,0.333333333333333,0,
-                       -0.149570044467670/2);
-    customRule.addPoint(p1);
-
-    QuadraturePoint p2(0.479308067841923,0.260345966079038,0,
-                       0.175615257433204/2);
-    customRule.addPoint(p2);
-
-    QuadraturePoint p3(0.260345966079038,0.479308067841923,0,
-                       0.175615257433204/2);
-    customRule.addPoint(p3);
-
-    QuadraturePoint p4(0.260345966079038,0.260345966079038,0,
-                       0.175615257433204/2);
-    customRule.addPoint(p4);
-
-    QuadraturePoint p5(0.869739794195568,0.065130102902216,0,
-                       0.053347235608839/2);
-    customRule.addPoint(p5);
-
-    QuadraturePoint p6(0.065130102902216,0.869739794195568,0,
-                       0.053347235608839/2);
-    customRule.addPoint(p6);
-
-    QuadraturePoint p7(0.065130102902216,0.065130102902216,0,
-                       0.053347235608839/2);
-    customRule.addPoint(p7);
-
-    QuadraturePoint p8(0.638444188569809,0.312865496004875,0,
-                       0.077113760890257/2);
-    customRule.addPoint(p8);
-
-    QuadraturePoint p9(0.638444188569809,0.048690315425316,0,
-                       0.077113760890257/2);
-    customRule.addPoint(p9);
-
-    QuadraturePoint p10(0.312865496004875,0.638444188569809,0,
-                       0.077113760890257/2);
-    customRule.addPoint(p10);
-
-    QuadraturePoint p11(0.312865496004875,0.048690315425316,0,
-                       0.077113760890257/2);
-    customRule.addPoint(p11);
-
-    QuadraturePoint p12(0.048690315425316,0.638444188569809,0,
-                       0.077113760890257/2);
-    customRule.addPoint(p12);
-
-    QuadraturePoint p13(0.048690315425316,0.312865496004875,0,
-                       0.077113760890257/2);
-    customRule.addPoint(p13);
-
     // QuadratureBoundary boundaryQuadRule(buildTetraBDQR(quadRuleTria7pt));
-    QuadratureBoundary boundaryQuadRule(buildTetraBDQR(customRule));
+    QuadratureBoundary boundaryQuadRule(buildTetraBDQR(*Coupler::generateQuadratureRule("STRANG10")));
 
     unsigned int faceFlag = face.M_flag;
     MeshPtr mesh = M_couplingFESpaceETA->mesh();
@@ -231,7 +176,7 @@ assembleCouplingMatricesInterpolation(AbstractAssembler& child,
     if (std::strcmp(basisFunction->getType().c_str(), "traces"))
     {
         mainVectors = mainDomain->
-                      M_coupler.assembleCouplingVectors(basisFunction,
+                      M_coupler.interpolateCouplingVectors(basisFunction,
                                                         *mainFace,
                                                         coeff,
                                                         mainDomain->M_couplingFESpace,
@@ -371,19 +316,38 @@ assembleCouplingMatrices(AbstractAssembler& child,
         return;
     }
 
+    bool useMassMatrixForIntegration = M_datafile("coupling/use_mass_for_integration", false);
+
     VectorPtr* couplingVectorsFather;
     VectorPtr* couplingVectorsChild;
-    couplingVectorsFather = M_coupler.assembleCouplingVectors(basisFunction,
-                                                              outlet, 1,
-                                                              M_couplingFESpace,
-                                                              M_couplingFESpaceScalarETA,
-                                                              nBasisFunctions);
+    if (useMassMatrixForIntegration)
+    {
+        couplingVectorsFather = M_coupler.interpolateCouplingVectors(basisFunction,
+                                                                  outlet, 1,
+                                                                  M_couplingFESpace,
+                                                                  M_couplingFESpaceScalarETA,
+                                                                  nBasisFunctions);
 
-    couplingVectorsChild = child.M_coupler.assembleCouplingVectors(basisFunction,
-                                                                   inlet, -1,
-                                                                   child.M_couplingFESpace,
-                                                                   child.M_couplingFESpaceScalarETA,
-                                                                   nBasisFunctions);
+        couplingVectorsChild = child.M_coupler.interpolateCouplingVectors(basisFunction,
+                                                                       inlet, -1,
+                                                                       child.M_couplingFESpace,
+                                                                       child.M_couplingFESpaceScalarETA,
+                                                                       nBasisFunctions);
+    }
+    else
+    {
+        couplingVectorsFather = M_coupler.assembleCouplingVectors(basisFunction,
+                                                                  outlet, 1,
+                                                                  M_couplingFESpace,
+                                                                  M_couplingFESpaceScalarETA,
+                                                                  nBasisFunctions);
+
+        couplingVectorsChild = child.M_coupler.assembleCouplingVectors(basisFunction,
+                                                                       inlet, -1,
+                                                                       child.M_couplingFESpace,
+                                                                       child.M_couplingFESpaceScalarETA,
+                                                                       nBasisFunctions);
+    }
 
     MapEpetraPtr lagrangeMultiplierMap = buildLagrangeMultiplierMap(nBasisFunctions,
                                                                     child,
@@ -391,30 +355,50 @@ assembleCouplingMatrices(AbstractAssembler& child,
                                                                     maps,
                                                                     dimensions);
 
-    MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
-    MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
-
     MapEpetraPtr primalMap = M_primalMaps[M_indexCoupling];
 
-    M_coupler.fillMatrixWithVectorsInterpolated(couplingVectorsFather,
+    if (useMassMatrixForIntegration)
+    {
+        MatrixPtr massMatrixFather = assembleBoundaryMatrix(outlet);
+        MatrixPtr massMatrixChild = child.assembleBoundaryMatrix(inlet);
+
+
+        M_coupler.fillMatrixWithVectorsInterpolated(couplingVectorsFather,
+                                                    nBasisFunctions,
+                                                    lagrangeMultiplierMap,
+                                                    primalMap,
+                                                    numberOfComponents(),
+                                                    child.M_treeNode->M_ID);
+
+        primalMap = child.M_primalMaps[child.M_indexCoupling];
+
+        child.M_coupler.fillMatrixWithVectorsInterpolated(couplingVectorsChild,
+                                                          nBasisFunctions,
+                                                          lagrangeMultiplierMap,
+                                                          primalMap,
+                                                          child.numberOfComponents(),
+                                                          this->M_treeNode->M_ID);
+
+
+        M_coupler.buildCouplingMatrices(massMatrixFather, child.M_treeNode->M_ID);
+        child.M_coupler.buildCouplingMatrices(massMatrixChild, this->M_treeNode->M_ID);
+    }
+    else
+    {
+        M_coupler.fillMatricesWithVectors(couplingVectorsFather,
+                                          nBasisFunctions,
+                                          lagrangeMultiplierMap,
+                                          primalMap,
+                                          numberOfComponents(),
+                                          child.M_treeNode->M_ID);
+
+        child.M_coupler.fillMatricesWithVectors(couplingVectorsChild,
                                                 nBasisFunctions,
                                                 lagrangeMultiplierMap,
                                                 primalMap,
-                                                numberOfComponents(),
-                                                child.M_treeNode->M_ID);
-
-    primalMap = child.M_primalMaps[child.M_indexCoupling];
-
-    child.M_coupler.fillMatrixWithVectorsInterpolated(couplingVectorsChild,
-                                                      nBasisFunctions,
-                                                      lagrangeMultiplierMap,
-                                                      primalMap,
-                                                      child.numberOfComponents(),
-                                                      this->M_treeNode->M_ID);
-
-
-    M_coupler.buildCouplingMatrices(massMatrixFather, child.M_treeNode->M_ID);
-    child.M_coupler.buildCouplingMatrices(massMatrixChild, this->M_treeNode->M_ID);
+                                                child.numberOfComponents(),
+                                                M_treeNode->M_ID);
+    }
 
     printlog(MAGENTA, "done\n", M_verbose);
 
