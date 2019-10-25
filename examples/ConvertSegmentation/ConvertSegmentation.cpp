@@ -35,6 +35,8 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
+    SegmentationParser sp("datafiles/aorta.pth", "datafiles/aorta.ctgr", true);
+
 
     return 0;
 }

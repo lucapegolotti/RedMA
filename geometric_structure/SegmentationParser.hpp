@@ -17,21 +17,37 @@
 #ifndef SEGMENTATIONPARSER_HPP
 #define SEGMENTATIONPARSER_HPP
 
+#include <BuildingBlock.hpp>
 #include <TreeStructure.hpp>
+
+#include <tinyxml2.h>
 
 namespace RedMA
 {
 
+// we can use the geometric face for the contour as well
 class SegmentationParser
 {
+    typedef LifeV::VectorSmall<3>   Vector3D;
+    typedef GeometricFace           Contour;
+
 public:
-    SegmentationParser();
+    SegmentationParser(std::string pthName, std::string ctgrName, bool verbose);
 
     ~SegmentationParser();
 
-    TreeStructure parse(std::string pthName, std::string ctgrName);
-private:
+    void traversePath(std::string pthName);
 
+    void traverseSegmentation(std::string ctgrName);
+
+private:
+    Vector3D get3DVectorFromXMLElement(tinyxml2::XMLElement* data);
+
+    std::vector<Contour>    M_contours;
+    std::vector<Vector3D>   M_path;
+    std::vector<Vector3D>   M_tangents; // corresponding to ith path point
+    std::vector<Vector3D>   M_rotation; // corresponding to ith path point
+    bool                    M_verbose;
 };
 
 }  // namespace RedMA

@@ -55,6 +55,8 @@ print()
                     "," + std::to_string(M_normal[1]) + "," +
                     std::to_string(M_normal[2]) + ")\n");
     printlog(WHITE, std::string("\tradius = ") + std::to_string(M_radius) + "\n");
+    printlog(WHITE, std::string("\tflag = ") + std::to_string(M_flag) + "\n");
+
 }
 
 BuildingBlock::

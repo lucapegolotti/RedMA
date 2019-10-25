@@ -7,3 +7,9 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/SolverParamList.xml
                 ${CMAKE_CURRENT_BINARY_DIR}/SolverParamList.xml)
+
+add_custom_command(
+        TARGET ConvertSegmentation PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_CURRENT_SOURCE_DIR}/datafiles
+                ${CMAKE_CURRENT_BINARY_DIR}/datafiles)
