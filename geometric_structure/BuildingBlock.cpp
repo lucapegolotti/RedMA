@@ -115,7 +115,6 @@ readMesh(std::string meshdir)
     meshDatafile.set("mesh/mesh_file", M_meshName.c_str());
     meshData.setup(meshDatafile, "mesh");
     meshData.setMeshDir(meshdir);
-
     LifeV::readMesh(*fullMesh,meshData);
 
     LifeV::MeshPartitioner<mesh_Type> meshPart;
@@ -124,6 +123,7 @@ readMesh(std::string meshdir)
     // CoutRedirecter ct;
     // ct.redirect();
     meshPart.doPartition(fullMesh, M_comm);
+
     M_mesh = meshPart.meshPartition();
 
     // printlog(CYAN, ct.restore(), M_verbose);
@@ -383,6 +383,27 @@ rotationFunction(double& x, double& y, double& z, const Matrix3D& affMatrix,
 
 void
 BuildingBlock::
+computeRotationAngles(const Vector3D& vectorToMove,
+                      const Vector3D& vectorToReach,
+                      double& alphax, double& alphay, double& alphaz)
+{
+    Vector3D e1(1,0,0), e2(0,1,0), e3(0,0,1);
+
+    double alphax_1 = std::acos(e1.dot(vectorToMove) / (vectorToMove.norm()));
+    double alphay_1 = std::acos(e2.dot(vectorToMove) / (vectorToMove.norm()));
+    double alphaz_1 = std::acos(e3.dot(vectorToMove) / (vectorToMove.norm()));
+
+    double alphax_2 = std::acos(e1.dot(vectorToReach) / (vectorToReach.norm()));
+    double alphay_2 = std::acos(e2.dot(vectorToReach) / (vectorToReach.norm()));
+    double alphaz_2 = std::acos(e3.dot(vectorToReach) / (vectorToReach.norm()));
+
+    alphax = alphax_1 - alphax_2;
+    alphay = alphay_1 - alphay_2;
+    alphaz = alphaz_1 - alphaz_2;
+}
+
+void
+BuildingBlock::
 dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
 {
     printlog(MAGENTA, "[" + M_name +
@@ -396,7 +417,7 @@ dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
     }
     boost::filesystem::create_directory(outdir);
 
-    GetPot exporterDatafile(meshdir + "datafiles/" + M_datafileName);
+    GetPot exporterDatafile(meshdir + M_datafileName);
     LifeV::ExporterVTK<mesh_Type> exporter(exporterDatafile, outputName);
     exporter.setMeshProcId(M_mesh, M_comm->MyPID());
 

@@ -38,6 +38,10 @@ public:
 
     std::string getStringMesh(std::string refinement);
 
+    inline double getInletRadius() const {return M_inletRadiusRef;};
+
+    Vector3D getInletNormal() {return M_inletNormalRef;};
+
 private:
     void nonAffineScaling(const double& lengthRatio,
                           const double& outRadiusRatio,

@@ -126,6 +126,10 @@ public:
 
     void setRandom();
 
+    static void computeRotationAngles(const Vector3D& vectorToMove,
+                                      const Vector3D& vectorToReach,
+                                      double& alphax, double& y, double& z);
+
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,

@@ -19,6 +19,10 @@
 
 #include <BuildingBlock.hpp>
 #include <TreeStructure.hpp>
+#include <Tube.hpp>
+
+#include <Epetra_SerialComm.h>
+#include <Epetra_MpiComm.h>
 
 #include <tinyxml2.h>
 
@@ -28,17 +32,22 @@ namespace RedMA
 // we can use the geometric face for the contour as well
 class SegmentationParser
 {
-    typedef LifeV::VectorSmall<3>   Vector3D;
-    typedef GeometricFace           Contour;
+    typedef LifeV::VectorSmall<3>                          Vector3D;
+    typedef GeometricFace                                  Contour;
+    typedef std::shared_ptr<Epetra_Comm>                   commPtr_Type;
+
 
 public:
-    SegmentationParser(std::string pthName, std::string ctgrName, bool verbose);
+    SegmentationParser(commPtr_Type comm, std::string pthName,
+                       std::string ctgrName, bool verbose);
 
     ~SegmentationParser();
 
     void traversePath(std::string pthName);
 
     void traverseSegmentation(std::string ctgrName);
+
+    TreeStructure createTree(int indexBegin = -1, int indexEnd = -1);
 
 private:
     Vector3D get3DVectorFromXMLElement(tinyxml2::XMLElement* data);
@@ -48,6 +57,7 @@ private:
     std::vector<Vector3D>   M_tangents; // corresponding to ith path point
     std::vector<Vector3D>   M_rotation; // corresponding to ith path point
     bool                    M_verbose;
+    commPtr_Type            M_comm;
 };
 
 }  // namespace RedMA

@@ -23,6 +23,8 @@
 #endif
 
 #include <SegmentationParser.hpp>
+#include <GeometryPrinter.hpp>
+
 
 using namespace RedMA;
 
@@ -35,8 +37,16 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    SegmentationParser sp("datafiles/aorta.pth", "datafiles/aorta.ctgr", true);
+    SegmentationParser sp(comm, "datafiles/aorta.pth", "datafiles/aorta.ctgr", true);
 
+    TreeStructure tree = sp.createTree();
+    GeometryPrinter printer;
+    printer.saveToFile(tree, "tree.xml", comm);
+    tree.readMeshes("../../../meshes/");
+    tree.traverseAndDeformGeometries();
+    tree.dump("output/","../../../meshes/");
+
+    tree.getRoot()->M_block->getInlet().print();
 
     return 0;
 }

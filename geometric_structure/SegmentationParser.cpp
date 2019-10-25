@@ -4,7 +4,9 @@ namespace RedMA
 {
 
 SegmentationParser::
-SegmentationParser(std::string pthName, std::string ctgrName, bool verbose) :
+SegmentationParser(commPtr_Type comm, std::string pthName,
+                   std::string ctgrName, bool verbose) :
+  M_comm(comm),
   M_verbose(verbose)
 {
     traversePath(pthName);
@@ -157,11 +159,10 @@ traverseSegmentation(std::string ctgrName)
             cPoint = cPoint->NextSiblingElement("point");
         } while (cPoint);
 
-        normal = normal / normal.norm();
+        normal = (-1.) * normal / normal.norm();
         radius = radius / count;
 
         Contour newContour(center, normal, radius, pathIndex);
-
         newContour.print();
 
         M_contours.push_back(newContour);
@@ -170,6 +171,48 @@ traverseSegmentation(std::string ctgrName)
     } while (fContour);
 
     printlog(MAGENTA, "done\n", M_verbose);
+}
+
+TreeStructure
+SegmentationParser::
+createTree(int indexBegin, int indexEnd)
+{
+    if (indexBegin == -1)
+    {
+        indexBegin = 0;
+    }
+
+    if (indexEnd == -1)
+    {
+        indexEnd = M_path.size();
+    }
+
+    TreeStructure retTree(M_verbose);
+
+    // we start by adding the first block
+    std::shared_ptr<Tube> rootTube(new Tube(M_comm));
+    Vector3D cb = M_contours[indexBegin].M_center;
+    rootTube->setParameterValue("bx", cb[0]);
+    rootTube->setParameterValue("by", cb[1]);
+    rootTube->setParameterValue("bz", cb[2]);
+
+    double alphax, alphay, alphaz;
+
+    BuildingBlock::computeRotationAngles(rootTube->getInletNormal(),
+                                         M_contours[indexBegin].M_normal,
+                                         alphax, alphay, alphaz);
+
+    double defRadius = rootTube->getInletRadius();
+    rootTube->setParameterValue("scale", M_contours[indexBegin].M_radius/defRadius);
+
+    rootTube->setParameterValue("alphax", alphax);
+    rootTube->setParameterValue("alphay", alphay);
+    rootTube->setParameterValue("alphaz", alphaz);
+
+
+    retTree.setRoot(rootTube);
+
+    return retTree;
 }
 
 }  // namespace RedMA
