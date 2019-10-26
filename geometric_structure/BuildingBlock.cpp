@@ -72,10 +72,13 @@ BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
     double infty = GeometricParametersHandler::infty;
     double mp2 = 2 * M_PI;
 
-    // rotation angle
-    M_parametersHandler.registerParameter("alphax", 0.0, -mp2, mp2);
-    M_parametersHandler.registerParameter("alphay", 0.0, -mp2, mp2);
-    M_parametersHandler.registerParameter("alphaz", 0.0, -mp2, mp2);
+    // rotation axis and angle
+    M_parametersHandler.registerParameter("rotation_axis_x", 1.0, -infty, infty);
+    M_parametersHandler.registerParameter("rotation_axis_y", 0.0, -infty, infty);
+    M_parametersHandler.registerParameter("rotation_axis_z", 0.0, -infty, infty);
+    M_parametersHandler.registerParameter("alpha", 0.0, -mp2, mp2);
+
+
     M_parametersHandler.registerParameter("alpha_axis", 0.0, -mp2, mp2, true);
 
     // scale
@@ -275,25 +278,25 @@ applyAffineTransformation()
                      " BuildingBlock] is root: applying initial affine transformation ...\n",
                      M_verbose);
         scale = M_parametersHandler["scale"];
-        scaleVec[0] = scale; scaleVec[1] = scale; scaleVec[2] = scale;
 
-        // with minus in front: counterclockwise rotation
-        rotation[0] = -M_parametersHandler["alphax"];
-        rotation[1] = -M_parametersHandler["alphay"];
-        rotation[2] = -M_parametersHandler["alphaz"];
+        rotation[0] = M_parametersHandler["rotation_axis_x"];
+        rotation[1] = M_parametersHandler["rotation_axis_y"];
+        rotation[2] = M_parametersHandler["rotation_axis_z"];
+
+        double angle = M_parametersHandler["alpha"];
 
         translation[0] = M_parametersHandler["bx"];
         translation[1] = M_parametersHandler["by"];
         translation[2] = M_parametersHandler["bz"];
 
-        std::string angleStr = std::string("(");
-        angleStr = angleStr + std::to_string(rotation[0]) + ",";
-        angleStr = angleStr + std::to_string(rotation[1]) + ",";
-        angleStr = angleStr + std::to_string(rotation[2]) + ")";
+        std::string axisStr = std::string("(");
+        axisStr = axisStr + std::to_string(rotation[0]) + ",";
+        axisStr = axisStr + std::to_string(rotation[1]) + ",";
+        axisStr = axisStr + std::to_string(rotation[2]) + ")";
 
         printlog(YELLOW, "[" + M_name +
-                     " BuildingBlock] rotating with angles " + angleStr + " and" +
-                     " ...\n", M_verbose);
+                     " BuildingBlock] rotating around axis " + axisStr +
+                     " with angle " + std::to_string(angle) + " ...\n", M_verbose);
 
 
         std::string transStr = std::string("(");
@@ -306,17 +309,20 @@ applyAffineTransformation()
                " BuildingBlock] translating with vector " + transStr +
                " ...\n", M_verbose);
 
-        transformer.transformMesh(scaleVec, rotation, translation);
+        R =  computeRotationMatrix(rotation, angle);
 
-        R1 = computeRotationMatrix(0, rotation[0]);
-        R2 = computeRotationMatrix(1, rotation[1]);
-        R3 = computeRotationMatrix(2, rotation[2]);
+        auto foo = std::bind(rotationFunction,
+                             std::placeholders::_1,
+                             std::placeholders::_2,
+                             std::placeholders::_3,
+                             R, translation, scale);
+
+        transformer.transformMesh(foo);
 
         printlog(YELLOW, "[" + M_name +
                 " BuildingBlock] applying scaling of " + std::to_string(scale) +
                 " ...\n", M_verbose);
 
-        R = R1 * R2 * R3;
         printlog(GREEN, "done\n", M_verbose);
     }
 
@@ -383,23 +389,16 @@ rotationFunction(double& x, double& y, double& z, const Matrix3D& affMatrix,
 
 void
 BuildingBlock::
-computeRotationAngles(const Vector3D& vectorToMove,
-                      const Vector3D& vectorToReach,
-                      double& alphax, double& alphay, double& alphaz)
+computeRotationAxisAndAngle(Vector3D vectorToMove,
+                            Vector3D vectorToReach,
+                            Vector3D& axis,
+                            double& alpha)
 {
-    Vector3D e1(1,0,0), e2(0,1,0), e3(0,0,1);
+    axis = vectorToMove.cross(vectorToReach);
+    axis = axis / axis.norm();
 
-    double alphax_1 = std::acos(e1.dot(vectorToMove) / (vectorToMove.norm()));
-    double alphay_1 = std::acos(e2.dot(vectorToMove) / (vectorToMove.norm()));
-    double alphaz_1 = std::acos(e3.dot(vectorToMove) / (vectorToMove.norm()));
-
-    double alphax_2 = std::acos(e1.dot(vectorToReach) / (vectorToReach.norm()));
-    double alphay_2 = std::acos(e2.dot(vectorToReach) / (vectorToReach.norm()));
-    double alphaz_2 = std::acos(e3.dot(vectorToReach) / (vectorToReach.norm()));
-
-    alphax = alphax_1 - alphax_2;
-    alphay = alphay_1 - alphay_2;
-    alphaz = alphaz_1 - alphaz_2;
+    alpha = std::acos(vectorToMove.dot(vectorToReach) /
+                      vectorToMove.norm() * vectorToReach.norm());
 }
 
 void

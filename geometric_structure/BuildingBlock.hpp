@@ -126,9 +126,10 @@ public:
 
     void setRandom();
 
-    static void computeRotationAngles(const Vector3D& vectorToMove,
-                                      const Vector3D& vectorToReach,
-                                      double& alphax, double& y, double& z);
+    static void computeRotationAxisAndAngle(Vector3D vectorToMove,
+                                            Vector3D vectorToReach,
+                                            Vector3D& axis,
+                                            double& alphax);
 
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
@@ -136,9 +137,9 @@ protected:
                                                 const Vector3D& translation,
                                                 const double& scale);
 
-    Matrix3D computeRotationMatrix(unsigned int axis, double angle);
+    static Matrix3D computeRotationMatrix(unsigned int axis, double angle);
 
-    Matrix3D computeRotationMatrix(Vector3D axis, double angle);
+    static Matrix3D computeRotationMatrix(Vector3D axis, double angle);
 
     static  void rotationFunction(double& x, double& y, double& z,
                                   const Matrix3D& affMatrix,

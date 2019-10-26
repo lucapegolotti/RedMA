@@ -196,19 +196,20 @@ createTree(int indexBegin, int indexEnd)
     rootTube->setParameterValue("by", cb[1]);
     rootTube->setParameterValue("bz", cb[2]);
 
-    double alphax, alphay, alphaz;
+    Vector3D axis;
+    double alpha;
 
-    BuildingBlock::computeRotationAngles(rootTube->getInletNormal(),
-                                         M_contours[indexBegin].M_normal,
-                                         alphax, alphay, alphaz);
+    BuildingBlock::computeRotationAxisAndAngle(rootTube->getInletNormal(),
+                                               M_contours[indexBegin].M_normal,
+                                               axis, alpha);
 
     double defRadius = rootTube->getInletRadius();
     rootTube->setParameterValue("scale", M_contours[indexBegin].M_radius/defRadius);
 
-    rootTube->setParameterValue("alphax", alphax);
-    rootTube->setParameterValue("alphay", alphay);
-    rootTube->setParameterValue("alphaz", alphaz);
-
+    rootTube->setParameterValue("rotation_axis_x", axis[0]);
+    rootTube->setParameterValue("rotation_axis_y", axis[1]);
+    rootTube->setParameterValue("rotation_axis_z", axis[2]);
+    rootTube->setParameterValue("alpha", alpha);
 
     retTree.setRoot(rootTube);
 
