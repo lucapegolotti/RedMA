@@ -42,23 +42,26 @@ public:
 
     Vector3D getInletNormal() {return M_inletNormalRef;};
 
+    double getDefLength() {return (M_outletCenterRef-M_inletCenterRef).norm();};
+
+    static void bendFunctionAnalytic(double& x, double& y, double& z,
+                                     const double& bendAngle,
+                                     const double& L);
+
 private:
     void nonAffineScaling(const double& lengthRatio,
                           const double& outRadiusRatio,
                           Transformer& transformer);
 
     static void scalingFunction(double& x, double& y, double& z,
-                                const double lenghtRatio,
-                                const double outRadiusRatio);
+                                const double& lenghtRatio,
+                                const double& outRadiusRatio,
+                                const double& L);
 
     static double bendFunction(const double& t, const double& x, const double& y,
                                const double& z, const LifeV::ID& i,
                                const Vector3D& rotationCenter,
                                const Matrix3D& rotationMatrix);
-
-    static void bendFunctionAnalytic(double& x, double& y, double& z,
-                                     const double& bendAngle,
-                                     const GeometricFace& outlet);
 
     void bend(const double& bendAngle, Transformer& transformer);
 

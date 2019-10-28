@@ -26,6 +26,8 @@
 
 #include <tinyxml2.h>
 
+#include <sstream>
+
 namespace RedMA
 {
 
@@ -35,11 +37,14 @@ class SegmentationParser
     typedef LifeV::VectorSmall<3>                          Vector3D;
     typedef GeometricFace                                  Contour;
     typedef std::shared_ptr<Epetra_Comm>                   commPtr_Type;
-
+    typedef LifeV::MatrixSmall<3,3>                        Matrix3D;
 
 public:
+    // interpolation method specifies how to associate contour information
+    // to path points in between two contours
     SegmentationParser(commPtr_Type comm, std::string pthName,
-                       std::string ctgrName, bool verbose);
+                       std::string ctgrName, std::string interpolationMethod,
+                       bool verbose);
 
     ~SegmentationParser();
 
@@ -52,12 +57,48 @@ public:
 private:
     Vector3D get3DVectorFromXMLElement(tinyxml2::XMLElement* data);
 
+    void linearInterpolation();
+
+    // alpha is angle about axis, theta is bending angle
+    // The function that maps the outlet center c is the following
+    // c_tilde = rot(alpha) scale * A bend(c,theta) + b,
+    // where rot is the rotation matrix about the axis, A2 and b come from the
+    // affine transformation, and bend is the bend function. L is the length
+    // of the tube to be deformed in the default configuration.
+    // Const1 and const2 are used in the loss function
+    double Fbending(const double& alpha, const double& theta,
+                    const Matrix3D& A, const Vector3D& b,
+                    const double& scale,
+                    const double& L, const Vector3D& axis,
+                    const Contour& target,
+                    const double& const1,
+                    const double& const2);
+
+    double optimizeBending(double& alpha, double& theta,
+                           const double& maxIt, const double& tol,
+                           const Matrix3D& A, const Vector3D& b,
+                           const double& scale,
+                           const double& L, const Vector3D& axis,
+                           const Contour& target,
+                           const double& const1,
+                           const double& const2);
+
+    void bend(const double& alpha, const double& theta,
+              Vector3D& center, Vector3D& normal,
+              const Matrix3D& A, const Vector3D& b,
+              const double& scale,
+              const double& L, const Vector3D& axis);
+
     std::vector<Contour>    M_contours;
     std::vector<Vector3D>   M_path;
     std::vector<Vector3D>   M_tangents; // corresponding to ith path point
     std::vector<Vector3D>   M_rotation; // corresponding to ith path point
+    std::vector<Contour>    M_contoursComplete;
     bool                    M_verbose;
     commPtr_Type            M_comm;
+    unsigned int            M_indexBegin;
+    unsigned int            M_indexEnd;
+    std::vector<double>     M_cumulativeDistance;
 };
 
 }  // namespace RedMA

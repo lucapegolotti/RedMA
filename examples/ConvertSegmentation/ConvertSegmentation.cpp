@@ -37,7 +37,8 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    SegmentationParser sp(comm, "datafiles/aorta.pth", "datafiles/aorta.ctgr", true);
+    SegmentationParser sp(comm, "datafiles/aorta.pth", "datafiles/aorta.ctgr",
+                          "linear", true);
 
     TreeStructure tree = sp.createTree();
     GeometryPrinter printer;
@@ -46,7 +47,7 @@ int main(int argc, char **argv)
     tree.traverseAndDeformGeometries();
     tree.dump("output/","../../../meshes/");
 
-    tree.getRoot()->M_block->getInlet().print();
+    tree.getRoot()->M_block->getOutlet(0).print();
 
     return 0;
 }

@@ -51,7 +51,7 @@ Tube(commPtr_Type comm, std::string refinement, bool verbose,
 
     const bool randomizible = true;
 
-    M_parametersHandler.registerParameter("bend", 0.0, 0.0, M_PI/2, randomizible);
+    M_parametersHandler.registerParameter("bend", 0.0, 0, M_PI/2, randomizible);
     M_parametersHandler.registerParameter("L_ratio", 1.0, 0.7, 1.3, randomizible);
     M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.2, randomizible);
     M_parametersHandler.registerParameter("use_linear_elasticity", 0.0, 0.0, 1.0);
@@ -101,7 +101,7 @@ nonAffineScaling(const double& lengthRatio, const double& radiusRatio,
 
     auto foo = std::bind(scalingFunction, std::placeholders::_1,
                          std::placeholders::_2, std::placeholders::_3,
-                         lengthRatio, radiusRatio);
+                         lengthRatio, radiusRatio, M_outletCenterRef[2]);
     transformer.transformMesh(foo);
 
     M_outlets[0].M_radius = M_outlets[0].M_radius * radiusRatio;
@@ -111,10 +111,11 @@ nonAffineScaling(const double& lengthRatio, const double& radiusRatio,
 void
 Tube::
 scalingFunction(double& x, double& y, double& z,
-                const double lenghtRatio, const double outRadiusRatio)
+                const double& lenghtRatio, const double& outRadiusRatio,
+                const double& L)
 {
     // 15 is the length of the tube
-    double curRatio = 1. - (1. - outRadiusRatio) * z / 15.0;
+    double curRatio = 1. - (1. - outRadiusRatio) * z / L;
     z = z * lenghtRatio;
     x = x * curRatio;
     y = y * curRatio;
@@ -175,17 +176,17 @@ bend(const double& bendAngle, Transformer& transformer)
         else
         {
             // this option gives smoother results
+            // tube is laid in z direction (-> length == z component)
             auto foo = std::bind(bendFunctionAnalytic, std::placeholders::_1,
                                  std::placeholders::_2, std::placeholders::_3,
-                                 bendAngle, M_outlets[0]);
+                                 bendAngle, M_outlets[0].M_center[2]);
             transformer.transformMesh(foo);
-
             // modify outlet
             Vector3D& center = M_outlets[0].M_center;
             Vector3D& normal = M_outlets[0].M_normal;
 
             bendFunctionAnalytic(center[0], center[1], center[2], bendAngle,
-                                 M_outlets[0]);
+                                 M_outlets[0].M_center[2]);
             normal[0] = -std::sin(bendAngle);
             normal[1] = 0;
             normal[2] = std::cos(bendAngle);
@@ -217,15 +218,12 @@ bendFunction(const double& t, const double& x, const double& y,
 void
 Tube::
 bendFunctionAnalytic(double &x, double &y, double &z,
-                     const double& bendAngle, const GeometricFace& outlet)
+                     const double& bendAngle, const double& L)
 {
-    // tube is laid in the z direction
-    double L = outlet.M_center[2];
-
     // we know: lenght of the tube at initial configuration L and angle we want
     // alpha.
     // We imagine that the midline of the tube coincides with the arc of a circle.
-    // Therefore, by simple geometric consideration we have that
+    // Therefore, we have that
     // L = alpha * r => r = L / alpha, where R is the radius of the circle
 
     double r = L / bendAngle;

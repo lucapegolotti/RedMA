@@ -131,15 +131,15 @@ public:
                                             Vector3D& axis,
                                             double& alphax);
 
+    static Matrix3D computeRotationMatrix(unsigned int axis, double angle);
+
+    static Matrix3D computeRotationMatrix(Vector3D axis, double angle);
+
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,
                                                 const Vector3D& translation,
                                                 const double& scale);
-
-    static Matrix3D computeRotationMatrix(unsigned int axis, double angle);
-
-    static Matrix3D computeRotationMatrix(Vector3D axis, double angle);
 
     static  void rotationFunction(double& x, double& y, double& z,
                                   const Matrix3D& affMatrix,

@@ -5,18 +5,99 @@ namespace RedMA
 
 SegmentationParser::
 SegmentationParser(commPtr_Type comm, std::string pthName,
-                   std::string ctgrName, bool verbose) :
+                   std::string ctgrName, std::string interpolationMethod,
+                   bool verbose) :
   M_comm(comm),
   M_verbose(verbose)
 {
     traversePath(pthName);
     traverseSegmentation(ctgrName);
+    if (!std::strcmp(interpolationMethod.c_str(),"linear"))
+        linearInterpolation();
+    else
+        throw new Exception("Type of interpolation not implemented!");
 }
 
 SegmentationParser::
 ~SegmentationParser()
 {
 
+}
+
+void
+SegmentationParser::
+linearInterpolation()
+{
+    unsigned int idContour = 0;
+
+    unsigned int pathsize = M_path.size();
+    unsigned int nContours = M_contours.size();
+
+    M_contoursComplete.resize(pathsize);
+    M_cumulativeDistance.resize(pathsize);
+
+    Contour curContour = M_contours[idContour];
+    Contour nextContour = M_contours[idContour+1];
+    for (unsigned int id = 0; id < pathsize; id++)
+    {
+        if (id >= M_indexBegin && id < M_indexEnd)
+        {
+            unsigned int idCopy = id;
+            double arclength = 0;
+            std::vector<double> cumulativeDistance;
+            cumulativeDistance.push_back(0.0);
+            // first we compute the approximated arclenght from contour 1 to contour 2
+            while (idCopy != nextContour.M_flag)
+            {
+                arclength += (M_path[idCopy+1]-M_path[idCopy]).norm();
+                cumulativeDistance.push_back(arclength);
+                idCopy++;
+            }
+            // then we linearly interpolate between the two consecutive contours
+            idCopy = id;
+
+            do
+            {
+                Contour newContour;
+
+                // relative arclength
+                double s = cumulativeDistance[id-idCopy] / arclength;
+                Vector3D newCenter = curContour.M_center * (1.-s) +
+                                     nextContour.M_center * s;
+                Vector3D newNormal = curContour.M_normal * (1.-s) +
+                                     nextContour.M_normal * s;
+                double newRadius = curContour.M_radius * (1.-s) +
+                                   nextContour.M_radius * s;
+
+                newContour.M_center = newCenter;
+                newContour.M_normal = newNormal;
+                newContour.M_radius = newRadius;
+                if (id == idCopy)
+                    newContour.M_flag = id;
+                else if (id == nextContour.M_flag)
+                    newContour.M_flag = id;
+
+                M_contoursComplete[id] = newContour;
+                id++;
+            } while (id != nextContour.M_flag);
+
+            idContour++;
+            curContour = M_contours[idContour];
+
+            if (idContour+1 < nContours)
+                nextContour = M_contours[idContour+1];
+            // we decrement by 1 because we want to start from the former nextContour
+            // at the next iteration
+            id--;
+        }
+    }
+
+
+    for (unsigned int i = M_indexBegin+1; i < M_indexEnd; i++)
+    {
+        M_cumulativeDistance[i] = M_cumulativeDistance[i-1] +
+            (M_contoursComplete[i].M_center - M_contoursComplete[i-1].M_center).norm();
+    }
 }
 
 SegmentationParser::Vector3D
@@ -112,6 +193,8 @@ traverseSegmentation(std::string ctgrName)
     tinyxml2::XMLElement* rootElement = doc.FirstChildElement("contourgroup");
     tinyxml2::XMLElement* pTimestep = rootElement->FirstChildElement("timestep");
     tinyxml2::XMLElement* fContour = pTimestep->FirstChildElement("contour");
+
+    bool first = true;
     do
     {
         unsigned int pathIndex = std::atoi(fContour->FirstChildElement("path_point")->
@@ -119,6 +202,12 @@ traverseSegmentation(std::string ctgrName)
 
         tinyxml2::XMLElement* cPoint = fContour->FirstChildElement("contour_points")->
                                                  FirstChildElement("point");
+
+        if (first)
+        {
+            M_indexBegin = pathIndex;
+            first = false;
+        }
 
         // first find center of the face
         Vector3D center;
@@ -163,11 +252,12 @@ traverseSegmentation(std::string ctgrName)
         radius = radius / count;
 
         Contour newContour(center, normal, radius, pathIndex);
-        newContour.print();
 
         M_contours.push_back(newContour);
 
         fContour = fContour->NextSiblingElement("contour");
+
+        M_indexEnd = pathIndex;
     } while (fContour);
 
     printlog(MAGENTA, "done\n", M_verbose);
@@ -179,19 +269,22 @@ createTree(int indexBegin, int indexEnd)
 {
     if (indexBegin == -1)
     {
-        indexBegin = 0;
+        indexBegin = M_indexBegin;
     }
 
     if (indexEnd == -1)
     {
-        indexEnd = M_path.size();
+        indexEnd = M_indexEnd;
     }
 
     TreeStructure retTree(M_verbose);
 
     // we start by adding the first block
-    std::shared_ptr<Tube> rootTube(new Tube(M_comm));
-    Vector3D cb = M_contours[indexBegin].M_center;
+    std::shared_ptr<Tube> rootTube(new Tube(M_comm,"fine"));
+    retTree.setRoot(rootTube);
+
+    // set parameters of root tube
+    Vector3D cb = M_contoursComplete[indexBegin].M_center;
     rootTube->setParameterValue("bx", cb[0]);
     rootTube->setParameterValue("by", cb[1]);
     rootTube->setParameterValue("bz", cb[2]);
@@ -200,20 +293,185 @@ createTree(int indexBegin, int indexEnd)
     double alpha;
 
     BuildingBlock::computeRotationAxisAndAngle(rootTube->getInletNormal(),
-                                               M_contours[indexBegin].M_normal,
+                                               M_contoursComplete[indexBegin].M_normal,
                                                axis, alpha);
 
     double defRadius = rootTube->getInletRadius();
-    rootTube->setParameterValue("scale", M_contours[indexBegin].M_radius/defRadius);
+    double scale = M_contoursComplete[indexBegin].M_radius/defRadius;
+    rootTube->setParameterValue("scale", scale);
 
     rootTube->setParameterValue("rotation_axis_x", axis[0]);
     rootTube->setParameterValue("rotation_axis_y", axis[1]);
     rootTube->setParameterValue("rotation_axis_z", axis[2]);
     rootTube->setParameterValue("alpha", alpha);
 
-    retTree.setRoot(rootTube);
+    // compute my length after scaling
+    double length = rootTube->getDefLength() * scale;
+
+    unsigned int ind = 0;
+    while (M_cumulativeDistance[ind] < length)
+        ind++;
+
+    // choose the closest point between ind-1 e ind
+    ind = std::abs(M_cumulativeDistance[ind]-length) <
+          std::abs(M_cumulativeDistance[ind-1]-length) ? ind : ind - 1;
+
+    // select target center, target radius, target normal
+    Vector3D targetCentral = M_contoursComplete[ind].M_center;
+    Vector3D targetNormal = M_contoursComplete[ind].M_normal;
+    double targetRadius = M_contoursComplete[ind].M_radius;
+
+    rootTube->setParameterValue("Rout_ratio", targetRadius/(defRadius*scale));
+
+    Matrix3D R1 = BuildingBlock::computeRotationMatrix(axis, alpha);
+    Vector3D e1(1,0,0);
+
+    // we find where the first canonic vector is mapped to by the first rotation
+    // (because the default bending of the tube is wrt x axis)
+    e1 = R1 * e1;
+
+    // project target point onto plane surface
+    Vector3D targetCentralProj;
+    Vector3D& n = M_contoursComplete[indexBegin].M_normal;
+    Vector3D targetCentralAbs = targetCentral - cb;
+    targetCentralProj = targetCentralAbs - targetCentralAbs.dot(n) * n;
+
+    double alphaAxis = M_PI-std::acos(targetCentralProj.dot(e1)/(e1.norm()*targetCentralProj.norm()));
+
+    // compute the bend angle
+    double bend = M_PI-std::acos(n.dot(targetCentralAbs)/targetCentralAbs.norm());
+
+    optimizeBending(alphaAxis, bend, 1000, 1e-6, R1, cb,
+                    scale, rootTube->getDefLength(), n,
+                    M_contoursComplete[ind], 1.0, 1.0);
+
+    rootTube->setParameterValue("alpha_axis", alphaAxis);
+    rootTube->setParameterValue("bend", bend+0.05);
 
     return retTree;
 }
+
+double
+SegmentationParser::
+Fbending(const double& alpha, const double& theta,
+                const Matrix3D& A, const Vector3D& b,
+                const double& scale,
+                const double& L, const Vector3D& axis,
+                const Contour& target,
+                const double& const1,
+                const double& const2)
+{
+    Vector3D newCenter;
+    Vector3D newNormal;
+
+    bend(alpha, theta, newCenter, newNormal, A, b, scale, L, axis);
+
+    return const1 * (newCenter-target.M_center).norm() +
+           const2 * (newNormal-target.M_normal).norm();
+}
+
+void
+SegmentationParser::
+bend(const double& alpha, const double& theta,
+     Vector3D& center, Vector3D& normal,
+     const Matrix3D& A, const Vector3D& b,
+     const double& scale,
+     const double& L, const Vector3D& axis)
+{
+    Matrix3D rot = BuildingBlock::computeRotationMatrix(axis, alpha);
+
+    double x = 0, y = 0, z = L;
+    Tube::bendFunctionAnalytic(x, y, z, theta, L);
+
+    center[0] = x; center[1] = y; center[2] = z;
+    center = rot * (scale * A * center) + b;
+
+    x = -std::sin(theta); y = 0, z = std::cos(theta);
+    Tube::bendFunctionAnalytic(x, y, z, theta, L);
+
+    normal[0] = x; normal[1] = y; normal[2] = z;
+    normal = -(1) * rot * A * normal;
+}
+
+double
+SegmentationParser::
+optimizeBending(double& alpha, double& theta,
+                const double& maxIt, const double& tol,
+                const Matrix3D& A, const Vector3D& b,
+                const double& scale,
+                const double& L, const Vector3D& axis,
+                const Contour& target,
+                const double& const1,
+                const double& const2)
+{
+    printlog(MAGENTA, "[SegmentationParser] optimizing bending ...\n", M_verbose);
+
+
+    double f = Fbending(alpha, theta, A, b, scale, L, axis, target, const1, const2);
+    std::ostringstream streamOb1;
+    streamOb1 << f;
+    std::string msg = "initial loss function = ";
+    msg += streamOb1.str();
+    printlog(GREEN, msg + "\n", M_verbose);
+    streamOb1.str("");
+    streamOb1.clear();
+
+    Vector3D newCenter, newNormal;
+    bend(alpha, theta, newCenter, newNormal, A, b, scale, L, axis);
+    msg = "xcenter = " + std::to_string(newCenter[0]) + "/" + std::to_string(target.M_center[0]) +
+         " ycenter = " + std::to_string(newCenter[1]) + "/" + std::to_string(target.M_center[1]) +
+         " zcenter = " + std::to_string(newCenter[2]) + "/" + std::to_string(target.M_center[2]);
+    printlog(GREEN, msg + "\n", M_verbose);
+    msg = "xnormal = " + std::to_string(newNormal[0]) + "/" + std::to_string(target.M_normal[0]) +
+         " ynormal = " + std::to_string(newNormal[1]) + "/" + std::to_string(target.M_normal[1]) +
+         " znormal = " + std::to_string(newNormal[2]) + "/" + std::to_string(target.M_normal[2]);
+    printlog(GREEN, msg + "\n", M_verbose);
+
+
+    unsigned int k = 1;
+    const double eps = 1e-8;
+    const double lambda = 5e-3;
+    while (f > tol && k <= maxIt)
+    {
+        // approximate the gradient via finite difference
+        double derAlpha = (Fbending(alpha + eps, theta, A, b, scale, L,
+                                   axis, target, const1, const2) - f)/eps;
+
+        double derTheta = (Fbending(alpha, theta + eps, A, b, scale, L,
+                                   axis, target, const1, const2) - f)/eps;
+
+
+        alpha = alpha - lambda * derAlpha;
+        theta = theta - lambda * derTheta;
+
+        f = Fbending(alpha, theta, A, b, scale, L, axis, target, const1, const2);
+
+        if (k % 50 == 0)
+        {
+            msg = "it = " + std::to_string(k);
+            std::ostringstream streamOb2;
+            streamOb2 << f;
+            msg += " lf = " + streamOb2.str();
+            printlog(YELLOW, msg + "\n", M_verbose);
+        }
+        k++;
+    }
+    msg = "final loss function = ";
+    streamOb1 << f;
+    msg += streamOb1.str();
+    printlog(GREEN, msg + "\n", M_verbose);
+
+    bend(alpha, theta, newCenter, newNormal, A, b, scale, L, axis);
+    msg = "xcenter = " + std::to_string(newCenter[0]) + "/" + std::to_string(target.M_center[0]) +
+         " ycenter = " + std::to_string(newCenter[1]) + "/" + std::to_string(target.M_center[1]) +
+         " zcenter = " + std::to_string(newCenter[2]) + "/" + std::to_string(target.M_center[2]);
+    printlog(GREEN, msg + "\n", M_verbose);
+    msg = "xnormal = " + std::to_string(newNormal[0]) + "/" + std::to_string(target.M_normal[0]) +
+         " ynormal = " + std::to_string(newNormal[1]) + "/" + std::to_string(target.M_normal[1]) +
+         " znormal = " + std::to_string(newNormal[2]) + "/" + std::to_string(target.M_normal[2]);
+    printlog(GREEN, msg + "\n", M_verbose);
+    return f;
+}
+
 
 }  // namespace RedMA
