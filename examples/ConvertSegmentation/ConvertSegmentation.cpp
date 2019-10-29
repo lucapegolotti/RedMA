@@ -40,7 +40,11 @@ int main(int argc, char **argv)
     SegmentationParser sp(comm, "datafiles/aorta.pth", "datafiles/aorta.ctgr",
                           "linear", true);
 
-    TreeStructure tree = sp.createTree(60);
+    unsigned int begin = 16;
+    if (argc == 2)
+        begin = std::atoi(argv[1]);
+
+    TreeStructure tree = sp.createTree(begin);
     GeometryPrinter printer;
     printer.saveToFile(tree, "tree.xml", comm);
     tree.readMeshes("../../../meshes/");
@@ -48,7 +52,7 @@ int main(int argc, char **argv)
     tree.dump("output/","../../../meshes/");
 
     tree.getRoot()->M_block->getOutlet(0).print();
-    // tree.getRoot()->M_children[0]->M_block->getOutlet(0).print();
+    tree.getRoot()->M_children[0]->M_block->getOutlet(0).print();
 
     return 0;
 }

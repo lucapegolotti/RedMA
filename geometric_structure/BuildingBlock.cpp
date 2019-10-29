@@ -70,7 +70,7 @@ BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
         M_verbose = false;
 
     double infty = GeometricParametersHandler::infty;
-    double mp2 = 2 * M_PI;
+    double mp2 = 10 * M_PI;
 
     // rotation axis and angle
     M_parametersHandler.registerParameter("rotation_axis_x", 1.0, -infty, infty);

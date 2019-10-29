@@ -56,6 +56,12 @@ linearInterpolation()
             // then we linearly interpolate between the two consecutive contours
             idCopy = id;
 
+            Vector3D axis;
+            double angle;
+            Matrix3D R;
+            BuildingBlock::computeRotationAxisAndAngle(curContour.M_normal,
+                                                       nextContour.M_normal,
+                                                       axis, angle);
             do
             {
                 Contour newContour;
@@ -64,8 +70,12 @@ linearInterpolation()
                 double s = cumulativeDistance[id-idCopy] / arclength;
                 Vector3D newCenter = curContour.M_center * (1.-s) +
                                      nextContour.M_center * s;
-                Vector3D newNormal = curContour.M_normal * (1.-s) +
-                                     nextContour.M_normal * s;
+
+                R = BuildingBlock::computeRotationMatrix(axis, angle * s);
+
+                // Vector3D newNormal = curContour.M_normal * (1.-s) +
+                //                      nextContour.M_normal * s;
+                Vector3D newNormal = R * curContour.M_normal;
                 double newRadius = curContour.M_radius * (1.-s) +
                                    nextContour.M_radius * s;
 
@@ -194,6 +204,7 @@ traverseSegmentation(std::string ctgrName)
     tinyxml2::XMLElement* pTimestep = rootElement->FirstChildElement("timestep");
     tinyxml2::XMLElement* fContour = pTimestep->FirstChildElement("contour");
 
+    Vector3D prevNormal;
     bool first = true;
     do
     {
@@ -230,13 +241,13 @@ traverseSegmentation(std::string ctgrName)
         Vector3D normal(0, 0, 0);
         Vector3D prevVec(0, 0, 0);
         double radius = 0;
-        bool first = true;
+        bool firstInner = true;
         do
         {
             Vector3D curVec = get3DVectorFromXMLElement(cPoint)-center;
             radius = radius + curVec.norm();
 
-            if (!first)
+            if (!firstInner)
             {
                 Vector3D elNormal = curVec.cross(prevVec);
                 elNormal = elNormal / elNormal.norm();
@@ -244,11 +255,13 @@ traverseSegmentation(std::string ctgrName)
             }
 
             prevVec = curVec;
-            first = false;
+            firstInner = false;
             cPoint = cPoint->NextSiblingElement("point");
         } while (cPoint);
 
-        normal = (-1.) * normal / normal.norm();
+        normal = normal / normal.norm();
+        if (!first)
+            normal = normal.dot(prevNormal) > 0? normal : (-1.0) * normal;
         radius = radius / count;
 
         Contour newContour(center, normal, radius, pathIndex);
@@ -257,6 +270,7 @@ traverseSegmentation(std::string ctgrName)
 
         fContour = fContour->NextSiblingElement("contour");
 
+        prevNormal = normal;
         M_indexEnd = pathIndex;
     } while (fContour);
 
@@ -332,23 +346,24 @@ createTree(int indexBegin, int indexEnd)
 
     // project target point onto plane surface
     Vector3D targetCentralProj;
-    Vector3D& n = M_contoursComplete[indexBegin].M_normal;
+    Vector3D n = M_contoursComplete[indexBegin].M_normal;
     Vector3D targetCentralAbs = targetCentral - cb;
     targetCentralProj = targetCentralAbs - targetCentralAbs.dot(n) * n;
 
     double alphaAxis = M_PI-std::acos(targetCentralProj.dot(e1)/(e1.norm()*targetCentralProj.norm()));
-
+    // alphaAxis = 0;
     // compute the bend angle
     double bendAngle = M_PI-std::acos(n.dot(targetCentralAbs)/targetCentralAbs.norm());
+    bendAngle = 0.1;
 
-    optimizeBending(alphaAxis, bendAngle, 1000, 1e-6, R1, cb,
+    optimizeBending(alphaAxis, bendAngle, 1e7, 1e-15, R1, cb,
                     scale, rootTube->getDefLength(), n,
                     M_contoursComplete[ind], 1.0, 1.0);
 
     rootTube->setParameterValue("alpha_axis", alphaAxis);
     rootTube->setParameterValue("bend", bendAngle);
 
-    Vector3D prevCenter, prevNormal;
+    Vector3D prevCenter = targetCentral, prevNormal = targetNormal;
     double prevRadius = targetRadius;
 
     bend(alphaAxis, bendAngle, prevCenter, prevNormal, R1, cb,
@@ -356,12 +371,14 @@ createTree(int indexBegin, int indexEnd)
 
     unsigned int count = 0;
     // add other blocks
-    while (count < 3)
+    while (count < 28)
     {
         std::shared_ptr<Tube> childTube(new Tube(M_comm,"fine"));
         retTree.addChild(count, childTube);
 
         cb = prevCenter;
+        std::cout << cb << std::endl;
+        std::cout << prevNormal << std::endl;
 
         childTube->setParameterValue("bx", cb[0]);
         childTube->setParameterValue("by", cb[1]);
@@ -408,12 +425,19 @@ createTree(int indexBegin, int indexEnd)
 
         bendAngle = 0.1;
 
-        optimizeBending(alphaAxis, bendAngle, 1000, 1e-6, R1, cb,
+        optimizeBending(alphaAxis, bendAngle, 1e7, 1e-15, R1, cb,
                         scale, childTube->getDefLength(), n,
-                        M_contoursComplete[ind], 1.0, 0.2);
+                        M_contoursComplete[ind], 1.0, 1.0);
 
         childTube->setParameterValue("alpha_axis", alphaAxis);
         childTube->setParameterValue("bend", bendAngle);
+
+        bend(alphaAxis, bendAngle, prevCenter, prevNormal, R1, cb,
+             scale, childTube->getDefLength(), n);
+
+        prevRadius = targetRadius;
+        prevCenter = targetCentral;
+        prevNormal = targetNormal;
 
         bend(alphaAxis, bendAngle, prevCenter, prevNormal, R1, cb,
              scale, childTube->getDefLength(), n);
@@ -439,8 +463,8 @@ Fbending(const double& alpha, const double& theta,
 
     bend(alpha, theta, newCenter, newNormal, A, b, scale, L, axis);
 
-    return const1 * (newCenter-target.M_center).norm() +
-           const2 * (newNormal-target.M_normal).norm();
+    return const1 * (newCenter-target.M_center).norm() / target.M_center.norm() +
+           const2 * std::abs(std::abs(newNormal.dot(target.M_normal))-1.0);
 }
 
 void
@@ -462,8 +486,8 @@ bend(const double& alpha, const double& theta,
     center = rot * (scale * A * center) + b;
 
     x = -std::sin(theta); y = 0, z = std::cos(theta);
-    if (theta > 1e-5)
-        Tube::bendFunctionAnalytic(x, y, z, theta, L);
+    // if (theta > 1e-5)
+    //     Tube::bendFunctionAnalytic(x, y, z, theta, L);
 
     normal[0] = x; normal[1] = y; normal[2] = z;
     normal = -(1) * rot * A * normal;
@@ -506,8 +530,10 @@ optimizeBending(double& alpha, double& theta,
 
     unsigned int k = 1;
     const double eps = 1e-8;
-    const double lambda = 5e-3;
-    while (f > tol && k <= maxIt)
+    double incr = tol + 1;
+    double oldf = 1e8;
+    const double lambda = 1e-5;
+    while (incr > tol && k <= maxIt)
     {
         // approximate the gradient via finite difference
         double derAlpha = (Fbending(alpha + eps, theta, A, b, scale, L,
@@ -520,25 +546,36 @@ optimizeBending(double& alpha, double& theta,
         alpha = alpha - lambda * derAlpha;
         theta = theta - lambda * derTheta;
 
-        if (theta < 0)
+        if (theta < 1e-2)
+        {
+            alpha += M_PI;
             theta = 0.1;
+        }
 
         f = Fbending(alpha, theta, A, b, scale, L, axis, target, const1, const2);
 
-        if (k % 50 == 0)
+        incr = std::abs((f - oldf)/f);
+
+        if (k % 10000 == 0)
         {
             msg = "it = " + std::to_string(k);
             std::ostringstream streamOb2;
             streamOb2 << f;
             msg += " lf = " + streamOb2.str();
+            streamOb2.str("");
+            streamOb2.clear();
+            streamOb2 << incr;
+            msg += " increment = " + streamOb2.str();
             printlog(YELLOW, msg + "\n", M_verbose);
         }
+        oldf = f;
         k++;
     }
     msg = "final loss function = ";
     streamOb1 << f;
     msg += streamOb1.str();
     printlog(GREEN, msg + "\n", M_verbose);
+
 
     bend(alpha, theta, newCenter, newNormal, A, b, scale, L, axis);
     msg = "xcenter = " + std::to_string(newCenter[0]) + "/" + std::to_string(target.M_center[0]) +
