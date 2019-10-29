@@ -373,6 +373,7 @@ createTree(int indexBegin, int indexEnd)
     // add other blocks
     while (count < 28)
     {
+        std::cout << count + 1 << std::endl;
         std::shared_ptr<Tube> childTube(new Tube(M_comm,"fine"));
         retTree.addChild(count, childTube);
 
@@ -556,7 +557,7 @@ optimizeBending(double& alpha, double& theta,
 
         incr = std::abs((f - oldf)/f);
 
-        if (k % 10000 == 0)
+        if (k % 100000 == 0)
         {
             msg = "it = " + std::to_string(k);
             std::ostringstream streamOb2;

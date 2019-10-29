@@ -51,9 +51,9 @@ Tube(commPtr_Type comm, std::string refinement, bool verbose,
 
     const bool randomizible = true;
 
-    M_parametersHandler.registerParameter("bend", 0.0, 0, M_PI/2, randomizible);
+    M_parametersHandler.registerParameter("bend", 0.0, 0, M_PI/2, randomizible, true);
     M_parametersHandler.registerParameter("L_ratio", 1.0, 0.7, 1.3, randomizible);
-    M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.2, randomizible);
+    M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.4, randomizible);
     M_parametersHandler.registerParameter("use_linear_elasticity", 0.0, 0.0, 1.0);
 }
 

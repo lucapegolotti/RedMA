@@ -6,12 +6,13 @@ namespace RedMA
 GeometricParameter::
 GeometricParameter(std::string name, const double& value,
                    const double& minValue, const double& maxValue,
-                   bool randomizible) :
+                   bool randomizible, bool periodic) :
   M_name(name),
   M_value(value),
   M_minValue(minValue),
   M_maxValue(maxValue),
-  M_randomizible(randomizible)
+  M_randomizible(randomizible),
+  M_periodic(periodic)
 {
 }
 
@@ -23,6 +24,7 @@ GeometricParameter(const GeometricParameter& other)
     M_minValue = other.M_minValue;
     M_maxValue = other.M_maxValue;
     M_randomizible = other.M_randomizible;
+    M_periodic = other.M_periodic;
 }
 
 std::string
@@ -36,8 +38,21 @@ void
 GeometricParameter::
 operator=(const double& value)
 {
-    M_value = value < M_minValue ? M_minValue : value;
-    M_value = M_value > M_maxValue ? M_maxValue : M_value;
+    if (!M_periodic)
+    {
+        M_value = value < M_minValue ? M_minValue : value;
+        M_value = M_value > M_maxValue ? M_maxValue : M_value;
+    }
+    else
+    {
+        M_value = value;
+        double interval = M_maxValue - M_minValue;
+        while (M_value > M_maxValue)
+            M_value -= interval;
+
+        while (M_value < M_minValue)
+            M_value += interval;
+    }
 }
 
 double
@@ -76,13 +91,13 @@ void
 GeometricParametersHandler::
 registerParameter(std::string name, const double& value,
                   const double& minValue, const double& maxValue,
-                  bool randomizible)
+                  bool randomizible, bool periodic)
 {
     if (!exists(name))
     {
         GeometricParameterPtr
           newParameter(new GeometricParameter(name, value, minValue, maxValue,
-                                              randomizible));
+                                              randomizible, periodic));
         M_parametersMap[name] = newParameter;
     }
     else

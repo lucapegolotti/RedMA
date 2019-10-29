@@ -70,16 +70,16 @@ BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
         M_verbose = false;
 
     double infty = GeometricParametersHandler::infty;
-    double mp2 = 10 * M_PI;
+    double mp2 = 20 * M_PI;
 
     // rotation axis and angle
     M_parametersHandler.registerParameter("rotation_axis_x", 1.0, -infty, infty);
     M_parametersHandler.registerParameter("rotation_axis_y", 0.0, -infty, infty);
     M_parametersHandler.registerParameter("rotation_axis_z", 0.0, -infty, infty);
-    M_parametersHandler.registerParameter("alpha", 0.0, -mp2, mp2);
+    M_parametersHandler.registerParameter("alpha", 0.0, -mp2, mp2, false, true);
 
 
-    M_parametersHandler.registerParameter("alpha_axis", 0.0, -mp2, mp2, true);
+    M_parametersHandler.registerParameter("alpha_axis", 0.0, -mp2, mp2, true, true);
 
     // scale
     M_parametersHandler.registerParameter("scale", 1.0, 0.0, infty);

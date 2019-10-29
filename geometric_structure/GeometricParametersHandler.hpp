@@ -35,7 +35,8 @@ class GeometricParameter
 public:
     GeometricParameter(std::string name, const double& value,
                        const double& minValue, const double& maxValue,
-                       bool randomizible = false);
+                       bool randomizible = false,
+                       bool periodic = false);
 
     GeometricParameter(const GeometricParameter& other);
 
@@ -57,6 +58,8 @@ private:
     double M_minValue;
     double M_maxValue;
     bool M_randomizible;
+    // if the bounds are periodic (e.g. for angles)
+    bool M_periodic;
 };
 
 class GeometricParametersHandler
@@ -67,7 +70,8 @@ public:
 
     void registerParameter(std::string name, const double& value,
                            const double& minValue, const double& maxValue,
-                           bool randomizible = false);
+                           bool randomizible = false,
+                           bool period = false);
 
     void setParameterValue(std::string name, const double& value);
 

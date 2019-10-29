@@ -51,8 +51,15 @@ int main(int argc, char **argv)
     tree.traverseAndDeformGeometries();
     tree.dump("output/","../../../meshes/");
 
-    tree.getRoot()->M_block->getOutlet(0).print();
-    tree.getRoot()->M_children[0]->M_block->getOutlet(0).print();
+    unsigned int count = 0;
+    std::shared_ptr<TreeNode> p = tree.getRoot();
+    while (p != nullptr)
+    {
+        std::cout << count << std::endl;
+        p->M_block->getOutlet(0).print();
+        p = p->M_children[0];
+        count++;
+    }
 
     return 0;
 }
