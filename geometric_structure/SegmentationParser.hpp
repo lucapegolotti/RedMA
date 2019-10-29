@@ -52,7 +52,9 @@ public:
 
     void traverseSegmentation(std::string ctgrName);
 
-    TreeStructure createTree(int indexBegin = -1, int indexEnd = -1);
+    TreeStructure createTree(const double& constVector,
+                             const double& constNormal,
+                             int indexBegin = -1, int indexEnd = -1);
 
 private:
     Vector3D get3DVectorFromXMLElement(tinyxml2::XMLElement* data);

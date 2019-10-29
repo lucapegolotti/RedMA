@@ -279,7 +279,8 @@ traverseSegmentation(std::string ctgrName)
 
 TreeStructure
 SegmentationParser::
-createTree(int indexBegin, int indexEnd)
+createTree(const double& constVector, const double& constNormal,
+           int indexBegin, int indexEnd)
 {
     if (indexBegin == -1)
     {
@@ -324,7 +325,8 @@ createTree(int indexBegin, int indexEnd)
     double length = rootTube->getDefLength() * scale;
 
     unsigned int ind = 0;
-    while (M_cumulativeDistance[ind] - M_cumulativeDistance[indexBegin] < length)
+    while (M_cumulativeDistance[ind] - M_cumulativeDistance[indexBegin] < length
+           && ind < M_indexEnd)
         ind++;
 
     // choose the closest point between ind-1 and ind
@@ -358,7 +360,7 @@ createTree(int indexBegin, int indexEnd)
 
     optimizeBending(alphaAxis, bendAngle, 1e7, 1e-15, R1, cb,
                     scale, rootTube->getDefLength(), n,
-                    M_contoursComplete[ind], 1.0, 1.0);
+                    M_contoursComplete[ind], constVector, constNormal);
 
     rootTube->setParameterValue("alpha_axis", alphaAxis);
     rootTube->setParameterValue("bend", bendAngle);
@@ -371,15 +373,12 @@ createTree(int indexBegin, int indexEnd)
 
     unsigned int count = 0;
     // add other blocks
-    while (count < 28)
+    while (count < 29)
     {
-        std::cout << count + 1 << std::endl;
         std::shared_ptr<Tube> childTube(new Tube(M_comm,"fine"));
         retTree.addChild(count, childTube);
 
         cb = prevCenter;
-        std::cout << cb << std::endl;
-        std::cout << prevNormal << std::endl;
 
         childTube->setParameterValue("bx", cb[0]);
         childTube->setParameterValue("by", cb[1]);
@@ -399,7 +398,8 @@ createTree(int indexBegin, int indexEnd)
         length += childTube->getDefLength() * scale;
 
         // find new target point
-        while (M_cumulativeDistance[ind] - M_cumulativeDistance[indexBegin] < length)
+        while (M_cumulativeDistance[ind] - M_cumulativeDistance[indexBegin] < length
+               && ind < M_indexEnd)
             ind++;
 
         // choose the closest point between ind-1 and ind
@@ -428,7 +428,7 @@ createTree(int indexBegin, int indexEnd)
 
         optimizeBending(alphaAxis, bendAngle, 1e7, 1e-15, R1, cb,
                         scale, childTube->getDefLength(), n,
-                        M_contoursComplete[ind], 1.0, 1.0);
+                        M_contoursComplete[ind], constVector, constNormal);
 
         childTube->setParameterValue("alpha_axis", alphaAxis);
         childTube->setParameterValue("bend", bendAngle);
