@@ -70,7 +70,7 @@ linearInterpolation()
                                    nextContour.M_radius * s;
 
                 newContour.M_center = newCenter;
-                newContour.M_normal = newNormal;
+                newContour.M_normal = newNormal / newNormal.norm();
                 newContour.M_radius = newRadius;
                 if (id == idCopy)
                     newContour.M_flag = id;
@@ -295,6 +295,7 @@ createTree(int indexBegin, int indexEnd)
     BuildingBlock::computeRotationAxisAndAngle(rootTube->getInletNormal(),
                                                M_contoursComplete[indexBegin].M_normal,
                                                axis, alpha);
+    Matrix3D R1 = BuildingBlock::computeRotationMatrix(axis, alpha);
 
     double defRadius = rootTube->getInletRadius();
     double scale = M_contoursComplete[indexBegin].M_radius/defRadius;
@@ -309,10 +310,10 @@ createTree(int indexBegin, int indexEnd)
     double length = rootTube->getDefLength() * scale;
 
     unsigned int ind = 0;
-    while (M_cumulativeDistance[ind] < length)
+    while (M_cumulativeDistance[ind] - M_cumulativeDistance[indexBegin] < length)
         ind++;
 
-    // choose the closest point between ind-1 e ind
+    // choose the closest point between ind-1 and ind
     ind = std::abs(M_cumulativeDistance[ind]-length) <
           std::abs(M_cumulativeDistance[ind-1]-length) ? ind : ind - 1;
 
@@ -323,7 +324,6 @@ createTree(int indexBegin, int indexEnd)
 
     rootTube->setParameterValue("Rout_ratio", targetRadius/(defRadius*scale));
 
-    Matrix3D R1 = BuildingBlock::computeRotationMatrix(axis, alpha);
     Vector3D e1(1,0,0);
 
     // we find where the first canonic vector is mapped to by the first rotation
@@ -339,14 +339,87 @@ createTree(int indexBegin, int indexEnd)
     double alphaAxis = M_PI-std::acos(targetCentralProj.dot(e1)/(e1.norm()*targetCentralProj.norm()));
 
     // compute the bend angle
-    double bend = M_PI-std::acos(n.dot(targetCentralAbs)/targetCentralAbs.norm());
+    double bendAngle = M_PI-std::acos(n.dot(targetCentralAbs)/targetCentralAbs.norm());
 
-    optimizeBending(alphaAxis, bend, 1000, 1e-6, R1, cb,
+    optimizeBending(alphaAxis, bendAngle, 1000, 1e-6, R1, cb,
                     scale, rootTube->getDefLength(), n,
                     M_contoursComplete[ind], 1.0, 1.0);
 
     rootTube->setParameterValue("alpha_axis", alphaAxis);
-    rootTube->setParameterValue("bend", bend+0.05);
+    rootTube->setParameterValue("bend", bendAngle);
+
+    Vector3D prevCenter, prevNormal;
+    double prevRadius = targetRadius;
+
+    bend(alphaAxis, bendAngle, prevCenter, prevNormal, R1, cb,
+         scale, rootTube->getDefLength(), n);
+
+    unsigned int count = 0;
+    // add other blocks
+    while (count < 3)
+    {
+        std::shared_ptr<Tube> childTube(new Tube(M_comm,"fine"));
+        retTree.addChild(count, childTube);
+
+        cb = prevCenter;
+
+        childTube->setParameterValue("bx", cb[0]);
+        childTube->setParameterValue("by", cb[1]);
+        childTube->setParameterValue("bz", cb[2]);
+
+        scale = prevRadius / childTube->getInletRadius();
+        childTube->setParameterValue("scale", scale);
+
+        BuildingBlock::computeRotationAxisAndAngle(childTube->getInletNormal(),
+                                                   prevNormal, axis, alpha);
+
+        childTube->setParameterValue("rotation_axis_x", axis[0]);
+        childTube->setParameterValue("rotation_axis_y", axis[1]);
+        childTube->setParameterValue("rotation_axis_z", axis[2]);
+        childTube->setParameterValue("alpha", alpha);
+
+        length += childTube->getDefLength() * scale;
+
+        // find new target point
+        while (M_cumulativeDistance[ind] - M_cumulativeDistance[indexBegin] < length)
+            ind++;
+
+        // choose the closest point between ind-1 and ind
+        ind = std::abs(M_cumulativeDistance[ind]-length) <
+              std::abs(M_cumulativeDistance[ind-1]-length) ? ind : ind - 1;
+
+        targetCentral = M_contoursComplete[ind].M_center;
+        targetNormal = M_contoursComplete[ind].M_normal;
+        targetRadius = M_contoursComplete[ind].M_radius;
+
+        defRadius = childTube->getInletRadius();
+        childTube->setParameterValue("Rout_ratio", targetRadius/(defRadius*scale));
+
+        R1 = BuildingBlock::computeRotationMatrix(axis, alpha);
+        e1[0] = 1.0; e1[1] = 0.0; e1[2] = 0.0;
+        e1 = R1 * e1;
+
+        // project target point onto plane surface
+        n = prevNormal;
+        targetCentralAbs = targetCentral - cb;
+        targetCentralProj = targetCentralAbs - targetCentralAbs.dot(n) * n;
+
+        alphaAxis = M_PI-std::acos(targetCentralProj.dot(e1)/(e1.norm()*targetCentralProj.norm()));
+
+        bendAngle = 0.1;
+
+        optimizeBending(alphaAxis, bendAngle, 1000, 1e-6, R1, cb,
+                        scale, childTube->getDefLength(), n,
+                        M_contoursComplete[ind], 1.0, 0.2);
+
+        childTube->setParameterValue("alpha_axis", alphaAxis);
+        childTube->setParameterValue("bend", bendAngle);
+
+        bend(alphaAxis, bendAngle, prevCenter, prevNormal, R1, cb,
+             scale, childTube->getDefLength(), n);
+
+        count++;
+    }
 
     return retTree;
 }
@@ -378,16 +451,19 @@ bend(const double& alpha, const double& theta,
      const double& scale,
      const double& L, const Vector3D& axis)
 {
+
     Matrix3D rot = BuildingBlock::computeRotationMatrix(axis, alpha);
 
     double x = 0, y = 0, z = L;
-    Tube::bendFunctionAnalytic(x, y, z, theta, L);
+    if (theta > 1e-5)
+        Tube::bendFunctionAnalytic(x, y, z, theta, L);
 
     center[0] = x; center[1] = y; center[2] = z;
     center = rot * (scale * A * center) + b;
 
     x = -std::sin(theta); y = 0, z = std::cos(theta);
-    Tube::bendFunctionAnalytic(x, y, z, theta, L);
+    if (theta > 1e-5)
+        Tube::bendFunctionAnalytic(x, y, z, theta, L);
 
     normal[0] = x; normal[1] = y; normal[2] = z;
     normal = -(1) * rot * A * normal;
@@ -443,6 +519,9 @@ optimizeBending(double& alpha, double& theta,
 
         alpha = alpha - lambda * derAlpha;
         theta = theta - lambda * derTheta;
+
+        if (theta < 0)
+            theta = 0.1;
 
         f = Fbending(alpha, theta, A, b, scale, L, axis, target, const1, const2);
 

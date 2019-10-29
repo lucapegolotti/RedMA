@@ -398,7 +398,7 @@ computeRotationAxisAndAngle(Vector3D vectorToMove,
     axis = axis / axis.norm();
 
     alpha = std::acos(vectorToMove.dot(vectorToReach) /
-                      vectorToMove.norm() * vectorToReach.norm());
+                      (vectorToMove.norm() * vectorToReach.norm()));
 }
 
 void
