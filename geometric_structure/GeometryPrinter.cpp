@@ -57,6 +57,8 @@ saveToFile(TreeStructure& tree, std::string name,
                                 "BifurcationAsymmetric"))
                     typeName = "bifurcation_asymmetric";
                 pNewElement->SetAttribute("type", typeName.c_str());
+                pNewElement->SetAttribute("refinement",
+                                    curNode->M_block->getRefinement().c_str());
 
                 if (outletIndex != -1)
                     pNewElement->SetAttribute("outlet", outletIndex);

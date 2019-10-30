@@ -135,6 +135,8 @@ public:
 
     static Matrix3D computeRotationMatrix(Vector3D axis, double angle);
 
+    std::string getRefinement(){return M_refinement;};
+
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,

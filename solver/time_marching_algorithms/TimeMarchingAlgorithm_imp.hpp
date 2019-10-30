@@ -58,10 +58,11 @@ buildPreconditioner(GlobalBlockMatrix matrix)
     if (as.numberOfBlocks() == 2)
     {
         bool steady = M_datafile("time_discretization/steady", false);
+        bool exactSolveBlocks = M_datafile("linear_solve/exact_solve_primal", false);
         if (steady)
-            M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator("STEADY"));
+            M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator("STEADY", exactSolveBlocks));
         else
-            M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator("SIMPLE"));
+            M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator("SIMPLE", exactSolveBlocks));
     }
     else
         M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperatorPseudoFSI());

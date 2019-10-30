@@ -3,7 +3,7 @@
 #-------------------------------------------------------------
 
 [geometric_structure]
-	xmlfile = tree7.xml
+	xmlfile = tree.xml
 	geometries_dir = ../../../meshes/
 [../]
 
@@ -43,6 +43,10 @@
 	maxit = 10
 [../]
 
+[linear_solve]
+	exact_solve_primal = true
+[../]
+
 [exporter]
 	outdir	   = solutions/
 	type       = hdf5
@@ -53,8 +57,8 @@
 [../]
 
 [coupling]
-	type                = zernike
-	nMax                = 5
+	type                = chebyshev
+	nMax                = 0
 	orthonormalization  = POD
 	beta_threshold      = 0
 	use_interpolation   = false

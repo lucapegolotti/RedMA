@@ -1,0 +1,45 @@
+<buildingblock type="tube" refinement="fine">
+    <L_ratio>1</L_ratio>
+    <Rout_ratio>0.99770541502839494</Rout_ratio>
+    <alpha>2.5108529289142552</alpha>
+    <alpha_axis>2.8667747382388025</alpha_axis>
+    <bend>0.13462165230338916</bend>
+    <bx>-1.9669753010155726</bx>
+    <by>-1.6249333236549719</by>
+    <bz>12.92390868702873</bz>
+    <rotation_axis_x>-0.64791360649523078</rotation_axis_x>
+    <rotation_axis_y>0.76171382980640645</rotation_axis_y>
+    <rotation_axis_z>0</rotation_axis_z>
+    <scale>2.4384757321677206</scale>
+    <use_linear_elasticity>0</use_linear_elasticity>
+    <buildingblock type="tube" refinement="fine" outlet="1">
+        <L_ratio>1</L_ratio>
+        <Rout_ratio>1.034215904041931</Rout_ratio>
+        <alpha>2.6305410411617109</alpha>
+        <alpha_axis>2.5940033781426535</alpha_axis>
+        <bend>0.34341001213256911</bend>
+        <bx>-0.92225106587315153</bx>
+        <by>-0.82598855386335535</by>
+        <bz>10.872707171290692</bz>
+        <rotation_axis_x>-0.55651813851160248</rotation_axis_x>
+        <rotation_axis_y>0.83083545994834662</rotation_axis_y>
+        <rotation_axis_z>0</rotation_axis_z>
+        <scale>2.4328804423990649</scale>
+        <use_linear_elasticity>0</use_linear_elasticity>
+        <buildingblock type="tube" refinement="fine" outlet="1">
+            <L_ratio>1</L_ratio>
+            <Rout_ratio>1.0501865460011459</Rout_ratio>
+            <alpha>2.9730580236278561</alpha>
+            <alpha_axis>1.237114664921253</alpha_axis>
+            <bend>0.19406541792133222</bend>
+            <bx>-0.24263679895614709</bx>
+            <by>-0.39196561970127325</by>
+            <bz>8.5900079596052112</bz>
+            <rotation_axis_x>-0.4834573114818152</rotation_axis_x>
+            <rotation_axis_y>0.87536793862625284</rotation_axis_y>
+            <rotation_axis_z>0</rotation_axis_z>
+            <scale>2.5161236461616818</scale>
+            <use_linear_elasticity>0</use_linear_elasticity>
+        </buildingblock>
+    </buildingblock>
+</buildingblock>

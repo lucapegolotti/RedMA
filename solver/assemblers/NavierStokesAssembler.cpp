@@ -1219,28 +1219,26 @@ void
 NavierStokesAssembler::
 computeAndExportErrors(const double& time, std::vector<VectorPtr> solutions)
 {
-    VectorPtr F1;
-    F1.reset(new Vector(M_velocityFESpace->map()));
-    F1->zero();
-
     if (M_exactSolution != nullptr)
     {
+        VectorPtr F1;
+        F1.reset(new Vector(M_velocityFESpace->map()));
+        F1->zero();
+
         M_velocityFESpace->interpolate(M_exactSolution->exactFunction(0), *F1, time);
-    }
 
-    VectorPtr F2;
-    F2.reset(new Vector(M_pressureFESpace->map()));
-    F2->zero();
+        VectorPtr F2;
+        F2.reset(new Vector(M_pressureFESpace->map()));
+        F2->zero();
 
-    if (M_exactSolution != nullptr)
-    {
+
         M_pressureFESpace->interpolate(M_exactSolution->exactFunction(1), *F2, time);
-    }
 
-    *M_velocityErrorExporter = *solutions[0];
-    *M_velocityErrorExporter -= *F1;
-    *M_pressureErrorExporter = *solutions[1];
-    *M_pressureErrorExporter -= *F2;
+        *M_velocityErrorExporter = *solutions[0];
+        *M_velocityErrorExporter -= *F1;
+        *M_pressureErrorExporter = *solutions[1];
+        *M_pressureErrorExporter -= *F2;
+    }
 }
 
 std::string

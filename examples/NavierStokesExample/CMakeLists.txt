@@ -5,6 +5,12 @@ target_include_directories(NavierStokesExample PRIVATE ${HEADERS_DIRS})
 add_custom_command(
         TARGET NavierStokesExample POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/tree.xml
+                ${CMAKE_CURRENT_BINARY_DIR}/tree.xml)
+
+add_custom_command(
+        TARGET NavierStokesExample POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/tree2.xml
                 ${CMAKE_CURRENT_BINARY_DIR}/tree2.xml)
 

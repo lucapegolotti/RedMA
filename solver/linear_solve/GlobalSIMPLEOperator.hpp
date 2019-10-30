@@ -30,6 +30,8 @@
 #include <Teuchos_XMLParameterListHelpers.hpp>
 #include <lifev/core/linear_algebra/LinearOperatorAlgebra.hpp>
 
+#include <lifev/navier_stokes_blocks/solver/NavierStokesOperator.hpp>
+
 #include <lifev/core/array/MatrixEpetraStructured.hpp>
 #include <lifev/core/array/VectorEpetraStructured.hpp>
 #include <lifev/core/array/MatrixEpetraStructuredUtility.hpp>
@@ -84,7 +86,12 @@ public:
     typedef std::shared_ptr<LifeV::Operators::NavierStokesPreconditionerOperator>
                                                             PreconditionerPtr;
 
-    GlobalSIMPLEOperator(std::string singleOperatorType);
+    typedef std::shared_ptr<LifeV::Operators::InvertibleOperator> InvOperatorPtr;
+
+    typedef Teuchos::ParameterList                          ParameterList;
+    typedef std::shared_ptr<ParameterList>                  ParameterListPtr;
+
+    GlobalSIMPLEOperator(std::string singleOperatorType, bool exactSolve);
 
     virtual ~GlobalSIMPLEOperator();
 
@@ -112,12 +119,14 @@ public:
 
     void computeGlobalSchurComplement();
 
-    void applyEverySimpleOperator(const vectorEpetra_Type& X,
+    void solveEveryPrimalBlock(const vectorEpetra_Type& X,
                                   vectorEpetra_Type &Y) const;
 
     void applyEveryB(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const;
 
     void applyEveryBT(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const;
+
+    void setSolvePrimalBlocksExactly(){M_solvePrimalBlocksExactly = true;};
 
 private:
 
@@ -126,29 +135,35 @@ private:
                                              BlockEpetra_Map::mapPtrContainer_Type localRangeBlockMaps,
                                              BlockEpetra_Map::mapPtrContainer_Type localDomainBlockMaps);
 
-    std::vector<PreconditionerPtr>       M_SingleOperators;
-    RedMA::GlobalBlockMatrix             M_matrix;
-    UInt                                 M_nBlockRows;
-    UInt                                 M_nBlockCols;
-    std::string                          M_name;
-    commPtr_Type                         M_comm;
-    std::shared_ptr<BlockEpetra_Map>     M_domainMap;
-    std::shared_ptr<BlockEpetra_Map>     M_rangeMap;
-    operatorPtrContainer_Type            M_oper;
-    std::string                          M_label;
-    bool                                 M_useTranspose;
-    unsigned int                         M_nPrimalBlocks;
-    RedMA::GlobalBlockMatrix             M_Am1BT;
-    mapEpetraPtr_Type                    M_monolithicMap;
-    std::vector<mapEpetraPtr_Type>       M_allMaps;
-    mapEpetraPtr_Type                    M_primalMap;
-    std::vector<mapEpetraPtr_Type>       M_primalMaps;
-    mapEpetraPtr_Type                    M_dualMap;
-    std::vector<mapEpetraPtr_Type>       M_dualMaps;
-    matrixEpetraPtr_Type                 M_globalSchurComplement;
-    std::vector<unsigned int>            M_dimensionsInterfaces;
-    ApproximatedInvertibleMatrixPtr      M_approximatedGlobalSchurInverse;
-    std::string                          M_singleOperatorType;
+    InvOperatorPtr allocateSingleInvOperator(RedMA::GlobalBlockMatrix matrix,
+                                             UInt iblock);
+
+    std::vector<PreconditionerPtr>                      M_SingleOperators;
+    std::vector<InvOperatorPtr>                         M_invOperators;
+    RedMA::GlobalBlockMatrix                            M_matrix;
+    UInt                                                M_nBlockRows;
+    UInt                                                M_nBlockCols;
+    std::string                                         M_name;
+    commPtr_Type                                        M_comm;
+    std::shared_ptr<BlockEpetra_Map>                    M_domainMap;
+    std::shared_ptr<BlockEpetra_Map>                    M_rangeMap;
+    operatorPtrContainer_Type                           M_oper;
+    std::string                                         M_label;
+    bool                                                M_useTranspose;
+    unsigned int                                        M_nPrimalBlocks;
+    RedMA::GlobalBlockMatrix                            M_Am1BT;
+    mapEpetraPtr_Type                                   M_monolithicMap;
+    std::vector<mapEpetraPtr_Type>                      M_allMaps;
+    mapEpetraPtr_Type                                   M_primalMap;
+    std::vector<mapEpetraPtr_Type>                      M_primalMaps;
+    mapEpetraPtr_Type                                   M_dualMap;
+    std::vector<mapEpetraPtr_Type>                      M_dualMaps;
+    matrixEpetraPtr_Type                                M_globalSchurComplement;
+    std::vector<unsigned int>                           M_dimensionsInterfaces;
+    ApproximatedInvertibleMatrixPtr                     M_approximatedGlobalSchurInverse;
+    std::string                                         M_singleOperatorType;
+    bool                                                M_solvePrimalBlocksExactly;
+    ParameterListPtr                                    M_pListLinSolver;
 };
 
 }

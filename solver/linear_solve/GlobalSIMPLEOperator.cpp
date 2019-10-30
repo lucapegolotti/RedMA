@@ -15,10 +15,11 @@ namespace Operators
 {
 
 GlobalSIMPLEOperator::
-GlobalSIMPLEOperator(std::string singleOperatorType) :
+GlobalSIMPLEOperator(std::string singleOperatorType, bool exactSolve) :
   M_label("GlobalSIMPLEOperator"),
   M_useTranspose(false),
-  M_singleOperatorType(singleOperatorType)
+  M_singleOperatorType(singleOperatorType),
+  M_solvePrimalBlocksExactly(exactSolve)
 {
 
 }
@@ -91,6 +92,13 @@ setUp(RedMA::GlobalBlockMatrix matrix,
                                                                localRangeBlockMaps,
                                                                localDomainBlockMaps));
 
+            if (M_solvePrimalBlocksExactly)
+            {
+                InvOperatorPtr newInvOper = allocateSingleInvOperator(matrix, iblock);
+                newInvOper->setPreconditioner(M_SingleOperators[M_nPrimalBlocks]);;
+                M_invOperators.push_back(newInvOper);
+            }
+
             M_nPrimalBlocks++;
         }
     }
@@ -118,6 +126,44 @@ setUp(RedMA::GlobalBlockMatrix matrix,
     msg += std::to_string(chrono.diff());
     msg += " seconds\n";
     RedMA::printlog(RedMA::MAGENTA, msg, M_verbose);
+}
+
+GlobalSIMPLEOperator::InvOperatorPtr
+GlobalSIMPLEOperator::
+allocateSingleInvOperator(RedMA::GlobalBlockMatrix matrix,
+                          UInt iblock)
+{
+    // here we rely on the structure of the global matrix
+    InvOperatorPtr invOper;
+
+    std::shared_ptr<LifeV::Operators::NavierStokesOperator> oper(
+                                     new LifeV::Operators::NavierStokesOperator);
+
+    operatorPtrContainer_Type operData(2,2);
+
+    operData(0,0) = matrix.block(iblock,iblock)->matrixPtr();
+    operData(1,0) = matrix.block(iblock+1,iblock)->matrixPtr();
+    operData(0,1) = matrix.block(iblock,iblock+1)->matrixPtr();
+
+    // then we are using stabilization
+    if (matrix.block(iblock+1,iblock+1) != nullptr)
+    {
+        operData(1,1) = matrix.block(iblock+1,iblock+1)->matrixPtr();
+    }
+
+    oper->setUp(operData, M_comm);
+
+    std::shared_ptr<Teuchos::ParameterList> options;
+    options.reset(
+        new Teuchos::ParameterList(M_solversOptions.sublist("InnerBlockOperator")));
+
+    std::string solverType(options->get<std::string>("Linear Solver Type"));
+    invOper.reset(LifeV::Operators::InvertibleOperatorFactory::instance().createObject(solverType));
+    invOper->setParameterList(options->sublist(solverType));
+
+    invOper->setOperator(oper);
+
+    return invOper;
 }
 
 GlobalSIMPLEOperator::PreconditionerPtr
@@ -185,6 +231,7 @@ allocateSingleOperator(RedMA::GlobalBlockMatrix matrix, UInt iblock,
     }
     return newPrec;
 }
+
 
 void
 GlobalSIMPLEOperator::
@@ -397,7 +444,7 @@ fillComplete()
 
 void
 GlobalSIMPLEOperator::
-applyEverySimpleOperator(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
+solveEveryPrimalBlock(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
 {
     unsigned int offset = 0;
     for (unsigned int i = 0; i < M_nPrimalBlocks; i++)
@@ -408,6 +455,32 @@ applyEverySimpleOperator(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
             rangePressure = *M_matrix.rangeMap(i*2+1,i*2);
         else
             rangePressure = *M_matrix.rangeMap(i*2+1,i*2+1);
+
+        if (M_solvePrimalBlocksExactly)
+        {
+            mapEpetra_Type monolithicMap = rangeVelocity;
+            monolithicMap += rangePressure;
+
+            vectorEpetra_Type subX(monolithicMap);
+            vectorEpetra_Type subY(monolithicMap);
+
+            subX.subset(X, monolithicMap, offset, 0);
+
+            RedMA::CoutRedirecter ct;
+            ct.redirect();
+
+            M_invOperators[i]->ApplyInverse(subX.epetraVector(),
+                                            subY.epetraVector());
+
+            ct.restore();
+
+            Y.subset(subY, monolithicMap, 0, offset);
+
+            offset += monolithicMap.mapSize();
+        }
+        else
+        {
+
         vectorEpetra_Type subVelocity(rangeVelocity);
         vectorEpetra_Type subPressure(rangePressure);
         subVelocity.zero();
@@ -428,6 +501,7 @@ applyEverySimpleOperator(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
                  offset + rangeVelocity.mapSize());
 
         offset += rangeVelocity.mapSize() + rangePressure.mapSize();
+        }
     }
 }
 
@@ -523,7 +597,7 @@ ApplyInverse(const vector_Type& X, vector_Type& Y) const
         vectorEpetra_Type Y_dual(M_dualMap, LifeV::Unique);
 
         vectorEpetra_Type Z(M_primalMap, LifeV::Unique);
-        applyEverySimpleOperator(X_primal, Z);
+        solveEveryPrimalBlock(X_primal, Z);
 
         vectorEpetra_Type Bz(M_dualMap, LifeV::Unique);
         applyEveryB(Z, Bz);
@@ -535,7 +609,7 @@ ApplyInverse(const vector_Type& X, vector_Type& Y) const
         applyEveryBT(Y_dual, BTy);
 
         vectorEpetra_Type Am1BTy(M_primalMap, LifeV::Unique);
-        applyEverySimpleOperator(BTy, Am1BTy);
+        solveEveryPrimalBlock(BTy, Am1BTy);
 
         Y_primal = Z - Am1BTy;
 
