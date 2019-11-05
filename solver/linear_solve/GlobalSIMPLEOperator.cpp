@@ -292,21 +292,19 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
 
             subX.subset(col, monolithicMap, 0, 0);
 
-            col.showMe();
+            RedMA::CoutRedirecter ct;
+            ct.redirect();
 
-            // RedMA::CoutRedirecter ct;
-            // ct.redirect();
+            M_invOperators[rowIndex/2]->ApplyInverse(subX.epetraVector(),
+                                                     subY.epetraVector());
 
-            M_invOperators[rowIndex / 2 ]->ApplyInverse(subX.epetraVector(),
-                                                        subY.epetraVector());
-
-            // ct.restore();
+            ct.restore();
 
             res.subset(subY, monolithicMap, 0, 0);
         }
         else
-            M_SingleOperators[rowIndex / 2]->ApplyInverse(col, fakePressure,
-                                                          res, fakePressureResult);
+            M_SingleOperators[rowIndex/2]->ApplyInverse(col, fakePressure,
+                                                        res, fakePressureResult);
 
         for (unsigned int dof = 0; dof < numElements; dof++)
         {
@@ -320,6 +318,7 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
                 }
             }
         }
+
     }
     M_comm->Barrier();
     std::shared_ptr<MapEpetra> domainMapPtr(new MapEpetra(BT->domainMap()));
@@ -373,6 +372,7 @@ computeGlobalSchurComplement()
 
 
     unsigned int nDualBlocks = M_nBlockRows - 2 * M_nPrimalBlocks;
+
     for (unsigned int i = 0; i < nDualBlocks; i++)
     {
         for (unsigned int j = 0; j < nDualBlocks; j++)

@@ -257,9 +257,34 @@ printPattern()
         {
             if (M_gridEpetra(i,j) != nullptr &&
                 M_gridEpetra(i,j)->norm1() > 0)
-                std::cout << "x\t";
+            {
+                Map rangeMap = M_gridEpetra(i,j)->rangeMap();
+                Map domainMap = M_gridEpetra(i,j)->domainMap();
+                std::string val;
+                val = "(";
+                val +=  std::to_string(rangeMap.mapSize());
+                val += ",";
+                val +=  std::to_string(domainMap.mapSize());
+                val += ")";
+                unsigned int size = val.size();
+                while (size < 14)
+                {
+                    val += " ";
+                    size++;
+                }
+                std::cout << val;
+            }
             else
-                std::cout << "o\t";
+            {
+                std::cout << "o";
+                unsigned int size = 1;
+                while (size < 14)
+                {
+                    std::cout << " ";
+                    size++;
+                }
+            }
+
         }
         std::cout << std::endl;
     }

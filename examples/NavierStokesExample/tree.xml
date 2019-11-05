@@ -1,9 +1,9 @@
-<buildingblock type="tube" refinement="normal">
+<buildingblock type="tube" refinement="normal" d="1" L="3">
     <L_ratio>1</L_ratio>
-    <Rout_ratio>0.99770541502839494</Rout_ratio>
+    <Rout_ratio>1.0900287956632535</Rout_ratio>
     <alpha>2.5108529289142552</alpha>
-    <alpha_axis>2.8667747382388025</alpha_axis>
-    <bend>0.13462165230338916</bend>
+    <alpha_axis>2.4392002865852005</alpha_axis>
+    <bend>0.54120818504015034</bend>
     <bx>-1.9669753010155726</bx>
     <by>-1.6249333236549719</by>
     <bz>12.92390868702873</bz>
@@ -12,430 +12,160 @@
     <rotation_axis_z>0</rotation_axis_z>
     <scale>2.4384757321677206</scale>
     <use_linear_elasticity>0</use_linear_elasticity>
-    <buildingblock type="tube" refinement="normal" outlet="1">
+    <buildingblock type="tube" refinement="normal" d="1" L="3" outlet="1">
         <L_ratio>1</L_ratio>
-        <Rout_ratio>1.034215904041931</Rout_ratio>
-        <alpha>2.6305410411617109</alpha>
-        <alpha_axis>2.5940033781426535</alpha_axis>
-        <bend>0.34341001213256911</bend>
-        <bx>-0.92225106587315153</bx>
-        <by>-0.82598855386335535</by>
-        <bz>10.872707171290692</bz>
-        <rotation_axis_x>-0.55651813851160248</rotation_axis_x>
-        <rotation_axis_y>0.83083545994834662</rotation_axis_y>
+        <Rout_ratio>0.64487519691404249</Rout_ratio>
+        <alpha>3.0520509181467164</alpha>
+        <alpha_axis>0.80165668876321017</alpha_axis>
+        <bend>0.35416748583236124</bend>
+        <bx>-0.024111827977585598</bx>
+        <by>0.021453142582133156</by>
+        <bz>6.1610244131181782</bz>
+        <rotation_axis_x>-0.63709860436821875</rotation_axis_x>
+        <rotation_axis_y>0.77078230928847069</rotation_axis_y>
         <rotation_axis_z>0</rotation_axis_z>
-        <scale>2.4328804423990649</scale>
+        <scale>2.6580087655888507</scale>
         <use_linear_elasticity>0</use_linear_elasticity>
-        <buildingblock type="tube" refinement="normal" outlet="1">
+        <buildingblock type="tube" refinement="normal" d="1" L="3" outlet="1">
             <L_ratio>1</L_ratio>
-            <Rout_ratio>1.0501865460011459</Rout_ratio>
-            <alpha>2.9730580236278561</alpha>
-            <alpha_axis>1.237114664921253</alpha_axis>
-            <bend>0.19406541792133222</bend>
-            <bx>-0.24263679895614709</bx>
-            <by>-0.39196561970127325</by>
-            <bz>8.5900079596052112</bz>
-            <rotation_axis_x>-0.4834573114818152</rotation_axis_x>
-            <rotation_axis_y>0.87536793862625284</rotation_axis_y>
-            <rotation_axis_z>0</rotation_axis_z>
-            <scale>2.5161236461616818</scale>
+            <Rout_ratio>0.93836720788764094</Rout_ratio>
+            <alpha>2.7699959218443055</alpha>
+            <alpha_axis>2.2548576070431534</alpha_axis>
+            <bend>0.57593050610921059</bend>
+            <bx>-0.28941835719150805</bx>
+            <by>1.6095173535797473</by>
+            <bz>-1.6062714509758109</bz>
+            <rotation_axis_x>-0.92856771498364077</rotation_axis_x>
+            <rotation_axis_y>-0.37116303518812349</rotation_axis_y>
+            <rotation_axis_z>-0</rotation_axis_z>
+            <scale>1.7140839261083611</scale>
             <use_linear_elasticity>0</use_linear_elasticity>
-            <buildingblock type="tube" refinement="normal" outlet="1">
+            <buildingblock type="tube" refinement="normal" d="1" L="2" outlet="1">
                 <L_ratio>1</L_ratio>
-                <Rout_ratio>0.82745380848264505</Rout_ratio>
-                <alpha>2.9079432751294756</alpha>
-                <alpha_axis>1.5092712724247694</alpha_axis>
-                <bend>0.15597378654905364</bend>
-                <bx>-0.027176142479150539</bx>
-                <by>0.0010128309675777603</by>
-                <bz>6.1181304070963094</bz>
-                <rotation_axis_x>-0.99466066824930999</rotation_axis_x>
-                <rotation_axis_y>0.10319958836078778</rotation_axis_y>
+                <Rout_ratio>0.67846549360649677</Rout_ratio>
+                <alpha>2.6411563947156518</alpha>
+                <alpha_axis>2.8768195799059497</alpha_axis>
+                <bend>1.1002875289034957</bend>
+                <bx>0.46639157748659749</bx>
+                <by>3.1120170268071234</by>
+                <bz>-6.3907380096842772</bz>
+                <rotation_axis_x>-0.48136928962651532</rotation_axis_x>
+                <rotation_axis_y>0.87651788744124559</rotation_axis_y>
                 <rotation_axis_z>0</rotation_axis_z>
-                <scale>2.6423992012743462</scale>
+                <scale>1.6084401478273882</scale>
                 <use_linear_elasticity>0</use_linear_elasticity>
-                <buildingblock type="tube" refinement="normal" outlet="1">
+                <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
                     <L_ratio>1</L_ratio>
-                    <Rout_ratio>0.83280953743373987</Rout_ratio>
-                    <alpha>3.0578642679217012</alpha>
-                    <alpha_axis>4.3300452324832053</alpha_axis>
-                    <bend>0.20107460185843076</bend>
-                    <bx>-0.018242333526812121</bx>
-                    <by>0.41425976026022238</by>
-                    <bz>3.5109716311599222</bz>
-                    <rotation_axis_x>-0.97875877535591183</rotation_axis_x>
-                    <rotation_axis_y>-0.20501526690418903</rotation_axis_y>
-                    <rotation_axis_z>-0</rotation_axis_z>
-                    <scale>2.1864632826259571</scale>
+                    <Rout_ratio>1.2261277665425492</Rout_ratio>
+                    <alpha>2.520804443575448</alpha>
+                    <alpha_axis>3.0027936575836587</alpha_axis>
+                    <bend>0.58669763776323647</bend>
+                    <bx>0.54870340891333336</bx>
+                    <by>2.72832094646978</by>
+                    <bz>-9.4224951367687275</bz>
+                    <rotation_axis_x>0.76494428536835402</rotation_axis_x>
+                    <rotation_axis_y>-0.6440964526235945</rotation_axis_y>
+                    <rotation_axis_z>0</rotation_axis_z>
+                    <scale>1.0912711388322156</scale>
                     <use_linear_elasticity>0</use_linear_elasticity>
-                    <buildingblock type="tube" refinement="normal" outlet="1">
+                    <buildingblock type="tube" refinement="normal" d="1" L="3" outlet="1">
                         <L_ratio>1</L_ratio>
-                        <Rout_ratio>0.9631544781703093</Rout_ratio>
-                        <alpha>2.8577080467198459</alpha>
-                        <alpha_axis>0.21059132151308368</alpha_axis>
-                        <bend>0.16489706256872577</bend>
-                        <bx>-0.062029524770143118</bx>
-                        <by>0.81026657610443553</by>
-                        <bz>1.3648594360470701</bz>
-                        <rotation_axis_x>-0.99668928704432902</rotation_axis_x>
-                        <rotation_axis_y>-0.081304766717991472</rotation_axis_y>
-                        <rotation_axis_z>-0</rotation_axis_z>
-                        <scale>1.8209074750195797</scale>
+                        <Rout_ratio>1.2864955001274754</Rout_ratio>
+                        <alpha>2.0240512290079735</alpha>
+                        <alpha_axis>0.16590180619226547</alpha_axis>
+                        <bend>0.56300177683061559</bend>
+                        <bx>0.20075764653420175</bx>
+                        <by>1.9922744304693398</by>
+                        <bz>-10.125539880817959</bz>
+                        <rotation_axis_x>0.96226569644630122</rotation_axis_x>
+                        <rotation_axis_y>-0.27211161210561158</rotation_axis_y>
+                        <rotation_axis_z>0</rotation_axis_z>
+                        <scale>1.3380378441486886</scale>
                         <use_linear_elasticity>0</use_linear_elasticity>
-                        <buildingblock type="tube" refinement="normal" outlet="1">
+                        <buildingblock type="tube" refinement="normal" d="1" L="2" outlet="1">
                             <L_ratio>1</L_ratio>
-                            <Rout_ratio>0.96335635581067047</Rout_ratio>
-                            <alpha>2.8584685749563388</alpha>
-                            <alpha_axis>2.3066103690061168</alpha_axis>
-                            <bend>0.31167223563441726</bend>
-                            <bx>-0.24291919414102742</bx>
-                            <by>1.2633713179923418</by>
-                            <bz>-0.3873314037010942</bz>
-                            <rotation_axis_x>-0.77814983231767432</rotation_axis_x>
-                            <rotation_axis_y>-0.62807868811477385</rotation_axis_y>
-                            <rotation_axis_z>-0</rotation_axis_z>
-                            <scale>1.7538151888988989</scale>
+                            <Rout_ratio>0.60963531340058608</Rout_ratio>
+                            <alpha>2.0073659327079443</alpha>
+                            <alpha_axis>-0.68036611998770846</alpha_axis>
+                            <bend>0.89686255094222389</bend>
+                            <bx>-1.7683771836954734</bx>
+                            <by>-0.95137517168223829</by>
+                            <bz>-11.900194327535646</bz>
+                            <rotation_axis_x>0.6208300140727695</rotation_axis_x>
+                            <rotation_axis_y>-0.78394521085749669</rotation_axis_y>
+                            <rotation_axis_z>0</rotation_axis_z>
+                            <scale>1.7213796654975562</scale>
                             <use_linear_elasticity>0</use_linear_elasticity>
-                            <buildingblock type="tube" refinement="normal" outlet="1">
+                            <buildingblock type="tube" refinement="normal" d="1" L="2" outlet="1">
                                 <L_ratio>1</L_ratio>
-                                <Rout_ratio>1.0210587026385209</Rout_ratio>
-                                <alpha>2.7577401419934522</alpha>
-                                <alpha_axis>1.5209548238338269</alpha_axis>
-                                <bend>0.077182537791297301</bend>
-                                <bx>-0.31189659020376098</bx>
-                                <by>1.7752328641268684</by>
-                                <bz>-2.0559503039120388</bz>
-                                <rotation_axis_x>-0.96556031822865884</rotation_axis_x>
-                                <rotation_axis_y>0.26017930713677295</rotation_axis_y>
+                                <Rout_ratio>0.96566618523683412</Rout_ratio>
+                                <alpha>2.9040604800526904</alpha>
+                                <alpha_axis>-0.12278460950943131</alpha_axis>
+                                <bend>1.4405936908690984</bend>
+                                <bx>-3.4114328253947264</bx>
+                                <by>-2.2720087617785354</by>
+                                <bz>-14.47612206530648</bz>
+                                <rotation_axis_x>0.64795073997218544</rotation_axis_x>
+                                <rotation_axis_y>-0.76168224251947569</rotation_axis_y>
                                 <rotation_axis_z>0</rotation_axis_z>
-                                <scale>1.6895490091430458</scale>
+                                <scale>1.0494138318569988</scale>
                                 <use_linear_elasticity>0</use_linear_elasticity>
-                                <buildingblock type="tube" refinement="normal" outlet="1">
+                                <buildingblock type="tube" refinement="normal" d="1" L="2" outlet="1">
                                     <L_ratio>1</L_ratio>
-                                    <Rout_ratio>0.97273977459937921</Rout_ratio>
-                                    <alpha>2.8303075266329332</alpha>
-                                    <alpha_axis>3.8136241965688962</alpha_axis>
-                                    <bend>0.27554435817166212</bend>
-                                    <bx>-0.18177341083708004</bx>
-                                    <by>2.3352753018030805</by>
-                                    <bz>-3.6442133389711824</bz>
-                                    <rotation_axis_x>-0.98282544617491208</rotation_axis_x>
-                                    <rotation_axis_y>0.18453764480746218</rotation_axis_y>
+                                    <Rout_ratio>0.94868153480891937</Rout_ratio>
+                                    <alpha>1.8976632870449111</alpha>
+                                    <alpha_axis>5.1847881437185368</alpha_axis>
+                                    <bend>0.63144028084357073</bend>
+                                    <bx>-3.3380116575802616</bx>
+                                    <by>-1.2944779512462321</by>
+                                    <bz>-16.129327222686367</bz>
+                                    <rotation_axis_x>-0.96827631731417352</rotation_axis_x>
+                                    <rotation_axis_y>0.24988191877065097</rotation_axis_y>
                                     <rotation_axis_z>0</rotation_axis_z>
-                                    <scale>1.7251287193197968</scale>
+                                    <scale>1.0133834517441165</scale>
                                     <use_linear_elasticity>0</use_linear_elasticity>
-                                    <buildingblock type="tube" refinement="normal" outlet="1">
+                                    <buildingblock type="tube" refinement="normal" d="1" L="3" outlet="1">
                                         <L_ratio>1</L_ratio>
-                                        <Rout_ratio>0.91520528337948048</Rout_ratio>
-                                        <alpha>2.6405374089976124</alpha>
-                                        <alpha_axis>2.6023538479926369</alpha_axis>
-                                        <bend>0.42098348869825691</bend>
-                                        <bx>0.13909203428711836</bx>
-                                        <by>2.9127970872161959</by>
-                                        <bz>-5.2319163593208389</bz>
-                                        <rotation_axis_x>-0.75835519379855354</rotation_axis_x>
-                                        <rotation_axis_y>0.65184154519235604</rotation_axis_y>
+                                        <Rout_ratio>1.111622515011218</Rout_ratio>
+                                        <alpha>1.2802966834605087</alpha>
+                                        <alpha_axis>0.87521519873171083</alpha_axis>
+                                        <bend>1.1187788210120324</bend>
+                                        <bx>-2.9718440437360898</bx>
+                                        <by>0.66452691847194156</by>
+                                        <bz>-16.165652451413386</bz>
+                                        <rotation_axis_x>-0.99307075972680314</rotation_axis_x>
+                                        <rotation_axis_y>0.11751793980337606</rotation_axis_y>
                                         <rotation_axis_z>0</rotation_axis_z>
-                                        <scale>1.678101321586055</scale>
+                                        <scale>0.96137816835056888</scale>
                                         <use_linear_elasticity>0</use_linear_elasticity>
-                                        <buildingblock type="tube" refinement="normal" outlet="1">
+                                        <buildingblock type="tube" refinement="normal" d="1" L="3" outlet="1">
                                             <L_ratio>1</L_ratio>
-                                            <Rout_ratio>0.79298804510796173</Rout_ratio>
-                                            <alpha>2.9785325970668022</alpha>
-                                            <alpha_axis>3.5141966832738794</alpha_axis>
-                                            <bend>0.28896998764423487</bend>
-                                            <bx>0.54377611096157752</bx>
-                                            <by>3.2148664337402404</by>
-                                            <bz>-6.8192613828745809</bz>
-                                            <rotation_axis_x>0.05911398354324221</rotation_axis_x>
-                                            <rotation_axis_y>0.99825123939299432</rotation_axis_y>
-                                            <rotation_axis_z>0</rotation_axis_z>
-                                            <scale>1.5358071955616461</scale>
+                                            <Rout_ratio>0.95936169043151143</Rout_ratio>
+                                            <alpha>2.0567445564718083</alpha>
+                                            <alpha_axis>0.90459207275971354</alpha_axis>
+                                            <bend>0.58562514299814561</bend>
+                                            <bx>-3.7248366741301737</bx>
+                                            <by>3.278721532471689</by>
+                                            <bz>-16.457174108226493</bz>
+                                            <rotation_axis_x>-0.75567965312676888</rotation_axis_x>
+                                            <rotation_axis_y>-0.6549414186400232</rotation_axis_y>
+                                            <rotation_axis_z>-0</rotation_axis_z>
+                                            <scale>1.0686896173787375</scale>
                                             <use_linear_elasticity>0</use_linear_elasticity>
-                                            <buildingblock type="tube" refinement="normal" outlet="1">
+                                            <buildingblock type="tube" refinement="normal" d="1" L="2" outlet="1">
                                                 <L_ratio>1</L_ratio>
-                                                <Rout_ratio>0.89993795268894805</Rout_ratio>
-                                                <alpha>2.9988509986033276</alpha>
-                                                <alpha_axis>3.2055621447684719</alpha_axis>
-                                                <bend>0.44376045543000392</bend>
-                                                <bx>0.57871307877653533</bx>
-                                                <by>3.1447306427795283</by>
-                                                <bz>-8.3477234772035338</bz>
-                                                <rotation_axis_x>0.57010166609982782</rotation_axis_x>
-                                                <rotation_axis_y>-0.82157415387182198</rotation_axis_y>
-                                                <rotation_axis_z>0</rotation_axis_z>
-                                                <scale>1.2178767456711708</scale>
+                                                <Rout_ratio>0.99093455569141664</Rout_ratio>
+                                                <alpha>2.6411999928327852</alpha>
+                                                <alpha_axis>0.39951846668623819</alpha_axis>
+                                                <bend>0.051498787908723767</bend>
+                                                <bx>-5.1654777785601818</bx>
+                                                <by>5.0076457897337567</by>
+                                                <bz>-18.676142754222155</bz>
+                                                <rotation_axis_x>-0.79065768129332914</rotation_axis_x>
+                                                <rotation_axis_y>-0.61225846748889978</rotation_axis_y>
+                                                <rotation_axis_z>-0</rotation_axis_z>
+                                                <scale>1.0252598778750708</scale>
                                                 <use_linear_elasticity>0</use_linear_elasticity>
-                                                <buildingblock type="tube" refinement="normal" outlet="1">
-                                                    <L_ratio>1</L_ratio>
-                                                    <Rout_ratio>1.2208224058278352</Rout_ratio>
-                                                    <alpha>2.5794365560553496</alpha>
-                                                    <alpha_axis>2.3880767736304551</alpha_axis>
-                                                    <bend>0.63016514358426523</bend>
-                                                    <bx>0.36582037237694298</bx>
-                                                    <by>2.7959317868979019</by>
-                                                    <bz>-9.4844111726079454</bz>
-                                                    <rotation_axis_x>0.90479495182368341</rotation_axis_x>
-                                                    <rotation_axis_y>-0.42584750222864781</rotation_axis_y>
-                                                    <rotation_axis_z>0</rotation_axis_z>
-                                                    <scale>1.0960135051267921</scale>
-                                                    <use_linear_elasticity>0</use_linear_elasticity>
-                                                    <buildingblock type="tube" refinement="normal" outlet="1">
-                                                        <L_ratio>1</L_ratio>
-                                                        <Rout_ratio>1.3064638755912164</Rout_ratio>
-                                                        <alpha>1.9731724442077638</alpha>
-                                                        <alpha_axis>0.38142971508303747</alpha_axis>
-                                                        <bend>0.33160175975489015</bend>
-                                                        <bx>0.13266798430843418</bx>
-                                                        <by>2.0114934170730203</by>
-                                                        <bz>-10.18606098606611</bz>
-                                                        <rotation_axis_x>0.9797351535740616</rotation_axis_x>
-                                                        <rotation_axis_y>-0.20029735108385691</rotation_axis_y>
-                                                        <rotation_axis_z>0</rotation_axis_z>
-                                                        <scale>1.3380378441486886</scale>
-                                                        <use_linear_elasticity>0</use_linear_elasticity>
-                                                        <buildingblock type="tube" refinement="normal" outlet="1">
-                                                            <L_ratio>1</L_ratio>
-                                                            <Rout_ratio>1.0855039571742602</Rout_ratio>
-                                                            <alpha>1.8930559973761805</alpha>
-                                                            <alpha_axis>0.020816769382267404</alpha_axis>
-                                                            <bend>0.25872944573956758</bend>
-                                                            <bx>-0.32441821018231332</bx>
-                                                            <by>0.85549514650312553</by>
-                                                            <bz>-10.664328699107401</bz>
-                                                            <rotation_axis_x>0.8545415270287432</rotation_axis_x>
-                                                            <rotation_axis_y>-0.51938307498741609</rotation_axis_y>
-                                                            <rotation_axis_z>0</rotation_axis_z>
-                                                            <scale>1.7480981075542117</scale>
-                                                            <use_linear_elasticity>0</use_linear_elasticity>
-                                                            <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                <L_ratio>1</L_ratio>
-                                                                <Rout_ratio>0.78838075420310383</Rout_ratio>
-                                                                <alpha>2.012931230678868</alpha>
-                                                                <alpha_axis>-0.60968338130739652</alpha_axis>
-                                                                <bend>0.29844617577126004</bend>
-                                                                <bx>-1.3237466649857472</bx>
-                                                                <by>-0.41409907734391749</by>
-                                                                <bz>-11.318783711285111</bz>
-                                                                <rotation_axis_x>0.70131852120677474</rotation_axis_x>
-                                                                <rotation_axis_y>-0.71284804258154677</rotation_axis_y>
-                                                                <rotation_axis_z>0</rotation_axis_z>
-                                                                <scale>1.8975674132789324</scale>
-                                                                <use_linear_elasticity>0</use_linear_elasticity>
-                                                                <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                    <L_ratio>1</L_ratio>
-                                                                    <Rout_ratio>0.78414270833853761</Rout_ratio>
-                                                                    <alpha>2.3063458860527284</alpha>
-                                                                    <alpha_axis>5.4214095755909444</alpha_axis>
-                                                                    <bend>0.28726014003684558</bend>
-                                                                    <bx>-2.4766307073850991</bx>
-                                                                    <by>-1.4825780070415735</by>
-                                                                    <bz>-12.369176867453822</bz>
-                                                                    <rotation_axis_x>0.65263649030767779</rotation_axis_x>
-                                                                    <rotation_axis_y>-0.75767117638120307</rotation_axis_y>
-                                                                    <rotation_axis_z>0</rotation_axis_z>
-                                                                    <scale>1.4960056284320775</scale>
-                                                                    <use_linear_elasticity>0</use_linear_elasticity>
-                                                                    <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                        <L_ratio>1</L_ratio>
-                                                                        <Rout_ratio>0.87139787119684242</Rout_ratio>
-                                                                        <alpha>2.5890517696402244</alpha>
-                                                                        <alpha_axis>-0.57519331863249357</alpha_axis>
-                                                                        <bend>0.57562799085324712</bend>
-                                                                        <bx>-3.1773811843237247</bx>
-                                                                        <by>-2.1284734257365723</by>
-                                                                        <bz>-13.515672869030819</bz>
-                                                                        <rotation_axis_x>0.71190022397701513</rotation_axis_x>
-                                                                        <rotation_axis_y>-0.70228062133414715</rotation_axis_y>
-                                                                        <rotation_axis_z>0</rotation_axis_z>
-                                                                        <scale>1.1730819051684251</scale>
-                                                                        <use_linear_elasticity>0</use_linear_elasticity>
-                                                                        <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                            <L_ratio>1</L_ratio>
-                                                                            <Rout_ratio>1.0947211126190597</Rout_ratio>
-                                                                            <alpha>3.0234778378452574</alpha>
-                                                                            <alpha_axis>3.0137813963925169</alpha_axis>
-                                                                            <bend>0.68216533212597941</bend>
-                                                                            <bx>-3.4449119001615762</bx>
-                                                                            <by>-2.298983840594377</by>
-                                                                            <bz>-14.628279723078007</bz>
-                                                                            <rotation_axis_x>-0.77230508889865013</rotation_axis_x>
-                                                                            <rotation_axis_y>-0.63525180020307537</rotation_axis_y>
-                                                                            <rotation_axis_z>-0</rotation_axis_z>
-                                                                            <scale>1.0222210749033018</scale>
-                                                                            <use_linear_elasticity>0</use_linear_elasticity>
-                                                                            <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                                <L_ratio>1</L_ratio>
-                                                                                <Rout_ratio>0.8922635129382569</Rout_ratio>
-                                                                                <alpha>2.391027483114688</alpha>
-                                                                                <alpha_axis>4.8896863426435599</alpha_axis>
-                                                                                <bend>0.58505543048118736</bend>
-                                                                                <bx>-3.408739726705512</bx>
-                                                                                <by>-1.8958413047290696</by>
-                                                                                <bz>-15.545452146057428</bz>
-                                                                                <rotation_axis_x>-0.97781677976760051</rotation_axis_x>
-                                                                                <rotation_axis_y>0.20946203762238136</rotation_axis_y>
-                                                                                <rotation_axis_z>0</rotation_axis_z>
-                                                                                <scale>1.1190469924607938</scale>
-                                                                                <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                                    <L_ratio>1</L_ratio>
-                                                                                    <Rout_ratio>0.95307356130852749</Rout_ratio>
-                                                                                    <alpha>1.8061923341747614</alpha>
-                                                                                    <alpha_axis>5.0037133536755629</alpha_axis>
-                                                                                    <bend>0.39125453089351564</bend>
-                                                                                    <bx>-3.1986422301403805</bx>
-                                                                                    <by>-0.96627186953879152</by>
-                                                                                    <bz>-16.10106992294774</bz>
-                                                                                    <rotation_axis_x>-0.97362617923374284</rotation_axis_x>
-                                                                                    <rotation_axis_y>0.22814921238238728</rotation_axis_y>
-                                                                                    <rotation_axis_z>0</rotation_axis_z>
-                                                                                    <scale>0.99848480063605893</scale>
-                                                                                    <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                    <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                                        <L_ratio>1</L_ratio>
-                                                                                        <Rout_ratio>1.0286492688433508</Rout_ratio>
-                                                                                        <alpha>1.4156393377437801</alpha>
-                                                                                        <alpha_axis>4.3535856657835268</alpha_axis>
-                                                                                        <bend>0.012280665350223374</bend>
-                                                                                        <bx>-2.9839614288358098</bx>
-                                                                                        <by>0.0015333886375347161</by>
-                                                                                        <bz>-16.14086571000556</bz>
-                                                                                        <rotation_axis_x>-0.97873676899745843</rotation_axis_x>
-                                                                                        <rotation_axis_y>0.20512029887949998</rotation_axis_y>
-                                                                                        <rotation_axis_z>0</rotation_axis_z>
-                                                                                        <scale>0.95162946485464373</scale>
-                                                                                        <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                        <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                                            <L_ratio>1</L_ratio>
-                                                                                            <Rout_ratio>1.1064008670316705</Rout_ratio>
-                                                                                            <alpha>1.4052732583972229</alpha>
-                                                                                            <alpha_axis>0.268794271784976</alpha_axis>
-                                                                                            <bend>0.56102415814975859</bend>
-                                                                                            <bx>-2.7882050904601225</bx>
-                                                                                            <by>0.92032804523326095</by>
-                                                                                            <bz>-15.988934502003657</bz>
-                                                                                            <rotation_axis_x>-0.97734677955332694</rotation_axis_x>
-                                                                                            <rotation_axis_y>0.21164421205584794</rotation_axis_y>
-                                                                                            <rotation_axis_z>0</rotation_axis_z>
-                                                                                            <scale>0.97889295323251846</scale>
-                                                                                            <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                            <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                                                <L_ratio>1</L_ratio>
-                                                                                                <Rout_ratio>0.98177111573882359</Rout_ratio>
-                                                                                                <alpha>1.4601898670073745</alpha>
-                                                                                                <alpha_axis>0.57422860005302323</alpha_axis>
-                                                                                                <bend>0.51007720181546279</bend>
-                                                                                                <bx>-2.8548962962171389</bx>
-                                                                                                <by>1.8741522332049412</by>
-                                                                                                <bz>-15.850616503967672</bz>
-                                                                                                <rotation_axis_x>-0.93914673432771645</rotation_axis_x>
-                                                                                                <rotation_axis_y>-0.34351624619744786</rotation_axis_y>
-                                                                                                <rotation_axis_z>-0</rotation_axis_z>
-                                                                                                <scale>1.0830480121876509</scale>
-                                                                                                <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                                                    <L_ratio>1</L_ratio>
-                                                                                                    <Rout_ratio>1.0173976828545035</Rout_ratio>
-                                                                                                    <alpha>1.8662525125988878</alpha>
-                                                                                                    <alpha_axis>0.80677375942491247</alpha_axis>
-                                                                                                    <bend>0.40793568363994237</bend>
-                                                                                                    <bx>-3.3698134501794978</bx>
-                                                                                                    <by>2.8082955061427493</by>
-                                                                                                    <bz>-15.950700912959961</bz>
-                                                                                                    <rotation_axis_x>-0.78820763028230956</rotation_axis_x>
-                                                                                                    <rotation_axis_y>-0.61540940158949953</rotation_axis_y>
-                                                                                                    <rotation_axis_z>-0</rotation_axis_z>
-                                                                                                    <scale>1.0633052553241851</scale>
-                                                                                                    <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                    <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                                                        <L_ratio>1</L_ratio>
-                                                                                                        <Rout_ratio>0.91009430256644985</Rout_ratio>
-                                                                                                        <alpha>2.271648990397714</alpha>
-                                                                                                        <alpha_axis>0.9251916381847769</alpha_axis>
-                                                                                                        <bend>0.28662673465979727</bend>
-                                                                                                        <bx>-3.9574952459504211</bx>
-                                                                                                        <by>3.5259059688232695</by>
-                                                                                                        <bz>-16.455370231939753</bz>
-                                                                                                        <rotation_axis_x>-0.75487945360597697</rotation_axis_x>
-                                                                                                        <rotation_axis_y>-0.6558635609054233</rotation_axis_y>
-                                                                                                        <rotation_axis_z>-0</rotation_axis_z>
-                                                                                                        <scale>1.081804302933842</scale>
-                                                                                                        <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                        <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                                                            <L_ratio>1</L_ratio>
-                                                                                                            <Rout_ratio>1.0216151725826756</Rout_ratio>
-                                                                                                            <alpha>2.5573232900291027</alpha>
-                                                                                                            <alpha_axis>1.1927841314048673</alpha_axis>
-                                                                                                            <bend>0.039767852538099335</bend>
-                                                                                                            <bx>-4.4193144593462188</bx>
-                                                                                                            <by>4.0738015190113952</by>
-                                                                                                            <bz>-17.260878630561081</bz>
-                                                                                                            <rotation_axis_x>-0.77781687075549955</rotation_axis_x>
-                                                                                                            <rotation_axis_y>-0.6284909828852937</rotation_axis_y>
-                                                                                                            <rotation_axis_z>-0</rotation_axis_z>
-                                                                                                            <scale>0.98454393259195938</scale>
-                                                                                                            <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                            <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                                                                <L_ratio>1</L_ratio>
-                                                                                                                <Rout_ratio>1.0282651433247307</Rout_ratio>
-                                                                                                                <alpha>2.59518320391757</alpha>
-                                                                                                                <alpha_axis>-5.3719544434803908</alpha_axis>
-                                                                                                                <bend>0.043415440318492121</bend>
-                                                                                                                <bx>-4.7462150107016488</bx>
-                                                                                                                <by>4.4876231817277947</by>
-                                                                                                                <bz>-18.092194861116951</bz>
-                                                                                                                <rotation_axis_x>-0.79190011926329118</rotation_axis_x>
-                                                                                                                <rotation_axis_y>-0.61065063752589743</rotation_axis_y>
-                                                                                                                <rotation_axis_z>-0</rotation_axis_z>
-                                                                                                                <scale>1.0058250196101608</scale>
-                                                                                                                <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                                <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                                                                    <L_ratio>1</L_ratio>
-                                                                                                                    <Rout_ratio>1.0067912802751176</Rout_ratio>
-                                                                                                                    <alpha>2.6385984757820533</alpha>
-                                                                                                                    <alpha_axis>4.2457866055620119</alpha_axis>
-                                                                                                                    <bend>0.04511443598848959</bend>
-                                                                                                                    <bx>-5.053927619461823</bx>
-                                                                                                                    <by>4.8865731762532683</by>
-                                                                                                                    <bz>-18.962641253514381</bz>
-                                                                                                                    <rotation_axis_x>-0.79175255562270686</rotation_axis_x>
-                                                                                                                    <rotation_axis_y>-0.61084195227973015</rotation_axis_y>
-                                                                                                                    <rotation_axis_z>-0</rotation_axis_z>
-                                                                                                                    <scale>1.0342548079490421</scale>
-                                                                                                                    <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                                    <buildingblock type="tube" refinement="normal" outlet="1">
-                                                                                                                        <L_ratio>1</L_ratio>
-                                                                                                                        <Rout_ratio>0.96915503049282348</Rout_ratio>
-                                                                                                                        <alpha>2.5942394332424752</alpha>
-                                                                                                                        <alpha_axis>0.70420146163218644</alpha_axis>
-                                                                                                                        <bend>0.070963626490769871</bend>
-                                                                                                                        <bx>-5.3741230660434081</bx>
-                                                                                                                        <by>5.2943682048745293</by>
-                                                                                                                        <bz>-19.85744831788222</bz>
-                                                                                                                        <rotation_axis_x>-0.78162177046805226</rotation_axis_x>
-                                                                                                                        <rotation_axis_y>-0.62375268170196052</rotation_axis_y>
-                                                                                                                        <rotation_axis_z>-0</rotation_axis_z>
-                                                                                                                        <scale>1.0412787222257118</scale>
-                                                                                                                        <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                                    </buildingblock>
-                                                                                                                </buildingblock>
-                                                                                                            </buildingblock>
-                                                                                                        </buildingblock>
-                                                                                                    </buildingblock>
-                                                                                                </buildingblock>
-                                                                                            </buildingblock>
-                                                                                        </buildingblock>
-                                                                                    </buildingblock>
-                                                                                </buildingblock>
-                                                                            </buildingblock>
-                                                                        </buildingblock>
-                                                                    </buildingblock>
-                                                                </buildingblock>
-                                                            </buildingblock>
-                                                        </buildingblock>
-                                                    </buildingblock>
-                                                </buildingblock>
                                             </buildingblock>
                                         </buildingblock>
                                     </buildingblock>

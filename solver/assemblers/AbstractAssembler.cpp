@@ -392,6 +392,8 @@ assembleCouplingMatrices(AbstractAssembler& child,
                                           numberOfComponents(),
                                           child.M_treeNode->M_ID);
 
+        primalMap = child.M_primalMaps[child.M_indexCoupling];
+
         child.M_coupler.fillMatricesWithVectors(couplingVectorsChild,
                                                 nBasisFunctions,
                                                 lagrangeMultiplierMap,

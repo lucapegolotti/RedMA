@@ -88,14 +88,14 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
         int d = 1;
         if (element->Attribute("d"))
         {
-           ref = element->Attribute("d");
+            d = std::atoi(element->Attribute("d"));
         }
 
         // length
         int L = 1;
         if (element->Attribute("L"))
         {
-           ref = element->Attribute("L");
+            L = std::atoi(element->Attribute("L"));
         }
 
         returnBlock.reset(new Tube(M_comm, ref, M_verbose, d, L));
