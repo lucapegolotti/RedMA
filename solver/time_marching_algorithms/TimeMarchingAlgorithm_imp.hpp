@@ -59,8 +59,10 @@ buildPreconditioner(GlobalBlockMatrix matrix)
     {
         bool steady = M_datafile("time_discretization/steady", false);
         bool exactSolveBlocks = M_datafile("linear_solve/exact_solve_primal", false);
+        // we don't allow for exact solve in steady case. The problem is that we don't pass
+        // the matrix to be solved to the preconditioner
         if (steady)
-            M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator("STEADY", exactSolveBlocks));
+            M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator("STEADY", false));
         else
             M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator("SIMPLE", exactSolveBlocks));
     }

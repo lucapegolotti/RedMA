@@ -60,6 +60,14 @@ saveToFile(TreeStructure& tree, std::string name,
                 pNewElement->SetAttribute("refinement",
                                     curNode->M_block->getRefinement().c_str());
 
+                if (!std::strcmp(curNode->M_block->name().c_str(), "Tube"))
+                {
+                    pNewElement->SetAttribute("d",
+                                 curNode->M_block->getOptionalParameter(0).c_str());
+                    pNewElement->SetAttribute("L",
+                                 curNode->M_block->getOptionalParameter(1).c_str());
+                }
+
                 if (outletIndex != -1)
                     pNewElement->SetAttribute("outlet", outletIndex);
 

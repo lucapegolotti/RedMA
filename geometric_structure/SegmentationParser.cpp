@@ -279,7 +279,8 @@ traverseSegmentation(std::string ctgrName)
 
 TreeStructure
 SegmentationParser::
-createTree(const double& constVector, const double& constNormal,
+createTree(const int& lengthTubes,
+           const double& constVector, const double& constNormal,
            int indexBegin, int indexEnd)
 {
     if (indexBegin == -1)
@@ -295,7 +296,7 @@ createTree(const double& constVector, const double& constNormal,
     TreeStructure retTree(M_verbose);
 
     // we start by adding the first block
-    std::shared_ptr<Tube> rootTube(new Tube(M_comm,"fine"));
+    std::shared_ptr<Tube> rootTube(new Tube(M_comm,"fine",false,1,lengthTubes));
     retTree.setRoot(rootTube);
 
     // set parameters of root tube
@@ -371,29 +372,32 @@ createTree(const double& constVector, const double& constNormal,
     bend(alphaAxis, bendAngle, prevCenter, prevNormal, R1, cb,
          scale, rootTube->getDefLength(), n);
 
+    unsigned int prevIndex = ind;
     unsigned int count = 0;
     // add other blocks
-    while (count < 29)
+    int curLength = lengthTubes;
+    while (1)
     {
-        std::shared_ptr<Tube> childTube(new Tube(M_comm,"fine"));
-        retTree.addChild(count, childTube);
+        int status = 0;
+
+        std::shared_ptr<Tube> childTube(new Tube(M_comm,"fine",false,1,curLength));
 
         cb = prevCenter;
 
-        childTube->setParameterValue("bx", cb[0]);
-        childTube->setParameterValue("by", cb[1]);
-        childTube->setParameterValue("bz", cb[2]);
+        status = status || childTube->setParameterValue("bx", cb[0]);
+        status = status || childTube->setParameterValue("by", cb[1]);
+        status = status || childTube->setParameterValue("bz", cb[2]);
 
         scale = prevRadius / childTube->getInletRadius();
-        childTube->setParameterValue("scale", scale);
+        status = status || childTube->setParameterValue("scale", scale);
 
         BuildingBlock::computeRotationAxisAndAngle(childTube->getInletNormal(),
                                                    prevNormal, axis, alpha);
 
-        childTube->setParameterValue("rotation_axis_x", axis[0]);
-        childTube->setParameterValue("rotation_axis_y", axis[1]);
-        childTube->setParameterValue("rotation_axis_z", axis[2]);
-        childTube->setParameterValue("alpha", alpha);
+        status = status || childTube->setParameterValue("rotation_axis_x", axis[0]);
+        status = status || childTube->setParameterValue("rotation_axis_y", axis[1]);
+        status = status || childTube->setParameterValue("rotation_axis_z", axis[2]);
+        status = status || childTube->setParameterValue("alpha", alpha);
 
         length += childTube->getDefLength() * scale;
 
@@ -401,6 +405,14 @@ createTree(const double& constVector, const double& constNormal,
         while (M_cumulativeDistance[ind] - M_cumulativeDistance[indexBegin] < length
                && ind < M_indexEnd)
             ind++;
+
+        if (ind == M_indexEnd)
+        {
+            if (curLength == 1)
+                break;
+            else
+                status = 1;
+        }
 
         // choose the closest point between ind-1 and ind
         ind = std::abs(M_cumulativeDistance[ind]-length) <
@@ -411,7 +423,8 @@ createTree(const double& constVector, const double& constNormal,
         targetRadius = M_contoursComplete[ind].M_radius;
 
         defRadius = childTube->getInletRadius();
-        childTube->setParameterValue("Rout_ratio", targetRadius/(defRadius*scale));
+        status = status || childTube->setParameterValue("Rout_ratio",
+                                                targetRadius/(defRadius*scale));
 
         R1 = BuildingBlock::computeRotationMatrix(axis, alpha);
         e1[0] = 1.0; e1[1] = 0.0; e1[2] = 0.0;
@@ -422,28 +435,55 @@ createTree(const double& constVector, const double& constNormal,
         targetCentralAbs = targetCentral - cb;
         targetCentralProj = targetCentralAbs - targetCentralAbs.dot(n) * n;
 
-        alphaAxis = M_PI-std::acos(targetCentralProj.dot(e1)/(e1.norm()*targetCentralProj.norm()));
+        alphaAxis = M_PI-std::acos(targetCentralProj.dot(e1) /
+                    (e1.norm()*targetCentralProj.norm()));
 
         bendAngle = 0.1;
 
-        optimizeBending(alphaAxis, bendAngle, 1e7, 1e-15, R1, cb,
-                        scale, childTube->getDefLength(), n,
-                        M_contoursComplete[ind], constVector, constNormal);
+        double f;
+        if (!status)
+            f = optimizeBending(alphaAxis, bendAngle, 1e7, 1e-15, R1, cb,
+                                scale, childTube->getDefLength(), n,
+                                M_contoursComplete[ind], constVector, constNormal);
 
-        childTube->setParameterValue("alpha_axis", alphaAxis);
-        childTube->setParameterValue("bend", bendAngle);
+        double err;
+        err = aPosterioriCheck(alphaAxis, bendAngle, R1, cb,
+                               scale, childTube->getDefLength(), n,
+                               M_contoursComplete[ind]);
 
-        bend(alphaAxis, bendAngle, prevCenter, prevNormal, R1, cb,
-             scale, childTube->getDefLength(), n);
+        std::cout << "error = " << err << std::endl;
+        if (err > THRESHOLD)
+            status = 1;
 
-        prevRadius = targetRadius;
-        prevCenter = targetCentral;
-        prevNormal = targetNormal;
+        status = status || childTube->setParameterValue("alpha_axis", alphaAxis);
+        status = status || childTube->setParameterValue("bend", bendAngle);
 
-        bend(alphaAxis, bendAngle, prevCenter, prevNormal, R1, cb,
-             scale, childTube->getDefLength(), n);
+        if (status == 0)
+        {
+            retTree.addChild(count, childTube);
+            prevIndex = ind;
+            count++;
+            curLength = lengthTubes;
 
-        count++;
+            bend(alphaAxis, bendAngle, prevCenter, prevNormal, R1, cb,
+                 scale, childTube->getDefLength(), n);
+
+            prevRadius = targetRadius;
+        }
+        else
+        {
+            ind = prevIndex;
+            length -= childTube->getDefLength() * scale;
+            curLength--;
+            std::string msg;
+            if (curLength == 0)
+            {
+                msg = "Status was not fixed by decreasing tube length";
+                throw new Exception(msg);
+            }
+            msg = "[SegmentationParser] Status != 0 : retrying\n";
+            printlog(RED, msg, M_verbose);
+        }
     }
 
     return retTree;
@@ -465,7 +505,23 @@ Fbending(const double& alpha, const double& theta,
     bend(alpha, theta, newCenter, newNormal, A, b, scale, L, axis);
 
     return const1 * (newCenter-target.M_center).norm() / target.M_center.norm() +
-           const2 * std::abs(std::abs(newNormal.dot(target.M_normal))-1.0);
+           const2 * std::abs(newNormal.dot(target.M_normal)-1.0);
+}
+
+double
+SegmentationParser::
+aPosterioriCheck(const double& alpha, const double& theta,
+                 const Matrix3D& A, const Vector3D& b,
+                 const double& scale,
+                 const double& L, const Vector3D& axis,
+                 const Contour& target)
+{
+    Vector3D newCenter;
+    Vector3D newNormal;
+
+    bend(alpha, theta, newCenter, newNormal, A, b, scale, L, axis);
+
+    return (newCenter-target.M_center).norm() / target.M_center.norm();
 }
 
 void

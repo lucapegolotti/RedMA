@@ -34,7 +34,7 @@ name()
     return M_name;
 }
 
-void
+int
 GeometricParameter::
 operator=(const double& value)
 {
@@ -42,6 +42,18 @@ operator=(const double& value)
     {
         M_value = value < M_minValue ? M_minValue : value;
         M_value = M_value > M_maxValue ? M_maxValue : M_value;
+        if (M_value != value)
+        {
+            std::string msg = "Parameter with name ";
+            msg += M_name;
+            msg += " was assigned a value outside the bounds; value = ";
+            msg += std::to_string(value);
+            msg += ", assigned value = ";
+            msg += std::to_string(M_value);
+            msg += "\n";
+            printlog(RED, msg, true);
+            return 1;
+        }
     }
     else
     {
@@ -53,6 +65,7 @@ operator=(const double& value)
         while (M_value < M_minValue)
             M_value += interval;
     }
+    return 0;
 }
 
 double
@@ -108,13 +121,13 @@ registerParameter(std::string name, const double& value,
     }
 }
 
-void
+int
 GeometricParametersHandler::
 setParameterValue(std::string name, const double& value)
 {
     if (exists(name))
     {
-        *M_parametersMap[name] = value;
+        return *M_parametersMap[name] = value;
     }
     else
     {
@@ -122,6 +135,7 @@ setParameterValue(std::string name, const double& value)
                                + name + " does not exist!";
         throw Exception(errorMsg);
     }
+    return 1;
 }
 
 void

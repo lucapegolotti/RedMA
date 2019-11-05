@@ -51,10 +51,26 @@ Tube(commPtr_Type comm, std::string refinement, bool verbose,
 
     const bool randomizible = true;
 
-    M_parametersHandler.registerParameter("bend", 0.0, 0, M_PI/2, randomizible, true);
+    M_parametersHandler.registerParameter("bend", 0.0, 0, M_PI/2, randomizible, false);
     M_parametersHandler.registerParameter("L_ratio", 1.0, 0.7, 1.3, randomizible);
     M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.4, randomizible);
     M_parametersHandler.registerParameter("use_linear_elasticity", 0.0, 0.0, 1.0);
+}
+
+std::string
+Tube::
+getOptionalParameter(unsigned int index)
+{
+    int retValue;
+    // default diameter
+    if (index == 0)
+        retValue = static_cast<int>(M_inletRadiusRef * 2);
+    // default length
+    else if (index == 1)
+        retValue = static_cast<int>(M_outletCenterRef[2]);
+    else
+        throw new Exception("Optional parameter does not exist!");
+    return std::to_string(retValue);
 }
 
 std::string

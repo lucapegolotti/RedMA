@@ -90,7 +90,7 @@ protected:
 public:
     BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose);
 
-    void setParameterValue(std::string key, double value);
+    int setParameterValue(std::string key, double value);
 
     std::map<std::string,std::shared_ptr<GeometricParameter> >&
                                                              getParametersMap();
@@ -136,6 +136,8 @@ public:
     static Matrix3D computeRotationMatrix(Vector3D axis, double angle);
 
     std::string getRefinement(){return M_refinement;};
+
+    virtual std::string getOptionalParameter(unsigned int index){return "";};
 
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,

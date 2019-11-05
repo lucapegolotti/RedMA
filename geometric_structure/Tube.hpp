@@ -48,6 +48,8 @@ public:
                                      const double& bendAngle,
                                      const double& L);
 
+    std::string getOptionalParameter(unsigned int index) override;
+
 private:
     void nonAffineScaling(const double& lengthRatio,
                           const double& outRadiusRatio,

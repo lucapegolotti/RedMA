@@ -28,6 +28,8 @@
 
 #include <sstream>
 
+#define THRESHOLD 3e-2
+
 namespace RedMA
 {
 
@@ -52,7 +54,8 @@ public:
 
     void traverseSegmentation(std::string ctgrName);
 
-    TreeStructure createTree(const double& constVector,
+    TreeStructure createTree(const int& lengthTubes,
+                             const double& constVector,
                              const double& constNormal,
                              int indexBegin = -1, int indexEnd = -1);
 
@@ -75,6 +78,12 @@ private:
                     const Contour& target,
                     const double& const1,
                     const double& const2);
+
+    double aPosterioriCheck(const double& alpha, const double& theta,
+                            const Matrix3D& A, const Vector3D& b,
+                            const double& scale,
+                            const double& L, const Vector3D& axis,
+                            const Contour& target);
 
     double optimizeBending(double& alpha, double& theta,
                            const double& maxIt, const double& tol,

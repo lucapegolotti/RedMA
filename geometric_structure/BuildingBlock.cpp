@@ -90,11 +90,11 @@ BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
     M_parametersHandler.registerParameter("bz", 0.0, -infty, infty);
 }
 
-void
+int
 BuildingBlock::
 setParameterValue(std::string key, double value)
 {
-    M_parametersHandler.setParameterValue(key, value);
+    return M_parametersHandler.setParameterValue(key, value);
 }
 
 std::map<std::string,std::shared_ptr<GeometricParameter> >&

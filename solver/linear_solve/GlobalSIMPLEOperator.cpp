@@ -281,8 +281,32 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
 
         col = (*BT) * aux;
 
-        M_SingleOperators[rowIndex / 2]->ApplyInverse(col, fakePressure,
-                                                      res, fakePressureResult);
+        // this sometimes fails for some reason. To debug.
+        if (M_solvePrimalBlocksExactly)
+        {
+            mapEpetra_Type monolithicMap = BT->rangeMap();
+            monolithicMap += M_matrix.block(rowIndex,rowIndex+1)->domainMap();
+
+            vectorEpetra_Type subX(monolithicMap);
+            vectorEpetra_Type subY(monolithicMap);
+
+            subX.subset(col, monolithicMap, 0, 0);
+
+            col.showMe();
+
+            // RedMA::CoutRedirecter ct;
+            // ct.redirect();
+
+            M_invOperators[rowIndex / 2 ]->ApplyInverse(subX.epetraVector(),
+                                                        subY.epetraVector());
+
+            // ct.restore();
+
+            res.subset(subY, monolithicMap, 0, 0);
+        }
+        else
+            M_SingleOperators[rowIndex / 2]->ApplyInverse(col, fakePressure,
+                                                          res, fakePressureResult);
 
         for (unsigned int dof = 0; dof < numElements; dof++)
         {

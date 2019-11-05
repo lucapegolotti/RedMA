@@ -24,6 +24,8 @@
 #include <iostream>
 #include <Exception.hpp>
 
+#include <PrintLog.hpp>
+
 #include <ctime>
 #include <cstdlib>
 
@@ -40,7 +42,7 @@ public:
 
     GeometricParameter(const GeometricParameter& other);
 
-    void operator=(const double& value);
+    int operator=(const double& value);
 
     double getValue();
 
@@ -73,7 +75,7 @@ public:
                            bool randomizible = false,
                            bool period = false);
 
-    void setParameterValue(std::string name, const double& value);
+    int setParameterValue(std::string name, const double& value);
 
     void setRandomValueParameter(std::string name);
 

@@ -49,6 +49,10 @@
 	maxit = 10
 [../]
 
+[linear_solve]
+	exact_solve_primal = true
+[../]
+
 [exporter]
 	outdir	   = solutions/
 	type       = hdf5

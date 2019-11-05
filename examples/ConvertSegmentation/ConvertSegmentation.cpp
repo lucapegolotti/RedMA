@@ -50,7 +50,7 @@ int main(int argc, char **argv)
         begin = std::atoi(argv[3]);
     }
 
-    TreeStructure tree = sp.createTree(constVector, constNormal, begin);
+    TreeStructure tree = sp.createTree(3,constVector, constNormal, begin);
     GeometryPrinter printer;
     printer.saveToFile(tree, "tree.xml", comm);
     tree.readMeshes("../../../meshes/");
