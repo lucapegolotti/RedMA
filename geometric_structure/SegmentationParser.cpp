@@ -295,86 +295,16 @@ createTree(const int& lengthTubes,
 
     TreeStructure retTree(M_verbose);
 
-    // we start by adding the first block
-    std::shared_ptr<Tube> rootTube(new Tube(M_comm,"fine",false,1,lengthTubes));
-    retTree.setRoot(rootTube);
+    Vector3D prevCenter = M_contoursComplete[indexBegin].M_center;
+    Vector3D prevNormal = M_contoursComplete[indexBegin].M_normal;
+    double prevRadius = M_contoursComplete[indexBegin].M_radius;
 
-    // set parameters of root tube
-    Vector3D cb = M_contoursComplete[indexBegin].M_center;
-    rootTube->setParameterValue("bx", cb[0]);
-    rootTube->setParameterValue("by", cb[1]);
-    rootTube->setParameterValue("bz", cb[2]);
 
-    Vector3D axis;
-    double alpha;
-
-    BuildingBlock::computeRotationAxisAndAngle(rootTube->getInletNormal(),
-                                               M_contoursComplete[indexBegin].M_normal,
-                                               axis, alpha);
-    Matrix3D R1 = BuildingBlock::computeRotationMatrix(axis, alpha);
-
-    double defRadius = rootTube->getInletRadius();
-    double scale = M_contoursComplete[indexBegin].M_radius/defRadius;
-    rootTube->setParameterValue("scale", scale);
-
-    rootTube->setParameterValue("rotation_axis_x", axis[0]);
-    rootTube->setParameterValue("rotation_axis_y", axis[1]);
-    rootTube->setParameterValue("rotation_axis_z", axis[2]);
-    rootTube->setParameterValue("alpha", alpha);
-
-    // compute my length after scaling
-    double length = rootTube->getDefLength() * scale;
-
-    unsigned int ind = 0;
-    while (M_cumulativeDistance[ind] - M_cumulativeDistance[indexBegin] < length
-           && ind < M_indexEnd)
-        ind++;
-
-    // choose the closest point between ind-1 and ind
-    ind = std::abs(M_cumulativeDistance[ind]-length) <
-          std::abs(M_cumulativeDistance[ind-1]-length) ? ind : ind - 1;
-
-    // select target center, target radius, target normal
-    Vector3D targetCentral = M_contoursComplete[ind].M_center;
-    Vector3D targetNormal = M_contoursComplete[ind].M_normal;
-    double targetRadius = M_contoursComplete[ind].M_radius;
-
-    rootTube->setParameterValue("Rout_ratio", targetRadius/(defRadius*scale));
-
-    Vector3D e1(1,0,0);
-
-    // we find where the first canonic vector is mapped to by the first rotation
-    // (because the default bending of the tube is wrt x axis)
-    e1 = R1 * e1;
-
-    // project target point onto plane surface
-    Vector3D targetCentralProj;
-    Vector3D n = M_contoursComplete[indexBegin].M_normal;
-    Vector3D targetCentralAbs = targetCentral - cb;
-    targetCentralProj = targetCentralAbs - targetCentralAbs.dot(n) * n;
-
-    double alphaAxis = M_PI-std::acos(targetCentralProj.dot(e1)/(e1.norm()*targetCentralProj.norm()));
-    // alphaAxis = 0;
-    // compute the bend angle
-    double bendAngle = M_PI-std::acos(n.dot(targetCentralAbs)/targetCentralAbs.norm());
-    bendAngle = 0.1;
-
-    optimizeBending(alphaAxis, bendAngle, 1e7, 1e-15, R1, cb,
-                    scale, rootTube->getDefLength(), n,
-                    M_contoursComplete[ind], constVector, constNormal);
-
-    rootTube->setParameterValue("alpha_axis", alphaAxis);
-    rootTube->setParameterValue("bend", bendAngle);
-
-    Vector3D prevCenter = targetCentral, prevNormal = targetNormal;
-    double prevRadius = targetRadius;
-
-    bend(alphaAxis, bendAngle, prevCenter, prevNormal, R1, cb,
-         scale, rootTube->getDefLength(), n);
-
-    unsigned int prevIndex = ind;
-    unsigned int count = 0;
+    unsigned int prevIndex = M_indexBegin;
+    unsigned int ind = M_indexBegin;
+    unsigned int count = -1;
     // add other blocks
+    double length = 0;
     int curLength = lengthTubes;
     while (1)
     {
@@ -382,14 +312,17 @@ createTree(const int& lengthTubes,
 
         std::shared_ptr<Tube> childTube(new Tube(M_comm,"fine",false,1,curLength));
 
-        cb = prevCenter;
+        Vector3D cb = prevCenter;
 
         status = status || childTube->setParameterValue("bx", cb[0]);
         status = status || childTube->setParameterValue("by", cb[1]);
         status = status || childTube->setParameterValue("bz", cb[2]);
 
-        scale = prevRadius / childTube->getInletRadius();
+        double scale = prevRadius / childTube->getInletRadius();
         status = status || childTube->setParameterValue("scale", scale);
+
+        Vector3D axis;
+        double alpha;
 
         BuildingBlock::computeRotationAxisAndAngle(childTube->getInletNormal(),
                                                    prevNormal, axis, alpha);
@@ -418,27 +351,28 @@ createTree(const int& lengthTubes,
         ind = std::abs(M_cumulativeDistance[ind]-length) <
               std::abs(M_cumulativeDistance[ind-1]-length) ? ind : ind - 1;
 
-        targetCentral = M_contoursComplete[ind].M_center;
-        targetNormal = M_contoursComplete[ind].M_normal;
-        targetRadius = M_contoursComplete[ind].M_radius;
+        Vector3D targetCentral = M_contoursComplete[ind].M_center;
+        Vector3D targetNormal = M_contoursComplete[ind].M_normal;
+        double targetRadius = M_contoursComplete[ind].M_radius;
 
-        defRadius = childTube->getInletRadius();
+        double defRadius = childTube->getInletRadius();
         status = status || childTube->setParameterValue("Rout_ratio",
                                                 targetRadius/(defRadius*scale));
 
-        R1 = BuildingBlock::computeRotationMatrix(axis, alpha);
+        Matrix3D R1 = BuildingBlock::computeRotationMatrix(axis, alpha);
+        Vector3D e1;
         e1[0] = 1.0; e1[1] = 0.0; e1[2] = 0.0;
         e1 = R1 * e1;
 
         // project target point onto plane surface
-        n = prevNormal;
-        targetCentralAbs = targetCentral - cb;
-        targetCentralProj = targetCentralAbs - targetCentralAbs.dot(n) * n;
+        Vector3D n = prevNormal;
+        Vector3D targetCentralAbs = targetCentral - cb;
+        Vector3D targetCentralProj = targetCentralAbs - targetCentralAbs.dot(n) * n;
 
-        alphaAxis = M_PI-std::acos(targetCentralProj.dot(e1) /
-                    (e1.norm()*targetCentralProj.norm()));
+        double alphaAxis = M_PI-std::acos(targetCentralProj.dot(e1) /
+                           (e1.norm()*targetCentralProj.norm()));
 
-        bendAngle = 0.1;
+        double bendAngle = 0.1;
 
         double f;
         if (!status)
@@ -460,7 +394,10 @@ createTree(const int& lengthTubes,
 
         if (status == 0)
         {
-            retTree.addChild(count, childTube);
+            if (count == -1)
+                retTree.setRoot(childTube);
+            else
+                retTree.addChild(count, childTube);
             prevIndex = ind;
             count++;
             curLength = lengthTubes;

@@ -37,9 +37,6 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    SegmentationParser sp(comm, "datafiles/aorta.pth", "datafiles/aorta.ctgr",
-                          "linear", true);
-
     unsigned int constVector = 1.0;
     unsigned int constNormal = 1.0;
     unsigned int begin = 16;
@@ -50,12 +47,23 @@ int main(int argc, char **argv)
         begin = std::atoi(argv[3]);
     }
 
-    TreeStructure tree = sp.createTree(3,constVector, constNormal, begin);
-    GeometryPrinter printer;
-    printer.saveToFile(tree, "tree.xml", comm);
-    tree.readMeshes("../../../meshes/");
-    tree.traverseAndDeformGeometries();
-    tree.dump("output/","../../../meshes/");
+    SegmentationParser sp1(comm, "datafiles/aorta.pth", "datafiles/aorta.ctgr",
+                          "linear", true);
+    TreeStructure tree1 = sp1.createTree(3, constVector, constNormal, begin);
+    GeometryPrinter printer1;
+    printer1.saveToFile(tree1, "tree_aorta.xml", comm);
+    tree1.readMeshes("../../../meshes/");
+    tree1.traverseAndDeformGeometries();
+    tree1.dump("output_aorta/","../../../meshes/");
+
+    SegmentationParser sp2(comm, "datafiles/right_iliac.pth", "datafiles/right_iliac.ctgr",
+                          "linear", true);
+    TreeStructure tree2 = sp2.createTree(3,constVector, constNormal);
+    GeometryPrinter printer2;
+    printer2.saveToFile(tree2, "tree_right_iliac.xml", comm);
+    tree2.readMeshes("../../../meshes/");
+    tree2.traverseAndDeformGeometries();
+    tree2.dump("output_right_iliac/","../../../meshes/");
 
     return 0;
 }
