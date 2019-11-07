@@ -295,7 +295,7 @@ applyAffineTransformation()
         axisStr = axisStr + std::to_string(rotation[2]) + ")";
 
         printlog(YELLOW, "[" + M_name +
-                     " BuildingBlock] rotating around axis " + axisStr +
+                     " BuildingBlock] rotating about axis " + axisStr +
                      " with angle " + std::to_string(angle) + " ...\n", M_verbose);
 
 

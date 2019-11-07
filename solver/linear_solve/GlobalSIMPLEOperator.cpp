@@ -282,7 +282,7 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
         col = (*BT) * aux;
 
         // this sometimes fails for some reason. To debug.
-        if (M_solvePrimalBlocksExactly)
+        if (false)
         {
             mapEpetra_Type monolithicMap = BT->rangeMap();
             monolithicMap += M_matrix.block(rowIndex,rowIndex+1)->domainMap();

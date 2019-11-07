@@ -5,12 +5,19 @@ namespace RedMA
 
 BifurcationSymmetric::
 BifurcationSymmetric(commPtr_Type comm, std::string refinement,
-                     bool verbose) :
+                     bool verbose, int angle) :
   BuildingBlock(comm, refinement, verbose)
 {
     M_name = "BifurcationSymmetric";
 
     M_datafileName = "bifurcation_symmetric_" + refinement + "_data";
+
+    std::string alpha = std::to_string(angle);
+    M_datafileName = "data_mesh";
+    M_meshName = "bifurcation_symmetric/bif_sym_alpha" + alpha + "_" +
+                 getStringMesh(refinement) + ".mesh";
+
+    double angleRadiants = 2 * static_cast<double>(angle) / 360. * M_PI / 2;
 
     // values are referred to the reference configuration
 
@@ -19,28 +26,31 @@ BifurcationSymmetric(commPtr_Type comm, std::string refinement,
     M_inletCenterRef[2] = 0;
 
     M_inletNormalRef[0] = 0;
-    M_inletNormalRef[1] = -1;
-    M_inletNormalRef[2] = 0;
+    M_inletNormalRef[1] = 0;
+    M_inletNormalRef[2] = -1;
 
-    M_outlet1CenterRef[0] = 9;
-    M_outlet1CenterRef[1] = 30;
-    M_outlet1CenterRef[2] = 0;
+    M_outlet1CenterRef[0] = 0;
+    M_outlet1CenterRef[1] = 0.6;
+    M_outlet1CenterRef[2] = 1.3;
 
-    M_outlet1NormalRef[0] = 0.3714;
-    M_outlet1NormalRef[1] = 0.9285;
-    M_outlet1NormalRef[2] = 0.0;
+    M_outlet1NormalRef[0] = 0.0;
+    M_outlet1NormalRef[1] = std::sin(angleRadiants);
+    M_outlet1NormalRef[2] = std::cos(angleRadiants);
 
-    M_outlet2CenterRef[0] = -9;
-    M_outlet2CenterRef[1] = 30;
-    M_outlet2CenterRef[2] = 0.0;
+    std::cout << angleRadiants << std::endl;
+    std::cout << M_outlet1NormalRef << std::endl;
 
-    M_outlet2NormalRef[0] = -0.3714;
-    M_outlet2NormalRef[1] = 0.9285;
-    M_outlet2NormalRef[2] = 0.0;
+    M_outlet2CenterRef[0] = 0;
+    M_outlet2CenterRef[1] = -0.6;
+    M_outlet2CenterRef[2] = 1.3;
 
-    M_inletRadiusRef = 3.0;
-    M_outlet1RadiusRef = 3.0;
-    M_outlet2RadiusRef = 3.0;
+    M_outlet2NormalRef[0] = 0;
+    M_outlet2NormalRef[1] = -std::sin(angleRadiants);
+    M_outlet2NormalRef[2] = std::cos(angleRadiants);
+
+    M_inletRadiusRef = 1.0;
+    M_outlet1RadiusRef = 1.0;
+    M_outlet2RadiusRef = 1.0;
 
     GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef, 1);
     GeometricFace outlet1(M_outlet1CenterRef, M_outlet1NormalRef, M_outlet1RadiusRef, 2);
@@ -51,44 +61,71 @@ BifurcationSymmetric(commPtr_Type comm, std::string refinement,
     M_outlets.push_back(outlet2);
 
     const bool randomizible = true;
-    const double maxAngle = 0.3;
-    M_parametersHandler.registerParameter("out1_alpha_plane", 0.0, -maxAngle,
-                                          maxAngle, randomizible);
+    const double maxAngle = 0.2;
     M_parametersHandler.registerParameter("out1_alphax", 0.0, -maxAngle,
                                           maxAngle, randomizible);
-    M_parametersHandler.registerParameter("out2_alpha_plane", 0.0, -maxAngle,
+    M_parametersHandler.registerParameter("out1_alphay", 0.0, -maxAngle,
+                                          maxAngle, randomizible);
+    M_parametersHandler.registerParameter("out1_alphaz", 0.0, -maxAngle,
                                           maxAngle, randomizible);
     M_parametersHandler.registerParameter("out2_alphax", 0.0, -maxAngle,
                                           maxAngle, randomizible);
+    M_parametersHandler.registerParameter("out2_alphay", 0.0, -maxAngle,
+                                          maxAngle, randomizible);
+    M_parametersHandler.registerParameter("out2_alphaz", 0.0, -maxAngle,
+                                          maxAngle, randomizible);
+    computeCenter();
 }
 
 void
 BifurcationSymmetric::
-bend(const double& out1_alpha_plane, const double& out1_alphax,
-     const double& out2_alpha_plane, const double& out2_alphax,
+computeCenter()
+{
+    double angleOutlet1 = std::atan(M_outlet1NormalRef[1] /
+                                    M_outlet1NormalRef[2]);
+
+    double zCenter = M_outlet1NormalRef[2] -
+                     M_outlet1CenterRef[1] * std::tan(angleOutlet1);
+
+    M_center[0] = 0;
+    M_center[1] = 0;
+    M_center[2] = zCenter;
+}
+
+std::string
+BifurcationSymmetric::
+getStringMesh(std::string refinement)
+{
+    return "h0.10";
+}
+
+void
+BifurcationSymmetric::
+bend(const double& out1_alphax, const double& out1_alphay, const double& out1_alphaz,
+     const double& out2_alphax, const double& out2_alphay, const double& out2_alphaz,
      Transformer& transformer)
 {
 
     std::string msg = std::string("[") + M_name + " BuildingBlock]";
-    msg = msg + " bending with angles = (" + std::to_string(out1_alpha_plane)
-          + ", " + std::to_string(out1_alphax) + ") at outlet1, and (" +
-          std::to_string(out2_alpha_plane) + ", " + std::to_string(out2_alphax) + ")"
+    msg = msg + " bending with angles = (" + std::to_string(out1_alphax)
+          + ", " + std::to_string(out1_alphay) +
+            ", " + std::to_string(out1_alphaz) + ") at outlet1, and (" +
+                   std::to_string(out2_alphax) + ", " +
+                   std::to_string(out2_alphay) + ", " +
+                   std::to_string(out2_alphaz) + ")"
           + " at outlet2" + "\n";
     printlog(GREEN, msg, M_verbose);
 
     using namespace std::placeholders;
 
-    double angleOutlet1 = std::atan(M_outlet1NormalRef[0] /
-                                    M_outlet1NormalRef[1]);
-
-    double yRotationCenter = M_outlet2CenterRef[1] -
-                             M_outlet1CenterRef[0] * angleOutlet1;
+    double zRotationCenter = M_center;
 
     // handle rotation for outlet 1
-    Vector3D rotationCenter(0, yRotationCenter, 0);
+    Vector3D rotationCenter(0, 0, zRotationCenter);
     Matrix3D rotationMatrix =
-             computeRotationMatrix(2, out1_alpha_plane) *
-             computeRotationMatrix(0, out1_alphax);
+             computeRotationMatrix(0, out1_alphax) *
+             computeRotationMatrix(1, out1_alphay) *
+             computeRotationMatrix(2, out1_alphaz);
 
     Vector3D rotatedCenterOutlet1;
     Vector3D rotatedNormalOutlet1;
@@ -108,9 +145,9 @@ bend(const double& out1_alpha_plane, const double& out1_alphax,
     M_outlets[0].M_normal = rotatedNormalOutlet1;
 
     // handle rotation for outlet 2
-    rotationMatrix =
-             computeRotationMatrix(2, -out2_alpha_plane) *
-             computeRotationMatrix(0, out2_alphax);
+    rotationMatrix = computeRotationMatrix(0, out2_alphax) *
+                     computeRotationMatrix(1, out2_alphay) *
+                     computeRotationMatrix(2, out2_alphaz);
 
     Vector3D rotatedCenterOutlet2;
     Vector3D rotatedNormalOutlet2;
@@ -190,10 +227,12 @@ applyNonAffineTransformation()
                     M_verbose);
 
     LifeV::MeshUtility::MeshTransformer<mesh_Type> transformer(*M_mesh);
-    bend(M_parametersHandler["out1_alpha_plane"],
-         M_parametersHandler["out1_alphax"],
-         M_parametersHandler["out2_alpha_plane"],
-         M_parametersHandler["out2_alphax"], transformer);
+    bend(M_parametersHandler["out1_alphax"],
+         M_parametersHandler["out1_alphay"],
+         M_parametersHandler["out1_alphaz"],
+         M_parametersHandler["out2_alphax"],
+         M_parametersHandler["out2_alphay"],
+         M_parametersHandler["out2_alphaz"], transformer);
 
     printlog(MAGENTA, "done\n", M_verbose);
 }

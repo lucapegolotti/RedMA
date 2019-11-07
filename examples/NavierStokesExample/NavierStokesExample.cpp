@@ -32,37 +32,48 @@
 
 using namespace RedMA;
 
-#define COEFF 200
+#define COEFF 4
 #define HEARTBEAT 0.8
+// double maxLaw(double t)
+// {
+//     double tt = std::fmod(t,HEARTBEAT);
+//     double poly = 0;
+//     const double coeffs[8] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6, 0.0};
+//
+//     double mon = 1.0;
+//     for (int i = 0; i < 8; i++)
+//     {
+//         poly += coeffs[7-i] * mon;
+//         mon *= tt / HEARTBEAT;
+//     }
+//     return poly * COEFF;
+// }
+//
+// double maxLawDt(double t)
+// {
+//     double tt = std::fmod(t,HEARTBEAT);
+//     double poly = 0;
+//     const double coeffs[7] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6};
+//
+//     double mon = 1.0;
+//     for (int i = 0; i < 7; i++)
+//     {
+//         poly += coeffs[6-i] * mon;
+//         mon *= tt / HEARTBEAT;
+//     }
+//     return poly * COEFF;
+// }
+
 double maxLaw(double t)
 {
-    double tt = std::fmod(t,HEARTBEAT);
-    double poly = 0;
-    const double coeffs[8] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6, 0.0};
-
-    double mon = 1.0;
-    for (int i = 0; i < 8; i++)
-    {
-        poly += coeffs[7-i] * mon;
-        mon *= tt / HEARTBEAT;
-    }
-    return poly * COEFF;
+    return std::sin(t);
 }
 
 double maxLawDt(double t)
 {
-    double tt = std::fmod(t,HEARTBEAT);
-    double poly = 0;
-    const double coeffs[7] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6};
-
-    double mon = 1.0;
-    for (int i = 0; i < 7; i++)
-    {
-        poly += coeffs[6-i] * mon;
-        mon *= tt / HEARTBEAT;
-    }
-    return poly * COEFF;
+    return std::cos(t);
 }
+
 
 int main(int argc, char **argv)
 {

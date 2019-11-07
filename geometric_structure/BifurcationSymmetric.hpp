@@ -27,7 +27,7 @@ class BifurcationSymmetric : public BuildingBlock
 {
 public:
     BifurcationSymmetric(commPtr_Type comm, std::string refinement = "coarse",
-                         bool verbose = false);
+                         bool verbose = false, int angle = 50);
 
     virtual inline unsigned int expectedNumberOfChildren()
     {
@@ -35,6 +35,8 @@ public:
     }
 
     virtual void applyNonAffineTransformation();
+
+    inline Vector3D getCenter() const {return M_center;};
 
 private:
     static double outletMapFunction(const double& t, const double& x,
@@ -44,8 +46,12 @@ private:
                                const Vector3D& desiredCenter,
                                const Matrix3D& rotationMatrix);
 
-    void bend(const double& out1_alpha_plane, const double& out1_alphax,
-              const double& out2_alpha_plane, const double& out2_alphax,
+    void bend(const double& out1_alphax,
+              const double& out1_alphay,
+              const double& out1_alphaz,
+              const double& out2_alphax,
+              const double& out2_alphay,
+              const double& out2_alphaz,
               Transformer& transformer);
 
     void rotateGeometricFace(const GeometricFace& face, Vector3D& rotatedCenter,
@@ -53,12 +59,18 @@ private:
                              const Matrix3D& rotationMatrix,
                              const Vector3D& rotationCenter);
 
+    void computeCenter();
+
+    std::string getStringMesh(std::string refinement);
+
     Vector3D M_inletCenterRef;
     Vector3D M_inletNormalRef;
     Vector3D M_outlet1CenterRef;
     Vector3D M_outlet1NormalRef;
     Vector3D M_outlet2CenterRef;
     Vector3D M_outlet2NormalRef;
+
+    Vector3D M_center;
 
     double M_inletRadiusRef;
     double M_outlet1RadiusRef;

@@ -27,7 +27,7 @@
 
 #include <GeometryPrinter.hpp>
 #include <GeometryParser.hpp>
-#include <BifurcationAsymmetric.hpp>
+#include <BifurcationSymmetric.hpp>
 
 using namespace RedMA;
 
@@ -40,12 +40,15 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    BifurcationAsymmetric bifurcation(comm, "fine", true);
+    BifurcationSymmetric bifurcation(comm, "fine", true);
     bifurcation.readMesh("../../../meshes/");
-    bifurcation.setParameterValue("out1_alphax", 0.2);
-    bifurcation.setParameterValue("out1_alpha_plane", 0);
-    bifurcation.setParameterValue("out2_alphax", 0.2);
-    bifurcation.setParameterValue("out2_alpha_plane", -0.1);
+    bifurcation.setParameterValue("out1_alphax", 0.0);
+    bifurcation.setParameterValue("out1_alphaz", 0.5);
+    bifurcation.setParameterValue("out2_alphaz", 0.5);
+    //bifurcation.setParameterValue("out2_alphaz", 0.5);
+    bifurcation.setParameterValue("out2_alphax", 0.5);
+    // bifurcation.setParameterValue("out2_alphax", 0.2);
+    // bifurcation.setParameterValue("out2_alpha_plane", -0.1);
     bifurcation.applyGlobalTransformation();
     bifurcation.dumpMesh("output/", "../../../meshes/", "deformedBifurcation");
     return 0;
