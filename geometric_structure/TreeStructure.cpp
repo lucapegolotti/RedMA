@@ -85,6 +85,48 @@ addChild(unsigned int baseID, BuildingBlockPtr blockToAdd, int outletIndex)
 
 void
 TreeStructure::
+addChild(unsigned int baseID, TreeNodePtr nodeToAdd, int outletIndex)
+{
+    if (M_nodesMap.find(baseID) == M_nodesMap.end())
+    {
+        std::string errorMsg = "Node tree with ID = " + std::to_string(baseID) +
+                               " does not exist!";
+        throw Exception(errorMsg);
+    }
+
+    TreeNodePtr baseNode = M_nodesMap[baseID];
+    // note: this ensures that 1) we don't add too many children when outlets
+    // are not specified in the xml file, 2) we don't overwrite a already added
+    // child
+    if (baseNode->M_block->expectedNumberOfChildren() == baseNode->M_nChildren)
+    {
+        std::string errorMsg = "Node tree with ID = " +
+                               std::to_string(baseNode->M_ID) +
+                               " can not have other children!";
+        throw Exception(errorMsg);
+    }
+    if (outletIndex != -1 &&
+        baseNode->M_block->expectedNumberOfChildren() <= outletIndex)
+    {
+        std::string maxChildrenStr =
+                  std::to_string(baseNode->M_block->expectedNumberOfChildren());
+        std::string errorMsg = "Node tree with ID = " +
+                               std::to_string(baseNode->M_ID) +
+                               " is not compatible with outletIndex " +
+                               std::to_string(outletIndex) + " (max index = " +
+                               maxChildrenStr + ")";
+        throw Exception(errorMsg);
+    }
+    if (outletIndex == -1)
+        baseNode->M_children[baseNode->M_nChildren] = nodeToAdd;
+    else
+        baseNode->M_children[outletIndex] = nodeToAdd;
+
+    baseNode->M_nChildren++;
+}
+
+void
+TreeStructure::
 setRoot(BuildingBlockPtr block)
 {
     if (M_maxID != 0)
@@ -235,5 +277,128 @@ getNodesMap()
 {
     return M_nodesMap;
 }
+
+int
+TreeStructure::
+findBlockWithFace(const Vector3D& centerOfTheFace, const double& tol, int& outletIdx)
+{
+    std::queue<TreeNodePtr> nodesQueue;
+    nodesQueue.push(M_root);
+    while (nodesQueue.size() != 0)
+    {
+        TreeNodePtr curNode = nodesQueue.front();
+        nodesQueue.pop();
+
+        if (curNode->M_depth == 0)
+        {
+            if ((curNode->M_block->getInlet().M_center-centerOfTheFace).norm() < tol)
+                return curNode->M_ID;
+        }
+
+        if (curNode->M_nChildren == 0)
+        {
+            std::vector<GeometricFace> outlets = curNode->M_block->getOutlets();
+
+            unsigned int count = 0;
+            for (auto it = outlets.begin(); it != outlets.end(); it++)
+            {
+                if ((it->M_center - centerOfTheFace).norm() < tol)
+                {
+                    outletIdx = count;
+                    return curNode->M_ID;
+                }
+                count++;
+            }
+        }
+
+
+        typedef std::vector<TreeNodePtr> TreeNodesVector;
+        TreeNodesVector& children = curNode->M_children;
+        unsigned int expectedChildren =
+                     curNode->M_block->expectedNumberOfChildren();
+        for (int i = 0; i < expectedChildren; i++)
+        {
+            TreeNodePtr curChild = children[i];
+
+            if (curChild)
+                nodesQueue.push(curChild);
+        }
+    }
+
+    // return -1 if face does not belong
+    return -1;
+}
+
+TreeStructure&
+TreeStructure::
+operator+=(TreeStructure& other)
+{
+    if (M_root == nullptr)
+    {
+        M_root = other.M_root;
+        return *this;
+    }
+
+    const double tol = 1e-12;
+    int status;
+    int outletIndex = -1;
+    // first we see if other must be attached to this
+    status = findBlockWithFace(other.M_root->M_block->getInlet().M_center,
+                               tol, outletIndex);
+
+    if (status > 0)
+    {
+        addChild(status, other.M_root, outletIndex);
+        return *this;
+    }
+    else
+    {
+        status = other.findBlockWithFace(M_root->M_block->getInlet().M_center,
+                                         tol, outletIndex);
+        if (status <= 0)
+            throw new Exception("Operator += of treeStructure: no suitable face!");
+
+        other.addChild(status, M_root, outletIndex);
+
+        other.resetNodesIDs();
+        return other;
+    }
+}
+
+void
+TreeStructure::
+resetNodesIDs()
+{
+    std::queue<TreeNodePtr> nodesQueue;
+    nodesQueue.push(M_root);
+    unsigned int count = 0;
+    M_root->M_depth = 0;
+    M_depth = 0;
+    while (nodesQueue.size() != 0)
+    {
+        TreeNodePtr curNode = nodesQueue.front();
+        nodesQueue.pop();
+
+        curNode->M_ID = count;
+
+        typedef std::vector<TreeNodePtr> TreeNodesVector;
+        TreeNodesVector& children = curNode->M_children;
+        unsigned int expectedChildren =
+                     curNode->M_block->expectedNumberOfChildren();
+        for (int i = 0; i < expectedChildren; i++)
+        {
+            TreeNodePtr curChild = children[i];
+            if (curChild)
+            {
+                curChild->M_depth = curNode->M_depth+1;
+                M_depth = M_depth > curChild->M_depth ? M_depth :
+                                                        curChild->M_depth;
+                nodesQueue.push(curChild);
+            }
+        }
+        count++;
+    }
+}
+
 
 }  // namespace RedMA

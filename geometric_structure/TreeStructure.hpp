@@ -51,11 +51,14 @@ class TreeStructure
 private:
     typedef std::shared_ptr<TreeNode>      TreeNodePtr;
     typedef std::shared_ptr<BuildingBlock> BuildingBlockPtr;
+    typedef LifeV::VectorSmall<3>          Vector3D;
 public:
     TreeStructure(bool verbose = false);
 
     unsigned int addChild(unsigned int baseID,
                           BuildingBlockPtr blockToAdd, int outletIndex = -1);
+
+    void addChild(unsigned int baseID, TreeNodePtr nodeToAdd, int outletIndex = -1);
 
     void setRoot(BuildingBlockPtr blockHead);
 
@@ -76,6 +79,13 @@ public:
     void createRandom(unsigned int blocksNumber, std::shared_ptr<Epetra_Comm> comm);
 
     std::map<unsigned int, TreeNodePtr> getNodesMap();
+
+    TreeStructure& operator+=(TreeStructure& other);
+
+    int findBlockWithFace(const Vector3D& centerOfTheFace, const double& tol,
+                          int& outletIdx);
+
+    void resetNodesIDs();
 
 private:
 
