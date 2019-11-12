@@ -70,7 +70,9 @@ public:
 
     unsigned int depth();
 
-    void traverseAndDeformGeometries();
+    void traverseAndDeformGeometries(bool deformMesh = true);
+
+    void resetInletOutlets();
 
     void dump(std::string outdir, std::string meshdir);
 
@@ -80,7 +82,7 @@ public:
 
     std::map<unsigned int, TreeNodePtr> getNodesMap();
 
-    TreeStructure& operator+=(TreeStructure& other);
+    TreeStructure& operator+(TreeStructure& other);
 
     int findBlockWithFace(const Vector3D& centerOfTheFace, const double& tol,
                           int& outletIdx);

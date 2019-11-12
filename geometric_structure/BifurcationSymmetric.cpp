@@ -37,9 +37,6 @@ BifurcationSymmetric(commPtr_Type comm, std::string refinement,
     M_outlet1NormalRef[1] = std::sin(angleRadiants);
     M_outlet1NormalRef[2] = std::cos(angleRadiants);
 
-    std::cout << angleRadiants << std::endl;
-    std::cout << M_outlet1NormalRef << std::endl;
-
     M_outlet2CenterRef[0] = 0;
     M_outlet2CenterRef[1] = -0.6;
     M_outlet2CenterRef[2] = 1.3;
@@ -48,17 +45,15 @@ BifurcationSymmetric(commPtr_Type comm, std::string refinement,
     M_outlet2NormalRef[1] = -std::sin(angleRadiants);
     M_outlet2NormalRef[2] = std::cos(angleRadiants);
 
-    M_inletRadiusRef = 1.0;
-    M_outlet1RadiusRef = 1.0;
-    M_outlet2RadiusRef = 1.0;
+    M_inletRadiusRef = 0.5;
+    M_outlet1RadiusRef = 0.5;
+    M_outlet2RadiusRef = 0.5;
 
-    GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef, 1);
-    GeometricFace outlet1(M_outlet1CenterRef, M_outlet1NormalRef, M_outlet1RadiusRef, 2);
-    GeometricFace outlet2(M_outlet2CenterRef, M_outlet2NormalRef, M_outlet2RadiusRef, 3);
+    M_transverse[0] = 1.0;
+    M_transverse[1] = 0.0;
+    M_transverse[2] = 0.0;
 
-    M_inlet = inlet;
-    M_outlets.push_back(outlet1);
-    M_outlets.push_back(outlet2);
+    resetInletOutlets();
 
     const bool randomizible = true;
     const double maxAngle = 0.2;
@@ -75,6 +70,21 @@ BifurcationSymmetric(commPtr_Type comm, std::string refinement,
     M_parametersHandler.registerParameter("out2_alphaz", 0.0, -maxAngle,
                                           maxAngle, randomizible);
     computeCenter();
+}
+
+void
+BifurcationSymmetric::
+resetInletOutlets()
+{
+    GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef, 1);
+    GeometricFace outlet1(M_outlet1CenterRef, M_outlet1NormalRef, M_outlet1RadiusRef, 2);
+    GeometricFace outlet2(M_outlet2CenterRef, M_outlet2NormalRef, M_outlet2RadiusRef, 3);
+
+    M_inlet = inlet;
+
+    M_outlets.clear();
+    M_outlets.push_back(outlet1);
+    M_outlets.push_back(outlet2);
 }
 
 void
@@ -103,91 +113,97 @@ void
 BifurcationSymmetric::
 bend(const double& out1_alphax, const double& out1_alphay, const double& out1_alphaz,
      const double& out2_alphax, const double& out2_alphay, const double& out2_alphaz,
-     Transformer& transformer)
+     std::shared_ptr<Transformer> transformer, bool transformMesh)
 {
 
-    std::string msg = std::string("[") + M_name + " BuildingBlock]";
-    msg = msg + " bending with angles = (" + std::to_string(out1_alphax)
-          + ", " + std::to_string(out1_alphay) +
-            ", " + std::to_string(out1_alphaz) + ") at outlet1, and (" +
-                   std::to_string(out2_alphax) + ", " +
-                   std::to_string(out2_alphay) + ", " +
-                   std::to_string(out2_alphaz) + ")"
-          + " at outlet2" + "\n";
-    printlog(GREEN, msg, M_verbose);
+    if ((out1_alphax != 0 && out1_alphay != 0 && out1_alphaz != 0) &&
+        (out2_alphax != 0 && out2_alphay != 0 && out2_alphaz != 0))
+    {
+        std::string msg = std::string("[") + M_name + " BuildingBlock]";
+        msg = msg + " bending with angles = (" + std::to_string(out1_alphax)
+              + ", " + std::to_string(out1_alphay) +
+                ", " + std::to_string(out1_alphaz) + ") at outlet1, and (" +
+                       std::to_string(out2_alphax) + ", " +
+                       std::to_string(out2_alphay) + ", " +
+                       std::to_string(out2_alphaz) + ")"
+              + " at outlet2" + "\n";
+        printlog(GREEN, msg, M_verbose);
 
-    using namespace std::placeholders;
+        using namespace std::placeholders;
 
-    double zRotationCenter = M_center;
+        Vector3D rotationCenter = M_center;
 
-    // handle rotation for outlet 1
-    Vector3D rotationCenter(0, 0, zRotationCenter);
-    Matrix3D rotationMatrix =
-             computeRotationMatrix(0, out1_alphax) *
-             computeRotationMatrix(1, out1_alphay) *
-             computeRotationMatrix(2, out1_alphaz);
+        // handle rotation for outlet 1
+        Matrix3D rotationMatrix =
+                 computeRotationMatrix(0, out1_alphax) *
+                 computeRotationMatrix(1, out1_alphay) *
+                 computeRotationMatrix(2, out1_alphaz);
 
-    Vector3D rotatedCenterOutlet1;
-    Vector3D rotatedNormalOutlet1;
-    rotateGeometricFace(M_outlets[0], rotatedCenterOutlet1, rotatedNormalOutlet1,
-                        rotationMatrix, rotationCenter);
+        Vector3D rotatedCenterOutlet1;
+        Vector3D rotatedNormalOutlet1;
+        rotateGeometricFace(M_outlets[0], rotatedCenterOutlet1, rotatedNormalOutlet1,
+                            rotationMatrix, rotationCenter);
 
-    auto fooOutlet1 = std::bind(outletMapFunction,
-                                std::placeholders::_1,
-                                std::placeholders::_2,
-                                std::placeholders::_3,
-                                std::placeholders::_4,
-                                std::placeholders::_5,
-                                M_outlets[0], rotatedCenterOutlet1,
-                                rotationMatrix);
+        auto fooOutlet1 = std::bind(outletMapFunction,
+                                    std::placeholders::_1,
+                                    std::placeholders::_2,
+                                    std::placeholders::_3,
+                                    std::placeholders::_4,
+                                    std::placeholders::_5,
+                                    M_outlets[0], rotatedCenterOutlet1,
+                                    rotationMatrix);
 
-    M_outlets[0].M_center = rotatedCenterOutlet1;
-    M_outlets[0].M_normal = rotatedNormalOutlet1;
+        M_outlets[0].M_center = rotatedCenterOutlet1;
+        M_outlets[0].M_normal = rotatedNormalOutlet1;
 
-    // handle rotation for outlet 2
-    rotationMatrix = computeRotationMatrix(0, out2_alphax) *
-                     computeRotationMatrix(1, out2_alphay) *
-                     computeRotationMatrix(2, out2_alphaz);
+        // handle rotation for outlet 2
+        rotationMatrix = computeRotationMatrix(0, out2_alphax) *
+                         computeRotationMatrix(1, out2_alphay) *
+                         computeRotationMatrix(2, out2_alphaz);
 
-    Vector3D rotatedCenterOutlet2;
-    Vector3D rotatedNormalOutlet2;
-    rotateGeometricFace(M_outlets[1], rotatedCenterOutlet2, rotatedNormalOutlet2,
-                        rotationMatrix, rotationCenter);
+        Vector3D rotatedCenterOutlet2;
+        Vector3D rotatedNormalOutlet2;
+        rotateGeometricFace(M_outlets[1], rotatedCenterOutlet2, rotatedNormalOutlet2,
+                            rotationMatrix, rotationCenter);
 
-    auto fooOutlet2 = std::bind(outletMapFunction,
-                                std::placeholders::_1,
-                                std::placeholders::_2,
-                                std::placeholders::_3,
-                                std::placeholders::_4,
-                                std::placeholders::_5,
-                                M_outlets[1], rotatedCenterOutlet2,
-                                rotationMatrix);
+        auto fooOutlet2 = std::bind(outletMapFunction,
+                                    std::placeholders::_1,
+                                    std::placeholders::_2,
+                                    std::placeholders::_3,
+                                    std::placeholders::_4,
+                                    std::placeholders::_5,
+                                    M_outlets[1], rotatedCenterOutlet2,
+                                    rotationMatrix);
 
-    M_outlets[1].M_center = rotatedCenterOutlet2;
-    M_outlets[1].M_normal = rotatedNormalOutlet2;
+        M_outlets[1].M_center = rotatedCenterOutlet2;
+        M_outlets[1].M_normal = rotatedNormalOutlet2;
 
-    NonAffineDeformer nAffineDeformer(M_mesh, M_comm, M_verbose);
+        if (transformMesh)
+        {
+            NonAffineDeformer nAffineDeformer(M_mesh, M_comm, M_verbose);
 
-    LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
-    LifeV::BCFunctionBase outletFunction1(fooOutlet1);
-    LifeV::BCFunctionBase outletFunction2(fooOutlet2);
+            LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
+            LifeV::BCFunctionBase outletFunction1(fooOutlet1);
+            LifeV::BCFunctionBase outletFunction2(fooOutlet2);
 
-    std::shared_ptr<LifeV::BCHandler> bcs(new LifeV::BCHandler);
-    bcs->addBC("Inflow", 1, LifeV::Essential, LifeV::Full,
-               zeroFunction, 3);
-    bcs->addBC("Outflow", 2, LifeV::Essential, LifeV::Full,
-               outletFunction1, 3);
-    bcs->addBC("Outflow", 3, LifeV::Essential, LifeV::Full,
-               outletFunction2, 3);
+            std::shared_ptr<LifeV::BCHandler> bcs(new LifeV::BCHandler);
+            bcs->addBC("Inflow", 1, LifeV::Essential, LifeV::Full,
+                       zeroFunction, 3);
+            bcs->addBC("Outflow", 2, LifeV::Essential, LifeV::Full,
+                       outletFunction1, 3);
+            bcs->addBC("Outflow", 3, LifeV::Essential, LifeV::Full,
+                       outletFunction2, 3);
 
-    CoutRedirecter ct;
-    ct.redirect();
-    nAffineDeformer.applyBCs(bcs);
-    std::string xmlFilename = M_datafile("geometric_structure/xml_file",
-                                         "SolverParamList.xml");
-    nAffineDeformer.setXMLsolver(xmlFilename);
-    nAffineDeformer.deformMesh(transformer);
-    printlog(CYAN, ct.restore(), M_verbose);
+            CoutRedirecter ct;
+            ct.redirect();
+            nAffineDeformer.applyBCs(bcs);
+            std::string xmlFilename = M_datafile("geometric_structure/xml_file",
+                                                 "SolverParamList.xml");
+            nAffineDeformer.setXMLsolver(xmlFilename);
+            nAffineDeformer.deformMesh(*transformer);
+            printlog(CYAN, ct.restore(), M_verbose);
+        }
+    }
 }
 
 double
@@ -220,19 +236,22 @@ rotateGeometricFace(const GeometricFace& face, Vector3D& rotatedCenter,
 
 void
 BifurcationSymmetric::
-applyNonAffineTransformation()
+applyNonAffineTransformation(bool transformMesh)
 {
     printlog(MAGENTA, "[" + M_name +
                     " BuildingBlock] applying non affine transformation ...\n",
                     M_verbose);
 
-    LifeV::MeshUtility::MeshTransformer<mesh_Type> transformer(*M_mesh);
+    std::shared_ptr<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
+    if (transformMesh)
+        transformer.reset(new Transformer(*M_mesh));
+
     bend(M_parametersHandler["out1_alphax"],
          M_parametersHandler["out1_alphay"],
          M_parametersHandler["out1_alphaz"],
          M_parametersHandler["out2_alphax"],
          M_parametersHandler["out2_alphay"],
-         M_parametersHandler["out2_alphaz"], transformer);
+         M_parametersHandler["out2_alphaz"], transformer, transformMesh);
 
     printlog(MAGENTA, "done\n", M_verbose);
 }

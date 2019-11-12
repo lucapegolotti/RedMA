@@ -28,7 +28,7 @@
 
 #include <sstream>
 
-#define THRESHOLD 3e-2
+#define THRESHOLD 1
 
 namespace RedMA
 {
@@ -59,7 +59,21 @@ public:
                              const double& constNormal,
                              int indexBegin = -1, int indexEnd = -1);
 
-private:
+    TreeStructure createTree(const int& lengthTubes,
+                             const double& constVector,
+                             const double& constNormal,
+                             const Contour& initialContour,
+                             int indexEnd = -1);
+
+    std::vector<Contour> getContours(){return M_contoursComplete;};
+
+    Contour getContour(const unsigned int& index){return M_contoursComplete[index];};
+
+    unsigned int getIndexBegin() const {return M_indexBegin;};
+
+    unsigned int getIndexEnd() const {return M_indexEnd;};
+
+protected:
     Vector3D get3DVectorFromXMLElement(tinyxml2::XMLElement* data);
 
     void linearInterpolation();

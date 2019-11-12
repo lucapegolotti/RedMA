@@ -34,9 +34,17 @@ public:
         return 2;
     }
 
-    virtual void applyNonAffineTransformation();
+    virtual void applyNonAffineTransformation(bool transformMesh = true);
 
     inline Vector3D getCenter() const {return M_center;};
+
+    inline Vector3D getInletNormal() const {return M_inletNormalRef;};
+
+    inline Vector3D getTransverse() const {return M_transverse;};
+
+    inline double getInletRadius() const {return M_inletRadiusRef;};
+
+    void resetInletOutlets() override;
 
 private:
     static double outletMapFunction(const double& t, const double& x,
@@ -52,7 +60,8 @@ private:
               const double& out2_alphax,
               const double& out2_alphay,
               const double& out2_alphaz,
-              Transformer& transformer);
+              std::shared_ptr<Transformer> transformer,
+              bool transformMesh = true);
 
     void rotateGeometricFace(const GeometricFace& face, Vector3D& rotatedCenter,
                              Vector3D& rotatedNormal,
@@ -71,6 +80,8 @@ private:
     Vector3D M_outlet2NormalRef;
 
     Vector3D M_center;
+
+    Vector3D M_transverse;
 
     double M_inletRadiusRef;
     double M_outlet1RadiusRef;

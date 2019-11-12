@@ -273,6 +273,7 @@ traverseSegmentation(std::string ctgrName)
         prevNormal = normal;
         M_indexEnd = pathIndex;
     } while (fContour);
+    M_indexEnd--;
 
     printlog(MAGENTA, "done\n", M_verbose);
 }
@@ -288,6 +289,16 @@ createTree(const int& lengthTubes,
         indexBegin = M_indexBegin;
     }
 
+    return createTree(lengthTubes, constVector, constNormal,
+                      M_contoursComplete[indexBegin], indexEnd);
+}
+
+TreeStructure
+SegmentationParser::
+createTree(const int& lengthTubes,
+           const double& constVector, const double& constNormal,
+           const Contour& initialContour, int indexEnd)
+{
     if (indexEnd == -1)
     {
         indexEnd = M_indexEnd;
@@ -295,22 +306,33 @@ createTree(const int& lengthTubes,
 
     TreeStructure retTree(M_verbose);
 
-    Vector3D prevCenter = M_contoursComplete[indexBegin].M_center;
-    Vector3D prevNormal = M_contoursComplete[indexBegin].M_normal;
-    double prevRadius = M_contoursComplete[indexBegin].M_radius;
+    Vector3D prevCenter = initialContour.M_center;
+    Vector3D prevNormal = initialContour.M_normal;
+    double prevRadius = initialContour.M_radius;
 
+    double mindist = 1e15;
+    unsigned int indexBegin;
+    for (unsigned int i = M_indexBegin; i < indexEnd; i++)
+    {
+        double dist = (M_contoursComplete[i].M_center-initialContour.M_center).norm();
+        if (dist < mindist)
+        {
+            indexBegin = i;
+            mindist = dist;
+        }
+    }
 
-    unsigned int prevIndex = M_indexBegin;
-    unsigned int ind = M_indexBegin;
-    unsigned int count = -1;
-    // add other blocks
+    unsigned int prevIndex = indexBegin;
+    unsigned int ind = indexBegin;
+    int count = -1;
+
     double length = 0;
     int curLength = lengthTubes;
     while (1)
     {
         int status = 0;
 
-        std::shared_ptr<Tube> childTube(new Tube(M_comm,"fine",false,1,curLength));
+        std::shared_ptr<Tube> childTube(new Tube(M_comm,"fine",true,1,curLength));
 
         Vector3D cb = prevCenter;
 

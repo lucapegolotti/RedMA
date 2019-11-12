@@ -195,6 +195,9 @@ computeRotationMatrix(Vector3D axis, double angle)
     double omcos = 1.0 - mcos;
     double msin = std::sin(angle);
 
+    // enforce normality of axis
+    axis = axis / axis.norm();
+
     R(0,0) = mcos + axis[0] * axis[0] * omcos;
     R(0,1) = axis[0] * axis[1] * omcos - axis[2] * msin;
     R(0,2) = axis[0] * axis[2] * omcos + axis[1] * msin;
@@ -210,18 +213,22 @@ computeRotationMatrix(Vector3D axis, double angle)
 
 void
 BuildingBlock::
-applyAffineTransformation()
+applyAffineTransformation(bool transformMesh)
 {
     printlog(MAGENTA, "[" + M_name +
                     " BuildingBlock] applying affine transformation ...\n",
                     M_verbose);
-    if (!M_mesh)
+    if (transformMesh && !M_mesh)
     {
         std::string errorMsg = std::string("[") + M_name + " BuildingBlock] " +
                                " mesh has not being read!";
         throw Exception(errorMsg);
     }
-    LifeV::MeshUtility::MeshTransformer<mesh_Type> transformer(*M_mesh);
+
+    std::shared_ptr<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
+
+    if (transformMesh)
+        transformer.reset(new Transformer(*M_mesh));
 
     Matrix3D R, R1, R2, R3;
     double scale;
@@ -269,7 +276,8 @@ applyAffineTransformation()
                 " BuildingBlock] applying scaling of " + std::to_string(scale) +
                 " ...\n", M_verbose);
 
-        transformer.transformMesh(foo);
+        if (transformMesh)
+            transformer->transformMesh(foo);
         printlog(GREEN, "done\n", M_verbose);
     }
     else
@@ -317,7 +325,8 @@ applyAffineTransformation()
                              std::placeholders::_3,
                              R, translation, scale);
 
-        transformer.transformMesh(foo);
+        if (transformMesh)
+            transformer->transformMesh(foo);
 
         printlog(YELLOW, "[" + M_name +
                 " BuildingBlock] applying scaling of " + std::to_string(scale) +
@@ -336,7 +345,7 @@ applyAffineTransformation()
     // Handle rotation along the axis of the inlet
     double angle = M_parametersHandler["alpha_axis"];
 
-    Matrix3D Raxis = computeRotationMatrix(M_inlet.M_normal,angle);
+    Matrix3D Raxis = computeRotationMatrix(M_inlet.M_normal, angle);
     Vector3D transZero = M_inlet.M_center - Raxis * M_inlet.M_center;
 
     auto foo = std::bind(rotationFunction,
@@ -345,7 +354,8 @@ applyAffineTransformation()
                          std::placeholders::_3,
                          Raxis, transZero, 1.0);
 
-    transformer.transformMesh(foo);
+    if (transformMesh)
+        transformer->transformMesh(foo);
 
     for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
          it != M_outlets.end(); it++)
@@ -495,10 +505,10 @@ mapChildInletToParentOutlet(GeometricFace parentOutlet)
 
 void
 BuildingBlock::
-applyGlobalTransformation()
+applyGlobalTransformation(bool transformMesh)
 {
-    applyNonAffineTransformation();
-    applyAffineTransformation();
+    applyNonAffineTransformation(transformMesh);
+    applyAffineTransformation(transformMesh);
 }
 
 void

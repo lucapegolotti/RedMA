@@ -28,6 +28,7 @@
 #include <GeometryPrinter.hpp>
 #include <GeometryParser.hpp>
 #include <BifurcationSymmetric.hpp>
+#include <Tube.hpp>
 
 using namespace RedMA;
 
@@ -42,13 +43,26 @@ int main(int argc, char **argv)
 
     BifurcationSymmetric bifurcation(comm, "fine", true);
     bifurcation.readMesh("../../../meshes/");
-    bifurcation.setParameterValue("out1_alphax", 0.0);
-    bifurcation.setParameterValue("out1_alphaz", 0.5);
-    bifurcation.setParameterValue("out2_alphaz", 0.5);
-    //bifurcation.setParameterValue("out2_alphaz", 0.5);
-    bifurcation.setParameterValue("out2_alphax", 0.5);
-    // bifurcation.setParameterValue("out2_alphax", 0.2);
-    // bifurcation.setParameterValue("out2_alpha_plane", -0.1);
+    bifurcation.setParameterValue("alpha", 2.7665588261156668);
+    bifurcation.setParameterValue("alpha_axis", -1.7026886923864399);
+    bifurcation.setParameterValue("bx", 0.7042145287300223);
+    bifurcation.setParameterValue("by", 3.143530101569969);
+    bifurcation.setParameterValue("bz", -7.4118393744460951);
+    double a = 0.7;
+    double b = 0.3;
+    double c = std::sqrt(1.0 - a*a - b*b);
+    bifurcation.setParameterValue("rotation_axis_x", a);
+    bifurcation.setParameterValue("rotation_axis_y", b);
+    bifurcation.setParameterValue("rotation_axis_z", c);
+    bifurcation.setParameterValue("scale", 1);
+
+    bifurcation.setParameterValue("out1_alphax", -2);
+    bifurcation.setParameterValue("out1_alphay", -2);
+    bifurcation.setParameterValue("out1_alphaz", -2);
+    bifurcation.setParameterValue("out2_alphax", -2);
+    bifurcation.setParameterValue("out2_alphay", -2);
+    bifurcation.setParameterValue("out2_alphaz", -2);
+
     bifurcation.applyGlobalTransformation();
     bifurcation.dumpMesh("output/", "../../../meshes/", "deformedBifurcation");
     return 0;

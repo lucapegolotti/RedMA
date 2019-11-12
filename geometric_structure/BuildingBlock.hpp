@@ -101,11 +101,11 @@ public:
 
     std::string name();
 
-    void applyAffineTransformation();
+    void applyAffineTransformation(bool transformMesh = true);
 
-    virtual void applyNonAffineTransformation() = 0;
+    virtual void applyNonAffineTransformation(bool transformMesh = true) = 0;
 
-    void applyGlobalTransformation();
+    void applyGlobalTransformation(bool transformMesh = true);
 
     void dumpMesh(std::string outdir, std::string meshdir,
                   std::string outputName);
@@ -125,6 +125,8 @@ public:
     void setDatafile(const GetPot& datafile);
 
     void setRandom();
+
+    virtual void resetInletOutlets() = 0;
 
     static void computeRotationAxisAndAngle(Vector3D vectorToMove,
                                             Vector3D vectorToReach,

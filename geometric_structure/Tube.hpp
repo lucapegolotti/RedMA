@@ -34,7 +34,7 @@ public:
         return 1;
     }
 
-    virtual void applyNonAffineTransformation();
+    virtual void applyNonAffineTransformation(bool transformMesh) override;
 
     std::string getStringMesh(std::string refinement);
 
@@ -50,10 +50,12 @@ public:
 
     std::string getOptionalParameter(unsigned int index) override;
 
+    void resetInletOutlets() override;
+
 private:
     void nonAffineScaling(const double& lengthRatio,
                           const double& outRadiusRatio,
-                          Transformer& transformer);
+                          std::shared_ptr<Transformer> transformer);
 
     static void scalingFunction(double& x, double& y, double& z,
                                 const double& lenghtRatio,
@@ -65,7 +67,8 @@ private:
                                const Vector3D& rotationCenter,
                                const Matrix3D& rotationMatrix);
 
-    void bend(const double& bendAngle, Transformer& transformer);
+    void bend(const double& bendAngle, std::shared_ptr<Transformer> transformer,
+              bool transformMesh = true);
 
     Vector3D M_inletCenterRef;
     Vector3D M_inletNormalRef;

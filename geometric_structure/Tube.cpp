@@ -39,11 +39,7 @@ Tube(commPtr_Type comm, std::string refinement, bool verbose,
     M_inletRadiusRef = (diameter * 1.0) / 2.0;
     M_outletRadiusRef = (diameter * 1.0) / 2.0;
 
-    GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef, 1, 30);
-    GeometricFace outlet(M_outletCenterRef, M_outletNormalRef, M_outletRadiusRef, 2, 31);
-
-    M_inlet = inlet;
-    M_outlets.push_back(outlet);
+    resetInletOutlets();
 
     // it is important to fill parametersHandler right at this level because then
     // the keys will be used in the parser to check the values in the XML file
@@ -56,6 +52,19 @@ Tube(commPtr_Type comm, std::string refinement, bool verbose,
     M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.4, randomizible);
     M_parametersHandler.registerParameter("use_linear_elasticity", 0.0, 0.0, 1.0);
 }
+
+void
+Tube::
+resetInletOutlets()
+{
+    GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef, 1, 30);
+    GeometricFace outlet(M_outletCenterRef, M_outletNormalRef, M_outletRadiusRef, 2, 31);
+
+    M_inlet = inlet;
+    M_outlets.clear();
+    M_outlets.push_back(outlet);
+}
+
 
 std::string
 Tube::
@@ -91,24 +100,28 @@ getStringMesh(std::string refinement)
 
 void
 Tube::
-applyNonAffineTransformation()
+applyNonAffineTransformation(bool transformMesh)
 {
     printlog(MAGENTA, "[" + M_name +
                     " BuildingBlock] applying non affine transformation ...\n",
                     M_verbose);
-    LifeV::MeshUtility::MeshTransformer<mesh_Type> transformer(*M_mesh);
+    std::shared_ptr<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
+
+    if (transformMesh)
+        transformer.reset(new LifeV::MeshUtility::MeshTransformer<mesh_Type>(*M_mesh));
+
     nonAffineScaling(M_parametersHandler["L_ratio"],
                      M_parametersHandler["Rout_ratio"],
                      transformer);
 
-    bend(M_parametersHandler["bend"], transformer);
+    bend(M_parametersHandler["bend"], transformer, transformMesh);
     printlog(MAGENTA, "done\n", M_verbose);
 }
 
 void
 Tube::
 nonAffineScaling(const double& lengthRatio, const double& radiusRatio,
-                 Tube::Transformer& transformer)
+                 std::shared_ptr<Transformer> transformer)
 {
     std::string msg = std::string("[") + M_name + " BuildingBlock]";
     msg = msg + " scaling with lenghtRatio = " + std::to_string(lengthRatio) +
@@ -118,7 +131,8 @@ nonAffineScaling(const double& lengthRatio, const double& radiusRatio,
     auto foo = std::bind(scalingFunction, std::placeholders::_1,
                          std::placeholders::_2, std::placeholders::_3,
                          lengthRatio, radiusRatio, M_outletCenterRef[2]);
-    transformer.transformMesh(foo);
+    if (transformer)
+        transformer->transformMesh(foo);
 
     M_outlets[0].M_radius = M_outlets[0].M_radius * radiusRatio;
     M_outlets[0].M_center[2] = M_outlets[0].M_center[2] * lengthRatio;
@@ -139,7 +153,7 @@ scalingFunction(double& x, double& y, double& z,
 
 void
 Tube::
-bend(const double& bendAngle, Transformer& transformer)
+bend(const double& bendAngle, std::shared_ptr<Transformer> transformer, bool transformMesh)
 {
     std::string msg = std::string("[") + M_name + " BuildingBlock]";
     msg = msg + " bending with bendAngle = " + std::to_string(bendAngle) + "\n";
@@ -162,25 +176,28 @@ bend(const double& bendAngle, Transformer& transformer)
                                  std::placeholders::_5, rotationCenter,
                                  rotationMatrix);
 
-            NonAffineDeformer nAffineDeformer(M_mesh, M_comm, M_verbose);
+            if (transformMesh)
+            {
+                NonAffineDeformer nAffineDeformer(M_mesh, M_comm, M_verbose);
 
-            LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
-        	LifeV::BCFunctionBase outletFunction(foo);
+                LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
+            	LifeV::BCFunctionBase outletFunction(foo);
 
-            std::shared_ptr<LifeV::BCHandler> bcs(new LifeV::BCHandler);
-            bcs->addBC("Inflow", 1, LifeV::Essential, LifeV::Full,
-                       zeroFunction, 3);
-            bcs->addBC("Outflow", 2, LifeV::Essential, LifeV::Full,
-                       outletFunction, 3);
+                std::shared_ptr<LifeV::BCHandler> bcs(new LifeV::BCHandler);
+                bcs->addBC("Inflow", 1, LifeV::Essential, LifeV::Full,
+                           zeroFunction, 3);
+                bcs->addBC("Outflow", 2, LifeV::Essential, LifeV::Full,
+                           outletFunction, 3);
 
-            CoutRedirecter ct;
-            ct.redirect();
-            nAffineDeformer.applyBCs(bcs);
-            std::string xmlFilename = M_datafile("geometric_structure/xml_file",
-                                                 "data/SolverParamList.xml");
-            nAffineDeformer.setXMLsolver(xmlFilename);
-            nAffineDeformer.deformMesh(transformer);
-            printlog(CYAN, ct.restore(), M_verbose);
+                CoutRedirecter ct;
+                ct.redirect();
+                nAffineDeformer.applyBCs(bcs);
+                std::string xmlFilename = M_datafile("geometric_structure/xml_file",
+                                                     "data/SolverParamList.xml");
+                nAffineDeformer.setXMLsolver(xmlFilename);
+                nAffineDeformer.deformMesh(*transformer);
+                printlog(CYAN, ct.restore(), M_verbose);
+            }
 
             // modify outlet
             Vector3D& center = M_outlets[0].M_center;
@@ -196,7 +213,8 @@ bend(const double& bendAngle, Transformer& transformer)
             auto foo = std::bind(bendFunctionAnalytic, std::placeholders::_1,
                                  std::placeholders::_2, std::placeholders::_3,
                                  bendAngle, M_outlets[0].M_center[2]);
-            transformer.transformMesh(foo);
+            if (transformMesh)
+                transformer->transformMesh(foo);
             // modify outlet
             Vector3D& center = M_outlets[0].M_center;
             Vector3D& normal = M_outlets[0].M_normal;

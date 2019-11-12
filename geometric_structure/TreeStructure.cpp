@@ -151,7 +151,7 @@ isEmpty()
 
 void
 TreeStructure::
-traverseAndDeformGeometries()
+traverseAndDeformGeometries(bool deformMesh)
 {
     std::queue<TreeNodePtr> nodesQueue;
     nodesQueue.push(M_root);
@@ -159,7 +159,7 @@ traverseAndDeformGeometries()
     {
         TreeNodePtr curNode = nodesQueue.front();
         nodesQueue.pop();
-        curNode->M_block->applyGlobalTransformation();
+        curNode->M_block->applyGlobalTransformation(deformMesh);
         typedef std::vector<TreeNodePtr> TreeNodesVector;
         TreeNodesVector& children = curNode->M_children;
         unsigned int expectedChildren =
@@ -173,6 +173,33 @@ traverseAndDeformGeometries()
                 GeometricFace curFace = curNode->M_block->getOutlet(i);
 
                 curChild->M_block->mapChildInletToParentOutlet(curFace);
+                nodesQueue.push(curChild);
+            }
+        }
+    }
+}
+
+void
+TreeStructure::
+resetInletOutlets()
+{
+    std::queue<TreeNodePtr> nodesQueue;
+    nodesQueue.push(M_root);
+    while(nodesQueue.size() != 0)
+    {
+        TreeNodePtr curNode = nodesQueue.front();
+        nodesQueue.pop();
+        curNode->M_block->resetInletOutlets();
+        typedef std::vector<TreeNodePtr> TreeNodesVector;
+        TreeNodesVector& children = curNode->M_children;
+        unsigned int expectedChildren =
+                     curNode->M_block->expectedNumberOfChildren();
+        for (int i = 0; i < expectedChildren; i++)
+        {
+            TreeNodePtr curChild = children[i];
+
+            if (curChild)
+            {
                 nodesQueue.push(curChild);
             }
         }
@@ -295,7 +322,7 @@ findBlockWithFace(const Vector3D& centerOfTheFace, const double& tol, int& outle
                 return curNode->M_ID;
         }
 
-        if (curNode->M_nChildren == 0)
+        if (curNode->M_nChildren < curNode->M_block->expectedNumberOfChildren())
         {
             std::vector<GeometricFace> outlets = curNode->M_block->getOutlets();
 
@@ -331,11 +358,12 @@ findBlockWithFace(const Vector3D& centerOfTheFace, const double& tol, int& outle
 
 TreeStructure&
 TreeStructure::
-operator+=(TreeStructure& other)
+operator+(TreeStructure& other)
 {
     if (M_root == nullptr)
     {
         M_root = other.M_root;
+        resetNodesIDs();
         return *this;
     }
 
@@ -346,16 +374,18 @@ operator+=(TreeStructure& other)
     status = findBlockWithFace(other.M_root->M_block->getInlet().M_center,
                                tol, outletIndex);
 
-    if (status > 0)
+    if (status >= 0)
     {
         addChild(status, other.M_root, outletIndex);
+        resetNodesIDs();
         return *this;
     }
     else
     {
         status = other.findBlockWithFace(M_root->M_block->getInlet().M_center,
                                          tol, outletIndex);
-        if (status <= 0)
+        std::cout << status << std::endl;
+        if (status < 0)
             throw new Exception("Operator += of treeStructure: no suitable face!");
 
         other.addChild(status, M_root, outletIndex);
@@ -374,12 +404,14 @@ resetNodesIDs()
     unsigned int count = 0;
     M_root->M_depth = 0;
     M_depth = 0;
+    M_nodesMap.clear();
     while (nodesQueue.size() != 0)
     {
         TreeNodePtr curNode = nodesQueue.front();
         nodesQueue.pop();
 
         curNode->M_ID = count;
+        M_nodesMap[curNode->M_ID] = curNode;
 
         typedef std::vector<TreeNodePtr> TreeNodesVector;
         TreeNodesVector& children = curNode->M_children;

@@ -9,5 +9,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/GeometricParametersHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/GeometryPrinter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SegmentationParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SegmentationsMerger.cpp
     CACHE INTERNAL ""
 )
