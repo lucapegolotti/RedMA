@@ -4,8 +4,9 @@ namespace RedMA
 {
 
 SegmentationsMerger::
-SegmentationsMerger(commPtr_Type comm) :
-  M_comm(comm)
+SegmentationsMerger(commPtr_Type comm, bool verbose) :
+  M_comm(comm),
+  M_verbose(verbose)
 {
 }
 
@@ -74,8 +75,6 @@ mergeTwoSegmentations(SegmentationParserPtr segmentationFather,
 {
     typedef std::vector<Contour>::iterator       VectorContourIt;
 
-    TreeStructure tree;
-
     // find guess for the intersection point
     std::vector<Contour> contours1 = segmentationFather->getContours();
     std::vector<Contour> contours2 = segmentationChild->getContours();
@@ -106,11 +105,32 @@ mergeTwoSegmentations(SegmentationParserPtr segmentationFather,
                             contours1[closestPoint].M_center - firstCenter);
     guessTransv = guessTransv / guessTransv.norm();
 
-    auto bifurcation = placeBifurcation(guessCenter, guessNormal, guessTransv,
-                                        contours1[closestPoint].M_radius,
-                                        segmentationFather, segmentationChild, tree);
+    std::shared_ptr<BifurcationSymmetric> bifurcation;
+    bifurcation.reset(new BifurcationSymmetric(M_comm,"coarse",false,50));
 
-    outputTree = outputTree + tree;
+    placeBifurcation(guessCenter, guessNormal, guessTransv,
+                     contours1[closestPoint].M_radius,
+                     segmentationFather, segmentationChild, bifurcation);
+
+
+    // forward parent until bifurcation
+    Contour inletBifurcation = bifurcation->getInlet();
+    TreeStructure inBranch = segmentationFather->createTreeForward(1, 1.0, 1.0,
+                                                                   nullptr,
+                                                            &inletBifurcation);
+
+    unsigned int idLastElement = inBranch.getNodesMap().size()-1;
+
+    bifurcation->resetInletOutlets();
+    inBranch.addChild(idLastElement,bifurcation);
+
+    inBranch.traverseAndDeformGeometries(false);
+    Contour coutlet = inBranch.getNodesMap()[idLastElement]->M_block->getOutlet(0);
+    inBranch.resetInletOutlets();
+
+    rotateBifurcation(coutlet.M_center, coutlet.M_normal, guessTransv, coutlet.M_radius,
+                      segmentationFather, segmentationChild, bifurcation);
+    outputTree = outputTree + inBranch;
 
     Contour outlet1 = bifurcation->getOutlet(0);
     Contour outlet2 = bifurcation->getOutlet(1);
@@ -129,13 +149,13 @@ mergeTwoSegmentations(SegmentationParserPtr segmentationFather,
     TreeStructure otherBranch;
     if (dist1 < dist2)
     {
-        outBranch = segmentationFather->createTree(1, 1.0, 1.0, outlet1);
-        otherBranch = segmentationChild->createTree(1, 1.0, 1.0, outlet2);
+        outBranch = segmentationFather->createTreeForward(1, 1.0, 1.0, &outlet1, nullptr);
+        otherBranch = segmentationChild->createTreeForward(1, 1.0, 1.0, &outlet2, nullptr);
     }
     else
     {
-        outBranch = segmentationChild->createTree(1, 1.0, 1.0, outlet1);
-        otherBranch = segmentationFather->createTree(1, 1.0, 1.0, outlet2);
+        outBranch = segmentationChild->createTreeForward(1, 1.0, 1.0, &outlet1, nullptr);
+        otherBranch = segmentationFather->createTreeForward(1, 1.0, 1.0, &outlet2, nullptr);
     }
 
     outBranch.traverseAndDeformGeometries(false);
@@ -144,6 +164,50 @@ mergeTwoSegmentations(SegmentationParserPtr segmentationFather,
     outputTree = outputTree + outBranch;
     outputTree = outputTree + otherBranch;
     outputTree.resetInletOutlets();
+}
+
+double
+SegmentationsMerger::
+rotateBifurcation(Vector3D initialCenter,
+                  Vector3D initialAxis,
+                  Vector3D initialTransverse,
+                  double initialRadius,
+                  SegmentationParserPtr segmentationFather,
+                  SegmentationParserPtr segmentationChild,
+                  std::shared_ptr<BifurcationSymmetric> bifurcation)
+{
+    Vector3D refAxis = bifurcation->getInletNormal();
+    Vector3D axis;
+    double alpha;
+    BuildingBlock::computeRotationAxisAndAngle(refAxis, initialAxis,
+                                               axis, alpha);
+
+    Matrix3D R = BuildingBlock::computeRotationMatrix(axis, alpha);
+    Vector3D tr = initialCenter - R * bifurcation->getCenter();
+    double scale = initialRadius / bifurcation->getInletRadius();
+
+    Vector3D axisTransv = bifurcation->getTransverse();
+
+    Vector3D axis_;
+    double alphaTransv;
+    BuildingBlock::computeRotationAxisAndAngle(R*axisTransv, initialTransverse,
+                                               axis_, alphaTransv);
+
+    int status;
+    status = status || bifurcation->setParameterValue("bx", tr[0]);
+    status = status || bifurcation->setParameterValue("by", tr[1]);
+    status = status || bifurcation->setParameterValue("bz", tr[2]);
+    status = status || bifurcation->setParameterValue("rotation_axis_x", axis[3]);
+    status = status || bifurcation->setParameterValue("rotation_axis_y", axis[4]);
+    status = status || bifurcation->setParameterValue("rotation_axis_z", axis[5]);
+    status = status || bifurcation->setParameterValue("alpha", alpha);
+    status = status || bifurcation->setParameterValue("scale", scale);
+
+    std::vector<double> params(7, 0.0);
+    params[0] = alphaTransv;
+
+    return optimizeLoss(bifurcation, segmentationFather, segmentationChild,
+                        params, 1e-3, 1e-7, 40000);
 }
 
 double
@@ -180,7 +244,7 @@ findClosestPoint(const Vector3D& targetPoint,
     return minDist;
 }
 
-std::shared_ptr<BifurcationSymmetric>
+double
 SegmentationsMerger::
 placeBifurcation(Vector3D initialCenter,
                  Vector3D initialAxis,
@@ -188,11 +252,8 @@ placeBifurcation(Vector3D initialCenter,
                  double initialRadius,
                  SegmentationParserPtr segmentationFather,
                  SegmentationParserPtr segmentationChild,
-                 TreeStructure& tree)
+                 std::shared_ptr<BifurcationSymmetric> bifurcation)
 {
-    // we support only symmetric bifurcations at the moment
-    std::shared_ptr<BifurcationSymmetric> bifurcation(new BifurcationSymmetric(M_comm,"coarse",false,60));
-
     Vector3D refAxis = bifurcation->getInletNormal();
     Vector3D axis;
     double alpha;
@@ -221,12 +282,8 @@ placeBifurcation(Vector3D initialCenter,
     params[7] = scale;
     params[8] = -alphaTransv;
 
-    optimizeLoss(bifurcation, segmentationFather, segmentationChild,
-                 params, 1e-7, 40000);
-
-    tree.setRoot(bifurcation);
-
-    return bifurcation;
+    return optimizeLoss(bifurcation, segmentationFather, segmentationChild,
+                        params, 1e-5, 1e-7, 40000);
 }
 
 // params: bx,by,bz,rotation_axis_x,rotation_axis_y,rotation_axis_z,
@@ -257,8 +314,31 @@ deformBifurcation(std::shared_ptr<BifurcationSymmetric> bifurcation,
     status = status || bifurcation->setParameterValue("out2_alphay", params[13]);
     status = status || bifurcation->setParameterValue("out2_alphaz", params[14]);
 
-    if (!status)
-        bifurcation->applyGlobalTransformation(false);
+    bifurcation->applyGlobalTransformation(false);
+
+    return status;
+}
+
+// params: alpha_axis, out1_alphax, out1_alphay, out1_alphaz,
+// out2_alphax, out2_alphay, out2_alphaz
+int
+SegmentationsMerger::
+deformPlacedBifurcation(std::shared_ptr<BifurcationSymmetric> bifurcation,
+                        std::vector<double> params)
+{
+    int status = 0;
+
+    auto map = bifurcation->getParametersMap();
+
+    status = status || bifurcation->setParameterValue("alpha_axis", params[0]);
+    status = status || bifurcation->setParameterValue("out1_alphax", params[1]);
+    status = status || bifurcation->setParameterValue("out1_alphay", params[2]);
+    status = status || bifurcation->setParameterValue("out1_alphaz", params[3]);
+    status = status || bifurcation->setParameterValue("out2_alphax", params[4]);
+    status = status || bifurcation->setParameterValue("out2_alphay", params[5]);
+    status = status || bifurcation->setParameterValue("out2_alphaz", params[6]);
+
+    bifurcation->applyGlobalTransformation(false);
 
     return status;
 }
@@ -269,32 +349,51 @@ optimizeLoss(std::shared_ptr<BifurcationSymmetric> bifurcation,
              SegmentationParserPtr segmentationFather,
              SegmentationParserPtr segmentationChild,
              std::vector<double>& params,
+             double lambda,
              const double tol, const unsigned int nMax)
 {
+    printlog(MAGENTA, "[SegmentationsMerger] optimizing bifurcation position ...\n", M_verbose);
+
     const double eps = 1e-8;
 
     unsigned int nparams = params.size();
     std::vector<double> paramincr(nparams, 0.0);
 
-    std::vector<double> lambdas(nparams,1e-5);
-
     double incr = tol+1;
     unsigned int k = 0;
 
+    double loss;
     int status;
-    status = deformBifurcation(bifurcation, params);
-    double loss = computeLoss(bifurcation, segmentationFather, segmentationChild);
+    if (nparams == 7)
+    {
+        status = deformPlacedBifurcation(bifurcation, params);
+        loss = computeLoss(bifurcation, segmentationFather, segmentationChild,0,1);
+    }
+    else
+    {
+        status = deformBifurcation(bifurcation, params);
+        loss = computeLoss(bifurcation, segmentationFather, segmentationChild,1,1);
+    }
     bifurcation->resetInletOutlets();
     double oldloss = loss;
     while (incr > tol && k <= nMax)
     {
-        // std::cout << "----" << std::endl;
         for (unsigned i = 0; i < nparams; i++)
         {
             params[i] = params[i] + eps;
-            status = deformBifurcation(bifurcation, params);
-            paramincr[i] = (computeLoss(bifurcation, segmentationFather,
-                                       segmentationChild) - loss)/eps;
+            if (nparams == 7)
+            {
+                status = deformPlacedBifurcation(bifurcation, params);
+                paramincr[i] = (computeLoss(bifurcation, segmentationFather,
+                                           segmentationChild, 0, 1) - loss)/eps;
+            }
+            else
+            {
+                status = deformBifurcation(bifurcation, params);
+                paramincr[i] = (computeLoss(bifurcation, segmentationFather,
+                                           segmentationChild, 1, 1) - loss)/eps;
+            }
+
             bifurcation->resetInletOutlets();
 
             params[i] = params[i] - eps;
@@ -302,33 +401,64 @@ optimizeLoss(std::shared_ptr<BifurcationSymmetric> bifurcation,
 
         for (unsigned int i = 0; i < nparams; i++)
         {
-            params[i] -= lambdas[i] * paramincr[i];
-            //std::cout << i << " " << params[i] << std::endl;
+            params[i] -= lambda * paramincr[i];
         }
 
-        status = deformBifurcation(bifurcation, params);
-        loss = computeLoss(bifurcation, segmentationFather, segmentationChild);
+        if (nparams == 7)
+        {
+            status = deformPlacedBifurcation(bifurcation, params);
+            loss = computeLoss(bifurcation, segmentationFather, segmentationChild,0,1);
+        }
+        else
+        {
+            status = deformBifurcation(bifurcation, params);
+            loss = computeLoss(bifurcation, segmentationFather, segmentationChild,1,1);
+        }
         bifurcation->resetInletOutlets();
-
         incr = std::abs((loss - oldloss)/loss);
+
+        std::string msg;
+        if (k % 1000 == 0)
+        {
+            msg = "it = " + std::to_string(k);
+            std::ostringstream streamOb2;
+            streamOb2 << loss;
+            msg += " lf = " + streamOb2.str();
+            streamOb2.str("");
+            streamOb2.clear();
+            streamOb2 << incr;
+            msg += " increment = " + streamOb2.str();
+            printlog(YELLOW, msg + "\n", M_verbose);
+        }
+
         oldloss = loss;
         k++;
     }
-    status = deformBifurcation(bifurcation, params);
-    loss = computeLoss(bifurcation, segmentationFather, segmentationChild);
+    if (nparams == 7)
+    {
+        status = deformPlacedBifurcation(bifurcation, params);
+        loss = computeLoss(bifurcation, segmentationFather, segmentationChild,0,1);
+    }
+    else
+    {
+        status = deformBifurcation(bifurcation, params);
+        loss = computeLoss(bifurcation, segmentationFather, segmentationChild,1,1);
+    }
+    return loss;
 }
 
 double
 SegmentationsMerger::
 computeLoss(std::shared_ptr<BifurcationSymmetric> bifurcation,
             SegmentationParserPtr segmentationFather,
-            SegmentationParserPtr segmentationChild)
+            SegmentationParserPtr segmentationChild,
+            const double inletConst, const double outletConst)
 {
     double loss = 0.0;
 
-    const double const1 = 1.0;
-    const double const2 = 1.0;
-    const double const3 = 2.0;
+    double const1 = 1.0;
+    double const2 = 1.0;
+    double const3 = 2.0;
 
     Contour inlet = bifurcation->getInlet();
     Contour outlet1 = bifurcation->getOutlet(0);
@@ -346,18 +476,22 @@ computeLoss(std::shared_ptr<BifurcationSymmetric> bifurcation,
     loss += const2 * std::abs(inlet.M_normal.dot(segmentationChild->getContour(index).M_normal)-1.0);
     loss += const3 * std::abs(inlet.M_radius - segmentationChild->getContour(index).M_radius);
 
+    loss *= inletConst;
 
     unsigned int index1, index2;
     // outlet1
     double dist1 = findClosestPoint(outlet1.M_center, segmentationFather, 0, index1);
     double dist2 = findClosestPoint(outlet1.M_center, segmentationChild, 0, index2);
 
+    const1 *= outletConst;
+    const2 *= outletConst;
+
     if (dist1 < dist2)
     {
         loss += const1 * (outlet1.M_center - segmentationFather->getContour(index1).M_center).norm();
         loss += const2 * std::abs(outlet1.M_normal.dot(segmentationFather->getContour(index1).M_normal)-1.0);
 
-        std::cout << findClosestPoint(outlet2.M_center, segmentationChild, 0, index2) << std::endl << std::flush;
+        findClosestPoint(outlet2.M_center, segmentationChild, 0, index2);
 
         loss += const1 * (outlet2.M_center - segmentationChild->getContour(index2).M_center).norm();
         loss += const2 * std::abs(outlet2.M_normal.dot(segmentationChild->getContour(index2).M_normal)-1.0);
@@ -367,7 +501,7 @@ computeLoss(std::shared_ptr<BifurcationSymmetric> bifurcation,
         loss += const1 * (outlet1.M_center - segmentationChild->getContour(index2).M_center).norm();
         loss += const2 * std::abs(outlet1.M_normal.dot(segmentationChild->getContour(index2).M_normal)-1.0);
 
-        std::cout << findClosestPoint(outlet2.M_center, segmentationFather, 0, index1) << std::endl << std::flush;
+        findClosestPoint(outlet2.M_center, segmentationFather, 0, index1);
 
         loss += const1 * (outlet2.M_center - segmentationFather->getContour(index1).M_center).norm();
         loss += const2 * std::abs(outlet2.M_normal.dot(segmentationFather->getContour(index1).M_normal)-1.0);

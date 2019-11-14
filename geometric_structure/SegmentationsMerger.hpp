@@ -32,7 +32,7 @@ class SegmentationsMerger
     typedef std::shared_ptr<SegmentationParser>            SegmentationParserPtr;
 
 public:
-    SegmentationsMerger(commPtr_Type comm);
+    SegmentationsMerger(commPtr_Type comm, bool verbose);
 
     TreeStructure merge(std::vector<SegmentationParserPtr> parsers);
 
@@ -50,13 +50,21 @@ private:
                             unsigned int startIndexSearch,
                             unsigned int& indexOfClosestPoint);
 
-    std::shared_ptr<BifurcationSymmetric> placeBifurcation(Vector3D initialCenter,
-                                                           Vector3D initialAxis,
-                                                           Vector3D initialTransverse,
-                                                           double initialRadius,
-                                                           SegmentationParserPtr segmentationFather,
-                                                           SegmentationParserPtr segmentationChild,
-                                                           TreeStructure& tree);
+    double placeBifurcation(Vector3D initialCenter,
+                            Vector3D initialAxis,
+                            Vector3D initialTransverse,
+                            double initialRadius,
+                            SegmentationParserPtr segmentationFather,
+                            SegmentationParserPtr segmentationChild,
+                            std::shared_ptr<BifurcationSymmetric> bifurcation);
+
+    double rotateBifurcation(Vector3D initialCenter,
+                             Vector3D initialAxis,
+                             Vector3D initialTransverse,
+                             double initialRadius,
+                             SegmentationParserPtr segmentationFather,
+                             SegmentationParserPtr segmentationChild,
+                             std::shared_ptr<BifurcationSymmetric> bifurcation);
 
     // params: bx,by,bz,rotation_axis_x,rotation_axis_y,rotation_axis_z,
     // alpha, scale, alpha_axis, out1_alphax, out1_alphay, out1_alphaz,
@@ -64,18 +72,25 @@ private:
     int deformBifurcation(std::shared_ptr<BifurcationSymmetric> bifurcation,
                           std::vector<double> params);
 
+    // params: alpha_axis, out1_alphax, out1_alphay, out1_alphaz,
+    // out2_alphax, out2_alphay, out2_alphaz
+    int deformPlacedBifurcation(std::shared_ptr<BifurcationSymmetric> bifurcation,
+                                std::vector<double> params);
+
     double computeLoss(std::shared_ptr<BifurcationSymmetric> bifurcation,
                        SegmentationParserPtr segmentationFather,
-                       SegmentationParserPtr segmentationChild);
+                       SegmentationParserPtr segmentationChild,
+                       const double inletConst, const double outletConst);
 
     double optimizeLoss(std::shared_ptr<BifurcationSymmetric> bifurcation,
                         SegmentationParserPtr segmentationFather,
                         SegmentationParserPtr segmentationChild,
                         std::vector<double>& params,
+                        double lambda,
                         const double tol, const unsigned int nMax);
 
     commPtr_Type M_comm;
-
+    bool M_verbose;
 };
 
 }  // namespace RedMA

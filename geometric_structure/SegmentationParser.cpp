@@ -280,29 +280,22 @@ traverseSegmentation(std::string ctgrName)
 
 TreeStructure
 SegmentationParser::
-createTree(const int& lengthTubes,
-           const double& constVector, const double& constNormal,
-           int indexBegin, int indexEnd)
+createTreeForward(const int& lengthTubes,
+                  const double& constVector, const double& constNormal,
+                  Contour* initialContourPtr,
+                  Contour* finalContourPtr)
 {
-    if (indexBegin == -1)
-    {
-        indexBegin = M_indexBegin;
-    }
+    Contour initialContour;
+    if (initialContourPtr)
+        initialContour = *initialContourPtr;
+    else
+        initialContour = M_contoursComplete[M_indexBegin];
 
-    return createTree(lengthTubes, constVector, constNormal,
-                      M_contoursComplete[indexBegin], indexEnd);
-}
-
-TreeStructure
-SegmentationParser::
-createTree(const int& lengthTubes,
-           const double& constVector, const double& constNormal,
-           const Contour& initialContour, int indexEnd)
-{
-    if (indexEnd == -1)
-    {
-        indexEnd = M_indexEnd;
-    }
+    Contour finalContour;
+    if (finalContourPtr)
+        finalContour = *finalContourPtr;
+    else
+        finalContour = M_contoursComplete[M_indexEnd];
 
     TreeStructure retTree(M_verbose);
 
@@ -312,12 +305,24 @@ createTree(const int& lengthTubes,
 
     double mindist = 1e15;
     unsigned int indexBegin;
-    for (unsigned int i = M_indexBegin; i < indexEnd; i++)
+    for (unsigned int i = M_indexBegin; i < M_indexEnd; i++)
     {
         double dist = (M_contoursComplete[i].M_center-initialContour.M_center).norm();
         if (dist < mindist)
         {
             indexBegin = i;
+            mindist = dist;
+        }
+    }
+
+    mindist = 1e15;
+    unsigned int indexEnd;
+    for (unsigned int i = M_indexBegin; i < M_indexEnd; i++)
+    {
+        double dist = (M_contoursComplete[i].M_center-finalContour.M_center).norm();
+        if (dist < mindist)
+        {
+            indexEnd = i;
             mindist = dist;
         }
     }
@@ -328,8 +333,12 @@ createTree(const int& lengthTubes,
 
     double length = 0;
     int curLength = lengthTubes;
-    while (1)
+    bool continueLoop = true;
+    // std::queue<std::shared_ptr<Tube> > tubeQueue;
+    do
     {
+        printlog(MAGENTA, std::string("[SegmentationParser] placing tube ").
+                          append(std::to_string(count+1)).append("\n"), M_verbose);
         int status = 0;
 
         std::shared_ptr<Tube> childTube(new Tube(M_comm,"fine",true,1,curLength));
@@ -354,28 +363,58 @@ createTree(const int& lengthTubes,
         status = status || childTube->setParameterValue("rotation_axis_z", axis[2]);
         status = status || childTube->setParameterValue("alpha", alpha);
 
-        length += childTube->getDefLength() * scale;
-
-        // find new target point
-        while (M_cumulativeDistance[ind] - M_cumulativeDistance[indexBegin] < length
-               && ind < M_indexEnd)
-            ind++;
-
-        if (ind == M_indexEnd)
+        bool lastBlock = false;
+        double lengthMult = 1.0;
+        // check if we can reach the exact length we need by varying tube length
+        double lengthLeft = M_cumulativeDistance[indexEnd] - M_cumulativeDistance[ind];
+        double maxLength = childTube->getDefLength() * scale * childTube->getParameter("L_ratio")->getMaxValue();
+        double minLength = childTube->getDefLength() * scale * childTube->getParameter("L_ratio")->getMinValue();
+        if (lengthLeft < maxLength && lengthLeft > minLength)
         {
-            if (curLength == 1)
-                break;
-            else
-                status = 1;
+            lengthMult = lengthLeft / (childTube->getDefLength() * scale);
+            status = status || childTube->setParameterValue("L_ratio", lengthMult);
+            lastBlock = true;
         }
 
-        // choose the closest point between ind-1 and ind
-        ind = std::abs(M_cumulativeDistance[ind]-length) <
-              std::abs(M_cumulativeDistance[ind-1]-length) ? ind : ind - 1;
+        length += childTube->getDefLength() * scale * lengthMult;
 
-        Vector3D targetCentral = M_contoursComplete[ind].M_center;
-        Vector3D targetNormal = M_contoursComplete[ind].M_normal;
-        double targetRadius = M_contoursComplete[ind].M_radius;
+        Vector3D targetCentral;
+        Vector3D targetNormal;
+        double targetRadius;
+        Contour targetContour;
+
+        if (!lastBlock)
+        {
+            // find new target point
+            while (M_cumulativeDistance[ind] - M_cumulativeDistance[indexBegin] < length
+                   && ind < indexEnd)
+                ind++;
+
+            if (ind == indexEnd)
+            {
+                if (curLength == 1)
+                    continueLoop = false;
+                else
+                    status = 1;
+            }
+
+            // choose the closest point between ind-1 and ind
+            ind = std::abs(M_cumulativeDistance[ind]-length) <
+                  std::abs(M_cumulativeDistance[ind-1]-length) ? ind : ind - 1;
+
+            targetCentral = M_contoursComplete[ind].M_center;
+            targetNormal = M_contoursComplete[ind].M_normal;
+            targetRadius = M_contoursComplete[ind].M_radius;
+            targetContour = M_contoursComplete[ind];
+        }
+        else
+        {
+            targetCentral = finalContour.M_center;
+            targetNormal = finalContour.M_normal;
+            targetRadius = finalContour.M_radius;
+            targetContour = finalContour;
+        }
+
 
         double defRadius = childTube->getInletRadius();
         status = status || childTube->setParameterValue("Rout_ratio",
@@ -399,15 +438,14 @@ createTree(const int& lengthTubes,
         double f;
         if (!status)
             f = optimizeBending(alphaAxis, bendAngle, 1e7, 1e-15, R1, cb,
-                                scale, childTube->getDefLength(), n,
-                                M_contoursComplete[ind], constVector, constNormal);
+                                scale, childTube->getDefLength() * lengthMult, n,
+                                targetContour, constVector, constNormal);
 
         double err;
         err = aPosterioriCheck(alphaAxis, bendAngle, R1, cb,
-                               scale, childTube->getDefLength(), n,
-                               M_contoursComplete[ind]);
+                               scale, childTube->getDefLength() * lengthMult, n,
+                               targetContour);
 
-        std::cout << "error = " << err << std::endl;
         if (err > THRESHOLD)
             status = 1;
 
@@ -425,14 +463,17 @@ createTree(const int& lengthTubes,
             curLength = lengthTubes;
 
             bend(alphaAxis, bendAngle, prevCenter, prevNormal, R1, cb,
-                 scale, childTube->getDefLength(), n);
+                 scale, childTube->getDefLength() * lengthMult, n);
+
+            if (lastBlock)
+                continueLoop = false;
 
             prevRadius = targetRadius;
         }
         else
         {
             ind = prevIndex;
-            length -= childTube->getDefLength() * scale;
+            length -= childTube->getDefLength() * lengthMult * scale;
             curLength--;
             std::string msg;
             if (curLength == 0)
@@ -443,8 +484,7 @@ createTree(const int& lengthTubes,
             msg = "[SegmentationParser] Status != 0 : retrying\n";
             printlog(RED, msg, M_verbose);
         }
-    }
-
+    } while(continueLoop);
     return retTree;
 }
 

@@ -19,7 +19,7 @@
 
 #include <exception>
 #include <string>
-
+#include <PrintLog.hpp>
 namespace RedMA
 {
 
@@ -29,11 +29,13 @@ public:
     explicit Exception(const char* message) :
       M_msg(message)
     {
+        printMsg();
     }
 
     explicit Exception(const std::string& message) :
       M_msg(message)
     {
+        printMsg();
     }
 
     virtual ~Exception() throw ()
@@ -43,6 +45,14 @@ public:
     virtual const char* what() const throw ()
     {
        return M_msg.c_str();
+    }
+
+    void printMsg()
+    {
+        std::string msg = "[Exception] ";
+        msg += M_msg;
+        msg += "\n";
+        printlog(RED, msg);
     }
 
 protected:

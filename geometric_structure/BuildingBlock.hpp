@@ -86,11 +86,14 @@ protected:
     typedef LifeV::VectorEpetra                            vector_Type;
     typedef std::shared_ptr<vector_Type>                   vectorPtr_Type;
     typedef LifeV::MeshUtility::MeshTransformer<mesh_Type> Transformer;
+    typedef std::shared_ptr<GeometricParameter>             GeometricParameterPtr;
 
 public:
     BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose);
 
     int setParameterValue(std::string key, double value);
+
+    GeometricParameterPtr getParameter(std::string name){return M_parametersHandler.getParameter(name);};
 
     std::map<std::string,std::shared_ptr<GeometricParameter> >&
                                                              getParametersMap();

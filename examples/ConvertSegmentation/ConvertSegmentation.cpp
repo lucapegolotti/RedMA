@@ -72,7 +72,7 @@ int main(int argc, char **argv)
         begin = std::atoi(argv[3]);
     }
 
-    SegmentationsMerger merger(comm);
+    SegmentationsMerger merger(comm,true);
 
     std::shared_ptr<SegmentationParser> sp1(new SegmentationParser(comm,
                 "datafiles/aorta.pth", "datafiles/aorta.ctgr", "linear", true));

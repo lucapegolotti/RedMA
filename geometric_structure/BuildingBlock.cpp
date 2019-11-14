@@ -241,6 +241,7 @@ applyAffineTransformation(bool transformMesh)
         printlog(GREEN, "[" + M_name +
                      " BuildingBlock] is child: conforming inlet/parent_outlet ...\n",
                      M_verbose);
+
         R =  computeRotationMatrix(M_inletRotationAxis, M_inletAngle);
 
         translation = M_inletTranslation;

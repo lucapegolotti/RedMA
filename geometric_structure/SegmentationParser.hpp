@@ -28,7 +28,10 @@
 
 #include <sstream>
 
-#define THRESHOLD 1
+#include <stack>
+#include <queue>
+
+#define THRESHOLD 5e-2
 
 namespace RedMA
 {
@@ -54,16 +57,11 @@ public:
 
     void traverseSegmentation(std::string ctgrName);
 
-    TreeStructure createTree(const int& lengthTubes,
-                             const double& constVector,
-                             const double& constNormal,
-                             int indexBegin = -1, int indexEnd = -1);
-
-    TreeStructure createTree(const int& lengthTubes,
-                             const double& constVector,
-                             const double& constNormal,
-                             const Contour& initialContour,
-                             int indexEnd = -1);
+    TreeStructure createTreeForward(const int& lengthTubes,
+                                    const double& constVector,
+                                    const double& constNormal,
+                                    Contour* initialContourPtr,
+                                    Contour* finalContourPtr);
 
     std::vector<Contour> getContours(){return M_contoursComplete;};
 

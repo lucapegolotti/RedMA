@@ -56,7 +56,7 @@ BifurcationSymmetric(commPtr_Type comm, std::string refinement,
     resetInletOutlets();
 
     const bool randomizible = true;
-    const double maxAngle = 0.2;
+    const double maxAngle = 0.1;
     M_parametersHandler.registerParameter("out1_alphax", 0.0, -maxAngle,
                                           maxAngle, randomizible);
     M_parametersHandler.registerParameter("out1_alphay", 0.0, -maxAngle,
@@ -115,9 +115,8 @@ bend(const double& out1_alphax, const double& out1_alphay, const double& out1_al
      const double& out2_alphax, const double& out2_alphay, const double& out2_alphaz,
      std::shared_ptr<Transformer> transformer, bool transformMesh)
 {
-
-    if ((out1_alphax != 0 && out1_alphay != 0 && out1_alphaz != 0) &&
-        (out2_alphax != 0 && out2_alphay != 0 && out2_alphaz != 0))
+    if ((std::abs(out1_alphax) > 0 || std::abs(out1_alphay) > 0 || std::abs(out1_alphaz) > 0) ||
+        (std::abs(out2_alphax) > 0 || std::abs(out2_alphay) > 0 || std::abs(out2_alphaz) > 0))
     {
         std::string msg = std::string("[") + M_name + " BuildingBlock]";
         msg = msg + " bending with angles = (" + std::to_string(out1_alphax)

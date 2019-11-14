@@ -52,6 +52,10 @@ public:
 
     std::string name();
 
+    double getMinValue(){return M_minValue;};
+
+    double getMaxValue(){return M_maxValue;};
+
 private:
     GeometricParameter() {}
 
@@ -88,6 +92,8 @@ public:
     std::map<std::string,GeometricParameterPtr>& getParametersMap();
 
     void randomizeParameters();
+
+    GeometricParameterPtr getParameter(std::string name){return M_parametersMap[name];};
 
 private:
     std::map<std::string, GeometricParameterPtr> M_parametersMap;

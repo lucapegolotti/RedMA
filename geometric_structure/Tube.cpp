@@ -6,7 +6,9 @@ namespace RedMA
 Tube::
 Tube(commPtr_Type comm, std::string refinement, bool verbose,
      int diameter, int length) :
-  BuildingBlock(comm, refinement, verbose)
+  BuildingBlock(comm, refinement, verbose),
+  M_length(length),
+  M_diameter(diameter)
 {
     M_name = "Tube";
     std::string ratio = std::to_string(diameter);

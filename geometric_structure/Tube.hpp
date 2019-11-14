@@ -52,6 +52,10 @@ public:
 
     void resetInletOutlets() override;
 
+    inline unsigned int getDiameter() {return M_diameter;};
+
+    inline unsigned int getLength() {return M_length;};
+
 private:
     void nonAffineScaling(const double& lengthRatio,
                           const double& outRadiusRatio,
@@ -77,6 +81,9 @@ private:
 
     double M_inletRadiusRef;
     double M_outletRadiusRef;
+
+    unsigned int M_diameter;
+    unsigned int M_length;
 };
 
 }  // namespace RedMA
