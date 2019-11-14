@@ -105,12 +105,31 @@ mergeTwoSegmentations(SegmentationParserPtr segmentationFather,
                             contours1[closestPoint].M_center - firstCenter);
     guessTransv = guessTransv / guessTransv.norm();
 
+    std::vector<std::shared_ptr<BifurcationSymmetric>> bifurcationsVector;
     std::shared_ptr<BifurcationSymmetric> bifurcation;
-    bifurcation.reset(new BifurcationSymmetric(M_comm,"coarse",false,50));
+    double minloss = 1e15;
+    unsigned int bestBifurcation;
+    unsigned int count = 0;
+    for (unsigned int i = 5; i < 9; i++)
+    {
+        unsigned int curangle = i * 10;
+        printlog(MAGENTA, "[SegmentationsMerger] trying bifurcation angle = " +
+                          std::to_string(curangle) + "\n", M_verbose);
+        bifurcation.reset(new BifurcationSymmetric(M_comm,"coarse",false,curangle));
 
-    placeBifurcation(guessCenter, guessNormal, guessTransv,
-                     contours1[closestPoint].M_radius,
-                     segmentationFather, segmentationChild, bifurcation);
+        double curloss = placeBifurcation(guessCenter, guessNormal, guessTransv,
+                         contours1[closestPoint].M_radius,
+                         segmentationFather, segmentationChild, bifurcation);
+        bifurcationsVector.push_back(bifurcation);
+        if (curloss < minloss)
+        {
+            bestBifurcation = count;
+            minloss = curloss;
+        }
+        count++;
+    }
+
+    bifurcation = bifurcationsVector[bestBifurcation];
 
 
     // forward parent until bifurcation
