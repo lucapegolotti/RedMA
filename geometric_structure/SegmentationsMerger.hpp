@@ -20,6 +20,8 @@
 #include <SegmentationParser.hpp>
 #include <TreeStructure.hpp>
 
+#include <lifev/core/filter/GetPot.hpp>
+
 namespace RedMA
 {
 
@@ -32,7 +34,8 @@ class SegmentationsMerger
     typedef std::shared_ptr<SegmentationParser>            SegmentationParserPtr;
 
 public:
-    SegmentationsMerger(commPtr_Type comm, bool verbose);
+    SegmentationsMerger(const GetPot& datafile,
+                        commPtr_Type comm, bool verbose);
 
     TreeStructure merge(std::vector<SegmentationParserPtr> parsers);
 
@@ -89,8 +92,9 @@ private:
                         double lambda,
                         const double tol, const unsigned int nMax);
 
+    GetPot       M_datafile;
     commPtr_Type M_comm;
-    bool M_verbose;
+    bool         M_verbose;
 };
 
 }  // namespace RedMA

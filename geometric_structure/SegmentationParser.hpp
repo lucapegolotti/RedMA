@@ -47,7 +47,8 @@ class SegmentationParser
 public:
     // interpolation method specifies how to associate contour information
     // to path points in between two contours
-    SegmentationParser(commPtr_Type comm, std::string pthName,
+    SegmentationParser(const GetPot& datafile,
+                       commPtr_Type comm, std::string pthName,
                        std::string ctgrName, std::string interpolationMethod,
                        bool verbose);
 
@@ -87,9 +88,7 @@ protected:
                     const Matrix3D& A, const Vector3D& b,
                     const double& scale,
                     const double& L, const Vector3D& axis,
-                    const Contour& target,
-                    const double& const1,
-                    const double& const2);
+                    const Contour& target);
 
     double aPosterioriCheck(const double& alpha, const double& theta,
                             const Matrix3D& A, const Vector3D& b,
@@ -102,9 +101,7 @@ protected:
                            const Matrix3D& A, const Vector3D& b,
                            const double& scale,
                            const double& L, const Vector3D& axis,
-                           const Contour& target,
-                           const double& const1,
-                           const double& const2);
+                           const Contour& target);
 
     void bend(const double& alpha, const double& theta,
               Vector3D& center, Vector3D& normal,
@@ -112,6 +109,7 @@ protected:
               const double& scale,
               const double& L, const Vector3D& axis);
 
+    GetPot                  M_datafile;
     std::vector<Contour>    M_contours;
     std::vector<Vector3D>   M_path;
     std::vector<Vector3D>   M_tangents; // corresponding to ith path point

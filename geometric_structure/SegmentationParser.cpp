@@ -4,9 +4,10 @@ namespace RedMA
 {
 
 SegmentationParser::
-SegmentationParser(commPtr_Type comm, std::string pthName,
+SegmentationParser(const GetPot& datafile, commPtr_Type comm, std::string pthName,
                    std::string ctgrName, std::string interpolationMethod,
                    bool verbose) :
+  M_datafile(datafile),
   M_comm(comm),
   M_verbose(verbose)
 {
@@ -436,10 +437,12 @@ createTreeForward(const int& lengthTubes,
         double bendAngle = 0.1;
 
         double f;
+        unsigned int kmax = M_datafile("segmentation_parser/kmax", 1e7);
+        double tol = M_datafile("segmentation_parser/tol", 1e-9);
         if (!status)
-            f = optimizeBending(alphaAxis, bendAngle, 1e7, 1e-15, R1, cb,
+            f = optimizeBending(alphaAxis, bendAngle, kmax, tol, R1, cb,
                                 scale, childTube->getDefLength() * lengthMult, n,
-                                targetContour, constVector, constNormal);
+                                targetContour);
 
         double err;
         err = aPosterioriCheck(alphaAxis, bendAngle, R1, cb,
@@ -494,10 +497,10 @@ Fbending(const double& alpha, const double& theta,
                 const Matrix3D& A, const Vector3D& b,
                 const double& scale,
                 const double& L, const Vector3D& axis,
-                const Contour& target,
-                const double& const1,
-                const double& const2)
+                const Contour& target)
 {
+    double const1 = M_datafile("segmentation_parser/const_centers", 1.0);
+    double const2 = M_datafile("segmentation_parser/const_normals", 1.0);
     Vector3D newCenter;
     Vector3D newNormal;
 
@@ -556,14 +559,12 @@ optimizeBending(double& alpha, double& theta,
                 const Matrix3D& A, const Vector3D& b,
                 const double& scale,
                 const double& L, const Vector3D& axis,
-                const Contour& target,
-                const double& const1,
-                const double& const2)
+                const Contour& target)
 {
     printlog(MAGENTA, "[SegmentationParser] optimizing bending ...\n", M_verbose);
 
 
-    double f = Fbending(alpha, theta, A, b, scale, L, axis, target, const1, const2);
+    double f = Fbending(alpha, theta, A, b, scale, L, axis, target);
     std::ostringstream streamOb1;
     streamOb1 << f;
     std::string msg = "initial loss function = ";
@@ -585,18 +586,19 @@ optimizeBending(double& alpha, double& theta,
 
 
     unsigned int k = 1;
-    const double eps = 1e-8;
     double incr = tol + 1;
     double oldf = 1e8;
-    const double lambda = 1e-5;
+    unsigned int printEvery = M_datafile("segmentation_parser/print_every", 1e4);
+    double eps = M_datafile("segmentation_parser/eps", 1e-9);
+    double lambda = M_datafile("segmentation_parser/lambda", 5e-5);
     while (incr > tol && k <= maxIt)
     {
         // approximate the gradient via finite difference
         double derAlpha = (Fbending(alpha + eps, theta, A, b, scale, L,
-                                   axis, target, const1, const2) - f)/eps;
+                                   axis, target) - f)/eps;
 
         double derTheta = (Fbending(alpha, theta + eps, A, b, scale, L,
-                                   axis, target, const1, const2) - f)/eps;
+                                   axis, target) - f)/eps;
 
 
         alpha = alpha - lambda * derAlpha;
@@ -608,11 +610,11 @@ optimizeBending(double& alpha, double& theta,
             theta = 0.1;
         }
 
-        f = Fbending(alpha, theta, A, b, scale, L, axis, target, const1, const2);
+        f = Fbending(alpha, theta, A, b, scale, L, axis, target);
 
-        incr = std::abs((f - oldf)/f);
+        incr = std::abs(f - oldf);
 
-        if (k % 100000 == 0)
+        if (k % printEvery == 0)
         {
             msg = "it = " + std::to_string(k);
             std::ostringstream streamOb2;

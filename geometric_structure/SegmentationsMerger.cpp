@@ -4,7 +4,8 @@ namespace RedMA
 {
 
 SegmentationsMerger::
-SegmentationsMerger(commPtr_Type comm, bool verbose) :
+SegmentationsMerger(const GetPot& datafile, commPtr_Type comm, bool verbose) :
+  M_datafile(datafile),
   M_comm(comm),
   M_verbose(verbose)
 {
@@ -434,7 +435,7 @@ optimizeLoss(std::shared_ptr<BifurcationSymmetric> bifurcation,
             loss = computeLoss(bifurcation, segmentationFather, segmentationChild,1,1);
         }
         bifurcation->resetInletOutlets();
-        incr = std::abs((loss - oldloss)/loss);
+        incr = std::abs(loss - oldloss));
 
         std::string msg;
         if (k % 1000 == 0)
