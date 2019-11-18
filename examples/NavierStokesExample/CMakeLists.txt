@@ -23,6 +23,12 @@ add_custom_command(
 add_custom_command(
         TARGET NavierStokesExample POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/open_all_vtks_paraview.py
+                ${CMAKE_CURRENT_BINARY_DIR}/open_all_vtks_paraview.py)
+
+add_custom_command(
+        TARGET NavierStokesExample POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/tree7.xml
                 ${CMAKE_CURRENT_BINARY_DIR}/tree7.xml)
 

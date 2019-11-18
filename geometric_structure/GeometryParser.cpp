@@ -106,7 +106,17 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
         std::string msg = std::string("[GeometryParser] parsing") +
                   " building block of type bifurcation symmetric\n";
         printlog(GREEN, msg, M_verbose);
-        returnBlock.reset(new BifurcationSymmetric(M_comm, ref, M_verbose));
+
+        // angle
+        int angle = 50;
+        if (element->Attribute("angle"))
+        {
+            std::cout << element->Attribute("angle") << std::endl;
+            angle = std::atoi(element->Attribute("angle"));
+            std::cout << angle << std::endl;
+        }
+
+        returnBlock.reset(new BifurcationSymmetric(M_comm, ref, M_verbose, angle));
     }
     // else if (!std::strcmp(element->Attribute("type"),
     //                       "bifurcation_asymmetric"))

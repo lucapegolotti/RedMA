@@ -17,6 +17,11 @@ SegmentationParser(const GetPot& datafile, commPtr_Type comm, std::string pthNam
         linearInterpolation();
     else
         throw new Exception("Type of interpolation not implemented!");
+
+    M_constCenters = M_datafile("segmentation_parser/const_centers", 1.0);
+    M_constNormals = M_datafile("segmentation_parser/const_normals", 1.0);
+    M_constCenters = M_constCenters / (M_constCenters + M_constNormals);
+    M_constNormals = M_constNormals / (M_constCenters + M_constNormals);
 }
 
 SegmentationParser::
@@ -342,7 +347,7 @@ createTreeForward(const int& lengthTubes,
                           append(std::to_string(count+1)).append("\n"), M_verbose);
         int status = 0;
 
-        std::shared_ptr<Tube> childTube(new Tube(M_comm,"fine",true,1,curLength));
+        std::shared_ptr<Tube> childTube(new Tube(M_comm,"normal",true,1,curLength));
 
         Vector3D cb = prevCenter;
 
@@ -499,15 +504,13 @@ Fbending(const double& alpha, const double& theta,
                 const double& L, const Vector3D& axis,
                 const Contour& target)
 {
-    double const1 = M_datafile("segmentation_parser/const_centers", 1.0);
-    double const2 = M_datafile("segmentation_parser/const_normals", 1.0);
     Vector3D newCenter;
     Vector3D newNormal;
 
     bend(alpha, theta, newCenter, newNormal, A, b, scale, L, axis);
 
-    return const1 * (newCenter-target.M_center).norm() / target.M_center.norm() +
-           const2 * std::abs(newNormal.dot(target.M_normal)-1.0);
+    return M_constCenters * (newCenter-target.M_center).norm() / target.M_center.norm() +
+           M_constNormals * std::abs(newNormal.dot(target.M_normal)-1.0);
 }
 
 double

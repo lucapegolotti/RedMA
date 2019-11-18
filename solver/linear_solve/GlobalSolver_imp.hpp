@@ -98,7 +98,6 @@ solve()
         TimeMarchingAlgorithmPtr hdlrAlgorithm = M_timeMarchingAlgorithm;
         hdlrAlgorithm->setInitialCondition(M_globalAssembler.getInitialCondition());
         M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
-
         if (M_exportErrors)
         {
             M_globalAssembler.appendErrorsToFile(t, hdlrAlgorithm->getSolution(),

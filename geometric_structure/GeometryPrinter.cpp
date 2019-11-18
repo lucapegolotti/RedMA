@@ -68,6 +68,12 @@ saveToFile(TreeStructure& tree, std::string name,
                                  curNode->M_block->getOptionalParameter(1).c_str());
                 }
 
+                if (!std::strcmp(curNode->M_block->name().c_str(), "BifurcationSymmetric"))
+                {
+                    pNewElement->SetAttribute("angle",
+                                 curNode->M_block->getOptionalParameter(0).c_str());
+                }
+
                 if (outletIndex != -1)
                     pNewElement->SetAttribute("outlet", outletIndex);
 

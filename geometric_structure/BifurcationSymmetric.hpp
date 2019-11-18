@@ -46,6 +46,8 @@ public:
 
     void resetInletOutlets() override;
 
+    virtual std::string getOptionalParameter(unsigned int index) override;
+
 private:
     static double outletMapFunction(const double& t, const double& x,
                                const double& y, const double& z,
@@ -86,6 +88,7 @@ private:
     double M_inletRadiusRef;
     double M_outlet1RadiusRef;
     double M_outlet2RadiusRef;
+    int    M_angle;
 };
 
 }  // namespace RedMA

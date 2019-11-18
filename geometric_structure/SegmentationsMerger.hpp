@@ -95,6 +95,9 @@ private:
     GetPot       M_datafile;
     commPtr_Type M_comm;
     bool         M_verbose;
+    double       M_constCenters;
+    double       M_constNormals;
+    double       M_constRadius;
 };
 
 }  // namespace RedMA

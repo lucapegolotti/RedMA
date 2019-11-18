@@ -45,7 +45,7 @@ setDatafile(const GetPot& datafile)
 
 void
 GeometricFace::
-print()
+print() const
 {
     printlog(WHITE, "[GeometricFace]\n");
     printlog(WHITE, std::string("\tcenter = (") + std::to_string(M_center[0]) +
@@ -190,6 +190,19 @@ BuildingBlock::Matrix3D
 BuildingBlock::
 computeRotationMatrix(Vector3D axis, double angle)
 {
+    if (axis.norm() < 1e-15 && std::abs(angle) < 1e-15)
+    {
+        axis[0] = 1;
+        axis[1] = 0;
+        axis[2] = 0;
+    }
+    else if (axis.norm() < 0)
+    {
+        throw new Exception("Rotation axis is set to (0,0,0)!");
+    }
+
+    axis = axis / axis.norm();
+
     Matrix3D R;
     double mcos = std::cos(angle);
     double omcos = 1.0 - mcos;
@@ -405,6 +418,7 @@ computeRotationAxisAndAngle(Vector3D vectorToMove,
                             Vector3D& axis,
                             double& alpha)
 {
+
     axis = vectorToMove.cross(vectorToReach);
     axis = axis / axis.norm();
 

@@ -120,6 +120,8 @@ protected:
     unsigned int            M_indexBegin;
     unsigned int            M_indexEnd;
     std::vector<double>     M_cumulativeDistance;
+    double                  M_constCenters;
+    double                  M_constNormals;
 };
 
 }  // namespace RedMA

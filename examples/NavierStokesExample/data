@@ -8,7 +8,7 @@
 [../]
 
 [fluid]
-	velocity_order = P1
+	velocity_order = P2
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1
@@ -31,7 +31,7 @@
 [../]
 
 [time_discretization]
-	algorithm = rosenbrock # rosenbrock
+	algorithm = backward_euler # rosenbrock
 	scheme = ROS3Pw
 	t0 = 0
 	T = 2.4
@@ -44,12 +44,12 @@
 [../]
 
 [linear_solve]
-	exact_solve_primal = true
+	exact_solve_primal = false
 [../]
 
 [exporter]
 	outdir	   = solutions/
-	type       = hdf5
+	type       = vtk
 	multimesh  = false
 	start      = 0
 	save_every = 1
@@ -58,7 +58,7 @@
 
 [coupling]
 	type                = chebyshev
-	nMax                = 0
+	nMax                = 2
 	orthonormalization  = POD
 	beta_threshold      = 0
 	use_interpolation   = false

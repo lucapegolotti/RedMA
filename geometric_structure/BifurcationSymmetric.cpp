@@ -6,7 +6,8 @@ namespace RedMA
 BifurcationSymmetric::
 BifurcationSymmetric(commPtr_Type comm, std::string refinement,
                      bool verbose, int angle) :
-  BuildingBlock(comm, refinement, verbose)
+  BuildingBlock(comm, refinement, verbose),
+  M_angle(angle)
 {
     M_name = "BifurcationSymmetric";
 
@@ -71,6 +72,19 @@ BifurcationSymmetric(commPtr_Type comm, std::string refinement,
                                           maxAngle, randomizible);
     computeCenter();
 }
+
+std::string
+BifurcationSymmetric::
+getOptionalParameter(unsigned int index)
+{
+    int retValue;
+
+    if (index == 0)
+        retValue = static_cast<int>(M_angle);
+
+    return std::to_string(retValue);
+}
+
 
 void
 BifurcationSymmetric::

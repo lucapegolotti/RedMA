@@ -64,12 +64,12 @@ using namespace RedMA;
 //     return poly * COEFF;
 // }
 
-double maxLaw(double t)
+double maxLaw_(double t)
 {
     return std::sin(t);
 }
 
-double maxLawDt(double t)
+double maxLawDt_(double t)
 {
     return std::cos(t);
 }
@@ -84,12 +84,15 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm());
     #endif
 
+
     GetPot datafile("data");
+
     bool verbose = comm->MyPID() == 0;
+
     GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose);
     gs.setExportNorms("norms_nonconforming.txt");
-    gs.setLawInflow(std::function<double(double)>(maxLaw));
-    gs.setLawDtInflow(std::function<double(double)>(maxLawDt));
+    gs.setLawInflow(std::function<double(double)>(maxLaw_));
+    gs.setLawDtInflow(std::function<double(double)>(maxLawDt_));
     gs.solve();
 
     return 0;

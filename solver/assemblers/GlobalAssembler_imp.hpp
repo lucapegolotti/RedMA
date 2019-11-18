@@ -32,6 +32,13 @@ buildPrimalStructures(TreeStructure& tree)
         M_assemblersVector.push_back(std::make_pair(it->first, newAssembler));
         M_assemblersMap[it->first] = newAssembler;
     }
+    unsigned int count = 0;
+    for (auto it = M_dimensionsVector.begin(); it != M_dimensionsVector.end(); it++)
+        count += *it;
+    std::string msg = "[GlobalAssembler] number of primal dofs = ";
+    msg += std::to_string(count);
+    msg += "\n";
+    printlog(MAGENTA, msg, M_verbose);
 }
 
 template <class AssemblerType>
@@ -105,11 +112,18 @@ buildDualStructures(TreeStructure& tree)
                                                           M_globalMap,
                                                           M_maps,
                                                           M_dimensionsVector);
+                interfaceCount++;
             }
             countOutlet++;
-            interfaceCount++;
         }
     }
+    unsigned int count = 0;
+    for (auto it = M_dimensionsVector.begin(); it != M_dimensionsVector.end(); it++)
+        count += *it;
+    std::string msg = "[GlobalAssembler] number of primal + dual dofs = ";
+    msg += std::to_string(count);
+    msg += "\n";
+    printlog(MAGENTA, msg, M_verbose);
 }
 
 template <class AssemblerType>
@@ -601,7 +615,6 @@ exportSolutions(const double& time, VectorPtr solution)
             localSolutions.push_back(subSolution);
             offset += curLocalMap.mapSize();
         }
-
         maps = it->second->getDualMapVector();
         std::vector<unsigned int> indices = it->second->getInterfacesIndices();
         unsigned int in = 0;
@@ -617,7 +630,6 @@ exportSolutions(const double& time, VectorPtr solution)
             localSolutions.push_back(subSolution);
             in++;
         }
-
         it->second->exportSolutions(time, localSolutions);
     }
 }

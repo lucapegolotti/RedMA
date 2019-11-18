@@ -457,7 +457,7 @@ std::vector<NavierStokesAssembler::VectorPtr>
 NavierStokesAssembler::
 initialCondition()
 {
-    bool setInitialCondition = M_datafile("time_discretization/set", true);
+    bool setInitialCondition = M_datafile("time_discretization/set_initial_condition", true);
     double t0 = M_datafile("time_discretization/t0", 0.0);
 
     std::vector<VectorPtr> Fs;
