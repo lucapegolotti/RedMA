@@ -3,17 +3,18 @@
 #-------------------------------------------------------------
 
 [geometric_structure]
-	xmlfile = tree.xml
+	xmlfile = datafiles/tree.xml
 	geometries_dir = ../../../meshes/
 [../]
 
 [fluid]
-	velocity_order = P2
-	pressure_order = P1
-	viscosity      = 0.035
-	density        = 1
-	use_stabilization = true
-	inflow_bc      = dirichlet
+	velocity_order         = P2
+	pressure_order         = P1
+	viscosity              = 0.035
+	density                = 1
+	use_stabilization      = true
+	inflow_bc              = dirichlet
+	options_preconditioner = datafiles/solversOptionsFast
 [../]
 
 [structure]

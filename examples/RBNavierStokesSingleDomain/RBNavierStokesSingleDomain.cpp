@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    GetPot datafile("data");
+    GetPot datafile("datafiles/data");
 
     bool verbose = comm->MyPID() == 0;
 
