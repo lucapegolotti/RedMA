@@ -9,6 +9,7 @@ set(HEADERS_DIRS
     ${CMAKE_SOURCE_DIR}/solver
     ${CMAKE_SOURCE_DIR}/utils
     ${CMAKE_SOURCE_DIR}/solver/array
+    ${CMAKE_SOURCE_DIR}/reduced_basis
     ${TPL_MPI_INCLUDE_DIRS}
     ${TPL_Trilinos_INCLUDE_DIRS}
     ${TPL_LifeV_INCLUDE_DIRS}
@@ -72,6 +73,7 @@ set(LINKED_LIBRARIES
     mpi
     lifevcore
     lifeveta
+    lifevreducedbasis
     lifevnavierstokesblocks
     ${TRILINOS_LIBRARIES}
     hdf5
@@ -98,5 +100,5 @@ add_subdirectory(solver)
 add_subdirectory(utils)
 add_subdirectory(cases)
 add_subdirectory(examples)
+add_subdirectory(reduced_basis)
 add_subdirectory(tests)
-

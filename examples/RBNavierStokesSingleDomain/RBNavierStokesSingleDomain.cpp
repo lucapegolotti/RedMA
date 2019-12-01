@@ -16,35 +16,39 @@
 
 #include <Epetra_ConfigDefs.h>
 #ifdef EPETRA_MPI
-//#include <mpi.h>
+#include <mpi.h>
 #include <Epetra_MpiComm.h>
 #else
 #include <Epetra_SerialComm.h>
 #endif
 
-#include <lifev/core/LifeV.hpp>
-#include <lifev/core/util/LifeChronoManager.hpp>
+#include <GlobalSolver.hpp>
+#include <RBOfflineSolver.hpp>
 
-#include <rb/reduced_basis/rbLifeV.hpp>
+#include <NavierStokesAssembler.hpp>
+#include <NavierStokesParameterHandler.hpp>
 
-#include <lifev/navier_stokes_blocks/solver/NavierStokesOperator.hpp>
-#include <lifev/core/linear_algebra/ApproximatedInvertibleRowMatrix.hpp>
-#include <lifev/navier_stokes_blocks/solver/NavierStokesPreconditionerOperator.hpp>
-#include <lifev/navier_stokes_blocks/solver/aSIMPLEOperator.hpp>
+using namespace RedMA;
 
-// using namespace LifeV;
-// using namespace rbLifeV;
-
-int main (int argc, char** argv)
+int main(int argc, char **argv)
 {
-    // MPI initialization
-#ifdef HAVE_MPI
-    MPI_Init(&argc, &argv);
-    std::shared_ptr<Epetra_Comm> Comm(new Epetra_MpiComm(MPI_COMM_WORLD));
-#else
-    std::shared_ptr<Epetra_Comm> Comm(new Epetra_SerialComm);
-#endif
+    #ifdef HAVE_MPI
+    MPI_Init (nullptr, nullptr);
+    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    #else
+    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
+    #endif
 
+    GetPot datafile("data");
+
+    bool verbose = comm->MyPID() == 0;
+
+    param_Type muMin;
+    param_Type muMax;
+
+    NavierStokesParameterHandler paramHandler(muMin, muMax);
+    RBOfflineSolver<NavierStokesAssembler> ns(datafile, paramHandler,
+                                              comm, verbose);
 
     return 0;
 }
