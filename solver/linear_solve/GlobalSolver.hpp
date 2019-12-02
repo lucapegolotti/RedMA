@@ -40,7 +40,7 @@ class GlobalSolver
 {
     typedef std::shared_ptr<Epetra_Comm>               commPtr_Type;
     typedef LifeV::MapEpetra                           map_Type;
-	typedef std::shared_ptr<map_Type>                  mapPtr_Type;
+    typedef std::shared_ptr<map_Type>                  mapPtr_Type;
     typedef LifeV::MapVector<map_Type>                 MapVector;
     typedef std::shared_ptr<MapVector>                 MapVectorPtr;
     typedef TimeMarchingAlgorithm<AssemblerType>       TimeMarchingAlgorithmType;
@@ -71,7 +71,7 @@ public:
     void setForcingFunction(FunctionType forcingFunction,
                             FunctionType forcingFunctionDt);
 
-private:
+protected:
     // we pass dt as reference to allow for time adaptvity
     void solveTimestep(const double& time, double& dt);
 

@@ -181,6 +181,35 @@ traverseAndDeformGeometries(bool deformMesh)
 
 void
 TreeStructure::
+resetMeshes()
+{
+    std::queue<TreeNodePtr> nodesQueue;
+    nodesQueue.push(M_root);
+    while(nodesQueue.size() != 0)
+    {
+        TreeNodePtr curNode = nodesQueue.front();
+        nodesQueue.pop();
+        curNode->M_block->resetMesh();
+
+        typedef std::vector<TreeNodePtr> TreeNodesVector;
+        TreeNodesVector& children = curNode->M_children;
+        unsigned int expectedChildren =
+                     curNode->M_block->expectedNumberOfChildren();
+        for (int i = 0; i < expectedChildren; i++)
+        {
+            TreeNodePtr curChild = children[i];
+
+            if (curChild)
+            {
+                GeometricFace curFace = curNode->M_block->getOutlet(i);
+                nodesQueue.push(curChild);
+            }
+        }
+    }
+}
+
+void
+TreeStructure::
 resetInletOutlets()
 {
     std::queue<TreeNodePtr> nodesQueue;

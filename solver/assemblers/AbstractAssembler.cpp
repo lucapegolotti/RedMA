@@ -37,6 +37,18 @@ addPrimalMaps(MapEpetraPtr& globalMap,
     }
 }
 
+void
+AbstractAssembler::
+addPrimalFespaces(std::vector<FESpacePtr>& fespaces)
+{
+    unsigned int nfespaces = M_primalMaps.size();
+
+    for (unsigned int i = 0; i < nfespaces; i++)
+        fespaces.push_back(getFespace(i));
+
+}
+
+
 std::vector<AbstractAssembler::MapEpetraPtr>
 AbstractAssembler::
 getPrimalMapVector()

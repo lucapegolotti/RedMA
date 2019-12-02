@@ -32,6 +32,12 @@
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/core/filter/GetPot.hpp>
 
+#include <Epetra_SerialDenseMatrix.h>
+#include <Epetra_SerialDenseVector.h>
+#include <Epetra_IntSerialDenseMatrix.h>
+#include <Epetra_IntSerialDenseVector.h>
+#include <Epetra_SerialDenseSolver.h>
+
 #include <lifev/core/LifeV.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
 #include <Epetra_SerialComm.h>
@@ -86,7 +92,9 @@ protected:
     typedef LifeV::VectorEpetra                            vector_Type;
     typedef std::shared_ptr<vector_Type>                   vectorPtr_Type;
     typedef LifeV::MeshUtility::MeshTransformer<mesh_Type> Transformer;
-    typedef std::shared_ptr<GeometricParameter>             GeometricParameterPtr;
+    typedef std::shared_ptr<GeometricParameter>            GeometricParameterPtr;
+    typedef Epetra_SerialDenseVector                       EpetraVector;
+
 
 public:
     BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose);
@@ -109,6 +117,8 @@ public:
     virtual void applyNonAffineTransformation(bool transformMesh = true) = 0;
 
     void applyGlobalTransformation(bool transformMesh = true);
+
+    void resetMesh();
 
     void dumpMesh(std::string outdir, std::string meshdir,
                   std::string outputName);
@@ -143,6 +153,8 @@ public:
     std::string getRefinement(){return M_refinement;};
 
     virtual std::string getOptionalParameter(unsigned int index){return "";};
+
+    void setGeometricalParameters(EpetraVector mu, unsigned int& offset);
 
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,

@@ -67,6 +67,8 @@ protected:
                                  unsigned int const& )>    Function;
     typedef LifeV::Interpolation                           Interpolation;
     typedef std::shared_ptr<Interpolation>                 InterpolationPtr;
+    typedef Epetra_SerialDenseVector                       EpetraVector;
+
 public:
     AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
                       const TreeNodePtr& treeNode, bool verbose = false);
@@ -74,6 +76,8 @@ public:
     void addPrimalMaps(MapEpetraPtr& globalMap,
                        std::vector<MapEpetraPtr>& maps,
                        std::vector<unsigned int>& dimensions);
+
+    void addPrimalFespaces(std::vector<FESpacePtr>& fespaces);
 
     // this method should be used to:
     // 1) create the finite element spaces
@@ -124,6 +128,10 @@ public:
     double getMeshSize() {return M_meshSize;};
 
     void setForcingFunction(Function forcingFunction, Function functionDt);
+
+    virtual FESpacePtr getFespace(unsigned int index) const = 0;
+
+    virtual void setPhysicalParameters(EpetraVector mu, unsigned int& offset) = 0;
 
 private:
 

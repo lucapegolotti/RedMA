@@ -36,15 +36,21 @@ namespace RedMA
 template <class AssemblerType>
 class GlobalAssembler
 {
+    typedef LifeV::RegionMesh<LifeV::LinearTetra>           Mesh;
+    typedef std::shared_ptr<Mesh>                           MeshPtr;
     typedef std::shared_ptr<TreeNode>                       TreeNodePtr;
     typedef std::shared_ptr<AssemblerType>                  AssemblerTypePtr;
     typedef LifeV::MapEpetra                                MapEpetra;
-	typedef std::shared_ptr<MapEpetra>                      MapEpetraPtr;
+    typedef std::shared_ptr<MapEpetra>                      MapEpetraPtr;
     typedef LifeV::VectorEpetra                             Vector;
     typedef std::shared_ptr<Vector>                         VectorPtr;
     typedef LifeV::MatrixEpetra<double>                     Matrix;
     typedef std::shared_ptr<Matrix>                         MatrixPtr;
     typedef std::shared_ptr<Epetra_Comm>                    commPtr_Type;
+    typedef LifeV::FESpace<Mesh, MapEpetra>                 FESpace;
+    typedef std::shared_ptr<FESpace>                        FESpacePtr;
+    typedef Epetra_SerialDenseVector                        EpetraVector;
+
 
     typedef std::function<double(double const&,
                                  double const&,
@@ -63,6 +69,10 @@ public:
     void buildDualStructures(TreeStructure& tree);
 
     MapEpetraPtr getGlobalMap() const;
+
+    MapEpetraPtr getLocalMap(unsigned int index) const;
+
+    FESpacePtr getLocalFespace(unsigned int index) const;
 
     GlobalBlockMatrix getGlobalMass();
 
@@ -125,6 +135,8 @@ public:
     void setForcingFunction(Function forcingFunction,
                             Function forcingFunctionDt);
 
+    void setPhysicalParameters(EpetraVector mu, unsigned int& offset);
+
 private:
     template<typename FunctionType>
     void fillGlobalMatrix(GlobalBlockMatrix& matrixToFill,
@@ -137,6 +149,7 @@ private:
                           FunctionType getVectorMethod);
 
     std::vector<std::pair<unsigned int, AssemblerTypePtr> > M_assemblersVector;
+    std::vector<FESpacePtr>                                 M_fespaces;
     std::map<unsigned int, AssemblerTypePtr>                M_assemblersMap;
     GetPot                                                  M_datafile;
     commPtr_Type                                            M_comm;

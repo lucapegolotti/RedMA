@@ -19,8 +19,12 @@
 
 #include <GlobalSolver.hpp>
 
+#include <queue>
+
 #include <rb/reduced_basis/fem/ApproximatedAffineFemProblem.hpp>
 #include <rb/reduced_basis/rbSolver/ParameterHandler.hpp>
+
+#include <Epetra_SerialDenseVector.h>
 
 namespace RedMA
 {
@@ -45,15 +49,19 @@ public:
 
     virtual int finalizeProblem(){};
 
+    // the fem problem is already initialized during the initialization of the
+    // global solver in the constructor
     virtual void initializeSpecificFemProblem(){};
 
+    // (I believe) this sets additional matrices that e.g. may be used for the
+    // preconditioners
     virtual void setYh(){};
 
-    virtual const std::shared_ptr<LifeV::MapEpetra> getFieldMap(int iFields) const {};
+    virtual const std::shared_ptr<LifeV::MapEpetra> getFieldMap(int iField) const;
 
-    virtual FESpacePtr getFieldFeSpace(int _field) const {};
+    virtual FESpacePtr getFieldFeSpace(int iField) const;
 
-    virtual void setParameter(const param_Type& _mu) {};
+    virtual void setParameter(const param_Type& _mu);
 
     virtual int compute_affine_matrix(const rbLifeV::AffineDecompositionOperator& Op,
                                       const uint& q, FE_MATRIX * & A,
@@ -202,8 +210,10 @@ public:
                                            RBvector  const & _UN,
                                            LifeV::Real const & time) {};
 
-
 protected:
+    // the first "offset" parameters are geometrical. We return the offset in order
+    // to being able to select the remaining ones
+    void setGeometricalParameterSubdomains(param_Type mu, unsigned int& offset);
 
 };
 

@@ -29,6 +29,7 @@ buildPrimalStructures(TreeStructure& tree)
         newAssembler->setup();
 
         newAssembler->addPrimalMaps(M_globalMap, M_maps, M_dimensionsVector);
+        newAssembler->addPrimalFespaces(M_fespaces);
         M_assemblersVector.push_back(std::make_pair(it->first, newAssembler));
         M_assemblersMap[it->first] = newAssembler;
     }
@@ -132,6 +133,31 @@ GlobalAssembler<AssemblerType>::
 getGlobalMap() const
 {
     return M_globalMap;
+}
+
+template <class AssemblerType>
+void
+GlobalAssembler<AssemblerType>::
+setPhysicalParameters(EpetraVector mu, unsigned int& offset)
+{
+    for (auto it = M_assemblersVector.begin(); it != M_assemblersVector.end(); it++)
+        it->second->setPhysicalParameters(mu, offset);
+}
+
+template <class AssemblerType>
+typename GlobalAssembler<AssemblerType>::MapEpetraPtr
+GlobalAssembler<AssemblerType>::
+getLocalMap(unsigned int index) const
+{
+    return M_maps[index];
+}
+
+template <class AssemblerType>
+typename GlobalAssembler<AssemblerType>::FESpacePtr
+GlobalAssembler<AssemblerType>::
+getLocalFespace(unsigned int index) const
+{
+    return M_fespaces[index];
 }
 
 template <class AssemblerType>

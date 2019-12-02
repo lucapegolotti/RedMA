@@ -66,6 +66,8 @@ public:
 
     unsigned int getMaxID();
 
+    void resetMeshes();
+
     bool isEmpty();
 
     unsigned int depth();

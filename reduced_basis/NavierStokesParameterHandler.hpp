@@ -31,7 +31,7 @@ public:
 
     NavierStokesParameterHandler(const param_Type& _muMin,
                                  const param_Type& _muMax,
-                                 bool _verbose = true) : ParameterHandler(_muMin, _muMax, _verbose) {}
+                                 bool _verbose = true);
 
     ~NavierStokesParameterHandler(){};
 

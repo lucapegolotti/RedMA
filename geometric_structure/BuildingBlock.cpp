@@ -59,6 +59,24 @@ print() const
 
 }
 
+void
+BuildingBlock::
+resetMesh()
+{
+    std::shared_ptr<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
+    transformer.reset(new Transformer(*M_mesh));
+
+
+    auto foo = std::bind(fZero,
+                         0.0,
+                         std::placeholders::_1,
+                         std::placeholders::_2,
+                         std::placeholders::_3,
+                         0);
+
+    transformer->transformMesh(foo);
+}
+
 BuildingBlock::
 BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
   M_comm(comm),
@@ -393,6 +411,22 @@ applyAffineTransformationGeometricFace(GeometricFace& face,
     face.M_normal = affineMatrix * face.M_normal;
 
     face.M_radius = face.M_radius * scale;
+}
+
+void
+BuildingBlock::
+setGeometricalParameters(EpetraVector mu, unsigned int& offset)
+{
+    auto paramsmap = M_parametersHandler.getParametersMap();
+
+    for (auto it = paramsmap.begin(); it != paramsmap.end(); it++)
+    {
+        if (it->second->isSettable())
+        {
+            (*(it->second)) = mu[offset];
+            offset++;
+        }
+    }
 }
 
 void

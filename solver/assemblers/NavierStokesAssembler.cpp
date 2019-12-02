@@ -63,9 +63,32 @@ setup()
     assembleConstantMatrices();
     setExporter();
 
+    M_viscosity = M_datafile("fluid/viscosity", 1.0);
+    M_density = M_datafile("fluid/density", 1.0);
+
     M_useStabilization = M_datafile("fluid/use_stabilization", false);
     printlog(MAGENTA, "done\n", M_verbose);
 }
+
+void
+NavierStokesAssembler::
+setPhysicalParameters(EpetraVector mu, unsigned int& offset)
+{
+    M_viscosity = mu[offset];
+    M_density = mu[offset+1];
+    offset = offset + 2;
+}
+
+NavierStokesAssembler::FESpacePtr
+NavierStokesAssembler::
+getFespace(unsigned int index) const
+{
+  if (index == 0)
+    return M_velocityFESpace;
+
+  return M_pressureFESpace;
+}
+
 
 void
 NavierStokesAssembler::
@@ -93,7 +116,6 @@ assembleStiffnessMatrix()
     printlog(YELLOW, "Assembling stiffness ...\n", M_verbose);
     M_A.reset(new Matrix(M_velocityFESpace->map()));
 
-    double viscosity = M_datafile("fluid/viscosity", 1.0);
     bool useFullStrain = M_datafile("fluid/use_strain", true);
 
     if (useFullStrain)
@@ -101,7 +123,7 @@ assembleStiffnessMatrix()
                    M_velocityFESpace->qr(),
                    M_velocityFESpaceETA,
                    M_velocityFESpaceETA,
-                   value(0.5 * viscosity) *
+                   value(0.5 * M_viscosity) *
                    dot(grad(phi_i) + transpose(grad(phi_i)),
                    grad(phi_j) + transpose(grad(phi_j)))
                   ) >> M_A;
@@ -110,7 +132,7 @@ assembleStiffnessMatrix()
                  M_velocityFESpace->qr(),
                  M_velocityFESpaceETA,
                  M_velocityFESpaceETA,
-                 value(viscosity) *
+                 value(M_viscosity) *
                  dot(grad(phi_i),grad(phi_j))
                 ) >> M_A;
 
@@ -158,12 +180,11 @@ assembleMassMatrix()
     printlog(YELLOW, "Assembling mass matrix ...\n", M_verbose);
     M_M.reset(new Matrix(M_velocityFESpace->map()));
 
-    double density = M_datafile("fluid/density", 1.0);
     integrate(elements(M_velocityFESpaceETA->mesh()),
                M_velocityFESpace->qr(),
                M_velocityFESpaceETA,
                M_velocityFESpaceETA,
-               value(density) * dot(phi_i, phi_j)
+               value(M_density) * dot(phi_i, phi_j)
               ) >> M_M;
 
     M_M->globalAssemble();
@@ -218,12 +239,11 @@ assembleConvectiveMatrix()
     else
         M_C->zero();
 
-    double density = M_datafile("fluid/density", 1.0);
     integrate(elements(M_velocityFESpaceETA->mesh()),
                M_velocityFESpace->qr(),
                M_velocityFESpaceETA,
                M_velocityFESpaceETA,
-               dot(value(density) *
+               dot(value(M_density) *
                    value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j),
                          phi_i)
              ) >> M_C;
@@ -245,12 +265,11 @@ assembleJacobianConvectiveMatrix()
     else
         M_J->zero();
 
-    double density = M_datafile("fluid/density", 1.0);
     integrate(elements(M_velocityFESpaceETA->mesh()),
                M_velocityFESpace->qr(),
                M_velocityFESpaceETA,
                M_velocityFESpaceETA,
-               dot(density * phi_j *
+               dot(M_density * phi_j *
                    grad(M_velocityFESpaceETA, *velocityRepeated), phi_i)
              ) >> M_J;
 
@@ -294,9 +313,8 @@ setTimeAndPrevSolution(const double& time, std::vector<VectorPtr> solution,
                                                M_pressureFESpace,
                                                M_velocityFESpaceETA,
                                                M_pressureFESpaceETA));
-            double density = M_datafile("fluid/density", 1.0);
-            double viscosity = M_datafile("fluid/viscosity", 1.0);
-            M_stabilization->setDensityAndViscosity(density, viscosity);
+
+            M_stabilization->setDensityAndViscosity(M_density, M_viscosity);
         }
         if (assembleBlocks)
             M_stabilization->assembleBlocks(M_prevSolution[0], M_prevSolution[1],

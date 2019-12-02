@@ -131,6 +131,10 @@ public:
 
     virtual void setExactSolution(AbstractFunctor* exactSolution) override;
 
+    virtual FESpacePtr getFespace(unsigned int index) const override;
+
+    virtual void setPhysicalParameters(EpetraVector mu, unsigned int& offset) override;
+
 protected:
     void assembleConstantMatrices();
 
@@ -216,6 +220,9 @@ protected:
     bool                                    M_useStabilization;
     std::shared_ptr<SUPGStabilization>      M_stabilization;
     bool                                    M_addNoslipBC;
+
+    double                                  M_viscosity;
+    double                                  M_density;
 };
 
 }  // namespace RedMA
