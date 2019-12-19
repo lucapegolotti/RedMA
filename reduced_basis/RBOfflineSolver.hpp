@@ -26,6 +26,8 @@
 
 #include <Epetra_SerialDenseVector.h>
 
+#include <Exception.hpp>
+
 namespace RedMA
 {
 
@@ -55,7 +57,7 @@ public:
 
     // (I believe) this sets additional matrices that e.g. may be used for the
     // preconditioners
-    virtual void setYh(){};
+    virtual void setYh() {};
 
     virtual const std::shared_ptr<LifeV::MapEpetra> getFieldMap(int iField) const;
 
@@ -74,9 +76,10 @@ public:
 
     virtual LifeV::MapEpetra const&  globalMap() const {};
 
-    virtual const MeshPtr mesh( ) const {};
+    // this does not make sense for the multidomain case
+    virtual const MeshPtr mesh() const;
 
-    virtual void postprocess(const VectorFE& solution, LifeV::Real time ) {};
+    virtual void postprocess(const VectorFE& solution, LifeV::Real time) {};
 
     virtual void postprocess(double time = 0.0) {};
 
@@ -88,11 +91,11 @@ public:
     virtual MatrixFEPtr getFieldMatrix(int _iField, int _jField) {};
 
     virtual void addExporterVariable(std::shared_ptr<LifeV::ExporterHDF5<Mesh> >& _exporter,
-                                     bool _addForSupremizer ) {};
+                                     bool _addForSupremizer) {};
 
-    virtual void setExportedSnapshot(VectorFEPtr const * const _exportedVariables ) {};
+    virtual void setExportedSnapshot(VectorFEPtr const * const _exportedVariables) {};
 
-    virtual void setImportedSnapshot(VectorFEPtr const * const _importedVariables ) {};
+    virtual void setImportedSnapshot(VectorFEPtr const * const _importedVariables) {};
 
     virtual void saveBasisFunctions(const VectorFE& solution,
                                     const LifeV::Real& time) {};

@@ -23,7 +23,6 @@
 namespace RedMA
 {
 
-
 class NavierStokesParameterHandler : public rbLifeV::ParameterHandler
 {
 

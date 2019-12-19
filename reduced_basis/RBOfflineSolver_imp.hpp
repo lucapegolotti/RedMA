@@ -82,4 +82,13 @@ setGeometricalParameterSubdomains(param_Type mu, unsigned int& offset)
 
 }
 
+const
+typedef RBOfflineSolver<AssemblerType>::MeshPtr
+RBOfflineSolver<AssemblerType>::
+mesh() const
+{
+    new throw Exception("mesh() method not implemented!");
+    return nullptr;
+}
+
 }
