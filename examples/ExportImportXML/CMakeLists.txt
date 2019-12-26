@@ -1,4 +1,4 @@
-add_executable(ExportImportXML ExportImportXML.cpp ${SOURCES})
+add_executable(ExportImportXML ExportImportXML.cpp)
 target_link_libraries(ExportImportXML ${LINKED_LIBRARIES})
 target_include_directories(ExportImportXML PRIVATE ${HEADERS_DIRS})
 

@@ -1,4 +1,4 @@
-add_executable(BentPipeBenchmark BentPipeBenchmark.cpp ${SOURCES})
+add_executable(BentPipeBenchmark BentPipeBenchmark.cpp)
 target_link_libraries(BentPipeBenchmark ${LINKED_LIBRARIES})
 target_include_directories(BentPipeBenchmark PRIVATE ${HEADERS_DIRS})
 

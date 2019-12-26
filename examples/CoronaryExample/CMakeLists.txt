@@ -1,4 +1,4 @@
-add_executable(CoronaryExample CoronaryExample.cpp ${SOURCES})
+add_executable(CoronaryExample CoronaryExample.cpp)
 target_link_libraries(CoronaryExample ${LINKED_LIBRARIES})
 target_include_directories(CoronaryExample PRIVATE ${HEADERS_DIRS})
 

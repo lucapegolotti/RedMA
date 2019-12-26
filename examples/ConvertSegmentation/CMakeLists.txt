@@ -1,4 +1,4 @@
-add_executable(ConvertSegmentation ConvertSegmentation.cpp ${SOURCES})
+add_executable(ConvertSegmentation ConvertSegmentation.cpp)
 target_link_libraries(ConvertSegmentation ${LINKED_LIBRARIES})
 target_include_directories(ConvertSegmentation PRIVATE ${HEADERS_DIRS})
 

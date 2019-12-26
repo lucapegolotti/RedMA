@@ -1,4 +1,4 @@
-add_executable(BendBifurcation BendBifurcation.cpp ${SOURCES})
+add_executable(BendBifurcation BendBifurcation.cpp)
 target_link_libraries(BendBifurcation ${LINKED_LIBRARIES})
 target_include_directories(BendBifurcation PRIVATE ${HEADERS_DIRS})
 

@@ -65,8 +65,7 @@ int main(int argc, char **argv)
     datafile.set("geometric_structure/xmlfile", nameTree.c_str());
 
     AbstractFunctor* RESSolution = new RossEthierSteinmanSolution;
-    GlobalSolver<NavierStokesAssembler> gs(datafile, comm, verbose,
-                                           RESSolution);
+    GlobalSolver gs(datafile, comm, verbose, RESSolution);
 
     gs.setForcingFunction(LifeV::RossEthierSteinmanDec::f,
                           LifeV::RossEthierSteinmanDec::f_dt);

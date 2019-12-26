@@ -1,4 +1,4 @@
-add_executable(RossEthierSteinmanBenchmark RossEthierSteinmanBenchmark.cpp RossEthierSteinmanDec.cpp ${SOURCES})
+add_executable(RossEthierSteinmanBenchmark RossEthierSteinmanBenchmark.cpp RossEthierSteinmanDec.cpp)
 target_link_libraries(RossEthierSteinmanBenchmark ${LINKED_LIBRARIES})
 target_include_directories(RossEthierSteinmanBenchmark PRIVATE ${HEADERS_DIRS})
 

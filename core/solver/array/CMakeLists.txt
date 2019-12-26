@@ -1,0 +1,11 @@
+set(HEADERS
+    ${HEADERS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/BlockMatrix.hpp
+    CACHE INTERNAL ""
+)
+
+set(SOURCES
+    ${SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/BlockMatrix.cpp
+    CACHE INTERNAL ""
+)

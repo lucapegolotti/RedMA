@@ -1,4 +1,4 @@
-add_executable(WomersleyBenchmark WomersleyBenchmark.cpp Womersley.cpp ${SOURCES})
+add_executable(WomersleyBenchmark WomersleyBenchmark.cpp Womersley.cpp)
 target_link_libraries(WomersleyBenchmark ${LINKED_LIBRARIES})
 target_include_directories(WomersleyBenchmark PRIVATE ${HEADERS_DIRS})
 

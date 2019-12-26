@@ -1,4 +1,4 @@
-add_executable(StraightPipeBenchmark StraightPipeBenchmark.cpp ${SOURCES})
+add_executable(StraightPipeBenchmark StraightPipeBenchmark.cpp)
 target_link_libraries(StraightPipeBenchmark ${LINKED_LIBRARIES})
 target_include_directories(StraightPipeBenchmark PRIVATE ${HEADERS_DIRS})
 

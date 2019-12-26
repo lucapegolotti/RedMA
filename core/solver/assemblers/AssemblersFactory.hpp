@@ -1,0 +1,37 @@
+// Reduced Modeling of Arteries (RedMA)
+// Copyright (C) 2019  Luca Pegolotti
+//
+// RedMA is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// RedMA is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#ifndef ASSEMBLERSFACTORY_HPP
+#define ASSEMBLERSFACTORY_HPP
+
+#include <AbstractAssembler.hpp>
+#include <NavierStokesAssembler.hpp>
+#include <PseudoFSIAssembler.hpp>
+#include <TreeStructure.hpp>
+
+namespace RedMA
+{
+
+//TODO: change this into variadic template
+extern
+std::shared_ptr<AbstractAssembler>
+AssemblersFactory(const GetPot& datafile, std::shared_ptr<Epetra_Comm> comm,
+                  std::shared_ptr<TreeNode> treenode, bool verbose);
+
+
+} // namespace RedMA
+
+#endif
