@@ -35,7 +35,7 @@ solveTimestep(const double &time, double &dt)
           std::bind(&BackwardEuler<AssemblerType>::assembleF,
                     this, time + dt, std::placeholders::_1, dt);
 
-    std::function<GlobalBlockMatrix(VectorPtr)> mJac =
+    std::function<BlockMatrix(VectorPtr)> mJac =
           std::bind(&BackwardEuler<AssemblerType>::assembleJac,
                     this, time + dt, std::placeholders::_1, dt);
 
@@ -71,7 +71,7 @@ assembleF(const double& time, VectorPtr tentativeSol, const double& dt)
 }
 
 template <class AssemblerType>
-GlobalBlockMatrix
+BlockMatrix
 BackwardEuler<AssemblerType>::
 assembleJac(const double& time, VectorPtr tentativeSol, const double& dt)
 {
@@ -81,14 +81,14 @@ assembleJac(const double& time, VectorPtr tentativeSol, const double& dt)
     // after assembleF (and the stabilization blocks are already assembled there)
     M_globalAssembler->setTimeAndPrevSolution(time, tentativeSol, false);
     double diagonalCoefficient = 0;
-    GlobalBlockMatrix retJac = M_globalAssembler->getJacobianF(true,
+    BlockMatrix retJac = M_globalAssembler->getJacobianF(true,
                                                           &diagonalCoefficient);
 
     retJac *= (-dt);
 
     // trick to compute the jacobian of the part corresponding to H(un+1) * un
     M_globalAssembler->setTimeAndPrevSolution(time, M_prevSolution, false);
-    GlobalBlockMatrix massUn = M_globalAssembler->getGlobalMassJacVelocity();
+    BlockMatrix massUn = M_globalAssembler->getGlobalMassJacVelocity();
 
     massUn *= (-1);
 

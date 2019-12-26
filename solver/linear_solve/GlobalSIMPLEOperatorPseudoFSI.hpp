@@ -88,7 +88,7 @@ public:
 
     virtual ~GlobalSIMPLEOperatorPseudoFSI();
 
-    void setUp(RedMA::GlobalBlockMatrix matrix, const commPtr_Type & comm);
+    void setUp(RedMA::BlockMatrix matrix, const commPtr_Type & comm);
 
     int SetUseTranspose(bool UseTranspose){M_useTranspose = UseTranspose; return 0;}
 
@@ -122,7 +122,7 @@ public:
 private:
 
     std::vector<PreconditionerPtr>       M_SIMPLEOperators;
-    RedMA::GlobalBlockMatrix             M_matrix;
+    RedMA::BlockMatrix             M_matrix;
     UInt                                 M_nBlockRows;
     UInt                                 M_nBlockCols;
     std::string                          M_name;
@@ -133,7 +133,7 @@ private:
     std::string                          M_label;
     bool                                 M_useTranspose;
     unsigned int                         M_nPrimalBlocks;
-    RedMA::GlobalBlockMatrix             M_Am1BT;
+    RedMA::BlockMatrix             M_Am1BT;
     mapEpetraPtr_Type                    M_monolithicMap;
     std::vector<mapEpetraPtr_Type>       M_allMaps;
     mapEpetraPtr_Type                    M_primalMap;

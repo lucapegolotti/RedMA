@@ -19,7 +19,7 @@
 
 #include <sstream>
 
-#include <GlobalBlockMatrix.hpp>
+#include <BlockMatrix.hpp>
 #include <GlobalAssembler.hpp>
 #include <PrintLog.hpp>
 #include <GlobalSolverOperator.hpp>
@@ -40,7 +40,7 @@ template <class AssemblerType>
 class TimeMarchingAlgorithm
 {
 protected:
-    typedef GlobalAssembler<AssemblerType>                  GlobalAssemblerType;
+    typedef GlobalAssembler                                 GlobalAssemblerType;
     typedef LifeV::VectorEpetra                             Vector;
     typedef std::shared_ptr<Vector>                         VectorPtr;
     typedef std::shared_ptr<Epetra_Comm>                    commPtr_Type;
@@ -59,20 +59,20 @@ public:
 
     virtual void solveTimestep(const double &time, double &dt) = 0;
 
-    void solveLinearSystem(GlobalBlockMatrix matrix,
+    void solveLinearSystem(BlockMatrix matrix,
                            VectorPtr rhs,
                            VectorPtr sol,
-                           GlobalBlockMatrix* matrixPrec = nullptr);
+                           BlockMatrix* matrixPrec = nullptr);
 
     void solveNonLinearSystem(std::function<VectorPtr(VectorPtr)> fun,
-                              std::function<GlobalBlockMatrix(VectorPtr)> jac,
+                              std::function<BlockMatrix(VectorPtr)> jac,
                               VectorPtr sol, const double& tol,
                               const unsigned int& itMax,
-                              std::function<GlobalBlockMatrix(VectorPtr)>* jacPrec = nullptr);
+                              std::function<BlockMatrix(VectorPtr)>* jacPrec = nullptr);
 
     void setSolversOptions();
 
-    void buildPreconditioner(GlobalBlockMatrix matrix);
+    void buildPreconditioner(BlockMatrix matrix);
 
     VectorPtr getSolution();
 

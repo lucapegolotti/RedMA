@@ -1,3 +1,18 @@
+set(HEADERS
+    ${HEADERS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/BuildingBlock.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tube.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/BifurcationSymmetric.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TreeStructure.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/GeometryParser.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NonAffineDeformer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/GeometricParametersHandler.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/GeometryPrinter.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SegmentationParser.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SegmentationsMerger.hpp
+    CACHE INTERNAL ""
+)
+
 set(SOURCES
     ${SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/BuildingBlock.cpp

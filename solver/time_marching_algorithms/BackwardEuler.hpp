@@ -21,7 +21,7 @@
 #include <PrintLog.hpp>
 #include <lifev/core/array/VectorBlockStructure.hpp>
 #include <lifev/core/array/MatrixBlockStructure.hpp>
-#include <GlobalBlockMatrix.hpp>
+#include <BlockMatrix.hpp>
 
 #include <lifev/navier_stokes_blocks/solver/RosenbrockCoeff.hpp>
 
@@ -65,7 +65,7 @@ public:
     VectorPtr assembleF(const double& time, VectorPtr tentativeSol,
                         const double& dt);
 
-    GlobalBlockMatrix assembleJac(const double& time, VectorPtr tentativeSol,
+    BlockMatrix assembleJac(const double& time, VectorPtr tentativeSol,
                                   const double& dt);
 
 private:

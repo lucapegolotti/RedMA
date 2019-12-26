@@ -1,21 +1,21 @@
-#include <GlobalBlockMatrix.hpp>
+#include <BlockMatrix.hpp>
 
 namespace RedMA
 {
 
-GlobalBlockMatrix::
-GlobalBlockMatrix()
+BlockMatrix::
+BlockMatrix()
 {
 }
 
-GlobalBlockMatrix::
-GlobalBlockMatrix(unsigned int numRows, unsigned int numCols)
+BlockMatrix::
+BlockMatrix(unsigned int numRows, unsigned int numCols)
 {
     resize(numRows, numCols);
 }
 
 void
-GlobalBlockMatrix::
+BlockMatrix::
 resize(unsigned int numRows, unsigned int numCols)
 {
     M_rows = numRows;
@@ -31,21 +31,21 @@ resize(unsigned int numRows, unsigned int numCols)
 }
 
 unsigned int
-GlobalBlockMatrix::
+BlockMatrix::
 getNumberRows()
 {
     return M_rows;
 }
 
 unsigned int
-GlobalBlockMatrix::
+BlockMatrix::
 getNumberCols()
 {
     return M_cols;
 }
 
-GlobalBlockMatrix::
-GlobalBlockMatrix(const GlobalBlockMatrix& other)
+BlockMatrix::
+BlockMatrix(const BlockMatrix& other)
 {
     resize(other.M_rows, other.M_cols);
 
@@ -67,23 +67,23 @@ GlobalBlockMatrix(const GlobalBlockMatrix& other)
     M_rangeMaps = other.M_rangeMaps;
 }
 
-GlobalBlockMatrix::MatrixEpetraPtr&
-GlobalBlockMatrix::
+BlockMatrix::MatrixEpetraPtr&
+BlockMatrix::
 block(unsigned int row, unsigned int col)
 {
     return M_gridEpetra(row, col);
 }
 
-GlobalBlockMatrix::MatrixEpetraPtr
-GlobalBlockMatrix::
+BlockMatrix::MatrixEpetraPtr
+BlockMatrix::
 block(unsigned int row, unsigned int col) const
 {
     return M_gridEpetra(row, col);
 }
 
 void
-GlobalBlockMatrix::
-add(const GlobalBlockMatrix& other)
+BlockMatrix::
+add(const BlockMatrix& other)
 {
     if (M_rows != other.M_rows && M_cols != other.M_cols)
     {
@@ -116,8 +116,8 @@ add(const GlobalBlockMatrix& other)
     M_rangeMaps = other.M_rangeMaps;
 }
 
-GlobalBlockMatrix&
-GlobalBlockMatrix::
+BlockMatrix&
+BlockMatrix::
 operator*=(const double& coeff)
 {
     for (unsigned int i = 0; i < M_rows; i++)
@@ -131,8 +131,8 @@ operator*=(const double& coeff)
     return *this;
 }
 
-GlobalBlockMatrix::Grid
-GlobalBlockMatrix::
+BlockMatrix::Grid
+BlockMatrix::
 getGrid()
 {
     M_grid.resize(M_rows, M_cols);
@@ -151,7 +151,7 @@ getGrid()
 }
 
 void
-GlobalBlockMatrix::
+BlockMatrix::
 copyBlock(unsigned int rows, unsigned int cols, MatrixEpetraPtr matrix)
 {
     if (matrix)
@@ -163,8 +163,8 @@ copyBlock(unsigned int rows, unsigned int cols, MatrixEpetraPtr matrix)
 
 // Attention: we assume that the global matrix is square (i.e. dimensions of
 // input and output vectors are the same)
-GlobalBlockMatrix::VectorEpetra
-GlobalBlockMatrix::
+BlockMatrix::VectorEpetra
+BlockMatrix::
 operator*(const VectorEpetra& vector)
 {
     VectorEpetra newVector(*M_globalDomainMap);
@@ -202,7 +202,7 @@ operator*(const VectorEpetra& vector)
 }
 
 void
-GlobalBlockMatrix::
+BlockMatrix::
 setMaps(std::vector<MapPtr> rangeMaps, std::vector<MapPtr> domainMaps)
 {
     M_rangeMaps = rangeMaps;
@@ -229,8 +229,8 @@ setMaps(std::vector<MapPtr> rangeMaps, std::vector<MapPtr> domainMaps)
     }
 }
 
-GlobalBlockMatrix::MapPtr
-GlobalBlockMatrix::
+BlockMatrix::MapPtr
+BlockMatrix::
 rangeMap(unsigned int row, unsigned int col) const
 {
     if (M_gridEpetra(row,col) != nullptr)
@@ -238,8 +238,8 @@ rangeMap(unsigned int row, unsigned int col) const
     return nullptr;
 }
 
-GlobalBlockMatrix::MapPtr
-GlobalBlockMatrix::
+BlockMatrix::MapPtr
+BlockMatrix::
 domainMap(unsigned int row, unsigned int col) const
 {
     if (M_gridEpetra(row,col) != nullptr)
@@ -248,7 +248,7 @@ domainMap(unsigned int row, unsigned int col) const
 }
 
 void
-GlobalBlockMatrix::
+BlockMatrix::
 printPattern()
 {
     for (unsigned int i = 0; i < M_rows; i++)
@@ -291,7 +291,7 @@ printPattern()
 }
 
 void
-GlobalBlockMatrix::
+BlockMatrix::
 spy()
 {
     for (unsigned int i = 0; i < M_rows; i++)
@@ -307,7 +307,7 @@ spy()
 }
 
 void
-GlobalBlockMatrix::
+BlockMatrix::
 singleNorms1()
 {
     for (unsigned int i = 0; i < M_rows; i++)

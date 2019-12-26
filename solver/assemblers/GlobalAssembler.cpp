@@ -3,8 +3,7 @@
 namespace RedMA
 {
 
-template <class AssemblerType>
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 GlobalAssembler(const GetPot& datafile, commPtr_Type comm, bool verbose) :
   M_datafile(datafile),
   M_comm(comm),
@@ -13,9 +12,8 @@ GlobalAssembler(const GetPot& datafile, commPtr_Type comm, bool verbose) :
     M_globalMap.reset(new MapEpetra());
 }
 
-template <class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 buildPrimalStructures(TreeStructure& tree)
 {
     typedef std::map<unsigned int, TreeNodePtr>     NodesMap;
@@ -24,8 +22,9 @@ buildPrimalStructures(TreeStructure& tree)
 
     for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
     {
-        AssemblerTypePtr newAssembler(new AssemblerType(M_datafile, M_comm,
-                                                        it->second, M_verbose));
+        AbstractAssemblerPtr newAssembler = AssemblerFactory(M_datafile,
+                                                             M_datafile, M_comm,
+                                                             it->second, M_verbose));
         newAssembler->setup();
 
         newAssembler->addPrimalMaps(M_globalMap, M_maps, M_dimensionsVector);
@@ -41,12 +40,11 @@ buildPrimalStructures(TreeStructure& tree)
     printlog(MAGENTA, msg, M_verbose);
 }
 
-template <class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 setup(TreeStructure& tree)
 {
-    typedef std::vector<std::pair<unsigned int, AssemblerTypePtr> > AssemblersVector;
+    typedef std::vector<std::pair<unsigned int, AbstractAssemblerPtr> > AssemblersVector;
 
     buildPrimalStructures(tree);
     buildDualStructures(tree);
@@ -70,14 +68,13 @@ setup(TreeStructure& tree)
     }
 }
 
-template <class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 buildDualStructures(TreeStructure& tree)
 {
-    typedef std::map<unsigned int, TreeNodePtr>                     NodesMap;
-    typedef std::vector<TreeNodePtr>                                NodesVector;
-    typedef std::vector<std::pair<unsigned int, AssemblerTypePtr> > AssemblersVector;
+    typedef std::map<unsigned int, TreeNodePtr>                         NodesMap;
+    typedef std::vector<TreeNodePtr>                                    NodesVector;
+    typedef std::vector<std::pair<unsigned int, AbstractAssemblerPtr> > AssemblersVector;
 
     NodesMap nodesMap = tree.getNodesMap();
 
@@ -91,7 +88,7 @@ buildDualStructures(TreeStructure& tree)
 
         unsigned int countOutlet = 0;
         unsigned int myID = it->second->M_ID;
-        AssemblerTypePtr fatherAssembler;
+        AbstractAssemblerPtr fatherAssembler;
 
         fatherAssembler = M_assemblersMap[myID];
         for (NodesVector::iterator itVector = children.begin();
@@ -102,7 +99,7 @@ buildDualStructures(TreeStructure& tree)
                 unsigned int otherID = (*itVector)->M_ID;
                 M_interfaces.push_back(std::make_pair(myID, otherID));
 
-                AssemblerTypePtr childAssembler;
+                AbstractAssemblerPtr childAssembler;
                 childAssembler = M_assemblersMap[otherID];
                 // within this function, we also add to the global maps
                 // the newly created map for the lagrange multiplier
@@ -126,261 +123,114 @@ buildDualStructures(TreeStructure& tree)
     printlog(MAGENTA, msg, M_verbose);
 }
 
-template <class AssemblerType>
-typename GlobalAssembler<AssemblerType>::MapEpetraPtr
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::MapEpetraPtr
+GlobalAssembler::
 getGlobalMap() const
 {
     return M_globalMap;
 }
 
-template <class AssemblerType>
-GlobalBlockMatrix
-GlobalAssembler<AssemblerType>::
+BlockMatrix
+GlobalAssembler::
 getGlobalMass()
 {
-    GlobalBlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
+    BlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
                                         M_massMatrix.getNumberCols());
     double diagCoefficient = 0.0;
-    fillGlobalMatrix(updatedMassMatrix, false, &AssemblerType::getUpdateMass,
+    fillGlobalMatrix(updatedMassMatrix, false, &AbstractAssemblerPtr::getUpdateMass,
                      &diagCoefficient);
     updatedMassMatrix.add(M_massMatrix);
     return updatedMassMatrix;
     // return M_massMatrix;
 }
-template <class AssemblerType>
-typename GlobalAssembler<AssemblerType>::VectorPtr
-GlobalAssembler<AssemblerType>::
+
+GlobalAssembler::VectorPtr
+GlobalAssembler::
 getInitialCondition()
 {
     VectorPtr f(new Vector(*M_globalMap));
-    fillGlobalVector(f, &AssemblerType::initialCondition);
+    fillGlobalVector(f, &AbstractAssemblerPtr::initialCondition);
     return f;
 }
 
-template <class AssemblerType>
-GlobalBlockMatrix
-GlobalAssembler<AssemblerType>::
+BlockMatrix
+GlobalAssembler::
 getGlobalMassJac()
 {
-    GlobalBlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
+    BlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
                                         M_massMatrix.getNumberCols());
     double diagCoefficient = 0.0;
-    fillGlobalMatrix(updatedMassMatrix, false, &AssemblerType::getUpdateMassJac,
+    fillGlobalMatrix(updatedMassMatrix, false, &AbstractAssemblerPtr::getUpdateMassJac,
                      &diagCoefficient);
     updatedMassMatrix.add(M_massMatrix);
     // return updatedMassMatrix;
     return updatedMassMatrix;
 }
 
-template <class AssemblerType>
-GlobalBlockMatrix
-GlobalAssembler<AssemblerType>::
+BlockMatrix
+GlobalAssembler::
 getGlobalMassJacVelocity()
 {
-    GlobalBlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
+    BlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
                                         M_massMatrix.getNumberCols());
     double diagCoefficient = 0.0;
-    fillGlobalMatrix(updatedMassMatrix, false, &AssemblerType::getUpdateMassJacVelocity,
+    fillGlobalMatrix(updatedMassMatrix, false, &AbstractAssemblerPtr::getUpdateMassJacVelocity,
                      &diagCoefficient);
     return updatedMassMatrix;
 }
 
-template <class AssemblerType>
-GlobalBlockMatrix
-GlobalAssembler<AssemblerType>::
+BlockMatrix
+GlobalAssembler::
 getJacobianF(bool addCoupling, double* diagonalCoefficient)
 {
-    GlobalBlockMatrix jacobian;
-    fillGlobalMatrix(jacobian, addCoupling, &AssemblerType::getJacobian,
+    BlockMatrix jacobian;
+    fillGlobalMatrix(jacobian, addCoupling, &AbstractAssemblerPtr::getJacobian,
                      diagonalCoefficient);
     return jacobian;
 }
 
-template <class AssemblerType>
-GlobalBlockMatrix
-GlobalAssembler<AssemblerType>::
+BlockMatrix
+GlobalAssembler::
 getJacobianFprec(bool addCoupling, double* diagonalCoefficient)
 {
-    GlobalBlockMatrix jacobian;
-    fillGlobalMatrix(jacobian, addCoupling, &AssemblerType::getJacobianPrec,
+    BlockMatrix jacobian;
+    fillGlobalMatrix(jacobian, addCoupling, &AbstractAssemblerPtr::getJacobianPrec,
                      diagonalCoefficient);
     return jacobian;
 }
 
-template <class AssemblerType>
-typename GlobalAssembler<AssemblerType>::VectorPtr
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::VectorPtr
+GlobalAssembler::
 computeF()
 {
     VectorPtr f(new Vector(*M_globalMap));
-    fillGlobalVector(f, &AssemblerType::computeF);
+    fillGlobalVector(f, &AbstractAssemblerPtr::computeF);
     return f;
 }
 
-template <class AssemblerType>
-typename GlobalAssembler<AssemblerType>::VectorPtr
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::VectorPtr
+GlobalAssembler::
 computeFder()
 {
     VectorPtr fder(new Vector(*M_globalMap));
-    fillGlobalVector(fder, &AssemblerType::computeFder);
+    fillGlobalVector(fder, &AbstractAssemblerPtr::computeFder);
     return fder;
 }
 
-template <class AssemblerType>
-GlobalBlockMatrix
-GlobalAssembler<AssemblerType>::
+BlockMatrix
+GlobalAssembler::
 assembleGlobalMass(bool addCoupling, double* diagonalCoefficient)
 {
-    fillGlobalMatrix(M_massMatrix, addCoupling, &AssemblerType::getMassMatrix,
+    fillGlobalMatrix(M_massMatrix, addCoupling, &AbstractAssemblerPtr::getMassMatrix,
                      diagonalCoefficient);
     return M_massMatrix;
 }
 
-template<class AssemblerType>
-template<typename FunctionType>
 void
-GlobalAssembler<AssemblerType>::
-fillGlobalMatrix(GlobalBlockMatrix& matrixToFill, bool addCoupling,
-                 FunctionType getMatrixMethod, double* diagonalCoefficient)
-{
-    typedef std::vector<std::pair<unsigned int, AssemblerTypePtr> >
-                AssemblersVector;
-
-    unsigned int totalNumberBlocks = M_nPrimalBlocks + M_interfaces.size();
-    matrixToFill.resize(totalNumberBlocks, totalNumberBlocks);
-    matrixToFill.setMaps(M_maps, M_maps);
-    // we start with the primal blocks
-    unsigned int countBlocks = 0;
-    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
-         it != M_assemblersVector.end(); it++)
-    {
-        unsigned int blockIndex = it->first;
-        unsigned int numberBlocks = it->second->numberOfBlocks();
-        for (int i = 0; i < numberBlocks; i++)
-        {
-            for (int j = 0; j < numberBlocks; j++)
-            {
-                AssemblerType& curAssembler = *it->second;
-                MatrixPtr localMatrix = (curAssembler.*getMatrixMethod)(i, j);
-                if (diagonalCoefficient)
-                    curAssembler.applyBCsMatrix(localMatrix, *diagonalCoefficient,
-                                                i, j);
-                // Attention: this does not work if number of blocks is not constant
-                // over all the domains
-                matrixToFill.copyBlock(countBlocks + i,
-                                       countBlocks + j,
-                                       localMatrix);
-            }
-        }
-        countBlocks += numberBlocks;
-    }
-
-    // if required add the coupling blocks
-    if (addCoupling)
-    {
-        typedef std::vector<std::pair<unsigned int, unsigned int> >
-                InterfacesVector;
-
-        unsigned int offset = M_nPrimalBlocks;
-
-        for (InterfacesVector::iterator it = M_interfaces.begin();
-             it != M_interfaces.end(); it++)
-        {
-            unsigned int indices[2] = {it->first, it->second};
-
-            for (int i = 0; i < 2; i++)
-            {
-                AssemblerType& curAssembler = *M_assemblersMap[indices[i]];
-                MatrixPtr Qt = curAssembler.getQT(indices[(i+1) % 2]);
-                unsigned int blockCoupling = curAssembler.getIndexCoupling();
-
-                unsigned int blockIndex = blockCoupling +
-                                indices[i] * curAssembler.numberOfBlocks();
-
-                curAssembler.applyBCsMatrix(Qt, 0.0,
-                                            blockCoupling, blockCoupling);
-                matrixToFill.copyBlock(blockIndex, offset, Qt);
-
-                MatrixPtr Q = curAssembler.getQ(indices[(i+1) % 2]);
-                matrixToFill.copyBlock(offset, blockIndex, Q);
-            }
-            offset++;
-        }
-    }
-}
-
-template<class AssemblerType>
-template<typename FunctionType>
-void
-GlobalAssembler<AssemblerType>::
-fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
-{
-    using namespace LifeV::MatrixEpetraStructuredUtility;
-
-    typedef std::vector<std::pair<unsigned int, AssemblerTypePtr> >
-                AssemblersVector;
-
-    typedef std::vector<MapEpetraPtr>                    MapVector;
-
-    vectorToFill.reset(new Vector(*M_globalMap));
-    vectorToFill->zero();
-
-    unsigned int offset = 0;
-    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
-         it != M_assemblersVector.end(); it++)
-    {
-        std::vector<VectorPtr> localSolutions;
-        MapVector maps = it->second->getPrimalMapVector();
-
-        AssemblerType& curAssembler = *it->second;
-        std::vector<VectorPtr> localVectors;
-        localVectors = (curAssembler.*getVectorMethod)();
-
-        unsigned int index = 0;
-
-        for (MapVector::iterator itmap = maps.begin();
-             itmap != maps.end(); itmap++)
-        {
-            LifeV::MapEpetra& curLocalMap = **itmap;
-            // we fill only if the vector corresponding to map i exists!
-            if (localVectors[index])
-            {
-                vectorToFill->subset(*localVectors[index], curLocalMap, 0,
-                                     offset);
-            }
-            offset += curLocalMap.mapSize();
-            index++;
-        }
-
-        // deal with the dual part. This is trickier because more assemblers
-        // contribute to the same subsets of vectorfill
-        index = 0;
-        maps = it->second->getDualMapVector();
-        std::vector<unsigned int> indices = it->second->getInterfacesIndices();
-        for (MapVector::iterator itmap = maps.begin();
-             itmap != maps.end(); itmap++)
-        {
-            LifeV::MapEpetra& curLocalMap = **itmap;
-            VectorPtr aux(new Vector(curLocalMap));
-            aux->subset(*vectorToFill, curLocalMap,
-                        M_offsets[M_nPrimalBlocks + indices[index]], 0);
-            *aux += 0;
-            localVectors[index + it->second->numberOfBlocks()]->zero();
-            vectorToFill->subset(*aux, curLocalMap, 0,
-                                  M_offsets[M_nPrimalBlocks + indices[index]]);
-            index++;
-        }
-    }
-}
-
-template<class AssemblerType>
-void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 setTimeAndPrevSolution(const double& time, VectorPtr solution, bool doAssembly)
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
     typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
     typedef std::vector<MapEpetraPtr>                    MapVector;
@@ -423,14 +273,13 @@ setTimeAndPrevSolution(const double& time, VectorPtr solution, bool doAssembly)
     }
 }
 
-template<class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
                       const double& time, const double& dt,
                       const double& alphai, const double& gammai)
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
     typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
     typedef std::vector<MapEpetraPtr>                    MapVector;
@@ -478,63 +327,12 @@ applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
     }
 }
 
-template<class AssemblerType>
-template<typename FunctionType>
 void
-GlobalAssembler<AssemblerType>::
-applyBCsVector(VectorPtr rhs, const double& coeff, const double& time,
-               FunctionType bcFunction)
-{
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
-    typedef std::vector<Pair>                            AssemblersVector;
-    typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
-    typedef std::vector<MapEpetraPtr>                    MapVector;
-
-    unsigned int offset = 0;
-    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
-         it != M_assemblersVector.end(); it++)
-    {
-        std::vector<VectorPtr> rhss;
-        std::vector<VectorPtr> utildes;
-        MapVector maps = it->second->getPrimalMapVector();
-        unsigned int suboffset = 0;
-        for (MapVector::iterator itmap = maps.begin();
-             itmap != maps.end(); itmap++)
-        {
-            LifeV::MapEpetra& curLocalMap = **itmap;
-            VectorPtr subRhs;
-            subRhs.reset(new Vector(curLocalMap));
-            subRhs->zero();
-            subRhs->subset(*rhs, curLocalMap, offset + suboffset, 0);
-            rhss.push_back(subRhs);
-            suboffset += curLocalMap.mapSize();
-        }
-        // apply bcs
-        AssemblerType& curAssembler = *it->second;
-        (curAssembler.*bcFunction)(rhss, coeff, time);
-
-        suboffset = 0;
-        unsigned int count = 0;
-        // copy back to global vectors
-        for (MapVector::iterator itmap = maps.begin();
-             itmap != maps.end(); itmap++)
-        {
-            LifeV::MapEpetra& curLocalMap = **itmap;
-            rhs->subset(*rhss[count], curLocalMap, 0, offset + suboffset);
-            suboffset += curLocalMap.mapSize();
-            count++;
-        }
-        offset += suboffset;
-    }
-}
-
-template<class AssemblerType>
-void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 setLawInflow(std::function<double(double)> maxLaw)
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
-    typedef std::vector<Pair>                            AssemblersVector;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
+    typedef std::vector<Pair>                                AssemblersVector;
 
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
          it != M_assemblersVector.end(); it++)
@@ -543,13 +341,12 @@ setLawInflow(std::function<double(double)> maxLaw)
     }
 }
 
-template<class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 setLawDtInflow(std::function<double(double)> maxLawDt)
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
-    typedef std::vector<Pair>                            AssemblersVector;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
+    typedef std::vector<Pair>                                AssemblersVector;
 
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
          it != M_assemblersVector.end(); it++)
@@ -558,12 +355,11 @@ setLawDtInflow(std::function<double(double)> maxLawDt)
     }
 }
 
-template<class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 setExactSolution(AbstractFunctor* exactSolution)
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
 
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
@@ -573,12 +369,11 @@ setExactSolution(AbstractFunctor* exactSolution)
     }
 }
 
-template<class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 setForcingFunction(Function forcingFunction, Function forcingFunctionDt)
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
 
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
@@ -588,12 +383,11 @@ setForcingFunction(Function forcingFunction, Function forcingFunctionDt)
     }
 }
 
-template<class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 exportSolutions(const double& time, VectorPtr solution)
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
     typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
     typedef std::vector<MapEpetraPtr>                    MapVector;
@@ -634,13 +428,12 @@ exportSolutions(const double& time, VectorPtr solution)
     }
 }
 
-template<class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 appendNormsToFile(const double& time, VectorPtr solution,
                   std::ofstream& outFile)
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
     typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
     typedef std::vector<MapEpetraPtr>                    MapVector;
@@ -701,13 +494,12 @@ appendNormsToFile(const double& time, VectorPtr solution,
     outFile << newLine << std::flush;
 }
 
-template<class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 appendErrorsToFile(const double& time, VectorPtr solution,
                    std::ofstream& outFile)
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
     typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
     typedef std::vector<MapEpetraPtr>                    MapVector;
@@ -770,12 +562,11 @@ appendErrorsToFile(const double& time, VectorPtr solution,
     outFile << newLine << std::flush;
 }
 
-template<class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 setTimeIntegrationOrder(unsigned int order)
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
 
     unsigned int offset = 0;
@@ -786,12 +577,11 @@ setTimeIntegrationOrder(unsigned int order)
     }
 }
 
-template<class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 checkResidual(VectorPtr solution, VectorPtr prevSolution, double dt)
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
     typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
     typedef std::vector<MapEpetraPtr>                    MapVector;
@@ -845,12 +635,11 @@ checkResidual(VectorPtr solution, VectorPtr prevSolution, double dt)
     }
 }
 
-template<class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 setTimestep(double dt)
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
 
     unsigned int offset = 0;
@@ -861,12 +650,11 @@ setTimestep(double dt)
     }
 }
 
-template<class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 postProcess()
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
     typedef std::vector<Pair>                            AssemblersVector;
 
     unsigned int offset = 0;
@@ -877,13 +665,12 @@ postProcess()
     }
 }
 
-template<class AssemblerType>
 void
-GlobalAssembler<AssemblerType>::
+GlobalAssembler::
 printMeshSize(std::string filename)
 {
-    typedef std::pair<unsigned int, AssemblerTypePtr>    Pair;
-    typedef std::vector<Pair>                            AssemblersVector;
+    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
+    typedef std::vector<Pair>                                AssemblersVector;
 
     std::ofstream outFile;
 

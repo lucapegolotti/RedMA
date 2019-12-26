@@ -27,7 +27,7 @@
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/linear_algebra/BlockEpetra_Map.hpp>
 
-#include <GlobalBlockMatrix.hpp>
+#include <BlockMatrix.hpp>
 
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_XMLParameterListHelpers.hpp>
@@ -67,7 +67,7 @@ public:
 
     virtual int ApplyInverse(const vector_Type& X, vector_Type& Y) const {return -1;};
 
-    virtual void setUp(RedMA::GlobalBlockMatrix matrix, const commPtr_Type& comm) = 0;
+    virtual void setUp(RedMA::BlockMatrix matrix, const commPtr_Type& comm) = 0;
 
     void setSolversOptions(const Teuchos::ParameterList& solversOptions)
     {

@@ -17,7 +17,7 @@
 #ifndef ROSENBROCKALGORITHM_HPP
 #define ROSENBROCKALGORITHM_HPP
 
-#include <GlobalBlockMatrix.hpp>
+#include <BlockMatrix.hpp>
 #include <TimeMarchingAlgorithm.hpp>
 #include <PrintLog.hpp>
 #include <lifev/core/array/VectorBlockStructure.hpp>
@@ -64,7 +64,7 @@ public:
 
 private:
     LifeV::RosenbrockCoeff  M_coefficients;
-    GlobalBlockMatrix       M_massMatrixNoBCs;
+    BlockMatrix       M_massMatrixNoBCs;
 };
 
 }  // namespace RedMA

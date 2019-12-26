@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef GLOBALBLOCKMATRIX_HPP
-#define GLOBALBLOCKMATRIX_HPP
+#ifndef BLOCKMATRIX_HPP
+#define BLOCKMATRIX_HPP
 
 #include <Exception.hpp>
 
@@ -30,7 +30,7 @@
 namespace RedMA
 {
 
-class GlobalBlockMatrix
+class BlockMatrix
 {
     typedef Epetra_CrsMatrix                                    Matrix;
     typedef std::shared_ptr<Matrix>                             MatrixPtr;
@@ -44,11 +44,11 @@ class GlobalBlockMatrix
     typedef std::shared_ptr<Map>                                MapPtr;
 
 public:
-    GlobalBlockMatrix();
+    BlockMatrix();
 
-    GlobalBlockMatrix(unsigned int numRows, unsigned int numCols);
+    BlockMatrix(unsigned int numRows, unsigned int numCols);
 
-    GlobalBlockMatrix(const GlobalBlockMatrix& other);
+    BlockMatrix(const BlockMatrix& other);
 
     void resize(unsigned int numRows, unsigned int numCols);
 
@@ -60,9 +60,9 @@ public:
 
     MatrixEpetraPtr block(unsigned int row, unsigned int col) const;
 
-    void add(const GlobalBlockMatrix& other);
+    void add(const BlockMatrix& other);
 
-    // void multiply(const GlobalBlockMatrix& other, GlobalBlockMatrix& result);
+    // void multiply(const BlockMatrix& other, BlockMatrix& result);
 
     VectorEpetra operator*(const VectorEpetra& vector);
 
@@ -73,7 +73,7 @@ public:
 
     MapPtr domainMap(unsigned int row, unsigned int col) const;
 
-    GlobalBlockMatrix& operator*=(const double& coeff);
+    BlockMatrix& operator*=(const double& coeff);
 
     Grid getGrid();
 
@@ -98,4 +98,4 @@ private:
 
 }  // namespace RedMA
 
-#endif  // GLOBALBLOCKMATRIX_HPP
+#endif  // BLOCKMATRIX_HPP

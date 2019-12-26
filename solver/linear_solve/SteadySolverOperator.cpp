@@ -130,7 +130,7 @@ updateApproximatedMomentumOperator()
     M_approximatedMomentumOperator->SetRowMatrix(M_F->matrixPtr());
     M_approximatedMomentumOperator->SetParameterList(*M_momentumOptions);
     if (!M_solveMomentumBelos) M_approximatedMomentumOperator->Compute();
-    // 
+    //
     // Epetra_Vector diag(M_F->matrixPtr()->OperatorRangeMap());
     // M_invD.reset(new Epetra_Vector(M_F->matrixPtr()->OperatorRangeMap()));
     // M_F->matrixPtr()->ExtractDiagonalCopy(diag);

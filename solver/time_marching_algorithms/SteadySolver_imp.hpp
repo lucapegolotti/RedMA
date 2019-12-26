@@ -27,11 +27,11 @@ solveTimestep(const double &time, double &dt)
           std::bind(&SteadySolver<AssemblerType>::assembleF,
                     this, time + dt, std::placeholders::_1, dt);
 
-    std::function<GlobalBlockMatrix(VectorPtr)> mJac =
+    std::function<BlockMatrix(VectorPtr)> mJac =
           std::bind(&SteadySolver<AssemblerType>::assembleJac,
                     this, time + dt, std::placeholders::_1, dt);
 
-    std::function<GlobalBlockMatrix(VectorPtr)> mJacPrec =
+    std::function<BlockMatrix(VectorPtr)> mJacPrec =
           std::bind(&SteadySolver<AssemblerType>::assembleJacPrec,
                     this, time + dt, std::placeholders::_1, dt);
 
@@ -60,7 +60,7 @@ assembleF(const double& time, VectorPtr tentativeSol, const double& dt)
 }
 
 template <class AssemblerType>
-GlobalBlockMatrix
+BlockMatrix
 SteadySolver<AssemblerType>::
 assembleJac(const double& time, VectorPtr tentativeSol, const double& dt)
 {
@@ -69,14 +69,14 @@ assembleJac(const double& time, VectorPtr tentativeSol, const double& dt)
 
     M_globalAssembler->setTimeAndPrevSolution(time, tentativeSol, false);
     double diagonalCoefficient = 1.0;
-    GlobalBlockMatrix retJac = M_globalAssembler->getJacobianF(true,
+    BlockMatrix retJac = M_globalAssembler->getJacobianF(true,
                                                           &diagonalCoefficient);
 
     return retJac;
 }
 
 template <class AssemblerType>
-GlobalBlockMatrix
+BlockMatrix
 SteadySolver<AssemblerType>::
 assembleJacPrec(const double& time, VectorPtr tentativeSol, const double& dt)
 {
@@ -86,7 +86,7 @@ assembleJacPrec(const double& time, VectorPtr tentativeSol, const double& dt)
     // after assembleF (and the stabilization blocks are already assembled there)
     M_globalAssembler->setTimeAndPrevSolution(time, tentativeSol, false);
     double diagonalCoefficient = 1.0;
-    GlobalBlockMatrix retJac = M_globalAssembler->getJacobianFprec(true,
+    BlockMatrix retJac = M_globalAssembler->getJacobianFprec(true,
                                                           &diagonalCoefficient);
     return retJac;
 }

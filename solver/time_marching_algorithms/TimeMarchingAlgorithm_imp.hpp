@@ -23,9 +23,9 @@ TimeMarchingAlgorithm(const GetPot& datafile,
 template <class AssemblerType>
 void
 TimeMarchingAlgorithm<AssemblerType>::
-solveLinearSystem(GlobalBlockMatrix matrix,
+solveLinearSystem(BlockMatrix matrix,
                   VectorPtr rhs, VectorPtr sol,
-                  GlobalBlockMatrix* matrixPrec)
+                  BlockMatrix* matrixPrec)
 {
     // reset solution vector
     sol->zero();
@@ -52,7 +52,7 @@ solveLinearSystem(GlobalBlockMatrix matrix,
 template <class AssemblerType>
 void
 TimeMarchingAlgorithm<AssemblerType>::
-buildPreconditioner(GlobalBlockMatrix matrix)
+buildPreconditioner(BlockMatrix matrix)
 {
     AssemblerType as(M_datafile, M_comm, nullptr, false);
     if (as.numberOfBlocks() == 2)
@@ -116,10 +116,10 @@ template <class AssemblerType>
 void
 TimeMarchingAlgorithm<AssemblerType>::
 solveNonLinearSystem(std::function<VectorPtr(VectorPtr)> fun,
-                     std::function<GlobalBlockMatrix(VectorPtr)> jac,
+                     std::function<BlockMatrix(VectorPtr)> jac,
                      VectorPtr sol,
                      const double& tol, const unsigned int& itMax,
-                     std::function<GlobalBlockMatrix(VectorPtr)>* jacPrec)
+                     std::function<BlockMatrix(VectorPtr)>* jacPrec)
 {
     VectorPtr incr(new Vector(sol->map()));
     double err = tol + 1;
@@ -139,13 +139,13 @@ solveNonLinearSystem(std::function<VectorPtr(VectorPtr)> fun,
         if (err > tol)
         {
             incr->zero();
-            GlobalBlockMatrix curJac = jac(sol);
+            BlockMatrix curJac = jac(sol);
             if (jacPrec == nullptr)
                 solveLinearSystem(curJac, curF, incr);
             else
             {
-                std::function<GlobalBlockMatrix(VectorPtr)> jacPrecRaw = *jacPrec;
-                GlobalBlockMatrix curJacPrec = jacPrecRaw(sol);
+                std::function<BlockMatrix(VectorPtr)> jacPrecRaw = *jacPrec;
+                BlockMatrix curJacPrec = jacPrecRaw(sol);
                 solveLinearSystem(curJac, curF, incr, &curJacPrec);
             }
             *sol -= *incr;

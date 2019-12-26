@@ -29,7 +29,7 @@ GlobalSIMPLEOperatorPseudoFSI::~GlobalSIMPLEOperatorPseudoFSI()
 
 void
 GlobalSIMPLEOperatorPseudoFSI::
-setUp(RedMA::GlobalBlockMatrix matrix,
+setUp(RedMA::BlockMatrix matrix,
       const commPtr_Type & comm)
 {
     LifeChrono chrono;

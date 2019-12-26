@@ -35,12 +35,12 @@ solveTimestep(const double &time, double &dt)
     M_globalAssembler->setTimeAndPrevSolution(time, M_solution);
 
     MapEpetraPtr globalMap = M_globalAssembler->getGlobalMap();
-    GlobalBlockMatrix globalMass = M_globalAssembler->getGlobalMass();
+    BlockMatrix globalMass = M_globalAssembler->getGlobalMass();
 
     double diagonalCoefficient = 0.0;
-    GlobalBlockMatrix globalJac = M_globalAssembler->getJacobianF(true,
+    BlockMatrix globalJac = M_globalAssembler->getJacobianF(true,
                                                           &diagonalCoefficient);
-    GlobalBlockMatrix systemMatrix(globalJac);
+    BlockMatrix systemMatrix(globalJac);
     systemMatrix *= (-dt * M_coefficients.gamma());
     // systemMatrix->openCrsMatrix();
     systemMatrix.add(globalMass);

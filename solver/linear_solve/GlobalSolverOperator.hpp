@@ -20,7 +20,7 @@
 #include <Epetra_Import.h>
 #include <boost/numeric/ublas/matrix.hpp>
 
-#include <GlobalBlockMatrix.hpp>
+#include <BlockMatrix.hpp>
 #include <lifev/core/linear_algebra/BlockEpetra_Map.hpp>
 #include <lifev/core/linear_algebra/BlockEpetra_MultiVector.hpp>
 #include <lifev/core/linear_algebra/LinearOperatorAlgebra.hpp>

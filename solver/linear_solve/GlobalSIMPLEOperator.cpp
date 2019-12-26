@@ -31,7 +31,7 @@ GlobalSIMPLEOperator::~GlobalSIMPLEOperator()
 
 void
 GlobalSIMPLEOperator::
-setUp(RedMA::GlobalBlockMatrix matrix,
+setUp(RedMA::BlockMatrix matrix,
       const commPtr_Type & comm)
 {
     LifeChrono chrono;
@@ -130,7 +130,7 @@ setUp(RedMA::GlobalBlockMatrix matrix,
 
 GlobalSIMPLEOperator::InvOperatorPtr
 GlobalSIMPLEOperator::
-allocateSingleInvOperator(RedMA::GlobalBlockMatrix matrix,
+allocateSingleInvOperator(RedMA::BlockMatrix matrix,
                           UInt iblock)
 {
     // here we rely on the structure of the global matrix
@@ -168,7 +168,7 @@ allocateSingleInvOperator(RedMA::GlobalBlockMatrix matrix,
 
 GlobalSIMPLEOperator::PreconditionerPtr
 GlobalSIMPLEOperator::
-allocateSingleOperator(RedMA::GlobalBlockMatrix matrix, UInt iblock,
+allocateSingleOperator(RedMA::BlockMatrix matrix, UInt iblock,
                        BlockEpetra_Map::mapPtrContainer_Type localRangeBlockMaps,
                        BlockEpetra_Map::mapPtrContainer_Type localDomainBlockMaps)
 {
