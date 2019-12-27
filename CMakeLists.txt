@@ -92,7 +92,9 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-# set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+# we disable warnings of wrong return type because these are already present
+# at the level of LifeV
+set(CMAKE_CXX_FLAGS "-Wno-return-type")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 

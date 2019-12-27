@@ -58,59 +58,59 @@ public:
                     bool verbose = false);
 
     // TODO: to be implemented
-    void setup() override {};
+    virtual void setup() override {};
 
-    unsigned int numberOfBlocks() override {};
+    virtual unsigned int numberOfBlocks() override {};
 
-    unsigned int numberOfComponents() override {};
+    virtual unsigned int numberOfComponents() override {};
 
-    void applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
-                        const unsigned int& iblock, const unsigned int& jblock) {};
+    virtual void applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
+                                const unsigned int& iblock, const unsigned int& jblock) override {};
 
     virtual MatrixPtr getUpdateMass(const unsigned int& blockrow,
-                                    const unsigned int& blockcol) {};
+                                    const unsigned int& blockcol) override {};
 
     virtual MatrixPtr getUpdateMassJac(const unsigned int& blockrow,
-                                       const unsigned int& blockcol) {};
+                                       const unsigned int& blockcol) override {};
 
     virtual MatrixPtr getUpdateMassJacVelocity(const unsigned int& blockrow,
-                                               const unsigned int& blockcol) {};
+                                               const unsigned int& blockcol) override {};
 
-    virtual std::vector<VectorPtr> initialCondition() {};
+    virtual std::vector<VectorPtr> initialCondition() override {};
 
     virtual MatrixPtr getJacobian(const unsigned int& blockrow,
-                                  const unsigned int& blockcol) {};
+                                  const unsigned int& blockcol) override {};
 
     virtual MatrixPtr getJacobianPrec(const unsigned int& blockrow,
-                                    const unsigned int& blockcol) {};
+                                    const unsigned int& blockcol) override {};
 
     virtual MatrixPtr getMassMatrix(const unsigned int& blockrow,
-                                    const unsigned int& blockcol) {};
+                                    const unsigned int& blockcol) override {};
 
     virtual void setTimeAndPrevSolution(const double& time,
                                         std::vector<VectorPtr> solution,
-                                        bool assembleBlocks = true) {};
+                                        bool assembleBlocks = true) override {};
 
     virtual void applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
                                        std::vector<VectorPtr> utilde,
                                        const double& time,
                                        const double& dt,
                                        const double& alphai,
-                                       const double& gammai) {};
+                                       const double& gammai) override {};
 
-    virtual std::vector<VectorPtr> computeF() {};
+    virtual std::vector<VectorPtr> computeF() override {};
 
-    virtual std::vector<VectorPtr> computeFder() {};
+    virtual std::vector<VectorPtr> computeFder() override {};
 
-    virtual std::vector<double> computeNorms(std::vector<VectorPtr> solutions) {};
+    virtual std::vector<double> computeNorms(std::vector<VectorPtr> solutions) override {};
 
     virtual std::vector<double> computeErrors(std::vector<VectorPtr> solutions,
-                                              const double& time) {};
+                                              const double& time) override {};
 
-    virtual void exportSolutions(const double& time, std::vector<VectorPtr> solutions) {};
+    virtual void exportSolutions(const double& time, std::vector<VectorPtr> solutions) override {};
 
     virtual void applyBCsBackwardEuler(std::vector<VectorPtr> rhs, const double& coeff,
-                                       const double& time) {};
+                                       const double& time) override {};
 
     void setup(TreeStructure& tree);
 
@@ -152,11 +152,11 @@ public:
     void applyBCsVector(VectorPtr rhs, const double& coeff, const double& time,
                         FunctionType bcFunction);
 
-    void setLawInflow(std::function<double(double)> maxLaw);
+    virtual void setLawInflow(std::function<double(double)> maxLaw) override;
 
-    void setLawDtInflow(std::function<double(double)> maxLawDt);
+    virtual void setLawDtInflow(std::function<double(double)> maxLawDt) override;
 
-    void setExactSolution(AbstractFunctor* exactSolution);
+    virtual void setExactSolution(AbstractFunctor* exactSolution) override;
 
     void exportSolutions(const double& time, VectorPtr solution);
 
@@ -166,11 +166,11 @@ public:
     void appendErrorsToFile(const double& time, VectorPtr solution,
                             std::ofstream& outFile);
 
-    void setTimeIntegrationOrder(unsigned int order);
+    virtual void setTimeIntegrationOrder(unsigned int order) override;
 
-    void setTimestep(double dt);
+    virtual void setTimestep(double dt) override;
 
-    void postProcess();
+    virtual void postProcess() override;
 
     VectorPtr getInitialCondition();
 

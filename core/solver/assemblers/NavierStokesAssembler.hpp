@@ -65,67 +65,67 @@ public:
     NavierStokesAssembler(const GetPot& datafile, commPtr_Type comm,
                           const TreeNodePtr& treeNode, bool verbose = false);
 
-    virtual void setup();
+    virtual void setup() override;
 
     virtual MatrixPtr getMassMatrix(const unsigned int& blockrow,
-                                    const unsigned int& blockcol);
+                                    const unsigned int& blockcol) override;
 
     virtual MatrixPtr getJacobian(const unsigned int& blockrow,
-                                  const unsigned int& blockcol);
+                                  const unsigned int& blockcol) override;
 
     virtual MatrixPtr getJacobianPrec(const unsigned int& blockrow,
-                                      const unsigned int& blockcol);
+                                      const unsigned int& blockcol) override;
 
-    virtual unsigned int numberOfBlocks() {return 2;}
+    virtual unsigned int numberOfBlocks() override {return 2;}
 
-    inline unsigned int numberOfComponents() {return 3;}
+    virtual inline unsigned int numberOfComponents() override {return 3;}
 
-    void setTimeAndPrevSolution(const double& time,
-                                std::vector<VectorPtr> solution,
-                                bool assembleBlocks = true);
+    virtual void setTimeAndPrevSolution(const double& time,
+                                        std::vector<VectorPtr> solution,
+                                        bool assembleBlocks = true) override;
 
-    void setLawInflow(std::function<double(double)> maxLaw);
+    virtual void setLawInflow(std::function<double(double)> maxLaw) override;
 
-    void setLawDtInflow(std::function<double(double)> maxLawDt);
+    virtual void setLawDtInflow(std::function<double(double)> maxLawDt) override;
 
-    virtual std::vector<VectorPtr> computeF();
+    virtual std::vector<VectorPtr> computeF() override;
 
-    virtual std::vector<VectorPtr> computeFder();
+    virtual std::vector<VectorPtr> computeFder() override;
 
-    void applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
-                               std::vector<VectorPtr> utilde,
-                               const double& time,
-                               const double& dt,
-                               const double& alphai,
-                               const double& gammai);
+    virtual void applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
+                                       std::vector<VectorPtr> utilde,
+                                       const double& time,
+                                       const double& dt,
+                                       const double& alphai,
+                                       const double& gammai) override;
 
-    void applyBCsBackwardEuler(std::vector<VectorPtr> rhs, const double& coeff,
-                               const double& time);
+    virtual void applyBCsBackwardEuler(std::vector<VectorPtr> rhs, const double& coeff,
+                                       const double& time) override;
 
-    void applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
-                        const unsigned int& iblock, const unsigned int& jblock) override;
+    virtual void applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
+                                const unsigned int& iblock, const unsigned int& jblock) override;
 
     virtual void setExporter();
 
-    void exportSolutions(const double& time, std::vector<VectorPtr> solutions);
+    virtual void exportSolutions(const double& time, std::vector<VectorPtr> solutions) override;
 
-    std::vector<double> computeNorms(std::vector<VectorPtr> solutions);
+    virtual std::vector<double> computeNorms(std::vector<VectorPtr> solutions) override;
 
-    std::vector<double> computeErrors(std::vector<VectorPtr> solutions,
-                                      const double& time);
+    virtual std::vector<double> computeErrors(std::vector<VectorPtr> solutions,
+                                      const double& time) override;
 
     static std::string normFileFirstLine();
 
     static std::string errorsFileFirstLine();
 
-    MatrixPtr getUpdateMass(const unsigned int& blockrow,
-                            const unsigned int& blockcol) override;
+    virtual MatrixPtr getUpdateMass(const unsigned int& blockrow,
+                                    const unsigned int& blockcol) override;
 
-    MatrixPtr getUpdateMassJac(const unsigned int& blockrow,
-                               const unsigned int& blockcol) override;
-
-    MatrixPtr getUpdateMassJacVelocity(const unsigned int& blockrow,
+    virtual MatrixPtr getUpdateMassJac(const unsigned int& blockrow,
                                        const unsigned int& blockcol) override;
+
+    virtual MatrixPtr getUpdateMassJacVelocity(const unsigned int& blockrow,
+                                              const unsigned int& blockcol) override;
 
     std::vector<VectorPtr> initialCondition() override;
 

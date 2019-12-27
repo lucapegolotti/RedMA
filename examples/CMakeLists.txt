@@ -1,4 +1,4 @@
-add_executable(Playground Playground.cpp ${SOURCES})
+add_executable(Playground Playground.cpp)
 target_link_libraries(Playground ${LINKED_LIBRARIES})
 target_include_directories(Playground PRIVATE ${HEADERS_DIRS})
 
