@@ -114,19 +114,21 @@ readMesh(std::string meshdir)
 
     meshPtr_Type fullMesh(new mesh_Type(M_comm));
     LifeV::MeshData meshData;
+    std::cout << meshdir + M_datafileName << std::endl;
+    std::cout << M_meshName.c_str() << std::endl;
     GetPot meshDatafile(meshdir + M_datafileName);
     meshDatafile.set("mesh/mesh_file", M_meshName.c_str());
     meshData.setup(meshDatafile, "mesh");
     meshData.setMeshDir(meshdir);
     LifeV::readMesh(*fullMesh,meshData);
 
-    LifeV::MeshPartitioner<mesh_Type> meshPart;
+    LifeV::MeshPartitioner<mesh_Type> meshPart(fullMesh, M_comm);
 
     // small trick to redirect std cout
     // CoutRedirecter ct;
     // ct.redirect();
-    meshPart.doPartition(fullMesh, M_comm);
-
+    // meshPart.doPartition(fullMesh, M_comm);
+    M_mesh.reset(new mesh_Type(M_comm));
     M_mesh = meshPart.meshPartition();
 
     // printlog(CYAN, ct.restore(), M_verbose);

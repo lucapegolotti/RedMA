@@ -1,8 +1,8 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
-set (CMAKE_CXX_STANDARD 14)
-
 project(RedMA VERSION 1.0.0 DESCRIPTION "Reduced Modeling of Arteries")
+
+set(CMAKE_CXX_STANDARD 14)
 
 # TODO: understand why headers_dirs is not modified in core
 set(HEADERS_DIRS
