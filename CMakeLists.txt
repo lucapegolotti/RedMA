@@ -71,6 +71,9 @@ set(TRILINOS_LIBRARIES
     zoltan
     belosepetra)
 
+# note: by default, boost is built without additional libraries in the lifev
+# environment. If that version of boost is used, boost must be installed by removing
+# the -without-system and -without-filesystem flags in the bootstrap command of lifev
 set(LINKED_LIBRARIES
     boost_system
     boost_filesystem
@@ -100,6 +103,12 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 link_directories(${LIBRARIES_DIRS})
 include_directories(${HEADERS_DIRS})
+
+# this is to avoid problems of rpath when launching targets linking to core
+# set(CMAKE_SKIP_BUILD_PATH FALSE)
+# set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+# set(CMAKE_INSTALL_RPATH ${LIBRARIES_DIRS})
+# set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 add_subdirectory(core)
 

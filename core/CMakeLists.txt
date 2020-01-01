@@ -9,7 +9,8 @@ add_subdirectory(geometric_structure)
 add_subdirectory(solver)
 add_subdirectory(utils)
 
-add_library(core SHARED
+# note: setting this to shared may cause problem at runtime when loading meshes
+add_library(core STATIC
             ${HEADERS}
             ${SOURCES})
 
