@@ -91,7 +91,8 @@ public:
     typedef Teuchos::ParameterList                          ParameterList;
     typedef std::shared_ptr<ParameterList>                  ParameterListPtr;
 
-    GlobalSIMPLEOperator(std::string singleOperatorType, bool exactSolve);
+    GlobalSIMPLEOperator(std::string singleOperatorType, bool exactSolve,
+                         int numIterationsExactSolve);
 
     virtual ~GlobalSIMPLEOperator();
 
@@ -164,6 +165,8 @@ private:
     std::string                                         M_singleOperatorType;
     bool                                                M_solvePrimalBlocksExactly;
     ParameterListPtr                                    M_pListLinSolver;
+    int                                                 M_numIterationExactSolve;
+    mutable unsigned int                                M_countIterations;
 };
 
 }

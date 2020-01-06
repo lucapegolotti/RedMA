@@ -57,12 +57,15 @@ buildPreconditioner(BlockMatrix matrix)
     {
         bool steady = M_datafile("time_discretization/steady", false);
         bool exactSolveBlocks = M_datafile("linear_solve/exact_solve_primal", false);
+        // if -1, all iterations are exact
+        int numIterationsExactSolve = M_datafile("linear_solve/num_exact_iterations", 2);
         // we don't allow for exact solve in steady case. The problem is that we don't pass
         // the matrix to be solved to the preconditioner
         if (steady)
-            M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator("STEADY", false));
+            M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator("STEADY", false, -1));
         else
-            M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator("SIMPLE", exactSolveBlocks));
+            M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperator("SIMPLE", exactSolveBlocks,
+                                                                    numIterationsExactSolve));
     }
     else
         M_prec.reset(new LifeV::Operators::GlobalSIMPLEOperatorPseudoFSI());

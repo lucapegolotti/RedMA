@@ -23,7 +23,8 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose,
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();
 
-    M_globalAssembler.setup(M_tree);
+    M_globalAssembler.setTreeStructure(M_tree);
+    M_globalAssembler.setup();
 
     // we set it here because boundary conditions might be set in the constructor
     // of the time advancing scheme

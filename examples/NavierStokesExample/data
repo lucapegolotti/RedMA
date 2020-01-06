@@ -44,6 +44,7 @@
 [../]
 
 [linear_solve]
+	num_exact_iterations = 3
 	exact_solve_primal = false
 [../]
 
@@ -58,7 +59,7 @@
 
 [coupling]
 	type                = chebyshev
-	nMax                = 2
+	nMax                = 1
 	orthonormalization  = POD
 	beta_threshold      = 0
 	use_interpolation   = false

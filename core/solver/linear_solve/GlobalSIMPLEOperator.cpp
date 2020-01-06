@@ -15,11 +15,14 @@ namespace Operators
 {
 
 GlobalSIMPLEOperator::
-GlobalSIMPLEOperator(std::string singleOperatorType, bool exactSolve) :
+GlobalSIMPLEOperator(std::string singleOperatorType, bool exactSolve,
+                     int numIterationsExactSolve) :
   M_label("GlobalSIMPLEOperator"),
   M_useTranspose(false),
   M_singleOperatorType(singleOperatorType),
-  M_solvePrimalBlocksExactly(exactSolve)
+  M_solvePrimalBlocksExactly(exactSolve),
+  M_numIterationExactSolve(numIterationsExactSolve),
+  M_countIterations(0)
 {
 
 }
@@ -480,7 +483,8 @@ solveEveryPrimalBlock(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
         else
             rangePressure = *M_matrix.rangeMap(i*2+1,i*2+1);
 
-        if (M_solvePrimalBlocksExactly)
+        if ((M_solvePrimalBlocksExactly && M_countIterations < M_numIterationExactSolve) ||
+            (M_solvePrimalBlocksExactly && M_numIterationExactSolve < 0))
         {
             mapEpetra_Type monolithicMap = rangeVelocity;
             monolithicMap += rangePressure;
@@ -605,7 +609,6 @@ ApplyInverse(const vector_Type& X, vector_Type& Y) const
 {
     ASSERT_PRE(X.NumVectors() == Y.NumVectors(),
                "X and Y must have the same number of vectors");
-
     if (M_nPrimalBlocks > 1)
     {
         const vectorEpetra_Type X_vectorEpetra(X, M_monolithicMap, LifeV::Unique);
@@ -645,7 +648,7 @@ ApplyInverse(const vector_Type& X, vector_Type& Y) const
     {
         M_SingleOperators[0]->ApplyInverse(X, Y);
     }
-
+    M_countIterations++;
     return 0;
 }
 }

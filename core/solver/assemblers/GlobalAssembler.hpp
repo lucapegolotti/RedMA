@@ -57,12 +57,12 @@ public:
     GlobalAssembler(const GetPot& datafile, commPtr_Type comm,
                     bool verbose = false);
 
-    // TODO: to be implemented
-    virtual void setup() override {};
+    virtual void setup() override;
 
-    virtual unsigned int numberOfBlocks() override {};
+    virtual unsigned int numberOfBlocks() override {return M_dimensionsVector.size();};
 
-    virtual unsigned int numberOfComponents() override {};
+    // this does not make sense for global assembler
+    virtual unsigned int numberOfComponents() override;
 
     virtual void applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
                                 const unsigned int& iblock, const unsigned int& jblock) override {};
@@ -112,8 +112,6 @@ public:
     virtual void applyBCsBackwardEuler(std::vector<VectorPtr> rhs, const double& coeff,
                                        const double& time) override {};
 
-    void setup(TreeStructure& tree);
-
     void buildPrimalStructures(TreeStructure& tree);
 
     void buildDualStructures(TreeStructure& tree);
@@ -125,6 +123,8 @@ public:
     BlockMatrix getGlobalMassJac();
 
     BlockMatrix getGlobalMassJacVelocity();
+
+    void setTreeStructure(TreeStructure tree);
 
     BlockMatrix getJacobianF(bool addCoupling,
                                    double* diagonalCoefficient = nullptr);
@@ -196,14 +196,15 @@ private:
     commPtr_Type                                                M_comm;
     bool                                                        M_verbose;
     MapEpetraPtr                                                M_globalMap;
-    BlockMatrix                                           M_massMatrix;
-    BlockMatrix                                           M_updatedMassMatrix;
+    BlockMatrix                                                 M_massMatrix;
+    BlockMatrix                                                 M_updatedMassMatrix;
     std::vector<unsigned int>                                   M_dimensionsVector;
     std::vector<std::pair<unsigned int, unsigned int> >         M_interfaces;
     std::vector<unsigned int>                                   M_offsets;
     unsigned int                                                M_nPrimalBlocks;
     std::vector<MapEpetraPtr>                                   M_maps;
     bool                                                        M_updateMassMatrix;
+    TreeStructure                                               M_tree;
 };
 
 template<typename FunctionType>

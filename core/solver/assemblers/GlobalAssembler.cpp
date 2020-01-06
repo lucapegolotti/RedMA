@@ -40,14 +40,29 @@ buildPrimalStructures(TreeStructure& tree)
     printlog(MAGENTA, msg, M_verbose);
 }
 
+unsigned int
+GlobalAssembler::
+numberOfComponents()
+{
+    throw new Exception("numberOfComponents does not make sense for GlobalAssembler!");
+    return 0;
+}
+
 void
 GlobalAssembler::
-setup(TreeStructure& tree)
+setTreeStructure(TreeStructure tree)
+{
+    M_tree = tree;
+}
+
+void
+GlobalAssembler::
+setup()
 {
     typedef std::vector<std::pair<unsigned int, AbstractAssemblerPtr> > AssemblersVector;
 
-    buildPrimalStructures(tree);
-    buildDualStructures(tree);
+    buildPrimalStructures(M_tree);
+    buildDualStructures(M_tree);
 
     M_offsets.push_back(0);
 
@@ -135,7 +150,7 @@ GlobalAssembler::
 getGlobalMass()
 {
     BlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
-                                        M_massMatrix.getNumberCols());
+                                  M_massMatrix.getNumberCols());
     double diagCoefficient = 0.0;
     fillGlobalMatrix(updatedMassMatrix, false, &AbstractAssembler::getUpdateMass,
                      &diagCoefficient);
@@ -158,7 +173,7 @@ GlobalAssembler::
 getGlobalMassJac()
 {
     BlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
-                                        M_massMatrix.getNumberCols());
+                                  M_massMatrix.getNumberCols());
     double diagCoefficient = 0.0;
     fillGlobalMatrix(updatedMassMatrix, false, &AbstractAssembler::getUpdateMassJac,
                      &diagCoefficient);
@@ -172,7 +187,7 @@ GlobalAssembler::
 getGlobalMassJacVelocity()
 {
     BlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
-                                        M_massMatrix.getNumberCols());
+                                  M_massMatrix.getNumberCols());
     double diagCoefficient = 0.0;
     fillGlobalMatrix(updatedMassMatrix, false, &AbstractAssembler::getUpdateMassJacVelocity,
                      &diagCoefficient);

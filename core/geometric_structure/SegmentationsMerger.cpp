@@ -140,10 +140,11 @@ mergeTwoSegmentations(SegmentationParserPtr segmentationFather,
 
     bifurcation = bifurcationsVector[bestBifurcation];
 
+    int maxTubeLength = M_datafile("segmentation_merger/maxtubelength", 3);
 
     // forward parent until bifurcation
     Contour inletBifurcation = bifurcation->getInlet();
-    TreeStructure inBranch = segmentationFather->createTreeForward(3, 1.0, 1.0,
+    TreeStructure inBranch = segmentationFather->createTreeForward(maxTubeLength, 1.0, 1.0,
                                                                    nullptr,
                                                             &inletBifurcation);
 
@@ -177,13 +178,13 @@ mergeTwoSegmentations(SegmentationParserPtr segmentationFather,
     TreeStructure otherBranch;
     if (dist1 < dist2)
     {
-        outBranch = segmentationFather->createTreeForward(3, 1.0, 1.0, &outlet1, nullptr);
-        otherBranch = segmentationChild->createTreeForward(3, 1.0, 1.0, &outlet2, nullptr);
+        outBranch = segmentationFather->createTreeForward(maxTubeLength, 1.0, 1.0, &outlet1, nullptr);
+        otherBranch = segmentationChild->createTreeForward(maxTubeLength, 1.0, 1.0, &outlet2, nullptr);
     }
     else
     {
-        outBranch = segmentationChild->createTreeForward(3, 1.0, 1.0, &outlet1, nullptr);
-        otherBranch = segmentationFather->createTreeForward(3, 1.0, 1.0, &outlet2, nullptr);
+        outBranch = segmentationChild->createTreeForward(maxTubeLength, 1.0, 1.0, &outlet1, nullptr);
+        otherBranch = segmentationFather->createTreeForward(maxTubeLength, 1.0, 1.0, &outlet2, nullptr);
     }
 
     outBranch.traverseAndDeformGeometries(false);
