@@ -773,13 +773,14 @@ fillMatricesWithVectors(VectorPtr* couplingVectors,
 
     Epetra_Map primalMapEpetra = couplingVectors[0]->epetraMap();
     unsigned int numElements = primalMapEpetra.NumMyElements();
+    // unsigned int nTotalDofs = primalMapEpetra.NumGlobalElements();
     // unsigned int nTotalDofs = primalFespace->dof().numTotalDof();
-    unsigned int nTotalDofs = couplingVectors[0]->size();
     for (unsigned int dim = 0; dim < numberOfComponents; dim++)
     {
         for (unsigned int i = 0; i < nBasisFunctions; i++)
         {
             Vector couplingVectorUnique(*couplingVectors[i], Unique);
+            unsigned int nTotalDofs = couplingVectorUnique.size();
             for (unsigned int dof = 0; dof < numElements; dof++)
             {
                 unsigned int gdof = primalMapEpetra.GID(dof);
