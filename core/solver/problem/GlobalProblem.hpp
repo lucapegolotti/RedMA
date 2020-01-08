@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef GLOBALSOLVER_HPP
-#define GLOBALSOLVER_HPP
+#ifndef GLOBALPROBLEM_HPP
+#define GLOBALPROBLEM_HPP
 
 #include <fstream>
 
@@ -35,7 +35,7 @@
 namespace RedMA
 {
 
-class GlobalSolver
+class GlobalProblem
 {
     typedef std::shared_ptr<Epetra_Comm>               commPtr_Type;
     typedef LifeV::MapEpetra                           map_Type;
@@ -52,7 +52,7 @@ class GlobalSolver
                                  unsigned int const& )> FunctionType;
 
 public:
-    GlobalSolver(const GetPot& datafile, commPtr_Type comm,
+    GlobalProblem(const GetPot& datafile, commPtr_Type comm,
                  bool verbose = false, AbstractFunctor* exactSolution = nullptr);
 
     void solve();
@@ -90,4 +90,4 @@ private:
 
 }  // namespace RedMA
 
-#endif  // GLOBALSOLVER_HPP
+#endif  // GLOBALPROBLEM_HPP

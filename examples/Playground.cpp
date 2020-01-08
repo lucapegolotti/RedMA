@@ -22,7 +22,7 @@
 #include <Epetra_SerialComm.h>
 #endif
 
-#include <GlobalSolver.hpp>
+#include <GlobalProblem.hpp>
 
 using namespace RedMA;
 
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    // GlobalSolver gs;
+    // GlobalProblem gs;
 
 
     return 0;

@@ -24,7 +24,7 @@
 
 #include <functional>
 
-#include <GlobalSolver.hpp>
+#include <GlobalProblem.hpp>
 #include <NavierStokesAssembler.hpp>
 #include <PseudoFSIAssembler.hpp>
 #include "WomersleySolution.hpp"
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
                      nameTree.c_str());
 
         AbstractFunctor* womerlseySolution = new WomersleySolution;
-        GlobalSolver gs(datafile, comm, verbose, womerlseySolution);
+        GlobalProblem gs(datafile, comm, verbose, womerlseySolution);
         gs.setExportErrors("errors" + *it + ".txt");
         gs.printMeshSize("meshSizes" + *it + ".txt");
 

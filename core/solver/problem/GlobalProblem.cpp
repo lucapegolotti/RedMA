@@ -1,11 +1,11 @@
-#include <GlobalSolver.hpp>
+#include <GlobalProblem.hpp>
 
 namespace RedMA
 {
 
-GlobalSolver::
-GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose,
-             AbstractFunctor* exactSolution) :
+GlobalProblem::
+GlobalProblem(const GetPot& datafile, commPtr_Type comm, bool verbose,
+              AbstractFunctor* exactSolution) :
   M_geometryParser(datafile("geometric_structure/xmlfile","tree.xml"),
                    comm, verbose),
   M_datafile(datafile),
@@ -40,7 +40,7 @@ GlobalSolver(const GetPot& datafile, commPtr_Type comm, bool verbose,
 }
 
 void
-GlobalSolver::
+GlobalProblem::
 solve()
 {
     std::ofstream outFile;
@@ -134,7 +134,7 @@ solve()
 }
 
 void
-GlobalSolver::
+GlobalProblem::
 setExportNorms(std::string filename)
 {
     M_exportNorms = true;
@@ -142,7 +142,7 @@ setExportNorms(std::string filename)
 }
 
 void
-GlobalSolver::
+GlobalProblem::
 setExportErrors(std::string filename)
 {
     M_exportErrors = true;
@@ -150,7 +150,7 @@ setExportErrors(std::string filename)
 }
 
 void
-GlobalSolver::
+GlobalProblem::
 setForcingFunction(FunctionType forcingFunction,
                    FunctionType forcingFunctionDt)
 {
@@ -158,35 +158,35 @@ setForcingFunction(FunctionType forcingFunction,
 }
 
 void
-GlobalSolver::
+GlobalProblem::
 solveTimestep(const double& time, double& dt)
 {
     M_timeMarchingAlgorithm->solveTimestep(time, dt);
 }
 
 void
-GlobalSolver::
+GlobalProblem::
 setLawInflow(std::function<double(double)> maxLaw)
 {
     M_globalAssembler.setLawInflow(maxLaw);
 }
 
 void
-GlobalSolver::
+GlobalProblem::
 setExactSolution(AbstractFunctor* exactSolution)
 {
     M_globalAssembler.setExactSolution(exactSolution);
 }
 
 void
-GlobalSolver::
+GlobalProblem::
 setLawDtInflow(std::function<double(double)> maxLawDt)
 {
     M_globalAssembler.setLawDtInflow(maxLawDt);
 }
 
 void
-GlobalSolver::
+GlobalProblem::
 printMeshSize(std::string filename)
 {
     M_globalAssembler.printMeshSize(filename);
