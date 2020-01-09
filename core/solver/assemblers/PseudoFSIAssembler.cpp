@@ -31,13 +31,13 @@ setup()
     M_primalMaps.push_back(M_velocityFESpace->mapPtr());
 }
 
-void
+PseudoFSIAssembler::AbstractMatrixPtr
 PseudoFSIAssembler::
-assembleMassMatrix()
+assembleMassMatrix(double* diagonalCoefficient)
 {
     using namespace LifeV::ExpressionAssembly;
 
-    NavierStokesAssembler::assembleMassMatrix();
+    NavierStokesAssembler::assembleMassMatrix(diagonalCoefficient);
 
     printlog(YELLOW, "Assembling boundary mass matrix ...\n", M_verbose);
 
@@ -83,25 +83,25 @@ computeBoundaryIndicator()
                 *bcs, M_velocityFESpace->feBd(), 1.0, 0.0);
 }
 
-NavierStokesAssembler::MatrixPtr
+NavierStokesAssembler::AbstractMatrixPtr
 PseudoFSIAssembler::
-getMassMatrix(const unsigned int& blockrow,
-              const unsigned int& blockcol)
+getMassMatrix()
 {
-    if (blockrow == 0 && blockcol == 0)
-    {
-        // we copy the matrix so that we cannot change M_M (e.g. by applying
-        // boundary conditions)
-        MatrixPtr returnMatrix(new Matrix(*M_M));
-        return returnMatrix;
-    }
-    else if (blockrow == 2 && blockcol == 2)
-    {
-        MatrixPtr returnMatrix(new Matrix(*M_massDisplacement));
-        return returnMatrix;
-    }
-
-    return nullptr;
+    toBeImplemented();
+    // if (blockrow == 0 && blockcol == 0)
+    // {
+    //     // we copy the matrix so that we cannot change M_M (e.g. by applying
+    //     // boundary conditions)
+    //     MatrixPtr returnMatrix(new Matrix(*M_M));
+    //     return returnMatrix;
+    // }
+    // else if (blockrow == 2 && blockcol == 2)
+    // {
+    //     MatrixPtr returnMatrix(new Matrix(*M_massDisplacement));
+    //     return returnMatrix;
+    // }
+    //
+    // return nullptr;
 }
 
 

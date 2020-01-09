@@ -6,37 +6,44 @@ namespace RedMA
 GlobalProblem::
 GlobalProblem(const GetPot& datafile, commPtr_Type comm, bool verbose,
               AbstractFunctor* exactSolution) :
-  M_geometryParser(datafile("geometric_structure/xmlfile","tree.xml"),
-                   comm, verbose),
   M_datafile(datafile),
   M_comm(comm),
-  M_globalAssembler(M_datafile, M_comm, M_verbose),
   M_exportNorms(false),
   M_exportErrors(false),
   M_verbose(verbose)
 {
-    M_tree = M_geometryParser.getTree();
-
-    std::string geometriesDir = datafile("geometric_structure/geometries_dir",
-                                         "../../../meshes/");
-
-    M_tree.readMeshes(geometriesDir);
-    M_tree.traverseAndDeformGeometries();
-
-    M_globalAssembler.setTreeStructure(M_tree);
-    M_globalAssembler.setup();
-
     // we set it here because boundary conditions might be set in the constructor
     // of the time advancing scheme
     if (exactSolution != nullptr)
         setExactSolution(exactSolution);
 
-    M_timeMarchingAlgorithm =
-            TimeMarchingAlgorithmsFactory(datafile,
-                                                         &M_globalAssembler,
-                                                         M_comm, M_verbose);
+    setup();
+}
 
-    M_globalAssembler.setTimeIntegrationOrder(M_timeMarchingAlgorithm->getOrder());
+void
+GlobalProblem::
+setup()
+{
+    M_assembler.reset(new GlobalAssembler(M_datafile, M_comm, M_verbose));
+    std::string treeName = M_datafile("geometric_structure/xmlfile","tree.xml");
+    M_geometryParser.reset(new GeometryParser(treeName, M_comm, M_verbose));
+
+    M_tree = M_geometryParser->getTree();
+
+    std::string geometriesDir = M_datafile("geometric_structure/geometries_dir",
+                                           "../../../meshes/");
+
+    M_tree.readMeshes(geometriesDir);
+    M_tree.traverseAndDeformGeometries();
+
+    M_assembler->setTreeStructure(M_tree);
+    M_assembler->setup();
+
+    M_timeMarchingAlgorithm =
+            TimeMarchingAlgorithmsFactory(M_datafile, M_assembler.get(),
+                                          M_comm, M_verbose);
+
+    M_assembler->setTimeIntegrationOrder(M_timeMarchingAlgorithm->getOrder());
 }
 
 void
@@ -64,24 +71,23 @@ solve()
         double t0 = 0.0;
         double dt = 0.0;
 
-        // hdlrAlgorithm->setInitialCondition(M_globalAssembler.getInitialCondition());
+        // hdlrAlgorithm->setInitialCondition(M_assembler->getInitialCondition());
 
         solveTimestep(t0, dt);
 
-        M_globalAssembler.setTimeAndPrevSolution(t0,
-                                                 hdlrAlgorithm->getSolution());
-        M_globalAssembler.postProcess();
+        M_assembler->setTimeAndPrevSolution(t0, hdlrAlgorithm->getSolution());
+        M_assembler->postProcess();
 
-        M_globalAssembler.exportSolutions(t0, hdlrAlgorithm->getSolution());
+        M_assembler->exportSolutions(t0, hdlrAlgorithm->getSolution());
 
         if (M_exportNorms)
         {
-            M_globalAssembler.appendNormsToFile(t0, hdlrAlgorithm->getSolution(),
+            M_assembler->appendNormsToFile(t0, hdlrAlgorithm->getSolution(),
                                                 outFile);
         }
         if (M_exportErrors)
         {
-            M_globalAssembler.appendErrorsToFile(t0, hdlrAlgorithm->getSolution(),
+            M_assembler->appendErrorsToFile(t0, hdlrAlgorithm->getSolution(),
                                                  outFile);
         }
 
@@ -95,35 +101,35 @@ solve()
 
         double t = t0;
         TimeMarchingAlgorithmPtr hdlrAlgorithm = M_timeMarchingAlgorithm;
-        hdlrAlgorithm->setInitialCondition(M_globalAssembler.getInitialCondition());
-        M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
+        hdlrAlgorithm->setInitialCondition(M_assembler->getInitialCondition());
+        M_assembler->exportSolutions(t, hdlrAlgorithm->getSolution());
         if (M_exportErrors)
         {
-            M_globalAssembler.appendErrorsToFile(t, hdlrAlgorithm->getSolution(),
+            M_assembler->appendErrorsToFile(t, hdlrAlgorithm->getSolution(),
                                                  outFile);
         }
 
         unsigned int count = 1;
         while (T - t > dt/2)
         {
-            M_globalAssembler.setTimestep(dt);
+            M_assembler->setTimestep(dt);
             solveTimestep(t, dt);
             t += dt;
             // we do this so that the single assemblers are aware of the
             // solution (e.g. for post processing)
-            M_globalAssembler.setTimeAndPrevSolution(t,
+            M_assembler->setTimeAndPrevSolution(t,
                                                      hdlrAlgorithm->getSolution());
-            M_globalAssembler.postProcess();
+            M_assembler->postProcess();
             if (count % save_every == 0)
-                M_globalAssembler.exportSolutions(t, hdlrAlgorithm->getSolution());
+                M_assembler->exportSolutions(t, hdlrAlgorithm->getSolution());
             if (M_exportNorms)
             {
-                M_globalAssembler.appendNormsToFile(t, hdlrAlgorithm->getSolution(),
+                M_assembler->appendNormsToFile(t, hdlrAlgorithm->getSolution(),
                                                     outFile);
             }
             if (M_exportErrors)
             {
-                M_globalAssembler.appendErrorsToFile(t, hdlrAlgorithm->getSolution(),
+                M_assembler->appendErrorsToFile(t, hdlrAlgorithm->getSolution(),
                                                      outFile);
             }
             count++;
@@ -154,7 +160,7 @@ GlobalProblem::
 setForcingFunction(FunctionType forcingFunction,
                    FunctionType forcingFunctionDt)
 {
-    M_globalAssembler.setForcingFunction(forcingFunction, forcingFunctionDt);
+    M_assembler->setForcingFunction(forcingFunction, forcingFunctionDt);
 }
 
 void
@@ -168,28 +174,28 @@ void
 GlobalProblem::
 setLawInflow(std::function<double(double)> maxLaw)
 {
-    M_globalAssembler.setLawInflow(maxLaw);
+    M_assembler->setLawInflow(maxLaw);
 }
 
 void
 GlobalProblem::
 setExactSolution(AbstractFunctor* exactSolution)
 {
-    M_globalAssembler.setExactSolution(exactSolution);
+    M_assembler->setExactSolution(exactSolution);
 }
 
 void
 GlobalProblem::
 setLawDtInflow(std::function<double(double)> maxLawDt)
 {
-    M_globalAssembler.setLawDtInflow(maxLawDt);
+    M_assembler->setLawDtInflow(maxLawDt);
 }
 
 void
 GlobalProblem::
 printMeshSize(std::string filename)
 {
-    M_globalAssembler.printMeshSize(filename);
+    M_assembler->printMeshSize(filename);
 }
 
 }  // namespace RedMA

@@ -32,13 +32,11 @@ class BackwardEuler : public TimeMarchingAlgorithm
 {
     using TimeMarchingAlgorithm::M_datafile;
     using TimeMarchingAlgorithm::M_solution;
-    using TimeMarchingAlgorithm::M_globalAssembler;
+    using TimeMarchingAlgorithm::M_assembler;
     using TimeMarchingAlgorithm::M_verbose;
     using TimeMarchingAlgorithm::solveLinearSystem;
     using TimeMarchingAlgorithm::getSolution;
 public:
-    typedef typename TimeMarchingAlgorithm::GlobalAssemblerType
-                     GlobalAssemblerType;
     typedef typename TimeMarchingAlgorithm::Vector
                      Vector;
     typedef typename TimeMarchingAlgorithm::VectorPtr
@@ -53,19 +51,21 @@ public:
                      MapEpetraPtr;
     typedef typename TimeMarchingAlgorithm::commPtr_Type
                      commPtr_Type;
+    typedef typename TimeMarchingAlgorithm::AbstractMatrixPtr
+                     AbstractMatrixPtr;
 
     BackwardEuler(const GetPot& datafile,
-                        GlobalAssemblerType* assembler,
+                        AbstractAssembler* assembler,
                         commPtr_Type comm,
                         bool verbose = false);
 
     virtual void solveTimestep(const double &time, double &dt);
 
-    VectorPtr assembleF(const double& time, VectorPtr tentativeSol,
+    VectorPtr assembleF(const double& time, BlockVector tentativeSol,
                         const double& dt);
 
-    BlockMatrix assembleJac(const double& time, VectorPtr tentativeSol,
-                                  const double& dt);
+    BlockMatrix assembleJac(const double& time, BlockVector tentativeSol,
+                            const double& dt);
 
 private:
     VectorPtr               M_prevSolution;

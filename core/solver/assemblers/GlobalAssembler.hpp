@@ -53,6 +53,10 @@ class GlobalAssembler : public AbstractAssembler
                                  double const&,
                                  unsigned int const& )>     Function;
 
+    typedef std::shared_ptr<AbstractMatrix>                AbstractMatrixPtr;
+    typedef std::shared_ptr<AbstractVector>                AbstractVectorPtr;
+    typedef std::shared_ptr<BlockVector>                   BlockVectorPtr;
+
 public:
     GlobalAssembler(const GetPot& datafile, commPtr_Type comm,
                     bool verbose = false);
@@ -84,12 +88,8 @@ public:
     virtual MatrixPtr getJacobianPrec(const unsigned int& blockrow,
                                     const unsigned int& blockcol) override {};
 
-    virtual MatrixPtr getMassMatrix(const unsigned int& blockrow,
-                                    const unsigned int& blockcol) override {};
-
-    virtual void setTimeAndPrevSolution(const double& time,
-                                        std::vector<VectorPtr> solution,
-                                        bool assembleBlocks = true) override {};
+    virtual void setTimeAndPrevSolution(const double& time, BlockVector solution,
+                                        bool doAssembly = true) override;
 
     virtual void applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
                                        std::vector<VectorPtr> utilde,
@@ -109,22 +109,19 @@ public:
 
     virtual void exportSolutions(const double& time, std::vector<VectorPtr> solutions) override {};
 
-    virtual void applyBCsBackwardEuler(std::vector<VectorPtr> rhs, const double& coeff,
-                                       const double& time) override {};
+    virtual void setTreeStructure(TreeStructure& tree) override;
 
     void buildPrimalStructures(TreeStructure& tree);
 
     void buildDualStructures(TreeStructure& tree);
 
-    MapEpetraPtr getGlobalMap() const;
+    MapEpetraPtr getGlobalMap() const override;
 
-    BlockMatrix getGlobalMass();
+    virtual AbstractMatrixPtr getMassMatrix() override;
 
     BlockMatrix getGlobalMassJac();
 
     BlockMatrix getGlobalMassJacVelocity();
-
-    void setTreeStructure(TreeStructure tree);
 
     BlockMatrix getJacobianF(bool addCoupling,
                                    double* diagonalCoefficient = nullptr);
@@ -138,19 +135,14 @@ public:
 
     // the diagonal coefficient is for the boundary conditions (if null, no
     // bcs are applied)
-    BlockMatrix assembleGlobalMass(bool addCoupling,
-                                         double* diagonalCoefficient = nullptr);
-
-    void setTimeAndPrevSolution(const double& time, VectorPtr solution,
-                                bool doAssembly = true);
+    AbstractMatrixPtr assembleMassMatrix(double* diagonalCoefficient = nullptr) override;
 
     void applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
                                const double& time, const double& dt,
                                const double& alphai, const double& gammai);
 
-    template<typename FunctionType>
-    void applyBCsVector(VectorPtr rhs, const double& coeff, const double& time,
-                        FunctionType bcFunction);
+    virtual void applyBCsBackwardEuler(BlockVector rhs, const double& coeff,
+                                       const double& time) override;
 
     virtual void setLawInflow(std::function<double(double)> maxLaw) override;
 
@@ -160,11 +152,11 @@ public:
 
     void exportSolutions(const double& time, VectorPtr solution);
 
-    void appendNormsToFile(const double& time, VectorPtr solution,
-                           std::ofstream& outFile);
+    virtual void appendNormsToFile(const double& time, BlockVector solution,
+                                   std::ofstream& outFile) override;
 
-    void appendErrorsToFile(const double& time, VectorPtr solution,
-                            std::ofstream& outFile);
+    virtual void appendErrorsToFile(const double& time, BlockVector solution,
+                                    std::ofstream& outFile) override;
 
     virtual void setTimeIntegrationOrder(unsigned int order) override;
 
@@ -172,9 +164,9 @@ public:
 
     virtual void postProcess() override;
 
-    VectorPtr getInitialCondition();
+    BlockVector getInitialCondition() override;
 
-    void printMeshSize(std::string filename);
+    void printMeshSize(std::string filename) override;
 
     void setForcingFunction(Function forcingFunction,
                             Function forcingFunctionDt);
@@ -196,8 +188,8 @@ private:
     commPtr_Type                                                M_comm;
     bool                                                        M_verbose;
     MapEpetraPtr                                                M_globalMap;
-    BlockMatrix                                                 M_massMatrix;
-    BlockMatrix                                                 M_updatedMassMatrix;
+    std::shared_ptr<BlockMatrix>                                M_massMatrix;
+    std::shared_ptr<BlockMatrix>                                M_updatedMassMatrix;
     std::vector<unsigned int>                                   M_dimensionsVector;
     std::vector<std::pair<unsigned int, unsigned int> >         M_interfaces;
     std::vector<unsigned int>                                   M_offsets;
@@ -213,70 +205,72 @@ GlobalAssembler::
 fillGlobalMatrix(BlockMatrix& matrixToFill, bool addCoupling,
                  FunctionType getMatrixMethod, double* diagonalCoefficient)
 {
-    typedef std::vector<std::pair<unsigned int, AbstractAssemblerPtr> >
-                AssemblersVector;
+    toBeImplemented();
 
-    unsigned int totalNumberBlocks = M_nPrimalBlocks + M_interfaces.size();
-    matrixToFill.resize(totalNumberBlocks, totalNumberBlocks);
-    matrixToFill.setMaps(M_maps, M_maps);
-    // we start with the primal blocks
-    unsigned int countBlocks = 0;
-    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
-         it != M_assemblersVector.end(); it++)
-    {
-        unsigned int blockIndex = it->first;
-        unsigned int numberBlocks = it->second->numberOfBlocks();
-        for (int i = 0; i < numberBlocks; i++)
-        {
-            for (int j = 0; j < numberBlocks; j++)
-            {
-                AbstractAssembler& curAssembler = *it->second;
-                MatrixPtr localMatrix = (curAssembler.*getMatrixMethod)(i, j);
-                if (diagonalCoefficient)
-                    curAssembler.applyBCsMatrix(localMatrix, *diagonalCoefficient,
-                                                i, j);
-                // Attention: this does not work if number of blocks is not constant
-                // over all the domains
-                matrixToFill.copyBlock(countBlocks + i,
-                                       countBlocks + j,
-                                       localMatrix);
-            }
-        }
-        countBlocks += numberBlocks;
-    }
-
-    // if required add the coupling blocks
-    if (addCoupling)
-    {
-        typedef std::vector<std::pair<unsigned int, unsigned int> >
-                InterfacesVector;
-
-        unsigned int offset = M_nPrimalBlocks;
-
-        for (InterfacesVector::iterator it = M_interfaces.begin();
-             it != M_interfaces.end(); it++)
-        {
-            unsigned int indices[2] = {it->first, it->second};
-
-            for (int i = 0; i < 2; i++)
-            {
-                AbstractAssembler& curAssembler = *M_assemblersMap[indices[i]];
-                MatrixPtr Qt = curAssembler.getQT(indices[(i+1) % 2]);
-                unsigned int blockCoupling = curAssembler.getIndexCoupling();
-
-                unsigned int blockIndex = blockCoupling +
-                                indices[i] * curAssembler.numberOfBlocks();
-
-                curAssembler.applyBCsMatrix(Qt, 0.0,
-                                            blockCoupling, blockCoupling);
-                matrixToFill.copyBlock(blockIndex, offset, Qt);
-
-                MatrixPtr Q = curAssembler.getQ(indices[(i+1) % 2]);
-                matrixToFill.copyBlock(offset, blockIndex, Q);
-            }
-            offset++;
-        }
-    }
+    // typedef std::vector<std::pair<unsigned int, AbstractAssemblerPtr> >
+    //             AssemblersVector;
+    //
+    // unsigned int totalNumberBlocks = M_nPrimalBlocks + M_interfaces.size();
+    // matrixToFill.resize(totalNumberBlocks, totalNumberBlocks);
+    // matrixToFill.setMaps(M_maps, M_maps);
+    // // we start with the primal blocks
+    // unsigned int countBlocks = 0;
+    // for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+    //      it != M_assemblersVector.end(); it++)
+    // {
+    //     unsigned int blockIndex = it->first;
+    //     unsigned int numberBlocks = it->second->numberOfBlocks();
+    //     for (int i = 0; i < numberBlocks; i++)
+    //     {
+    //         for (int j = 0; j < numberBlocks; j++)
+    //         {
+    //             AbstractAssembler& curAssembler = *it->second;
+    //             MatrixPtr localMatrix = (curAssembler.*getMatrixMethod)(i, j);
+    //             if (diagonalCoefficient)
+    //                 curAssembler.applyBCsMatrix(localMatrix, *diagonalCoefficient,
+    //                                             i, j);
+    //             // Attention: this does not work if number of blocks is not constant
+    //             // over all the domains
+    //             matrixToFill.copyBlock(countBlocks + i,
+    //                                    countBlocks + j,
+    //                                    localMatrix);
+    //         }
+    //     }
+    //     countBlocks += numberBlocks;
+    // }
+    //
+    // // if required add the coupling blocks
+    // if (addCoupling)
+    // {
+    //     typedef std::vector<std::pair<unsigned int, unsigned int> >
+    //             InterfacesVector;
+    //
+    //     unsigned int offset = M_nPrimalBlocks;
+    //
+    //     for (InterfacesVector::iterator it = M_interfaces.begin();
+    //          it != M_interfaces.end(); it++)
+    //     {
+    //         unsigned int indices[2] = {it->first, it->second};
+    //
+    //         for (int i = 0; i < 2; i++)
+    //         {
+    //             AbstractAssembler& curAssembler = *M_assemblersMap[indices[i]];
+    //             MatrixPtr Qt = curAssembler.getQT(indices[(i+1) % 2]);
+    //             unsigned int blockCoupling = curAssembler.getIndexCoupling();
+    //
+    //             unsigned int blockIndex = blockCoupling +
+    //                             indices[i] * curAssembler.numberOfBlocks();
+    //
+    //             curAssembler.applyBCsMatrix(Qt, 0.0,
+    //                                         blockCoupling, blockCoupling);
+    //             matrixToFill.copyBlock(blockIndex, offset, Qt);
+    //
+    //             MatrixPtr Q = curAssembler.getQ(indices[(i+1) % 2]);
+    //             matrixToFill.copyBlock(offset, blockIndex, Q);
+    //         }
+    //         offset++;
+    //     }
+    // }
 }
 
 template<typename FunctionType>
@@ -341,56 +335,6 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
         }
     }
 }
-
-template<typename FunctionType>
-void
-GlobalAssembler::
-applyBCsVector(VectorPtr rhs, const double& coeff, const double& time,
-               FunctionType bcFunction)
-{
-    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
-    typedef std::vector<Pair>                            AssemblersVector;
-    typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
-    typedef std::vector<MapEpetraPtr>                    MapVector;
-
-    unsigned int offset = 0;
-    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
-         it != M_assemblersVector.end(); it++)
-    {
-        std::vector<VectorPtr> rhss;
-        std::vector<VectorPtr> utildes;
-        MapVector maps = it->second->getPrimalMapVector();
-        unsigned int suboffset = 0;
-        for (MapVector::iterator itmap = maps.begin();
-             itmap != maps.end(); itmap++)
-        {
-            LifeV::MapEpetra& curLocalMap = **itmap;
-            VectorPtr subRhs;
-            subRhs.reset(new Vector(curLocalMap));
-            subRhs->zero();
-            subRhs->subset(*rhs, curLocalMap, offset + suboffset, 0);
-            rhss.push_back(subRhs);
-            suboffset += curLocalMap.mapSize();
-        }
-        // apply bcs
-        AbstractAssembler& curAssembler = *it->second;
-        (curAssembler.*bcFunction)(rhss, coeff, time);
-
-        suboffset = 0;
-        unsigned int count = 0;
-        // copy back to global vectors
-        for (MapVector::iterator itmap = maps.begin();
-             itmap != maps.end(); itmap++)
-        {
-            LifeV::MapEpetra& curLocalMap = **itmap;
-            rhs->subset(*rhss[count], curLocalMap, 0, offset + suboffset);
-            suboffset += curLocalMap.mapSize();
-            count++;
-        }
-        offset += suboffset;
-    }
-}
-
 
 }  // namespace RedMA
 

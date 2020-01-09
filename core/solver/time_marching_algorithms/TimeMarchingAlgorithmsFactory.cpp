@@ -5,7 +5,7 @@ namespace RedMA
 
 std::shared_ptr<TimeMarchingAlgorithm >
 TimeMarchingAlgorithmsFactory(const GetPot& datafile,
-                              GlobalAssembler* assembler,
+                              AbstractAssembler* assembler,
                               std::shared_ptr<Epetra_Comm> comm,
                               bool verbose)
 {

@@ -20,6 +20,7 @@
 #include <sstream>
 
 #include <BlockMatrix.hpp>
+#include <AbstractVector.hpp>
 #include <GlobalAssembler.hpp>
 #include <PrintLog.hpp>
 #include <GlobalSolverOperator.hpp>
@@ -39,7 +40,6 @@ namespace RedMA
 class TimeMarchingAlgorithm
 {
 protected:
-    typedef GlobalAssembler                                 GlobalAssemblerType;
     typedef LifeV::VectorEpetra                             Vector;
     typedef std::shared_ptr<Vector>                         VectorPtr;
     typedef std::shared_ptr<Epetra_Comm>                    commPtr_Type;
@@ -49,10 +49,12 @@ protected:
     typedef std::shared_ptr<MapEpetra>                      MapEpetraPtr;
     typedef Teuchos::ParameterList                          ParameterList;
     typedef std::shared_ptr<ParameterList>                  ParameterListPtr;
+    typedef std::shared_ptr<AbstractMatrix>                 AbstractMatrixPtr;
+    typedef std::shared_ptr<AbstractVector>                 AbstractVectorPtr;
 
 public:
     TimeMarchingAlgorithm(const GetPot& datafile,
-                          GlobalAssemblerType* assembler,
+                          AbstractAssembler* assembler,
                           commPtr_Type comm,
                           bool verbose = false);
 
@@ -73,16 +75,16 @@ public:
 
     void buildPreconditioner(BlockMatrix matrix);
 
-    VectorPtr getSolution();
+    BlockVector getSolution();
 
     unsigned int getOrder();
 
-    void setInitialCondition(VectorPtr initalCondition);
+    void setInitialCondition(BlockVector initalCondition);
 
 protected:
     GetPot                                                                M_datafile;
-    VectorPtr                                                             M_solution;
-    GlobalAssemblerType*                                                  M_globalAssembler;
+    BlockVector                                                           M_solution;
+    AbstractAssembler*                                                    M_assembler;
     commPtr_Type                                                          M_comm;
     bool                                                                  M_verbose;
     std::shared_ptr<LifeV::Operators::GlobalSolverOperator>               M_oper;

@@ -57,6 +57,8 @@ public:
 
     void solve();
 
+    void setup();
+
     void setLawInflow(std::function<double(double)> maxLaw);
 
     void setLawDtInflow(std::function<double(double)> maxLawDt);
@@ -76,16 +78,16 @@ private:
 
     void setExactSolution(AbstractFunctor* exactSolution);
 
-    GeometryParser                 M_geometryParser;
-    TreeStructure                  M_tree;
-    GetPot                         M_datafile;
-    commPtr_Type                   M_comm;
-    bool                           M_verbose;
-    bool                           M_exportNorms;
-    bool                           M_exportErrors;
-    std::string                    M_filename;
-    GlobalAssembler                M_globalAssembler;
-    TimeMarchingAlgorithmPtr       M_timeMarchingAlgorithm;
+    std::shared_ptr<GeometryParser>     M_geometryParser;
+    TreeStructure                       M_tree;
+    GetPot                              M_datafile;
+    commPtr_Type                        M_comm;
+    bool                                M_verbose;
+    bool                                M_exportNorms;
+    bool                                M_exportErrors;
+    std::string                         M_filename;
+    std::shared_ptr<AbstractAssembler>  M_assembler;
+    TimeMarchingAlgorithmPtr            M_timeMarchingAlgorithm;
 };
 
 }  // namespace RedMA

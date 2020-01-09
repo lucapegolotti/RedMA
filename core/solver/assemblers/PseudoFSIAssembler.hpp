@@ -41,6 +41,7 @@ protected:
     typedef LifeV::ExporterHDF5<Mesh>                   ExporterHDF5;
     typedef LifeV::Exporter<Mesh>                       Exporter;
     typedef std::shared_ptr<Exporter>                   ExporterPtr;
+    typedef std::shared_ptr<AbstractMatrix>                AbstractMatrixPtr;
 
 public:
     PseudoFSIAssembler(const GetPot& datafile, commPtr_Type comm,
@@ -49,6 +50,8 @@ public:
     std::vector<VectorPtr> computeF() override;
 
     std::vector<VectorPtr> computeFder() override;
+
+    AbstractMatrixPtr assembleMassMatrix(double* diagonalCoefficient = nullptr) override;
 
     void postProcess() override;
 
@@ -60,14 +63,12 @@ public:
 
     void getMassMatix();
 
-    virtual MatrixPtr getMassMatrix(const unsigned int& blockrow,
-                                    const unsigned int& blockcol) override;
+    virtual AbstractMatrixPtr getMassMatrix() override;
 
     virtual MatrixPtr getJacobian(const unsigned int& blockrow,
                                   const unsigned int& blockcol) override;
 
 protected:
-    void assembleMassMatrix() override;
 
     void assembleStiffnessMatrix() override;
 

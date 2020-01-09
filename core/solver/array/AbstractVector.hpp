@@ -14,28 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef TIMEMARCHINGALGORITHMFACTORY_HPP
-#define TIMEMARCHINGALGORITHMFACTORY_HPP
+#ifndef VECTOR_HPP
+#define VECTOR_HPP
 
-#include <memory>
-
-#include <TimeMarchingAlgorithm.hpp>
-#include <RosenbrockAlgorithm.hpp>
-#include <BackwardEuler.hpp>
-#include <SteadySolver.hpp>
 #include <Exception.hpp>
 
 namespace RedMA
 {
 
-extern
-std::shared_ptr<TimeMarchingAlgorithm >
-TimeMarchingAlgorithmsFactory(const GetPot& datafile,
-                              AbstractAssembler* assembler,
-                              std::shared_ptr<Epetra_Comm> comm,
-                              bool verbose);
+// this is simply the interface of a wrapper to wathever type of matrix we use
+class AbstractVector
+{
 
+};
 
 }  // namespace RedMA
 
-#endif  // TIMEMARCHINGALGORITHMFACTORY_HPP
+#endif  // VECTOR_HPP
