@@ -7,7 +7,7 @@ paraview.simple._DisableFirstRenderCameraReset()
 stringtosearch = "velocity." # CHANGE THIS VARIABLE TO LOAD OTHER VARIABLE
 
 print(os.curdir)
-dir = "/Users/luca/RedMA/build/examples/NavierStokesExample/solutions/" # SET DIR HERE
+dir = os.getcwd() + "/solutions/"
 renderView1 = GetActiveViewOrCreate('RenderView')
 count = 0
 

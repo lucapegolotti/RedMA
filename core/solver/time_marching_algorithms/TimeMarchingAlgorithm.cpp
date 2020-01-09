@@ -59,6 +59,11 @@ buildPreconditioner(BlockMatrix matrix)
         bool exactSolveBlocks = M_datafile("linear_solve/exact_solve_primal", false);
         // if -1, all iterations are exact
         int numIterationsExactSolve = M_datafile("linear_solve/num_exact_iterations", 2);
+
+        if (numIterationsExactSolve > 0 && exactSolveBlocks)
+        {
+          throw new Exception("This feature is buggy!");
+        }
         // we don't allow for exact solve in steady case. The problem is that we don't pass
         // the matrix to be solved to the preconditioner
         if (steady)

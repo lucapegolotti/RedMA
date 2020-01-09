@@ -12,7 +12,7 @@
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1
-	use_stabilization = true
+	use_stabilization = false
 	inflow_bc      = dirichlet
 [../]
 

@@ -208,8 +208,6 @@ assembleCouplingMatricesInterpolation(AbstractAssembler& child,
                                                mainDomain->numberOfComponents(),
                                                otherDomain->M_treeNode->M_ID);
 
-    couplingMatrix->spy("couplingMatrix");
-
     MatrixPtr massMatrixMain = mainDomain->assembleBoundaryMatrix(*mainFace);
     MatrixPtr massMatrixOther = otherDomain->assembleBoundaryMatrix(*otherFace);
 

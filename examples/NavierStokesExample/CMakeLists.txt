@@ -11,6 +11,12 @@ add_custom_command(
 add_custom_command(
         TARGET NavierStokesExample POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/tree1.xml
+                ${CMAKE_CURRENT_BINARY_DIR}/tree1.xml)
+
+add_custom_command(
+        TARGET NavierStokesExample POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/tree2.xml
                 ${CMAKE_CURRENT_BINARY_DIR}/tree2.xml)
 
