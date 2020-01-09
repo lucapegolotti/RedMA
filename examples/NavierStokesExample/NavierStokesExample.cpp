@@ -24,7 +24,7 @@
 
 #include <functional>
 
-#include <GlobalSolver.hpp>
+#include <GlobalProblem.hpp>
 #include <NavierStokesAssembler.hpp>
 #include <PseudoFSIAssembler.hpp>
 
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 
     bool verbose = comm->MyPID() == 0;
 
-    GlobalSolver gs(datafile, comm, verbose);
+    GlobalProblem gs(datafile, comm, verbose);
     gs.setExportNorms("norms_nonconforming.txt");
     gs.setLawInflow(std::function<double(double)>(maxLaw_));
     gs.setLawDtInflow(std::function<double(double)>(maxLawDt_));

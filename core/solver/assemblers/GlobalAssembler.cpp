@@ -11,6 +11,8 @@ GlobalAssembler(const GetPot& datafile, commPtr_Type comm, bool verbose) :
   M_verbose(verbose)
 {
     M_globalMap.reset(new MapEpetra());
+    M_massMatrix.reset(new BlockMatrix());
+    M_updatedMassMatrix.reset(new BlockMatrix());
 }
 
 void
@@ -50,7 +52,7 @@ numberOfComponents()
 
 void
 GlobalAssembler::
-setTreeStructure(TreeStructure tree)
+setTreeStructure(TreeStructure& tree)
 {
     M_tree = tree;
 }
@@ -145,39 +147,41 @@ getGlobalMap() const
     return M_globalMap;
 }
 
-BlockMatrix
+GlobalAssembler::AbstractMatrixPtr
 GlobalAssembler::
-getGlobalMass()
+getMassMatrix()
 {
-    BlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
-                                  M_massMatrix.getNumberCols());
-    double diagCoefficient = 0.0;
-    fillGlobalMatrix(updatedMassMatrix, false, &AbstractAssembler::getUpdateMass,
-                     &diagCoefficient);
-    updatedMassMatrix.add(M_massMatrix);
-    return updatedMassMatrix;
+    toBeImplemented();
+    // BlockMatrix updatedMassMatrix(M_massMatrix->getNumberRows(),
+    //                               M_massMatrix->getNumberCols());
+    // double diagCoefficient = 0.0;
+    // fillGlobalMatrix(updatedMassMatrix, false, &AbstractAssembler::getUpdateMass,
+    //                  &diagCoefficient);
+    // updatedMassMatrix.add(*M_massMatrix);
+    // return updatedMassMatrix;
     // return M_massMatrix;
 }
 
-GlobalAssembler::VectorPtr
+BlockVector
 GlobalAssembler::
 getInitialCondition()
 {
-    VectorPtr f(new Vector(*M_globalMap));
-    fillGlobalVector(f, &AbstractAssembler::initialCondition);
-    return f;
+    toBeImplemented();
+    // VectorPtr f(new Vector(*M_globalMap));
+    // fillGlobalVector(f, &AbstractAssembler::initialCondition);
+    // return f;
 }
 
 BlockMatrix
 GlobalAssembler::
 getGlobalMassJac()
 {
-    BlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
-                                  M_massMatrix.getNumberCols());
+    BlockMatrix updatedMassMatrix(M_massMatrix->getNumberRows(),
+                                  M_massMatrix->getNumberCols());
     double diagCoefficient = 0.0;
     fillGlobalMatrix(updatedMassMatrix, false, &AbstractAssembler::getUpdateMassJac,
                      &diagCoefficient);
-    updatedMassMatrix.add(M_massMatrix);
+    updatedMassMatrix.add(*M_massMatrix);
     // return updatedMassMatrix;
     return updatedMassMatrix;
 }
@@ -186,8 +190,8 @@ BlockMatrix
 GlobalAssembler::
 getGlobalMassJacVelocity()
 {
-    BlockMatrix updatedMassMatrix(M_massMatrix.getNumberRows(),
-                                  M_massMatrix.getNumberCols());
+    BlockMatrix updatedMassMatrix(M_massMatrix->getNumberRows(),
+                                  M_massMatrix->getNumberCols());
     double diagCoefficient = 0.0;
     fillGlobalMatrix(updatedMassMatrix, false, &AbstractAssembler::getUpdateMassJacVelocity,
                      &diagCoefficient);
@@ -232,60 +236,65 @@ computeFder_()
     return fder;
 }
 
-BlockMatrix
+GlobalAssembler::AbstractMatrixPtr
 GlobalAssembler::
-assembleGlobalMass(bool addCoupling, double* diagonalCoefficient)
+assembleMassMatrix(double* diagonalCoefficient)
 {
-    fillGlobalMatrix(M_massMatrix, addCoupling, &AbstractAssembler::getMassMatrix,
-                     diagonalCoefficient);
+    toBeImplemented();
+
+    // note: I need to understand what to do with the coupling part
+    // fillGlobalMatrix(*M_massMatrix, addCoupling, &AbstractAssembler::getMassMatrix,
+    //                  diagonalCoefficient);
     return M_massMatrix;
 }
 
 void
 GlobalAssembler::
-setTimeAndPrevSolution(const double& time, VectorPtr solution, bool doAssembly)
+setTimeAndPrevSolution(const double& time, BlockVector solution, bool doAssembly)
 {
-    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
-    typedef std::vector<Pair>                            AssemblersVector;
-    typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
-    typedef std::vector<MapEpetraPtr>                    MapVector;
+    toBeImplemented();
 
-    unsigned int offsetPrimal = 0;
-    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
-         it != M_assemblersVector.end(); it++)
-    {
-        std::vector<VectorPtr> localSolutions;
-        // first handle the primal solutions
-        MapVector maps = it->second->getPrimalMapVector();
-        for (MapVector::iterator itmap = maps.begin();
-             itmap != maps.end(); itmap++)
-        {
-            LifeV::MapEpetra& curLocalMap = **itmap;
-            VectorPtr subSolution;
-            subSolution.reset(new Vector(curLocalMap));
-            subSolution->zero();
-            subSolution->subset(*solution, curLocalMap, offsetPrimal, 0);
-            localSolutions.push_back(subSolution);
-            offsetPrimal += curLocalMap.mapSize();
-        }
-
-        maps = it->second->getDualMapVector();
-        std::vector<unsigned int> indices = it->second->getInterfacesIndices();
-        unsigned int in = 0;
-        for (MapVector::iterator itmap = maps.begin();
-             itmap != maps.end(); itmap++)
-        {
-            LifeV::MapEpetra& curLocalMap = **itmap;
-            VectorPtr subSolution;
-            subSolution.reset(new Vector(curLocalMap));
-            subSolution->zero();
-            subSolution->subset(*solution, curLocalMap,
-                                 M_offsets[M_nPrimalBlocks + indices[in]], 0);
-            localSolutions.push_back(subSolution);
-            in++;
-        }
-        it->second->setTimeAndPrevSolution(time, localSolutions, doAssembly);
-    }
+    // typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
+    // typedef std::vector<Pair>                                AssemblersVector;
+    // typedef std::shared_ptr<LifeV::MapEpetra>                MapEpetraPtr;
+    // typedef std::vector<MapEpetraPtr>                        MapVector;
+    //
+    // unsigned int offsetPrimal = 0;
+    // for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+    //      it != M_assemblersVector.end(); it++)
+    // {
+    //     std::vector<VectorPtr> localSolutions;
+    //     // first handle the primal solutions
+    //     MapVector maps = it->second->getPrimalMapVector();
+    //     for (MapVector::iterator itmap = maps.begin();
+    //          itmap != maps.end(); itmap++)
+    //     {
+    //         LifeV::MapEpetra& curLocalMap = **itmap;
+    //         VectorPtr subSolution;
+    //         subSolution.reset(new Vector(curLocalMap));
+    //         subSolution->zero();
+    //         subSolution->subset(*solution, curLocalMap, offsetPrimal, 0);
+    //         localSolutions.push_back(subSolution);
+    //         offsetPrimal += curLocalMap.mapSize();
+    //     }
+    //
+    //     maps = it->second->getDualMapVector();
+    //     std::vector<unsigned int> indices = it->second->getInterfacesIndices();
+    //     unsigned int in = 0;
+    //     for (MapVector::iterator itmap = maps.begin();
+    //          itmap != maps.end(); itmap++)
+    //     {
+    //         LifeV::MapEpetra& curLocalMap = **itmap;
+    //         VectorPtr subSolution;
+    //         subSolution.reset(new Vector(curLocalMap));
+    //         subSolution->zero();
+    //         subSolution->subset(*solution, curLocalMap,
+    //                              M_offsets[M_nPrimalBlocks + indices[in]], 0);
+    //         localSolutions.push_back(subSolution);
+    //         in++;
+    //     }
+    //     it->second->setTimeAndPrevSolution(time, localSolutions, doAssembly);
+    // }
 }
 
 void
@@ -445,136 +454,189 @@ exportSolutions(const double& time, VectorPtr solution)
 
 void
 GlobalAssembler::
-appendNormsToFile(const double& time, VectorPtr solution,
+appendNormsToFile(const double& time, BlockVector solution,
                   std::ofstream& outFile)
 {
-    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
-    typedef std::vector<Pair>                            AssemblersVector;
-    typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
-    typedef std::vector<MapEpetraPtr>                    MapVector;
+    toBeImplemented();
 
-    std::vector<double> norms;
-    unsigned int countDomains = 0;
-    unsigned int offset = 0;
-    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
-         it != M_assemblersVector.end(); it++)
-    {
-        std::vector<VectorPtr> localSolutions;
-        MapVector maps = it->second->getPrimalMapVector();
-        for (MapVector::iterator itmap = maps.begin();
-             itmap != maps.end(); itmap++)
-        {
-            LifeV::MapEpetra& curLocalMap = **itmap;
-            VectorPtr subSolution;
-            subSolution.reset(new Vector(curLocalMap));
-            subSolution->zero();
-            subSolution->subset(*solution, curLocalMap, offset, 0);
-            localSolutions.push_back(subSolution);
-            offset += curLocalMap.mapSize();
-        }
-        std::vector<double> localNorms = it->second->computeNorms(localSolutions);
-        if (countDomains == 0)
-        {
-            for (std::vector<double>::iterator itNorm = localNorms.begin();
-                 itNorm != localNorms.end(); itNorm++)
-            {
-                norms.push_back(*itNorm);
-            }
-        }
-        else
-        {
-            unsigned int count = 0;
-            for (std::vector<double>::iterator itNorm = localNorms.begin();
-                 itNorm != localNorms.end(); itNorm++)
-            {
-                double curNorm = *itNorm;
-                double newNorm = curNorm * curNorm +
-                                 norms[count] * norms[count];
-                norms[count] = std::sqrt(newNorm);
-                count++;
-            }
-        }
-        countDomains++;
-    }
-
-    std::string newLine = std::to_string(time);
-    for (std::vector<double>::iterator itNorm = norms.begin();
-         itNorm != norms.end(); itNorm++)
-    {
-        newLine += ",";
-        std::ostringstream streamOb;
-        streamOb << *itNorm;
-        newLine += streamOb.str();    }
-    newLine += "\n";
-    outFile << newLine << std::flush;
+    // typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
+    // typedef std::vector<Pair>                            AssemblersVector;
+    // typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
+    // typedef std::vector<MapEpetraPtr>                    MapVector;
+    //
+    // std::vector<double> norms;
+    // unsigned int countDomains = 0;
+    // unsigned int offset = 0;
+    // for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+    //      it != M_assemblersVector.end(); it++)
+    // {
+    //     std::vector<VectorPtr> localSolutions;
+    //     MapVector maps = it->second->getPrimalMapVector();
+    //     for (MapVector::iterator itmap = maps.begin();
+    //          itmap != maps.end(); itmap++)
+    //     {
+    //         LifeV::MapEpetra& curLocalMap = **itmap;
+    //         VectorPtr subSolution;
+    //         subSolution.reset(new Vector(curLocalMap));
+    //         subSolution->zero();
+    //         subSolution->subset(*solution, curLocalMap, offset, 0);
+    //         localSolutions.push_back(subSolution);
+    //         offset += curLocalMap.mapSize();
+    //     }
+    //     std::vector<double> localNorms = it->second->computeNorms(localSolutions);
+    //     if (countDomains == 0)
+    //     {
+    //         for (std::vector<double>::iterator itNorm = localNorms.begin();
+    //              itNorm != localNorms.end(); itNorm++)
+    //         {
+    //             norms.push_back(*itNorm);
+    //         }
+    //     }
+    //     else
+    //     {
+    //         unsigned int count = 0;
+    //         for (std::vector<double>::iterator itNorm = localNorms.begin();
+    //              itNorm != localNorms.end(); itNorm++)
+    //         {
+    //             double curNorm = *itNorm;
+    //             double newNorm = curNorm * curNorm +
+    //                              norms[count] * norms[count];
+    //             norms[count] = std::sqrt(newNorm);
+    //             count++;
+    //         }
+    //     }
+    //     countDomains++;
+    // }
+    //
+    // std::string newLine = std::to_string(time);
+    // for (std::vector<double>::iterator itNorm = norms.begin();
+    //      itNorm != norms.end(); itNorm++)
+    // {
+    //     newLine += ",";
+    //     std::ostringstream streamOb;
+    //     streamOb << *itNorm;
+    //     newLine += streamOb.str();    }
+    // newLine += "\n";
+    // outFile << newLine << std::flush;
 }
 
 void
 GlobalAssembler::
-appendErrorsToFile(const double& time, VectorPtr solution,
+applyBCsBackwardEuler(BlockVector rhs, const double& coeff, const double& time)
+{
+    toBeImplemented();
+
+    // typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
+    // typedef std::vector<Pair>                            AssemblersVector;
+    // typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
+    // typedef std::vector<MapEpetraPtr>                    MapVector;
+    //
+    // unsigned int offset = 0;
+    // for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+    //      it != M_assemblersVector.end(); it++)
+    // {
+    //     std::vector<VectorPtr> rhss;
+    //     std::vector<VectorPtr> utildes;
+    //     MapVector maps = it->second->getPrimalMapVector();
+    //     unsigned int suboffset = 0;
+    //     for (MapVector::iterator itmap = maps.begin();
+    //          itmap != maps.end(); itmap++)
+    //     {
+    //         LifeV::MapEpetra& curLocalMap = **itmap;
+    //         VectorPtr subRhs;
+    //         subRhs.reset(new Vector(curLocalMap));
+    //         subRhs->zero();
+    //         subRhs->subset(*rhs, curLocalMap, offset + suboffset, 0);
+    //         rhss.push_back(subRhs);
+    //         suboffset += curLocalMap.mapSize();
+    //     }
+    //     // apply bcs
+    //     AbstractAssembler& curAssembler = *it->second;
+    //     curAssembler.applyBCsBackwardEuler(rhss, coeff, time);
+    //
+    //     suboffset = 0;
+    //     unsigned int count = 0;
+    //     // copy back to global vectors
+    //     for (MapVector::iterator itmap = maps.begin();
+    //          itmap != maps.end(); itmap++)
+    //     {
+    //         LifeV::MapEpetra& curLocalMap = **itmap;
+    //         rhs->subset(*rhss[count], curLocalMap, 0, offset + suboffset);
+    //         suboffset += curLocalMap.mapSize();
+    //         count++;
+    //     }
+    //     offset += suboffset;
+    // }
+}
+
+void
+GlobalAssembler::
+appendErrorsToFile(const double& time, BlockVector solution,
                    std::ofstream& outFile)
 {
-    typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
-    typedef std::vector<Pair>                            AssemblersVector;
-    typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
-    typedef std::vector<MapEpetraPtr>                    MapVector;
+    toBeImplemented();
 
-    std::vector<double> errors;
-    unsigned int countDomains = 0;
-    unsigned int offset = 0;
-    for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
-         it != M_assemblersVector.end(); it++)
-    {
-        std::vector<VectorPtr> localSolutions;
-        MapVector maps = it->second->getPrimalMapVector();
-        for (MapVector::iterator itmap = maps.begin();
-             itmap != maps.end(); itmap++)
-        {
-            LifeV::MapEpetra& curLocalMap = **itmap;
-            VectorPtr subSolution;
-            subSolution.reset(new Vector(curLocalMap));
-            subSolution->zero();
-            subSolution->subset(*solution, curLocalMap, offset, 0);
-            localSolutions.push_back(subSolution);
-            offset += curLocalMap.mapSize();
-        }
-        std::vector<double> localErrors = it->second->computeErrors(localSolutions,
-                                                                    time);
-        if (countDomains == 0)
-        {
-            for (std::vector<double>::iterator itError = localErrors.begin();
-                 itError != localErrors.end(); itError++)
-            {
-                errors.push_back(*itError);
-            }
-        }
-        else
-        {
-            unsigned int count = 0;
-            for (std::vector<double>::iterator itErrors = localErrors.begin();
-                 itErrors != localErrors.end(); itErrors++)
-            {
-                double curError = *itErrors;
-                double newError = curError * curError +
-                                  errors[count] * errors[count];
-                errors[count] = std::sqrt(newError);
-                count++;
-            }
-        }
-        countDomains++;
-    }
-
-    std::string newLine = std::to_string(time);
-    for (std::vector<double>::iterator itErrors = errors.begin();
-         itErrors != errors.end(); itErrors++)
-    {
-        newLine += ",";
-        std::ostringstream streamOb;
-        streamOb << *itErrors;
-        newLine += streamOb.str();
-    }
-    newLine += "\n";
-    outFile << newLine << std::flush;
+    // typedef std::pair<unsigned int, AbstractAssemblerPtr>    Pair;
+    // typedef std::vector<Pair>                            AssemblersVector;
+    // typedef std::shared_ptr<LifeV::MapEpetra>            MapEpetraPtr;
+    // typedef std::vector<MapEpetraPtr>                    MapVector;
+    //
+    // std::vector<double> errors;
+    // unsigned int countDomains = 0;
+    // unsigned int offset = 0;
+    // for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
+    //      it != M_assemblersVector.end(); it++)
+    // {
+    //     std::vector<VectorPtr> localSolutions;
+    //     MapVector maps = it->second->getPrimalMapVector();
+    //     for (MapVector::iterator itmap = maps.begin();
+    //          itmap != maps.end(); itmap++)
+    //     {
+    //         LifeV::MapEpetra& curLocalMap = **itmap;
+    //         VectorPtr subSolution;
+    //         subSolution.reset(new Vector(curLocalMap));
+    //         subSolution->zero();
+    //         subSolution->subset(*solution, curLocalMap, offset, 0);
+    //         localSolutions.push_back(subSolution);
+    //         offset += curLocalMap.mapSize();
+    //     }
+    //     std::vector<double> localErrors = it->second->computeErrors(localSolutions,
+    //                                                                 time);
+    //     if (countDomains == 0)
+    //     {
+    //         for (std::vector<double>::iterator itError = localErrors.begin();
+    //              itError != localErrors.end(); itError++)
+    //         {
+    //             errors.push_back(*itError);
+    //         }
+    //     }
+    //     else
+    //     {
+    //         unsigned int count = 0;
+    //         for (std::vector<double>::iterator itErrors = localErrors.begin();
+    //              itErrors != localErrors.end(); itErrors++)
+    //         {
+    //             double curError = *itErrors;
+    //             double newError = curError * curError +
+    //                               errors[count] * errors[count];
+    //             errors[count] = std::sqrt(newError);
+    //             count++;
+    //         }
+    //     }
+    //     countDomains++;
+    // }
+    //
+    // std::string newLine = std::to_string(time);
+    // for (std::vector<double>::iterator itErrors = errors.begin();
+    //      itErrors != errors.end(); itErrors++)
+    // {
+    //     newLine += ",";
+    //     std::ostringstream streamOb;
+    //     streamOb << *itErrors;
+    //     newLine += streamOb.str();
+    // }
+    // newLine += "\n";
+    // outFile << newLine << std::flush;
 }
 
 void

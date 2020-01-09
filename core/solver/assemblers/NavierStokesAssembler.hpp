@@ -60,6 +60,8 @@ protected:
     typedef LifeV::ExporterHDF5<Mesh>                   ExporterHDF5;
     typedef LifeV::Exporter<Mesh>                       Exporter;
     typedef std::shared_ptr<Exporter>                   ExporterPtr;
+    typedef std::shared_ptr<AbstractMatrix>             AbstractMatrixPtr;
+    typedef std::shared_ptr<AbstractVector>             AbstractVectorPtr;
 
 public:
     NavierStokesAssembler(const GetPot& datafile, commPtr_Type comm,
@@ -67,8 +69,11 @@ public:
 
     virtual void setup() override;
 
-    virtual MatrixPtr getMassMatrix(const unsigned int& blockrow,
-                                    const unsigned int& blockcol) override;
+    virtual AbstractMatrixPtr assembleMassMatrix(double* diagonalCoefficient = nullptr) override;
+
+    virtual MapEpetraPtr getGlobalMap() const override {toBeImplemented();};
+
+    virtual AbstractMatrixPtr getMassMatrix() override;
 
     virtual MatrixPtr getJacobian(const unsigned int& blockrow,
                                   const unsigned int& blockcol) override;
@@ -81,7 +86,7 @@ public:
     virtual inline unsigned int numberOfComponents() override {return 3;}
 
     virtual void setTimeAndPrevSolution(const double& time,
-                                        std::vector<VectorPtr> solution,
+                                        BlockVector solution,
                                         bool assembleBlocks = true) override;
 
     virtual void setLawInflow(std::function<double(double)> maxLaw) override;
@@ -99,7 +104,7 @@ public:
                                        const double& alphai,
                                        const double& gammai) override;
 
-    virtual void applyBCsBackwardEuler(std::vector<VectorPtr> rhs, const double& coeff,
+    virtual void applyBCsBackwardEuler(BlockVector rhs, const double& coeff,
                                        const double& time) override;
 
     virtual void applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
@@ -131,14 +136,22 @@ public:
 
     virtual void setExactSolution(AbstractFunctor* exactSolution) override;
 
+    virtual void appendNormsToFile(const double& time, BlockVector solution,
+                                   std::ofstream& outFile) override {toBeImplemented();};
+
+    virtual void appendErrorsToFile(const double& time, BlockVector solution,
+                                    std::ofstream& outFile) override {toBeImplemented();};
+
+    virtual void printMeshSize(std::string filename) override {toBeImplemented();};
+
+    virtual BlockVector getInitialCondition() override {toBeImplemented();};
+
 protected:
     void assembleConstantMatrices();
 
     virtual void assembleStiffnessMatrix();
 
     void assembleDivergenceMatrix();
-
-    virtual void assembleMassMatrix();
 
     virtual void assembleMassMatrixPressure();
 
@@ -200,7 +213,7 @@ protected:
     MatrixPtr                               M_Mp;
     MatrixPtr                               M_C;
     MatrixPtr                               M_J;
-    std::vector<VectorPtr>                  M_prevSolution;
+    BlockVector                             M_prevSolution;
     double                                  M_time;
 
     std::function<double(double)>           M_inflowLaw;

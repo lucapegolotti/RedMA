@@ -1,6 +1,8 @@
 set(HEADERS
     ${HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockMatrix.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractMatrix.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/BlockVector.hpp
     CACHE INTERNAL ""
 )
 

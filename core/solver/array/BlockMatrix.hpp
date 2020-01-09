@@ -19,6 +19,8 @@
 
 #include <Exception.hpp>
 
+#include <AbstractMatrix.hpp>
+
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/MapVector.hpp>
 #include <lifev/core/array/MatrixEpetraStructured.hpp>
@@ -30,7 +32,7 @@
 namespace RedMA
 {
 
-class BlockMatrix
+class BlockMatrix : public AbstractMatrix
 {
     typedef Epetra_CrsMatrix                                    Matrix;
     typedef std::shared_ptr<Matrix>                             MatrixPtr;

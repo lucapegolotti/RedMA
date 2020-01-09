@@ -32,13 +32,11 @@ class RosenbrockAlgorithm : public TimeMarchingAlgorithm
 {
     using TimeMarchingAlgorithm::M_datafile;
     using TimeMarchingAlgorithm::M_solution;
-    using TimeMarchingAlgorithm::M_globalAssembler;
+    using TimeMarchingAlgorithm::M_assembler;
     using TimeMarchingAlgorithm::M_verbose;
     using TimeMarchingAlgorithm::solveLinearSystem;
     using TimeMarchingAlgorithm::getSolution;
 public:
-    typedef typename TimeMarchingAlgorithm::GlobalAssemblerType
-                     GlobalAssemblerType;
     typedef typename TimeMarchingAlgorithm::Vector
                      Vector;
     typedef typename TimeMarchingAlgorithm::VectorPtr
@@ -53,9 +51,11 @@ public:
                      MapEpetraPtr;
     typedef typename TimeMarchingAlgorithm::commPtr_Type
                      commPtr_Type;
+    typedef typename TimeMarchingAlgorithm::AbstractMatrixPtr
+                     AbstractMatrixPtr;
 
     RosenbrockAlgorithm(const GetPot& datafile,
-                        GlobalAssemblerType* assembler,
+                        AbstractAssembler* assembler,
                         commPtr_Type comm,
                         bool verbose = false);
 
@@ -63,7 +63,7 @@ public:
 
 private:
     LifeV::RosenbrockCoeff  M_coefficients;
-    BlockMatrix       M_massMatrixNoBCs;
+    AbstractMatrixPtr       M_massMatrixNoBCs;
 };
 
 }  // namespace RedMA

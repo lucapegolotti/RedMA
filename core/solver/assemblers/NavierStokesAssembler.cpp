@@ -149,9 +149,9 @@ assembleDivergenceMatrix()
                          M_velocityFESpace->mapPtr());
 }
 
-void
+NavierStokesAssembler::AbstractMatrixPtr
 NavierStokesAssembler::
-assembleMassMatrix()
+assembleMassMatrix(double* diagonalCoefficient)
 {
     using namespace LifeV::ExpressionAssembly;
 
@@ -188,20 +188,20 @@ assembleMassMatrixPressure()
     M_Mp->globalAssemble();
 }
 
-NavierStokesAssembler::MatrixPtr
+NavierStokesAssembler::AbstractMatrixPtr
 NavierStokesAssembler::
-getMassMatrix(const unsigned int& blockrow,
-              const unsigned int& blockcol)
+getMassMatrix()
 {
-    if (blockrow == 0 && blockcol == 0)
-    {
-        // we copy the matrix so that we cannot change M_M (e.g. by applying
-        // boundary conditions)
-        MatrixPtr returnMatrix(new Matrix(*M_M));
-        return returnMatrix;
-    }
-
-    return nullptr;
+    toBeImplemented();
+    // if (blockrow == 0 && blockcol == 0)
+    // {
+    //     // we copy the matrix so that we cannot change M_M (e.g. by applying
+    //     // boundary conditions)
+    //     MatrixPtr returnMatrix(new Matrix(*M_M));
+    //     return returnMatrix;
+    // }
+    //
+    // return nullptr;
 }
 
 void
@@ -259,7 +259,7 @@ assembleJacobianConvectiveMatrix()
 
 void
 NavierStokesAssembler::
-setTimeAndPrevSolution(const double& time, std::vector<VectorPtr> solution,
+setTimeAndPrevSolution(const double& time, BlockVector solution,
                        bool assembleBlocks)
 {
     M_time = time;
@@ -1047,23 +1047,23 @@ applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
 
 void
 NavierStokesAssembler::
-applyBCsBackwardEuler(std::vector<VectorPtr> rhs, const double& coeff,
-                      const double& time)
+applyBCsBackwardEuler(BlockVector rhs, const double& coeff, const double& time)
 {
-    BoundaryConditionPtr bc;
-
-    if (M_exactSolution == nullptr)
-        bc = createBCHandler(M_inflowLaw);
-    else
-    {
-        FunctionType exactFct = M_exactSolution->exactFunction(0);
-        bc = createBCHandlerWithExactFunction(&exactFct);
-    }
-
-    updateBCs(bc, M_velocityFESpace);
-
-    bcManageRhs(*rhs[0], *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
-                *bc, M_velocityFESpace->feBd(), coeff, time);
+    toBeImplemented();
+    // BoundaryConditionPtr bc;
+    //
+    // if (M_exactSolution == nullptr)
+    //     bc = createBCHandler(M_inflowLaw);
+    // else
+    // {
+    //     FunctionType exactFct = M_exactSolution->exactFunction(0);
+    //     bc = createBCHandlerWithExactFunction(&exactFct);
+    // }
+    //
+    // updateBCs(bc, M_velocityFESpace);
+    //
+    // bcManageRhs(*rhs[0], *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+    //             *bc, M_velocityFESpace->feBd(), coeff, time);
 }
 
 void

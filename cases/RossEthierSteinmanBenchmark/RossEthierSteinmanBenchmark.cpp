@@ -24,7 +24,7 @@
 
 #include <functional>
 
-#include <GlobalSolver.hpp>
+#include <GlobalProblem.hpp>
 #include <NavierStokesAssembler.hpp>
 #include <PseudoFSIAssembler.hpp>
 #include "RossEthierSteinmanSolution.hpp"
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     datafile.set("geometric_structure/xmlfile", nameTree.c_str());
 
     AbstractFunctor* RESSolution = new RossEthierSteinmanSolution;
-    GlobalSolver gs(datafile, comm, verbose, RESSolution);
+    GlobalProblem gs(datafile, comm, verbose, RESSolution);
 
     gs.setForcingFunction(LifeV::RossEthierSteinmanDec::f,
                           LifeV::RossEthierSteinmanDec::f_dt);

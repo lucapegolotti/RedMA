@@ -23,12 +23,15 @@
 #include <BasisFunctionFactory.hpp>
 #include <Coupler.hpp>
 #include <AbstractFunctor.hpp>
+#include <TreeStructure.hpp>
 
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/filter/GetPot.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/interpolation/Interpolation.hpp>
 #include <lifev/core/mesh/MeshUtility.hpp>
+#include <AbstractMatrix.hpp>
+#include <BlockVector.hpp>
 
 #include <lifev/core/fem/BCHandler.hpp>
 
@@ -67,6 +70,9 @@ protected:
                                  unsigned int const& )>    Function;
     typedef LifeV::Interpolation                           Interpolation;
     typedef std::shared_ptr<Interpolation>                 InterpolationPtr;
+    typedef std::shared_ptr<AbstractMatrix>                AbstractMatrixPtr;
+    typedef std::shared_ptr<AbstractVector>                AbstractVectorPtr;
+    typedef std::shared_ptr<BlockVector>                   BlockVectorPtr;
 public:
     AbstractAssembler(const GetPot& datafile, commPtr_Type comm,
                       const TreeNodePtr& treeNode, bool verbose = false);
@@ -84,6 +90,10 @@ public:
 
     // number of components of the variable involved in the coupling
     virtual unsigned int numberOfComponents() = 0;
+
+    virtual MapEpetraPtr getGlobalMap() const = 0;
+
+    virtual AbstractMatrixPtr assembleMassMatrix(double* diagonalCoefficient = nullptr) = 0;
 
     virtual void applyBCsMatrix(MatrixPtr matrix, const double& diagonalCoefficient,
                         const unsigned int& iblock, const unsigned int& jblock) = 0;
@@ -103,8 +113,7 @@ public:
     virtual MatrixPtr getJacobianPrec(const unsigned int& blockrow,
                                       const unsigned int& blockcol) = 0;
 
-    virtual MatrixPtr getMassMatrix(const unsigned int& blockrow,
-                                    const unsigned int& blockcol) = 0;
+    virtual AbstractMatrixPtr getMassMatrix() = 0;
 
     virtual std::vector<VectorPtr> initialCondition() = 0;
 
@@ -113,7 +122,7 @@ public:
     virtual std::vector<VectorPtr> computeFder() = 0;
 
     virtual void setTimeAndPrevSolution(const double& time,
-                                        std::vector<VectorPtr> solution,
+                                        BlockVector solution,
                                         bool assembleBlocks = true) = 0;
 
     virtual void applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
@@ -122,6 +131,9 @@ public:
                                        const double& dt,
                                        const double& alphai,
                                        const double& gammai) = 0;
+
+    virtual void applyBCsBackwardEuler(BlockVector rhs, const double& coeff,
+                                       const double& time) = 0;
 
     virtual void setLawInflow(std::function<double(double)> maxLaw) = 0;
 
@@ -134,12 +146,23 @@ public:
 
     virtual void exportSolutions(const double& time, std::vector<VectorPtr> solutions) = 0;
 
-    virtual void applyBCsBackwardEuler(std::vector<VectorPtr> rhs, const double& coeff,
-                                       const double& time) = 0;
-
     static std::string normFileFirstLine();
 
     static std::string errorsFileFirstLine();
+
+    virtual void appendNormsToFile(const double& time, BlockVector solution,
+                                   std::ofstream& outFile) = 0;
+
+    virtual void appendErrorsToFile(const double& time, BlockVector solution,
+                                    std::ofstream& outFile) = 0;
+
+    virtual void printMeshSize(std::string filename) = 0;
+
+    virtual BlockVector getInitialCondition() = 0;
+
+    // this is an ugly way to allow for easy polymorphism between assemblers and
+    // global assembler
+    virtual void setTreeStructure(TreeStructure& tree) {}
 
     std::vector<MapEpetraPtr> getPrimalMapVector();
 
@@ -180,6 +203,8 @@ public:
     double getMeshSize() {return M_meshSize;};
 
     void setForcingFunction(Function forcingFunction, Function functionDt);
+
+    void toBeImplemented() const {throw new Exception("This function must still be implemented!");};
 
 private:
 

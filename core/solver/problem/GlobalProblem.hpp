@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef GLOBALSOLVER_HPP
-#define GLOBALSOLVER_HPP
+#ifndef GLOBALPROBLEM_HPP
+#define GLOBALPROBLEM_HPP
 
 #include <fstream>
 
@@ -35,7 +35,7 @@
 namespace RedMA
 {
 
-class GlobalSolver
+class GlobalProblem
 {
     typedef std::shared_ptr<Epetra_Comm>               commPtr_Type;
     typedef LifeV::MapEpetra                           map_Type;
@@ -52,10 +52,12 @@ class GlobalSolver
                                  unsigned int const& )> FunctionType;
 
 public:
-    GlobalSolver(const GetPot& datafile, commPtr_Type comm,
+    GlobalProblem(const GetPot& datafile, commPtr_Type comm,
                  bool verbose = false, AbstractFunctor* exactSolution = nullptr);
 
     void solve();
+
+    void setup();
 
     void setLawInflow(std::function<double(double)> maxLaw);
 
@@ -76,18 +78,18 @@ private:
 
     void setExactSolution(AbstractFunctor* exactSolution);
 
-    GeometryParser                 M_geometryParser;
-    TreeStructure                  M_tree;
-    GetPot                         M_datafile;
-    commPtr_Type                   M_comm;
-    bool                           M_verbose;
-    bool                           M_exportNorms;
-    bool                           M_exportErrors;
-    std::string                    M_filename;
-    GlobalAssembler                M_globalAssembler;
-    TimeMarchingAlgorithmPtr       M_timeMarchingAlgorithm;
+    std::shared_ptr<GeometryParser>     M_geometryParser;
+    TreeStructure                       M_tree;
+    GetPot                              M_datafile;
+    commPtr_Type                        M_comm;
+    bool                                M_verbose;
+    bool                                M_exportNorms;
+    bool                                M_exportErrors;
+    std::string                         M_filename;
+    std::shared_ptr<AbstractAssembler>  M_assembler;
+    TimeMarchingAlgorithmPtr            M_timeMarchingAlgorithm;
 };
 
 }  // namespace RedMA
 
-#endif  // GLOBALSOLVER_HPP
+#endif  // GLOBALPROBLEM_HPP

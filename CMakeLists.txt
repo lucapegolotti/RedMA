@@ -15,6 +15,7 @@ set(HEADERS_DIRS
     ${CMAKE_SOURCE_DIR}/core/solver/basis_functions
     ${CMAKE_SOURCE_DIR}/core/solver/coupling
     ${CMAKE_SOURCE_DIR}/core/solver/time_marching_algorithms
+    ${CMAKE_SOURCE_DIR}/core/solver/problem
     ${TPL_MPI_INCLUDE_DIRS}
     ${TPL_Trilinos_INCLUDE_DIRS}
     ${TPL_LifeV_INCLUDE_DIRS}
