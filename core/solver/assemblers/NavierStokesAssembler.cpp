@@ -453,14 +453,14 @@ getJacobianPrec(const unsigned int& blockrow, const unsigned int& blockcol)
     return retJacobian;
 }
 
-std::vector<NavierStokesAssembler::VectorPtr>
+BlockVector
 NavierStokesAssembler::
 initialCondition()
 {
     bool setInitialCondition = M_datafile("time_discretization/set_initial_condition", true);
     double t0 = M_datafile("time_discretization/t0", 0.0);
 
-    std::vector<VectorPtr> Fs;
+    BlockVector Fs;
 
     VectorPtr F1;
     F1.reset(new Vector(M_velocityFESpace->map()));
@@ -498,11 +498,11 @@ initialCondition()
     return Fs;
 }
 
-std::vector<NavierStokesAssembler::VectorPtr>
+BlockVector
 NavierStokesAssembler::
 computeF()
 {
-    std::vector<VectorPtr> Fs;
+    BlockVector Fs;
     VectorPtr velocity = M_prevSolution[0];
     VectorPtr pressure = M_prevSolution[1];
 
@@ -598,11 +598,11 @@ assembleForcingTermTimeDerivative()
     *M_forcingTermTimeDer = (*M_M) * (*forcingTermDerInterp);
 }
 
-std::vector<NavierStokesAssembler::VectorPtr>
+BlockVector
 NavierStokesAssembler::
 computeFder()
 {
-    std::vector<VectorPtr> Fs;
+    BlockVector Fs;
     VectorPtr velocity = M_prevSolution[0];
     VectorPtr pressure = M_prevSolution[1];
 
@@ -962,8 +962,8 @@ applyNeumannBCsWithExactFunction(VectorPtr vector, FunctionNeumannType* exactFun
 
 void
 NavierStokesAssembler::
-applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
-                      std::vector<VectorPtr> utilde,
+applyBCsRhsRosenbrock(BlockVector rhs,
+                      BlockVector utilde,
                       const double& time,
                       const double& dt,
                       const double& alphai,
@@ -1147,7 +1147,7 @@ setExporter()
 
 void
 NavierStokesAssembler::
-exportSolutions(const double& time, std::vector<VectorPtr> solutions)
+exportSolutions(const double& time, BlockVector solutions)
 {
     printlog(MAGENTA, "[NavierStokesAssembler] exporting solution ...\n",
              M_verbose);
@@ -1167,7 +1167,7 @@ exportSolutions(const double& time, std::vector<VectorPtr> solutions)
 
 std::vector<double>
 NavierStokesAssembler::
-computeNorms(std::vector<VectorPtr> solutions)
+computeNorms(BlockVector solutions)
 {
     printlog(MAGENTA, "[NavierStokesAssembler] writing norm solution ...\n",
              M_verbose);
@@ -1186,7 +1186,7 @@ computeNorms(std::vector<VectorPtr> solutions)
 
 std::vector<double>
 NavierStokesAssembler::
-computeErrors(std::vector<VectorPtr> solutions, const double& time)
+computeErrors(BlockVector solutions, const double& time)
 {
     printlog(MAGENTA, "[NavierStokesAssembler] compute errors ...\n",
              M_verbose);
@@ -1217,7 +1217,7 @@ computeErrors(std::vector<VectorPtr> solutions, const double& time)
 
 void
 NavierStokesAssembler::
-computeAndExportErrors(const double& time, std::vector<VectorPtr> solutions)
+computeAndExportErrors(const double& time, BlockVector solutions)
 {
     if (M_exactSolution != nullptr)
     {

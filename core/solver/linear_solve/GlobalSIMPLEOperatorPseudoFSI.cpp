@@ -87,31 +87,31 @@ setUp(RedMA::BlockMatrix matrix,
                           instance().createObject("SIMPLE"));
             newPrec->setOptions(M_solversOptions);
 
-            Real norm20 = matrix.block(iblock+2,iblock)->normInf();
-            Real norm22 = matrix.block(iblock+2,iblock+2)->normInf();
+            Real norm20 = matrix.block(iblock+2,iblock).get()->normInf();
+            Real norm22 = matrix.block(iblock+2,iblock+2).get()->normInf();
 
             M_blockNorm20.push_back(norm20);
             M_blockNorm22.push_back(norm22);
 
             matrixEpetraPtr_Type block11(new
-                              MatrixEpetra<Real>(*matrix.block(iblock,iblock)));
+                        MatrixEpetra<Real>(*matrix.block(iblock,iblock).get()));
 
-            *block11 += (*matrix.block(iblock,iblock+2)) * norm20;
+            *block11 += (*matrix.block(iblock,iblock+2).get()) * norm20;
 
             // then we are not considering stabilization
-            if (matrix.block(iblock+1,iblock+1) == nullptr)
+            if (matrix.block(iblock+1,iblock+1).isNull())
             {
                 newPrec->setUp(block11,
-                               matrix.block(iblock+1,iblock),
-                               matrix.block(iblock,iblock+1));
+                               matrix.block(iblock+1,iblock).get(),
+                               matrix.block(iblock,iblock+1).get());
             }
             // then we are using stabilization
             else
             {
                 newPrec->setUp(block11,
-                               matrix.block(iblock+1,iblock),
-                               matrix.block(iblock,iblock+1),
-                               matrix.block(iblock+1,iblock+1));
+                               matrix.block(iblock+1,iblock).get(),
+                               matrix.block(iblock,iblock+1).get(),
+                               matrix.block(iblock+1,iblock+1).get());
             }
 
             std::shared_ptr<BlockEpetra_Map> localRangeMap(
@@ -168,8 +168,8 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
                       "," + std::to_string(colIndex) + ") ...";
     RedMA::printlog(RedMA::YELLOW, msg, M_verbose);
 
-    matrixEpetraPtr_Type B = M_matrix.block(colIndex,rowIndex);
-    matrixEpetraPtr_Type BT = M_matrix.block(rowIndex,colIndex);
+    matrixEpetraPtr_Type B = M_matrix.block(colIndex,rowIndex).get();
+    matrixEpetraPtr_Type BT = M_matrix.block(rowIndex,colIndex).get();
 
     int numCols = BT->domainMap().mapSize();
     int numRows = BT->rangeMap().mapSize();
@@ -183,10 +183,10 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
     vectorEpetra_Type col(BT->rangeMap());
     vectorEpetra_Type res(BT->rangeMap());
     vectorEpetra_Type fakePressure(
-                              M_matrix.block(rowIndex,rowIndex+1)->domainMap());
+                        M_matrix.block(rowIndex,rowIndex+1).get()->domainMap());
     fakePressure.zero();
     vectorEpetra_Type fakePressureResult(
-                              M_matrix.block(rowIndex,rowIndex+1)->domainMap());
+                        M_matrix.block(rowIndex,rowIndex+1).get()->domainMap());
     fakePressureResult.zero();
     map_Type rangeMapRaw = col.epetraMap();
     unsigned int numElements = rangeMapRaw.NumMyElements();
@@ -280,12 +280,12 @@ computeGlobalSchurComplement()
             {
                 matrixEpetraPtr_Type prod(new matrixEpetra_Type(*M_dualMaps[i]));
                 prod->zero();
-                if (M_matrix.block(i + M_nPrimalBlocks * 3, k) != nullptr &&
-                    M_Am1BT.block(k, j + 3 * M_nPrimalBlocks)  != nullptr)
+                if (!M_matrix.block(i + M_nPrimalBlocks * 3, k).isNull() &&
+                    !M_Am1BT.block(k, j + 3 * M_nPrimalBlocks).isNull())
                 {
-                    M_matrix.block(i + M_nPrimalBlocks * 3, k)
+                    M_matrix.block(i + M_nPrimalBlocks * 3, k).get()
                             ->multiply(false,
-                                       *M_Am1BT.block(k, j + 3 * M_nPrimalBlocks),
+                                       *M_Am1BT.block(k, j + 3 * M_nPrimalBlocks).get(),
                                        false,
                                        *prod,
                                        false);
@@ -341,21 +341,21 @@ fillComplete()
     {
         for (unsigned int jblock = 0; jblock < M_nBlockCols; jblock++)
         {
-            if (M_matrix.block(iblock,jblock) != nullptr)
+            if (!M_matrix.block(iblock,jblock).isNull())
             {
                 M_allMaps.push_back(M_matrix.rangeMap(iblock,jblock));
-                *M_monolithicMap +=  M_matrix.block(iblock,jblock)->rangeMap();
+                *M_monolithicMap +=  M_matrix.block(iblock,jblock).get()->rangeMap();
                 if (iblock < 3 * M_nPrimalBlocks)
                 {
                     M_primalMaps.push_back(M_matrix.rangeMap(iblock,jblock));
-                    *M_primalMap += M_matrix.block(iblock,jblock)->rangeMap();
+                    *M_primalMap += M_matrix.block(iblock,jblock).get()->rangeMap();
                 }
                 else
                 {
                     M_dualMaps.push_back(M_matrix.rangeMap(iblock,jblock));
-                    *M_dualMap += M_matrix.block(iblock,jblock)->rangeMap();
+                    *M_dualMap += M_matrix.block(iblock,jblock).get()->rangeMap();
                     M_dimensionsInterfaces.push_back(
-                        M_matrix.block(iblock,jblock)->rangeMap().mapSize());
+                        M_matrix.block(iblock,jblock).get()->rangeMap().mapSize());
                 }
                 break;
             }
@@ -393,7 +393,7 @@ applyEverySIMPLEOperator(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
         vectorEpetra_Type resDisplacement(rangeDisplacement);
 
         subVelocity *= M_blockNorm22[i];
-        subVelocity -= *M_matrix.block(i*3, i*3 + 2) * (subDisplacement);
+        subVelocity -= *M_matrix.block(i*3, i*3 + 2).get() * (subDisplacement);
         subVelocity /= M_blockNorm22[i];
 
         M_SIMPLEOperators[i]->ApplyInverse(subVelocity, subPressure,
@@ -436,9 +436,9 @@ applyEveryB(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
         subRes.zero();
         for (unsigned int j = 0; j < M_nPrimalBlocks * 3; j++)
         {
-            if (M_matrix.block(i,j))
+            if (!M_matrix.block(i,j).isNull())
             {
-                subRes += (*M_matrix.block(i,j)) * Xs[j];
+                subRes += (*M_matrix.block(i,j).get()) * Xs[j];
             }
         }
         Y.subset(subRes, curRange, 0, offset);
@@ -469,9 +469,9 @@ applyEveryBT(const vectorEpetra_Type& X, vectorEpetra_Type &Y) const
         subRes.zero();
         for (unsigned int j = 3 * M_nPrimalBlocks; j < M_nBlockCols; j++)
         {
-            if (M_matrix.block(i,j))
+            if (!M_matrix.block(i,j).isNull())
             {
-                subRes += (*M_matrix.block(i,j)) * Xs[j-3*M_nPrimalBlocks];
+                subRes += (*M_matrix.block(i,j).get()) * Xs[j-3*M_nPrimalBlocks];
             }
         }
         Y.subset(subRes, curRange, 0, offset);

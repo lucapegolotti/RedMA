@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef VECTOR_HPP
-#define VECTOR_HPP
+#ifndef ABSTRACTVECTOR_HPP
+#define ABSTRACTVECTOR_HPP
 
 #include <Exception.hpp>
+
+#include <memory>
 
 namespace RedMA
 {
@@ -30,4 +32,4 @@ class AbstractVector
 
 }  // namespace RedMA
 
-#endif  // VECTOR_HPP
+#endif  // ABSTRACTVECTOR_HPP

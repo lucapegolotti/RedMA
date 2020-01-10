@@ -19,15 +19,35 @@
 
 #include <Exception.hpp>
 
+#include <Vector.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
 
 namespace RedMA
 {
 
-// this is simply the interface of a wrapper to wathever type of matrix we use
-class BlockVector : public AbstractVector, public std::vector<std::shared_ptr<LifeV::VectorEpetra> >
+class BlockVector : public AbstractVector
 {
+    typedef LifeV::VectorEpetra                                  VectorEpetra;
+    typedef std::shared_ptr<VectorEpetra>                        VectorEpetraPtr;
+public:
+    BlockVector();
 
+    BlockVector(unsigned int numRows);
+
+    void resize(unsigned int numRows);
+
+    Vector<VectorEpetra>& block(unsigned int index);
+
+    Vector<VectorEpetra> block(unsigned int index) const;
+
+    VectorEpetraPtr& operator[](unsigned int index);
+
+    void push_back(Vector<VectorEpetra> newElement);
+
+    unsigned int size() const;
+
+private:
+    std::vector<Vector<VectorEpetra> >    M_vectors;
 };
 
 }  // namespace RedMA

@@ -182,12 +182,12 @@ computeLameConstants()
     M_lameII = thickness * young/(2. * (1. + poisson));
 }
 
-std::vector<PseudoFSIAssembler::VectorPtr>
+BlockVector
 PseudoFSIAssembler::
 computeF()
 {
-    std::vector<VectorPtr> retVec;
-    std::vector<VectorPtr> retVecNS = NavierStokesAssembler::computeF();
+    BlockVector retVec;
+    BlockVector retVecNS = NavierStokesAssembler::computeF();
 
     // N.B: we want the coupling part to be in the last position of the residual
     *retVecNS[0] -= *M_boundaryStiffness * (*M_prevSolution[2]);
@@ -204,12 +204,12 @@ computeF()
     return retVec;
 }
 
-std::vector<NavierStokesAssembler::VectorPtr>
+BlockVector
 PseudoFSIAssembler::
 computeFder()
 {
-    std::vector<VectorPtr> retVec;
-    std::vector<VectorPtr> retVecNS = NavierStokesAssembler::computeF();
+    BlockVector retVec;
+    BlockVector retVecNS = NavierStokesAssembler::computeF();
 
     retVec.push_back(retVecNS[0]);
     retVec.push_back(retVecNS[1]);

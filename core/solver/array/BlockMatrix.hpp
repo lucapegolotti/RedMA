@@ -21,35 +21,37 @@
 
 #include <AbstractMatrix.hpp>
 
+#include <Matrix.hpp>
+#include <BlockVector.hpp>
+
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/MapVector.hpp>
-#include <lifev/core/array/MatrixEpetraStructured.hpp>
-#include <lifev/core/array/VectorEpetraStructured.hpp>
-#include <lifev/core/array/MatrixEpetraStructuredUtility.hpp>
-
 #include <boost/numeric/ublas/matrix.hpp>
 
 namespace RedMA
 {
 
+// eventually this will become abstract with respect to type of inner Matrices
 class BlockMatrix : public AbstractMatrix
 {
-    typedef Epetra_CrsMatrix                                    Matrix;
-    typedef std::shared_ptr<Matrix>                             MatrixPtr;
-    typedef LifeV::MatrixEpetra<double>                         MatrixEpetra;
-    typedef std::shared_ptr<MatrixEpetra>                       MatrixEpetraPtr;
-    typedef boost::numeric::ublas::matrix<MatrixPtr>            Grid;
-    typedef boost::numeric::ublas::matrix<MatrixEpetraPtr>      GridEpetra;
-    typedef LifeV::VectorEpetra                                 VectorEpetra;
-    typedef std::shared_ptr<VectorEpetra>                       VectorEpetraPtr;
-    typedef LifeV::MapEpetra                                    Map;
-    typedef std::shared_ptr<Map>                                MapPtr;
+    typedef Epetra_CrsMatrix                                     MatrixCrs;
+    typedef std::shared_ptr<Epetra_CrsMatrix>                    MatrixCrsPtr;
+    typedef boost::numeric::ublas::matrix<MatrixCrsPtr >         MatrixCrsGrid;
+    typedef LifeV::MatrixEpetra<double>                          MatrixEpetra;
+    typedef std::shared_ptr<MatrixEpetra>                        MatrixEpetraPtr;
+    typedef boost::numeric::ublas::matrix<Matrix<MatrixEpetra> > MatrixGrid;
+    typedef LifeV::VectorEpetra                                  VectorEpetra;
+    typedef std::shared_ptr<VectorEpetra>                        VectorEpetraPtr;
+    typedef LifeV::MapEpetra                                     Map;
+    typedef std::shared_ptr<Map>                                 MapPtr;
 
 public:
     BlockMatrix();
 
     BlockMatrix(unsigned int numRows, unsigned int numCols);
 
+    // attention: I am switching this copy constructor to soft copy but this may
+    // potentially break everything
     BlockMatrix(const BlockMatrix& other);
 
     void resize(unsigned int numRows, unsigned int numCols);
@@ -58,15 +60,13 @@ public:
 
     unsigned int getNumberCols();
 
-    MatrixEpetraPtr& block(unsigned int row, unsigned int col);
+    Matrix<MatrixEpetra>& block(unsigned int row, unsigned int col);
 
-    MatrixEpetraPtr block(unsigned int row, unsigned int col) const;
+    Matrix<MatrixEpetra> block(unsigned int row, unsigned int col) const;
 
     void add(const BlockMatrix& other);
 
-    // void multiply(const BlockMatrix& other, BlockMatrix& result);
-
-    VectorEpetra operator*(const VectorEpetra& vector);
+    BlockVector operator*(const BlockVector& vector);
 
     void copyBlock(unsigned int rows, unsigned int cols,
                    MatrixEpetraPtr matrix);
@@ -77,25 +77,26 @@ public:
 
     BlockMatrix& operator*=(const double& coeff);
 
-    Grid getGrid();
+    MatrixCrsGrid getGrid();
 
-    void spy();
+    // void spy();
 
-    void singleNorms1();
+    // void singleNorms1();
 
-    void setMaps(std::vector<MapPtr> rangeMaps, std::vector<MapPtr> domainMaps);
+    // void setMaps(std::vector<MapPtr> rangeMaps, std::vector<MapPtr> domainMaps);
 
     void printPattern();
 
 private:
-    Grid                 M_grid;
-    GridEpetra           M_gridEpetra;
+    MatrixCrsGrid        M_grid;
+    MatrixGrid           M_matrixGrid;
     unsigned int         M_rows;
     unsigned int         M_cols;
     std::vector<MapPtr>  M_rangeMaps;
     std::vector<MapPtr>  M_domainMaps;
     MapPtr               M_globalDomainMap;
     MapPtr               M_globalRangeMap;
+    Matrix<MatrixEpetra> M_mmm;
 };
 
 }  // namespace RedMA

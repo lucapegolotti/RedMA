@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef MATRIX_HPP
-#define MATRIX_HPP
+#ifndef ABSTRACTMATRIX_HPP
+#define ABSTRACTMATRIX_HPP
 
 #include <Exception.hpp>
+
+#include <memory>
 
 #include <lifev/core/array/MapVector.hpp>
 #include <lifev/core/array/VectorEpetraStructured.hpp>
@@ -29,38 +31,7 @@
 namespace RedMA
 {
 
-// // this is simply the interface of a wrapper to wathever type of matrix we use
-// template<class InMatrixType>
-// class Matrix
-// {
-//     typedef std::shared_ptr<InMatrixType>                       InMatrixPtr;
-//     typedef LifeV::VectorEpetra                                 VectorEpetra;
-//     typedef std::shared_ptr<VectorEpetra>                       VectorEpetraPtr;
-//     typedef LifeV::MapEpetra                                    Map;
-//     typedef std::shared_ptr<Map>                                MapPtr;
-//
-// public:
-//     Matrix();
-//
-//     virtual Matrix(const Matrix& other) = 0;
-//
-//     virtual void add(const Matrix& other) = 0;
-//
-//     virtual void VectorEpetra operator*(const Vector& vector) = 0;
-//
-//     Matrix& operator*=(const double& coeff) = 0;
-//
-//     void zero();
-//
-//     InMatrixPtr get();
-//
-// protected:
-//     InMatrixPtr          M_matrix;
-// };
-//
-// #include "Matrix_imp.hpp";
-
-// this is simply the interface of a wrapper to wathever type of matrix we use
+// this should be the interface of a wrapper to wathever type of matrix we use
 class AbstractMatrix
 {
 
@@ -68,4 +39,4 @@ class AbstractMatrix
 
 }  // namespace RedMA
 
-#endif  // MATRIX_HPP
+#endif  // ABSTRACTMATRIX_HPP

@@ -263,7 +263,7 @@ setTimeAndPrevSolution(const double& time, BlockVector solution, bool doAssembly
     // for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
     //      it != M_assemblersVector.end(); it++)
     // {
-    //     std::vector<VectorPtr> localSolutions;
+    //     BlockVector localSolutions;
     //     // first handle the primal solutions
     //     MapVector maps = it->second->getPrimalMapVector();
     //     for (MapVector::iterator itmap = maps.begin();
@@ -312,8 +312,8 @@ applyBCsRhsRosenbrock(VectorPtr rhs, VectorPtr utilde,
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
          it != M_assemblersVector.end(); it++)
     {
-        std::vector<VectorPtr> rhss;
-        std::vector<VectorPtr> utildes;
+        BlockVector rhss;
+        BlockVector utildes;
         MapVector maps = it->second->getPrimalMapVector();
         unsigned int suboffset = 0;
         for (MapVector::iterator itmap = maps.begin();
@@ -420,7 +420,7 @@ exportSolutions(const double& time, VectorPtr solution)
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
          it != M_assemblersVector.end(); it++)
     {
-        std::vector<VectorPtr> localSolutions;
+        BlockVector localSolutions;
         MapVector maps = it->second->getPrimalMapVector();
         for (MapVector::iterator itmap = maps.begin();
              itmap != maps.end(); itmap++)
@@ -470,7 +470,7 @@ appendNormsToFile(const double& time, BlockVector solution,
     // for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
     //      it != M_assemblersVector.end(); it++)
     // {
-    //     std::vector<VectorPtr> localSolutions;
+    //     BlockVector localSolutions;
     //     MapVector maps = it->second->getPrimalMapVector();
     //     for (MapVector::iterator itmap = maps.begin();
     //          itmap != maps.end(); itmap++)
@@ -535,8 +535,8 @@ applyBCsBackwardEuler(BlockVector rhs, const double& coeff, const double& time)
     // for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
     //      it != M_assemblersVector.end(); it++)
     // {
-    //     std::vector<VectorPtr> rhss;
-    //     std::vector<VectorPtr> utildes;
+    //     BlockVector rhss;
+    //     BlockVector utildes;
     //     MapVector maps = it->second->getPrimalMapVector();
     //     unsigned int suboffset = 0;
     //     for (MapVector::iterator itmap = maps.begin();
@@ -587,7 +587,7 @@ appendErrorsToFile(const double& time, BlockVector solution,
     // for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
     //      it != M_assemblersVector.end(); it++)
     // {
-    //     std::vector<VectorPtr> localSolutions;
+    //     BlockVector localSolutions;
     //     MapVector maps = it->second->getPrimalMapVector();
     //     for (MapVector::iterator itmap = maps.begin();
     //          itmap != maps.end(); itmap++)

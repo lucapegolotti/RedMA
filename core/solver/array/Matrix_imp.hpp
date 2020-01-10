@@ -1,45 +1,116 @@
 // implementation of Matrix.hpp
 
-template <InMatrixPtr>
-Matrix<InMatrixPtr>::
-Matrix()
+namespace RedMA
+{
+
+template<class InMatrixType>
+Matrix<InMatrixType>::
+Matrix() :
+  M_inMatrix(nullptr)
 {
 }
 
-template <InMatrixPtr>
-Matrix<InMatrixPtr>::
-Matrix(unsigned int numRows, unsigned int numCols)
+template<class InMatrixType>
+Matrix<InMatrixType>::
+Matrix(const InMatrixTypePtr& matrix)
 {
-    resize(numRows, numCols);
+    M_inMatrix = matrix;
 }
 
-template <InMatrixPtr>
-unsigned int
-Matrix<InMatrixPtr>::
-getNumberRows()
+template<class InMatrixType>
+Matrix<InMatrixType>::
+Matrix(const Matrix<InMatrixType>& other)
 {
-    return M_rows;
+    M_inMatrix = other.get();
 }
 
-template <InMatrixPtr>
-unsigned int
-Matrix<InMatrixPtr>::
-getNumberCols()
+template<class InMatrixType>
+Matrix<InMatrixType>&
+Matrix<InMatrixType>::
+operator=(const Matrix<InMatrixType>& other)
 {
-    return M_cols;
+    M_inMatrix.reset(new InMatrixType(*other.get()));
+    return *this;
 }
 
-template <InMatrixPtr>
-void
-Matrix<InMatrixPtr>::
-zero()
+template<class InMatrixType>
+Matrix<InMatrixType>&
+Matrix<InMatrixType>::
+operator=(const InMatrixTypePtr& matrix)
 {
-    M_matrix = nullptr;
+    M_inMatrix.reset(new InMatrixType(*matrix));
+    return *this;
 }
 
-template <InMatrixPtr>
-typename Matrix<InMatrixPtr>::InMatrixPtr
+template<class InMatrixType>
+Matrix<InMatrixType>&
+Matrix<InMatrixType>::
+operator+=(const Matrix<InMatrixType>& other)
+{
+    if (!isNull())
+        *M_inMatrix += *other.get();
+    else
+        M_inMatrix.reset(new InMatrixType(*other.get()));
+    return *this;
+}
+
+template<class InMatrixType>
+Matrix<InMatrixType>&
+Matrix<InMatrixType>::
+operator*=(const double& coeff)
+{
+    if (!isNull())
+        *M_inMatrix *= coeff;
+    return *this;
+}
+
+template<class InMatrixType>
+template<class InVectorType>
+Vector<InVectorType>
+Matrix<InMatrixType>::
+operator*(const Vector<InVectorType>& vector)
+{
+    Vector<InVectorType> retVec;
+    if (!isNull())
+    {
+        InVectorType res = (*M_inMatrix) * (*vector.get());
+        retVec = std::make_shared<InVectorType>(new InVectorType(res));
+    }
+    return retVec;
+}
+
+template<class InMatrixType>
+typename Matrix<InMatrixType>::InMatrixTypePtr&
+Matrix<InMatrixType>::
 get()
 {
-    return M_matrix;
+    return M_inMatrix;
 }
+
+template<class InMatrixType>
+typename Matrix<InMatrixType>::InMatrixTypePtr
+Matrix<InMatrixType>::
+get() const
+{
+    return M_inMatrix;
+}
+
+template<class InMatrixType>
+bool
+Matrix<InMatrixType>::
+isZero() const
+{
+    if (isNull())
+        return false;
+    return (M_inMatrix->norm1() < 5e-16);
+}
+
+template<class InMatrixType>
+bool
+Matrix<InMatrixType>::
+isNull() const
+{
+    return (M_inMatrix == nullptr);
+}
+
+}  // namespace RedMA

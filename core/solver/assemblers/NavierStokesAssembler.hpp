@@ -23,6 +23,8 @@
 #include <lifev/eta/fem/ETFESpace.hpp>
 #include <lifev/core/fem/BCHandler.hpp>
 
+#include <BlockVector.hpp>
+
 #include <functional>
 
 #include <lifev/core/filter/Exporter.hpp>
@@ -93,12 +95,12 @@ public:
 
     virtual void setLawDtInflow(std::function<double(double)> maxLawDt) override;
 
-    virtual std::vector<VectorPtr> computeF() override;
+    virtual BlockVector computeF() override;
 
-    virtual std::vector<VectorPtr> computeFder() override;
+    virtual BlockVector computeFder() override;
 
-    virtual void applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
-                                       std::vector<VectorPtr> utilde,
+    virtual void applyBCsRhsRosenbrock(BlockVector rhs,
+                                       BlockVector utilde,
                                        const double& time,
                                        const double& dt,
                                        const double& alphai,
@@ -112,11 +114,11 @@ public:
 
     virtual void setExporter();
 
-    virtual void exportSolutions(const double& time, std::vector<VectorPtr> solutions) override;
+    virtual void exportSolutions(const double& time, BlockVector solutions) override;
 
-    virtual std::vector<double> computeNorms(std::vector<VectorPtr> solutions) override;
+    virtual std::vector<double> computeNorms(BlockVector solutions) override;
 
-    virtual std::vector<double> computeErrors(std::vector<VectorPtr> solutions,
+    virtual std::vector<double> computeErrors(BlockVector solutions,
                                       const double& time) override;
 
     static std::string normFileFirstLine();
@@ -132,7 +134,7 @@ public:
     virtual MatrixPtr getUpdateMassJacVelocity(const unsigned int& blockrow,
                                               const unsigned int& blockcol) override;
 
-    std::vector<VectorPtr> initialCondition() override;
+    BlockVector initialCondition() override;
 
     virtual void setExactSolution(AbstractFunctor* exactSolution) override;
 
@@ -173,7 +175,7 @@ protected:
     BoundaryConditionPtr createBCHandlerWithExactFunction(FunctionType*
                                                           exactFunction);
 
-    void computeAndExportErrors(const double& time, std::vector<VectorPtr> solutions);
+    void computeAndExportErrors(const double& time, BlockVector solutions);
 
     static double fZero(const double& t,
                         const double& x,

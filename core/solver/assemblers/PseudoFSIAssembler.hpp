@@ -47,9 +47,9 @@ public:
     PseudoFSIAssembler(const GetPot& datafile, commPtr_Type comm,
               const TreeNodePtr& treeNode, bool verbose = false);
 
-    std::vector<VectorPtr> computeF() override;
+    BlockVector computeF() override;
 
-    std::vector<VectorPtr> computeFder() override;
+    BlockVector computeFder() override;
 
     AbstractMatrixPtr assembleMassMatrix(double* diagonalCoefficient = nullptr) override;
 

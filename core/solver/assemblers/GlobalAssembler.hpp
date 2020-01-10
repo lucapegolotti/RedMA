@@ -80,7 +80,7 @@ public:
     virtual MatrixPtr getUpdateMassJacVelocity(const unsigned int& blockrow,
                                                const unsigned int& blockcol) override {};
 
-    virtual std::vector<VectorPtr> initialCondition() override {};
+    virtual BlockVector initialCondition() override {};
 
     virtual MatrixPtr getJacobian(const unsigned int& blockrow,
                                   const unsigned int& blockcol) override {};
@@ -91,23 +91,23 @@ public:
     virtual void setTimeAndPrevSolution(const double& time, BlockVector solution,
                                         bool doAssembly = true) override;
 
-    virtual void applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
-                                       std::vector<VectorPtr> utilde,
+    virtual void applyBCsRhsRosenbrock(BlockVector rhs,
+                                       BlockVector utilde,
                                        const double& time,
                                        const double& dt,
                                        const double& alphai,
                                        const double& gammai) override {};
 
-    virtual std::vector<VectorPtr> computeF() override {};
+    virtual BlockVector computeF() override {};
 
-    virtual std::vector<VectorPtr> computeFder() override {};
+    virtual BlockVector computeFder() override {};
 
-    virtual std::vector<double> computeNorms(std::vector<VectorPtr> solutions) override {};
+    virtual std::vector<double> computeNorms(BlockVector solutions) override {};
 
-    virtual std::vector<double> computeErrors(std::vector<VectorPtr> solutions,
+    virtual std::vector<double> computeErrors(BlockVector solutions,
                                               const double& time) override {};
 
-    virtual void exportSolutions(const double& time, std::vector<VectorPtr> solutions) override {};
+    virtual void exportSolutions(const double& time, BlockVector solutions) override {};
 
     virtual void setTreeStructure(TreeStructure& tree) override;
 
@@ -292,11 +292,11 @@ fillGlobalVector(VectorPtr& vectorToFill, FunctionType getVectorMethod)
     for (typename AssemblersVector::iterator it = M_assemblersVector.begin();
          it != M_assemblersVector.end(); it++)
     {
-        std::vector<VectorPtr> localSolutions;
+        BlockVector localSolutions;
         MapVector maps = it->second->getPrimalMapVector();
 
         AbstractAssembler& curAssembler = *it->second;
-        std::vector<VectorPtr> localVectors;
+        BlockVector localVectors;
         localVectors = (curAssembler.*getVectorMethod)();
 
         unsigned int index = 0;

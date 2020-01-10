@@ -408,7 +408,7 @@ assembleCouplingMatrices(AbstractAssembler& child,
 
 AbstractAssembler::VectorPtr
 AbstractAssembler::
-reconstructLagrangeMultipliers(std::vector<VectorPtr> solutions, unsigned int offset)
+reconstructLagrangeMultipliers(BlockVector solutions, unsigned int offset)
 {
     VectorPtr lagrangeMultipliers(new Vector(M_couplingFESpace->map()));
     lagrangeMultipliers->zero();

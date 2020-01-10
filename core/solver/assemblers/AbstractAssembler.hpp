@@ -115,18 +115,18 @@ public:
 
     virtual AbstractMatrixPtr getMassMatrix() = 0;
 
-    virtual std::vector<VectorPtr> initialCondition() = 0;
+    virtual BlockVector initialCondition() = 0;
 
-    virtual std::vector<VectorPtr> computeF() = 0;
+    virtual BlockVector computeF() = 0;
 
-    virtual std::vector<VectorPtr> computeFder() = 0;
+    virtual BlockVector computeFder() = 0;
 
     virtual void setTimeAndPrevSolution(const double& time,
                                         BlockVector solution,
                                         bool assembleBlocks = true) = 0;
 
-    virtual void applyBCsRhsRosenbrock(std::vector<VectorPtr> rhs,
-                                       std::vector<VectorPtr> utilde,
+    virtual void applyBCsRhsRosenbrock(BlockVector rhs,
+                                       BlockVector utilde,
                                        const double& time,
                                        const double& dt,
                                        const double& alphai,
@@ -139,12 +139,12 @@ public:
 
     virtual void setLawDtInflow(std::function<double(double)> maxLawDt) = 0;
 
-    virtual std::vector<double> computeNorms(std::vector<VectorPtr> solutions) = 0;
+    virtual std::vector<double> computeNorms(BlockVector solutions) = 0;
 
-    virtual std::vector<double> computeErrors(std::vector<VectorPtr> solutions,
+    virtual std::vector<double> computeErrors(BlockVector solutions,
                                               const double& time) = 0;
 
-    virtual void exportSolutions(const double& time, std::vector<VectorPtr> solutions) = 0;
+    virtual void exportSolutions(const double& time, BlockVector solutions) = 0;
 
     static std::string normFileFirstLine();
 
@@ -194,7 +194,7 @@ public:
 
     virtual void postProcess(){};
 
-    VectorPtr reconstructLagrangeMultipliers(std::vector<VectorPtr> solutions, unsigned int offset);
+    VectorPtr reconstructLagrangeMultipliers(BlockVector solutions, unsigned int offset);
 
     inline FESpacePtr getCouplingFESpace() {return M_couplingFESpace;};
 
