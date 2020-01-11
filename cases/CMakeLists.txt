@@ -1,2 +1,0 @@
-add_subdirectory(WomersleyBenchmark)
-add_subdirectory(RossEthierSteinmanBenchmark)

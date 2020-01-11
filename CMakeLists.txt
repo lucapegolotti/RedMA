@@ -2,20 +2,10 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
 project(RedMA VERSION 1.0.0 DESCRIPTION "Reduced Modeling of Arteries")
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 
-# TODO: understand why headers_dirs is not modified in core
 set(HEADERS_DIRS
-    ${CMAKE_SOURCE_DIR}/core/geometric_structure
-    ${CMAKE_SOURCE_DIR}/core/solver
-    ${CMAKE_SOURCE_DIR}/core/utils
-    ${CMAKE_SOURCE_DIR}/core/solver/array
-    ${CMAKE_SOURCE_DIR}/core/solver/linear_solve
-    ${CMAKE_SOURCE_DIR}/core/solver/assemblers
-    ${CMAKE_SOURCE_DIR}/core/solver/basis_functions
-    ${CMAKE_SOURCE_DIR}/core/solver/coupling
-    ${CMAKE_SOURCE_DIR}/core/solver/time_marching_algorithms
-    ${CMAKE_SOURCE_DIR}/core/solver/problem
+    ${CMAKE_CURRENT_SOURCE_DIR}
     ${TPL_MPI_INCLUDE_DIRS}
     ${TPL_Trilinos_INCLUDE_DIRS}
     ${TPL_LifeV_INCLUDE_DIRS}
@@ -111,11 +101,10 @@ include_directories(${HEADERS_DIRS})
 # set(CMAKE_INSTALL_RPATH ${LIBRARIES_DIRS})
 # set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-add_subdirectory(core)
+add_subdirectory(redma)
 
 # add library libcore to linked libraries
 set(LINKED_LIBRARIES ${LINKED_LIBRARIES} core)
 
-add_subdirectory(cases)
 add_subdirectory(examples)
 add_subdirectory(tests)

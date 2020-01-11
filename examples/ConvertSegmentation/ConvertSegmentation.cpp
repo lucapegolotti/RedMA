@@ -22,8 +22,8 @@
 #include <Epetra_SerialComm.h>
 #endif
 
-#include <SegmentationsMerger.hpp>
-#include <GeometryPrinter.hpp>
+#include <redma/geometry/SegmentationsMerger.hpp>
+#include <redma/geometry/GeometryPrinter.hpp>
 
 #include <lifev/core/filter/GetPot.hpp>
 

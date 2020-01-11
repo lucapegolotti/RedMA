@@ -23,8 +23,8 @@
 
 #include <iostream>
 #include <string>
-#include <Test.hpp>
-#include <GeometryParser.hpp>
+#include <redma/utils/Test.hpp>
+#include <redma/geometry/GeometryParser.hpp>
 
 using namespace RedMA;
 

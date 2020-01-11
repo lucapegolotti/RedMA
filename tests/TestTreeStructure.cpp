@@ -21,11 +21,11 @@
 #include <Epetra_SerialComm.h>
 #endif
 
-#include <TreeStructure.hpp>
-#include <Tube.hpp>
-#include <BifurcationSymmetric.hpp>
-#include <Test.hpp>
-#include <Exception.hpp>
+#include <redma/geometry/TreeStructure.hpp>
+#include <redma/geometry/Tube.hpp>
+#include <redma/geometry/BifurcationSymmetric.hpp>
+#include <redma/utils/Test.hpp>
+#include <redma/utils/Exception.hpp>
 
 using namespace RedMA;
 

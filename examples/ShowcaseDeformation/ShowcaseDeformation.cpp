@@ -22,8 +22,8 @@
 #include <Epetra_SerialComm.h>
 #endif
 
-#include <Tube.hpp>
-#include <BifurcationSymmetric.hpp>
+#include <redma/geometry/Tube.hpp>
+#include <redma/geometry/BifurcationSymmetric.hpp>
 
 using namespace RedMA;
 

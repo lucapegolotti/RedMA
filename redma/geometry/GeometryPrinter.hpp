@@ -14,30 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
+#ifndef GEOMETRYPRINTER_HPP
+#define GEOMETRYPRINTER_HPP
 
-#include <memory>
-// #include <RedMa.hpp>
+#include <stdio.h>
+#include <string>
+#include <queue>
 
-// using namespace RedMA;
+#include <tinyxml2.h>
 
-int main(int argc, char **argv)
+#include <redma/geometry/TreeStructure.hpp>
+
+namespace RedMA
 {
-    #ifdef HAVE_MPI
-    MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
-    #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
-    #endif
 
-    // GlobalProblem gs;
+class GeometryPrinter
+{
+public:
+    GeometryPrinter();
 
+    void saveToFile(TreeStructure& tree, std::string name,
+                    std::shared_ptr<Epetra_Comm> comm);
+};
 
-    return 0;
-}
+}  // namespace RedMA
+
+#endif  // GEOMETRYPRINTER_HPP

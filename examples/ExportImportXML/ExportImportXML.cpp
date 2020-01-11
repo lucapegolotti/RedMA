@@ -25,8 +25,8 @@
 #include <tinyxml2.h>
 #include <vector>
 
-#include <GeometryPrinter.hpp>
-#include <GeometryParser.hpp>
+#include <redma/geometry/GeometryPrinter.hpp>
+#include <redma/geometry/GeometryParser.hpp>
 
 using namespace RedMA;
 

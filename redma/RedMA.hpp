@@ -13,31 +13,3 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
-
-#include <memory>
-// #include <RedMa.hpp>
-
-// using namespace RedMA;
-
-int main(int argc, char **argv)
-{
-    #ifdef HAVE_MPI
-    MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
-    #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
-    #endif
-
-    // GlobalProblem gs;
-
-
-    return 0;
-}

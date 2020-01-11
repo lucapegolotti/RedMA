@@ -23,8 +23,8 @@
 
 #include <iostream>
 #include <string>
-#include <Test.hpp>
-#include <BifurcationSymmetric.hpp>
+#include <redma/utils/Test.hpp>
+#include <redma/geometry/BifurcationSymmetric.hpp>
 
 using namespace RedMA;
 

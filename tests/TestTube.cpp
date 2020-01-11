@@ -26,8 +26,8 @@
 #include <iostream>
 #include <string>
 
-#include <Test.hpp>
-#include <Tube.hpp>
+#include <redma/utils/Test.hpp>
+#include <redma/geometry/Tube.hpp>
 
 using namespace RedMA;
 

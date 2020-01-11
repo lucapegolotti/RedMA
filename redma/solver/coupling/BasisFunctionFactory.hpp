@@ -14,30 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
+#ifndef BASISFUNCTIONFACTORY_HPP
+#define BASISFUNCTIONFACTORY_HPP
 
 #include <memory>
-// #include <RedMa.hpp>
 
-// using namespace RedMA;
+#include <redma/geometry/BuildingBlock.hpp>
 
-int main(int argc, char **argv)
+#include <redma/solver/coupling/BasisFunctionFunctor.hpp>
+#include <redma/solver/coupling/DummyBasisFunction.hpp>
+#include <redma/solver/coupling/ChebyshevBasisFunction.hpp>
+#include <redma/solver/coupling/FourierBasisFunction.hpp>
+#include <redma/solver/coupling/ZernikeBasisFunction.hpp>
+
+#include <redma/utils/Exception.hpp>
+
+namespace RedMA
 {
-    #ifdef HAVE_MPI
-    MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
-    #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
-    #endif
 
-    // GlobalProblem gs;
+std::shared_ptr<BasisFunctionFunctor>
+BasisFunctionFactory(const GetPot& datafile, GeometricFace inlet);
 
+}  // namespace RedMA
 
-    return 0;
-}
+#endif  // BASISFUNCTIONFACTORY_HPP

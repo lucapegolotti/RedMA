@@ -14,30 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
+// these are taken from https://arxiv.org/pdf/1701.02709.pdf (formula 3.8)
 
-#include <memory>
-// #include <RedMa.hpp>
+#ifndef DUMMYBASISFUNCTION_HPP
+#define DUMMYBASISFUNCTION_HPP
 
-// using namespace RedMA;
+#include <functional>
 
-int main(int argc, char **argv)
+#include <redma/solver/coupling/BasisFunctionFunctor.hpp>
+#include <redma/utils/Exception.hpp>
+
+namespace RedMA
 {
-    #ifdef HAVE_MPI
-    MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
-    #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
-    #endif
 
-    // GlobalProblem gs;
+class DummyBasisFunction : public BasisFunctionFunctor
+{
+public:
+    DummyBasisFunction(const GeometricFace& face,
+                       std::string type);
 
+    return_Type operator()(const Vector3D& pos) override;
+};
 
-    return 0;
-}
+}  // namespace RedMA
+
+#endif  // DUMMYBASISFUNCTION_HPP

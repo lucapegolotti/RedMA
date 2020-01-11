@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef TEST_HPP
+#define TEST_HPP
+
 #include <Epetra_ConfigDefs.h>
 #ifdef EPETRA_MPI
 #include <mpi.h>
@@ -22,22 +25,41 @@
 #include <Epetra_SerialComm.h>
 #endif
 
+#include <iostream>
+#include <string>
+#include <vector>
 #include <memory>
-// #include <RedMa.hpp>
 
-// using namespace RedMA;
+#include <redma/utils/PrintLog.hpp>
 
-int main(int argc, char **argv)
+namespace RedMA
 {
-    #ifdef HAVE_MPI
-    MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
-    #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
-    #endif
 
-    // GlobalProblem gs;
+class Test
+{
+public:
+    Test(std::string testName,std::shared_ptr<Epetra_Comm> comm);
 
+    void addSubTest(void (*subTest)(Test&));
 
-    return 0;
-}
+    void assertTrue(bool statement);
+
+    void run();
+
+    std::shared_ptr<Epetra_Comm>& getComm();
+
+private:
+    Test() {};
+
+    std::vector<void (*)(Test&)> M_subTests;
+    std::string M_testName;
+
+    unsigned int M_nTests;
+    unsigned int M_successes;
+
+    std::shared_ptr<Epetra_Comm> M_comm;
+};
+
+}  // namespace RedMA
+
+#endif  // TEST_HPP
