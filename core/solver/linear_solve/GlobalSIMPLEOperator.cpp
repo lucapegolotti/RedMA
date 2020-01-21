@@ -309,10 +309,10 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
 
             resU.subset(subY, BT->rangeMap(), 0, 0);
             resP.subset(subY, M_matrix.block(rowIndex,rowIndex+1)->domainMap(), numRows, 0);
-
-
-            subX.spy("subX" + std::to_string(rowIndex) + "_" + std::to_string(i));
-            subY.spy("subY" + std::to_string(rowIndex) + "_" + std::to_string(i));
+            //
+            //
+            // subX.spy("subX" + std::to_string(rowIndex) + "_" + std::to_string(i));
+            // subY.spy("subY" + std::to_string(rowIndex) + "_" + std::to_string(i));
         }
         else
         {
@@ -355,12 +355,12 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
     resMatrixU->globalAssemble(domainMapPtr, rangeMapPtrU);
     resMatrixP->globalAssemble(domainMapPtr, rangeMapPtrP);
 
-    if (rowIndex == 4 and colIndex == 7)
-    {
-        resMatrixU->spy("resMatrixU");
-        resMatrixP->spy("resMatrixP");
-    }
-    BT->spy("BT" + std::to_string(rowIndex));
+    // if (rowIndex == 4 and colIndex == 7)
+    // {
+    //     resMatrixU->spy("resMatrixU");
+    //     resMatrixP->spy("resMatrixP");
+    // }
+    // BT->spy("BT" + std::to_string(rowIndex));
 
     M_Am1BT.block(rowIndex, colIndex) = resMatrixU;
     M_Am1BT.block(rowIndex+1, colIndex) = resMatrixP;
@@ -401,7 +401,7 @@ computeGlobalSchurComplement()
         }
     }
 
-    M_Am1BT.spy("M_Am1BT");
+    // M_Am1BT.spy("M_Am1BT");
 
     M_globalSchurComplement.reset(new matrixEpetra_Type(*M_dualMap));
 
@@ -454,7 +454,7 @@ computeGlobalSchurComplement()
     }
     M_globalSchurComplement->globalAssemble();
     *M_globalSchurComplement *= (-1);
-    M_globalSchurComplement->spy("schur");
+    // M_globalSchurComplement->spy("schur");
 
     unsigned int nDiagElements = M_dualMap->map(LifeV::Repeated)->NumGlobalElements();
     // add value on the diagonal to stabilize the schur complement
@@ -664,8 +664,8 @@ ApplyInverse(const vector_Type& X, vector_Type& Y) const
         X_primal.subset(X_vectorEpetra, *M_primalMap, 0, 0);
         X_dual.subset(X_vectorEpetra, *M_dualMap, M_primalMap->mapSize(), 0);
 
-        X_primal.spy("X_primal");
-        X_dual.spy("X_dual");
+        // X_primal.spy("X_primal");
+        // X_dual.spy("X_dual");
 
         // here we store the result
         vectorEpetra_Type Y_primal(M_primalMap, LifeV::Unique);
@@ -673,29 +673,29 @@ ApplyInverse(const vector_Type& X, vector_Type& Y) const
 
         vectorEpetra_Type Z(M_primalMap, LifeV::Unique);
         solveEveryPrimalBlock(X_primal, Z);
-        Z.spy("Z");
+        // Z.spy("Z");
 
 
         vectorEpetra_Type Bz(M_dualMap, LifeV::Unique);
         applyEveryB(Z, Bz);
-        Bz.spy("Bz");
+        // Bz.spy("Bz");
 
         M_approximatedGlobalSchurInverse->ApplyInverse((X_dual-Bz).epetraVector(),
                                                        Y_dual.epetraVector());
-        Y_dual.spy("Y_dual");
+        // Y_dual.spy("Y_dual");
 
 
         vectorEpetra_Type BTy(M_primalMap, LifeV::Unique);
         applyEveryBT(Y_dual, BTy);
-        BTy.spy("BTy");
+        // BTy.spy("BTy");
 
         // this can be optimized because we already have Am1BTy
         vectorEpetra_Type Am1BTy(M_primalMap, LifeV::Unique);
         solveEveryPrimalBlock(BTy, Am1BTy);
-        Am1BTy.spy("Am1BTy");
+        // Am1BTy.spy("Am1BTy");
 
         Y_primal = Z - Am1BTy;
-        Y_primal.spy("Y_primal");
+        // Y_primal.spy("Y_primal");
         Y_vectorEpetra.subset(Y_primal, *M_primalMap, 0, 0);
         Y_vectorEpetra.subset(Y_dual, *M_dualMap, 0, M_primalMap->mapSize());
         Y = dynamic_cast<Epetra_MultiVector&>(Y_vectorEpetra.epetraVector());
