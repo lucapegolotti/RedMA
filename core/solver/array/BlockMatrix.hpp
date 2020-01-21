@@ -77,7 +77,7 @@ public:
 
     Grid getGrid();
 
-    void spy();
+    void spy(std::string prefix = "");
 
     void singleNorms1();
 

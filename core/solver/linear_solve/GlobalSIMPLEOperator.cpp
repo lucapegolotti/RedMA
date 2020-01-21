@@ -16,13 +16,14 @@ namespace Operators
 
 GlobalSIMPLEOperator::
 GlobalSIMPLEOperator(std::string singleOperatorType, bool exactSolve,
-                     int numIterationsExactSolve) :
+                     int numIterationsExactSolve, double stabilizationParameter) :
   M_label("GlobalSIMPLEOperator"),
   M_useTranspose(false),
   M_singleOperatorType(singleOperatorType),
   M_solvePrimalBlocksExactly(exactSolve),
   M_numIterationExactSolve(numIterationsExactSolve),
-  M_countIterations(0)
+  M_countIterations(0),
+  M_stabilizationParameter(stabilizationParameter)
 {
 
 }
@@ -257,80 +258,114 @@ computeAm1BT(unsigned int rowIndex, unsigned int colIndex)
     int numRows = BT->rangeMap().mapSize();
 
     // here we compute A^(-1) BT
-    matrixEpetraPtr_Type resMatrix(new matrixEpetra_Type(BT->rangeMap(), numCols));
-    resMatrix->zero();
+    matrixEpetraPtr_Type resMatrixU(new matrixEpetra_Type(BT->rangeMap(), numCols));
+    resMatrixU->zero();
+
+    matrixEpetraPtr_Type resMatrixP(new matrixEpetra_Type(M_matrix.block(rowIndex,rowIndex+1)->domainMap(),
+                                    numCols));
+    resMatrixP->zero();
 
     // auxiliary vector that we use to select the columns from BT
     vectorEpetra_Type aux(BT->domainMap());
-    vectorEpetra_Type col(BT->rangeMap());
-    vectorEpetra_Type res(BT->rangeMap());
-    vectorEpetra_Type fakePressure(
-                              M_matrix.block(rowIndex,rowIndex+1)->domainMap());
-    fakePressure.zero();
-    vectorEpetra_Type fakePressureResult(
-                              M_matrix.block(rowIndex,rowIndex+1)->domainMap());
-    fakePressureResult.zero();
-    map_Type rangeMapRaw = col.epetraMap();
-    unsigned int numElements = rangeMapRaw.NumMyElements();
+    vectorEpetra_Type colU(BT->rangeMap());
+    vectorEpetra_Type resU(BT->rangeMap());
+    vectorEpetra_Type colP(M_matrix.block(rowIndex,rowIndex+1)->domainMap());
+    vectorEpetra_Type resP(M_matrix.block(rowIndex,rowIndex+1)->domainMap());
+
+    map_Type rangeMapRawU = colU.epetraMap();
+    unsigned int numElementsU = rangeMapRawU.NumGlobalElements();
+    map_Type rangeMapRawP = colP.epetraMap();
+    unsigned int numElementsP = rangeMapRawP.NumGlobalElements();
     double dropTolerance = 1e-12;
-    // retrieve vectors from matrix and apply simple operator to them
+    // retrieve vectors from matrix and apply SIMPLE operator to them
     for (unsigned int i = 0; i < numCols; i++)
     {
         aux.zero();
-        col.zero();
+        colU.zero();
         // do this only if the current processor owns the dof
         if (BT->domainMap().isOwned(i))
             aux[i] = 1.0;
 
-        col = (*BT) * aux;
+        colU = (*BT) * aux;
 
         // this sometimes fails for some reason. To debug.
-        if (false)
+        if (M_solvePrimalBlocksExactly)
         {
             mapEpetra_Type monolithicMap = BT->rangeMap();
             monolithicMap += M_matrix.block(rowIndex,rowIndex+1)->domainMap();
-
             vectorEpetra_Type subX(monolithicMap);
+            subX.zero();
             vectorEpetra_Type subY(monolithicMap);
+            subY.zero();
 
-            subX.subset(col, monolithicMap, 0, 0);
+            subX.subset(colU, BT->rangeMap(), 0, 0);
 
             RedMA::CoutRedirecter ct;
             ct.redirect();
 
             M_invOperators[rowIndex/2]->ApplyInverse(subX.epetraVector(),
                                                      subY.epetraVector());
-
             ct.restore();
 
-            res.subset(subY, monolithicMap, 0, 0);
+            resU.subset(subY, BT->rangeMap(), 0, 0);
+            resP.subset(subY, M_matrix.block(rowIndex,rowIndex+1)->domainMap(), numRows, 0);
+
+
+            subX.spy("subX" + std::to_string(rowIndex) + "_" + std::to_string(i));
+            subY.spy("subY" + std::to_string(rowIndex) + "_" + std::to_string(i));
         }
         else
-            M_SingleOperators[rowIndex/2]->ApplyInverse(col, fakePressure,
-                                                        res, fakePressureResult);
-
-        for (unsigned int dof = 0; dof < numElements; dof++)
         {
-            unsigned int gdof = rangeMapRaw.GID(dof);
-            if (col.isGlobalIDPresent(gdof))
+            M_SingleOperators[rowIndex/2]->ApplyInverse(colU, colP,
+                                                        resU, resP);
+        }
+
+        for (unsigned int dof = 0; dof < numElementsU; dof++)
+        {
+            unsigned int gdof = rangeMapRawU.GID(dof);
+            if (resU.isGlobalIDPresent(gdof))
             {
-                double value(col[gdof]);
+                double value(resU[gdof]);
                 if (std::abs(value) > dropTolerance)
                 {
-                    resMatrix->addToCoefficient(gdof, i, value);
+                    resMatrixU->addToCoefficient(gdof, i, value);
                 }
             }
         }
 
+        for (unsigned int dof = 0; dof < numElementsP; dof++)
+        {
+            unsigned int gdof = rangeMapRawP.GID(dof);
+            if (resP.isGlobalIDPresent(gdof))
+            {
+                double value(resP[gdof]);
+                if (std::abs(value) > dropTolerance)
+                {
+                    resMatrixP->addToCoefficient(gdof, i, value);
+                }
+            }
+        }
     }
+
     M_comm->Barrier();
     std::shared_ptr<MapEpetra> domainMapPtr(new MapEpetra(BT->domainMap()));
-    std::shared_ptr<MapEpetra> rangeMapPtr(new MapEpetra(BT->rangeMap()));
+    std::shared_ptr<MapEpetra> rangeMapPtrU(new MapEpetra(BT->rangeMap()));
+    std::shared_ptr<MapEpetra> rangeMapPtrP(new MapEpetra(M_matrix.block(rowIndex,rowIndex+1)->domainMap()));
 
-    resMatrix->globalAssemble(domainMapPtr, rangeMapPtr);
+    resMatrixU->globalAssemble(domainMapPtr, rangeMapPtrU);
+    resMatrixP->globalAssemble(domainMapPtr, rangeMapPtrP);
 
-    M_Am1BT.block(rowIndex, colIndex) = resMatrix;
+    if (rowIndex == 4 and colIndex == 7)
+    {
+        resMatrixU->spy("resMatrixU");
+        resMatrixP->spy("resMatrixP");
+    }
+    BT->spy("BT" + std::to_string(rowIndex));
 
+    M_Am1BT.block(rowIndex, colIndex) = resMatrixU;
+    M_Am1BT.block(rowIndex+1, colIndex) = resMatrixP;
+    // resMatrixU->spy("resMatrixU");
+    // resMatrixP->spy("resMatrixP");
     msg = " done, in ";
     msg += std::to_string(chrono.diff());
     msg += " seconds\n";
@@ -366,13 +401,13 @@ computeGlobalSchurComplement()
         }
     }
 
+    M_Am1BT.spy("M_Am1BT");
 
     M_globalSchurComplement.reset(new matrixEpetra_Type(*M_dualMap));
 
     LifeV::MatrixBlockStructure structure;
     structure.setBlockStructure(M_dimensionsInterfaces,
                                 M_dimensionsInterfaces);
-
 
     unsigned int nDualBlocks = M_nBlockRows - 2 * M_nPrimalBlocks;
 
@@ -418,7 +453,17 @@ computeGlobalSchurComplement()
         }
     }
     M_globalSchurComplement->globalAssemble();
-    // M_globalSchurComplement *= (-1);
+    *M_globalSchurComplement *= (-1);
+    M_globalSchurComplement->spy("schur");
+
+    unsigned int nDiagElements = M_dualMap->map(LifeV::Repeated)->NumGlobalElements();
+    // add value on the diagonal to stabilize the schur complement
+    for (unsigned int i = 0; i < nDiagElements; i++)
+    {
+        if (M_dualMap->isOwned(i))
+            M_globalSchurComplement->addToCoefficient(i, i, M_stabilizationParameter);
+    }
+
     // create invertible approximated matrix
     M_approximatedGlobalSchurInverse.reset(new ApproximatedInvertibleMatrix);
 
@@ -619,27 +664,38 @@ ApplyInverse(const vector_Type& X, vector_Type& Y) const
         X_primal.subset(X_vectorEpetra, *M_primalMap, 0, 0);
         X_dual.subset(X_vectorEpetra, *M_dualMap, M_primalMap->mapSize(), 0);
 
+        X_primal.spy("X_primal");
+        X_dual.spy("X_dual");
+
         // here we store the result
         vectorEpetra_Type Y_primal(M_primalMap, LifeV::Unique);
         vectorEpetra_Type Y_dual(M_dualMap, LifeV::Unique);
 
         vectorEpetra_Type Z(M_primalMap, LifeV::Unique);
         solveEveryPrimalBlock(X_primal, Z);
+        Z.spy("Z");
+
 
         vectorEpetra_Type Bz(M_dualMap, LifeV::Unique);
         applyEveryB(Z, Bz);
+        Bz.spy("Bz");
 
-        M_approximatedGlobalSchurInverse->ApplyInverse((Bz - X_dual).epetraVector(),
+        M_approximatedGlobalSchurInverse->ApplyInverse((X_dual-Bz).epetraVector(),
                                                        Y_dual.epetraVector());
+        Y_dual.spy("Y_dual");
+
 
         vectorEpetra_Type BTy(M_primalMap, LifeV::Unique);
         applyEveryBT(Y_dual, BTy);
+        BTy.spy("BTy");
 
+        // this can be optimized because we already have Am1BTy
         vectorEpetra_Type Am1BTy(M_primalMap, LifeV::Unique);
         solveEveryPrimalBlock(BTy, Am1BTy);
+        Am1BTy.spy("Am1BTy");
 
         Y_primal = Z - Am1BTy;
-
+        Y_primal.spy("Y_primal");
         Y_vectorEpetra.subset(Y_primal, *M_primalMap, 0, 0);
         Y_vectorEpetra.subset(Y_dual, *M_dualMap, 0, M_primalMap->mapSize());
         Y = dynamic_cast<Epetra_MultiVector&>(Y_vectorEpetra.epetraVector());

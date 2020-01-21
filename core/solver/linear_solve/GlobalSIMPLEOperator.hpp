@@ -92,7 +92,7 @@ public:
     typedef std::shared_ptr<ParameterList>                  ParameterListPtr;
 
     GlobalSIMPLEOperator(std::string singleOperatorType, bool exactSolve,
-                         int numIterationsExactSolve);
+                         int numIterationsExactSolve, double stabilizationParameter = 0);
 
     virtual ~GlobalSIMPLEOperator();
 
@@ -167,6 +167,7 @@ private:
     ParameterListPtr                                    M_pListLinSolver;
     int                                                 M_numIterationExactSolve;
     mutable unsigned int                                M_countIterations;
+    double                                              M_stabilizationParameter;
 };
 
 }

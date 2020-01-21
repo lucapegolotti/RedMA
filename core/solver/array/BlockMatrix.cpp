@@ -292,7 +292,7 @@ printPattern()
 
 void
 BlockMatrix::
-spy()
+spy(std::string prefix)
 {
     for (unsigned int i = 0; i < M_rows; i++)
     {
@@ -300,7 +300,7 @@ spy()
         {
             if (M_gridEpetra(i,j) != nullptr &&
                 M_gridEpetra(i,j)->norm1() > 0)
-                M_gridEpetra(i,j)->spy("block" + std::to_string(i) + "_"
+                M_gridEpetra(i,j)->spy(prefix + "block" + std::to_string(i) + "_"
                                                + std::to_string(j));
         }
     }

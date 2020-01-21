@@ -70,21 +70,6 @@
                     <rotation_axis_z>-0</rotation_axis_z>
                     <scale>1.4324437168530255</scale>
                     <use_linear_elasticity>0</use_linear_elasticity>
-                    <buildingblock type="tube" refinement="coarse" d="1" L="1" outlet="1">
-                        <L_ratio>1</L_ratio>
-                        <Rout_ratio>1.2841432611652173</Rout_ratio>
-                        <alpha>2.0996955262862538</alpha>
-                        <alpha_axis>1.2769544470932417</alpha_axis>
-                        <bend>0.26937946094829074</bend>
-                        <bx>0.35065264873907165</bx>
-                        <by>2.5471269210879073</by>
-                        <bz>-10.146542366680558</bz>
-                        <rotation_axis_x>0.959856572597102</rotation_axis_x>
-                        <rotation_axis_y>-0.28049128336214718</rotation_axis_y>
-                        <rotation_axis_z>0</rotation_axis_z>
-                        <scale>1.2457561106094608</scale>
-                        <use_linear_elasticity>0</use_linear_elasticity>
-                    </buildingblock>
                 </buildingblock>
                 <buildingblock type="tube" refinement="coarse" d="1" L="1" outlet="2">
                     <L_ratio>1</L_ratio>

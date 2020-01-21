@@ -208,7 +208,7 @@
                 <Parameter name="Num Blocks" type="int" value="200"/>
                 <Parameter name="Maximum Restarts" type="int" value="0"/>
                 <Parameter name="Output Style" type="int" value="1"/>
-                <Parameter name="Convergence Tolerance" type="double" value="1e-6"/>
+                <Parameter name="Convergence Tolerance" type="double" value="1e-12"/>
                 <Parameter name="Silent" type="bool" value="true"/>
             </ParameterList>
         </ParameterList>
@@ -219,7 +219,7 @@
             <Parameter name="output" type="string" value="all_res"/>
             <Parameter name="scaling" type="string" value="none"/>
             <Parameter name="solver" type="string" value="gmres"/>
-            <Parameter name="tol" type="double" value="1e-06"/>
+            <Parameter name="tol" type="double" value="1e-12"/>
             <Parameter name="Silent" type="bool" value="true"/>
         </ParameterList>
     </ParameterList>
