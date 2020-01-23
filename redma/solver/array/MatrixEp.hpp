@@ -14,30 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
+#ifndef MATRIXEP_HPP
+#define MATRIXEP_HPP
 
-#include <memory>
-#include <redma/solver/array/BlockMatrix.hpp>
-#include <redma/solver/array/MatrixEp.hpp>
-
-using namespace RedMA;
-
-int main(int argc, char **argv)
+namespace RedMA
 {
-    #ifdef HAVE_MPI
-    MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
-    #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
-    #endif
 
-    BlockMatrix<MatrixEp> mat(1,2);
+class MatrixEp
+{
+public:
+    MatrixEp() {};
 
-    return 0;
+    MatrixEp operator+(const MatrixEp& other) {};
+
+    MatrixEp& operator+=(const MatrixEp& other) {};
+
+    MatrixEp& operator*=(const double& coeff) {};
+
+    void hardCopy(const MatrixEp& other) {};
+};
+
 }
+
+#endif // MATRIXEP_HPP
