@@ -17,15 +17,22 @@
 #ifndef aTIMEMARCHINGALGORITHM_HPP
 #define aTIMEMARCHINGALGORITHM_HPP
 
+#include <redma/RedMA.hpp>
+#include <redma/solver/assemblers/aAssembler.hpp>
+
 #include <lifev/core/filter/GetPot.hpp>
 
 namespace RedMA
 {
 
+template <class DataType>
 class aTimeMarchingAlgorithm
 {
 public:
     aTimeMarchingAlgorithm(const GetPot& datafile);
+
+    virtual DataType advance(const double& time, double& dt,
+                             SHP(aAssembler) assembler) = 0;
 
 protected:
     GetPot      M_datafile;
@@ -33,5 +40,7 @@ protected:
 };
 
 }
+
+#include "aTimeMarchingAlgorithm_imp.hpp"
 
 #endif // aTIMEMARCHINGALGORITHM_HPP

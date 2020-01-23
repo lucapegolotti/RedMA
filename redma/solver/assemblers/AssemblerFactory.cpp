@@ -7,7 +7,7 @@ SHP(aAssembler)
 AssemblerFactory(const GetPot& datafile)
 {
     SHP(aAssembler) ret;
-    std::string assemblerString = datafile("assemblertype","stokes");
+    std::string assemblerString = datafile("assembler/type","stokes");
 
     if (!std::strcmp(assemblerString.c_str(),"stokes"))
         ret.reset(new StokesAssembler(datafile));

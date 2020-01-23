@@ -26,13 +26,26 @@
 namespace RedMA
 {
 
-class BDF : public aTimeMarchingAlgorithm
+template <class DataType>
+class BDF : public aTimeMarchingAlgorithm<DataType>
 {
 public:
     BDF(const GetPot& datafile);
 
+    virtual DataType advance(const double& time, double& dt,
+                             SHP(aAssembler) assembler);
+
+    void setup();
+
+protected:
+    std::vector<DataType>                   M_prevSolutions;
+    std::vector<double>                     M_coefficients;
+    unsigned int                            M_order;
+    double                                  M_rhsCoeff;
 };
 
 }
+
+#include "BDF_imp.hpp"
 
 #endif // BDF_HPP

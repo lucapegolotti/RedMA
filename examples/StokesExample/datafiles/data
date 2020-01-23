@@ -7,6 +7,10 @@
 	geometries_dir = ../../../meshes/
 [../]
 
+[assembler]
+	type = stokes
+[../]
+
 [fluid]
 	velocity_order = P2
 	pressure_order = P1
@@ -31,21 +35,11 @@
 [../]
 
 [time_discretization]
-	algorithm = backward_euler # rosenbrock
-	scheme = ROS3Pw
+	algorithm = bdf
+	order = 2
 	t0 = 0
 	T = 2.4
 	dt = 0.02
-[../]
-
-[newton_method]
-	tol = 1e-5
-	maxit = 10
-[../]
-
-[linear_solve]
-	num_exact_iterations = 3
-	exact_solve_primal = false
 [../]
 
 [exporter]
@@ -60,7 +54,4 @@
 [coupling]
 	type                = chebyshev
 	nMax                = 1
-	orthonormalization  = POD
-	beta_threshold      = 0
-	use_interpolation   = false
 [../]

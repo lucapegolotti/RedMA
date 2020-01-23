@@ -27,9 +27,12 @@
 namespace RedMA
 {
 
-SHP(aTimeMarchingAlgorithm)
+template <class DataType>
+SHP(aTimeMarchingAlgorithm<DataType>)
 TimeMarchingAlgorithmFactory(const GetPot& datafile);
 
 }
+
+#include "TimeMarchingAlgorithmFactory_imp.hpp"
 
 #endif // TIMEMARCHINGALGORITHMFACTORY_HPP

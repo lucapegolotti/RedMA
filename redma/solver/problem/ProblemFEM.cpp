@@ -14,7 +14,8 @@ void
 ProblemFEM::
 setup()
 {
-    M_timeMarchingAlgorithm = TimeMarchingAlgorithmFactory(M_datafile);
+    M_timeMarchingAlgorithm =
+                TimeMarchingAlgorithmFactory<BlockVector<FEVECTOR>>(M_datafile);
     M_assembler = AssemblerFactory(M_datafile);
 }
 
@@ -47,7 +48,7 @@ void
 ProblemFEM::
 solveTimestep(const double& t, double& dt)
 {
-
+    M_solution = M_timeMarchingAlgorithm->advance(t, dt, M_assembler);
 }
 
 }
