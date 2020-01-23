@@ -45,7 +45,7 @@
 
 [linear_solve]
 	num_exact_iterations = -1
-	exact_solve_primal = true
+	exact_solve_primal = false
 	stabilization_parameter = 0
 [../]
 

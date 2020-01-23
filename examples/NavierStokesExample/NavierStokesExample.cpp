@@ -84,8 +84,12 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm());
     #endif
 
+    std::string dataname = "data";
+    if (argc == 2)
+        dataname = argv[1];
 
-    GetPot datafile("data");
+
+    GetPot datafile(dataname);
 
     bool verbose = comm->MyPID() == 0;
 

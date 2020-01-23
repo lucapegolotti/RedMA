@@ -5,6 +5,12 @@ target_include_directories(NavierStokesExample PRIVATE ${HEADERS_DIRS})
 add_custom_command(
         TARGET NavierStokesExample POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/analyzelogs.xml
+                ${CMAKE_CURRENT_BINARY_DIR}/analyzelogs.xml)
+
+add_custom_command(
+        TARGET NavierStokesExample POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/tree.xml
                 ${CMAKE_CURRENT_BINARY_DIR}/tree.xml)
 
@@ -85,6 +91,12 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/tree14.xml
                 ${CMAKE_CURRENT_BINARY_DIR}/tree14.xml)
+
+add_custom_command(
+        TARGET NavierStokesExample POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/launch.py
+                ${CMAKE_CURRENT_BINARY_DIR}/launch.py)
 
 add_custom_command(
         TARGET NavierStokesExample POST_BUILD

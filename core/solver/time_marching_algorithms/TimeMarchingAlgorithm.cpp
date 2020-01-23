@@ -44,7 +44,15 @@ solveLinearSystem(BlockMatrix matrix,
     M_invOper->setOperator(M_oper);
     M_invOper->setPreconditioner(M_prec);
 
+    LifeV::LifeChrono chrono;
+    chrono.start();
+    RedMA::printlog(RedMA::MAGENTA, "[TimeMarchingAlgorithm] starting solution ...\n",
+                M_verbose);
     M_invOper->ApplyInverse(rhs->epetraVector(), sol->epetraVector());
+    std::string msg = "done, in ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    RedMA::printlog(RedMA::MAGENTA, msg, M_verbose);
 }
 
 void
