@@ -14,22 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
+#ifndef PROBLEMFEM_HPP
+#define PROBLEMFEM_HPP
+
+#include <redma/RedMA.hpp>
+
+#include <redma/solver/problem/aProblem.hpp>
+#include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
 
 #include <memory>
 
-// we define the namespace
 namespace RedMA
 {
 
+class ProblemFEM : public aProblem
+{
+public:
+    ProblemFEM(const GetPot& datafile);
+
+    virtual void setup();
+
+    virtual void solve();
+
+    void solveTimestep(const double& t, double& dt);
+
+private:
+    SHP(aTimeMarchingAlgorithm)  M_timeMarchingAlgorithm;
+    SHP(aAssembler)              M_assembler;
+};
+
 }
 
-#define SHP(TYPE)   std::shared_ptr<TYPE>
-
-#define EPETRACOMM  SHP(Epetra_Comm)
+#endif // PROBLEMFEM_HPP

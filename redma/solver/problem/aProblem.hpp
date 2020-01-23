@@ -14,22 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
+#ifndef aPROBLEM_HPP
+#define aPROBLEM_HPP
 
-#include <memory>
+#include <lifev/core/filter/GetPot.hpp>
 
-// we define the namespace
 namespace RedMA
 {
 
+class Problem
+{
+public:
+    Problem(const GetPot& datafile);
+
+    virtual void setup() = 0;
+
+    virtual void solve() = 0;
+
+protected:
+    GetPot  M_datafile;
+};
+
 }
 
-#define SHP(TYPE)   std::shared_ptr<TYPE>
-
-#define EPETRACOMM  SHP(Epetra_Comm)
+#endif // BLOCKMATRIX_HPP

@@ -4,6 +4,7 @@ project(RedMA VERSION 1.0.0 DESCRIPTION "Reduced Modeling of Arteries")
 
 set(CMAKE_CXX_STANDARD 11)
 
+message(STATUS ${TPL_LifeV_INCLUDE_DIRS})
 set(HEADERS_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${TPL_MPI_INCLUDE_DIRS}

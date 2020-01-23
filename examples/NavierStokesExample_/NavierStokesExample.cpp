@@ -14,22 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
+#include <redma/RedMA.hpp>
 
-#include <memory>
+#include <lifev/core/filter/GetPot.hpp>
 
-// we define the namespace
-namespace RedMA
+using namespace RedMA;
+
+int main(int argc, char **argv)
 {
+    #ifdef HAVE_MPI
+    MPI_Init (nullptr, nullptr);
+    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    #else
+    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm());
+    #endif
 
+
+    GetPot datafile("datafiles/data");
+
+    // bool verbose = comm->MyPID() == 0;
+    //
+    // GlobalProblem gs(datafile, comm, verbose);
+    // gs.setExportNorms("norms_nonconforming.txt");
+    // gs.setLawInflow(std::function<double(double)>(maxLaw_));
+    // gs.setLawDtInflow(std::function<double(double)>(maxLawDt_));
+    // gs.solve();
+
+    return 0;
 }
-
-#define SHP(TYPE)   std::shared_ptr<TYPE>
-
-#define EPETRACOMM  SHP(Epetra_Comm)

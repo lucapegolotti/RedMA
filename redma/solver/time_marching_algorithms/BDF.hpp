@@ -14,22 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
+#ifndef BDF_HPP
+#define BDF_HPP
+
+#include <redma/RedMA.hpp>
+#include <redma/solver/time_marching_algorithms/aTimeMarchingAlgorithm.hpp>
+#include <redma/utils/Exception.hpp>
 
 #include <memory>
 
-// we define the namespace
 namespace RedMA
 {
 
+class BDF : public aTimeMarchingAlgorithm
+{
+public:
+    BDF(const GetPot& datafile);
+
+};
+
 }
 
-#define SHP(TYPE)   std::shared_ptr<TYPE>
-
-#define EPETRACOMM  SHP(Epetra_Comm)
+#endif // BDF_HPP

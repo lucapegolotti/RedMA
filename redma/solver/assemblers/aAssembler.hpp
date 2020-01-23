@@ -14,22 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
+#ifndef aASSEMBLER_HPP
+#define aASSEMBLER_HPP
 
-#include <memory>
+#include <redma/RedMA.hpp>
 
-// we define the namespace
+#include <lifev/core/filter/GetPot.hpp>
+
 namespace RedMA
 {
 
+class aAssembler
+{
+public:
+    aAssembler(const GetPot& datafile);
+
+protected:
+    GetPot      M_datafile;
+};
+
 }
 
-#define SHP(TYPE)   std::shared_ptr<TYPE>
-
-#define EPETRACOMM  SHP(Epetra_Comm)
+#endif // aASSEMBLER_HPP

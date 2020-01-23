@@ -14,22 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
+#ifndef TIMEMARCHINGALGORITHMFACTORY_HPP
+#define TIMEMARCHINGALGORITHMFACTORY_HPP
+
+#include <redma/RedMA.hpp>
+#include <redma/solver/time_marching_algorithms/aTimeMarchingAlgorithm.hpp>
+#include <redma/solver/time_marching_algorithms/BDF.hpp>
+#include <redma/utils/Exception.hpp>
 
 #include <memory>
 
-// we define the namespace
 namespace RedMA
 {
 
+SHP(aTimeMarchingAlgorithm)
+TimeMarchingAlgorithmFactory(const GetPot& datafile);
+
 }
 
-#define SHP(TYPE)   std::shared_ptr<TYPE>
-
-#define EPETRACOMM  SHP(Epetra_Comm)
+#endif // TIMEMARCHINGALGORITHMFACTORY_HPP
