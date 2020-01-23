@@ -14,33 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef MATRIXEP_HPP
-#define MATRIXEP_HPP
+#ifndef STOKESASSEMBLER_HPP
+#define STOKESASSEMBLER_HPP
 
-#include <redma/RedMA.hpp>
-
-#include <redma/solver/array/aMatrix.hpp>
+#include <redma/solver/assemblers/aAssembler.hpp>
 
 namespace RedMA
 {
 
-class MatrixEp : public aMatrix
+class StokesAssembler : public aAssembler
 {
 public:
-    MatrixEp();
+    StokesAssembler(const GetPot& datafile);
 
-    MatrixEp operator+(const MatrixEp& other);
+    virtual void exportSolution(const double& t) override;
 
-    MatrixEp& operator+=(const MatrixEp& other);
+    virtual void postProcess() override;
 
-    MatrixEp& operator*=(const double& coeff);
-
-    void hardCopy(const MatrixEp& other);
-
-private:
-    std::shared_ptr<MATRIXEPETRA>  M_matrix;
+protected:
 };
 
 }
 
-#endif // MATRIXEP_HPP
+#endif // STOKESASSEMBLER_HPP

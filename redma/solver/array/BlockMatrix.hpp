@@ -30,6 +30,8 @@ class BlockMatrix : public aMatrix
 {
     typedef boost::numeric::ublas::matrix<InMatrixType>       Grid;
 public:
+    BlockMatrix();
+
     BlockMatrix(const unsigned int& nRows, const unsigned int& nCols);
 
     virtual BlockMatrix<InMatrixType> operator+(const BlockMatrix<InMatrixType>& other) const;
@@ -49,7 +51,7 @@ public:
 
     InMatrixType block(const unsigned int& iblock, const unsigned int& jblock) const;
 
-private:
+protected:
     Grid            M_matrixGrid;
     unsigned int    M_nRows;
     unsigned int    M_nCols;

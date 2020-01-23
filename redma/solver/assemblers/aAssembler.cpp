@@ -1,3 +1,5 @@
+#include "aAssembler.hpp"
+
 namespace RedMA
 {
 

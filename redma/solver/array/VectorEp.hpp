@@ -14,33 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef MATRIXEP_HPP
-#define MATRIXEP_HPP
+#ifndef VECTOREP_HPP
+#define VECTOREP_HPP
 
 #include <redma/RedMA.hpp>
-
 #include <redma/solver/array/aMatrix.hpp>
 
 namespace RedMA
 {
 
-class MatrixEp : public aMatrix
+class VectorEp : public aMatrix
 {
 public:
-    MatrixEp();
+    VectorEp();
 
-    MatrixEp operator+(const MatrixEp& other);
+    VectorEp operator+(const VectorEp& other);
 
-    MatrixEp& operator+=(const MatrixEp& other);
+    VectorEp& operator+=(const VectorEp& other);
 
-    MatrixEp& operator*=(const double& coeff);
+    VectorEp& operator*=(const double& coeff);
 
-    void hardCopy(const MatrixEp& other);
+    void hardCopy(const VectorEp& other);
 
 private:
-    std::shared_ptr<MATRIXEPETRA>  M_matrix;
+    std::shared_ptr<VECTOREPETRA>  M_vector;
 };
 
 }
 
-#endif // MATRIXEP_HPP
+#endif // VECTOREP_HPP

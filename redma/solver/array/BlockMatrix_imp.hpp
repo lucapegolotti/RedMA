@@ -5,6 +5,14 @@ namespace RedMA
 
 template <class InMatrixType>
 BlockMatrix<InMatrixType>::
+BlockMatrix() :
+  M_nRows(0),
+  M_nCols(0)
+{
+}
+
+template <class InMatrixType>
+BlockMatrix<InMatrixType>::
 BlockMatrix(const unsigned int& nRows, const unsigned int& nCols) :
   M_nRows(nRows),
   M_nCols(nCols)

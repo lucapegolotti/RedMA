@@ -22,10 +22,10 @@
 namespace RedMA
 {
 
-class Problem
+class aProblem
 {
 public:
-    Problem(const GetPot& datafile);
+    aProblem(const GetPot& datafile);
 
     virtual void setup() = 0;
 

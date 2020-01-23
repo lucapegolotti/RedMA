@@ -24,12 +24,24 @@
 
 #include <memory>
 
+#include <redma/solver/array/MatrixEp.hpp>
+#include <redma/solver/array/VectorEp.hpp>
+
+#include <lifev/core/array/VectorEpetra.hpp>
+#include <lifev/core/array/MatrixEpetra.hpp>
+
 // we define the namespace
 namespace RedMA
 {
 
 }
 
-#define SHP(TYPE)   std::shared_ptr<TYPE>
+#define SHP(TYPE)           std::shared_ptr<TYPE >
 
-#define EPETRACOMM  SHP(Epetra_Comm)
+#define EPETRACOMM          SHP(Epetra_Comm)
+
+#define MATRIXEPETRA        LifeV::MatrixEpetra<double>
+#define VECTOREPETRA        LifeV::VectorEpetra
+
+#define FEVECTOR            RedMA::VectorEp
+#define FEMATRIX            RedMA::MatrixEp

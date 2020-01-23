@@ -20,7 +20,10 @@
 #include <redma/RedMA.hpp>
 
 #include <redma/solver/problem/aProblem.hpp>
+#include <redma/solver/array/BlockVector.hpp>
+
 #include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
+#include <redma/solver/assemblers/AssemblerFactory.hpp>
 
 #include <memory>
 
@@ -41,6 +44,7 @@ public:
 private:
     SHP(aTimeMarchingAlgorithm)  M_timeMarchingAlgorithm;
     SHP(aAssembler)              M_assembler;
+    BlockVector<FEVECTOR>        M_solution;
 };
 
 }

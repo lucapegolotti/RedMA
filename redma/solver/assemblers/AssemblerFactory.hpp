@@ -14,33 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef MATRIXEP_HPP
-#define MATRIXEP_HPP
+#ifndef ASSEMBLERFACTORY_HPP
+#define ASSEMBLERFACTORY_HPP
 
 #include <redma/RedMA.hpp>
-
-#include <redma/solver/array/aMatrix.hpp>
+#include <redma/solver/assemblers/aAssembler.hpp>
+#include <redma/solver/assemblers/StokesAssembler.hpp>
+#include <redma/utils/Exception.hpp>
 
 namespace RedMA
 {
 
-class MatrixEp : public aMatrix
-{
-public:
-    MatrixEp();
-
-    MatrixEp operator+(const MatrixEp& other);
-
-    MatrixEp& operator+=(const MatrixEp& other);
-
-    MatrixEp& operator*=(const double& coeff);
-
-    void hardCopy(const MatrixEp& other);
-
-private:
-    std::shared_ptr<MATRIXEPETRA>  M_matrix;
-};
+SHP(aAssembler)
+AssemblerFactory(const GetPot& datafile);
 
 }
 
-#endif // MATRIXEP_HPP
+#endif // ASSEMBLERFACTORY_HPP

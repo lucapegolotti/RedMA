@@ -29,6 +29,10 @@ class aAssembler
 public:
     aAssembler(const GetPot& datafile);
 
+    virtual void exportSolution(const double& t) = 0;
+
+    virtual void postProcess() = 0;
+
 protected:
     GetPot      M_datafile;
 };

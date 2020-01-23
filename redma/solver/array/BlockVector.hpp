@@ -14,33 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef MATRIXEP_HPP
-#define MATRIXEP_HPP
+#ifndef BLOCKVECTOR_HPP
+#define BLOCKVECTOR_HPP
 
-#include <redma/RedMA.hpp>
+#include <redma/utils/Exception.hpp>
+#include <redma/solver/array/BlockMatrix.hpp>
 
-#include <redma/solver/array/aMatrix.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 
 namespace RedMA
 {
 
-class MatrixEp : public aMatrix
+template <class InVectorType>
+class BlockVector : public BlockMatrix<InVectorType>
 {
 public:
-    MatrixEp();
+    BlockVector();
 
-    MatrixEp operator+(const MatrixEp& other);
+    BlockVector(const unsigned int& nRows);
 
-    MatrixEp& operator+=(const MatrixEp& other);
+    InVectorType& block(const unsigned int& iblock);
 
-    MatrixEp& operator*=(const double& coeff);
-
-    void hardCopy(const MatrixEp& other);
-
-private:
-    std::shared_ptr<MATRIXEPETRA>  M_matrix;
+    InVectorType block(const unsigned int& iblock) const;
 };
 
 }
 
-#endif // MATRIXEP_HPP
+#include "BlockVector_imp.hpp"
+
+#endif // BLOCKVECTOR_HPP

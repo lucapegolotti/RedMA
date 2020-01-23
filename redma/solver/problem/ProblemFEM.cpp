@@ -4,8 +4,8 @@ namespace RedMA
 {
 
 ProblemFEM::
-ProblemFEM(const double& datafile) :
-  Problem(datafile)
+ProblemFEM(const GetPot& datafile) :
+  aProblem(datafile)
 {
     setup();
 }
@@ -15,6 +15,7 @@ ProblemFEM::
 setup()
 {
     M_timeMarchingAlgorithm = TimeMarchingAlgorithmFactory(M_datafile);
+    M_assembler = AssemblerFactory(M_datafile);
 }
 
 void
@@ -35,7 +36,7 @@ solve()
         t += dt;
 
         if (count % saveEvery == 0)
-            M_assembler->exportSolution(t, M_solution);
+            M_assembler->exportSolution(t);
 
         M_assembler->postProcess();
         count++;

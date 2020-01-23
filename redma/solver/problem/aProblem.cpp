@@ -3,8 +3,8 @@
 namespace RedMA
 {
 
-Problem::
-Problem(const GetPot& datafile) :
+aProblem::
+aProblem(const GetPot& datafile) :
   M_datafile(datafile)
 {
 }
