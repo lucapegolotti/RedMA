@@ -46,10 +46,14 @@ template <class InVectorType, class InMatrixType>
 BlockVector<InVectorType>
 BDF<InVectorType, InMatrixType>::
 advance(const double& time, double& dt,
-        SHP(aAssembler<InVectorType AND InMatrixType>) assembler)
+        SHP(aAssembler<InVectorType AND InMatrixType>) assembler,
+        int& status)
 {
     typedef BlockVector<InVectorType>               BV;
     typedef BlockMatrix<InMatrixType>               BM;
+
+    // we set the initial guess equal to the last solution
+    BV initialGuess = M_prevSolutions[0];
 
     FunctionFunctor<BV,BV> fct(
         [this,time,dt,assembler](BV sol)
@@ -86,7 +90,7 @@ advance(const double& time, double& dt,
         return retMat;
     });
 
-    return M_systemSolver.solve(fct,jac);
+    return this->M_systemSolver.solve(fct, jac, initialGuess, status);
 }
 
 }

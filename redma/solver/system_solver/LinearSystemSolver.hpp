@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef SYSTEMSOLVER_HPP
-#define SYSTEMSOLVER_HPP
+#ifndef LINEARSYSTEMSOLVER_HPP
+#define LINEARSYSTEMSOLVER_HPP
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/system_solver/FunctionFunctor.hpp>
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/solver/array/BlockMatrix.hpp>
-#include <redma/solver/system_solver/LinearSystemSolver.hpp>
 
 #include <memory>
 
@@ -29,24 +27,22 @@ namespace RedMA
 {
 
 template<class InVectorType, class InMatrixType>
-class SystemSolver
+class LinearSystemSolver
 {
     typedef BlockVector<InVectorType>               BV;
     typedef BlockMatrix<InMatrixType>               BM;
 
 public:
-    SystemSolver(const GetPot& datafile);
+    LinearSystemSolver(const GetPot& datafile);
 
-    BV solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
-             BV initialGuess, int& status);
+    BV solve(BM matrix, BV rh);
 
 private:
-    GetPot                                              M_datafile;
-    LinearSystemSolver<InVectorType, InMatrixType>      M_linearSystemSolver;
+    GetPot                  M_datafile;
 };
 
 }
 
-#include "SystemSolver_imp.hpp"
+#include "LinearSystemSolver_imp.hpp"
 
-#endif // SYSTEMSOLVER_HPP
+#endif // LINEARSYSTEMSOLVER_HPP

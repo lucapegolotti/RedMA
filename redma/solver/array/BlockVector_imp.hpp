@@ -40,6 +40,22 @@ operator*(const double& coeff) const
 }
 
 template <class InVectorType>
+double
+BlockVector<InVectorType>::
+norm2() const
+{
+    double ret = 0;
+
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        double curNorm = block(i).norm2();
+        ret += curNorm * curNorm;
+    }
+
+    return sqrt(ret);
+}
+
+template <class InVectorType>
 BlockVector<InVectorType>&
 BlockVector<InVectorType>::
 operator*=(const double& coeff)
@@ -71,6 +87,26 @@ operator+=(const BlockVector<InVectorType>& other)
         block(i) += other.block(i);
 
     return *this;
+}
+
+template <class InVectorType>
+BlockVector<InVectorType>&
+BlockVector<InVectorType>::
+operator-=(const BlockVector<InVectorType>& other)
+{
+    for (unsigned int i = 0; i < M_nRows; i++)
+        block(i) -= other.block(i);
+
+    return *this;
+}
+
+template <class InVectorType>
+void
+BlockVector<InVectorType>::
+zero()
+{
+    for (unsigned int i = 0; i < M_nRows; i++)
+        block(i) *= 0;
 }
 
 template <class InVectorType>

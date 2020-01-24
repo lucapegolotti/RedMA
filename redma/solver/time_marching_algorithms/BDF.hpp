@@ -38,14 +38,14 @@ public:
     void setup();
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
-            SHP(aAssembler<InVectorType AND InMatrixType>) assembler) override;
+                       SHP(aAssembler<InVectorType AND InMatrixType>) assembler,
+                       int& status) override;
 
 protected:
     std::vector<BlockVector<InVectorType> >  M_prevSolutions;
     std::vector<double>                      M_coefficients;
     unsigned int                             M_order;
     double                                   M_rhsCoeff;
-    SystemSolver<InVectorType, InMatrixType> M_systemSolver;
 };
 
 }

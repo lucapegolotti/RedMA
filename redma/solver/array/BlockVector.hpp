@@ -21,6 +21,8 @@
 
 #include <boost/numeric/ublas/matrix.hpp>
 
+#include <math.h>
+
 namespace RedMA
 {
 
@@ -40,17 +42,23 @@ public:
 
     BlockVector& operator+=(const BlockVector<InVectorType>& other);
 
+    BlockVector& operator-=(const BlockVector<InVectorType>& other);
+
     BlockVector operator+(const BlockVector<InVectorType>& other) const;
 
     InVectorType& block(const unsigned int& iblock);
 
     InVectorType block(const unsigned int& iblock) const;
 
+    double norm2() const;
+
     void resize(const unsigned int& nRows);
 
     void hardCopy(const BlockVector<InVectorType>& other);
 
     inline unsigned int nRows() const {return M_nRows;}
+
+    void zero();
 
 protected:
     Grid            M_vectorGrid;

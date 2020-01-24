@@ -48,7 +48,8 @@ void
 ProblemFEM::
 solveTimestep(const double& t, double& dt)
 {
-    M_solution = M_timeMarchingAlgorithm->advance(t, dt, M_assembler);
+    int status = -1;
+    M_solution = M_timeMarchingAlgorithm->advance(t, dt, M_assembler, status);
 }
 
 }

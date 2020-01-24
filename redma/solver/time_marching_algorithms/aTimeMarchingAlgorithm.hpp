@@ -20,6 +20,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/assemblers/aAssembler.hpp>
 #include <redma/solver/array/BlockVector.hpp>
+#include <redma/solver/system_solver/SystemSolver.hpp>
 
 #include <lifev/core/filter/GetPot.hpp>
 
@@ -33,11 +34,12 @@ public:
     aTimeMarchingAlgorithm(const GetPot& datafile);
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
-                   SHP(aAssembler<InVectorType AND InMatrixType>) assembler) = 0;
+                       SHP(aAssembler<InVectorType AND InMatrixType>) assembler,
+                       int& status) = 0;
 
 protected:
-    GetPot      M_datafile;
-
+    GetPot                                      M_datafile;
+    SystemSolver<InVectorType, InMatrixType>    M_systemSolver;
 };
 
 }
