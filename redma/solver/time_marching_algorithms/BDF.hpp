@@ -37,7 +37,7 @@ public:
     void setup();
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
-    std::shared_ptr<aAssembler<InVectorType, InMatrixType> > assembler) override;
+              SHP((aAssembler<InVectorType, InMatrixType>)) assembler) override;
 
 protected:
     std::vector<BlockVector<InVectorType> > M_prevSolutions;

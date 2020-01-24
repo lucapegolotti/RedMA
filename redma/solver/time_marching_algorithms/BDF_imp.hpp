@@ -46,7 +46,7 @@ template <class InVectorType, class InMatrixType>
 BlockVector<InVectorType>
 BDF<InVectorType, InMatrixType>::
 advance(const double& time, double& dt,
-        std::shared_ptr<aAssembler<InVectorType, InMatrixType> > assembler)
+        SHP((aAssembler<InVectorType, InMatrixType>)) assembler)
 {
     typedef BlockVector<InVectorType>               BV;
     typedef BlockMatrix<InMatrixType>               BM;
@@ -85,7 +85,6 @@ advance(const double& time, double& dt,
         retMat += jacRhs;
         return retMat;
     });
-
 }
 
 }

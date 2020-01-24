@@ -2,7 +2,7 @@ namespace RedMA
 {
 
 template <class InVectorType, class InMatrixType>
-std::shared_ptr<aTimeMarchingAlgorithm<InVectorType, InMatrixType>>
+SHP((aTimeMarchingAlgorithm<InVectorType, InMatrixType>))
 TimeMarchingAlgorithmFactory(const GetPot& datafile)
 {
     std::shared_ptr<aTimeMarchingAlgorithm<InVectorType, InMatrixType>> ret;

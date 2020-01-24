@@ -4,10 +4,10 @@ namespace RedMA
 {
 
 template<class InVectorType, class InMatrixType>
-std::shared_ptr<aAssembler<InVectorType, InMatrixType> >
+SHP((aAssembler<InVectorType, InMatrixType>))
 AssemblerFactory(const GetPot& datafile)
 {
-    std::shared_ptr<aAssembler<InVectorType, InMatrixType> > ret;
+    std::shared_ptr<aAssembler<InVectorType, InMatrixType>> ret;
     std::string assemblerString = datafile("assembler/type","stokes");
 
     if (!std::strcmp(assemblerString.c_str(),"stokes"))

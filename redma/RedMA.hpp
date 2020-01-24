@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#ifndef REDMA_HPP
+#define REDMA_HPP
 
 #include <Epetra_ConfigDefs.h>
 #ifdef EPETRA_MPI
@@ -33,9 +35,15 @@ namespace RedMA
 
 }
 
-#define SHP(TYPE)           std::shared_ptr<TYPE >
+// this is a trick to allow for commas in arguments to SHP macro
+template<typename T> struct argument_type;
+template<typename T, typename U> struct argument_type<T(U)> {typedef U type;};
+
+#define SHP(TYPE)           std::shared_ptr<typename argument_type<void(TYPE)>::type>
 
 #define EPETRACOMM          SHP(Epetra_Comm)
 
 #define FEVECTOR            RedMA::VectorEp
 #define FEMATRIX            RedMA::MatrixEp
+
+#endif  // REDMA_HPP
