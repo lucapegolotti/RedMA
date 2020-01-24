@@ -33,7 +33,7 @@ public:
     aTimeMarchingAlgorithm(const GetPot& datafile);
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
-                   SHP((aAssembler<InVectorType, InMatrixType>)) assembler) = 0;
+                   SHP(aAssembler<InVectorType AND InMatrixType>) assembler) = 0;
 
 protected:
     GetPot      M_datafile;

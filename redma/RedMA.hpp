@@ -36,10 +36,12 @@ namespace RedMA
 }
 
 // this is a trick to allow for commas in arguments to SHP macro
-template<typename T> struct argument_type;
-template<typename T, typename U> struct argument_type<T(U)> {typedef U type;};
+// template<typename T> struct argument_type;
+// template<typename T, typename U> struct argument_type<T(U)> {typedef U type;};
+#define AND                 ,
 
-#define SHP(TYPE)           std::shared_ptr<typename argument_type<void(TYPE)>::type>
+// #define SHP(TYPE)           std::shared_ptr<argument_type<void(TYPE)>::type>
+#define SHP(TYPE)           std::shared_ptr<TYPE>
 
 #define EPETRACOMM          SHP(Epetra_Comm)
 

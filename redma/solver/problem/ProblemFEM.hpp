@@ -42,9 +42,9 @@ public:
     void solveTimestep(const double& t, double& dt);
 
 private:
-    SHP((aTimeMarchingAlgorithm<FEVECTOR,FEMATRIX>)) M_timeMarchingAlgorithm;
-    SHP((aAssembler<FEVECTOR,FEMATRIX>))             M_assembler;
-    BlockVector<FEVECTOR>                            M_solution;
+    SHP(aTimeMarchingAlgorithm<FEVECTOR AND FEMATRIX>)  M_timeMarchingAlgorithm;
+    SHP(aAssembler<FEVECTOR AND FEMATRIX>)              M_assembler;
+    BlockVector<FEVECTOR>                               M_solution;
 };
 
 }

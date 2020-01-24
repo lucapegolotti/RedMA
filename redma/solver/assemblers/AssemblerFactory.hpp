@@ -26,7 +26,7 @@ namespace RedMA
 {
 
 template <class InVectorType, class InMatrixType>
-SHP((aAssembler<InVectorType, InMatrixType>))
+SHP(aAssembler<InVectorType AND InMatrixType>)
 AssemblerFactory(const GetPot& datafile);
 
 }

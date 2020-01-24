@@ -46,7 +46,7 @@ template <class InVectorType, class InMatrixType>
 BlockVector<InVectorType>
 BDF<InVectorType, InMatrixType>::
 advance(const double& time, double& dt,
-        SHP((aAssembler<InVectorType, InMatrixType>)) assembler)
+        SHP(aAssembler<InVectorType AND InMatrixType>) assembler)
 {
     typedef BlockVector<InVectorType>               BV;
     typedef BlockMatrix<InMatrixType>               BM;
