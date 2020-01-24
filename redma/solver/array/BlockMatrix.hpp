@@ -82,6 +82,10 @@ public:
     template <class OutputType>
     void getColProperty(OutputType& output, const unsigned int& indexcol) const;
 
+    inline unsigned int nRows() const {return M_nRows;}
+
+    inline unsigned int nCols() const {return M_nCols;}
+
 protected:
     Grid            M_matrixGrid;
     unsigned int    M_nRows;

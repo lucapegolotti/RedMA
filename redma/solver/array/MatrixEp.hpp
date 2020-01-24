@@ -49,6 +49,8 @@ public:
 
     void getColProperty(std::shared_ptr<LifeV::MapEpetra>& outMap);
 
+    std::shared_ptr<MATRIXEPETRA>& data();
+
 private:
     std::shared_ptr<MATRIXEPETRA>  M_matrix;
 };

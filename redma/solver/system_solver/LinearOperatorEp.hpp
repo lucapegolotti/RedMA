@@ -23,6 +23,8 @@
 
 #include <lifev/core/filter/GetPot.hpp>
 #include <lifev/core/linear_algebra/LinearOperatorAlgebra.hpp>
+#include <lifev/core/linear_algebra/BlockEpetra_MultiVector.hpp>
+#include <lifev/core/linear_algebra/BlockEpetra_Map.hpp>
 
 namespace RedMA
 {
@@ -62,9 +64,11 @@ public:
     virtual const super::map_Type& OperatorRangeMap() const override {}
 
 private:
-    GetPot                  M_datafile;
-    EPETRACOMM              M_comm;
-    BM                      M_matrix;
+    GetPot                          M_datafile;
+    EPETRACOMM                      M_comm;
+    BM                              M_matrix;
+    SHP(LifeV::BlockEpetra_Map)     M_domainMap;
+    SHP(LifeV::BlockEpetra_Map)     M_rangeMap;
 };
 
 }

@@ -65,4 +65,11 @@ getColProperty(std::shared_ptr<LifeV::MapEpetra>& outMap)
 
 }
 
+std::shared_ptr<MATRIXEPETRA>&
+MatrixEp::
+data()
+{
+    return M_matrix;
+}
+
 }
