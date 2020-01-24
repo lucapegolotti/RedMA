@@ -3,11 +3,11 @@
 namespace RedMA
 {
 
-std::shared_ptr<BasisFunctionFunctor>
+SHP(BasisFunctionFunctor)
 BasisFunctionFactory(const GetPot& datafile,
                      GeometricFace inlet)
 {
-    std::shared_ptr<BasisFunctionFunctor> basisFunction;
+    SHP(BasisFunctionFunctor) basisFunction;
     std::string type = datafile("coupling/type", "chebyshev");
 
     if (!std::strcmp(type.c_str(), "fourier"))

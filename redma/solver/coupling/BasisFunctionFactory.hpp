@@ -19,6 +19,8 @@
 
 #include <memory>
 
+#include <redma/RedMA.hpp>
+
 #include <redma/geometry/BuildingBlock.hpp>
 
 #include <redma/solver/coupling/BasisFunctionFunctor.hpp>
@@ -32,7 +34,7 @@
 namespace RedMA
 {
 
-std::shared_ptr<BasisFunctionFunctor>
+SHP(BasisFunctionFunctor)
 BasisFunctionFactory(const GetPot& datafile, GeometricFace inlet);
 
 }  // namespace RedMA

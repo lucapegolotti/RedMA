@@ -14,5 +14,6 @@ set(SOURCES
     ${SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/MatrixEp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/VectorEp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/BlockMatrix.cpp
     CACHE INTERNAL ""
 )

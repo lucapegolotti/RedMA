@@ -11,7 +11,7 @@ TimeMarchingAlgorithmFactory(const GetPot& datafile)
     if (!std::strcmp(algorithmString.c_str(),"bdf"))
         ret.reset(new BDF<InVectorType, InMatrixType>(datafile));
     else
-        throw new Exception("Time Marching Algorithm is not implemented!");
+        throw new Exception("Requested time marching algorithm is not implemented!");
 
     return ret;
 }

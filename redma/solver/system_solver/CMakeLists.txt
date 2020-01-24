@@ -5,10 +5,13 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/SystemSolver_imp.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/LinearSystemSolver.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/LinearSystemSolver_imp.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/LinearOperatorEp.hpp
     CACHE INTERNAL ""
 )
 
 set(SOURCES
     ${SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/LinearSystemSolver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/LinearOperatorEp.cpp
     CACHE INTERNAL ""
 )

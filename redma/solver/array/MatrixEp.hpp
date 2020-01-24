@@ -21,6 +21,7 @@
 #include <redma/solver/array/VectorEp.hpp>
 
 #include <lifev/core/array/MatrixEpetra.hpp>
+#include <lifev/core/array/MapEpetra.hpp>
 
 #define MATRIXEPETRA        LifeV::MatrixEpetra<double>
 
@@ -41,6 +42,12 @@ public:
     VectorEp operator*(const VectorEp& vector);
 
     void hardCopy(const MatrixEp& other);
+
+    void softCopy(const MatrixEp& other);
+
+    void getRowProperty(std::shared_ptr<LifeV::MapEpetra>& outMap);
+
+    void getColProperty(std::shared_ptr<LifeV::MapEpetra>& outMap);
 
 private:
     std::shared_ptr<MATRIXEPETRA>  M_matrix;

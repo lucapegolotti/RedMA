@@ -28,7 +28,7 @@ class ZernikeBasisFunction : public BasisFunctionFunctor
 {
 public:
     ZernikeBasisFunction(const GeometricFace& face,
-                      unsigned int nMax);
+                         unsigned int nMax);
 
     return_Type operator()(const Vector3D& pos) override;
 

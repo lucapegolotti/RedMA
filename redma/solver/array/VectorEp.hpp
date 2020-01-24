@@ -39,9 +39,13 @@ public:
 
     VectorEp& operator*=(const double& coeff);
 
+    VectorEp& operator=(const std::shared_ptr<VECTOREPETRA>& other);
+
     void hardCopy(const VectorEp& other);
 
     double norm2() const;
+
+    std::shared_ptr<VECTOREPETRA>& data();
 
 private:
     std::shared_ptr<VECTOREPETRA>  M_vector;

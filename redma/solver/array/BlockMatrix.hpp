@@ -20,8 +20,13 @@
 #include <redma/utils/Exception.hpp>
 #include <redma/solver/array/aMatrix.hpp>
 #include <redma/solver/array/BlockVector.hpp>
+#include <redma/solver/array/VectorEp.hpp>
+#include <redma/solver/array/MatrixEp.hpp>
 
 #include <boost/numeric/ublas/matrix.hpp>
+
+#include <lifev/core/array/MapEpetra.hpp>
+
 
 namespace RedMA
 {
@@ -53,9 +58,29 @@ public:
 
     void hardCopy(const BlockMatrix<InMatrixType>& other);
 
+    void softCopy(const BlockMatrix<InMatrixType>& other);
+
     InMatrixType& block(const unsigned int& iblock, const unsigned int& jblock);
 
     InMatrixType block(const unsigned int& iblock, const unsigned int& jblock) const;
+
+    template <class InputVectorType, class OutputVectorType>
+    void convertVectorType(const InputVectorType& inputVector,
+                           OutputVectorType& output) const;
+
+    // if InMatrix is epetra this returns global range map, otherwise number
+    // of rows
+    template <class OutputType>
+    void getRowsProperty(OutputType& output) const;
+
+    template <class OutputType>
+    void getColsProperty(OutputType& output) const;
+
+    template <class OutputType>
+    void getRowProperty(OutputType& output, const unsigned int& indexrow) const;
+
+    template <class OutputType>
+    void getColProperty(OutputType& output, const unsigned int& indexcol) const;
 
 protected:
     Grid            M_matrixGrid;

@@ -37,9 +37,30 @@ hardCopy(const MatrixEp& other)
 
 }
 
+void
+MatrixEp::
+softCopy(const MatrixEp& other)
+{
+
+}
+
 VectorEp
 MatrixEp::
 operator*(const VectorEp& vector)
+{
+
+}
+
+void
+MatrixEp::
+getRowProperty(std::shared_ptr<LifeV::MapEpetra>& outMap)
+{
+
+}
+
+void
+MatrixEp::
+getColProperty(std::shared_ptr<LifeV::MapEpetra>& outMap)
 {
 
 }

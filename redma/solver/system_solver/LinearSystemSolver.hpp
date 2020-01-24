@@ -20,6 +20,9 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/solver/array/BlockMatrix.hpp>
+#include <redma/solver/system_solver/LinearOperatorEp.hpp>
+
+#include <lifev/core/filter/GetPot.hpp>
 
 #include <memory>
 
@@ -35,10 +38,13 @@ class LinearSystemSolver
 public:
     LinearSystemSolver(const GetPot& datafile);
 
+    // I don't provide  a generic implementation of this method but only
+    // (template) specializations in the cpp
     BV solve(BM matrix, BV rh);
 
 private:
     GetPot                  M_datafile;
+
 };
 
 }
