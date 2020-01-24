@@ -22,6 +22,7 @@
 #include <redma/utils/Exception.hpp>
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/solver/system_solver/FunctionFunctor.hpp>
+#include <redma/solver/system_solver/SystemSolver.hpp>
 
 #include <memory>
 
@@ -40,10 +41,11 @@ public:
               SHP((aAssembler<InVectorType, InMatrixType>)) assembler) override;
 
 protected:
-    std::vector<BlockVector<InVectorType> > M_prevSolutions;
-    std::vector<double>                     M_coefficients;
-    unsigned int                            M_order;
-    double                                  M_rhsCoeff;
+    std::vector<BlockVector<InVectorType> >  M_prevSolutions;
+    std::vector<double>                      M_coefficients;
+    unsigned int                             M_order;
+    double                                   M_rhsCoeff;
+    SystemSolver<InVectorType,InMatrixType>  M_systemSolver;
 };
 
 }

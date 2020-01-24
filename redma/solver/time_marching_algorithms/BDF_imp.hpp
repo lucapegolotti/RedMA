@@ -85,6 +85,8 @@ advance(const double& time, double& dt,
         retMat += jacRhs;
         return retMat;
     });
+
+    return M_systemSolver.solve(fct,jac);
 }
 
 }

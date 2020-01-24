@@ -18,20 +18,28 @@
 #define SYSTEMSOLVER_HPP
 
 #include <redma/RedMA.hpp>
-
+#include <redma/solver/system_solver/FunctionFunctor.hpp>
+#include <redma/solver/array/BlockVector.hpp>
+#include <redma/solver/array/BlockMatrix.hpp>
 
 #include <memory>
 
 namespace RedMA
 {
 
-template <class VectorType, class MatrixType>
+template<class InVectorType, class InMatrixType>
 class SystemSolver
 {
-    VectorType solve();
+    typedef BlockVector<InVectorType>               BV;
+    typedef BlockMatrix<InMatrixType>               BM;
 
+public:
+    BV solve(FunctionFunctor<BV,BV> function,
+             FunctionFunctor<BV,BM> jacobian);
 };
 
 }
+
+#include "SystemSolver_imp.hpp"
 
 #endif // SYSTEMSOLVER_HPP
