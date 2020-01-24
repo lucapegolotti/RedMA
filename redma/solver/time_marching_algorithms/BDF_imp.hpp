@@ -20,8 +20,8 @@ setup()
 
     if (M_order == 1)
     {
-        M_coefficients[0] = 1;
-        M_rhsCoeff;
+        M_coefficients[0] = 1.0;
+        M_rhsCoeff = 1.0;
     }
     else if (M_order == 2)
     {
@@ -48,26 +48,42 @@ BDF<InVectorType, InMatrixType>::
 advance(const double& time, double& dt,
         std::shared_ptr<aAssembler<InVectorType, InMatrixType> > assembler)
 {
-    FunctionFunctor<InVectorType> fct(
-        [this,time,dt,assembler](BlockVector<InVectorType> sol)
+    typedef BlockVector<InVectorType>               BV;
+    typedef BlockMatrix<InMatrixType>               BM;
+
+    FunctionFunctor<BV,BV> fct(
+        [this,time,dt,assembler](BV sol)
     {
-        BlockMatrix<InMatrixType> mass = assembler->getMass(time+dt, sol);
-        BlockVector<InVectorType> f = assembler->getRightHandSide(time+dt, sol);
-        BlockVector<InVectorType> prevContribution;
+        BM mass = assembler->getMass(time+dt, sol);
+        BV f = assembler->getRightHandSide(time+dt, sol);
+        BV prevContribution;
 
         unsigned int count = 0;
-        for (BlockVector<InVectorType> vec : M_prevSolutions)
+        for (BV vec : M_prevSolutions)
         {
             prevContribution += vec * M_coefficients[count];
             count++;
         }
 
-        BlockVector<InVectorType> retVec;
+        BV retVec;
         retVec = mass * (sol + prevContribution);
         f *= (-1. * M_rhsCoeff * dt);
         retVec += f;
 
         return retVec;
+    });
+
+    FunctionFunctor<BV,BM> jac(
+        [this,time,dt,assembler](BV sol)
+    {
+        BM retMat = assembler->getMass(time+dt, sol);
+        BM jacRhs;
+
+        jacRhs = assembler->getJacobianRightHandSide(time+dt, sol);
+        jacRhs *= (-1. * M_rhsCoeff * dt);
+
+        retMat += jacRhs;
+        return retMat;
     });
 
 }

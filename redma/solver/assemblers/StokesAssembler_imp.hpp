@@ -44,4 +44,14 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
     return retVec;
 }
 
+template <class InVectorType, class InMatrixType>
+BlockMatrix<InMatrixType>
+StokesAssembler<InVectorType, InMatrixType>::
+getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
+{
+    BlockMatrix<InMatrixType> retMat;
+
+    return retMat;
+}
+
 }

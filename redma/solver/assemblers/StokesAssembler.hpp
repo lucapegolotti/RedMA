@@ -38,6 +38,9 @@ public:
     virtual BlockVector<InVectorType> getRightHandSide(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
 
+    virtual BlockMatrix<InMatrixType> getJacobianRightHandSide(const double& time,
+                                      const BlockVector<InVectorType>& sol) override;
+
 protected:
     BlockMatrix<InMatrixType>       M_mass;
 };

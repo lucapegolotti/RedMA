@@ -25,17 +25,19 @@
 namespace RedMA
 {
 
-template <class InVectorType>
+template <class InputType, class OutputType>
 class FunctionFunctor
 {
-    typedef BlockVector<InVectorType>       BLCKV;
 public:
-    FunctionFunctor(std::function<BLCKV(BLCKV)> fct) : M_function(fct) {}
+    FunctionFunctor(std::function<OutputType(InputType)> fct) : M_function(fct) {}
 
-    inline BLCKV operator()(const BLCKV& input) const {return M_function(input);}
+    inline OutputType operator()(const InputType& input) const
+    {
+        return M_function(input);
+    }
 
 private:
-    std::function<BLCKV(BLCKV)> M_function;
+    std::function<OutputType(InputType)> M_function;
 };
 
 }

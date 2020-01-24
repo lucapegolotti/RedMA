@@ -41,6 +41,9 @@ public:
     virtual BlockVector<InVectorType> getRightHandSide(const double& time,
                                       const BlockVector<InVectorType>& sol) = 0;
 
+    virtual BlockMatrix<InMatrixType> getJacobianRightHandSide(const double& time,
+                                      const BlockVector<InVectorType>& sol) = 0;
+
 protected:
     GetPot      M_datafile;
 };
