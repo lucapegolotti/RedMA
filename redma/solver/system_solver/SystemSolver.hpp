@@ -14,38 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef MATRIXEP_HPP
-#define MATRIXEP_HPP
+#ifndef SYSTEMSOLVER_HPP
+#define SYSTEMSOLVER_HPP
 
-#include <redma/solver/array/aMatrix.hpp>
-#include <redma/solver/array/VectorEp.hpp>
+#include <redma/RedMA.hpp>
 
-#include <lifev/core/array/MatrixEpetra.hpp>
 
-#define MATRIXEPETRA        LifeV::MatrixEpetra<double>
+#include <memory>
 
 namespace RedMA
 {
 
-class MatrixEp : public aMatrix
+template <class VectorType, class MatrixType>
+class SystemSolver
 {
-public:
-    MatrixEp();
+    VectorType solve();
 
-    MatrixEp operator+(const MatrixEp& other);
-
-    MatrixEp& operator+=(const MatrixEp& other);
-
-    MatrixEp& operator*=(const double& coeff);
-
-    VectorEp operator*(const VectorEp& vector);
-
-    void hardCopy(const MatrixEp& other);
-
-private:
-    std::shared_ptr<MATRIXEPETRA>  M_matrix;
 };
 
 }
 
-#endif // MATRIXEP_HPP
+#endif // SYSTEMSOLVER_HPP

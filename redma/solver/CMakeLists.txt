@@ -1,7 +1,7 @@
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/array)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/assemblers)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/coupling)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/linear_solve)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/system_solver)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/time_marching_algorithms)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/problem)
 
@@ -11,7 +11,7 @@ set(HEADERS_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/array
     ${CMAKE_CURRENT_SOURCE_DIR}/basis_functions
     ${CMAKE_CURRENT_SOURCE_DIR}/coupling
-    ${CMAKE_CURRENT_SOURCE_DIR}/linear_solve
+    ${CMAKE_CURRENT_SOURCE_DIR}/system_solver
     ${CMAKE_CURRENT_SOURCE_DIR}/time_marching_algorithms
     ${CMAKE_CURRENT_SOURCE_DIR}/problem
     PARENT_SCOPE

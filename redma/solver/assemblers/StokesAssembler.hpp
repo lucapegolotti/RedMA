@@ -22,7 +22,8 @@
 namespace RedMA
 {
 
-class StokesAssembler : public aAssembler
+template <class InVectorType, class InMatrixType>
+class StokesAssembler : public aAssembler<InVectorType, InMatrixType>
 {
 public:
     StokesAssembler(const GetPot& datafile);
@@ -31,9 +32,18 @@ public:
 
     virtual void postProcess() override;
 
+    virtual BlockMatrix<InMatrixType> getMass(const double& time,
+                                      const BlockVector<InVectorType>& sol) override;
+
+    virtual BlockVector<InVectorType> getRightHandSide(const double& time,
+                                      const BlockVector<InVectorType>& sol) override;
+
 protected:
+    BlockMatrix<InMatrixType>       M_mass;
 };
 
 }
+
+#include "StokesAssembler_imp.hpp"
 
 #endif // STOKESASSEMBLER_HPP

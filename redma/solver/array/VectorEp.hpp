@@ -17,8 +17,11 @@
 #ifndef VECTOREP_HPP
 #define VECTOREP_HPP
 
-#include <redma/RedMA.hpp>
 #include <redma/solver/array/aMatrix.hpp>
+
+#include <lifev/core/array/VectorEpetra.hpp>
+
+#define VECTOREPETRA        LifeV::VectorEpetra
 
 namespace RedMA
 {

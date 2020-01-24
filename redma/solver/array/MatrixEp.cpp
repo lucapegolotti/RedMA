@@ -37,4 +37,11 @@ hardCopy(const MatrixEp& other)
 
 }
 
+VectorEp
+MatrixEp::
+operator*(const VectorEp& vector)
+{
+
+}
+
 }

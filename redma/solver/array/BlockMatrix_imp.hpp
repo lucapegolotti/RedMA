@@ -110,12 +110,49 @@ operator*=(const double& coeff)
 }
 
 template <class InMatrixType>
-template <class VectorType>
-VectorType
+template <class InVectorType>
+BlockVector<InVectorType>
 BlockMatrix<InMatrixType>::
-operator*(const VectorType& vector)
+operator*(const BlockVector<InVectorType>& vector) const
 {
+    if (M_nCols != vector.nRows())
+    {
+        throw new Exception("Dimensions of matrix-vector multiplication are not consistent!");
+    }
 
+    BlockVector<InVectorType> ret(M_nRows);
+
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            ret.block(i) += block(i,j) * vector.block(j);
+        }
+    }
+
+    return ret;
+}
+
+template <class InMatrixType>
+BlockMatrix<InMatrixType>
+BlockMatrix<InMatrixType>::
+operator*(const double& coeff) const
+{
+    BlockMatrix<InMatrixType> ret(M_nRows,M_nCols);
+    ret.hardCopy(*this);
+
+    ret *= coeff;
+
+    return ret;
+}
+
+template <class InMatrixType>
+BlockMatrix<InMatrixType>&
+BlockMatrix<InMatrixType>::
+operator=(const BlockMatrix<InMatrixType>& other)
+{
+    hardCopy(other);
+    return *this;
 }
 
 }

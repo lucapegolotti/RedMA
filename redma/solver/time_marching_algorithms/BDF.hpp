@@ -20,25 +20,27 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/time_marching_algorithms/aTimeMarchingAlgorithm.hpp>
 #include <redma/utils/Exception.hpp>
+#include <redma/solver/array/BlockVector.hpp>
+#include <redma/solver/system_solver/FunctionFunctor.hpp>
 
 #include <memory>
 
 namespace RedMA
 {
 
-template <class DataType>
-class BDF : public aTimeMarchingAlgorithm<DataType>
+template <class InVectorType, class InMatrixType>
+class BDF : public aTimeMarchingAlgorithm<InVectorType, InMatrixType>
 {
 public:
     BDF(const GetPot& datafile);
 
-    virtual DataType advance(const double& time, double& dt,
-                             SHP(aAssembler) assembler);
-
     void setup();
 
+    virtual BlockVector<InVectorType> advance(const double& time, double& dt,
+    std::shared_ptr<aAssembler<InVectorType, InMatrixType> > assembler) override;
+
 protected:
-    std::vector<DataType>                   M_prevSolutions;
+    std::vector<BlockVector<InVectorType> > M_prevSolutions;
     std::vector<double>                     M_coefficients;
     unsigned int                            M_order;
     double                                  M_rhsCoeff;

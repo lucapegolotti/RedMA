@@ -15,8 +15,8 @@ ProblemFEM::
 setup()
 {
     M_timeMarchingAlgorithm =
-                TimeMarchingAlgorithmFactory<BlockVector<FEVECTOR>>(M_datafile);
-    M_assembler = AssemblerFactory(M_datafile);
+                    TimeMarchingAlgorithmFactory<FEVECTOR,FEMATRIX>(M_datafile);
+    M_assembler = AssemblerFactory<FEVECTOR,FEMATRIX>(M_datafile);
 }
 
 void

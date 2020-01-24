@@ -1,18 +1,18 @@
 namespace RedMA
 {
 
-template <class DataType>
-BDF<DataType>::
+template <class InVectorType, class InMatrixType>
+BDF<InVectorType, InMatrixType>::
 BDF(const GetPot& datafile) :
-  aTimeMarchingAlgorithm<DataType>(datafile),
+  aTimeMarchingAlgorithm<InVectorType, InMatrixType>(datafile),
   M_order(datafile("time_discretization/order",2))
 {
     setup();
 }
 
-template <class DataType>
+template <class InVectorType, class InMatrixType>
 void
-BDF<DataType>::
+BDF<InVectorType, InMatrixType>::
 setup()
 {
     M_coefficients.reserve(M_order);
@@ -42,11 +42,33 @@ setup()
     }
 }
 
-template <class DataType>
-DataType
-BDF<DataType>::
-advance(const double& time, double& dt, SHP(aAssembler) assembler)
+template <class InVectorType, class InMatrixType>
+BlockVector<InVectorType>
+BDF<InVectorType, InMatrixType>::
+advance(const double& time, double& dt,
+        std::shared_ptr<aAssembler<InVectorType, InMatrixType> > assembler)
 {
+    FunctionFunctor<InVectorType> fct(
+        [this,time,dt,assembler](BlockVector<InVectorType> sol)
+    {
+        BlockMatrix<InMatrixType> mass = assembler->getMass(time+dt, sol);
+        BlockVector<InVectorType> f = assembler->getRightHandSide(time+dt, sol);
+        BlockVector<InVectorType> prevContribution;
+
+        unsigned int count = 0;
+        for (BlockVector<InVectorType> vec : M_prevSolutions)
+        {
+            prevContribution += vec * M_coefficients[count];
+            count++;
+        }
+
+        BlockVector<InVectorType> retVec;
+        retVec = mass * (sol + prevContribution);
+        f *= (-1. * M_rhsCoeff * dt);
+        retVec += f;
+
+        return retVec;
+    });
 
 }
 

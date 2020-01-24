@@ -14,38 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef MATRIXEP_HPP
-#define MATRIXEP_HPP
+#ifndef FUNCTIONFUNCTOR_HPP
+#define FUNCTIONFUNCTOR_HPP
 
-#include <redma/solver/array/aMatrix.hpp>
-#include <redma/solver/array/VectorEp.hpp>
+#include <redma/RedMA.hpp>
+#include <redma/solver/array/BlockVector.hpp>
 
-#include <lifev/core/array/MatrixEpetra.hpp>
-
-#define MATRIXEPETRA        LifeV::MatrixEpetra<double>
+#include <functional>
 
 namespace RedMA
 {
 
-class MatrixEp : public aMatrix
+template <class InVectorType>
+class FunctionFunctor
 {
+    typedef BlockVector<InVectorType>       BLCKV;
 public:
-    MatrixEp();
+    FunctionFunctor(std::function<BLCKV(BLCKV)> fct) : M_function(fct) {}
 
-    MatrixEp operator+(const MatrixEp& other);
-
-    MatrixEp& operator+=(const MatrixEp& other);
-
-    MatrixEp& operator*=(const double& coeff);
-
-    VectorEp operator*(const VectorEp& vector);
-
-    void hardCopy(const MatrixEp& other);
+    inline BLCKV operator()(const BLCKV& input) const {return M_function(input);}
 
 private:
-    std::shared_ptr<MATRIXEPETRA>  M_matrix;
+    std::function<BLCKV(BLCKV)> M_function;
 };
 
 }
 
-#endif // MATRIXEP_HPP
+#endif // FUNCTIONFUNCTOR_HPP

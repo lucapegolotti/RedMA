@@ -18,7 +18,6 @@
 #define BLOCKVECTOR_HPP
 
 #include <redma/utils/Exception.hpp>
-#include <redma/solver/array/BlockMatrix.hpp>
 
 #include <boost/numeric/ublas/matrix.hpp>
 
@@ -26,16 +25,36 @@ namespace RedMA
 {
 
 template <class InVectorType>
-class BlockVector : public BlockMatrix<InVectorType>
+class BlockVector
 {
+    typedef boost::numeric::ublas::matrix<InVectorType>       Grid;
+
 public:
     BlockVector();
 
     BlockVector(const unsigned int& nRows);
 
+    BlockVector operator*(const double& coeff) const;
+
+    BlockVector& operator*=(const double& coeff);
+
+    BlockVector& operator+=(const BlockVector<InVectorType>& other);
+
+    BlockVector operator+(const BlockVector<InVectorType>& other) const;
+
     InVectorType& block(const unsigned int& iblock);
 
     InVectorType block(const unsigned int& iblock) const;
+
+    void resize(const unsigned int& nRows);
+
+    void hardCopy(const BlockVector<InVectorType>& other);
+
+    inline unsigned int nRows() const {return M_nRows;}
+
+protected:
+    Grid            M_vectorGrid;
+    unsigned int    M_nRows;
 };
 
 }

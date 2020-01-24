@@ -18,12 +18,14 @@
 #define aASSEMBLER_HPP
 
 #include <redma/RedMA.hpp>
+#include <redma/solver/array/BlockMatrix.hpp>
 
 #include <lifev/core/filter/GetPot.hpp>
 
 namespace RedMA
 {
 
+template <class InVectorType, class InMatrixType>
 class aAssembler
 {
 public:
@@ -33,10 +35,18 @@ public:
 
     virtual void postProcess() = 0;
 
+    virtual BlockMatrix<InMatrixType> getMass(const double& time,
+                                      const BlockVector<InVectorType>& sol) = 0;
+
+    virtual BlockVector<InVectorType> getRightHandSide(const double& time,
+                                      const BlockVector<InVectorType>& sol) = 0;
+
 protected:
     GetPot      M_datafile;
 };
 
 }
+
+#include "aAssembler_imp.hpp"
 
 #endif // aASSEMBLER_HPP

@@ -19,6 +19,7 @@
 
 #include <redma/utils/Exception.hpp>
 #include <redma/solver/array/aMatrix.hpp>
+#include <redma/solver/array/BlockVector.hpp>
 
 #include <boost/numeric/ublas/matrix.hpp>
 
@@ -40,8 +41,13 @@ public:
 
     virtual BlockMatrix<InMatrixType>& operator*=(const double& coeff);
 
-    template <class VectorType>
-    VectorType operator*(const VectorType& vector);
+    virtual BlockMatrix<InMatrixType> operator*(const double& coeff) const;
+
+    // hard copy!
+    virtual BlockMatrix<InMatrixType>& operator=(const BlockMatrix<InMatrixType>& other);
+
+    template <class InVectorType>
+    BlockVector<InVectorType> operator*(const BlockVector<InVectorType>& vector) const;
 
     void resize(const unsigned int& nRows, const unsigned int& nCols);
 

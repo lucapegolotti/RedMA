@@ -19,20 +19,21 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/assemblers/aAssembler.hpp>
+#include <redma/solver/array/BlockVector.hpp>
 
 #include <lifev/core/filter/GetPot.hpp>
 
 namespace RedMA
 {
 
-template <class DataType>
+template <class InVectorType, class InMatrixType>
 class aTimeMarchingAlgorithm
 {
 public:
     aTimeMarchingAlgorithm(const GetPot& datafile);
 
-    virtual DataType advance(const double& time, double& dt,
-                             SHP(aAssembler) assembler) = 0;
+    virtual BlockVector<InVectorType> advance(const double& time, double& dt,
+                   std::shared_ptr<aAssembler<InVectorType, InMatrixType> > assembler) = 0;
 
 protected:
     GetPot      M_datafile;

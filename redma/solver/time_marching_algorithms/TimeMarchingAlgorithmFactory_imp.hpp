@@ -1,15 +1,15 @@
 namespace RedMA
 {
 
-template <class DataType>
-SHP(aTimeMarchingAlgorithm<DataType>)
+template <class InVectorType, class InMatrixType>
+std::shared_ptr<aTimeMarchingAlgorithm<InVectorType, InMatrixType>>
 TimeMarchingAlgorithmFactory(const GetPot& datafile)
 {
-    SHP(aTimeMarchingAlgorithm<DataType>) ret;
+    std::shared_ptr<aTimeMarchingAlgorithm<InVectorType, InMatrixType>> ret;
     std::string algorithmString = datafile("time_discretization_algorithm","bdf");
 
     if (!std::strcmp(algorithmString.c_str(),"bdf"))
-        ret.reset(new BDF<DataType>(datafile));
+        ret.reset(new BDF<InVectorType, InMatrixType>(datafile));
     else
         throw new Exception("Time Marching Algorithm is not implemented!");
 

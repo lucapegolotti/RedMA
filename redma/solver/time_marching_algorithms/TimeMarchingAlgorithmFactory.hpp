@@ -27,8 +27,8 @@
 namespace RedMA
 {
 
-template <class DataType>
-SHP(aTimeMarchingAlgorithm<DataType>)
+template <class InVectorType, class InMatrixType>
+std::shared_ptr<aTimeMarchingAlgorithm<InVectorType, InMatrixType>>
 TimeMarchingAlgorithmFactory(const GetPot& datafile);
 
 }

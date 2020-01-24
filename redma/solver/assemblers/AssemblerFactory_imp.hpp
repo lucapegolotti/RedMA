@@ -3,14 +3,15 @@
 namespace RedMA
 {
 
-SHP(aAssembler)
+template<class InVectorType, class InMatrixType>
+std::shared_ptr<aAssembler<InVectorType, InMatrixType> >
 AssemblerFactory(const GetPot& datafile)
 {
-    SHP(aAssembler) ret;
+    std::shared_ptr<aAssembler<InVectorType, InMatrixType> > ret;
     std::string assemblerString = datafile("assembler/type","stokes");
 
     if (!std::strcmp(assemblerString.c_str(),"stokes"))
-        ret.reset(new StokesAssembler(datafile));
+        ret.reset(new StokesAssembler<InVectorType,InMatrixType>(datafile));
     else
         throw new Exception("Time Marching Algorithm is not implemented!");
 
