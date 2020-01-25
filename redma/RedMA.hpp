@@ -56,7 +56,7 @@ namespace RedMA
 #define MESH                LifeV::RegionMesh<LifeV::LinearTetra>
 #define MAPEPETRA           LifeV::MapEpetra
 #define FESPACE             LifeV::FESpace<MESH COMMA MAPEPETRA>
-#define ETFESPACE3          LifeV::ETFESpace<MESH COMMA MAPEPETRA COMMA 3 COMMA 1>
-#define ETFESPACE1          LifeV::ETFESpace<MESH COMMA MAPEPETRA COMMA 1 COMMA 1>
+#define ETFESPACE3          LifeV::ETFESpace<MESH COMMA MAPEPETRA COMMA 3 COMMA 3>
+#define ETFESPACE1          LifeV::ETFESpace<MESH COMMA MAPEPETRA COMMA 3 COMMA 1>
 
 #endif  // REDMA_HPP

@@ -22,6 +22,8 @@
 #include <redma/solver/array/MatrixEp.hpp>
 #include <redma/geometry/BuildingBlock.hpp>
 
+#include <lifev/eta/expression/Integrate.hpp>
+
 namespace RedMA
 {
 
@@ -61,6 +63,9 @@ protected:
     SHP(FESPACE)                         M_pressureFESpace;
     SHP(ETFESPACE3)                      M_velocityFESpaceETA;
     SHP(ETFESPACE1)                      M_pressureFESpaceETA;
+    double                               M_density;
+    double                               M_viscosity;
+    unsigned int                         M_nComponents;
 };
 
 }

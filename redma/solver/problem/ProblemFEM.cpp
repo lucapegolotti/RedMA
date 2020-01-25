@@ -16,8 +16,7 @@ setup()
 {
     typedef BlockAssembler<BV, BM> BAssembler;
     M_TMAlgorithm = TimeMarchingAlgorithmFactory<BV, BM>(M_datafile);
-    auto ptr = new BAssembler(M_datafile, M_tree);
-    // M_assembler.reset(new BAssembler(M_datafile, M_tree));
+    M_assembler.reset(new BAssembler(M_datafile, M_tree));
 }
 
 void

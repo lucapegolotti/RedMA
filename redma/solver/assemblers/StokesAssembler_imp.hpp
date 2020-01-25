@@ -7,9 +7,18 @@ StokesAssembler(const GetPot& datafile,
                 SHP(BuildingBlock) buildingBlock) :
   aAssembler<InVectorType, InMatrixType>(datafile),
   M_comm(buildingBlock->getComm()),
-  M_buildingBlock(buildingBlock)
+  M_buildingBlock(buildingBlock),
+  M_nComponents(2)
 {
+    M_density = this->M_datafile("fluid/density", 1.0);
+    M_viscosity = this->M_datafile("fluid/viscosity", 0.035);
 
+    // we check if building block is inlet. If so, we increase the number of
+    // components of the system in order to impose the boundary conditions weakly
+    if (!M_buildingBlock->getIsChild())
+    {
+        M_nComponents = 3;
+    }
 }
 
 template <class InVectorType, class InMatrixType>
