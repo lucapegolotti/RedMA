@@ -12,13 +12,6 @@ StokesAssembler(const GetPot& datafile,
 {
     M_density = this->M_datafile("fluid/density", 1.0);
     M_viscosity = this->M_datafile("fluid/viscosity", 0.035);
-
-    // we check if building block is inlet. If so, we increase the number of
-    // components of the system in order to impose the boundary conditions weakly
-    if (!M_buildingBlock->getIsChild())
-    {
-        M_nComponents = 3;
-    }
 }
 
 template <class InVectorType, class InMatrixType>
@@ -30,6 +23,8 @@ setup()
 
     assembleStiffness();
     assembleMass();
+    assembleDivergence();
+
 }
 
 template <class InVectorType, class InMatrixType>
@@ -87,9 +82,42 @@ StokesAssembler<InVectorType, InMatrixType>::
 getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 {
     BlockVector<InVectorType> retVec;
-    // build right hand side here ..
+    BlockMatrix<InMatrixType> systemMatrix;
+
+    systemMatrix.resize(M_nComponents, M_nComponents);
+    systemMatrix += M_stiffness;
+    systemMatrix += M_divergence;
+    systemMatrix *= (-1.0);
+
+    retVec = systemMatrix * sol;
+
+    // treatment of Dirichlet bcs if needed
+    bool useLifting = this->M_datafile("bc_conditions/lifting", true);
+    if (useLifting)
+    {
+        BlockVector<InVectorType> lifting = computeLifting(time);
+        retVec += (systemMatrix * lifting);
+    }
+
+    addNeumannBCs(retVec, time);
 
     return retVec;
+}
+
+template <class InVectorType, class InMatrixType>
+BlockVector<FEVECTOR>
+StokesAssembler<InVectorType, InMatrixType>::
+computeLifting(const double& time) const
+{
+
+}
+
+template <class InVectorType, class InMatrixType>
+void
+StokesAssembler<InVectorType, InMatrixType>::
+addNeumannBCs(BlockVector<FEVECTOR>& input) const
+{
+
 }
 
 template <class InVectorType, class InMatrixType>

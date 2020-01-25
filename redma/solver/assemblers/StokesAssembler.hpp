@@ -48,6 +48,10 @@ public:
     virtual BlockMatrix<InMatrixType> getJacobianRightHandSide(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
 
+    BlockVector<FEVECTOR> computeLifting(const double& time) const;
+
+    void addNeumannBCs(BlockVector<FEVECTOR>& input) const;
+
     void initializeFEspaces();
 
     void assembleStiffness();
