@@ -54,9 +54,12 @@ public:
 
     void assembleMass();
 
+    void assembleDivergence();
+
 protected:
     BlockMatrix<InMatrixType>            M_mass;
     BlockMatrix<InMatrixType>            M_stiffness;
+    BlockMatrix<InMatrixType>            M_divergence;
     EPETRACOMM                           M_comm;
     SHP(BuildingBlock)                   M_buildingBlock;
     SHP(FESPACE)                         M_velocityFESpace;

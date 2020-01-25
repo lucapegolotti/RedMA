@@ -90,7 +90,7 @@ public:
 
     // this is to uniform all the dimensions in case of BlockMatrix<BlockMatrix<MatrixEp>>
     // (for now)
-    void filledComplete();
+    void finalize();
 
 protected:
     Grid            M_matrixGrid;

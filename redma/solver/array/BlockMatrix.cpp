@@ -193,7 +193,7 @@ collapseBlocks(BlockMatrix<MatrixEp>& output)
 template <>
 void
 BlockMatrix<BlockMatrix<MatrixEp>>::
-filledComplete()
+finalize()
 {
     std::vector<unsigned int> rows(M_nRows);
     std::vector<unsigned int> cols(M_nCols);
