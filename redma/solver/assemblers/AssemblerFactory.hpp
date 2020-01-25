@@ -21,13 +21,14 @@
 #include <redma/solver/assemblers/aAssembler.hpp>
 #include <redma/solver/assemblers/StokesAssembler.hpp>
 #include <redma/utils/Exception.hpp>
+#include <redma/geometry/BuildingBlock.hpp>
 
 namespace RedMA
 {
 
 template <class InVectorType, class InMatrixType>
-SHP(aAssembler<InVectorType AND InMatrixType>)
-AssemblerFactory(const GetPot& datafile);
+SHP(aAssembler<InVectorType COMMA InMatrixType>)
+AssemblerFactory(const GetPot& datafile, SHP(BuildingBlock) buildingBlock);
 
 }
 

@@ -21,9 +21,10 @@
 
 #include <redma/solver/problem/aProblem.hpp>
 #include <redma/solver/array/BlockVector.hpp>
+#include <redma/geometry/TreeStructure.hpp>
 
 #include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
-#include <redma/solver/assemblers/AssemblerFactory.hpp>
+#include <redma/solver/assemblers/BlockAssembler.hpp>
 
 #include <memory>
 
@@ -32,6 +33,10 @@ namespace RedMA
 
 class ProblemFEM : public aProblem
 {
+    typedef BlockVector<FEVECTOR>                   BV;
+    typedef BlockVector<BV>                         BBV;
+    typedef BlockMatrix<FEMATRIX>                   BM;
+    typedef BlockMatrix<BM>                         BBM;
 public:
     ProblemFEM(const GetPot& datafile);
 
@@ -42,9 +47,10 @@ public:
     void solveTimestep(const double& t, double& dt);
 
 private:
-    SHP(aTimeMarchingAlgorithm<FEVECTOR AND FEMATRIX>)  M_timeMarchingAlgorithm;
-    SHP(aAssembler<FEVECTOR AND FEMATRIX>)              M_assembler;
-    BlockVector<FEVECTOR>                               M_solution;
+    SHP(aTimeMarchingAlgorithm<BV COMMA BM>)  M_TMAlgorithm;
+    SHP(aAssembler<BV COMMA BM>)              M_assembler;
+    BBV                                       M_solution;
+    SHP(TreeStructure)                        M_tree;
 };
 
 }

@@ -7,7 +7,8 @@ template <class InMatrixType>
 BlockMatrix<InMatrixType>::
 BlockMatrix() :
   M_nRows(0),
-  M_nCols(0)
+  M_nCols(0),
+  M_isFinalized(true)
 {
 }
 

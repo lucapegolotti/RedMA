@@ -82,14 +82,22 @@ public:
     template <class OutputType>
     void getColProperty(OutputType& output, const unsigned int& indexcol) const;
 
+    void collapseBlocks(InMatrixType& output);
+
     inline unsigned int nRows() const {return M_nRows;}
 
     inline unsigned int nCols() const {return M_nCols;}
+
+    // this is to uniform all the dimensions in case of BlockMatrix<BlockMatrix<MatrixEp>>
+    // (for now)
+    void filledComplete();
 
 protected:
     Grid            M_matrixGrid;
     unsigned int    M_nRows;
     unsigned int    M_nCols;
+    // this is relevant only when block<block<matrix>> at the moment
+    bool            M_isFinalized;
 };
 
 }

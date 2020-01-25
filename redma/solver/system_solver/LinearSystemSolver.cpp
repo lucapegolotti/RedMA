@@ -15,5 +15,19 @@ solve(BlockMatrix<MatrixEp> matrix, BlockVector<VectorEp> rhs)
     return sol;
 }
 
+template<>
+BlockVector<BlockVector<VectorEp>>
+LinearSystemSolver<BlockVector<VectorEp>, BlockMatrix<MatrixEp>>::
+solve(BlockMatrix<BlockMatrix<MatrixEp>> matrix, BlockVector<BlockVector<VectorEp>> rhs)
+{
+    BlockVector<BlockVector<VectorEp>> sol;
+    BlockMatrix<MatrixEp> matCollapsed;
+    matrix.collapseBlocks(matCollapsed);
+    SHP(LinearOperatorEp) op;
+    op->setup(matCollapsed, nullptr);
+
+    return sol;
+}
+
 
 }

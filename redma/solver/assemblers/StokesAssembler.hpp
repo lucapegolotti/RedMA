@@ -18,6 +18,9 @@
 #define STOKESASSEMBLER_HPP
 
 #include <redma/solver/assemblers/aAssembler.hpp>
+#include <redma/solver/array/VectorEp.hpp>
+#include <redma/solver/array/MatrixEp.hpp>
+#include <redma/geometry/BuildingBlock.hpp>
 
 namespace RedMA
 {
@@ -26,7 +29,9 @@ template <class InVectorType, class InMatrixType>
 class StokesAssembler : public aAssembler<InVectorType, InMatrixType>
 {
 public:
-    StokesAssembler(const GetPot& datafile);
+    StokesAssembler(const GetPot& datafile, SHP(BuildingBlock) buildingBlock);
+
+    void setup();
 
     virtual void exportSolution(const double& t) override;
 
@@ -41,8 +46,21 @@ public:
     virtual BlockMatrix<InMatrixType> getJacobianRightHandSide(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
 
+    void initializeFEspaces();
+
+    void assembleStiffness();
+
+    void assembleMass();
+
 protected:
-    BlockMatrix<InMatrixType>       M_mass;
+    BlockMatrix<InMatrixType>            M_mass;
+    BlockMatrix<InMatrixType>            M_stiffness;
+    EPETRACOMM                           M_comm;
+    SHP(BuildingBlock)                   M_buildingBlock;
+    SHP(FESPACE)                         M_velocityFESpace;
+    SHP(FESPACE)                         M_pressureFESpace;
+    SHP(ETFESPACE3)                      M_velocityFESpaceETA;
+    SHP(ETFESPACE1)                      M_pressureFESpaceETA;
 };
 
 }

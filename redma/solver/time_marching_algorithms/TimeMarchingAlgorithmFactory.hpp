@@ -28,7 +28,7 @@ namespace RedMA
 {
 
 template <class InVectorType, class InMatrixType>
-SHP(aTimeMarchingAlgorithm<InVectorType AND InMatrixType>)
+SHP(aTimeMarchingAlgorithm<InVectorType COMMA InMatrixType>)
 TimeMarchingAlgorithmFactory(const GetPot& datafile);
 
 }

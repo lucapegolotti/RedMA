@@ -34,7 +34,7 @@ public:
     aTimeMarchingAlgorithm(const GetPot& datafile);
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
-                       SHP(aAssembler<InVectorType AND InMatrixType>) assembler,
+                       SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler,
                        int& status) = 0;
 
 protected:

@@ -29,6 +29,11 @@
 #include <redma/solver/array/MatrixEp.hpp>
 #include <redma/solver/array/VectorEp.hpp>
 
+#include <lifev/core/fem/FESpace.hpp>
+#include <lifev/eta/fem/ETFESpace.hpp>
+#include <lifev/core/array/MapEpetra.hpp>
+#include <lifev/core/mesh/RegionMesh.hpp>
+
 // we define the namespace
 namespace RedMA
 {
@@ -38,7 +43,7 @@ namespace RedMA
 // this is a trick to allow for commas in arguments to SHP macro
 // template<typename T> struct argument_type;
 // template<typename T, typename U> struct argument_type<T(U)> {typedef U type;};
-#define AND                 ,
+#define COMMA                 ,
 
 // #define SHP(TYPE)           std::shared_ptr<argument_type<void(TYPE)>::type>
 #define SHP(TYPE)           std::shared_ptr<TYPE>
@@ -47,5 +52,11 @@ namespace RedMA
 
 #define FEVECTOR            RedMA::VectorEp
 #define FEMATRIX            RedMA::MatrixEp
+
+#define MESH                LifeV::RegionMesh<LifeV::LinearTetra>
+#define MAPEPETRA           LifeV::MapEpetra
+#define FESPACE             LifeV::FESpace<MESH COMMA MAPEPETRA>
+#define ETFESPACE3          LifeV::ETFESpace<MESH COMMA MAPEPETRA COMMA 3 COMMA 1>
+#define ETFESPACE1          LifeV::ETFESpace<MESH COMMA MAPEPETRA COMMA 1 COMMA 1>
 
 #endif  // REDMA_HPP

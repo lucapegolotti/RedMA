@@ -38,7 +38,7 @@ public:
     void setup();
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
-                       SHP(aAssembler<InVectorType AND InMatrixType>) assembler,
+                       SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler,
                        int& status) override;
 
 protected:

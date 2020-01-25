@@ -144,6 +144,8 @@ public:
 
     virtual std::string getOptionalParameter(unsigned int index){return "";};
 
+    inline commPtr_Type getComm() const {return M_comm;} 
+
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,

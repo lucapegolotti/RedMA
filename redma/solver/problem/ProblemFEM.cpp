@@ -14,9 +14,10 @@ void
 ProblemFEM::
 setup()
 {
-    M_timeMarchingAlgorithm =
-                    TimeMarchingAlgorithmFactory<FEVECTOR,FEMATRIX>(M_datafile);
-    M_assembler = AssemblerFactory<FEVECTOR,FEMATRIX>(M_datafile);
+    typedef BlockAssembler<BV, BM> BAssembler;
+    M_TMAlgorithm = TimeMarchingAlgorithmFactory<BV, BM>(M_datafile);
+    auto ptr = new BAssembler(M_datafile, M_tree);
+    // M_assembler.reset(new BAssembler(M_datafile, M_tree));
 }
 
 void
@@ -49,7 +50,7 @@ ProblemFEM::
 solveTimestep(const double& t, double& dt)
 {
     int status = -1;
-    M_solution = M_timeMarchingAlgorithm->advance(t, dt, M_assembler, status);
+    M_solution = M_TMAlgorithm->advance(t, dt, M_assembler, status);
 }
 
 }
