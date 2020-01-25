@@ -19,6 +19,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/array/BlockMatrix.hpp>
+#include <redma/geometry/TreeStructure.hpp>
 
 #include <lifev/core/filter/GetPot.hpp>
 
@@ -30,6 +31,10 @@ class aAssembler
 {
 public:
     aAssembler(const GetPot& datafile);
+
+    aAssembler(const GetPot& datafile, SHP(TreeNode) node);
+
+    virtual void setup() = 0;
 
     virtual void exportSolution(const double& t) = 0;
 
@@ -45,7 +50,8 @@ public:
                                       const BlockVector<InVectorType>& sol) = 0;
 
 protected:
-    GetPot      M_datafile;
+    GetPot                M_datafile;
+    SHP(TreeNode)         M_treeNode;
 };
 
 }

@@ -210,8 +210,9 @@ bend(const double& out1_alphax, const double& out1_alphay, const double& out1_al
             CoutRedirecter ct;
             ct.redirect();
             nAffineDeformer.applyBCs(bcs);
-            std::string xmlFilename = M_datafile("geometric_structure/xml_file",
+            std::string xmlFilename = M_datafile("geometric_structure/xmldeformer",
                                                  "SolverParamList.xml");
+            M_datafile.print();
             nAffineDeformer.setXMLsolver(xmlFilename);
             nAffineDeformer.deformMesh(*transformer);
             printlog(CYAN, ct.restore(), M_verbose);

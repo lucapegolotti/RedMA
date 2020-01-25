@@ -14,24 +14,42 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef ASSEMBLERFACTORY_HPP
-#define ASSEMBLERFACTORY_HPP
+#ifndef INTERFACEASSEMBLER_HPP
+#define INTERFACEASSEMBLER_HPP
 
 #include <redma/RedMA.hpp>
+
 #include <redma/solver/assemblers/aAssembler.hpp>
-#include <redma/solver/assemblers/StokesAssembler.hpp>
-#include <redma/utils/Exception.hpp>
-#include <redma/geometry/BuildingBlock.hpp>
 
 namespace RedMA
 {
 
 template <class InVectorType, class InMatrixType>
-SHP(aAssembler<InVectorType COMMA InMatrixType>)
-AssemblerFactory(const GetPot& datafile, SHP(TreeNode) treeNode);
+class Interface
+{
+    typedef aAssembler<InVectorType COMMA InMatrixType>         AssemblerType;
+public:
+    Interface(SHP(AssemblerType) assemblerFather, const unsigned int& indexFather,
+              SHP(AssemblerType) assemblerChild, const unsigned int& indexChild);
+
+    SHP(AssemblerType)      M_assemblerFather;
+    SHP(AssemblerType)      M_assemblerChild;
+    unsigned int            M_indexFather;
+    unsigned int            M_indexChild;
+};
+
+template <class InVectorType, class InMatrixType>
+class InterfaceAssembler
+{
+public:
+
+
+protected:
+
+};
 
 }
 
-#include "AssemblerFactory_imp.hpp"
+#include "InterfaceAssembler_imp.hpp"
 
-#endif // ASSEMBLERFACTORY_HPP
+#endif // INTERFACEASSEMBLER_HPP

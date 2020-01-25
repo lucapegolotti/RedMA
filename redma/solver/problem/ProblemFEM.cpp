@@ -4,9 +4,20 @@ namespace RedMA
 {
 
 ProblemFEM::
-ProblemFEM(const GetPot& datafile) :
-  aProblem(datafile)
+ProblemFEM(const GetPot& datafile, EPETRACOMM comm, bool verbose) :
+  aProblem(datafile),
+  M_geometryParser(datafile,
+                   datafile("geometric_structure/xmlfile","tree.xml"),
+                   comm, verbose)
 {
+    M_tree = M_geometryParser.getTree();
+
+    std::string geometriesDir = datafile("geometric_structure/geometries_dir",
+                                         "../../../meshes/");
+
+    M_tree.readMeshes(geometriesDir);
+    M_tree.traverseAndDeformGeometries();
+
     setup();
 }
 

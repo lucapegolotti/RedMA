@@ -4,10 +4,9 @@ namespace RedMA
 template <class InVectorType, class InMatrixType>
 StokesAssembler<InVectorType, InMatrixType>::
 StokesAssembler(const GetPot& datafile,
-                SHP(BuildingBlock) buildingBlock) :
-  aAssembler<InVectorType, InMatrixType>(datafile),
-  M_comm(buildingBlock->getComm()),
-  M_buildingBlock(buildingBlock),
+                SHP(TreeNode) treeNode) :
+  aAssembler<InVectorType, InMatrixType>(datafile, treeNode),
+  M_comm(treeNode->M_block->getComm()),
   M_nComponents(2)
 {
     M_density = this->M_datafile("fluid/density", 1.0);
@@ -35,7 +34,7 @@ initializeFEspaces()
     // initialize fespace velocity
     std::string orderVelocity = this->M_datafile("fluid/velocity_order", "P2");
 
-    M_velocityFESpace.reset(new FESPACE(M_buildingBlock->getMesh(),
+    M_velocityFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
                                         orderVelocity, 3, M_comm));
     M_velocityFESpaceETA.reset(new ETFESPACE3(M_velocityFESpace->mesh(),
                                             &(M_velocityFESpace->refFE()),
@@ -44,7 +43,7 @@ initializeFEspaces()
     // initialize fespace velocity
     std::string orderPressure = this->M_datafile("fluid/pressure_order", "P1");
 
-    M_pressureFESpace.reset(new FESPACE(M_buildingBlock->getMesh(),
+    M_pressureFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
                                         orderPressure, 1, M_comm));
     M_pressureFESpaceETA.reset(new ETFESPACE1(M_pressureFESpace->mesh(),
                                             &(M_pressureFESpace->refFE()),
@@ -115,7 +114,7 @@ computeLifting(const double& time) const
 template <class InVectorType, class InMatrixType>
 void
 StokesAssembler<InVectorType, InMatrixType>::
-addNeumannBCs(BlockVector<FEVECTOR>& input) const
+addNeumannBCs(BlockVector<FEVECTOR>& input, const double& time) const
 {
 
 }

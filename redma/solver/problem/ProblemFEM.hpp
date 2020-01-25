@@ -22,6 +22,7 @@
 #include <redma/solver/problem/aProblem.hpp>
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/geometry/TreeStructure.hpp>
+#include <redma/geometry/GeometryParser.hpp>
 
 #include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
 #include <redma/solver/assemblers/BlockAssembler.hpp>
@@ -38,7 +39,7 @@ class ProblemFEM : public aProblem
     typedef BlockMatrix<FEMATRIX>                   BM;
     typedef BlockMatrix<BM>                         BBM;
 public:
-    ProblemFEM(const GetPot& datafile);
+    ProblemFEM(const GetPot& datafile, EPETRACOMM comm, bool verbose);
 
     virtual void setup();
 
@@ -50,7 +51,8 @@ private:
     SHP(aTimeMarchingAlgorithm<BV COMMA BM>)  M_TMAlgorithm;
     SHP(aAssembler<BV COMMA BM>)              M_assembler;
     BBV                                       M_solution;
-    SHP(TreeStructure)                        M_tree;
+    TreeStructure                             M_tree;
+    GeometryParser                            M_geometryParser;
 };
 
 }

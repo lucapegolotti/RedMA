@@ -40,8 +40,8 @@ class GeometryParser
     typedef tinyxml2::XMLElement  XMLEl;
 
 public:
-    GeometryParser(std::string fileName, commPtr_Type comm,
-                   bool verbose);
+    GeometryParser(const GetPot& datfile, std::string fileName,
+                   commPtr_Type comm, bool verbose);
 
     void traverseXML(XMLEl* curElement,
                      unsigned int IDfather);
@@ -53,7 +53,7 @@ private:
 
     commPtr_Type M_comm;
     TreeStructure M_tree;
-
+    GetPot  M_datafile;
     bool M_verbose;
 };
 

@@ -31,9 +31,9 @@ template <class InVectorType, class InMatrixType>
 class StokesAssembler : public aAssembler<InVectorType, InMatrixType>
 {
 public:
-    StokesAssembler(const GetPot& datafile, SHP(BuildingBlock) buildingBlock);
+    StokesAssembler(const GetPot& datafile, SHP(TreeNode) treeNode);
 
-    void setup();
+    virtual void setup() override;
 
     virtual void exportSolution(const double& t) override;
 
@@ -50,7 +50,7 @@ public:
 
     BlockVector<FEVECTOR> computeLifting(const double& time) const;
 
-    void addNeumannBCs(BlockVector<FEVECTOR>& input) const;
+    void addNeumannBCs(BlockVector<FEVECTOR>& input, const double& time) const;
 
     void initializeFEspaces();
 
@@ -65,7 +65,6 @@ protected:
     BlockMatrix<InMatrixType>            M_stiffness;
     BlockMatrix<InMatrixType>            M_divergence;
     EPETRACOMM                           M_comm;
-    SHP(BuildingBlock)                   M_buildingBlock;
     SHP(FESPACE)                         M_velocityFESpace;
     SHP(FESPACE)                         M_pressureFESpace;
     SHP(ETFESPACE3)                      M_velocityFESpaceETA;

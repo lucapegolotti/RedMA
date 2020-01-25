@@ -36,6 +36,9 @@ class BlockMatrix : public aMatrix
 {
     typedef boost::numeric::ublas::matrix<InMatrixType>       Grid;
 public:
+
+    typedef InMatrixType                                      InnerType;
+
     BlockMatrix();
 
     BlockMatrix(const unsigned int& nRows, const unsigned int& nCols);

@@ -25,17 +25,19 @@ int main(int argc, char **argv)
 {
     #ifdef HAVE_MPI
     MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    EPETRACOMM comm (new Epetra_MpiComm(MPI_COMM_WORLD));
     #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm());
+    EPETRACOMM comm(new Epetra_SerialComm());
     #endif
+
+    bool verbose = true;
 
 
     GetPot datafile("datafiles/data");
 
-    ProblemFEM femProblem(datafile);
+    ProblemFEM femProblem(datafile, comm, verbose);
 
-    femProblem.solve();
+    // femProblem.solve();
 
     return 0;
 }

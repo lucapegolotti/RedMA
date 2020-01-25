@@ -172,4 +172,12 @@ operator=(const BlockMatrix<InMatrixType>& other)
     return *this;
 }
 
+template <class InMatrixType>
+void
+BlockMatrix<InMatrixType>::
+finalize()
+{
+    M_isFinalized = true;
+}
+
 }

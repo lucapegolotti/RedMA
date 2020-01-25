@@ -32,6 +32,8 @@ class BlockVector
     typedef boost::numeric::ublas::matrix<InVectorType>       Grid;
 
 public:
+    typedef InVectorType                                      InnerType;
+
     BlockVector();
 
     BlockVector(const unsigned int& nRows);

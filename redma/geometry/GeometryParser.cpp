@@ -4,9 +4,10 @@ namespace RedMA
 {
 
 GeometryParser::
-GeometryParser(std::string fileName, commPtr_Type comm,
-               bool verbose) :
+GeometryParser(const GetPot& datafile, std::string fileName,
+               commPtr_Type comm, bool verbose) :
   M_comm(comm),
+  M_datafile(datafile),
   M_verbose(verbose)
 {
     printlog(MAGENTA, "[GeometryParser] parsing " +
@@ -110,11 +111,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
         // angle
         int angle = 50;
         if (element->Attribute("angle"))
-        {
-            std::cout << element->Attribute("angle") << std::endl;
             angle = std::atoi(element->Attribute("angle"));
-            std::cout << angle << std::endl;
-        }
 
         returnBlock.reset(new BifurcationSymmetric(M_comm, ref, M_verbose, angle));
     }
@@ -151,6 +148,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
         if (value)
             *parametersMap[paramName] = std::stod(value->GetText());
     }
+    returnBlock->setDatafile(M_datafile);
 
     return returnBlock;
 }

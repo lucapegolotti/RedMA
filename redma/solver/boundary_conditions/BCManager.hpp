@@ -14,24 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef ASSEMBLERFACTORY_HPP
-#define ASSEMBLERFACTORY_HPP
+#ifndef BCMANAGER_HPP
+#define BCMANAGER_HPP
 
-#include <redma/RedMA.hpp>
 #include <redma/solver/assemblers/aAssembler.hpp>
-#include <redma/solver/assemblers/StokesAssembler.hpp>
-#include <redma/utils/Exception.hpp>
+#include <redma/solver/array/VectorEp.hpp>
+#include <redma/solver/array/MatrixEp.hpp>
 #include <redma/geometry/BuildingBlock.hpp>
+
+#include <lifev/eta/expression/Integrate.hpp>
 
 namespace RedMA
 {
 
-template <class InVectorType, class InMatrixType>
-SHP(aAssembler<InVectorType COMMA InMatrixType>)
-AssemblerFactory(const GetPot& datafile, SHP(TreeNode) treeNode);
+class BCManager
+{
+
+};
 
 }
 
-#include "AssemblerFactory_imp.hpp"
-
-#endif // ASSEMBLERFACTORY_HPP
+#endif // BCMANAGER_HPP
