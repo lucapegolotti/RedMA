@@ -7,7 +7,7 @@ BlockAssembler(const GetPot& datafile, const TreeStructure& tree) :
   aAssembler<InVectorType, InMatrixType>(datafile),
   M_tree(tree)
 {
-
+    setup();
 }
 
 template <class InVectorType, class InMatrixType>
@@ -69,7 +69,8 @@ void
 BlockAssembler<InVectorType, InMatrixType>::
 exportSolution(const double& t)
 {
-
+    for (auto as : M_primalAssemblers)
+        as.second->exportSolution(t);
 }
 
 template <class InVectorType, class InMatrixType>
@@ -77,7 +78,8 @@ void
 BlockAssembler<InVectorType, InMatrixType>::
 postProcess()
 {
-
+    for (auto as : M_primalAssemblers)
+        as.second->postProcess();
 }
 
 template <class InVectorType, class InMatrixType>
