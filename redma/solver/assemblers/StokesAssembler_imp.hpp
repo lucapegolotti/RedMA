@@ -24,6 +24,8 @@ setup()
     assembleMass();
     assembleDivergence();
 
+    setExporter();
+
 }
 
 template <class InVectorType, class InMatrixType>
@@ -54,9 +56,15 @@ initializeFEspaces()
 template <class InVectorType, class InMatrixType>
 void
 StokesAssembler<InVectorType, InMatrixType>::
-exportSolution(const double& t)
+exportSolution(const double& t, const BlockVector<InVectorType>& sol)
 {
+    *M_velocityExporter = *sol.block(0).data();
+    *M_pressureExporter = *sol.block(1).data();
 
+    CoutRedirecter ct;
+    ct.redirect();
+    M_exporter->postProcess(t);
+    printlog(CYAN, ct.restore());
 }
 
 template <class InVectorType, class InMatrixType>
@@ -125,8 +133,50 @@ StokesAssembler<InVectorType, InMatrixType>::
 getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 {
     BlockMatrix<InMatrixType> retMat;
+    retMat.resize(M_nComponents, M_nComponents);
+
+    retMat += M_stiffness;
+    retMat += M_divergence;
+
+    retMat *= (-1.0);
+
+    // ATTENTION: here I should add the part relative to Neumann conditions
+    // if they depend on the solution (as with 0D coupling)
 
     return retMat;
+}
+
+template <class InVectorType, class InMatrixType>
+void
+StokesAssembler<InVectorType, InMatrixType>::
+setExporter()
+{
+    std::string outputName = "block";
+    outputName += std::to_string(this->M_treeNode->M_ID);
+
+    std::string outdir = this->M_datafile("exporter/outdir", "solutions/");
+    boost::filesystem::create_directory(outdir);
+
+    std::string format = this->M_datafile("exporter/type", "hdf5");
+    if (!std::strcmp(format.c_str(), "hdf5"))
+        M_exporter.reset(new LifeV::ExporterHDF5<MESH>(this->M_datafile, outputName));
+    else
+        M_exporter.reset(new LifeV::ExporterVTK<MESH>(this->M_datafile, outputName));
+    M_exporter->setMeshProcId(M_velocityFESpace->mesh(), M_comm->MyPID());
+
+    M_velocityExporter.reset(new VECTOREPETRA(M_velocityFESpace->map(),
+                                              M_exporter->mapType()));
+
+    M_pressureExporter.reset(new VECTOREPETRA(M_pressureFESpace->map(),
+                                              M_exporter->mapType()));
+
+    M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
+                         "velocity", M_velocityFESpace, M_velocityExporter, 0.0);
+
+    M_exporter->addVariable(LifeV::ExporterData<MESH>::ScalarField,
+                         "pressure", M_pressureFESpace, M_pressureExporter, 0.0);
+
+    M_exporter->setPostDir(outdir);
 }
 
 }

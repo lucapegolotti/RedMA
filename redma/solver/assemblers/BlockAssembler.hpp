@@ -38,7 +38,8 @@ public:
 
     virtual void setup() override;
 
-    virtual void exportSolution(const double& t) override;
+    virtual void exportSolution(const double& t,
+                                const BlockVector<InVectorType>& sol) override;
 
     virtual void postProcess() override;
 

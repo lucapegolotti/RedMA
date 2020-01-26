@@ -67,10 +67,10 @@ setup()
 template <class InVectorType, class InMatrixType>
 void
 BlockAssembler<InVectorType, InMatrixType>::
-exportSolution(const double& t)
+exportSolution(const double& t, const BlockVector<InVectorType>& sol)
 {
     for (auto as : M_primalAssemblers)
-        as.second->exportSolution(t);
+        as.second->exportSolution(t, sol.block(as.first));
 }
 
 template <class InVectorType, class InMatrixType>

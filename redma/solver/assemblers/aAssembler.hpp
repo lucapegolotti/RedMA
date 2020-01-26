@@ -36,7 +36,8 @@ public:
 
     virtual void setup() = 0;
 
-    virtual void exportSolution(const double& t) = 0;
+    virtual void exportSolution(const double& t,
+                                const BlockVector<InVectorType>& sol) = 0;
 
     virtual void postProcess() = 0;
 

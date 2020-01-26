@@ -23,6 +23,11 @@
 #include <redma/geometry/BuildingBlock.hpp>
 
 #include <lifev/eta/expression/Integrate.hpp>
+#include <lifev/core/filter/Exporter.hpp>
+#include <lifev/core/filter/ExporterVTK.hpp>
+#include <lifev/core/filter/ExporterHDF5.hpp>
+
+#include <boost/filesystem.hpp>
 
 namespace RedMA
 {
@@ -35,7 +40,8 @@ public:
 
     virtual void setup() override;
 
-    virtual void exportSolution(const double& t) override;
+    virtual void exportSolution(const double& t,
+                                const BlockVector<InVectorType>& sol) override;
 
     virtual void postProcess() override;
 
@@ -60,6 +66,8 @@ public:
 
     void assembleDivergence();
 
+    void setExporter();
+
 protected:
     BlockMatrix<InMatrixType>            M_mass;
     BlockMatrix<InMatrixType>            M_stiffness;
@@ -72,6 +80,9 @@ protected:
     double                               M_density;
     double                               M_viscosity;
     unsigned int                         M_nComponents;
+    SHP(LifeV::VectorEpetra)             M_velocityExporter;
+    SHP(LifeV::VectorEpetra)             M_pressureExporter;
+    SHP(LifeV::Exporter<MESH>)           M_exporter;
 };
 
 }

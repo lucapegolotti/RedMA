@@ -48,7 +48,7 @@ solve()
         t += dt;
 
         if (count % saveEvery == 0)
-            M_assembler->exportSolution(t);
+            M_assembler->exportSolution(t, M_solution);
 
         M_assembler->postProcess();
         count++;
