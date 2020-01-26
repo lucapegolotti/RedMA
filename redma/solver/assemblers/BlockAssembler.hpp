@@ -55,6 +55,8 @@ protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;
     std::map<unsigned int, SHP(aAssembler<VInner COMMA MInner>)>  M_primalAssemblers;
+    std::vector<SHP(InterfaceAssembler<VInner COMMA MInner>)>     M_dualAssemblers;
+    unsigned int                                                  M_numberBlocks;
 };
 
 }

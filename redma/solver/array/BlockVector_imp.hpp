@@ -121,6 +121,17 @@ hardCopy(const BlockVector<InVectorType>& other)
 }
 
 template <class InVectorType>
+void
+BlockVector<InVectorType>::
+softCopy(const BlockVector<InVectorType>& other)
+{
+    M_vectorGrid.resize(other.M_nRows,1);
+
+    for (unsigned int i = 0; i < M_nRows; i++)
+        block(i).softCopy(other.block(i));
+}
+
+template <class InVectorType>
 InVectorType&
 BlockVector<InVectorType>::
 block(const unsigned int& iblock)

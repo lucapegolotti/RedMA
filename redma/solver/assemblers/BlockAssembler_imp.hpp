@@ -31,6 +31,7 @@ setup()
     }
 
     // allocate interface assemblers
+    unsigned int interfaceID = 0;
     for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
     {
         NodesVector children = it->second->M_children;
@@ -39,6 +40,7 @@ setup()
         unsigned int myID = it->second->M_ID;
 
         SHP(InnerAssembler) fatherAssembler = M_primalAssemblers[myID];
+
         for (NodesVector::iterator itVector = children.begin();
              itVector != children.end(); itVector++)
         {
@@ -47,17 +49,18 @@ setup()
                 unsigned int otherID = (*itVector)->M_ID;
                 SHP(InnerAssembler) childAssembler = M_primalAssemblers[otherID];
                 Interface<VInner, MInner> newInterface(fatherAssembler, myID,
-                                                       childAssembler, otherID);
+                                                       childAssembler, otherID,
+                                                       interfaceID);
+
+                SHP(InterfaceAssembler<VInner COMMA MInner>) inAssembler;
+                inAssembler.reset(new InterfaceAssembler<VInner, MInner>(newInterface));
+                inAssembler->setup();
+                M_dualAssemblers.push_back(inAssembler);
+                interfaceID++;
             }
         }
     }
-    // unsigned int count = 0;
-    // for (auto it = M_dimensionsVector.begin(); it != M_dimensionsVector.end(); it++)
-    //     count += *it;
-    // std::string msg = "[GlobalAssembler] number of primal + dual dofs = ";
-    // msg += std::to_string(count);
-    // msg += "\n";
-    // printlog(MAGENTA, msg, M_verbose);
+    M_numberBlocks = M_primalAssemblers.size() + M_dualAssemblers.size();
 }
 
 
@@ -82,7 +85,16 @@ BlockMatrix<InMatrixType>
 BlockAssembler<InVectorType, InMatrixType>::
 getMass(const double& time, const BlockVector<InVectorType>& sol)
 {
+    BlockMatrix<InMatrixType> mass;
+    mass.resize(M_numberBlocks, M_numberBlocks);
 
+    for (auto as : M_primalAssemblers)
+    {
+        unsigned int ind = as.first;
+        mass.block(ind, ind).softCopy(as.second->getMass(time, sol.block(ind)));
+    }
+
+    return mass;
 }
 
 template <class InVectorType, class InMatrixType>
@@ -90,7 +102,20 @@ BlockVector<InVectorType>
 BlockAssembler<InVectorType, InMatrixType>::
 getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 {
+    BlockVector<InVectorType> rhs;
+    rhs.resize(M_numberBlocks);
 
+    for (auto as: M_primalAssemblers)
+    {
+        unsigned int ind = as.first;
+        rhs.block(ind).softCopy(as.second->getRightHandSide(time, sol.block(ind)));
+    }
+
+    // add interface contributions
+    for (auto as: M_dualAssemblers)
+        as->addContributionRhs(rhs, sol, M_primalAssemblers.size());
+
+    return rhs;
 }
 
 template <class InVectorType, class InMatrixType>
@@ -98,6 +123,17 @@ BlockMatrix<InMatrixType>
 BlockAssembler<InVectorType, InMatrixType>::
 getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 {
+    BlockMatrix<InMatrixType> jac;
+
+    for (auto as: M_primalAssemblers)
+    {
+        unsigned int ind = as.first;
+        jac.block(ind,ind).softCopy(as.second->getJacobianRightHandSide(time,
+                                    sol.block(ind)));
+    }
+
+    for (auto as: M_dualAssemblers)
+        as->addContributionJacobianRhs(jac, sol, M_primalAssemblers.size());
 
 }
 

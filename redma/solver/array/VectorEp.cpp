@@ -51,6 +51,13 @@ hardCopy(const VectorEp& other)
 
 }
 
+void
+VectorEp::
+softCopy(const VectorEp& other)
+{
+    
+}
+
 double
 VectorEp::
 norm2() const

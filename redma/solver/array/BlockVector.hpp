@@ -58,6 +58,8 @@ public:
 
     void hardCopy(const BlockVector<InVectorType>& other);
 
+    void softCopy(const BlockVector<InVectorType>& other);
+
     inline unsigned int nRows() const {return M_nRows;}
 
     void zero();

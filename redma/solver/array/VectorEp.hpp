@@ -43,6 +43,8 @@ public:
 
     void hardCopy(const VectorEp& other);
 
+    void softCopy(const VectorEp& other);
+
     double norm2() const;
 
     std::shared_ptr<VECTOREPETRA>& data();

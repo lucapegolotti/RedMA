@@ -44,6 +44,8 @@ int main(int argc, char **argv)
     if (argc > 1)
         nSub = std::atoi(argv[1]);
 
+    GetPot dummydata;
+
     TreeStructure tree(true);
     tree.createRandom(nSub, comm);
     tree.readMeshes("../../../meshes/");
@@ -53,7 +55,7 @@ int main(int argc, char **argv)
     GeometryPrinter printer;
     printer.saveToFile(tree, "tree.xml", comm);
 
-    GeometryParser gParser("tree.xml", comm, true);
+    GeometryParser gParser(dummydata, "tree.xml", comm, true);
     comm->Barrier();
 
     TreeStructure& tree2 = gParser.getTree();

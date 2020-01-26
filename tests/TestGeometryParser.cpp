@@ -26,14 +26,17 @@
 #include <redma/utils/Test.hpp>
 #include <redma/geometry/GeometryParser.hpp>
 
+#include <lifev/core/filter/GetPot.hpp>
+
 using namespace RedMA;
 
 void subTest1(Test& test)
 {
     try
     {
+        GetPot dummydata;
         // test if trying to open non existing file raises exception
-        GeometryParser gParser("Idontexist.xml", test.getComm(), false);
+        GeometryParser gParser(dummydata, "Idontexist.xml", test.getComm(), false);
         test.assertTrue(false);
     }
     catch (Exception& e)
@@ -44,7 +47,9 @@ void subTest1(Test& test)
 
 void subTest2(Test& test)
 {
-    GeometryParser gParser("testdata/testdata1.xml", test.getComm(), false);
+    GetPot dummydata;
+
+    GeometryParser gParser(dummydata, "testdata/testdata1.xml", test.getComm(), false);
 
     // we test if the tree has been filled
     test.assertTrue(!gParser.getTree().isEmpty());

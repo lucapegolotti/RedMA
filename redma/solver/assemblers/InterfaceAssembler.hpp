@@ -20,6 +20,10 @@
 #include <redma/RedMA.hpp>
 
 #include <redma/solver/assemblers/aAssembler.hpp>
+#include <redma/solver/array/BlockMatrix.hpp>
+#include <redma/solver/array/BlockVector.hpp>
+#include <redma/solver/array/MatrixEp.hpp>
+#include <redma/solver/array/VectorEp.hpp>
 
 namespace RedMA
 {
@@ -30,22 +34,43 @@ class Interface
     typedef aAssembler<InVectorType COMMA InMatrixType>         AssemblerType;
 public:
     Interface(SHP(AssemblerType) assemblerFather, const unsigned int& indexFather,
-              SHP(AssemblerType) assemblerChild, const unsigned int& indexChild);
+              SHP(AssemblerType) assemblerChild, const unsigned int& indexChild,
+              const unsigned int& interfaceID);
 
     SHP(AssemblerType)      M_assemblerFather;
     SHP(AssemblerType)      M_assemblerChild;
     unsigned int            M_indexFather;
     unsigned int            M_indexChild;
+    unsigned int            M_ID;
 };
 
 template <class InVectorType, class InMatrixType>
 class InterfaceAssembler
 {
 public:
+    InterfaceAssembler(const Interface<InVectorType, InMatrixType>& interface);
 
+    void setup();
 
-protected:
+    void buildCouplingMatrices();
 
+    void addContributionRhs(BlockVector<BlockVector<InVectorType>>& rhs,
+                            const BlockVector<BlockVector<InVectorType>>& sol,
+                            const unsigned int& nPrimalBlocks);
+
+    void addContributionJacobianRhs(BlockMatrix<BlockMatrix<InMatrixType>>& jac,
+                                    const BlockVector<BlockVector<InVectorType>>& sol,
+                                    const unsigned int& nPrimalBlocks);
+
+    inline Interface<InVectorType, InMatrixType> getInterface() const {return M_interface;};
+
+private:
+    Interface<InVectorType, InMatrixType>           M_interface;
+
+    BlockMatrix<InMatrixType>                       M_fatherBT;
+    BlockMatrix<InMatrixType>                       M_fatherB;
+    BlockMatrix<InMatrixType>                       M_childBT;
+    BlockMatrix<InMatrixType>                       M_childB;
 };
 
 }
