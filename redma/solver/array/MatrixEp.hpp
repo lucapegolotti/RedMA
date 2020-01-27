@@ -17,6 +17,15 @@
 #ifndef MATRIXEP_HPP
 #define MATRIXEP_HPP
 
+
+#include <Epetra_ConfigDefs.h>
+#ifdef EPETRA_MPI
+#include <mpi.h>
+#include <Epetra_MpiComm.h>
+#else
+#include <Epetra_SerialComm.h>
+#endif
+
 #include <redma/solver/array/aMatrix.hpp>
 #include <redma/solver/array/VectorEp.hpp>
 
@@ -33,7 +42,11 @@ class MatrixEp : public aMatrix
 public:
     MatrixEp();
 
+    MatrixEp(const std::vector<VectorEp>& columnVectors);
+
     MatrixEp operator+(const MatrixEp& other);
+
+    MatrixEp transpose() const;
 
     MatrixEp& operator+=(const MatrixEp& other);
 
@@ -50,6 +63,8 @@ public:
     void getColProperty(std::shared_ptr<LifeV::MapEpetra>& outMap);
 
     std::shared_ptr<MATRIXEPETRA>& data();
+
+    std::shared_ptr<MATRIXEPETRA> data() const;
 
 private:
     std::shared_ptr<MATRIXEPETRA>  M_matrix;

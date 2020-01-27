@@ -55,7 +55,7 @@ void
 VectorEp::
 softCopy(const VectorEp& other)
 {
-    
+
 }
 
 double
@@ -71,5 +71,13 @@ data()
 {
     return M_vector;
 }
+
+std::shared_ptr<VECTOREPETRA>
+VectorEp::
+data() const
+{
+    return M_vector;
+}
+
 
 };

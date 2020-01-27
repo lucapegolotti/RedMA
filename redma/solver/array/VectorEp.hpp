@@ -49,6 +49,8 @@ public:
 
     std::shared_ptr<VECTOREPETRA>& data();
 
+    std::shared_ptr<VECTOREPETRA> data() const;
+
 private:
     std::shared_ptr<VECTOREPETRA>  M_vector;
 };
