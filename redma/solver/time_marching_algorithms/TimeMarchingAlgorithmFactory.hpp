@@ -30,7 +30,8 @@ namespace RedMA
 
 template <class InVectorType, class InMatrixType>
 SHP(aTimeMarchingAlgorithm<InVectorType COMMA InMatrixType>)
-TimeMarchingAlgorithmFactory(const DataContainer& data);
+TimeMarchingAlgorithmFactory(const DataContainer& data,
+                             SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler);
 
 }
 

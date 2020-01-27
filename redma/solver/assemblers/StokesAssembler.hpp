@@ -84,7 +84,6 @@ protected:
     BlockMatrix<InMatrixType>            M_mass;
     BlockMatrix<InMatrixType>            M_stiffness;
     BlockMatrix<InMatrixType>            M_divergence;
-    EPETRACOMM                           M_comm;
     SHP(FESPACE)                         M_velocityFESpace;
     SHP(FESPACE)                         M_pressureFESpace;
     SHP(ETFESPACE3)                      M_velocityFESpaceETA;

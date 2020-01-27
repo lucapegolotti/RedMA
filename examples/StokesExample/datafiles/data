@@ -3,7 +3,7 @@
 #-------------------------------------------------------------
 
 [geometric_structure]
-	xmlfile = geometries/tree.xml
+	xmlfile = geometries/tree2.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]

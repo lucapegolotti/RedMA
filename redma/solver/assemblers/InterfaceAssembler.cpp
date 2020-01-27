@@ -107,9 +107,10 @@ buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
 
     QuadratureBoundary boundaryQuadRule(buildTetraBDQR
                                        (*generateQuadratureRule("STRANG10")));
-    std::vector<VectorEp> couplingVectors;
 
     unsigned int nBasisFunctions = bfs->getNumBasisFunctions();
+
+    std::vector<VectorEp> couplingVectors(3 * nBasisFunctions);
 
     SHP(ETFESPACE3) etfespace = assembler->getETFESpaceCoupling();
     MAPEPETRA map = etfespace->map();

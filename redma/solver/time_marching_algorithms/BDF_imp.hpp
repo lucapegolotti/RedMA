@@ -3,8 +3,9 @@ namespace RedMA
 
 template <class InVectorType, class InMatrixType>
 BDF<InVectorType, InMatrixType>::
-BDF(const DataContainer& data) :
-  aTimeMarchingAlgorithm<InVectorType, InMatrixType>(data),
+BDF(const DataContainer& data,
+    SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler) :
+  aTimeMarchingAlgorithm<InVectorType, InMatrixType>(data, assembler),
   M_order(data("time_discretization/order",2))
 {
     setup();
@@ -15,6 +16,7 @@ void
 BDF<InVectorType, InMatrixType>::
 setup()
 {
+    printlog(GREEN, "[BDF] initializing time advancing scheme ...", this->M_data.getVerbose());
     M_coefficients.reserve(M_order);
     M_prevSolutions.reserve(M_order);
 
@@ -40,26 +42,29 @@ setup()
     {
         throw new Exception("BDF scheme of requested order not implemented");
     }
+    printlog(GREEN, "done\n", this->M_data.getVerbose());
 }
 
 template <class InVectorType, class InMatrixType>
 BlockVector<InVectorType>
 BDF<InVectorType, InMatrixType>::
-advance(const double& time, double& dt,
-        SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler,
-        int& status)
+advance(const double& time, double& dt, int& status)
 {
     typedef BlockVector<InVectorType>               BV;
     typedef BlockMatrix<InMatrixType>               BM;
 
+    std::cout << "advance" << std::endl << std::flush;
+
     // we set the initial guess equal to the last solution
-    BV initialGuess = M_prevSolutions[0];
+    BV initialGuess;
+    initialGuess.softCopy(M_prevSolutions[0]);
+    std::cout << "____" << std::endl << std::flush;
 
     FunctionFunctor<BV,BV> fct(
-        [this,time,dt,assembler](BV sol)
+        [this,time,dt](BV sol)
     {
-        BM mass = assembler->getMass(time+dt, sol);
-        BV f = assembler->getRightHandSide(time+dt, sol);
+        BM mass = this->M_assembler->getMass(time+dt, sol);
+        BV f = this->M_assembler->getRightHandSide(time+dt, sol);
         BV prevContribution;
 
         unsigned int count = 0;
@@ -78,18 +83,19 @@ advance(const double& time, double& dt,
     });
 
     FunctionFunctor<BV,BM> jac(
-        [this,time,dt,assembler](BV sol)
+        [this,time,dt](BV sol)
     {
-        BM retMat = assembler->getMass(time+dt, sol);
+        BM retMat = this->M_assembler->getMass(time+dt, sol);
         BM jacRhs;
 
-        jacRhs = assembler->getJacobianRightHandSide(time+dt, sol);
+        jacRhs = this->M_assembler->getJacobianRightHandSide(time+dt, sol);
         jacRhs *= (-1. * M_rhsCoeff * dt);
 
         retMat += jacRhs;
         return retMat;
     });
 
+    std::cout << "1" << std::endl << std::flush;
     return this->M_systemSolver.solve(fct, jac, initialGuess, status);
 }
 

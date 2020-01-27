@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
     ProblemFEM femProblem(data, comm);
 
-    // femProblem.solve();
+    femProblem.solve();
 
     return 0;
 }

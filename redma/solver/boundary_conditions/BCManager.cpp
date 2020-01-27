@@ -53,9 +53,13 @@ apply0DirichletMatrix(BlockMatrix<MatrixEp>& input,
     unsigned int nCols = input.nCols();
 
     for (unsigned int j = 0; j < nCols; j++)
-        bcManageMatrix(*input.block(index, j).data(), *fespace->mesh(),
-                       fespace->dof(), *bcs, fespace->feBd(),
-                       (j == index) * diagCoefficient, 0.0);
+    {
+        auto curMatrix = input.block(index, j).data();
+        if (curMatrix)
+            bcManageMatrix(*curMatrix, *fespace->mesh(),
+                           fespace->dof(), *bcs, fespace->feBd(),
+                           (j == index) * diagCoefficient, 0.0);
+    }
 
 }
 

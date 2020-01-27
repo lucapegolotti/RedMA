@@ -31,7 +31,18 @@ void
 InterfaceAssembler<InVectorType, InMatrixType>::
 setup()
 {
+    LifeV::LifeChrono chrono;
+    chrono.start();
+
+    printlog(YELLOW, "[InterfaceAssembler] initialize interface"
+                     " assembler ...", M_data.getVerbose());
+
     buildCouplingMatrices();
+
+    std::string msg = "done, in ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(YELLOW, msg, M_data.getVerbose());
 }
 
 template <class InVectorType, class InMatrixType>

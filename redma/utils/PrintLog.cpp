@@ -22,7 +22,7 @@ printlog(Color outColor, std::string text, bool verbose)
         for (int i = 0; i < hierarchy; i++)
             std::cout << sp;
         std::cout << text;
-        std::cout << "\033[0m";
+        std::cout << "\033[0m" << std::flush;
     }
 }
 

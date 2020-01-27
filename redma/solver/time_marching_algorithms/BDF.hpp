@@ -33,13 +33,13 @@ template <class InVectorType, class InMatrixType>
 class BDF : public aTimeMarchingAlgorithm<InVectorType, InMatrixType>
 {
 public:
-    BDF(const DataContainer& data);
+    BDF(const DataContainer& data,
+        SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler);
 
     void setup();
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
-                       SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler,
-                       int& status) override;
+                                              int& status) override;
 
 protected:
     std::vector<BlockVector<InVectorType> >  M_prevSolutions;

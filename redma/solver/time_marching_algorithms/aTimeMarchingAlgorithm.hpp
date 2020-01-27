@@ -31,15 +31,16 @@ template <class InVectorType, class InMatrixType>
 class aTimeMarchingAlgorithm
 {
 public:
-    aTimeMarchingAlgorithm(const DataContainer& datafile);
+    aTimeMarchingAlgorithm(const DataContainer& datafile,
+                           SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler);
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
-                       SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler,
-                       int& status) = 0;
+                                              int& status) = 0;
 
 protected:
-    DataContainer                               M_data;
-    SystemSolver<InVectorType, InMatrixType>    M_systemSolver;
+    DataContainer                                       M_data;
+    SystemSolver<InVectorType, InMatrixType>            M_systemSolver;
+    SHP(aAssembler<InVectorType COMMA InMatrixType>)    M_assembler;
 };
 
 }

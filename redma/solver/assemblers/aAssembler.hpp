@@ -72,7 +72,6 @@ protected:
     SHP(BCManager)                       M_bcManager;
     unsigned int                         M_nComponents;
     EPETRACOMM                           M_comm;
-
 };
 
 }

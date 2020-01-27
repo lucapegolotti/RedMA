@@ -26,8 +26,11 @@ ProblemFEM::
 setup()
 {
     typedef BlockAssembler<BV, BM> BAssembler;
-    M_TMAlgorithm = TimeMarchingAlgorithmFactory<BV, BM>(M_data);
+
+    printlog(MAGENTA, "[ProblemFEM] starting setup ... \n", M_data.getVerbose());
     M_assembler.reset(new BAssembler(M_data, M_tree));
+    M_TMAlgorithm = TimeMarchingAlgorithmFactory<BV, BM>(M_data, M_assembler);
+    printlog(MAGENTA, "done\n", M_data.getVerbose());
 }
 
 void
@@ -39,11 +42,14 @@ solve()
     double dt = M_data("time_discretization/dt", 0.01);
     unsigned int saveEvery = M_data("exporter/save_every", 1);
 
-    double t = t;
+    double t = t0;
 
     unsigned int count = 1;
     while (T - t > t/2)
     {
+        std::string msg = "[ProblemFEM] solving timestep " + std::to_string(count-1) +
+                          ", t = " + std::to_string(t) + "\n";
+        printlog(MAGENTA, msg, M_data.getVerbose());
         solveTimestep(t, dt);
         t += dt;
 
@@ -60,7 +66,7 @@ ProblemFEM::
 solveTimestep(const double& t, double& dt)
 {
     int status = -1;
-    M_solution = M_TMAlgorithm->advance(t, dt, M_assembler, status);
+    M_solution = M_TMAlgorithm->advance(t, dt, status);
 }
 
 }

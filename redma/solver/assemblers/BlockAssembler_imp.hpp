@@ -19,6 +19,8 @@ setup()
     typedef aAssembler<VInner, MInner>                    InnerAssembler;
     typedef std::vector<SHP(TreeNode)>                    NodesVector;
 
+    printlog(GREEN, "[BlockAssembler] initializing block assembler ... \n", this->M_data.getVerbose());
+
     NodesMap nodesMap = M_tree.getNodesMap();
 
     // allocate assemblers
@@ -56,7 +58,6 @@ setup()
                 SHP(InterfaceAssembler<VInner COMMA MInner>) inAssembler;
                 inAssembler.reset(new InterfaceAssembler<VInner, MInner>(this->M_data,
                                                                          newInterface));
-                inAssembler->setup();
                 M_dualAssemblers.push_back(inAssembler);
                 interfaceID++;
             }
@@ -64,6 +65,8 @@ setup()
         }
     }
     M_numberBlocks = M_primalAssemblers.size() + M_dualAssemblers.size();
+
+    printlog(GREEN, "done\n", this->M_data.getVerbose());
 }
 
 

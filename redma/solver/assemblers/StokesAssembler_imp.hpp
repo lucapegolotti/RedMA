@@ -18,6 +18,12 @@ void
 StokesAssembler<InVectorType,InMatrixType>::
 setup()
 {
+    LifeV::LifeChrono chrono;
+    chrono.start();
+
+    printlog(YELLOW, "[StokesAssembler] initializing"
+                     "StokesAssembler ...", this->M_data.getVerbose());
+
     initializeFEspaces();
 
     assembleStiffness();
@@ -26,6 +32,10 @@ setup()
 
     setExporter();
 
+    std::string msg = "done, in ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(YELLOW, msg, this->M_data.getVerbose());
 }
 
 template <class InVectorType, class InMatrixType>
@@ -35,21 +45,21 @@ initializeFEspaces()
 {
     // initialize fespace velocity
     std::string orderVelocity = this->M_data("fluid/velocity_order", "P2");
-
     M_velocityFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
-                                        orderVelocity, 3, M_comm));
+                                        orderVelocity, 3, this->M_comm));
+
     M_velocityFESpaceETA.reset(new ETFESPACE3(M_velocityFESpace->mesh(),
                                             &(M_velocityFESpace->refFE()),
-                                              M_comm));
+                                              this->M_comm));
 
     // initialize fespace velocity
     std::string orderPressure = this->M_data("fluid/pressure_order", "P1");
 
     M_pressureFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
-                                        orderPressure, 1, M_comm));
+                                        orderPressure, 1, this->M_comm));
     M_pressureFESpaceETA.reset(new ETFESPACE1(M_pressureFESpace->mesh(),
                                             &(M_pressureFESpace->refFE()),
-                                              M_comm));
+                                              this->M_comm));
 
 }
 
@@ -174,7 +184,7 @@ setExporter()
     else
         M_exporter.reset(new LifeV::ExporterVTK<MESH>(this->M_data.getDatafile(),
                                                       outputName));
-    M_exporter->setMeshProcId(M_velocityFESpace->mesh(), M_comm->MyPID());
+    M_exporter->setMeshProcId(M_velocityFESpace->mesh(), this->M_comm->MyPID());
 
     M_velocityExporter.reset(new VECTOREPETRA(M_velocityFESpace->map(),
                                               M_exporter->mapType()));

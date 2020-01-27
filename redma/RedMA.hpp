@@ -28,11 +28,13 @@
 
 #include <redma/solver/array/MatrixEp.hpp>
 #include <redma/solver/array/VectorEp.hpp>
+#include <redma/utils/PrintLog.hpp>
 
 #include <lifev/core/fem/FESpace.hpp>
 #include <lifev/eta/fem/ETFESpace.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/mesh/RegionMesh.hpp>
+#include <lifev/core/util/LifeChrono.hpp>
 
 // we define the namespace
 namespace RedMA
