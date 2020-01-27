@@ -24,6 +24,10 @@
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/solver/array/MatrixEp.hpp>
 #include <redma/solver/array/VectorEp.hpp>
+#include <redma/utils/Exception.hpp>
+#include <redma/solver/coupling/BasisFunctionFactory.hpp>
+
+#include <lifev/eta/expression/Integrate.hpp>
 
 namespace RedMA
 {
@@ -42,17 +46,28 @@ public:
     unsigned int            M_indexFather;
     unsigned int            M_indexChild;
     unsigned int            M_ID;
+    unsigned int            M_indexOutlet;
 };
 
 template <class InVectorType, class InMatrixType>
 class InterfaceAssembler
 {
+    typedef aAssembler<InVectorType COMMA InMatrixType>         AssemblerType;
+
 public:
-    InterfaceAssembler(const Interface<InVectorType, InMatrixType>& interface);
+    InterfaceAssembler(const DataContainer& data,
+                       const Interface<InVectorType, InMatrixType>& interface);
 
     void setup();
 
     void buildCouplingMatrices();
+
+    void buildCouplingMatrices(SHP(AssemblerType) assembler,
+                               const GeometricFace& face,
+                               BlockMatrix<InMatrixType>& matrixT,
+                               BlockMatrix<InMatrixType>& matrix);
+
+    void buildMapLagrange(SHP(BasisFunctionFunctor) bfs);
 
     void addContributionRhs(BlockVector<BlockVector<InVectorType>>& rhs,
                             const BlockVector<BlockVector<InVectorType>>& sol,
@@ -65,12 +80,20 @@ public:
     inline Interface<InVectorType, InMatrixType> getInterface() const {return M_interface;};
 
 private:
+    SHP(LifeV::QuadratureRule) generateQuadratureRule(std::string tag) const;
+
+    std::vector<VectorEp> buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
+                                               const GeometricFace& face,
+                                               SHP(aAssembler<VectorEp COMMA MatrixEp>) assembler) const;
+
     Interface<InVectorType, InMatrixType>           M_interface;
 
     BlockMatrix<InMatrixType>                       M_fatherBT;
     BlockMatrix<InMatrixType>                       M_fatherB;
     BlockMatrix<InMatrixType>                       M_childBT;
     BlockMatrix<InMatrixType>                       M_childB;
+    DataContainer                                   M_data;
+    SHP(LifeV::MapEpetra)                           M_mapLagrange;
 };
 
 }

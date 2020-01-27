@@ -11,7 +11,7 @@ assembleStiffness()
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    M_stiffness.resize(M_nComponents,M_nComponents);
+    M_stiffness.resize(this->M_nComponents, this->M_nComponents);
     bool useFullStrain = M_data("fluid/use_strain", true);
 
     SHP(MatrixEpetra<double>) A(new MatrixEpetra<double>(M_velocityFESpace->map()));
@@ -53,7 +53,7 @@ assembleMass()
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    M_mass.resize(M_nComponents, M_nComponents);
+    M_mass.resize(this->M_nComponents, this->M_nComponents);
 
     SHP(MatrixEpetra<double>) M(new MatrixEpetra<double>(M_velocityFESpace->map()));
 
@@ -80,7 +80,7 @@ assembleDivergence()
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    M_divergence.resize(M_nComponents, M_nComponents);
+    M_divergence.resize(this->M_nComponents, this->M_nComponents);
 
     SHP(MatrixEpetra<double>) BT(new MatrixEpetra<double>(M_velocityFESpace->map()));
 

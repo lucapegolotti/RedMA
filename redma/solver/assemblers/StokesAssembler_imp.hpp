@@ -5,13 +5,11 @@ template <class InVectorType, class InMatrixType>
 StokesAssembler<InVectorType, InMatrixType>::
 StokesAssembler(const DataContainer& data,
                 SHP(TreeNode) treeNode) :
-  aAssembler<InVectorType, InMatrixType>(data, treeNode),
-  M_comm(treeNode->M_block->getComm()),
-  M_nComponents(2)
+  aAssembler<InVectorType, InMatrixType>(data, treeNode)
 {
     M_density = this->M_data("fluid/density", 1.0);
     M_viscosity = this->M_data("fluid/viscosity", 0.035);
-
+    this->M_nComponents = 2;
     this->M_bcManager.reset(new BCManager(data, treeNode));
 }
 
@@ -93,7 +91,7 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
     BlockVector<InVectorType> retVec;
     BlockMatrix<InMatrixType> systemMatrix;
 
-    systemMatrix.resize(M_nComponents, M_nComponents);
+    systemMatrix.resize(this->M_nComponents, this->M_nComponents);
     systemMatrix += M_stiffness;
     systemMatrix += M_divergence;
     systemMatrix *= (-1.0);
@@ -145,7 +143,7 @@ StokesAssembler<InVectorType, InMatrixType>::
 getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 {
     BlockMatrix<InMatrixType> retMat;
-    retMat.resize(M_nComponents, M_nComponents);
+    retMat.resize(this->M_nComponents, this->M_nComponents);
 
     retMat += M_stiffness;
     retMat += M_divergence;

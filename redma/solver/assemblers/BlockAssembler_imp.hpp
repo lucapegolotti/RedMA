@@ -41,6 +41,7 @@ setup()
 
         SHP(InnerAssembler) fatherAssembler = M_primalAssemblers[myID];
 
+        unsigned int countChildren = 0;
         for (NodesVector::iterator itVector = children.begin();
              itVector != children.end(); itVector++)
         {
@@ -51,13 +52,15 @@ setup()
                 Interface<VInner, MInner> newInterface(fatherAssembler, myID,
                                                        childAssembler, otherID,
                                                        interfaceID);
-
+                newInterface.M_indexOutlet = countChildren;
                 SHP(InterfaceAssembler<VInner COMMA MInner>) inAssembler;
-                inAssembler.reset(new InterfaceAssembler<VInner, MInner>(newInterface));
+                inAssembler.reset(new InterfaceAssembler<VInner, MInner>(this->M_data,
+                                                                         newInterface));
                 inAssembler->setup();
                 M_dualAssemblers.push_back(inAssembler);
                 interfaceID++;
             }
+            countChildren++;
         }
     }
     M_numberBlocks = M_primalAssemblers.size() + M_dualAssemblers.size();

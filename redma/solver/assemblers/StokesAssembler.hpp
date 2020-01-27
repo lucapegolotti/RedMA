@@ -68,9 +68,17 @@ public:
 
     void setExporter();
 
-    virtual inline SHP(FESPACE) getFESpaceBCs() const override {return M_velocityFESpace;}
+    virtual inline SHP(FESPACE) getFESpaceBCs() const override
+    {
+        return M_velocityFESpace;
+    }
 
     virtual inline unsigned int getComponentBCs() const override {return 0;}
+
+    virtual inline SHP(ETFESPACE3) getETFESpaceCoupling() const override
+    {
+        return M_velocityFESpaceETA;
+    }
 
 protected:
     BlockMatrix<InMatrixType>            M_mass;
@@ -83,7 +91,6 @@ protected:
     SHP(ETFESPACE1)                      M_pressureFESpaceETA;
     double                               M_density;
     double                               M_viscosity;
-    unsigned int                         M_nComponents;
     SHP(LifeV::VectorEpetra)             M_velocityExporter;
     SHP(LifeV::VectorEpetra)             M_pressureExporter;
     SHP(LifeV::Exporter<MESH>)           M_exporter;

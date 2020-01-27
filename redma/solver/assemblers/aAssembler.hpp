@@ -58,10 +58,21 @@ public:
 
     virtual inline unsigned int getComponentBCs() const {return 0;}
 
+    virtual inline SHP(TreeNode) getTreeNode() const {return M_treeNode;}
+
+    virtual inline unsigned int getNumComponents() const {return M_nComponents;}
+
+    virtual inline EPETRACOMM getComm() const {return M_comm;}
+
+    virtual inline SHP(ETFESPACE3) getETFESpaceCoupling() const {return nullptr;}
+
 protected:
-    DataContainer         M_data;
-    SHP(TreeNode)         M_treeNode;
-    SHP(BCManager)        M_bcManager;
+    DataContainer                        M_data;
+    SHP(TreeNode)                        M_treeNode;
+    SHP(BCManager)                       M_bcManager;
+    unsigned int                         M_nComponents;
+    EPETRACOMM                           M_comm;
+
 };
 
 }

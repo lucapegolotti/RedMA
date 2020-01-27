@@ -18,7 +18,9 @@ Interface(SHP(AssemblerType) assemblerFather, const unsigned int& indexFather,
 
 template <class InVectorType, class InMatrixType>
 InterfaceAssembler<InVectorType, InMatrixType>::
-InterfaceAssembler(const Interface<InVectorType, InMatrixType>& interface) :
+InterfaceAssembler(const DataContainer& data,
+                   const Interface<InVectorType, InMatrixType>& interface) :
+  M_data(data),
   M_interface(interface)
 {
     setup();
