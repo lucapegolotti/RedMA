@@ -3,14 +3,16 @@ namespace RedMA
 
 template <class InVectorType, class InMatrixType>
 StokesAssembler<InVectorType, InMatrixType>::
-StokesAssembler(const GetPot& datafile,
+StokesAssembler(const DataContainer& data,
                 SHP(TreeNode) treeNode) :
-  aAssembler<InVectorType, InMatrixType>(datafile, treeNode),
+  aAssembler<InVectorType, InMatrixType>(data, treeNode),
   M_comm(treeNode->M_block->getComm()),
   M_nComponents(2)
 {
-    M_density = this->M_datafile("fluid/density", 1.0);
-    M_viscosity = this->M_datafile("fluid/viscosity", 0.035);
+    M_density = this->M_data("fluid/density", 1.0);
+    M_viscosity = this->M_data("fluid/viscosity", 0.035);
+
+    this->M_bcManager.reset(new BCManager(data, treeNode));
 }
 
 template <class InVectorType, class InMatrixType>
@@ -34,7 +36,7 @@ StokesAssembler<InVectorType, InMatrixType>::
 initializeFEspaces()
 {
     // initialize fespace velocity
-    std::string orderVelocity = this->M_datafile("fluid/velocity_order", "P2");
+    std::string orderVelocity = this->M_data("fluid/velocity_order", "P2");
 
     M_velocityFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
                                         orderVelocity, 3, M_comm));
@@ -43,7 +45,7 @@ initializeFEspaces()
                                               M_comm));
 
     // initialize fespace velocity
-    std::string orderPressure = this->M_datafile("fluid/pressure_order", "P1");
+    std::string orderPressure = this->M_data("fluid/pressure_order", "P1");
 
     M_pressureFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
                                         orderPressure, 1, M_comm));
@@ -99,7 +101,7 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
     retVec = systemMatrix * sol;
 
     // treatment of Dirichlet bcs if needed
-    bool useLifting = this->M_datafile("bc_conditions/lifting", true);
+    bool useLifting = this->M_data("bc_conditions/lifting", true);
     if (useLifting)
     {
         BlockVector<InVectorType> lifting = computeLifting(time);
@@ -164,14 +166,16 @@ setExporter()
     std::string outputName = "block";
     outputName += std::to_string(this->M_treeNode->M_ID);
 
-    std::string outdir = this->M_datafile("exporter/outdir", "solutions/");
+    std::string outdir = this->M_data("exporter/outdir", "solutions/");
     boost::filesystem::create_directory(outdir);
 
-    std::string format = this->M_datafile("exporter/type", "hdf5");
+    std::string format = this->M_data("exporter/type", "hdf5");
     if (!std::strcmp(format.c_str(), "hdf5"))
-        M_exporter.reset(new LifeV::ExporterHDF5<MESH>(this->M_datafile, outputName));
+        M_exporter.reset(new LifeV::ExporterHDF5<MESH>(this->M_data.getDatafile(),
+                                                       outputName));
     else
-        M_exporter.reset(new LifeV::ExporterVTK<MESH>(this->M_datafile, outputName));
+        M_exporter.reset(new LifeV::ExporterVTK<MESH>(this->M_data.getDatafile(),
+                                                      outputName));
     M_exporter->setMeshProcId(M_velocityFESpace->mesh(), M_comm->MyPID());
 
     M_velocityExporter.reset(new VECTOREPETRA(M_velocityFESpace->map(),

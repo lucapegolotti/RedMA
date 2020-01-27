@@ -23,8 +23,8 @@
 #include <redma/solver/array/BlockMatrix.hpp>
 #include <redma/solver/array/VectorEp.hpp>
 #include <redma/solver/array/MatrixEp.hpp>
+#include <redma/solver/problem/DataContainer.hpp>
 
-#include <lifev/core/filter/GetPot.hpp>
 #include <lifev/core/fem/BCHandler.hpp>
 
 namespace RedMA
@@ -33,7 +33,7 @@ namespace RedMA
 class BCManager
 {
 public:
-    BCManager(const GetPot& datafile, SHP(TreeNode) treeNode);
+    BCManager(const DataContainer& datafile, SHP(TreeNode) treeNode);
 
     void applyDirichletBCs(const double& time, BlockVector<VectorEp>& input,
                            SHP(FESPACE) fespace, const unsigned int& index) const;
@@ -61,7 +61,7 @@ private:
     SHP(LifeV::BCHandler) createBCHandler0Dirichlet() const;
 
     SHP(TreeNode)                 M_treeNode;
-    GetPot                        M_datafile;
+    DataContainer                 M_data;
     std::function<double(double)> M_inflow;
 
     const unsigned int            inletFlag = 1;

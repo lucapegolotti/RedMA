@@ -12,7 +12,7 @@ assembleStiffness()
     using namespace ExpressionAssembly;
 
     M_stiffness.resize(M_nComponents,M_nComponents);
-    bool useFullStrain = M_datafile("fluid/use_strain", true);
+    bool useFullStrain = M_data("fluid/use_strain", true);
 
     SHP(MatrixEpetra<double>) A(new MatrixEpetra<double>(M_velocityFESpace->map()));
 

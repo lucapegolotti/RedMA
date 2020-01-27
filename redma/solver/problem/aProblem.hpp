@@ -17,7 +17,7 @@
 #ifndef aPROBLEM_HPP
 #define aPROBLEM_HPP
 
-#include <lifev/core/filter/GetPot.hpp>
+#include <redma/solver/problem/DataContainer.hpp>
 
 namespace RedMA
 {
@@ -25,14 +25,14 @@ namespace RedMA
 class aProblem
 {
 public:
-    aProblem(const GetPot& datafile);
+    aProblem(const DataContainer& data);
 
     virtual void setup() = 0;
 
     virtual void solve() = 0;
 
 protected:
-    GetPot  M_datafile;
+    DataContainer  M_data;
 };
 
 }

@@ -21,8 +21,7 @@
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/solver/array/BlockMatrix.hpp>
 #include <redma/solver/system_solver/LinearOperatorEp.hpp>
-
-#include <lifev/core/filter/GetPot.hpp>
+#include <redma/solver/problem/DataContainer.hpp>
 
 #include <memory>
 
@@ -36,14 +35,14 @@ class LinearSystemSolver
     typedef BlockMatrix<InMatrixType>               BM;
 
 public:
-    LinearSystemSolver(const GetPot& datafile);
+    LinearSystemSolver(const DataContainer& datafile);
 
     // I don't provide  a generic implementation of this method but only
     // (template) specializations in the cpp
     BV solve(BM matrix, BV rh);
 
 private:
-    GetPot                  M_datafile;
+    DataContainer                  M_data;
 
 };
 

@@ -36,7 +36,7 @@ template <class InVectorType, class InMatrixType>
 class StokesAssembler : public aAssembler<InVectorType, InMatrixType>
 {
 public:
-    StokesAssembler(const GetPot& datafile, SHP(TreeNode) treeNode);
+    StokesAssembler(const DataContainer& data, SHP(TreeNode) treeNode);
 
     virtual void setup() override;
 

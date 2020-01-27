@@ -3,9 +3,9 @@ namespace RedMA
 
 template <class InVectorType, class InMatrixType>
 BDF<InVectorType, InMatrixType>::
-BDF(const GetPot& datafile) :
-  aTimeMarchingAlgorithm<InVectorType, InMatrixType>(datafile),
-  M_order(datafile("time_discretization/order",2))
+BDF(const DataContainer& data) :
+  aTimeMarchingAlgorithm<InVectorType, InMatrixType>(data),
+  M_order(data("time_discretization/order",2))
 {
     setup();
 }

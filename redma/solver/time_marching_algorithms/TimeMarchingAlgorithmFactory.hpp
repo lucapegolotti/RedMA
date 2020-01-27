@@ -21,6 +21,7 @@
 #include <redma/solver/time_marching_algorithms/aTimeMarchingAlgorithm.hpp>
 #include <redma/solver/time_marching_algorithms/BDF.hpp>
 #include <redma/utils/Exception.hpp>
+#include <redma/solver/problem/DataContainer.hpp>
 
 #include <memory>
 
@@ -29,7 +30,7 @@ namespace RedMA
 
 template <class InVectorType, class InMatrixType>
 SHP(aTimeMarchingAlgorithm<InVectorType COMMA InMatrixType>)
-TimeMarchingAlgorithmFactory(const GetPot& datafile);
+TimeMarchingAlgorithmFactory(const DataContainer& data);
 
 }
 

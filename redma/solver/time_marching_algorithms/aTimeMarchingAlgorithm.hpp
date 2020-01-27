@@ -22,7 +22,7 @@
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/solver/system_solver/SystemSolver.hpp>
 
-#include <lifev/core/filter/GetPot.hpp>
+#include <redma/solver/problem/DataContainer.hpp>
 
 namespace RedMA
 {
@@ -31,14 +31,14 @@ template <class InVectorType, class InMatrixType>
 class aTimeMarchingAlgorithm
 {
 public:
-    aTimeMarchingAlgorithm(const GetPot& datafile);
+    aTimeMarchingAlgorithm(const DataContainer& datafile);
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
                        SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler,
                        int& status) = 0;
 
 protected:
-    GetPot                                      M_datafile;
+    DataContainer                               M_data;
     SystemSolver<InVectorType, InMatrixType>    M_systemSolver;
 };
 

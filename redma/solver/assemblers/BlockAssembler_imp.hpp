@@ -3,8 +3,8 @@ namespace RedMA
 
 template <class InVectorType, class InMatrixType>
 BlockAssembler<InVectorType, InMatrixType>::
-BlockAssembler(const GetPot& datafile, const TreeStructure& tree) :
-  aAssembler<InVectorType, InMatrixType>(datafile),
+BlockAssembler(const DataContainer& data, const TreeStructure& tree) :
+  aAssembler<InVectorType, InMatrixType>(data),
   M_tree(tree)
 {
     setup();
@@ -25,7 +25,7 @@ setup()
     for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
     {
         SHP(InnerAssembler) newAssembler;
-        newAssembler = AssemblerFactory<VInner, MInner> (M_datafile, it->second);
+        newAssembler = AssemblerFactory<VInner, MInner> (this->M_data, it->second);
         newAssembler->setup();
         M_primalAssemblers[it->second->M_ID] = newAssembler;
     }

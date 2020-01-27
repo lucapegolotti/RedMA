@@ -4,16 +4,16 @@ namespace RedMA
 {
 
 ProblemFEM::
-ProblemFEM(const GetPot& datafile, EPETRACOMM comm, bool verbose) :
-  aProblem(datafile),
-  M_geometryParser(datafile,
-                   datafile("geometric_structure/xmlfile","tree.xml"),
-                   comm, verbose)
+ProblemFEM(const DataContainer& data, EPETRACOMM comm) :
+  aProblem(data),
+  M_geometryParser(data.getDatafile(),
+                   data("geometric_structure/xmlfile","tree.xml"),
+                   comm, data.getVerbose())
 {
     M_tree = M_geometryParser.getTree();
 
-    std::string geometriesDir = datafile("geometric_structure/geometries_dir",
-                                         "../../../meshes/");
+    std::string geometriesDir = data("geometric_structure/geometries_dir",
+                                     "../../../meshes/");
 
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();
@@ -26,18 +26,18 @@ ProblemFEM::
 setup()
 {
     typedef BlockAssembler<BV, BM> BAssembler;
-    M_TMAlgorithm = TimeMarchingAlgorithmFactory<BV, BM>(M_datafile);
-    M_assembler.reset(new BAssembler(M_datafile, M_tree));
+    M_TMAlgorithm = TimeMarchingAlgorithmFactory<BV, BM>(M_data);
+    M_assembler.reset(new BAssembler(M_data, M_tree));
 }
 
 void
 ProblemFEM::
 solve()
 {
-    double t0 = M_datafile("time_discretization/t0", 0.0);
-    double T = M_datafile("time_discretization/T", 1.0);
-    double dt = M_datafile("time_discretization/dt", 0.01);
-    unsigned int saveEvery = M_datafile("exporter/save_every", 1);
+    double t0 = M_data("time_discretization/t0", 0.0);
+    double T = M_data("time_discretization/T", 1.0);
+    double dt = M_data("time_discretization/dt", 0.01);
+    unsigned int saveEvery = M_data("exporter/save_every", 1);
 
     double t = t;
 

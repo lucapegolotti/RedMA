@@ -33,7 +33,7 @@ template <class InVectorType, class InMatrixType>
 class BDF : public aTimeMarchingAlgorithm<InVectorType, InMatrixType>
 {
 public:
-    BDF(const GetPot& datafile);
+    BDF(const DataContainer& data);
 
     void setup();
 

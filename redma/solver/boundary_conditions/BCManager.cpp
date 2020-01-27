@@ -4,11 +4,11 @@ namespace RedMA
 {
 
 BCManager::
-BCManager(const GetPot& datafile, SHP(TreeNode) treeNode) :
-  M_datafile(datafile),
+BCManager(const DataContainer& data, SHP(TreeNode) treeNode) :
+  M_data(data),
   M_treeNode(treeNode)
 {
-
+    M_inflow = data.getInflow();
 }
 
 void

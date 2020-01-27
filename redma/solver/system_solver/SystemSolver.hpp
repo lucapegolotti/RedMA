@@ -35,13 +35,13 @@ class SystemSolver
     typedef BlockMatrix<InMatrixType>               BM;
 
 public:
-    SystemSolver(const GetPot& datafile);
+    SystemSolver(const DataContainer& data);
 
     BV solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
              BV initialGuess, int& status);
 
 private:
-    GetPot                                              M_datafile;
+    DataContainer                                       M_data;
     LinearSystemSolver<InVectorType, InMatrixType>      M_linearSystemSolver;
 };
 

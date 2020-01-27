@@ -34,7 +34,7 @@ class BlockAssembler : public aAssembler<InVectorType, InMatrixType>
     typedef typename InMatrixType::InnerType              MInner;
 
 public:
-    BlockAssembler(const GetPot& datafile, const TreeStructure& tree);
+    BlockAssembler(const DataContainer& data, const TreeStructure& tree);
 
     virtual void setup() override;
 

@@ -39,7 +39,7 @@ class ProblemFEM : public aProblem
     typedef BlockMatrix<FEMATRIX>                   BM;
     typedef BlockMatrix<BM>                         BBM;
 public:
-    ProblemFEM(const GetPot& datafile, EPETRACOMM comm, bool verbose);
+    ProblemFEM(const DataContainer& data, EPETRACOMM comm);
 
     virtual void setup();
 

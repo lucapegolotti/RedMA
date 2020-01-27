@@ -22,7 +22,7 @@
 #include <redma/solver/boundary_conditions/BCManager.hpp>
 #include <redma/geometry/TreeStructure.hpp>
 
-#include <lifev/core/filter/GetPot.hpp>
+#include <redma/solver/problem/DataContainer.hpp>
 
 namespace RedMA
 {
@@ -31,9 +31,9 @@ template <class InVectorType, class InMatrixType>
 class aAssembler
 {
 public:
-    aAssembler(const GetPot& datafile);
+    aAssembler(const DataContainer& datafile);
 
-    aAssembler(const GetPot& datafile, SHP(TreeNode) node);
+    aAssembler(const DataContainer& datafile, SHP(TreeNode) node);
 
     inline SHP(BCManager) getBCManager() const {return M_bcManager;}
 
@@ -59,7 +59,7 @@ public:
     virtual inline unsigned int getComponentBCs() const {return 0;}
 
 protected:
-    GetPot                M_datafile;
+    DataContainer         M_data;
     SHP(TreeNode)         M_treeNode;
     SHP(BCManager)        M_bcManager;
 };

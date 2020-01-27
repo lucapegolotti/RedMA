@@ -16,10 +16,14 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/ProblemFEM.hpp>
-
-#include <lifev/core/filter/GetPot.hpp>
+#include <redma/solver/problem/DataContainer.hpp>
 
 using namespace RedMA;
+
+double inflow(double t)
+{
+    return std::sin(t);
+}
 
 int main(int argc, char **argv)
 {
@@ -30,12 +34,12 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    bool verbose = true;
+    DataContainer data;
+    data.setDatafile("datafiles/data");
+    data.setInflow(inflow);
+    data.setVerbose(true);
 
-
-    GetPot datafile("datafiles/data");
-
-    ProblemFEM femProblem(datafile, comm, verbose);
+    ProblemFEM femProblem(data, comm);
 
     // femProblem.solve();
 

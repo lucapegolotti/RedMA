@@ -4,9 +4,9 @@ namespace RedMA
 
 template<class InVectorType, class InMatrixType>
 SystemSolver<InVectorType, InMatrixType>::
-SystemSolver(const GetPot& datafile) :
-  M_datafile(datafile),
-  M_linearSystemSolver(datafile)
+SystemSolver(const DataContainer& data) :
+  M_data(data),
+  M_linearSystemSolver(data)
 {
 }
 
@@ -20,8 +20,8 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
     BV curFun;
     BV sol = initialGuess;
 
-    double tol = M_datafile("newton_method/tol", 1e-5);
-    unsigned int maxit = M_datafile("newton_method/maxit", 10);
+    double tol = M_data("newton_method/tol", 1e-5);
+    unsigned int maxit = M_data("newton_method/maxit", 10);
 
     double err = tol + 1;
     unsigned int count = 0;
