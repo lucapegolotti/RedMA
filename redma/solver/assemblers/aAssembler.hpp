@@ -19,6 +19,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/array/BlockMatrix.hpp>
+#include <redma/solver/boundary_conditions/BCManager.hpp>
 #include <redma/geometry/TreeStructure.hpp>
 
 #include <lifev/core/filter/GetPot.hpp>
@@ -33,6 +34,8 @@ public:
     aAssembler(const GetPot& datafile);
 
     aAssembler(const GetPot& datafile, SHP(TreeNode) node);
+
+    inline SHP(BCManager) getBCManager() const {return M_bcManager;}
 
     virtual void setup() = 0;
 
@@ -50,9 +53,15 @@ public:
     virtual BlockMatrix<InMatrixType> getJacobianRightHandSide(const double& time,
                                       const BlockVector<InVectorType>& sol) = 0;
 
+    // this must be implemented by the inner assemblers
+    virtual inline SHP(FESPACE) getFESpaceBCs() const {return nullptr;}
+
+    virtual inline unsigned int getComponentBCs() const {return 0;}
+
 protected:
     GetPot                M_datafile;
     SHP(TreeNode)         M_treeNode;
+    SHP(BCManager)        M_bcManager;
 };
 
 }

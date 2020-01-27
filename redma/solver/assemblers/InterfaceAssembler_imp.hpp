@@ -42,10 +42,20 @@ addContributionRhs(BlockVector<BlockVector<InVectorType>>& rhs,
     unsigned int fatherID = M_interface.M_indexFather;
     unsigned int childID = M_interface.M_indexChild;
     unsigned int interfaceID = M_interface.M_ID;
+    SHP(aAssembler<InVectorType COMMA InMatrixType>) assemblerFather;
+    SHP(aAssembler<InVectorType COMMA InMatrixType>) assemblerChild;
+    assemblerFather = M_interface.M_assemblerFather;
+    assemblerChild = M_interface.M_assemblerChild;
 
     // we have (-1) because we are solving H un+1 = F(.) and coupling is in F
     rhs.block(fatherID) -= M_fatherBT * sol.block(nPrimalBlocks + interfaceID);
     rhs.block(childID)  -= M_childBT * sol.block(nPrimalBlocks + interfaceID);
+    assemblerFather->getBCManager()->apply0DirichletBCs(rhs.block(fatherID),
+                                                        assemblerFather->getFESpaceBCs(),
+                                                        assemblerFather->getComponentBCs());
+    assemblerChild->getBCManager()->apply0DirichletBCs(rhs.block(childID),
+                                                       assemblerChild->getFESpaceBCs(),
+                                                       assemblerChild->getComponentBCs());
     rhs.block(nPrimalBlocks + interfaceID) -= M_fatherB * sol.block(fatherID);
     rhs.block(nPrimalBlocks + interfaceID) -= M_childB * sol.block(childID);
 }
@@ -61,10 +71,12 @@ addContributionJacobianRhs(BlockMatrix<BlockMatrix<InMatrixType>>& jac,
     unsigned int childID = M_interface.M_indexChild;
     unsigned int interfaceID = M_interface.M_ID;
 
-    jac.block(fatherID, nPrimalBlocks + interfaceID).softCopy(M_fatherBT);
-    jac.block(childID,  nPrimalBlocks + interfaceID).softCopy(M_childBT);
-    jac.block(nPrimalBlocks + interfaceID, fatherID).softCopy(M_fatherB);
-    jac.block(nPrimalBlocks + interfaceID,  childID).softCopy(M_childBT);
+    // hard copy, otherwise we flip the sign of the matrices every time this
+    // function is called
+    jac.block(fatherID, nPrimalBlocks + interfaceID).hardCopy(M_fatherBT);
+    jac.block(childID,  nPrimalBlocks + interfaceID).hardCopy(M_childBT);
+    jac.block(nPrimalBlocks + interfaceID, fatherID).hardCopy(M_fatherB);
+    jac.block(nPrimalBlocks + interfaceID,  childID).hardCopy(M_childBT);
 
     jac.block(fatherID, nPrimalBlocks + interfaceID) *= (-1);
     jac.block(childID,  nPrimalBlocks + interfaceID) *= (-1);

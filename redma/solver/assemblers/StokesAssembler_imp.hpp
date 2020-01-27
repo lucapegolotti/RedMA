@@ -116,7 +116,17 @@ BlockVector<FEVECTOR>
 StokesAssembler<InVectorType, InMatrixType>::
 computeLifting(const double& time) const
 {
+    BlockVector<InVectorType> lifting;
+    lifting.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map(),
+                                                   LifeV::Unique));
+    lifting.block(0).data()->zero();
+    lifting.block(1).data().reset(new VECTOREPETRA(M_velocityFESpace->map(),
+                                                   LifeV::Unique));
+    lifting.block(1).data()->zero();
 
+    this->M_bcManager->applyDirichletBCs(time, lifting, getFESpaceBCs(),
+                                         getComponentBCs());
+    return lifting;
 }
 
 template <class InVectorType, class InMatrixType>

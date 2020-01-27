@@ -68,6 +68,10 @@ public:
 
     void setExporter();
 
+    virtual inline SHP(FESPACE) getFESpaceBCs() const override {return M_velocityFESpace;}
+
+    virtual inline unsigned int getComponentBCs() const override {return 0;}
+
 protected:
     BlockMatrix<InMatrixType>            M_mass;
     BlockMatrix<InMatrixType>            M_stiffness;
