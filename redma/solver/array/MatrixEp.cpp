@@ -62,11 +62,14 @@ transpose() const
 {
     MatrixEp retMatrix;
 
-    auto domainMap = M_matrix->domainMapPtr();
-    auto rangeMap = M_matrix->rangeMapPtr();
+    if (M_matrix)
+    {
+        auto domainMap = M_matrix->domainMapPtr();
+        auto rangeMap = M_matrix->rangeMapPtr();
 
-    retMatrix.data() = M_matrix->transpose();
-    retMatrix.data()->globalAssemble(rangeMap, domainMap);
+        retMatrix.data() = M_matrix->transpose();
+        retMatrix.data()->globalAssemble(rangeMap, domainMap);
+    }
 
     return retMatrix;
 }
@@ -75,13 +78,14 @@ MatrixEp
 MatrixEp::
 operator+(const MatrixEp& other)
 {
+    MatrixEp retMatrix;
+
     if (!M_matrix)
     {
         hardCopy(other);
-        return;
+        return other;
     }
 
-    MatrixEp retMatrix;
     retMatrix.data().reset(new MATRIXEPETRA(*M_matrix));
 
     (*retMatrix.data()) += (*other.data());
@@ -95,7 +99,7 @@ operator+=(const MatrixEp& other)
     if (!M_matrix)
     {
         hardCopy(other);
-        return;
+        return *this;
     }
 
     (*M_matrix) += (*other.data());
