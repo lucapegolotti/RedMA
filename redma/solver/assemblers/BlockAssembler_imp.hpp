@@ -69,6 +69,27 @@ setup()
     printlog(GREEN, "done\n", this->M_data.getVerbose());
 }
 
+template <class InVectorType, class InMatrixType>
+BlockVector<InVectorType>
+BlockAssembler<InVectorType, InMatrixType>::
+getZeroVector() const
+{
+    BlockVector<InVectorType> retVec;
+    retVec.resize(M_numberBlocks);
+
+    for (auto as : M_primalAssemblers)
+        retVec.block(as.first).softCopy(as.second->getZeroVector());
+
+    unsigned int count = M_primalAssemblers.size();
+    for (auto as : M_dualAssemblers)
+    {
+        retVec.block(count).softCopy(as->getZeroVector());
+        count++;
+    }
+
+    return retVec;
+}
+
 
 template <class InVectorType, class InMatrixType>
 void
@@ -132,6 +153,7 @@ BlockAssembler<InVectorType, InMatrixType>::
 getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 {
     BlockMatrix<InMatrixType> jac;
+    jac.resize(M_numberBlocks, M_numberBlocks);
 
     for (auto as: M_primalAssemblers)
     {
@@ -143,6 +165,7 @@ getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& so
     for (auto as: M_dualAssemblers)
         as->addContributionJacobianRhs(jac, sol, M_primalAssemblers.size());
 
+    return jac;
 }
 
 }

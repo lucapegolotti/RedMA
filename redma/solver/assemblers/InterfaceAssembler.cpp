@@ -189,4 +189,25 @@ buildCouplingMatrices()
 
     buildCouplingMatrices(asChild, inlet, M_childBT, M_childB);
 }
+
+template <>
+BlockVector<VectorEp>
+InterfaceAssembler<VectorEp, MatrixEp>::
+getZeroVector() const
+{
+    BlockVector<VectorEp> retVector;
+    retVector.resize(1);
+
+    SHP(MAPEPETRA) lagrangeMap;
+    if (M_fatherBT.block(0,0).data())
+        lagrangeMap.reset(new MAPEPETRA(*M_fatherBT.block(0,0).data()->domainMapPtr()));
+    else
+        lagrangeMap.reset(new MAPEPETRA(*M_childBT.block(0,0).data()->domainMapPtr()));
+
+    retVector.block(0).data().reset(new VECTOREPETRA(*lagrangeMap, LifeV::Unique));
+    retVector.block(0).data()->zero();
+
+    return retVector;
+}
+
 }

@@ -36,6 +36,10 @@ public:
 
     BlockVector();
 
+    BlockVector(const BlockVector& other);
+
+    BlockVector(BlockVector& other);
+
     BlockVector(const unsigned int& nRows);
 
     BlockVector operator*(const double& coeff) const;

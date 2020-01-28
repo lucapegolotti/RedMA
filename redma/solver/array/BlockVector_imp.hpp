@@ -5,8 +5,23 @@ namespace RedMA
 
 template <class InVectorType>
 BlockVector<InVectorType>::
-BlockVector()
+BlockVector() :
+  M_nRows(0)
 {
+}
+
+template <class InVectorType>
+BlockVector<InVectorType>::
+BlockVector(BlockVector& other)
+{
+    softCopy(other);
+}
+
+template <class InVectorType>
+BlockVector<InVectorType>::
+BlockVector(const BlockVector& other)
+{
+    softCopy(other);
 }
 
 template <class InVectorType>
@@ -72,6 +87,24 @@ BlockVector<InVectorType>::
 operator+(const BlockVector<InVectorType>& other) const
 {
     BlockVector<InVectorType> ret;
+
+    if (M_nRows == 0)
+    {
+        ret.hardCopy(other);
+        return ret;
+    }
+
+    if (other.nRows() == 0)
+    {
+        ret.hardCopy(*this);
+        return ret;
+    }
+
+    if (M_nRows != other.M_nRows)
+    {
+        throw new Exception("Dimension of vectors being added is not consistent!");
+    }
+
     ret.hardCopy(*this);
 
     ret += other;
@@ -83,6 +116,20 @@ BlockVector<InVectorType>&
 BlockVector<InVectorType>::
 operator+=(const BlockVector<InVectorType>& other)
 {
+    if (M_nRows == 0)
+    {
+        hardCopy(other);
+        return *this;
+    }
+
+    if (other.nRows() == 0)
+        return *this;
+
+    if (M_nRows != other.M_nRows)
+    {
+        throw new Exception("Dimension of vectors being added is not consistent!");
+    }
+
     for (unsigned int i = 0; i < M_nRows; i++)
         block(i) += other.block(i);
 
@@ -94,6 +141,18 @@ BlockVector<InVectorType>&
 BlockVector<InVectorType>::
 operator-=(const BlockVector<InVectorType>& other)
 {
+    if (M_nRows == 0)
+    {
+        hardCopy(other);
+        (*this) *= (-1);
+        return *this;
+    }
+
+    if (M_nRows != other.M_nRows)
+    {
+        throw new Exception("Dimension of vectors being subtracted is not consistent!");
+    }
+
     for (unsigned int i = 0; i < M_nRows; i++)
         block(i) -= other.block(i);
 
@@ -114,7 +173,7 @@ void
 BlockVector<InVectorType>::
 hardCopy(const BlockVector<InVectorType>& other)
 {
-    M_vectorGrid.resize(other.M_nRows,1);
+    resize(other.M_nRows);
 
     for (unsigned int i = 0; i < M_nRows; i++)
         block(i).hardCopy(other.block(i));
@@ -125,10 +184,11 @@ void
 BlockVector<InVectorType>::
 softCopy(const BlockVector<InVectorType>& other)
 {
-    M_vectorGrid.resize(other.M_nRows,1);
-
+    resize(other.M_nRows);
     for (unsigned int i = 0; i < M_nRows; i++)
+    {
         block(i).softCopy(other.block(i));
+    }
 }
 
 template <class InVectorType>

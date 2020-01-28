@@ -23,12 +23,21 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
     double tol = M_data("newton_method/tol", 1e-5);
     unsigned int maxit = M_data("newton_method/maxit", 10);
 
+    std::string msg;
+
     double err = tol + 1;
     unsigned int count = 0;
     while (err > tol && count < maxit)
     {
         curFun = fun(sol);
         err = curFun.norm2();
+
+        std::ostringstream streamOb;
+        streamOb << err;
+
+        msg = "[SystemSolver] Newtons algorithm,";
+        msg += " error = " + streamOb.str() + "\n";
+        printlog(GREEN, msg, M_data.getVerbose());
 
         if (err > tol)
         {

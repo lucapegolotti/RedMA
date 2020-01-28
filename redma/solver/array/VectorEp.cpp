@@ -37,7 +37,8 @@ operator+=(const VectorEp& other)
         return *this;
     }
 
-    *M_vector += *other.data();
+    if (other.data())
+        *M_vector += *other.data();
     return *this;
 }
 
@@ -52,7 +53,8 @@ operator-=(const VectorEp& other)
         return *this;
     }
 
-    *M_vector -= *other.data();
+    if (other.data())
+        *M_vector -= *other.data();
     return *this;
 }
 

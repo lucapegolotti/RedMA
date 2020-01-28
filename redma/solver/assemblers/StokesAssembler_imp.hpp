@@ -106,7 +106,7 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
     systemMatrix += M_divergence;
     systemMatrix *= (-1.0);
 
-    retVec = systemMatrix * sol;
+    retVec.softCopy(systemMatrix * sol);
 
     // treatment of Dirichlet bcs if needed
     bool useLifting = this->M_data("bc_conditions/lifting", true);
@@ -127,6 +127,7 @@ StokesAssembler<InVectorType, InMatrixType>::
 computeLifting(const double& time) const
 {
     BlockVector<InVectorType> lifting;
+    lifting.resize(2);
     lifting.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map(),
                                                    LifeV::Unique));
     lifting.block(0).data()->zero();

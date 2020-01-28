@@ -41,6 +41,8 @@ public:
 
     BlockMatrix();
 
+    BlockMatrix(const BlockMatrix& other);
+
     BlockMatrix(const unsigned int& nRows, const unsigned int& nCols);
 
     virtual BlockMatrix<InMatrixType> operator+(const BlockMatrix<InMatrixType>& other) const;

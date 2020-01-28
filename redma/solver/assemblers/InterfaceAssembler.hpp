@@ -79,6 +79,8 @@ public:
 
     inline Interface<InVectorType, InMatrixType> getInterface() const {return M_interface;};
 
+    BlockVector<InVectorType> getZeroVector() const;
+
 private:
     SHP(LifeV::QuadratureRule) generateQuadratureRule(std::string tag) const;
 

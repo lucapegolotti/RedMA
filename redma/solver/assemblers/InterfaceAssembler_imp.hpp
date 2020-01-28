@@ -66,9 +66,11 @@ addContributionRhs(BlockVector<BlockVector<InVectorType>>& rhs,
     assemblerFather->getBCManager()->apply0DirichletBCs(rhs.block(fatherID),
                                                         assemblerFather->getFESpaceBCs(),
                                                         assemblerFather->getComponentBCs());
+
     assemblerChild->getBCManager()->apply0DirichletBCs(rhs.block(childID),
                                                        assemblerChild->getFESpaceBCs(),
                                                        assemblerChild->getComponentBCs());
+
     rhs.block(nPrimalBlocks + interfaceID) -= M_fatherB * sol.block(fatherID);
     rhs.block(nPrimalBlocks + interfaceID) -= M_childB * sol.block(childID);
 }

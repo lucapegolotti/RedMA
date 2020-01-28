@@ -23,6 +23,7 @@
 #include <redma/solver/array/BlockMatrix.hpp>
 #include <redma/solver/system_solver/LinearSystemSolver.hpp>
 
+#include <sstream>
 #include <memory>
 
 namespace RedMA

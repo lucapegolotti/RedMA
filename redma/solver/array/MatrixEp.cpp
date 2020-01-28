@@ -102,7 +102,8 @@ operator+=(const MatrixEp& other)
         return *this;
     }
 
-    (*M_matrix) += (*other.data());
+    if (other.data())
+        (*M_matrix) += (*other.data());
     return *this;
 }
 
@@ -110,7 +111,7 @@ MatrixEp&
 MatrixEp::
 operator*=(const double& coeff)
 {
-    if (!M_matrix)
+    if (M_matrix)
         (*M_matrix) *= coeff;
 
     return *this;
@@ -120,7 +121,8 @@ void
 MatrixEp::
 hardCopy(const MatrixEp& other)
 {
-    M_matrix.reset(new MATRIXEPETRA(*other.data()));
+    if (other.data())
+        M_matrix.reset(new MATRIXEPETRA(*other.data()));
 }
 
 void
@@ -135,7 +137,7 @@ MatrixEp::
 operator*(const VectorEp& vector)
 {
     VectorEp vec;
-    if (!M_matrix)
+    if (M_matrix && vector.data())
     {
         std::shared_ptr<VECTOREPETRA> res;
         res.reset(new VECTOREPETRA((*M_matrix) * (*vector.data())));

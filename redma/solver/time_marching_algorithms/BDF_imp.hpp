@@ -18,7 +18,11 @@ setup()
 {
     printlog(GREEN, "[BDF] initializing time advancing scheme ...", this->M_data.getVerbose());
     M_coefficients.reserve(M_order);
-    M_prevSolutions.reserve(M_order);
+
+    for (unsigned int i = 0; i < M_order; i++)
+    {
+        M_prevSolutions.push_back(this->M_assembler->getZeroVector());
+    }
 
     if (M_order == 1)
     {
@@ -53,18 +57,15 @@ advance(const double& time, double& dt, int& status)
     typedef BlockVector<InVectorType>               BV;
     typedef BlockMatrix<InMatrixType>               BM;
 
-    std::cout << "advance" << std::endl << std::flush;
-
     // we set the initial guess equal to the last solution
     BV initialGuess;
     initialGuess.softCopy(M_prevSolutions[0]);
-    std::cout << "____" << std::endl << std::flush;
 
     FunctionFunctor<BV,BV> fct(
         [this,time,dt](BV sol)
     {
-        BM mass = this->M_assembler->getMass(time+dt, sol);
-        BV f = this->M_assembler->getRightHandSide(time+dt, sol);
+        BM mass(this->M_assembler->getMass(time+dt, sol));
+        BV f(this->M_assembler->getRightHandSide(time+dt, sol));
         BV prevContribution;
 
         unsigned int count = 0;
@@ -75,7 +76,7 @@ advance(const double& time, double& dt, int& status)
         }
 
         BV retVec;
-        retVec = mass * (sol + prevContribution);
+        retVec.softCopy(mass * (sol + prevContribution));
         f *= (-1. * M_rhsCoeff * dt);
         retVec += f;
 
@@ -90,12 +91,10 @@ advance(const double& time, double& dt, int& status)
 
         jacRhs = this->M_assembler->getJacobianRightHandSide(time+dt, sol);
         jacRhs *= (-1. * M_rhsCoeff * dt);
-
         retMat += jacRhs;
         return retMat;
     });
 
-    std::cout << "1" << std::endl << std::flush;
     return this->M_systemSolver.solve(fct, jac, initialGuess, status);
 }
 

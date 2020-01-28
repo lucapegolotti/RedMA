@@ -14,6 +14,13 @@ BlockMatrix() :
 
 template <class InMatrixType>
 BlockMatrix<InMatrixType>::
+BlockMatrix(const BlockMatrix& other)
+{
+    softCopy(other);
+}
+
+template <class InMatrixType>
+BlockMatrix<InMatrixType>::
 BlockMatrix(const unsigned int& nRows, const unsigned int& nCols) :
   M_nRows(nRows),
   M_nCols(nCols)
@@ -103,6 +110,23 @@ BlockMatrix<InMatrixType>&
 BlockMatrix<InMatrixType>::
 operator+=(const BlockMatrix<InMatrixType>& other)
 {
+    if (M_nRows == 0 && M_nCols == 0)
+    {
+        hardCopy(other);
+        return *this;
+    }
+
+    if (other.nRows() == 0 && other.nCols() == 0)
+    {
+        return *this;
+    }
+
+    if (M_nRows != other.M_nRows || M_nCols != other.M_nCols)
+    {
+        throw new Exception("Dimension of matrices being added is not consistent!");
+    }
+
+
     for (unsigned int i = 0; i < M_nRows; i++)
     {
         for (unsigned int j = 0; j < M_nCols; j++)
@@ -132,10 +156,11 @@ BlockVector<InVectorType>
 BlockMatrix<InMatrixType>::
 operator*(const BlockVector<InVectorType>& vector) const
 {
+    if (M_nCols == 0)
+        return BlockVector<InVectorType>();
+
     if (M_nCols != vector.nRows())
-    {
         throw new Exception("Dimensions of matrix-vector multiplication are not consistent!");
-    }
 
     BlockVector<InVectorType> ret(M_nRows);
 

@@ -36,8 +36,11 @@ applyDirichletBCs(const double& time, BlockVector<VectorEp>& input,
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
-    bcManageRhs(*input.block(index).data(), *fespace->mesh(), fespace->dof(),
-                *bcs, fespace->feBd(), 1.0, time);
+    auto curVec = input.block(index).data();
+    // we apply dirichlet bcs only if we are inlet node (M_ID == 0)
+    if (curVec && M_treeNode->M_ID == 0)
+        bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
+                    *bcs, fespace->feBd(), 1.0, time);
 }
 
 void
@@ -72,8 +75,10 @@ apply0DirichletBCs(BlockVector<VectorEp>& input, SHP(FESPACE) fespace,
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
-    bcManageRhs(*input.block(index).data(), *fespace->mesh(), fespace->dof(),
-                *bcs, fespace->feBd(), 0.0, 0.0);
+    auto curVec = input.block(index).data();
+    if (curVec)
+        bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
+                    *bcs, fespace->feBd(), 0.0, 0.0);
 }
 
 SHP(LifeV::BCHandler)

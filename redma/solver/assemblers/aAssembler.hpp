@@ -53,6 +53,8 @@ public:
     virtual BlockMatrix<InMatrixType> getJacobianRightHandSide(const double& time,
                                       const BlockVector<InVectorType>& sol) = 0;
 
+    virtual BlockVector<InVectorType> getZeroVector() const = 0;
+
     // this must be implemented by the inner assemblers
     virtual inline SHP(FESPACE) getFESpaceBCs() const {return nullptr;}
 

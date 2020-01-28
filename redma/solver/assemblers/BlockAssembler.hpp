@@ -52,6 +52,8 @@ public:
     virtual BlockMatrix<InMatrixType> getJacobianRightHandSide(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
 
+    virtual BlockVector<InVectorType> getZeroVector() const override;
+
 protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;
