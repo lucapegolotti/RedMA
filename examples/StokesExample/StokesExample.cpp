@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setInflow(inflow);
-    data.setVerbose(true);
+    data.setVerbose(comm->MyPID() == 0);
 
     ProblemFEM femProblem(data, comm);
 

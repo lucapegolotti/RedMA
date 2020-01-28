@@ -106,6 +106,20 @@ block(const unsigned int& iblock, const unsigned int& jblock) const
 }
 
 template <class InMatrixType>
+void
+BlockMatrix<InMatrixType>::
+sumMatrix(const BlockMatrix<InMatrixType>& other)
+{
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            block(i,j) += other.block(i,j);
+        }
+    }
+}
+
+template <class InMatrixType>
 BlockMatrix<InMatrixType>&
 BlockMatrix<InMatrixType>::
 operator+=(const BlockMatrix<InMatrixType>& other)
@@ -126,14 +140,8 @@ operator+=(const BlockMatrix<InMatrixType>& other)
         throw new Exception("Dimension of matrices being added is not consistent!");
     }
 
-
-    for (unsigned int i = 0; i < M_nRows; i++)
-    {
-        for (unsigned int j = 0; j < M_nCols; j++)
-        {
-            block(i,j) += other.block(i,j);
-        }
-    }
+    sumMatrix(other);
+    return *this;
 }
 
 template <class InMatrixType>
@@ -157,9 +165,9 @@ printPattern() const
 }
 
 template <class InMatrixType>
-BlockMatrix<InMatrixType>&
+void
 BlockMatrix<InMatrixType>::
-operator*=(const double& coeff)
+multiplyCoeff(const double& coeff)
 {
     for (unsigned int i = 0; i < M_nRows; i++)
     {
@@ -168,6 +176,16 @@ operator*=(const double& coeff)
             block(i,j) *= coeff;
         }
     }
+}
+
+template <class InMatrixType>
+BlockMatrix<InMatrixType>&
+BlockMatrix<InMatrixType>::
+operator*=(const double& coeff)
+{
+    multiplyCoeff(coeff);
+
+    return *this;
 }
 
 template <class InMatrixType>

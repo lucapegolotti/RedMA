@@ -102,6 +102,11 @@ public:
     void finalize();
 
 protected:
+    // I introduce this only because on mac the operator+= behaves weirdly
+    void sumMatrix(const BlockMatrix<InMatrixType>& other);
+
+    void multiplyCoeff(const double& coeff);
+
     Grid            M_matrixGrid;
     unsigned int    M_nRows;
     unsigned int    M_nCols;
