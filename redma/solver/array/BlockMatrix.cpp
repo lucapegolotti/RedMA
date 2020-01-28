@@ -163,14 +163,16 @@ collapseBlocks(BlockMatrix<MatrixEp>& output)
         totalCols += block(0,j).nCols();
 
     output.resize(totalRows, totalCols);
+    std::cout << totalRows << std::endl << std::flush;
+    std::cout << totalCols << std::endl << std::flush;
 
     unsigned int offsetrows = 0;
-    for (unsigned int i = 0; i < M_nRows; i++)
+    for (unsigned int i = 0; i < totalRows; i++)
     {
         unsigned int localRows = block(i,0).nRows();
 
         unsigned int offsetcols = 0;
-        for (unsigned int j = 0; j < M_nCols; j++)
+        for (unsigned int j = 0; j < totalCols; j++)
         {
             unsigned int localCols = block(i,j).nCols();
 

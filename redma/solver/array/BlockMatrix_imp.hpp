@@ -137,6 +137,26 @@ operator+=(const BlockMatrix<InMatrixType>& other)
 }
 
 template <class InMatrixType>
+void
+BlockMatrix<InMatrixType>::
+printPattern() const
+{
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            auto curblock = block(i,j);
+            if (!curblock.isNull())
+                std::cout << "x";
+            else
+                std::cout << "o";
+            std::cout << "\t";
+        }
+        std::cout << "\n";
+    }
+}
+
+template <class InMatrixType>
 BlockMatrix<InMatrixType>&
 BlockMatrix<InMatrixType>::
 operator*=(const double& coeff)

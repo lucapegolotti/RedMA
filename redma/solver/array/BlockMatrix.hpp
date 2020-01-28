@@ -93,6 +93,10 @@ public:
 
     inline unsigned int nCols() const {return M_nCols;}
 
+    inline bool isNull() const {return M_nRows == 0;}
+
+    void printPattern() const;
+
     // this is to uniform all the dimensions in case of BlockMatrix<BlockMatrix<MatrixEp>>
     // (for now)
     void finalize();

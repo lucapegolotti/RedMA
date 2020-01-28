@@ -66,6 +66,8 @@ public:
 
     std::shared_ptr<MATRIXEPETRA> data() const;
 
+    inline bool isNull() const {return M_matrix == nullptr;}
+
 private:
     std::shared_ptr<MATRIXEPETRA>  M_matrix;
 };

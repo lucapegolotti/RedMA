@@ -31,9 +31,9 @@ namespace RedMA
 
 class LinearOperatorEp : public LifeV::Operators::LinearOperatorAlgebra
 {
-    typedef LifeV::Operators::LinearOperatorAlgebra     super;
-    typedef BlockVector<VectorEp>                       BV;
-    typedef BlockMatrix<MatrixEp>                       BM;
+    typedef LifeV::Operators::LinearOperatorAlgebra                  super;
+    typedef BlockVector<BlockVector<VectorEp>>                       BV;
+    typedef BlockMatrix<BlockVector<MatrixEp>>                       BM;
 
 public:
     LinearOperatorEp();
@@ -67,8 +67,8 @@ private:
     GetPot                          M_datafile;
     EPETRACOMM                      M_comm;
     BM                              M_matrix;
-    SHP(LifeV::BlockEpetra_Map)     M_domainMap;
-    SHP(LifeV::BlockEpetra_Map)     M_rangeMap;
+    // SHP(LifeV::BlockEpetra_Map)     M_domainMap;
+    // SHP(LifeV::BlockEpetra_Map)     M_rangeMap;
 };
 
 }
