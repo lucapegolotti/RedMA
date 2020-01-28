@@ -91,7 +91,7 @@ addContributionJacobianRhs(BlockMatrix<BlockMatrix<InMatrixType>>& jac,
     jac.block(fatherID, nPrimalBlocks + interfaceID).hardCopy(M_fatherBT);
     jac.block(childID,  nPrimalBlocks + interfaceID).hardCopy(M_childBT);
     jac.block(nPrimalBlocks + interfaceID, fatherID).hardCopy(M_fatherB);
-    jac.block(nPrimalBlocks + interfaceID,  childID).hardCopy(M_childBT);
+    jac.block(nPrimalBlocks + interfaceID,  childID).hardCopy(M_childB);
 
     jac.block(fatherID, nPrimalBlocks + interfaceID) *= (-1);
     jac.block(childID,  nPrimalBlocks + interfaceID) *= (-1);

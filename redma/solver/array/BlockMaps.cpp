@@ -131,29 +131,63 @@ BlockMatrix<MatrixEp> collapseBlocks(const BlockMatrix<BlockMatrix<MatrixEp>>& m
     unsigned int nrows = rangeMaps.size();
     unsigned int ncols = domainMaps.size();
 
+    std::vector<unsigned int> ninnerrows = maps.getInnerRows();
+    std::vector<unsigned int> ninnercols = maps.getInnerCols();
+
     BlockMatrix<MatrixEp> retMatrix;
     retMatrix.resize(nrows, ncols);
 
     unsigned int offsetrow = 0;
-    for (unsigned int i = 0; i < matrix.nRows(); i++)
+    std::cout << "matrix rows " << matrix.nRows() << std::endl << std::flush;
+    std::cout << "matrix cols " << matrix.nCols() << std::endl << std::flush;
+
+    for (unsigned int iouter = 0; iouter < matrix.nRows(); iouter++)
     {
         unsigned int offsetcol = 0;
-        unsigned int curnrows = matrix.block(i,0).nRows();
-        for (unsigned int j = 0; j < matrix.nCols(); j++)
+        for (unsigned int jouter = 0; jouter < matrix.nCols(); jouter++)
         {
-            auto cursubMatrix = matrix.block(i,j);
+            auto curmatrix = matrix.block(iouter,jouter);
+            std::cout << "i = " << iouter << " j = " << jouter << std::endl << std::flush;
+            std::cout << "curmatrix nrows = " << curmatrix.nRows() << " nrows = " << curmatrix.nCols() << std::endl << std::flush;
+            std::cout << "array nrows = " << ninnerrows[iouter] << " ncols = " << ninnercols[jouter] << std::endl << std::flush;
 
-            for (unsigned int ii = 0; ii < curnrows; ii++)
+            if (!curmatrix.isNull())
             {
-                for (unsigned int jj = 0; jj < cursubMatrix.nCols(); jj++)
+                for (unsigned int iinner = 0; iinner < ninnerrows[iouter]; iinner++)
                 {
-                    retMatrix.block(offsetrow+ii,offsetcol+jj).softCopy(cursubMatrix.block(ii,jj));
+                    for (unsigned int jinner = 0; jinner < ninnercols[jouter]; jinner++)
+                    {
+                        retMatrix.block(offsetrow+iinner,offsetcol+jinner).
+                                  softCopy(curmatrix.block(iinner,jinner));
+                    }
                 }
             }
-            offsetcol += cursubMatrix.nCols();
+            offsetcol += ninnercols[jouter];
         }
-        offsetrow += curnrows;
+        offsetrow += ninnerrows[iouter];
     }
+    std::cout << "here2" << std::endl << std::flush;
+
+    // unsigned int offsetrow = 0;
+    // for (unsigned int i = 0; i < matrix.nRows(); i++)
+    // {
+    //     unsigned int offsetcol = 0;
+    //     unsigned int curnrows = matrix.block(i,0).nRows();
+    //     for (unsigned int j = 0; j < matrix.nCols(); j++)
+    //     {
+    //         auto cursubMatrix = matrix.block(i,j);
+    //
+    //         for (unsigned int ii = 0; ii < curnrows; ii++)
+    //         {
+    //             for (unsigned int jj = 0; jj < cursubMatrix.nCols(); jj++)
+    //             {
+    //                 retMatrix.block(offsetrow+ii,offsetcol+jj).softCopy(cursubMatrix.block(ii,jj));
+    //             }
+    //         }
+    //         offsetcol += cursubMatrix.nCols();
+    //     }
+    //     offsetrow += curnrows;
+    // }
 
     return retMatrix;
 }
@@ -203,6 +237,26 @@ SHP(VECTOREPETRA) getEpetraVector(const BlockVector<BlockVector<VectorEp>>& vect
     }
 
     return retVec;
+}
+
+template <>
+void
+BlockMatrix<BlockMatrix<MatrixEp>>::
+printPattern() const
+{
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            auto curblock = block(i,j);
+            if (!curblock.isNull())
+                std::cout << "(" << curblock.nRows() << "," << curblock.nCols() << ")";
+            else
+                std::cout << "o";
+            std::cout << "\t";
+        }
+        std::cout << "\n";
+    }
 }
 
 BlockVector<BlockVector<VectorEp>>
