@@ -148,53 +148,6 @@ convertVectorType(const BlockVector<VectorEp>& inputVector,
 template <>
 void
 BlockMatrix<BlockMatrix<MatrixEp>>::
-collapseBlocks(BlockMatrix<MatrixEp>& output)
-{
-    if (!M_isFinalized)
-        throw new Exception("Matrix must be finalized before collapsed!");
-
-    unsigned int totalRows = 0;
-    unsigned int totalCols = 0;
-
-    for (unsigned int i = 0; i < M_nRows; i++)
-        totalRows += block(i,0).nRows();
-
-    for (unsigned int j = 0; j < M_nCols; j++)
-        totalCols += block(0,j).nCols();
-
-    output.resize(totalRows, totalCols);
-    std::cout << totalRows << std::endl << std::flush;
-    std::cout << totalCols << std::endl << std::flush;
-
-    unsigned int offsetrows = 0;
-    for (unsigned int i = 0; i < totalRows; i++)
-    {
-        unsigned int localRows = block(i,0).nRows();
-
-        unsigned int offsetcols = 0;
-        for (unsigned int j = 0; j < totalCols; j++)
-        {
-            unsigned int localCols = block(i,j).nCols();
-
-            for (unsigned int ii = 0; ii < localRows; ii++)
-            {
-                for (unsigned int jj = 0; jj < localCols; jj++)
-                {
-                    // soft copy!
-                    output.block(offsetrows+ii,offsetcols+jj).data() =
-                                                block(i,j).block(ii,jj).data();
-                }
-            }
-            offsetcols += localCols;
-        }
-        offsetrows += localRows;
-    }
-
-}
-
-template <>
-void
-BlockMatrix<BlockMatrix<MatrixEp>>::
 finalize()
 {
     std::vector<unsigned int> rows(M_nRows);

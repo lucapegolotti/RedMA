@@ -69,4 +69,45 @@ generateMaps()
     }
 }
 
+BlockMatrix<MatrixEp> collapseBlocks(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
+                                     const BlockMaps<BlockMatrix<MatrixEp>>& maps)
+{
+    if (!matrix.isFinalized())
+    {
+        throw new Exception("Matrix must be finalized in order to collapse blocks!");
+    }
+
+    auto rangeMaps = maps.getRangeMaps();
+    auto domainMaps = maps.getRangeMaps();
+
+    unsigned int nrows = rangeMaps.size();
+    unsigned int ncols = domainMaps.size();
+
+    BlockMatrix<MatrixEp> retMatrix;
+    retMatrix.resize(nrows, ncols);
+
+    unsigned int offsetrow = 0;
+    for (unsigned int i = 0; i < matrix.nRows(); i++)
+    {
+        unsigned int offsetcol = 0;
+        unsigned int curnrows = matrix.block(i,0).nRows();
+        for (unsigned int j = 0; j < matrix.nCols(); j++)
+        {
+            auto cursubMatrix = matrix.block(i,j);
+
+            for (unsigned int ii = 0; ii < curnrows; ii++)
+            {
+                for (unsigned int jj = 0; jj < cursubMatrix.nCols(); jj++)
+                {
+                    retMatrix.block(offsetrow+ii,offsetcol+jj).softCopy(cursubMatrix.block(ii,jj));
+                }
+            }
+            offsetcol += cursubMatrix.nCols();
+        }
+        offsetrow += curnrows;
+    }
+
+    return retMatrix;
+}
+
 }

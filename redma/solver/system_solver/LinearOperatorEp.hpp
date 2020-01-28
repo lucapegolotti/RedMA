@@ -26,6 +26,7 @@
 #include <lifev/core/linear_algebra/LinearOperatorAlgebra.hpp>
 #include <lifev/core/linear_algebra/BlockEpetra_MultiVector.hpp>
 #include <lifev/core/linear_algebra/BlockEpetra_Map.hpp>
+#include <lifev/core/linear_algebra/InvertibleOperator.hpp>
 
 namespace RedMA
 {
@@ -39,7 +40,7 @@ class LinearOperatorEp : public LifeV::Operators::LinearOperatorAlgebra
 public:
     LinearOperatorEp();
 
-    void setup(const BM& matrix, EPETRACOMM comm);
+    void setup(const BM& matrix);
 
     // I provide null implementation of virtual methods
     // only to be able to instantiate class
@@ -68,6 +69,7 @@ private:
     GetPot                          M_datafile;
     EPETRACOMM                      M_comm;
     BM                              M_matrix;
+    BlockMatrix<MatrixEp>           M_collapsedMatrix;
     SHP(LifeV::BlockEpetra_Map)     M_domainMap;
     SHP(LifeV::BlockEpetra_Map)     M_rangeMap;
 };

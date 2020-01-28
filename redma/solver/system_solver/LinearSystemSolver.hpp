@@ -25,6 +25,12 @@
 
 #include <memory>
 
+#include <lifev/core/algorithm/SolverAztecOO.hpp>
+#include <lifev/core/linear_algebra/InvertibleOperator.hpp>
+
+#include <Teuchos_ParameterList.hpp>
+#include <Teuchos_XMLParameterListHelpers.hpp>
+
 namespace RedMA
 {
 
@@ -41,9 +47,14 @@ public:
     // (template) specializations in the cpp
     BV solve(BM matrix, BV rh);
 
-private:
-    DataContainer                  M_data;
+    void setSolversOptions();
 
+private:
+    DataContainer                                   M_data;
+    SHP(LifeV::Operators::InvertibleOperator)       M_invOper;
+    SHP(LinearOperatorEp)                           M_oper;
+    SHP(Teuchos::ParameterList)                     M_pListLinSolver;
+    Teuchos::RCP<Teuchos::ParameterList>            M_solversOptions;
 };
 
 }

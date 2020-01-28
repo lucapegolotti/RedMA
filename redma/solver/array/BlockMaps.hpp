@@ -42,6 +42,9 @@ private:
     std::vector<SHP(Epetra_Map)> M_domainMaps;
 };
 
+BlockMatrix<MatrixEp> collapseBlocks(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
+                                     const BlockMaps<BlockMatrix<MatrixEp>>& maps);
+
 }
 
 #include "BlockMaps_imp.hpp"

@@ -87,13 +87,13 @@ public:
     template <class OutputType>
     void getColProperty(OutputType& output, const unsigned int& indexcol) const;
 
-    void collapseBlocks(InMatrixType& output);
-
     inline unsigned int nRows() const {return M_nRows;}
 
     inline unsigned int nCols() const {return M_nCols;}
 
     inline bool isNull() const {return M_nRows == 0;}
+
+    inline bool isFinalized() const {return M_isFinalized;}
 
     void printPattern() const;
 
