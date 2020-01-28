@@ -12,6 +12,10 @@
 	type = stokes
 [../]
 
+[preconditioner]
+	options = datafiles/solversOptionsFast
+[../]
+
 [fluid]
 	velocity_order = P2
 	pressure_order = P1

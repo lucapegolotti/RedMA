@@ -21,15 +21,11 @@
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/solver/array/BlockMatrix.hpp>
 #include <redma/solver/system_solver/LinearOperatorEp.hpp>
+#include <redma/solver/system_solver/InverseOperatorEp.hpp>
+
 #include <redma/solver/problem/DataContainer.hpp>
 
 #include <memory>
-
-#include <lifev/core/algorithm/SolverAztecOO.hpp>
-#include <lifev/core/linear_algebra/InvertibleOperator.hpp>
-
-#include <Teuchos_ParameterList.hpp>
-#include <Teuchos_XMLParameterListHelpers.hpp>
 
 namespace RedMA
 {
@@ -45,16 +41,12 @@ public:
 
     // I don't provide  a generic implementation of this method but only
     // (template) specializations in the cpp
-    BV solve(BM matrix, BV rh);
-
-    void setSolversOptions();
+    void solve(const BM& matrix, const BV& rhs, BV& sol);
 
 private:
     DataContainer                                   M_data;
-    SHP(LifeV::Operators::InvertibleOperator)       M_invOper;
+    SHP(InverseOperatorEp)                          M_invOper;
     SHP(LinearOperatorEp)                           M_oper;
-    SHP(Teuchos::ParameterList)                     M_pListLinSolver;
-    Teuchos::RCP<Teuchos::ParameterList>            M_solversOptions;
 };
 
 }

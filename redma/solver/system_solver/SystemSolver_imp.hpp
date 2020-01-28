@@ -44,7 +44,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
             incr.zero();
             BM curJac = jac(sol);
 
-            incr = M_linearSystemSolver.solve(curJac, curFun);
+            M_linearSystemSolver.solve(curJac, curFun, incr);
         }
         sol -= incr;
         count++;

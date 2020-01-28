@@ -4,32 +4,19 @@ namespace RedMA
 {
 
 template<>
-BlockVector<BlockVector<VectorEp>>
-LinearSystemSolver<BlockVector<VectorEp>, BlockMatrix<MatrixEp>>::
-solve(BlockMatrix<BlockMatrix<MatrixEp>> matrix, BlockVector<BlockVector<VectorEp>> rhs)
-{
-    BlockVector<BlockVector<VectorEp>> sol;
-
-    M_oper.reset(new LinearOperatorEp());
-    M_oper->setup(matrix);
-
-    return sol;
-}
-
-template<>
 void
 LinearSystemSolver<BlockVector<VectorEp>, BlockMatrix<MatrixEp>>::
-setSolversOptions()
+solve(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
+      const BlockVector<BlockVector<VectorEp>>& rhs,
+      BlockVector<BlockVector<VectorEp>>& sol)
 {
-    std::string optionsPrec = M_data("fluid/options_preconditioner",
-                                     "solversOptionsFast");
-    optionsPrec += ".xml";
-    M_solversOptions = Teuchos::getParametersFromXmlFile(optionsPrec);
-    std::shared_ptr<Teuchos::ParameterList> monolithicOptions;
-    monolithicOptions.reset(
-        new Teuchos::ParameterList(M_solversOptions->sublist("MonolithicOperator")));
-    M_pListLinSolver = monolithicOptions;
-}
+    M_oper.reset(new LinearOperatorEp(matrix));
 
+    M_invOper.reset(new InverseOperatorEp(M_data));
+    M_invOper->setOperator(M_oper);
+    // M_invOper->setPreconditioner(nullptr);
+
+    M_invOper->invert(rhs, sol);
+}
 
 }

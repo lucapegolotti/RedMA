@@ -1,25 +1,34 @@
-#include "LinearOperatorEp.hpp"
+#include "PreconditionerOperatorEp.hpp"
 
 namespace RedMA
 {
 
-LinearOperatorEp::
-LinearOperatorEp(const BM& matrix) :
-  M_matrix(matrix),
-  M_maps(new BlockMaps<BlockMatrix<MatrixEp>>(matrix))
+PreconditionerOperatorEp::
+PreconditionerOperatorEp()
 {
-    M_rangeMap.reset(new LifeV::BlockEpetra_Map(M_maps->getRangeMaps()));
-    M_domainMap.reset(new LifeV::BlockEpetra_Map(M_maps->getDomainMaps()));
+}
 
-    M_collapsedMatrix = collapseBlocks(M_matrix, *M_maps);
+void
+PreconditionerOperatorEp::
+setup(const BM& matrix)
+{
+    using namespace LifeV;
+    M_matrix.softCopy(matrix);
+    // M_comm = comm;
+    BlockMaps<BlockMatrix<MatrixEp>> maps(M_matrix);
+
+    M_rangeMap.reset(new BlockEpetra_Map(maps.getRangeMaps()));
+    M_domainMap.reset(new BlockEpetra_Map(maps.getDomainMaps()));
+
+    M_collapsedMatrix = collapseBlocks(M_matrix, maps);
 }
 
 int
-LinearOperatorEp::
+PreconditionerOperatorEp::
 Apply(const super::vector_Type& X, super::vector_Type& Y) const
 {
     using namespace LifeV;
-    std::cout << "ApplyLinearOperator" << std::endl << std::flush;
+
     const std::unique_ptr<BlockEpetra_MultiVector> Xview(createBlockView(X, *M_domainMap));
     const std::unique_ptr<BlockEpetra_MultiVector> Yview(createBlockView(Y, *M_rangeMap));
     BlockEpetra_MultiVector tmpY(*M_rangeMap, X.NumVectors(), true);
@@ -35,8 +44,6 @@ Apply(const super::vector_Type& X, super::vector_Type& Y) const
             curmat->SetUseTranspose(false);
         }
     }
-    std::cout << "ApplyLinearOperator done" << std::endl << std::flush;
-    return 0;
 }
 
 }

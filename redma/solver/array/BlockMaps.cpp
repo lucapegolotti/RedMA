@@ -13,6 +13,10 @@ generateMaps()
 
     M_rangeMaps.resize(nrows);
     M_domainMaps.resize(ncols);
+    M_rangeMapsEpetra.resize(nrows);
+    M_domainMapsEpetra.resize(ncols);
+    M_nInnerRows.push_back(nrows);
+    M_nInnerCols.push_back(ncols);
 
     for (unsigned int i = 0; i < nrows; i++)
     {
@@ -21,10 +25,42 @@ generateMaps()
             if (!M_matrix.block(i,j).isNull())
             {
                 M_rangeMaps[i] = M_matrix.block(i,j).data()->rangeMap().map(LifeV::Unique);
-                M_domainMaps[i] = M_matrix.block(i,j).data()->domainMap().map(LifeV::Unique);
+                M_domainMaps[j] = M_matrix.block(i,j).data()->domainMap().map(LifeV::Unique);
+                M_rangeMapsEpetra[i].reset(new MAPEPETRA(M_matrix.block(i,j).data()->rangeMap()));
+                M_domainMapsEpetra[j].reset(new MAPEPETRA(M_matrix.block(i,j).data()->domainMap()));
             }
         }
     }
+}
+
+template <>
+SHP(MAPEPETRA)
+BlockMaps<BlockMatrix<MatrixEp>>::
+getMonolithicRangeMapEpetra() const
+{
+    SHP(MAPEPETRA) retMap(new MAPEPETRA());
+
+    for (auto map : M_rangeMapsEpetra)
+    {
+        *retMap += *map;
+    }
+
+    return retMap;
+}
+
+template <>
+SHP(MAPEPETRA)
+BlockMaps<BlockMatrix<MatrixEp>>::
+getMonolithicDomainMapEpetra() const
+{
+    SHP(MAPEPETRA) retMap(new MAPEPETRA());
+
+    for (auto map : M_domainMapsEpetra)
+    {
+        *retMap += *map;
+    }
+
+    return retMap;
 }
 
 template <>
@@ -47,6 +83,12 @@ generateMaps()
 
                 for (auto map : ranges)
                     M_rangeMaps.push_back(map);
+
+                auto rangesEpetra = localMaps.getRangeMapsEpetra();
+                for (auto map : rangesEpetra)
+                    M_rangeMapsEpetra.push_back(map);
+
+                M_nInnerRows.push_back(localMaps.getInnerRows()[0]);
                 break;
             }
         }
@@ -63,6 +105,12 @@ generateMaps()
 
                 for (auto map : ranges)
                     M_domainMaps.push_back(map);
+
+                auto domainEpetra = localMaps.getDomainMapsEpetra();
+                for (auto map : domainEpetra)
+                    M_domainMapsEpetra.push_back(map);
+
+                M_nInnerCols.push_back(localMaps.getInnerCols()[0]);
                 break;
             }
         }
@@ -108,6 +156,81 @@ BlockMatrix<MatrixEp> collapseBlocks(const BlockMatrix<BlockMatrix<MatrixEp>>& m
     }
 
     return retMatrix;
+}
+
+SHP(VECTOREPETRA) getEpetraVector(const BlockVector<BlockVector<VectorEp>>& vector,
+                                  const BlockMaps<BlockMatrix<MatrixEp>>& maps)
+{
+
+    SHP(VECTOREPETRA) retVec(new VECTOREPETRA(maps.getMonolithicRangeMapEpetra(),
+                                              LifeV::Unique));
+    auto rangeMaps = maps.getRangeMapsEpetra();
+    auto rows = maps.getInnerRows();
+
+    unsigned int count = 0;
+    unsigned int offset = 0;
+    // this part is tricky because we don't know a priori if all the
+    // blocks in the input vector are filled
+    for (unsigned int iouter = 0; iouter < vector.nRows(); iouter++)
+    {
+        auto curblock = vector.block(iouter);
+        unsigned int currows = vector.block(iouter).nRows();
+
+        if (curblock.nRows() == 0)
+        {
+            for (unsigned int iinner = 0; iinner < rows[iouter]; iinner++)
+            {
+                offset += rangeMaps[count]->mapSize();
+                count++;
+            }
+        }
+        else
+        {
+            for (unsigned int iinner = 0; iinner < curblock.nRows(); iinner++)
+            {
+                if (curblock.block(iinner).data())
+                {
+                    retVec->subset(*curblock.block(iinner).data(),
+                                   *rangeMaps[count], 0, offset);
+                }
+
+                offset += rangeMaps[count]->mapSize();
+                count++;
+            }
+
+        }
+
+    }
+
+    return retVec;
+}
+
+BlockVector<BlockVector<VectorEp>>
+getBlockVector(const SHP(VECTOREPETRA)& vector,
+               const BlockMaps<BlockMatrix<MatrixEp>>& maps)
+{
+    BlockVector<BlockVector<VectorEp>> retVec;
+    std::vector<unsigned int> rows = maps.getInnerRows();
+    auto rangeMaps = maps.getRangeMapsEpetra();
+
+    retVec.resize(rows.size());
+
+    unsigned int count = 0;
+    unsigned int offset = 0;
+    for (unsigned int iouter = 0; iouter < rows.size(); iouter++)
+    {
+        retVec.block(iouter).resize(rows[iouter]);
+        for (unsigned int iinner = 0; iinner < rows[iouter]; iinner++)
+        {
+            SHP(VECTOREPETRA)& cvHandler = retVec.block(iouter).block(iinner).data();
+            cvHandler.reset(new VECTOREPETRA(rangeMaps[count], LifeV::Unique));
+            cvHandler->subset(*vector, *rangeMaps[count], offset, 0);
+            offset += rangeMaps[count]->mapSize();
+            count++;
+        }
+    }
+
+    return retVec;
 }
 
 }

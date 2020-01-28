@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef LINEAROPERATOREP_HPP
-#define LINEAROPERATOREP_HPP
+#ifndef PRECONDITIONEROPERATOREP
+#define PRECONDITIONEROPERATOREP
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/array/BlockVector.hpp>
@@ -31,14 +31,16 @@
 namespace RedMA
 {
 
-class LinearOperatorEp : public LifeV::Operators::LinearOperatorAlgebra
+class PreconditionerOperatorEp : public LifeV::Operators::LinearOperatorAlgebra
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
     typedef BlockVector<BlockVector<VectorEp>>                       BV;
     typedef BlockMatrix<BlockMatrix<MatrixEp>>                       BM;
 
 public:
-    LinearOperatorEp(const BM& matrix);
+    PreconditionerOperatorEp();
+
+    void setup(const BM& matrix);
 
     // I provide null implementation of virtual methods
     // only to be able to instantiate class
@@ -63,18 +65,15 @@ public:
 
     virtual const super::map_Type& OperatorRangeMap() const override {}
 
-    inline SHP(BlockMaps<BlockMatrix<MatrixEp>>) getBlockMaps() const {return M_maps;}
-
 private:
-    GetPot                                M_datafile;
-    EPETRACOMM                            M_comm;
-    BM                                    M_matrix;
-    BlockMatrix<MatrixEp>                 M_collapsedMatrix;
-    SHP(LifeV::BlockEpetra_Map)           M_domainMap;
-    SHP(LifeV::BlockEpetra_Map)           M_rangeMap;
-    SHP(BlockMaps<BlockMatrix<MatrixEp>>) M_maps;
+    GetPot                          M_datafile;
+    EPETRACOMM                      M_comm;
+    BM                              M_matrix;
+    BlockMatrix<MatrixEp>           M_collapsedMatrix;
+    SHP(LifeV::BlockEpetra_Map)     M_domainMap;
+    SHP(LifeV::BlockEpetra_Map)     M_rangeMap;
 };
 
 }
 
-#endif // LINEAROPERATOREP_HPP
+#endif // PRECONDITIONEROPERATOREP
