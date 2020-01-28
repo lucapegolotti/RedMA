@@ -20,6 +20,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/solver/array/BlockMatrix.hpp>
+#include <redma/solver/array/BlockMaps.hpp>
 
 #include <lifev/core/filter/GetPot.hpp>
 #include <lifev/core/linear_algebra/LinearOperatorAlgebra.hpp>
@@ -33,12 +34,12 @@ class LinearOperatorEp : public LifeV::Operators::LinearOperatorAlgebra
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
     typedef BlockVector<BlockVector<VectorEp>>                       BV;
-    typedef BlockMatrix<BlockVector<MatrixEp>>                       BM;
+    typedef BlockMatrix<BlockMatrix<MatrixEp>>                       BM;
 
 public:
     LinearOperatorEp();
 
-    void setup(BM matrix, EPETRACOMM comm);
+    void setup(const BM& matrix, EPETRACOMM comm);
 
     // I provide null implementation of virtual methods
     // only to be able to instantiate class
@@ -67,8 +68,8 @@ private:
     GetPot                          M_datafile;
     EPETRACOMM                      M_comm;
     BM                              M_matrix;
-    // SHP(LifeV::BlockEpetra_Map)     M_domainMap;
-    // SHP(LifeV::BlockEpetra_Map)     M_rangeMap;
+    SHP(LifeV::BlockEpetra_Map)     M_domainMap;
+    SHP(LifeV::BlockEpetra_Map)     M_rangeMap;
 };
 
 }

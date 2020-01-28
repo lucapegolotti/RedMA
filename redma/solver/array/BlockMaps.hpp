@@ -17,23 +17,33 @@
 #ifndef BLOCKMAPS_HPP
 #define BLOCKMAPS_HPP
 
+#include <redma/RedMA.hpp>
+#include <redma/solver/array/BlockMatrix.hpp>
+#include <redma/solver/array/MatrixEp.hpp>
+
 namespace RedMA
 {
 
+template <class InMatrixType>
 class BlockMaps
 {
-    typedef BlockMatrix<BlockMatrix<MatrixEp>>      MatrixType;
 public:
-    BlockMaps(const MatrixType& matrix);
+    BlockMaps(const BlockMatrix<InMatrixType>& matrix);
+
+    inline std::vector<SHP(Epetra_Map)> getRangeMaps() const {return M_rangeMaps;}
+
+    inline std::vector<SHP(Epetra_Map)> getDomainMaps() const {return M_domainMaps;}
 
 private:
     void generateMaps();
 
-    MatrixType  M_matrix;
-    std::vector<MAPEPETRA> M_rangeMap;
-    std::vector<MAPEPETRA> M_domainMap;
+    BlockMatrix<InMatrixType>  M_matrix;
+    std::vector<SHP(Epetra_Map)> M_rangeMaps;
+    std::vector<SHP(Epetra_Map)> M_domainMaps;
 };
 
 }
+
+#include "BlockMaps_imp.hpp"
 
 #endif // BLOCKMAPS_HPP
