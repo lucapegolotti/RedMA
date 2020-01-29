@@ -55,7 +55,8 @@ public:
 
 private:
     BlockMatrix<MatrixEp> computeSingleAm1BT(const BlockMatrix<MatrixEp>& A,
-                                             const BlockMatrix<MatrixEp>& BT);
+                                             const BlockMatrix<MatrixEp>& BT,
+                                             const unsigned int& index);
 
     DataContainer                                       M_data;
     BM                                                  M_matrix;

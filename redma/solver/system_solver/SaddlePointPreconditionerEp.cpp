@@ -96,7 +96,7 @@ computeAm1BT(const BlockMatrix<BlockMatrix<MatrixEp>>& A,
     {
         for (unsigned int j = 0; j < BT.nCols(); j++)
         {
-            M_Am1BT.block(i,j) = computeSingleAm1BT(A.block(i,i), BT.block(i,j));
+            M_Am1BT.block(i,j).softCopy(computeSingleAm1BT(A.block(i,i), BT.block(i,j),i));
         }
     }
 
@@ -105,14 +105,47 @@ computeAm1BT(const BlockMatrix<BlockMatrix<MatrixEp>>& A,
 
 BlockMatrix<MatrixEp>
 SaddlePointPreconditionerEp::
-computeSingleAm1BT(const BlockMatrix<MatrixEp>& A, const BlockMatrix<MatrixEp>& BT)
+computeSingleAm1BT(const BlockMatrix<MatrixEp>& A, const BlockMatrix<MatrixEp>& BT,
+                   const unsigned int& index)
 {
     BlockMatrix<MatrixEp> retMat;
     retMat.resize(A.nRows(), BT.nCols());
 
     if (!std::strcmp(M_innerPrecType.c_str(),"SIMPLE"))
     {
-        LifeV::MapEpetra domainMap = BT.block(0,0).data()->domainMap();
+        MAPEPETRA rangeMapU = BT.block(0,0).data()->rangeMap();
+        MAPEPETRA rangeMapP = A.block(0,1).data()->rangeMap();
+        MAPEPETRA domainMap = BT.block(0,0).data()->domainMap();
+
+        VECTOREPETRA selector(domainMap);
+        VECTOREPETRA colU(rangeMapU);
+        VECTOREPETRA colP(rangeMapP);
+
+        unsigned int ncols = domainMap.mapSize();
+
+        std::vector<VectorEp> ressU(ncols);
+        std::vector<VectorEp> ressP(ncols);
+        for (unsigned int i = 0; i < ncols; i++)
+        {
+            selector.zero();
+            colU.zero();
+            colP.zero();
+            if (domainMap.isOwned(i))
+                selector[i] = 1.0;
+
+            colU = (*BT.block(0,0).data()) * selector;
+
+            ressU[i].data().reset(new VECTOREPETRA(rangeMapU));
+            ressP[i].data().reset(new VECTOREPETRA(rangeMapP));
+            M_innerPreconditioners[index]->ApplyInverse(colU, colP,
+                                                        *ressU[i].data(),
+                                                        *ressP[i].data());
+
+        }
+        MatrixEp Am1BTu(ressU);
+        MatrixEp Am1BTp(ressP);
+        retMat.block(0,0).softCopy(Am1BTu);
+        retMat.block(1,0).softCopy(Am1BTp);
     }
 
     return retMat;
