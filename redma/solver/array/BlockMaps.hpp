@@ -18,6 +18,7 @@
 #define BLOCKMAPS_HPP
 
 #include <redma/RedMA.hpp>
+#include <redma/utils/Exception.hpp>
 #include <redma/solver/array/BlockMatrix.hpp>
 #include <redma/solver/array/MatrixEp.hpp>
 

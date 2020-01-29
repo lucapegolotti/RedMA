@@ -59,9 +59,14 @@ apply0DirichletMatrix(BlockMatrix<MatrixEp>& input,
     {
         auto curMatrix = input.block(index, j).data();
         if (curMatrix)
+        {
+            auto domainMap = curMatrix->domainMapPtr();
+            auto rangeMap = curMatrix->rangeMapPtr();
             bcManageMatrix(*curMatrix, *fespace->mesh(),
                            fespace->dof(), *bcs, fespace->feBd(),
                            (j == index) * diagCoefficient, 0.0);
+            curMatrix->globalAssemble(domainMap, rangeMap);
+        }
     }
 
 }

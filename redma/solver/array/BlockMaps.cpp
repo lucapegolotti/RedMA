@@ -22,13 +22,10 @@ generateMaps()
     {
         for (unsigned int j = 0; j < ncols; j++)
         {
-            if (!M_matrix.block(i,j).isNull())
-            {
-                M_rangeMaps[i] = M_matrix.block(i,j).data()->rangeMap().map(LifeV::Unique);
-                M_domainMaps[j] = M_matrix.block(i,j).data()->domainMap().map(LifeV::Unique);
-                M_rangeMapsEpetra[i].reset(new MAPEPETRA(M_matrix.block(i,j).data()->rangeMap()));
-                M_domainMapsEpetra[j].reset(new MAPEPETRA(M_matrix.block(i,j).data()->domainMap()));
-            }
+            M_rangeMaps[i] = M_matrix.block(i,j).data()->rangeMap().map(LifeV::Unique);
+            M_domainMaps[j] = M_matrix.block(i,j).data()->domainMap().map(LifeV::Unique);
+            M_rangeMapsEpetra[i].reset(new MAPEPETRA(M_matrix.block(i,j).data()->rangeMap()));
+            M_domainMapsEpetra[j].reset(new MAPEPETRA(M_matrix.block(i,j).data()->domainMap()));
         }
     }
 }
@@ -46,21 +43,18 @@ generateMaps()
     {
         for (unsigned int j = 0; j < ncols; j++)
         {
-            if (!M_matrix.block(i,j).isNull())
-            {
-                BlockMaps<MatrixEp> localMaps(M_matrix.block(i,j));
-                auto ranges = localMaps.getRangeMaps();
+            BlockMaps<MatrixEp> localMaps(M_matrix.block(i,j));
+            auto ranges = localMaps.getRangeMaps();
 
-                for (auto map : ranges)
-                    M_rangeMaps.push_back(map);
+            for (auto map : ranges)
+                M_rangeMaps.push_back(map);
 
-                auto rangesEpetra = localMaps.getRangeMapsEpetra();
-                for (auto map : rangesEpetra)
-                    M_rangeMapsEpetra.push_back(map);
+            auto rangesEpetra = localMaps.getRangeMapsEpetra();
+            for (auto map : rangesEpetra)
+                M_rangeMapsEpetra.push_back(map);
 
-                M_nInnerRows.push_back(localMaps.getInnerRows()[0]);
-                break;
-            }
+            M_nInnerRows.push_back(localMaps.getInnerRows()[0]);
+            break;
         }
     }
 
@@ -68,21 +62,18 @@ generateMaps()
     {
         for (unsigned int i = 0; i < nrows; i++)
         {
-            if (!M_matrix.block(i,j).isNull())
-            {
-                BlockMaps<MatrixEp > localMaps(M_matrix.block(i,j));
-                auto ranges = localMaps.getDomainMaps();
+            BlockMaps<MatrixEp > localMaps(M_matrix.block(i,j));
+            auto ranges = localMaps.getDomainMaps();
 
-                for (auto map : ranges)
-                    M_domainMaps.push_back(map);
+            for (auto map : ranges)
+                M_domainMaps.push_back(map);
 
-                auto domainEpetra = localMaps.getDomainMapsEpetra();
-                for (auto map : domainEpetra)
-                    M_domainMapsEpetra.push_back(map);
+            auto domainEpetra = localMaps.getDomainMapsEpetra();
+            for (auto map : domainEpetra)
+                M_domainMapsEpetra.push_back(map);
 
-                M_nInnerCols.push_back(localMaps.getInnerCols()[0]);
-                break;
-            }
+            M_nInnerCols.push_back(localMaps.getInnerCols()[0]);
+            break;
         }
     }
 }
@@ -117,21 +108,20 @@ collapseBlocks(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
         {
             auto curmatrix = matrix.block(iouter,jouter);
 
-            if (!curmatrix.isNull())
+            for (unsigned int iinner = 0; iinner < ninnerrows[iouter]; iinner++)
             {
-                for (unsigned int iinner = 0; iinner < ninnerrows[iouter]; iinner++)
+                for (unsigned int jinner = 0; jinner < ninnercols[jouter]; jinner++)
                 {
-                    for (unsigned int jinner = 0; jinner < ninnercols[jouter]; jinner++)
-                    {
-                        retMatrix.block(offsetrow+iinner,offsetcol+jinner).
-                                  softCopy(curmatrix.block(iinner,jinner));
-                    }
+                    retMatrix.block(offsetrow+iinner,offsetcol+jinner).
+                              softCopy(curmatrix.block(iinner,jinner));
                 }
             }
             offsetcol += ninnercols[jouter];
         }
         offsetrow += ninnerrows[iouter];
     }
+
+    retMatrix.finalize();
 
     return retMatrix;
 }
@@ -189,8 +179,9 @@ collapseBlocks(const BlockMatrix<MatrixEp>& matrix,
     return retMatrix;
 }
 
-SHP(VECTOREPETRA) getEpetraVector(const BlockVector<BlockVector<VectorEp>>& vector,
-                                  const BlockMaps<BlockMatrix<MatrixEp>>& maps)
+SHP(VECTOREPETRA)
+getEpetraVector(const BlockVector<BlockVector<VectorEp>>& vector,
+                const BlockMaps<BlockMatrix<MatrixEp>>& maps)
 {
 
     SHP(VECTOREPETRA) retVec(new VECTOREPETRA(maps.getMonolithicRangeMapEpetra(),

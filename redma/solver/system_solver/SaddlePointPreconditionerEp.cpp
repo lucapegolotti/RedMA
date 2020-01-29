@@ -8,10 +8,12 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
   M_data(data),
   M_matrix(matrix)
 {
+    std::cout << "SaddlePointPreconditionerEp" << std::endl << std::flush;
     // split matrices
     unsigned int nBlocks = matrix.nRows();
 
     unsigned int nPrimal = 0;
+
     while (!matrix.block(nPrimal,nPrimal).isNull())
         nPrimal++;
 
@@ -23,7 +25,6 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
     BM BT = matrix.getSubmatrix(0, nPrimal-1, nPrimal, nBlocks-1);
     BM B = matrix.getSubmatrix(nPrimal, nBlocks-1, 0, nPrimal-1);
     BM C = matrix.getSubmatrix(nPrimal, nBlocks-1, nPrimal, nBlocks-1);
-
 
     BlockMaps<BlockMatrix<MatrixEp>> bmaps(BT);
     M_primalMap = bmaps.getMonolithicRangeMapEpetra();
@@ -136,6 +137,7 @@ computeAm1BT(const BM& A, const BM& BT)
             M_Am1BT.block(i,j).softCopy(computeSingleAm1BT(A.block(i,i), BT.block(i,j),i));
         }
     }
+    M_Am1BT.finalize();
 }
 
 BlockMatrix<MatrixEp>
@@ -149,7 +151,7 @@ computeSingleAm1BT(const BlockMatrix<MatrixEp>& A, const BlockMatrix<MatrixEp>& 
     if (!std::strcmp(M_innerPrecType.c_str(),"SIMPLE"))
     {
         MAPEPETRA rangeMapU = BT.block(0,0).data()->rangeMap();
-        MAPEPETRA rangeMapP = A.block(0,1).data()->rangeMap();
+        MAPEPETRA rangeMapP = A.block(1,0).data()->rangeMap();
         MAPEPETRA domainMap = BT.block(0,0).data()->domainMap();
 
         VECTOREPETRA selector(domainMap);

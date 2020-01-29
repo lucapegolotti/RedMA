@@ -96,15 +96,15 @@ public:
 
     inline unsigned int nCols() const {return M_nCols;}
 
-    inline bool isNull() const {return M_nRows == 0;}
+    bool isNull() const;
 
     inline bool isFinalized() const {return M_isFinalized;}
 
     void printPattern() const;
 
-    // this is to uniform all the dimensions in case of BlockMatrix<BlockMatrix<MatrixEp>>
-    // (for now)
-    void finalize();
+    void finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father = nullptr,
+                  unsigned int* myRow = nullptr,
+                  unsigned int* myCol = nullptr);
 
 protected:
     // I introduce this only because on mac the operator+= behaves weirdly
@@ -117,6 +117,7 @@ protected:
     unsigned int    M_nCols;
     // this is relevant only when block<block<matrix>> at the moment
     bool            M_isFinalized;
+    bool            M_isNull;
 };
 
 }

@@ -15,8 +15,8 @@ MatrixEp(const std::vector<VectorEp>& columnVectors)
     const double dropTolerance(2.0 * std::numeric_limits<double>::min());
 
     unsigned int N = columnVectors.size();
-    std::shared_ptr<LifeV::MapEpetra> domainMap = columnVectors[0].data()->mapPtr();
-    std::shared_ptr<Epetra_Comm> comm = domainMap->commPtr();
+    std::shared_ptr<LifeV::MapEpetra> rangeMap = columnVectors[0].data()->mapPtr();
+    std::shared_ptr<Epetra_Comm> comm = rangeMap->commPtr();
 
     unsigned int myel = N / comm->NumProc();
 
@@ -26,8 +26,8 @@ MatrixEp(const std::vector<VectorEp>& columnVectors)
         myel += N % comm->NumProc();
     }
 
-    std::shared_ptr<LifeV::MapEpetra> rangeMap;
-    rangeMap.reset(new LifeV::MapEpetra(N, myel, 0, comm));
+    std::shared_ptr<LifeV::MapEpetra> domainMap;
+    domainMap.reset(new LifeV::MapEpetra(N, myel, 0, comm));
 
     M_matrix.reset(new MATRIXEPETRA(*rangeMap, N, false));
 

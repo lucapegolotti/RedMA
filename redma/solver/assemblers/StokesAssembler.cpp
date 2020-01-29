@@ -40,7 +40,7 @@ assembleStiffness()
     A->globalAssemble();
 
     M_stiffness.block(0,0).data() = A;
-    M_stiffness.finalize();
+
     M_bcManager->apply0DirichletMatrix(M_stiffness, getFESpaceBCs(),
                                        getComponentBCs(), 0.0);
 }
@@ -67,7 +67,7 @@ assembleMass()
     M->globalAssemble();
 
     M_mass.block(0,0).data() = M;
-    M_mass.finalize();
+
     M_bcManager->apply0DirichletMatrix(M_mass, getFESpaceBCs(),
                                        getComponentBCs(), 1.0);
 }
@@ -108,7 +108,6 @@ assembleDivergence()
 
     M_divergence.block(0,1).data() = BT;
     M_divergence.block(1,0).data() = B;
-    M_divergence.finalize();
     M_bcManager->apply0DirichletMatrix(M_divergence, getFESpaceBCs(),
                                        getComponentBCs(), 0.0);
 }

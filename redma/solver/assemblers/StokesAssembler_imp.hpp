@@ -160,7 +160,6 @@ getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& so
     retMat += M_divergence;
 
     retMat *= (-1.0);
-
     // ATTENTION: here I should add the part relative to Neumann conditions
     // if they depend on the solution (as with 0D coupling)
 

@@ -26,6 +26,7 @@
 #include <Epetra_SerialComm.h>
 #endif
 
+#include <redma/utils/PrintLog.hpp>
 #include <redma/solver/array/aMatrix.hpp>
 #include <redma/solver/array/VectorEp.hpp>
 
@@ -68,7 +69,13 @@ public:
 
     std::shared_ptr<MATRIXEPETRA> data() const;
 
-    inline bool isNull() const {return M_matrix == nullptr;}
+    inline bool isNull() const
+    {
+        // printlog(YELLOW, "ATTENTION: isNull is called on MatrixEp. Might be expensive\n");
+        if (!M_matrix)
+            return true;
+        return M_matrix->matrixPtr()->NormInf() < 1e-15;
+    };
 
 private:
     std::shared_ptr<MATRIXEPETRA>  M_matrix;

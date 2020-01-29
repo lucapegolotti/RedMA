@@ -23,20 +23,17 @@ Apply(const super::vector_Type& X, super::vector_Type& Y) const
     const std::unique_ptr<BlockEpetra_MultiVector> Yview(createBlockView(Y, *M_rangeMap));
     BlockEpetra_MultiVector tmpY(*M_rangeMap, X.NumVectors(), true);
 
+    Yview->PutScalar(0.0);
+
     for (unsigned int i = 0; i < M_collapsedMatrix.nRows(); i++)
     {
         for (unsigned int j = 0; j < M_collapsedMatrix.nCols(); j++)
         {
-            auto& curmat = M_collapsedMatrix.block(i,j).data();
-            if (curmat)
-            {
-                curmat->matrixPtr()->SetUseTranspose(true);
-                curmat->matrixPtr()->Apply(Xview->block(j), tmpY.block(i));
-                Yview->block(i).Update(1.0, tmpY.block(i), 1.0);
-                curmat->matrixPtr()->SetUseTranspose(false);
-            }
+            M_collapsedMatrix.block(i,j).data()->matrixPtr()->Apply(Xview->block(j), tmpY.block(i));
+            Yview->block(i).Update(1.0, tmpY.block(i), 1.0);
         }
     }
+
     return 0;
 }
 

@@ -8,7 +8,8 @@ BlockMatrix<InMatrixType>::
 BlockMatrix() :
   M_nRows(0),
   M_nCols(0),
-  M_isFinalized(true)
+  M_isFinalized(false),
+  M_isNull(false)
 {
 }
 
@@ -34,6 +35,9 @@ BlockMatrix<InMatrixType>::
 getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
              const unsigned int& jbegin, const unsigned int& jend) const
 {
+    if (!isFinalized())
+        throw new Exception("Matrix must be finalized to get submatrix!");
+
     BlockMatrix<InMatrixType> retMatrix;
 
     unsigned int nrows = iend-ibegin+1;
@@ -47,6 +51,8 @@ getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
             retMatrix.block(i-ibegin,j-jbegin).softCopy(block(i,j));
         }
     }
+
+    retMatrix.M_isFinalized = true;
 
     return retMatrix;
 }
@@ -94,6 +100,8 @@ hardCopy(const BlockMatrix<InMatrixType>& other)
             block(i,j).hardCopy(other.block(i,j));
         }
     }
+    M_isFinalized = other.M_isFinalized;
+    M_isNull = other.M_isNull;
 }
 
 template <class InMatrixType>
@@ -110,6 +118,18 @@ softCopy(const BlockMatrix<InMatrixType>& other)
             block(i,j).softCopy(other.block(i,j));
         }
     }
+    M_isFinalized = other.M_isFinalized;
+    M_isNull = other.M_isNull;
+}
+
+template <class InMatrixType>
+bool
+BlockMatrix<InMatrixType>::
+isNull() const
+{
+    if (!M_isFinalized)
+        throw new Exception("Matrix must be finalized in order to check if null");
+    return M_isNull;
 }
 
 template <class InMatrixType>
@@ -170,26 +190,6 @@ operator+=(const BlockMatrix<InMatrixType>& other)
 template <class InMatrixType>
 void
 BlockMatrix<InMatrixType>::
-printPattern() const
-{
-    for (unsigned int i = 0; i < M_nRows; i++)
-    {
-        for (unsigned int j = 0; j < M_nCols; j++)
-        {
-            auto curblock = block(i,j);
-            if (!curblock.isNull())
-                std::cout << "x";
-            else
-                std::cout << "o";
-            std::cout << "\t";
-        }
-        std::cout << "\n";
-    }
-}
-
-template <class InMatrixType>
-void
-BlockMatrix<InMatrixType>::
 multiplyCoeff(const double& coeff)
 {
     for (unsigned int i = 0; i < M_nRows; i++)
@@ -242,7 +242,7 @@ BlockMatrix<InMatrixType>::
 operator*(const BlockMatrix<InMatrixType>& matrix) const
 {
     BlockMatrix<InMatrixType> retMatrix;
-    if (matrix.isNull() || matrix.isNull())
+    if (isNull() || matrix.isNull())
     {
         return retMatrix;
     }
@@ -260,6 +260,7 @@ operator*(const BlockMatrix<InMatrixType>& matrix) const
             }
         }
     }
+    retMatrix.finalize();
 
     return retMatrix;
 }
@@ -285,14 +286,6 @@ operator=(const BlockMatrix<InMatrixType>& other)
 {
     hardCopy(other);
     return *this;
-}
-
-template <class InMatrixType>
-void
-BlockMatrix<InMatrixType>::
-finalize()
-{
-    M_isFinalized = true;
 }
 
 }
