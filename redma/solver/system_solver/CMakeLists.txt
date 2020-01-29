@@ -8,6 +8,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/LinearOperatorEp.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InverseOperatorEp.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PreconditionerOperatorEp.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SaddlePointPreconditionerEp.hpp
     CACHE INTERNAL ""
 )
 
@@ -17,5 +18,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/LinearOperatorEp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InverseOperatorEp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PreconditionerOperatorEp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SaddlePointPreconditionerEp.cpp
     CACHE INTERNAL ""
 )

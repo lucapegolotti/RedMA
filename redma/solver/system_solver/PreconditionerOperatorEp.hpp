@@ -40,16 +40,15 @@ class PreconditionerOperatorEp : public LifeV::Operators::LinearOperatorAlgebra
 public:
     PreconditionerOperatorEp();
 
-    void setup(const BM& matrix);
-
     // I provide null implementation of virtual methods
     // only to be able to instantiate class
     virtual int SetUseTranspose(bool UseTranspose) override {}
 
-    virtual int Apply(const super::vector_Type& X, super::vector_Type& Y) const override;
+    virtual int Apply(const super::vector_Type& X,
+                      super::vector_Type& Y) const override {};
 
     virtual int ApplyInverse(const super::vector_Type& X,
-                             super::vector_Type& Y) const override {return -1;}
+                             super::vector_Type& Y) const override = 0;
 
     virtual double NormInf() const override {return -1;}
 
@@ -66,12 +65,7 @@ public:
     virtual const super::map_Type& OperatorRangeMap() const override {}
 
 private:
-    GetPot                          M_datafile;
     EPETRACOMM                      M_comm;
-    BM                              M_matrix;
-    BlockMatrix<MatrixEp>           M_collapsedMatrix;
-    SHP(LifeV::BlockEpetra_Map)     M_domainMap;
-    SHP(LifeV::BlockEpetra_Map)     M_rangeMap;
 };
 
 }

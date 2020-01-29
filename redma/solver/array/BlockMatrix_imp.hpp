@@ -29,6 +29,29 @@ BlockMatrix(const unsigned int& nRows, const unsigned int& nCols) :
 }
 
 template <class InMatrixType>
+BlockMatrix<InMatrixType>
+BlockMatrix<InMatrixType>::
+getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
+             const unsigned int& jbegin, const unsigned int& jend) const
+{
+    BlockMatrix<InMatrixType> retMatrix;
+
+    unsigned int nrows = iend-ibegin+1;
+    unsigned int ncols = jend-jbegin+1;
+    retMatrix.resize(iend-ibegin+1, jend-jbegin+1);
+
+    for (unsigned int i = ibegin; i <= iend; i++)
+    {
+        for (unsigned int j = jbegin; j <= jend; j++)
+        {
+            retMatrix.block(i-ibegin,j-jbegin).softCopy(block(i,j));
+        }
+    }
+
+    return retMatrix;
+}
+
+template <class InMatrixType>
 void
 BlockMatrix<InMatrixType>::
 resize(const unsigned int& nRows, const unsigned int& nCols)

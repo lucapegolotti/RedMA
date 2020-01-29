@@ -69,6 +69,9 @@ public:
 
     InMatrixType block(const unsigned int& iblock, const unsigned int& jblock) const;
 
+    BlockMatrix getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
+                             const unsigned int& jbegin, const unsigned int& jend) const;
+
     template <class InputVectorType, class OutputVectorType>
     void convertVectorType(const InputVectorType& inputVector,
                            OutputVectorType& output) const;

@@ -22,6 +22,7 @@
 #include <redma/solver/array/BlockMatrix.hpp>
 #include <redma/solver/system_solver/LinearOperatorEp.hpp>
 #include <redma/solver/system_solver/InverseOperatorEp.hpp>
+#include <redma/solver/system_solver/SaddlePointPreconditionerEp.hpp>
 
 #include <redma/solver/problem/DataContainer.hpp>
 
@@ -43,10 +44,14 @@ public:
     // (template) specializations in the cpp
     void solve(const BM& matrix, const BV& rhs, BV& sol);
 
+    void buildPreconditioner(const BM& matrix);
+
 private:
+
     DataContainer                                   M_data;
     SHP(InverseOperatorEp)                          M_invOper;
     SHP(LinearOperatorEp)                           M_oper;
+    SHP(PreconditionerOperatorEp)                   M_prec;
 };
 
 }

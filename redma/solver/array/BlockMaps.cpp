@@ -138,18 +138,12 @@ BlockMatrix<MatrixEp> collapseBlocks(const BlockMatrix<BlockMatrix<MatrixEp>>& m
     retMatrix.resize(nrows, ncols);
 
     unsigned int offsetrow = 0;
-    std::cout << "matrix rows " << matrix.nRows() << std::endl << std::flush;
-    std::cout << "matrix cols " << matrix.nCols() << std::endl << std::flush;
-
     for (unsigned int iouter = 0; iouter < matrix.nRows(); iouter++)
     {
         unsigned int offsetcol = 0;
         for (unsigned int jouter = 0; jouter < matrix.nCols(); jouter++)
         {
             auto curmatrix = matrix.block(iouter,jouter);
-            std::cout << "i = " << iouter << " j = " << jouter << std::endl << std::flush;
-            std::cout << "curmatrix nrows = " << curmatrix.nRows() << " nrows = " << curmatrix.nCols() << std::endl << std::flush;
-            std::cout << "array nrows = " << ninnerrows[iouter] << " ncols = " << ninnercols[jouter] << std::endl << std::flush;
 
             if (!curmatrix.isNull())
             {
@@ -166,28 +160,6 @@ BlockMatrix<MatrixEp> collapseBlocks(const BlockMatrix<BlockMatrix<MatrixEp>>& m
         }
         offsetrow += ninnerrows[iouter];
     }
-    std::cout << "here2" << std::endl << std::flush;
-
-    // unsigned int offsetrow = 0;
-    // for (unsigned int i = 0; i < matrix.nRows(); i++)
-    // {
-    //     unsigned int offsetcol = 0;
-    //     unsigned int curnrows = matrix.block(i,0).nRows();
-    //     for (unsigned int j = 0; j < matrix.nCols(); j++)
-    //     {
-    //         auto cursubMatrix = matrix.block(i,j);
-    //
-    //         for (unsigned int ii = 0; ii < curnrows; ii++)
-    //         {
-    //             for (unsigned int jj = 0; jj < cursubMatrix.nCols(); jj++)
-    //             {
-    //                 retMatrix.block(offsetrow+ii,offsetcol+jj).softCopy(cursubMatrix.block(ii,jj));
-    //             }
-    //         }
-    //         offsetcol += cursubMatrix.nCols();
-    //     }
-    //     offsetrow += curnrows;
-    // }
 
     return retMatrix;
 }
