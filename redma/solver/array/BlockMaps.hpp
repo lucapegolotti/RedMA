@@ -21,6 +21,10 @@
 #include <redma/solver/array/BlockMatrix.hpp>
 #include <redma/solver/array/MatrixEp.hpp>
 
+#include <lifev/core/array/MatrixEpetraStructured.hpp>
+#include <lifev/core/array/VectorEpetraStructured.hpp>
+#include <lifev/core/array/MatrixEpetraStructuredUtility.hpp>
+
 namespace RedMA
 {
 
@@ -59,8 +63,9 @@ private:
     std::vector<unsigned int>    M_nInnerCols;
 };
 
-BlockMatrix<MatrixEp> collapseBlocks(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
-                                     const BlockMaps<BlockMatrix<MatrixEp>>& maps);
+template <class InMatrixType>
+InMatrixType collapseBlocks(const BlockMatrix<InMatrixType>& matrix,
+                            const BlockMaps<InMatrixType>& maps);
 
 SHP(VECTOREPETRA) getEpetraVector(const BlockVector<BlockVector<VectorEp>>& vector,
                                   const BlockMaps<BlockMatrix<MatrixEp>>& maps);

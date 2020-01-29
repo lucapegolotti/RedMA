@@ -54,6 +54,8 @@ public:
 
     VectorEp operator*(const VectorEp& vector);
 
+    MatrixEp operator*(const MatrixEp& other);
+
     void hardCopy(const MatrixEp& other);
 
     void softCopy(const MatrixEp& other);

@@ -39,6 +39,7 @@ class SaddlePointPreconditionerEp : public PreconditionerOperatorEp
     typedef BlockVector<BlockVector<VectorEp>>                       BV;
     typedef BlockMatrix<BlockMatrix<MatrixEp>>                       BM;
     typedef LifeV::Operators::NavierStokesPreconditionerOperator     NSPrec;
+    typedef LifeV::Operators::ApproximatedInvertibleRowMatrix        ApproxInv;
 
 public:
     SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix);
@@ -50,21 +51,41 @@ public:
 
     void setSolverOptions();
 
-    void computeAm1BT(const BlockMatrix<BlockMatrix<MatrixEp>> & A,
-                      const BlockMatrix<BlockMatrix<MatrixEp>>& BT);
+
+    void computeSchurComplement(const BM& A, const BM& BT,
+                                const BM& B, const BM& C);
 
 private:
+    void computeAm1BT(const BM& A, const BM& BT);
+
     BlockMatrix<MatrixEp> computeSingleAm1BT(const BlockMatrix<MatrixEp>& A,
                                              const BlockMatrix<MatrixEp>& BT,
                                              const unsigned int& index);
 
-    DataContainer                                       M_data;
-    BM                                                  M_matrix;
-    std::vector<SHP(NSPrec)>                            M_innerPreconditioners;
-    SHP(Teuchos::ParameterList)                         M_pListLinSolver;
-    Teuchos::RCP<Teuchos::ParameterList>                M_solversOptionsInner;
-    BlockMatrix<BlockMatrix<MatrixEp>>                  M_Am1BT;
-    std::string                                         M_innerPrecType;
+    void solveEveryPrimalBlock(const VECTOREPETRA& X, VECTOREPETRA &Y) const;
+
+    void applyEveryB(const VECTOREPETRA& X, VECTOREPETRA &Y) const;
+
+    void applyEveryBT(const VECTOREPETRA& X, VECTOREPETRA &Y) const;
+
+    DataContainer                                        M_data;
+    BM                                                   M_matrix;
+    BlockMatrix<MatrixEp>                                M_matrixCollapsed;
+    BM                                                   M_S;
+    std::vector<SHP(NSPrec)>                             M_innerPreconditioners;
+    SHP(Teuchos::ParameterList)                          M_pListLinSolver;
+    Teuchos::RCP<Teuchos::ParameterList>                 M_solversOptionsInner;
+    BlockMatrix<BlockMatrix<MatrixEp>>                   M_Am1BT;
+    std::string                                          M_innerPrecType;
+    SHP(ApproxInv)                                       M_approximatedSchurInverse;
+    SHP(MAPEPETRA)                                       M_primalMap;
+    SHP(MAPEPETRA)                                       M_dualMap;
+    SHP(MAPEPETRA)                                       M_monolithicMap;
+    std::vector<SHP(MAPEPETRA)>                          M_rangeMaps;
+    std::vector<SHP(MAPEPETRA)>                          M_domainMaps;
+    unsigned int                                         M_nPrimalBlocks;
+    unsigned int                                         M_nDualBlocks;
+
 };
 
 }

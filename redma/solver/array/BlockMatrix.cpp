@@ -179,4 +179,24 @@ finalize()
     M_isFinalized = true;
 }
 
+template <>
+void
+BlockMatrix<BlockMatrix<MatrixEp>>::
+printPattern() const
+{
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            auto curblock = block(i,j);
+            if (!curblock.isNull())
+                std::cout << "(" << curblock.nRows() << "," << curblock.nCols() << ")";
+            else
+                std::cout << "o";
+            std::cout << "\t";
+        }
+        std::cout << "\n";
+    }
+}
+
 }

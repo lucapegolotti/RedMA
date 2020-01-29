@@ -76,6 +76,22 @@ transpose() const
 
 MatrixEp
 MatrixEp::
+operator*(const MatrixEp& other)
+{
+    MatrixEp mat;
+
+    if (M_matrix && other.data())
+    {
+        mat.data().reset(new MATRIXEPETRA(*M_matrix->rangeMapPtr()));
+        M_matrix->multiply(false, *other.data(), false, *mat.data(), false);
+        mat.data()->globalAssemble(other.data()->domainMapPtr(), M_matrix->rangeMapPtr());
+    }
+
+    return mat;
+}
+
+MatrixEp
+MatrixEp::
 operator+(const MatrixEp& other)
 {
     MatrixEp retMatrix;

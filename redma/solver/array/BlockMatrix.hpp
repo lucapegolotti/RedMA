@@ -53,6 +53,8 @@ public:
 
     virtual BlockMatrix<InMatrixType> operator*(const double& coeff) const;
 
+    virtual BlockMatrix<InMatrixType> operator*(const BlockMatrix<InMatrixType>& matrix) const;
+
     // hard copy!
     virtual BlockMatrix<InMatrixType>& operator=(const BlockMatrix<InMatrixType>& other);
 

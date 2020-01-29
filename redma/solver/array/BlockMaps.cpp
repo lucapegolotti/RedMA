@@ -34,36 +34,6 @@ generateMaps()
 }
 
 template <>
-SHP(MAPEPETRA)
-BlockMaps<BlockMatrix<MatrixEp>>::
-getMonolithicRangeMapEpetra() const
-{
-    SHP(MAPEPETRA) retMap(new MAPEPETRA());
-
-    for (auto map : M_rangeMapsEpetra)
-    {
-        *retMap += *map;
-    }
-
-    return retMap;
-}
-
-template <>
-SHP(MAPEPETRA)
-BlockMaps<BlockMatrix<MatrixEp>>::
-getMonolithicDomainMapEpetra() const
-{
-    SHP(MAPEPETRA) retMap(new MAPEPETRA());
-
-    for (auto map : M_domainMapsEpetra)
-    {
-        *retMap += *map;
-    }
-
-    return retMap;
-}
-
-template <>
 void
 BlockMaps<BlockMatrix<MatrixEp>>::
 generateMaps()
@@ -117,8 +87,10 @@ generateMaps()
     }
 }
 
-BlockMatrix<MatrixEp> collapseBlocks(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
-                                     const BlockMaps<BlockMatrix<MatrixEp>>& maps)
+template <>
+BlockMatrix<MatrixEp>
+collapseBlocks(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
+               const BlockMaps<BlockMatrix<MatrixEp>>& maps)
 {
     if (!matrix.isFinalized())
     {
@@ -160,6 +132,59 @@ BlockMatrix<MatrixEp> collapseBlocks(const BlockMatrix<BlockMatrix<MatrixEp>>& m
         }
         offsetrow += ninnerrows[iouter];
     }
+
+    return retMatrix;
+}
+
+template <>
+MatrixEp
+collapseBlocks(const BlockMatrix<MatrixEp>& matrix,
+               const BlockMaps<MatrixEp>& maps)
+{
+    using namespace LifeV::MatrixEpetraStructuredUtility;
+
+    MatrixEp retMatrix;
+    auto rangeMaps = maps.getRangeMapsEpetra();
+    auto domainMaps = maps.getRangeMapsEpetra();
+
+    retMatrix.data().reset(new MATRIXEPETRA(*maps.getMonolithicRangeMapEpetra()));
+
+    std::vector<unsigned int> dimensionsRows;
+    std::vector<unsigned int> dimensionsCols;
+
+    for (auto map : rangeMaps)
+        dimensionsRows.push_back(map->mapSize());
+
+    for (auto map : domainMaps)
+        dimensionsCols.push_back(map->mapSize());
+
+    LifeV::MatrixBlockStructure structure;
+    structure.setBlockStructure(dimensionsRows,
+                                dimensionsCols);
+
+    for (unsigned int i = 0; i < matrix.nRows(); i++)
+    {
+        for (unsigned int j = 0; j < matrix.nCols(); j++)
+        {
+            SHP(LifeV::MatrixEpetraStructuredView<double>) globalView;
+            globalView = createBlockView(retMatrix.data(), structure, i, j);
+
+            LifeV::MatrixBlockStructure blockStructure;
+            std::vector<unsigned int> rows(1), cols(1);
+            rows[0] = dimensionsRows[i];
+            cols[0] = dimensionsCols[j];
+            blockStructure.setBlockStructure(rows, cols);
+
+            SHP(LifeV::MatrixEpetraStructuredView<double>) blockLocalView;
+            blockLocalView = createBlockView(matrix.block(i,j).data(),
+                                             blockStructure, 0, 0);
+
+            copyBlock(blockLocalView, globalView);
+        }
+    }
+
+    retMatrix.data()->globalAssemble(maps.getMonolithicDomainMapEpetra(),
+                                     maps.getMonolithicRangeMapEpetra());
 
     return retMatrix;
 }
@@ -209,26 +234,6 @@ SHP(VECTOREPETRA) getEpetraVector(const BlockVector<BlockVector<VectorEp>>& vect
     }
 
     return retVec;
-}
-
-template <>
-void
-BlockMatrix<BlockMatrix<MatrixEp>>::
-printPattern() const
-{
-    for (unsigned int i = 0; i < M_nRows; i++)
-    {
-        for (unsigned int j = 0; j < M_nCols; j++)
-        {
-            auto curblock = block(i,j);
-            if (!curblock.isNull())
-                std::cout << "(" << curblock.nRows() << "," << curblock.nCols() << ")";
-            else
-                std::cout << "o";
-            std::cout << "\t";
-        }
-        std::cout << "\n";
-    }
 }
 
 BlockVector<BlockVector<VectorEp>>

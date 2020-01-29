@@ -239,6 +239,35 @@ operator*(const BlockVector<InVectorType>& vector) const
 template <class InMatrixType>
 BlockMatrix<InMatrixType>
 BlockMatrix<InMatrixType>::
+operator*(const BlockMatrix<InMatrixType>& matrix) const
+{
+    BlockMatrix<InMatrixType> retMatrix;
+    if (matrix.isNull() || matrix.isNull())
+    {
+        return retMatrix;
+    }
+
+    retMatrix.resize(M_nRows, matrix.nCols());
+
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < matrix.nCols(); j++)
+        {
+            InMatrixType& curMatrix = retMatrix.block(i,j);
+            for (unsigned int k = 0; k < M_nCols; k++)
+            {
+                curMatrix += block(i,k) * matrix.block(k,j);
+            }
+        }
+    }
+
+    return retMatrix;
+}
+
+
+template <class InMatrixType>
+BlockMatrix<InMatrixType>
+BlockMatrix<InMatrixType>::
 operator*(const double& coeff) const
 {
     BlockMatrix<InMatrixType> ret(M_nRows,M_nCols);
