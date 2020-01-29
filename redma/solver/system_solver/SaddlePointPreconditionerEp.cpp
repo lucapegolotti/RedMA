@@ -25,23 +25,23 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
     setSolverOptions();
 
     // build Schur complement
-    std::string innerPrecType = M_data("preconditioner/inner", "SIMPLE");
-    if (!std::strcmp(innerPrecType.c_str(), "exactsolve"))
+    M_innerPrecType = M_data("preconditioner/inner", "SIMPLE");
+    if (!std::strcmp(M_innerPrecType.c_str(), "exactsolve"))
     {
     }
-    else if (!std::strcmp(innerPrecType.c_str(), "SIMPLE"))
+    else if (!std::strcmp(M_innerPrecType.c_str(), "SIMPLE"))
     {
-        allocateInnerPreconditioners(A, innerPrecType);
+        allocateInnerPreconditioners(A);
     }
     else
-    {
         throw new Exception("Requested inner preconditioner not implemented");
-    }
+
+    computeAm1BT(A, BT);
 }
 
 void
 SaddlePointPreconditionerEp::
-allocateInnerPreconditioners(const BM& primalMatrix, std::string precType)
+allocateInnerPreconditioners(const BM& primalMatrix)
 {
     unsigned int nrows = primalMatrix.nRows();
 
@@ -49,7 +49,7 @@ allocateInnerPreconditioners(const BM& primalMatrix, std::string precType)
     {
         SHP(NSPrec) newPrec;
         newPrec.reset(LifeV::Operators::NSPreconditionerFactory::
-                      instance().createObject(precType));
+                      instance().createObject(M_innerPrecType));
         newPrec->setOptions(*M_solversOptionsInner);
 
         if (primalMatrix.block(i,i).block(1,1).data())
@@ -83,6 +83,39 @@ allocateInnerPreconditioners(const BM& primalMatrix, std::string precType)
 
         M_innerPreconditioners.push_back(newPrec);
     }
+}
+
+void
+SaddlePointPreconditionerEp::
+computeAm1BT(const BlockMatrix<BlockMatrix<MatrixEp>>& A,
+             const BlockMatrix<BlockMatrix<MatrixEp>>& BT)
+{
+    M_Am1BT.resize(A.nRows(), BT.nCols());
+
+    for (unsigned int i = 0; i < A.nRows(); i++)
+    {
+        for (unsigned int j = 0; j < BT.nCols(); j++)
+        {
+            M_Am1BT.block(i,j) = computeSingleAm1BT(A.block(i,i), BT.block(i,j));
+        }
+    }
+
+
+}
+
+BlockMatrix<MatrixEp>
+SaddlePointPreconditionerEp::
+computeSingleAm1BT(const BlockMatrix<MatrixEp>& A, const BlockMatrix<MatrixEp>& BT)
+{
+    BlockMatrix<MatrixEp> retMat;
+    retMat.resize(A.nRows(), BT.nCols());
+
+    if (!std::strcmp(M_innerPrecType.c_str(),"SIMPLE"))
+    {
+        LifeV::MapEpetra domainMap = BT.block(0,0).data()->domainMap();
+    }
+
+    return retMat;
 }
 
 void

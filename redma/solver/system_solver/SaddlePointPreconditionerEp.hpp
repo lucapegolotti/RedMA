@@ -46,16 +46,24 @@ public:
     virtual int ApplyInverse(const super::vector_Type& X,
                              super::vector_Type& Y) const override;
 
-    void allocateInnerPreconditioners(const BM& primalMatrix, std::string precType);
+    void allocateInnerPreconditioners(const BM& primalMatrix);
 
     void setSolverOptions();
 
+    void computeAm1BT(const BlockMatrix<BlockMatrix<MatrixEp>> & A,
+                      const BlockMatrix<BlockMatrix<MatrixEp>>& BT);
+
 private:
+    BlockMatrix<MatrixEp> computeSingleAm1BT(const BlockMatrix<MatrixEp>& A,
+                                             const BlockMatrix<MatrixEp>& BT);
+
     DataContainer                                       M_data;
     BM                                                  M_matrix;
     std::vector<SHP(NSPrec)>                            M_innerPreconditioners;
     SHP(Teuchos::ParameterList)                         M_pListLinSolver;
     Teuchos::RCP<Teuchos::ParameterList>                M_solversOptionsInner;
+    BlockMatrix<BlockMatrix<MatrixEp>>                  M_Am1BT;
+    std::string                                         M_innerPrecType;
 };
 
 }
