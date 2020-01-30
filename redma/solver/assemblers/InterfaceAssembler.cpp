@@ -336,7 +336,7 @@ buildStabilizationMatrix(SHP(AssemblerType) assembler,
 
     stab.block(0,0).softCopy(MatrixEp(stabVectorsVelocity).transpose());
     stab.block(0,1).softCopy(MatrixEp(stabVectorsPressure).transpose());
-    stab *= M_stabilizationCoupling;
+    stab *= M_stabilizationCoupling * 0.5;
 
     matrix += stab;
 
@@ -369,6 +369,14 @@ buildCouplingMatrices()
     inlet.M_normal *= (-1.);
 
     buildCouplingMatrices(asChild, inlet, M_childBT, M_childB);
+
+    if (M_stabilizationCoupling > 1e-15)
+    {
+        buildStabilizationMatrix(asChild, inlet, M_childB);
+    }
+
+    M_childB *= (-1.);
+    M_childBT *= (-1.);
 }
 
 template <>
