@@ -11,8 +11,6 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
     // split matrices
     unsigned int nBlocks = matrix.nRows();
 
-    unsigned int nPrimal = 0;
-
     // read options
     setSolverOptions();
 
@@ -21,8 +19,12 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
 
     if (nBlocks > 1)
     {
-        while (!matrix.block(nPrimal,nPrimal).isNull())
+        unsigned int nPrimal = 1;
+        while (nPrimal < nBlocks && matrix.block(0,nPrimal).isNull())
             nPrimal++;
+
+        if (nPrimal == nBlocks)
+            throw new Exception("The system has not a saddle point structure");
 
         unsigned int nDual = nBlocks - nPrimal;
         M_nPrimalBlocks = nPrimal;

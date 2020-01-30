@@ -68,6 +68,8 @@ public:
 
     virtual inline SHP(ETFESPACE3) getETFESpaceCoupling() const {return nullptr;}
 
+    virtual inline SHP(ETFESPACE1) getETFESpaceSecondary() const {return nullptr;}
+
 protected:
     DataContainer                        M_data;
     SHP(TreeNode)                        M_treeNode;

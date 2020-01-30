@@ -147,6 +147,128 @@ buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
 }
 
 template <>
+std::vector<VectorEp>
+InterfaceAssembler<VectorEp, MatrixEp>::
+buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
+                                  const GeometricFace& face,
+                                  SHP(aAssembler<VectorEp COMMA MatrixEp>) assembler) const
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    QuadratureBoundary boundaryQuadRule(buildTetraBDQR
+                                       (*generateQuadratureRule("STRANG10")));
+
+    unsigned int nBasisFunctions = bfs->getNumBasisFunctions();
+
+    std::vector<VectorEp> couplingVectors(3 * nBasisFunctions);
+
+    SHP(ETFESPACE3) etfespace = assembler->getETFESpaceCoupling();
+    MAPEPETRA map = etfespace->map();
+    SHP(MESH) mesh = etfespace->mesh();
+    unsigned int faceFlag = face.M_flag;
+
+    unsigned int count = 0;
+    bool useFullStrain = M_data("fluid/use_strain", true);
+    double viscosity = this->M_data("fluid/viscosity", 0.035);
+
+    // this must be changed for scalar problems (e.g. laplacian)
+    for (unsigned int dim = 0; dim < 3; dim++)
+    {
+        LifeV::VectorSmall<3> versor;
+        versor[0] = 0.;
+        versor[1] = 0.;
+        versor[2] = 0.;
+
+        versor[dim] = 1.;
+
+        for (unsigned int i = 0; i < nBasisFunctions; i++)
+        {
+            SHP(VECTOREPETRA) currentMode(new VECTOREPETRA(map, LifeV::Repeated));
+
+            bfs->setIndex(i);
+            if (useFullStrain)
+            {
+                integrate(boundary(mesh, faceFlag),
+                          boundaryQuadRule,
+                          etfespace,
+                          eval(bfs, X) * value(0.5 * viscosity) *
+                          dot((grad(phi_i) + transpose(grad(phi_i)))*Nface,versor)
+                      ) >> currentMode;
+            }
+            else
+            {
+                integrate(boundary(mesh, faceFlag),
+                          boundaryQuadRule,
+                          etfespace,
+                          eval(bfs, X) * value(viscosity) *
+                          dot((grad(phi_i))*Nface,versor)
+                      ) >> currentMode;
+            }
+            couplingVectors[count].data() = currentMode;
+            count++;
+        }
+    }
+
+    return couplingVectors;
+}
+
+template <>
+std::vector<VectorEp>
+InterfaceAssembler<VectorEp, MatrixEp>::
+buildStabilizationVectorsPressure(SHP(BasisFunctionFunctor) bfs,
+                                  const GeometricFace& face,
+                                  SHP(aAssembler<VectorEp COMMA MatrixEp>) assembler) const
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    QuadratureBoundary boundaryQuadRule(buildTetraBDQR
+                                       (*generateQuadratureRule("STRANG10")));
+
+    unsigned int nBasisFunctions = bfs->getNumBasisFunctions();
+
+    std::vector<VectorEp> couplingVectors(3 * nBasisFunctions);
+
+    SHP(ETFESPACE1) etfespace = assembler->getETFESpaceSecondary();
+    MAPEPETRA map = etfespace->map();
+    SHP(MESH) mesh = etfespace->mesh();
+    unsigned int faceFlag = face.M_flag;
+
+    unsigned int count = 0;
+
+    // this must be changed for scalar problems (e.g. laplacian)
+    for (unsigned int dim = 0; dim < 3; dim++)
+    {
+        LifeV::VectorSmall<3> versor;
+        versor[0] = 0.;
+        versor[1] = 0.;
+        versor[2] = 0.;
+
+        versor[dim] = 1.;
+
+        for (unsigned int i = 0; i < nBasisFunctions; i++)
+        {
+            SHP(VECTOREPETRA) currentMode(new VECTOREPETRA(map, LifeV::Repeated));
+
+            bfs->setIndex(i);
+
+            integrate(boundary(mesh, faceFlag),
+                      boundaryQuadRule,
+                      etfespace,
+                      eval(bfs, X) * value(-1.0) *
+                      dot(phi_i * Nface,versor)
+                  ) >> currentMode;
+
+            couplingVectors[count].data() = currentMode;
+            count++;
+        }
+    }
+
+    return couplingVectors;
+}
+
+template <>
 void
 InterfaceAssembler<VectorEp, MatrixEp>::
 buildCouplingMatrices(SHP(AssemblerType) assembler, const GeometricFace& face,
@@ -171,6 +293,60 @@ buildCouplingMatrices(SHP(AssemblerType) assembler, const GeometricFace& face,
 }
 
 template <>
+std::vector<VectorEp>
+InterfaceAssembler<VectorEp, MatrixEp>::
+buildStabilizationVectorsLagrange() const
+{
+    auto lagrangeMap = M_fatherBT.block(0,0).data()->domainMapPtr();
+    unsigned int ncols = lagrangeMap->mapSize();
+
+    std::vector<VectorEp> retVectors(ncols);
+
+    for (unsigned int i = 0; i < ncols; i++)
+    {
+        SHP(VECTOREPETRA) newvec(new VECTOREPETRA(*lagrangeMap, LifeV::Unique));
+        newvec->zero();
+
+        if (lagrangeMap->isOwned(i))
+            (*newvec)[i] = M_stabilizationCoupling;
+
+        retVectors[i].data() = newvec;
+    }
+    return retVectors;
+}
+
+template <>
+void
+InterfaceAssembler<VectorEp, MatrixEp>::
+buildStabilizationMatrix(SHP(AssemblerType) assembler,
+                         const GeometricFace& face,
+                         BlockMatrix<MatrixEp>& matrix)
+{
+    BlockMatrix<MatrixEp> stab;
+    stab.resize(1, assembler->getNumComponents());
+
+    SHP(BasisFunctionFunctor) bfs;
+    bfs =  BasisFunctionFactory(M_data.getDatafile(), face);
+
+    std::vector<VectorEp> stabVectorsVelocity;
+    stabVectorsVelocity = buildStabilizationVectorsVelocity(bfs, face, assembler);
+
+    std::vector<VectorEp> stabVectorsPressure;
+    stabVectorsPressure = buildStabilizationVectorsPressure(bfs, face, assembler);
+
+    stab.block(0,0).softCopy(MatrixEp(stabVectorsVelocity).transpose());
+    stab.block(0,1).softCopy(MatrixEp(stabVectorsPressure).transpose());
+    stab *= M_stabilizationCoupling;
+
+    matrix += stab;
+
+    std::vector<VectorEp> stabVectorsLagrange = buildStabilizationVectorsLagrange();
+    M_identity.resize(1,1);
+
+    M_identity.block(0,0).softCopy(MatrixEp(stabVectorsLagrange));
+}
+
+template <>
 void
 InterfaceAssembler<VectorEp, MatrixEp>::
 buildCouplingMatrices()
@@ -181,6 +357,11 @@ buildCouplingMatrices()
     GeometricFace outlet = asFather->getTreeNode()->M_block->getOutlet(indexOutlet);
 
     buildCouplingMatrices(asFather, outlet, M_fatherBT, M_fatherB);
+
+    if (M_stabilizationCoupling > 1e-15)
+    {
+        buildStabilizationMatrix(asFather, outlet, M_fatherB);
+    }
 
     auto asChild = M_interface.M_assemblerChild;
     GeometricFace inlet = asChild->getTreeNode()->M_block->getInlet();

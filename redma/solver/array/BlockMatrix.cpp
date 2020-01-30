@@ -322,7 +322,7 @@ printPattern() const
         for (unsigned int j = 0; j < M_nCols; j++)
         {
             auto curblock = block(i,j);
-            if (!curblock.nRows() == 0)
+            if (curblock.nRows() > 0)
                 std::cout << "(" << curblock.nRows() << "," << curblock.nCols() << ")";
             else
                 std::cout << "o";

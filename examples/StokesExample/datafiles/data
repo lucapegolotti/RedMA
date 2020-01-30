@@ -70,4 +70,5 @@
 [coupling]
 	type                = chebyshev
 	nMax                = 1
+	stab_coefficient	= 1e-5
 [../]

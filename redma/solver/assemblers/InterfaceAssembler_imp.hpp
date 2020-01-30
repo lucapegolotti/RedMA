@@ -37,6 +37,8 @@ setup()
     printlog(YELLOW, "[InterfaceAssembler] initialize interface"
                      " assembler ...", M_data.getVerbose());
 
+    M_stabilizationCoupling = M_data("coupling/stab_coefficient", 1e-5);
+
     buildCouplingMatrices();
 
     std::string msg = "done, in ";
@@ -73,6 +75,13 @@ addContributionRhs(BlockVector<BlockVector<InVectorType>>& rhs,
 
     rhs.block(nPrimalBlocks + interfaceID) -= M_fatherB * sol.block(fatherID);
     rhs.block(nPrimalBlocks + interfaceID) -= M_childB * sol.block(childID);
+    // here + because the stabilization term is (stress - lagrange) => hence
+    // + lagrange at rhs
+    if (M_stabilizationCoupling > 1e-15)
+    {
+        rhs.block(nPrimalBlocks + interfaceID) +=
+        sol.block(nPrimalBlocks + interfaceID) * M_stabilizationCoupling;
+    }
 }
 
 template <class InVectorType, class InMatrixType>
@@ -97,6 +106,10 @@ addContributionJacobianRhs(BlockMatrix<BlockMatrix<InMatrixType>>& jac,
     jac.block(childID,  nPrimalBlocks + interfaceID) *= (-1);
     jac.block(nPrimalBlocks + interfaceID, fatherID) *= (-1);
     jac.block(nPrimalBlocks + interfaceID,  childID) *= (-1);
+
+    // identity is already multiplied by stabilization coefficient
+    if (M_stabilizationCoupling > 1e-15)
+        jac.block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID).hardCopy(M_identity);
 }
 
 }

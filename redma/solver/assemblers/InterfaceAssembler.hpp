@@ -67,6 +67,10 @@ public:
                                BlockMatrix<InMatrixType>& matrixT,
                                BlockMatrix<InMatrixType>& matrix);
 
+    void buildStabilizationMatrix(SHP(AssemblerType) assembler,
+                                  const GeometricFace& face,
+                                  BlockMatrix<InMatrixType>& matrix);
+
     void buildMapLagrange(SHP(BasisFunctionFunctor) bfs);
 
     void addContributionRhs(BlockVector<BlockVector<InVectorType>>& rhs,
@@ -88,14 +92,26 @@ private:
                                                const GeometricFace& face,
                                                SHP(aAssembler<VectorEp COMMA MatrixEp>) assembler) const;
 
+    std::vector<VectorEp> buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
+                                                            const GeometricFace& face,
+                                                            SHP(aAssembler<VectorEp COMMA MatrixEp>) assembler) const;
+
+    std::vector<VectorEp> buildStabilizationVectorsPressure(SHP(BasisFunctionFunctor) bfs,
+                                                            const GeometricFace& face,
+                                                            SHP(aAssembler<VectorEp COMMA MatrixEp>) assembler) const;
+
+    std::vector<VectorEp> buildStabilizationVectorsLagrange() const;
+
     Interface<InVectorType, InMatrixType>           M_interface;
 
+    BlockMatrix<InMatrixType>                       M_identity;
     BlockMatrix<InMatrixType>                       M_fatherBT;
     BlockMatrix<InMatrixType>                       M_fatherB;
     BlockMatrix<InMatrixType>                       M_childBT;
     BlockMatrix<InMatrixType>                       M_childB;
     DataContainer                                   M_data;
     SHP(LifeV::MapEpetra)                           M_mapLagrange;
+    double                                          M_stabilizationCoupling;
 };
 
 }

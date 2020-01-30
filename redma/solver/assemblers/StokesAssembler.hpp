@@ -84,6 +84,11 @@ public:
         return M_velocityFESpaceETA;
     }
 
+    virtual inline SHP(ETFESPACE1) getETFESpaceSecondary() const override
+    {
+        return M_pressureFESpaceETA;
+    }
+
 protected:
     BlockMatrix<InMatrixType>            M_mass;
     BlockMatrix<InMatrixType>            M_stiffness;
