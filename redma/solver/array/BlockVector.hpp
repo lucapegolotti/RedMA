@@ -52,6 +52,8 @@ public:
 
     BlockVector operator+(const BlockVector<InVectorType>& other) const;
 
+    BlockVector operator-(const BlockVector<InVectorType>& other) const;
+
     InVectorType& block(const unsigned int& iblock);
 
     InVectorType block(const unsigned int& iblock) const;

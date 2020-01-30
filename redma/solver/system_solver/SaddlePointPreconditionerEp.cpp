@@ -8,50 +8,58 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
   M_data(data),
   M_matrix(matrix)
 {
-    std::cout << "SaddlePointPreconditionerEp" << std::endl << std::flush;
     // split matrices
     unsigned int nBlocks = matrix.nRows();
 
     unsigned int nPrimal = 0;
-
-    while (!matrix.block(nPrimal,nPrimal).isNull())
-        nPrimal++;
-
-    unsigned int nDual = nBlocks - nPrimal;
-    M_nPrimalBlocks = nPrimal;
-    M_nDualBlocks = nDual;
-
-    BM A = matrix.getSubmatrix(0, nPrimal-1, 0, nPrimal-1);
-    BM BT = matrix.getSubmatrix(0, nPrimal-1, nPrimal, nBlocks-1);
-    BM B = matrix.getSubmatrix(nPrimal, nBlocks-1, 0, nPrimal-1);
-    BM C = matrix.getSubmatrix(nPrimal, nBlocks-1, nPrimal, nBlocks-1);
-
-    BlockMaps<BlockMatrix<MatrixEp>> bmaps(BT);
-    M_primalMap = bmaps.getMonolithicRangeMapEpetra();
-    M_dualMap = bmaps.getMonolithicDomainMapEpetra();
-
-    BlockMaps<BlockMatrix<MatrixEp>> allmaps(matrix);
-    M_rangeMaps = allmaps.getRangeMapsEpetra();
-    M_domainMaps = allmaps.getDomainMapsEpetra();
-    M_monolithicMap = allmaps.getMonolithicRangeMapEpetra();
-    M_matrixCollapsed = collapseBlocks(matrix, allmaps);
 
     // read options
     setSolverOptions();
 
     // build Schur complement
     M_innerPrecType = M_data("preconditioner/inner", "SIMPLE");
-    if (!std::strcmp(M_innerPrecType.c_str(), "exactsolve"))
+
+    if (nBlocks > 1)
     {
-    }
-    else if (!std::strcmp(M_innerPrecType.c_str(), "SIMPLE"))
-    {
-        allocateInnerPreconditioners(A);
+        while (!matrix.block(nPrimal,nPrimal).isNull())
+            nPrimal++;
+
+        unsigned int nDual = nBlocks - nPrimal;
+        M_nPrimalBlocks = nPrimal;
+        M_nDualBlocks = nDual;
+
+        BM A = matrix.getSubmatrix(0, nPrimal-1, 0, nPrimal-1);
+        BM BT = matrix.getSubmatrix(0, nPrimal-1, nPrimal, nBlocks-1);
+        BM B = matrix.getSubmatrix(nPrimal, nBlocks-1, 0, nPrimal-1);
+        BM C = matrix.getSubmatrix(nPrimal, nBlocks-1, nPrimal, nBlocks-1);
+
+        BlockMaps<BlockMatrix<MatrixEp>> bmaps(BT);
+        M_primalMap = bmaps.getMonolithicRangeMapEpetra();
+        M_dualMap = bmaps.getMonolithicDomainMapEpetra();
+
+        BlockMaps<BlockMatrix<MatrixEp>> allmaps(matrix);
+        M_rangeMaps = allmaps.getRangeMapsEpetra();
+        M_domainMaps = allmaps.getDomainMapsEpetra();
+        M_monolithicMap = allmaps.getMonolithicRangeMapEpetra();
+        M_matrixCollapsed = collapseBlocks(matrix, allmaps);
+
+        if (!std::strcmp(M_innerPrecType.c_str(), "exactsolve"))
+        {
+        }
+        else if (!std::strcmp(M_innerPrecType.c_str(), "SIMPLE"))
+        {
+            allocateInnerPreconditioners(A);
+        }
+        else
+            throw new Exception("Requested inner preconditioner not implemented");
+
+        computeSchurComplement(A, BT, B, C);
     }
     else
-        throw new Exception("Requested inner preconditioner not implemented");
-
-    computeSchurComplement(A, BT, B, C);
+    {
+        M_nPrimalBlocks = 1;
+        allocateInnerPreconditioners(matrix);
+    }
 }
 
 void
@@ -91,15 +99,19 @@ allocateInnerPreconditioners(const BM& primalMatrix)
                       instance().createObject(M_innerPrecType));
         newPrec->setOptions(*M_solversOptionsInner);
 
-        if (primalMatrix.block(i,i).block(1,1).data())
+        if (!primalMatrix.block(i,i).block(1,1).isNull())
+        {
             newPrec->setUp(primalMatrix.block(i,i).block(0,0).data(),
                            primalMatrix.block(i,i).block(1,0).data(),
                            primalMatrix.block(i,i).block(0,1).data(),
                            primalMatrix.block(i,i).block(1,1).data());
+        }
         else
+        {
             newPrec->setUp(primalMatrix.block(i,i).block(0,0).data(),
                            primalMatrix.block(i,i).block(1,0).data(),
                            primalMatrix.block(i,i).block(0,1).data());
+        }
 
         std::vector<SHP(Epetra_Map)> localRangeMaps(2);
         std::vector<SHP(Epetra_Map)> localDomainMaps(2);

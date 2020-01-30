@@ -58,6 +58,8 @@ public:
 
     BlockVector<FEVECTOR> computeLifting(const double& time) const;
 
+    BlockVector<FEVECTOR> computeLiftingDt(const double& time) const;
+
     void addNeumannBCs(BlockVector<FEVECTOR>& input, const double& time) const;
 
     void initializeFEspaces();

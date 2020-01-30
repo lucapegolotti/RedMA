@@ -38,6 +38,9 @@ public:
     void applyDirichletBCs(const double& time, BlockVector<VectorEp>& input,
                            SHP(FESPACE) fespace, const unsigned int& index) const;
 
+    void applyDirichletBCsDt(const double& time, BlockVector<VectorEp>& input,
+                             SHP(FESPACE) fespace, const unsigned int& index) const;
+
     void apply0DirichletBCs(BlockVector<VectorEp>& input,
                             SHP(FESPACE) fespace,
                             const unsigned int& index) const;
@@ -49,6 +52,8 @@ public:
 
     void setInflow(std::function<double(double)> inflow);
 
+    void setInflowDt(std::function<double(double)> inflowDt);
+
 private:
     static double poiseulle(const double& t, const double& x, const double& y,
                             const double& z, const unsigned int& i,
@@ -58,11 +63,18 @@ private:
     static double fZero(const double& t, const double& x, const double& y,
                         const double& z, const unsigned int& i);
 
+    static double fZero2(double t);
+
     SHP(LifeV::BCHandler) createBCHandler0Dirichlet() const;
+
+    void addInletBC(SHP(LifeV::BCHandler) bcs,
+                    std::function<double(double)> law) const;
 
     SHP(TreeNode)                 M_treeNode;
     DataContainer                 M_data;
     std::function<double(double)> M_inflow;
+    std::function<double(double)> M_inflowDt;
+    bool                          M_useLifting;
 
     const unsigned int            inletFlag = 1;
     const unsigned int            wallFlag = 10;

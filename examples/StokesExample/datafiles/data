@@ -3,7 +3,7 @@
 #-------------------------------------------------------------
 
 [geometric_structure]
-	xmlfile = geometries/tree2.xml
+	xmlfile = geometries/tree1.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -12,10 +12,19 @@
 	type = stokes
 [../]
 
+[bc_conditions]
+	lifting = true
+[../]
+
 [preconditioner]
 	options = datafiles/solversOptionsFast
 	outer   = saddlepoint
 	inner	= SIMPLE
+[../]
+
+[newton_method]
+	tol = 1e-7
+	maxit = 1
 [../]
 
 [fluid]
@@ -43,10 +52,10 @@
 
 [time_discretization]
 	algorithm = bdf
-	order = 2
+	order = 1
 	t0 = 0
-	T = 2.4
-	dt = 0.02
+	T = 0.01
+	dt = 0.01
 [../]
 
 [exporter]

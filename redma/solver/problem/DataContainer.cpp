@@ -25,6 +25,13 @@ setInflow(const std::function<double(double)>& inflow)
 
 void
 DataContainer::
+setInflowDt(const std::function<double(double)>& inflowDt)
+{
+    M_inflowDt = inflowDt;
+}
+
+void
+DataContainer::
 setVerbose(bool verbose)
 {
     M_verbose = verbose;

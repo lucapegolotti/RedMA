@@ -9,15 +9,14 @@ BCManager(const DataContainer& data, SHP(TreeNode) treeNode) :
   M_treeNode(treeNode)
 {
     M_inflow = data.getInflow();
+    M_inflowDt = data.getInflowDt();
+    M_useLifting = data("bc_conditions/lifting", true);
 }
 
 void
 BCManager::
-applyDirichletBCs(const double& time, BlockVector<VectorEp>& input,
-                  SHP(FESPACE) fespace, const unsigned int& index) const
+addInletBC(SHP(LifeV::BCHandler) bcs, std::function<double(double)> law) const
 {
-    SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
-
     if (M_treeNode->M_ID == 0)
     {
         auto foo = std::bind(poiseulle,
@@ -27,20 +26,55 @@ applyDirichletBCs(const double& time, BlockVector<VectorEp>& input,
                              std::placeholders::_4,
                              std::placeholders::_5,
                              M_treeNode->M_block->getInlet(),
-                             M_inflow);
+                             law);
 
         LifeV::BCFunctionBase inflowFunction(foo);
         bcs->addBC("Inlet", inletFlag, LifeV::Essential, LifeV::Full,
                    inflowFunction, 3);
     }
+}
+
+void
+BCManager::
+applyDirichletBCs(const double& time, BlockVector<VectorEp>& input,
+                  SHP(FESPACE) fespace, const unsigned int& index) const
+{
+    SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
+
+    addInletBC(bcs, M_inflow);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
     auto curVec = input.block(index).data();
-    // we apply dirichlet bcs only if we are inlet node (M_ID == 0)
-    if (curVec && M_treeNode->M_ID == 0)
+
+    if (curVec)
         bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
                     *bcs, fespace->feBd(), 1.0, time);
+}
+
+void
+BCManager::
+applyDirichletBCsDt(const double& time, BlockVector<VectorEp>& input,
+                    SHP(FESPACE) fespace, const unsigned int& index) const
+{
+    SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
+
+    addInletBC(bcs, M_inflowDt);
+
+    bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
+
+    auto curVec = input.block(index).data();
+
+    if (curVec)
+        bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
+                    *bcs, fespace->feBd(), 1.0, time);
+}
+
+double
+BCManager::
+fZero2(double time)
+{
+    return 0.0;
 }
 
 void
@@ -51,6 +85,9 @@ apply0DirichletMatrix(BlockMatrix<MatrixEp>& input,
                       const double& diagCoefficient) const
 {
     SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
+
+    addInletBC(bcs, fZero2);
+
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
     unsigned int nCols = input.nCols();
@@ -77,6 +114,8 @@ apply0DirichletBCs(BlockVector<VectorEp>& input, SHP(FESPACE) fespace,
                    const unsigned int& index) const
 {
     SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
+
+    addInletBC(bcs, fZero2);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -112,6 +151,13 @@ setInflow(std::function<double(double)> inflow)
     M_inflow = inflow;
 }
 
+void
+BCManager::
+setInflowDt(std::function<double(double)> inflowDt)
+{
+    M_inflowDt = inflowDt;
+}
+
 double
 BCManager::
 poiseulle(const double& t, const double& x, const double& y,
@@ -124,7 +170,7 @@ poiseulle(const double& t, const double& x, const double& y,
     const Vector3D& center = face.M_center;
     const Vector3D& normal = face.M_normal;
     double radius = face.M_radius;
-
+    face.print();
     Vector3D curPoint(x,y,z);
     Vector3D diff = curPoint - center;
     double normDiff = radius - diff.norm();

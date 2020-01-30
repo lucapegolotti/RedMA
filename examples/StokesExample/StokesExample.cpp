@@ -22,7 +22,12 @@ using namespace RedMA;
 
 double inflow(double t)
 {
-    return std::sin(t);
+    return 10;
+}
+
+double inflowDt(double t)
+{
+    return 0;
 }
 
 int main(int argc, char **argv)
@@ -37,6 +42,7 @@ int main(int argc, char **argv)
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setInflow(inflow);
+    data.setInflowDt(inflowDt);
     data.setVerbose(comm->MyPID() == 0);
 
     ProblemFEM femProblem(data, comm);

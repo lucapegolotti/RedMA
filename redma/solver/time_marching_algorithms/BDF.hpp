@@ -42,7 +42,7 @@ public:
                                               int& status) override;
 
 protected:
-    std::vector<BlockVector<InVectorType> >  M_prevSolutions;
+    std::vector<BlockVector<InVectorType>>   M_prevSolutions;
     std::vector<double>                      M_coefficients;
     unsigned int                             M_order;
     double                                   M_rhsCoeff;

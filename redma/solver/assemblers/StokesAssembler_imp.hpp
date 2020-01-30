@@ -68,8 +68,22 @@ void
 StokesAssembler<InVectorType, InMatrixType>::
 exportSolution(const double& t, const BlockVector<InVectorType>& sol)
 {
-    *M_velocityExporter = *sol.block(0).data();
-    *M_pressureExporter = *sol.block(1).data();
+    bool useLifting = this->M_data("bc_conditions/lifting", true);
+    if (useLifting)
+    {
+        BlockVector<InVectorType> copySol;
+        copySol.hardCopy(sol);
+
+        this->M_bcManager->applyDirichletBCs(t, copySol, getFESpaceBCs(),
+                                             getComponentBCs());
+        *M_velocityExporter = *copySol.block(0).data();
+        *M_pressureExporter = *copySol.block(1).data();
+    }
+    else
+    {
+        *M_velocityExporter = *sol.block(0).data();
+        *M_pressureExporter = *sol.block(1).data();
+    }
 
     CoutRedirecter ct;
     ct.redirect();
@@ -110,13 +124,23 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 
     // treatment of Dirichlet bcs if needed
     bool useLifting = this->M_data("bc_conditions/lifting", true);
+
     if (useLifting)
     {
         BlockVector<InVectorType> lifting = computeLifting(time);
         retVec += (systemMatrix * lifting);
+
+        BlockVector<InVectorType> liftingDt = computeLiftingDt(time);
+        retVec -= (M_mass * liftingDt);
     }
 
     addNeumannBCs(retVec, time);
+
+    if (useLifting)
+        this->M_bcManager->apply0DirichletBCs(retVec, getFESpaceBCs(), getComponentBCs());
+    // else
+    //     this->M_bcManager->applyDirichletBCs(time, retVec, getFESpaceBCs(),
+    //                                          getComponentBCs());
 
     return retVec;
 }
@@ -131,13 +155,32 @@ computeLifting(const double& time) const
     lifting.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map(),
                                                    LifeV::Unique));
     lifting.block(0).data()->zero();
-    lifting.block(1).data().reset(new VECTOREPETRA(M_velocityFESpace->map(),
+    lifting.block(1).data().reset(new VECTOREPETRA(M_pressureFESpace->map(),
                                                    LifeV::Unique));
     lifting.block(1).data()->zero();
 
     this->M_bcManager->applyDirichletBCs(time, lifting, getFESpaceBCs(),
                                          getComponentBCs());
     return lifting;
+}
+
+template <class InVectorType, class InMatrixType>
+BlockVector<FEVECTOR>
+StokesAssembler<InVectorType, InMatrixType>::
+computeLiftingDt(const double& time) const
+{
+    BlockVector<InVectorType> liftingDt;
+    liftingDt.resize(2);
+    liftingDt.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map(),
+                                                     LifeV::Unique));
+    liftingDt.block(0).data()->zero();
+    liftingDt.block(1).data().reset(new VECTOREPETRA(M_pressureFESpace->map(),
+                                                     LifeV::Unique));
+    liftingDt.block(1).data()->zero();
+
+    this->M_bcManager->applyDirichletBCsDt(time, liftingDt, getFESpaceBCs(),
+                                           getComponentBCs());
+    return liftingDt;
 }
 
 template <class InVectorType, class InMatrixType>

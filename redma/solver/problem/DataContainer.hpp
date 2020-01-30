@@ -32,11 +32,15 @@ public:
 
     void setInflow(const std::function<double(double)>& inflow);
 
+    void setInflowDt(const std::function<double(double)>& inflowDt);
+
     void setVerbose(bool verbose);
 
     inline GetPot getDatafile() const {return *M_datafile;}
 
     inline std::function<double(double)> getInflow() const {return M_inflow;}
+
+    inline std::function<double(double)> getInflowDt() const {return M_inflowDt;}
 
     inline bool getVerbose() const {return M_verbose;}
 
@@ -49,6 +53,7 @@ public:
 protected:
     SHP(GetPot)                     M_datafile;
     std::function<double(double)>   M_inflow;
+    std::function<double(double)>   M_inflowDt;
     bool                            M_verbose;
 };
 

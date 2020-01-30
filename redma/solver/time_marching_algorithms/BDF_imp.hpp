@@ -92,10 +92,33 @@ advance(const double& time, double& dt, int& status)
         jacRhs = this->M_assembler->getJacobianRightHandSide(time+dt, sol);
         jacRhs *= (-1. * M_rhsCoeff * dt);
         retMat += jacRhs;
+
         return retMat;
     });
 
-    return this->M_systemSolver.solve(fct, jac, initialGuess, status);
+    BlockVector<InVectorType> sol = this->M_systemSolver.solve(fct, jac, initialGuess,
+                                                               status);
+
+    std::cout << "=======================" << std::endl << std::flush;
+    BV v1 = jac(M_prevSolutions[0]) * sol;
+    std::cout << v1.norm2() << std::endl << std::flush;
+
+    BV v2 = fct(M_prevSolutions[0]);
+    std::cout << v2.norm2() << std::endl << std::flush;
+
+    if (!status)
+    {
+        // shift solutions
+        std::vector<BlockVector<InVectorType>> newPrevSolutions(M_order);
+        newPrevSolutions[0].softCopy(sol);
+
+        for (unsigned int i = 0; i < M_order-1; i++)
+            newPrevSolutions[i+1].softCopy(M_prevSolutions[i]);
+
+        M_prevSolutions = newPrevSolutions;
+    }
+
+    return sol;
 }
 
 }

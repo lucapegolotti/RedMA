@@ -29,14 +29,18 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
     unsigned int count = 0;
     while (err > tol && count < maxit)
     {
-        curFun = fun(sol);
-        err = curFun.norm2();
+        if (count == 0)
+        {
+            curFun = fun(sol);
+            err = curFun.norm2();
+        }
 
         std::ostringstream streamOb;
         streamOb << err;
 
         msg = "[SystemSolver] Newtons algorithm,";
-        msg += " error = " + streamOb.str() + "\n";
+        msg += " error = " + streamOb.str();
+        msg += ", iteration = " + std::to_string(count+1) + "\n";
         printlog(GREEN, msg, M_data.getVerbose());
 
         if (err > tol)
@@ -48,10 +52,25 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
         }
         sol -= incr;
         count++;
+
+        curFun = fun(sol);
+        err = curFun.norm2();
     }
+
+    std::cout << "err == " << err << std::endl << std::flush;
     // newton method has failed
-    if (count == maxit)
+    if (count == maxit && err > tol)
         status = -1;
+    else
+    {
+        std::ostringstream streamOb;
+        streamOb << err;
+
+        msg = "[SystemSolver] Newtons algorithm, convergence,";
+        msg += " error = " + streamOb.str();
+        msg += ", iteration = " + std::to_string(count+1) + "\n";
+        printlog(GREEN, msg, M_data.getVerbose());
+    }
 
     status = 0;
     return sol;
