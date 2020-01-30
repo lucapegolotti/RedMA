@@ -109,19 +109,17 @@ void
 BlockMatrix<InMatrixType>::
 softCopy(const BlockMatrix<InMatrixType>& other)
 {
-    std::cout << "-" << std::endl << std::flush;
-    hardCopy(other);
-    // resize(other.M_nRows,other.M_nCols);
-    //
-    // for (unsigned int i = 0; i < M_nRows; i++)
-    // {
-    //     for (unsigned int j = 0; j < M_nCols; j++)
-    //     {
-    //         block(i,j).softCopy(other.block(i,j));
-    //     }
-    // }
-    // M_isFinalized = other.M_isFinalized;
-    // M_isNull = other.M_isNull;
+    resize(other.M_nRows,other.M_nCols);
+
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            block(i,j).softCopy(other.block(i,j));
+        }
+    }
+    M_isFinalized = other.M_isFinalized;
+    M_isNull = other.M_isNull;
 }
 
 template <class InMatrixType>

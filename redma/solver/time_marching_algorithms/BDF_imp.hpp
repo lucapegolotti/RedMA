@@ -58,8 +58,9 @@ advance(const double& time, double& dt, int& status)
     typedef BlockMatrix<InMatrixType>               BM;
 
     // we set the initial guess equal to the last solution
+    // keep in mind that this MUST be a hard copy
     BV initialGuess;
-    initialGuess.softCopy(M_prevSolutions[0]);
+    initialGuess.hardCopy(M_prevSolutions[0]);
 
     FunctionFunctor<BV,BV> fct(
         [this,time,dt](BV sol)
@@ -86,25 +87,18 @@ advance(const double& time, double& dt, int& status)
     FunctionFunctor<BV,BM> jac(
         [this,time,dt](BV sol)
     {
-        BM retMat = this->M_assembler->getMass(time+dt, sol);
-        BM jacRhs;
+        // here the choice of hard copies is compulsory
+        BM retMat;
 
-        jacRhs = this->M_assembler->getJacobianRightHandSide(time+dt, sol);
-        jacRhs *= (-1. * M_rhsCoeff * dt);
-        retMat += jacRhs;
+        retMat.hardCopy(this->M_assembler->getJacobianRightHandSide(time+dt, sol));
+        retMat *= (-1. * M_rhsCoeff * dt);
+        retMat += this->M_assembler->getMass(time+dt, sol);
 
         return retMat;
     });
 
     BlockVector<InVectorType> sol = this->M_systemSolver.solve(fct, jac, initialGuess,
                                                                status);
-
-    std::cout << "=======================" << std::endl << std::flush;
-    BV v1 = jac(M_prevSolutions[0]) * sol;
-    std::cout << v1.norm2() << std::endl << std::flush;
-
-    BV v2 = fct(M_prevSolutions[0]);
-    std::cout << v2.norm2() << std::endl << std::flush;
 
     if (!status)
     {

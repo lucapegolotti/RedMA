@@ -57,10 +57,19 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
         err = curFun.norm2();
     }
 
-    std::cout << "err == " << err << std::endl << std::flush;
     // newton method has failed
     if (count == maxit && err > tol)
+    {
         status = -1;
+
+        std::ostringstream streamOb;
+        streamOb << err;
+
+        msg = "[SystemSolver] Newtons algorithm, failed,";
+        msg += " error = " + streamOb.str();
+        msg += ", iteration = " + std::to_string(count+1) + "\n";
+        printlog(GREEN, msg, M_data.getVerbose());
+    }
     else
     {
         std::ostringstream streamOb;

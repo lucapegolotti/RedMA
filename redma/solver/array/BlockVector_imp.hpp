@@ -214,13 +214,11 @@ void
 BlockVector<InVectorType>::
 softCopy(const BlockVector<InVectorType>& other)
 {
-    std::cout << "." << std::endl << std::flush;
-    hardCopy(other);
-    // resize(other.M_nRows);
-    // for (unsigned int i = 0; i < M_nRows; i++)
-    // {
-    //     block(i).softCopy(other.block(i));
-    // }
+    resize(other.M_nRows);
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        block(i).softCopy(other.block(i));
+    }
 }
 
 template <class InVectorType>

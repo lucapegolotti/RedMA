@@ -170,7 +170,7 @@ poiseulle(const double& t, const double& x, const double& y,
     const Vector3D& center = face.M_center;
     const Vector3D& normal = face.M_normal;
     double radius = face.M_radius;
-    face.print();
+
     Vector3D curPoint(x,y,z);
     Vector3D diff = curPoint - center;
     double normDiff = radius - diff.norm();

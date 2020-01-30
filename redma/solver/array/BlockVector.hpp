@@ -71,6 +71,7 @@ public:
     void zero();
 
 protected:
+
     Grid            M_vectorGrid;
     unsigned int    M_nRows;
 };
