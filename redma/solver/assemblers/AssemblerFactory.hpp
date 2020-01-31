@@ -20,6 +20,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/assemblers/aAssembler.hpp>
 #include <redma/solver/assemblers/StokesAssembler.hpp>
+#include <redma/solver/assemblers/NavierStokesAssembler.hpp>
 #include <redma/utils/Exception.hpp>
 #include <redma/geometry/BuildingBlock.hpp>
 #include <redma/solver/problem/DataContainer.hpp>

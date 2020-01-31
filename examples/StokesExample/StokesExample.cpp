@@ -22,12 +22,12 @@ using namespace RedMA;
 
 double inflow(double t)
 {
-    return 10;
+    return 10*sin(t);
 }
 
 double inflowDt(double t)
 {
-    return 0;
+    return 10*cos(t);
 }
 
 int main(int argc, char **argv)

@@ -90,6 +90,8 @@ public:
     }
 
 protected:
+    void apply0DirichletBCs(BlockVector<InVectorType>& vector);
+
     BlockMatrix<InMatrixType>            M_mass;
     BlockMatrix<InMatrixType>            M_stiffness;
     BlockMatrix<InMatrixType>            M_divergence;

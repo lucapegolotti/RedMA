@@ -21,7 +21,7 @@ setup()
     LifeV::LifeChrono chrono;
     chrono.start();
 
-    printlog(YELLOW, "[StokesAssembler] initializing"
+    printlog(YELLOW, "[StokesAssembler] initializing "
                      "StokesAssembler ...", this->M_data.getVerbose());
 
     initializeFEspaces();
@@ -136,14 +136,22 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 
     addNeumannBCs(retVec, time);
 
-    if (useLifting)
-        this->M_bcManager->apply0DirichletBCs(retVec, getFESpaceBCs(), getComponentBCs());
-    // else
-    //     this->M_bcManager->applyDirichletBCs(time, retVec, getFESpaceBCs(),
-    //                                          getComponentBCs());
+    apply0DirichletBCs(retVec);
 
     return retVec;
 }
+
+template <class InVectorType, class InMatrixType>
+void
+StokesAssembler<InVectorType, InMatrixType>::
+apply0DirichletBCs(BlockVector<InVectorType>& vector)
+{
+    bool useLifting = this->M_data("bc_conditions/lifting", true);
+
+    if (useLifting)
+        this->M_bcManager->apply0DirichletBCs(vector, getFESpaceBCs(), getComponentBCs());
+}
+
 
 template <class InVectorType, class InMatrixType>
 BlockVector<FEVECTOR>
