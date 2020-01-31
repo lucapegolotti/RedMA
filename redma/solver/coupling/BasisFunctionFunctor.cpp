@@ -68,8 +68,8 @@ getLocalXAndY(const Vector3D& pos, double& x, double& y)
 
     Vector3D diff = pos - center;
 
-    x = pos.dot(M_e);
-    y = pos.dot(M_eOrth);
+    x = diff.dot(M_e);
+    y = diff.dot(M_eOrth);
 }
 
 void
