@@ -70,6 +70,15 @@ setup()
 }
 
 template <class InVectorType, class InMatrixType>
+void
+BlockAssembler<InVectorType, InMatrixType>::
+checkStabTerm(const BlockVector<InVectorType>& sol) const
+{
+    for (auto as: M_dualAssemblers)
+        as->checkStabilizationTerm(sol, M_primalAssemblers.size());
+}
+
+template <class InVectorType, class InMatrixType>
 BlockVector<InVectorType>
 BlockAssembler<InVectorType, InMatrixType>::
 getZeroVector() const
@@ -103,10 +112,14 @@ exportSolution(const double& t, const BlockVector<InVectorType>& sol)
 template <class InVectorType, class InMatrixType>
 void
 BlockAssembler<InVectorType, InMatrixType>::
-postProcess()
+postProcess(const BlockVector<InVectorType>& sol)
 {
     for (auto as : M_primalAssemblers)
-        as.second->postProcess();
+        as.second->postProcess(sol.block(as.first));
+
+    if (this->M_data("coupling/check_stabterm", false))
+        checkStabTerm(sol);
+
 }
 
 template <class InVectorType, class InMatrixType>

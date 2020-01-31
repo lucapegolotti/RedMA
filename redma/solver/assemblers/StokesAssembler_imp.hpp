@@ -94,7 +94,7 @@ exportSolution(const double& t, const BlockVector<InVectorType>& sol)
 template <class InVectorType, class InMatrixType>
 void
 StokesAssembler<InVectorType, InMatrixType>::
-postProcess()
+postProcess(const BlockVector<InVectorType>& sol)
 {
 
 }

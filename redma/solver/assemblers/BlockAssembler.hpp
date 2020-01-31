@@ -41,7 +41,7 @@ public:
     virtual void exportSolution(const double& t,
                                 const BlockVector<InVectorType>& sol) override;
 
-    virtual void postProcess() override;
+    virtual void postProcess(const BlockVector<InVectorType>& sol) override;
 
     virtual BlockMatrix<InMatrixType> getMass(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
@@ -53,6 +53,8 @@ public:
                                       const BlockVector<InVectorType>& sol) override;
 
     virtual BlockVector<InVectorType> getZeroVector() const override;
+
+    virtual void checkStabTerm(const BlockVector<InVectorType>& sol) const;
 
 protected:
     GetPot                                                        M_datafile;

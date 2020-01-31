@@ -56,7 +56,7 @@ solve()
         if (count % saveEvery == 0)
             M_assembler->exportSolution(t, M_solution);
 
-        M_assembler->postProcess();
+        M_assembler->postProcess(M_solution);
         count++;
     }
 }

@@ -3,7 +3,7 @@
 #-------------------------------------------------------------
 
 [geometric_structure]
-	xmlfile = geometries/tree1.xml
+	xmlfile = geometries/tree.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -69,6 +69,7 @@
 
 [coupling]
 	type                = chebyshev
-	nMax                = 1
-	stab_coefficient	= 1e-5
+	nMax                = 2
+	stab_coefficient	= 1e-8
+	check_stabterm		= true
 [../]

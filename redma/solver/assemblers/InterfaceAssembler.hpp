@@ -29,6 +29,8 @@
 
 #include <lifev/eta/expression/Integrate.hpp>
 
+#define THRESHOLDSTAB       1e-15
+
 namespace RedMA
 {
 
@@ -85,6 +87,9 @@ public:
 
     BlockVector<InVectorType> getZeroVector() const;
 
+    double checkStabilizationTerm(const BlockVector<BlockVector<InVectorType>>& sol,
+                                  const unsigned int& nPrimalBlocks);
+
 private:
     SHP(LifeV::QuadratureRule) generateQuadratureRule(std::string tag) const;
 
@@ -109,6 +114,8 @@ private:
     BlockMatrix<InMatrixType>                       M_fatherB;
     BlockMatrix<InMatrixType>                       M_childBT;
     BlockMatrix<InMatrixType>                       M_childB;
+    BlockMatrix<InMatrixType>                       M_stabChild;
+    BlockMatrix<InMatrixType>                       M_stabFather;
     DataContainer                                   M_data;
     SHP(LifeV::MapEpetra)                           M_mapLagrange;
     double                                          M_stabilizationCoupling;

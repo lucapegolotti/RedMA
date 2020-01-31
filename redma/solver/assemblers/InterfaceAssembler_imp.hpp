@@ -37,7 +37,7 @@ setup()
     printlog(YELLOW, "[InterfaceAssembler] initialize interface"
                      " assembler ...", M_data.getVerbose());
 
-    M_stabilizationCoupling = M_data("coupling/stab_coefficient", 1e-5);
+    M_stabilizationCoupling = M_data("coupling/stab_coefficient", 0.0);
 
     buildCouplingMatrices();
 
@@ -79,8 +79,48 @@ addContributionRhs(BlockVector<BlockVector<InVectorType>>& rhs,
     // + lagrange at rhs
     if (M_stabilizationCoupling > 1e-15)
     {
-        rhs.block(nPrimalBlocks + interfaceID) +=
+        rhs.block(nPrimalBlocks + interfaceID) -= (M_stabFather * sol.block(fatherID)) * (0.5 * M_stabilizationCoupling);
+        rhs.block(nPrimalBlocks + interfaceID) -= (M_stabChild * sol.block(childID)) * (0.5 * M_stabilizationCoupling);
+
+        rhs.block(nPrimalBlocks + interfaceID) -=
         sol.block(nPrimalBlocks + interfaceID) * M_stabilizationCoupling;
+    }
+}
+
+template <class InVectorType, class InMatrixType>
+double
+InterfaceAssembler<InVectorType, InMatrixType>::
+checkStabilizationTerm(const BlockVector<BlockVector<InVectorType>>& sol,
+                       const unsigned int& nPrimalBlocks)
+{
+    if (M_stabilizationCoupling > THRESHOLDSTAB)
+    {
+        unsigned int fatherID = M_interface.M_indexFather;
+        unsigned int childID = M_interface.M_indexChild;
+        unsigned int interfaceID = M_interface.M_ID;
+
+        BlockVector<BlockVector<InVectorType>> res;
+        res.resize(1);
+
+        res.block(0) -= (M_stabFather * sol.block(fatherID)) * 0.5;
+        res.block(0) -= (M_stabChild * sol.block(childID)) * 0.5;
+
+        // std::cout << "--------" << std::endl << std::flush;
+        // res.block(0).block(0).data()->showMe();
+        // std::cout << "++++++++" << std::endl << std::flush;
+        // sol.block(nPrimalBlocks + interfaceID).block(0).data()->showMe();
+        //
+        // std::cout << "stab term stress " << res.norm2() << std::endl << std::flush;
+        // std::cout << "stab term lagrange " << sol.block(nPrimalBlocks + interfaceID).norm2() << std::endl << std::flush;
+
+        res.block(0) -= sol.block(nPrimalBlocks + interfaceID);
+
+        std::string msg = "[InterfaceAssembler] interface ID = ";
+        msg += std::to_string(interfaceID);
+        msg += ", stab term norm = ";
+        msg += std::to_string(res.norm2());
+        msg += "\n";
+        printlog(MAGENTA, msg, M_data.getVerbose());
     }
 }
 
@@ -108,8 +148,13 @@ addContributionJacobianRhs(BlockMatrix<BlockMatrix<InMatrixType>>& jac,
     jac.block(nPrimalBlocks + interfaceID,  childID) *= (-1);
 
     // identity is already multiplied by stabilization coefficient
-    if (M_stabilizationCoupling > 1e-15)
-        jac.block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID).hardCopy(M_identity);
+    if (M_stabilizationCoupling > THRESHOLDSTAB)
+    {
+        jac.block(nPrimalBlocks + interfaceID, fatherID) += (M_stabFather * (-0.5 * M_stabilizationCoupling));
+        jac.block(nPrimalBlocks + interfaceID,  childID) += (M_stabChild * (-0.5 * M_stabilizationCoupling));
+
+        jac.block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID).hardCopy(M_identity * (-1.0 *M_stabilizationCoupling));
+    }
 }
 
 }

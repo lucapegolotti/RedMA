@@ -127,7 +127,6 @@ buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
         versor[2] = 0.;
 
         versor[dim] = 1.;
-
         for (unsigned int i = 0; i < nBasisFunctions; i++)
         {
             SHP(VECTOREPETRA) currentMode(new VECTOREPETRA(map, LifeV::Repeated));
@@ -193,7 +192,7 @@ buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
                           boundaryQuadRule,
                           etfespace,
                           eval(bfs, X) * value(0.5 * viscosity) *
-                          dot((grad(phi_i) + transpose(grad(phi_i)))*Nface,versor)
+                          dot((grad(phi_i) + transpose(grad(phi_i)))*face.M_normal,versor)
                       ) >> currentMode;
             }
             else
@@ -202,7 +201,7 @@ buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
                           boundaryQuadRule,
                           etfespace,
                           eval(bfs, X) * value(viscosity) *
-                          dot((grad(phi_i))*Nface,versor)
+                          dot((grad(phi_i))*face.M_normal,versor)
                       ) >> currentMode;
             }
             couplingVectors[count].data() = currentMode;
@@ -257,7 +256,7 @@ buildStabilizationVectorsPressure(SHP(BasisFunctionFunctor) bfs,
                       boundaryQuadRule,
                       etfespace,
                       eval(bfs, X) * value(-1.0) *
-                      dot(phi_i * Nface,versor)
+                      dot(phi_i*face.M_normal,versor)
                   ) >> currentMode;
 
             couplingVectors[count].data() = currentMode;
@@ -308,7 +307,7 @@ buildStabilizationVectorsLagrange() const
         newvec->zero();
 
         if (lagrangeMap->isOwned(i))
-            (*newvec)[i] = M_stabilizationCoupling;
+            (*newvec)[i] = 1.0;
 
         retVectors[i].data() = newvec;
     }
@@ -336,9 +335,7 @@ buildStabilizationMatrix(SHP(AssemblerType) assembler,
 
     stab.block(0,0).softCopy(MatrixEp(stabVectorsVelocity).transpose());
     stab.block(0,1).softCopy(MatrixEp(stabVectorsPressure).transpose());
-    stab *= M_stabilizationCoupling * 0.5;
-
-    matrix += stab;
+    matrix.softCopy(stab);
 
     std::vector<VectorEp> stabVectorsLagrange = buildStabilizationVectorsLagrange();
     M_identity.resize(1,1);
@@ -358,9 +355,10 @@ buildCouplingMatrices()
 
     buildCouplingMatrices(asFather, outlet, M_fatherBT, M_fatherB);
 
-    if (M_stabilizationCoupling > 1e-15)
+    if (M_stabilizationCoupling > THRESHOLDSTAB)
     {
-        buildStabilizationMatrix(asFather, outlet, M_fatherB);
+        buildStabilizationMatrix(asFather, outlet, M_stabFather);
+        // M_stabFather *= 0.5;
     }
 
     auto asChild = M_interface.M_assemblerChild;
@@ -370,9 +368,11 @@ buildCouplingMatrices()
 
     buildCouplingMatrices(asChild, inlet, M_childBT, M_childB);
 
-    if (M_stabilizationCoupling > 1e-15)
+    if (M_stabilizationCoupling > THRESHOLDSTAB)
     {
-        buildStabilizationMatrix(asChild, inlet, M_childB);
+        buildStabilizationMatrix(asChild, inlet, M_stabChild);
+        // no need to multiply by -1 as the inlet is already reversed
+        // M_stabChild *= (-1.);
     }
 
     M_childB *= (-1.);

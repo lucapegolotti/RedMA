@@ -43,7 +43,7 @@ public:
     virtual void exportSolution(const double& t,
                                 const BlockVector<InVectorType>& sol) override;
 
-    virtual void postProcess() override;
+    virtual void postProcess(const BlockVector<InVectorType>& sol) override;
 
     virtual BlockMatrix<InMatrixType> getMass(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
