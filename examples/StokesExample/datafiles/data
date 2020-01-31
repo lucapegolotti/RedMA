@@ -24,7 +24,7 @@
 
 [newton_method]
 	tol = 1e-7
-	maxit = 1
+	maxit = 10
 [../]
 
 [fluid]
@@ -32,7 +32,6 @@
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1
-	use_stabilization = true
 	inflow_bc      = dirichlet
 [../]
 
@@ -70,6 +69,6 @@
 [coupling]
 	type                = chebyshev
 	nMax                = 2
-	stab_coefficient	= 1e-8
+	stab_coefficient	= 1e-4
 	check_stabterm		= true
 [../]

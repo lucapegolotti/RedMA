@@ -3,8 +3,28 @@
 #-------------------------------------------------------------
 
 [geometric_structure]
-	xmlfile = tree.xml
+	xmlfile = geometries/tree.xml
+	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
+[../]
+
+[assembler]
+	type = navierstokes
+[../]
+
+[bc_conditions]
+	lifting = true
+[../]
+
+[preconditioner]
+	options = datafiles/solversOptionsFast
+	outer   = saddlepoint
+	inner	= SIMPLE
+[../]
+
+[newton_method]
+	tol = 1e-7
+	maxit = 10
 [../]
 
 [fluid]
@@ -12,7 +32,6 @@
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1
-	use_stabilization = true
 	inflow_bc      = dirichlet
 [../]
 
@@ -31,26 +50,16 @@
 [../]
 
 [time_discretization]
-	algorithm = backward_euler # rosenbrock
-	scheme = ROS3Pw
+	algorithm = bdf
+	order = 1
 	t0 = 0
-	T = 2.4
-	dt = 0.02
-[../]
-
-[newton_method]
-	tol = 1e-5
-	maxit = 10
-[../]
-
-[linear_solve]
-	num_exact_iterations = 3
-	exact_solve_primal = false
+	T = 0.01
+	dt = 0.01
 [../]
 
 [exporter]
 	outdir	   = solutions/
-	type       = vtk
+	type       = hdf5
 	multimesh  = false
 	start      = 0
 	save_every = 1
@@ -59,8 +68,7 @@
 
 [coupling]
 	type                = chebyshev
-	nMax                = 1
-	orthonormalization  = POD
-	beta_threshold      = 0
-	use_interpolation   = false
+	nMax                = 2
+	stab_coefficient	= 1e-8
+	check_stabterm		= true
 [../]

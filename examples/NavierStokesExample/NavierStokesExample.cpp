@@ -14,86 +14,40 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
-
-#include <functional>
-
-#include <GlobalProblem.hpp>
-#include <NavierStokesAssembler.hpp>
-#include <PseudoFSIAssembler.hpp>
-
-#include <lifev/core/filter/GetPot.hpp>
+#include <redma/RedMA.hpp>
+#include <redma/solver/problem/ProblemFEM.hpp>
+#include <redma/solver/problem/DataContainer.hpp>
 
 using namespace RedMA;
 
-#define COEFF 4
-#define HEARTBEAT 0.8
-// double maxLaw(double t)
-// {
-//     double tt = std::fmod(t,HEARTBEAT);
-//     double poly = 0;
-//     const double coeffs[8] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6, 0.0};
-//
-//     double mon = 1.0;
-//     for (int i = 0; i < 8; i++)
-//     {
-//         poly += coeffs[7-i] * mon;
-//         mon *= tt / HEARTBEAT;
-//     }
-//     return poly * COEFF;
-// }
-//
-// double maxLawDt(double t)
-// {
-//     double tt = std::fmod(t,HEARTBEAT);
-//     double poly = 0;
-//     const double coeffs[7] = {-743.0, 2524.6, -3318.4, 2087.0, -606.25, 49.5, 6.6};
-//
-//     double mon = 1.0;
-//     for (int i = 0; i < 7; i++)
-//     {
-//         poly += coeffs[6-i] * mon;
-//         mon *= tt / HEARTBEAT;
-//     }
-//     return poly * COEFF;
-// }
-
-double maxLaw_(double t)
+double inflow(double t)
 {
-    return std::sin(t);
+    return 10*sin(t);
 }
 
-double maxLawDt_(double t)
+double inflowDt(double t)
 {
-    return std::cos(t);
+    return 10*cos(t);
 }
-
 
 int main(int argc, char **argv)
 {
     #ifdef HAVE_MPI
     MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    EPETRACOMM comm (new Epetra_MpiComm(MPI_COMM_WORLD));
     #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm());
+    EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
+    DataContainer data;
+    data.setDatafile("datafiles/data");
+    data.setInflow(inflow);
+    data.setInflowDt(inflowDt);
+    data.setVerbose(comm->MyPID() == 0);
 
-    GetPot datafile("data");
+    ProblemFEM femProblem(data, comm);
 
-    bool verbose = comm->MyPID() == 0;
-
-    GlobalProblem gs(datafile, comm, verbose);
-    gs.setExportNorms("norms_nonconforming.txt");
-    gs.setLawInflow(std::function<double(double)>(maxLaw_));
-    gs.setLawDtInflow(std::function<double(double)>(maxLawDt_));
-    gs.solve();
+    femProblem.solve();
 
     return 0;
 }
