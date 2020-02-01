@@ -50,6 +50,11 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
         M_rangeMaps = allmaps.getRangeMapsEpetra();
         M_domainMaps = allmaps.getDomainMapsEpetra();
         M_monolithicMap = allmaps.getMonolithicRangeMapEpetra();
+        std::string msg = "Monolithic map size = ";
+        msg += std::to_string(M_monolithicMap->mapSize());
+        msg += "\n";
+        printlog(GREEN, msg, M_data.getVerbose());
+
         M_matrixCollapsed = collapseBlocks(matrix, allmaps);
 
         allocateInnerPreconditioners(A);
@@ -214,73 +219,76 @@ SaddlePointPreconditionerEp::
 computeSingleAm1BT(const BlockMatrix<MatrixEp>& A, const BlockMatrix<MatrixEp>& BT,
                    const unsigned int& index)
 {
-    LifeV::LifeChrono chrono;
-    chrono.start();
-    printlog(GREEN, "[SaddlePointPreconditionerEp] single AM1BT ...", M_data.getVerbose());
-
     BlockMatrix<MatrixEp> retMat;
     retMat.resize(A.nRows(), BT.nCols());
 
-    MAPEPETRA rangeMapU = BT.block(0,0).data()->rangeMap();
-    MAPEPETRA rangeMapP = A.block(1,0).data()->rangeMap();
-    MAPEPETRA domainMap = BT.block(0,0).data()->domainMap();
-
-    VECTOREPETRA selector(domainMap);
-    VECTOREPETRA colU(rangeMapU);
-    VECTOREPETRA colP(rangeMapP);
-
-    unsigned int ncols = domainMap.mapSize();
-
-    std::vector<VectorEp> ressU(ncols);
-    std::vector<VectorEp> ressP(ncols);
-    for (unsigned int i = 0; i < ncols; i++)
+    if (!BT.isNull())
     {
-        selector.zero();
-        colU.zero();
-        colP.zero();
-        if (domainMap.isOwned(i))
-            selector[i] = 1.0;
+        LifeV::LifeChrono chrono;
+        chrono.start();
+        printlog(GREEN, "[SaddlePointPreconditionerEp] single AM1BT ...", M_data.getVerbose());
 
-        colU = (*BT.block(0,0).data()) * selector;
 
-        ressU[i].data().reset(new VECTOREPETRA(rangeMapU));
-        ressP[i].data().reset(new VECTOREPETRA(rangeMapP));
+        MAPEPETRA rangeMapU = BT.block(0,0).data()->rangeMap();
+        MAPEPETRA rangeMapP = A.block(1,0).data()->rangeMap();
+        MAPEPETRA domainMap = BT.block(0,0).data()->domainMap();
 
-        if (!std::strcmp(M_approxSchurType.c_str(),"exact"))
+        VECTOREPETRA selector(domainMap);
+        VECTOREPETRA colU(rangeMapU);
+        VECTOREPETRA colP(rangeMapP);
+
+        unsigned int ncols = domainMap.mapSize();
+
+        std::vector<VectorEp> ressU(ncols);
+        std::vector<VectorEp> ressP(ncols);
+        for (unsigned int i = 0; i < ncols; i++)
         {
-            auto monolithicMap = rangeMapU;
-            monolithicMap += rangeMapP;
+            selector.zero();
+            colU.zero();
+            colP.zero();
+            if (domainMap.isOwned(i))
+                selector[i] = 1.0;
 
-            VECTOREPETRA X(monolithicMap);
-            VECTOREPETRA Y(monolithicMap);
-            X.zero();
-            Y.zero();
+            colU = (*BT.block(0,0).data()) * selector;
 
-            X.subset(colU, rangeMapU, 0, 0);
-            CoutRedirecter ct;
-            ct.redirect();
-            M_invOperators[index]->ApplyInverse(X.epetraVector(), Y.epetraVector());
-            ct.restore();
+            ressU[i].data().reset(new VECTOREPETRA(rangeMapU));
+            ressP[i].data().reset(new VECTOREPETRA(rangeMapP));
 
-            ressU[i].data()->subset(Y, rangeMapU, 0, 0);
-            ressP[i].data()->subset(Y, rangeMapP, rangeMapU.mapSize(), 0);
+            if (!std::strcmp(M_approxSchurType.c_str(),"exact"))
+            {
+                auto monolithicMap = rangeMapU;
+                monolithicMap += rangeMapP;
+
+                VECTOREPETRA X(monolithicMap);
+                VECTOREPETRA Y(monolithicMap);
+                X.zero();
+                Y.zero();
+
+                X.subset(colU, rangeMapU, 0, 0);
+                CoutRedirecter ct;
+                ct.redirect();
+                M_invOperators[index]->ApplyInverse(X.epetraVector(), Y.epetraVector());
+                ct.restore();
+
+                ressU[i].data()->subset(Y, rangeMapU, 0, 0);
+                ressP[i].data()->subset(Y, rangeMapP, rangeMapU.mapSize(), 0);
+            }
+            else if (!std::strcmp(M_approxSchurType.c_str(),"SIMPLE"))
+                M_innerPreconditioners[index]->ApplyInverse(colU, colP,
+                                                            *ressU[i].data(),
+                                                            *ressP[i].data());
+
         }
-        else if (!std::strcmp(M_approxSchurType.c_str(),"SIMPLE"))
-            M_innerPreconditioners[index]->ApplyInverse(colU, colP,
-                                                        *ressU[i].data(),
-                                                        *ressP[i].data());
+        MatrixEp Am1BTu(ressU);
+        MatrixEp Am1BTp(ressP);
+        retMat.block(0,0).softCopy(Am1BTu);
+        retMat.block(1,0).softCopy(Am1BTp);
 
+        std::string msg = "done, in ";
+        msg += std::to_string(chrono.diff());
+        msg += " seconds\n";
+        printlog(GREEN, msg, M_data.getVerbose());
     }
-    MatrixEp Am1BTu(ressU);
-    MatrixEp Am1BTp(ressP);
-    retMat.block(0,0).softCopy(Am1BTu);
-    retMat.block(1,0).softCopy(Am1BTp);
-
-    std::string msg = "done, in ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(GREEN, msg, M_data.getVerbose());
-
     return retMat;
 }
 

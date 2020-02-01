@@ -50,6 +50,12 @@ public:
 
     double operator()(std::string location, double defValue) const;
 
+    void setValue(std::string location, std::string defValue);
+
+    void setValue(std::string location, int defValue);
+
+    void setValue(std::string location, double defValue);
+
 protected:
     SHP(GetPot)                     M_datafile;
     std::function<double(double)>   M_inflow;

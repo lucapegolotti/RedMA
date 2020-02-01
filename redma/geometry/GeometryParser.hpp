@@ -55,6 +55,8 @@ private:
     TreeStructure M_tree;
     GetPot  M_datafile;
     bool M_verbose;
+    int M_maxNumBlocks;
+    unsigned int M_numBlocks;
 };
 
 }  // namespace RedMA

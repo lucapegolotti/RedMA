@@ -59,4 +59,25 @@ operator()(std::string location, double defValue) const
     return M_datafile->operator()(location.c_str(), defValue);
 }
 
+void
+DataContainer::
+setValue(std::string location, std::string value)
+{
+    M_datafile->set(location.c_str(), value.c_str());
+}
+
+void
+DataContainer::
+setValue(std::string location, int value)
+{
+    M_datafile->set(location.c_str(), value);
+}
+
+void
+DataContainer::
+setValue(std::string location, double value)
+{
+    M_datafile->set(location.c_str(), value);
+}
+
 }

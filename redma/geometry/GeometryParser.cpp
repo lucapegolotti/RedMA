@@ -8,12 +8,15 @@ GeometryParser(const GetPot& datafile, std::string fileName,
                commPtr_Type comm, bool verbose) :
   M_comm(comm),
   M_datafile(datafile),
-  M_verbose(verbose)
+  M_verbose(verbose),
+  M_numBlocks()
 {
     printlog(MAGENTA, "[GeometryParser] parsing " +
                     fileName + " structure file ...\n", M_verbose);
     tinyxml2::XMLDocument doc;
     int status = doc.LoadFile(fileName.c_str());
+
+    M_maxNumBlocks = M_datafile("geometric_structure/maxnumblocks", -1);
 
     if (status)
     {
@@ -23,7 +26,6 @@ GeometryParser(const GetPot& datafile, std::string fileName,
     }
 
     tinyxml2::XMLElement* rootElement = doc.FirstChildElement();
-
     traverseXML(rootElement, 0);
 
     printlog(MAGENTA, "done\n", verbose);
@@ -34,29 +36,32 @@ GeometryParser::
 traverseXML(tinyxml2::XMLElement* curElement,
             unsigned int IDfather)
 {
-    std::shared_ptr<BuildingBlock> newNode;
-    unsigned int outletParent = -1;
-    if (curElement)
-        newNode = parseElement(curElement, outletParent);
-    else
-        return;
-
-    unsigned int newID = 0;
-    if (M_tree.isEmpty())
-        M_tree.setRoot(newNode);
-    else
-        newID = M_tree.addChild(IDfather, newNode, outletParent);
-
-    if (curElement->NoChildren())
-        return;
-
-    tinyxml2::XMLElement* childElement =
-                          curElement->FirstChildElement();
-    while(childElement)
+    if (M_maxNumBlocks < 0 || M_numBlocks < M_maxNumBlocks)
     {
-        if (childElement->Attribute("type"))
-            traverseXML(childElement, newID);
-        childElement = childElement->NextSiblingElement();
+        std::shared_ptr<BuildingBlock> newNode;
+        unsigned int outletParent = -1;
+        if (curElement)
+            newNode = parseElement(curElement, outletParent);
+        else
+            return;
+
+        unsigned int newID = 0;
+        if (M_tree.isEmpty())
+            M_tree.setRoot(newNode);
+        else
+            newID = M_tree.addChild(IDfather, newNode, outletParent);
+
+        if (curElement->NoChildren())
+            return;
+
+        tinyxml2::XMLElement* childElement =
+                              curElement->FirstChildElement();
+        while(childElement)
+        {
+            if (childElement->Attribute("type"))
+                traverseXML(childElement, newID);
+            childElement = childElement->NextSiblingElement();
+        }
     }
 }
 
@@ -149,6 +154,8 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
             *parametersMap[paramName] = std::stod(value->GetText());
     }
     returnBlock->setDatafile(M_datafile);
+
+    M_numBlocks++;
 
     return returnBlock;
 }
