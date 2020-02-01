@@ -100,6 +100,9 @@ advance(const double& time, double& dt, int& status)
     BlockVector<InVectorType> sol = this->M_systemSolver.solve(fct, jac, initialGuess,
                                                                status);
 
+    std::vector<SolverStatistics> statistics = this->M_systemSolver.getSolverStatistics();
+    this->dumpSolverStatistics(statistics, time+dt);
+
     if (!status)
     {
         // shift solutions

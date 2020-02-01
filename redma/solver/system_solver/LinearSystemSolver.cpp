@@ -18,6 +18,7 @@ buildPreconditioner(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix)
     {
         throw new Exception("Unkown type of preconditioner!");
     }
+    M_statistics.M_precSetupTime = M_prec->getSetupTime();
 }
 
 template <>
@@ -36,7 +37,17 @@ solve(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
 
     M_invOper->setPreconditioner(M_prec);
 
-    M_invOper->invert(rhs, sol);
+    LifeV::LifeChrono chrono;
+    chrono.start();
+    printlog(MAGENTA, "[LinearSystemSolver] solve ...", M_data.getVerbose());
+
+    M_statistics.M_numIterations = M_invOper->invert(rhs, sol);
+
+    M_statistics.M_solveTime = chrono.diff();
+    std::string msg = "done, in ";
+    msg += std::to_string(M_statistics.M_solveTime);
+    msg += " seconds\n";
+    printlog(GREEN, msg, M_data.getVerbose());
 }
 
 

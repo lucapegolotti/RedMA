@@ -24,6 +24,8 @@
 
 #include <redma/solver/problem/DataContainer.hpp>
 
+#include <fstream>
+
 namespace RedMA
 {
 
@@ -37,10 +39,14 @@ public:
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
                                               int& status) = 0;
 
+    void dumpSolverStatistics(std::vector<SolverStatistics> statistics,
+                              const double& t) const;
+
 protected:
     DataContainer                                       M_data;
     SystemSolver<InVectorType, InMatrixType>            M_systemSolver;
     SHP(aAssembler<InVectorType COMMA InMatrixType>)    M_assembler;
+    std::string                                         M_statisticsFile;
 };
 
 }

@@ -8,14 +8,21 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
   M_data(data),
   M_matrix(matrix)
 {
+    LifeV::LifeChrono chrono;
+    chrono.start();
+
+    printlog(MAGENTA, "[SaddlePointPreconditionerEp] starting setup ...\n", M_data.getVerbose());
     // split matrices
     unsigned int nBlocks = matrix.nRows();
 
     // read options
     setSolverOptions();
 
-    // build Schur complement
+    // preconditioner used to approximate Am1 in iterations
     M_innerPrecType = M_data("preconditioner/inner", "SIMPLE");
+
+    // solution method to approximate BAm1BT in schur
+    M_approxSchurType = M_data("preconditioner/approxshur", "SIMPLE");
 
     if (nBlocks > 1)
     {
@@ -45,15 +52,13 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
         M_monolithicMap = allmaps.getMonolithicRangeMapEpetra();
         M_matrixCollapsed = collapseBlocks(matrix, allmaps);
 
-        if (!std::strcmp(M_innerPrecType.c_str(), "exactsolve"))
+        allocateInnerPreconditioners(A);
+
+        if (!std::strcmp(M_innerPrecType.c_str(), "exact") ||
+            !std::strcmp(M_approxSchurType.c_str(), "exact"))
         {
+            allocateInverseSolvers(A);
         }
-        else if (!std::strcmp(M_innerPrecType.c_str(), "SIMPLE"))
-        {
-            allocateInnerPreconditioners(A);
-        }
-        else
-            throw new Exception("Requested inner preconditioner not implemented");
 
         computeSchurComplement(A, BT, B, C);
     }
@@ -62,6 +67,13 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
         M_nPrimalBlocks = 1;
         allocateInnerPreconditioners(matrix);
     }
+
+    M_setupTime = chrono.diff();
+
+    std::string msg = "done, in ";
+    msg += std::to_string(M_setupTime);
+    msg += " seconds\n";
+    printlog(MAGENTA, msg, M_data.getVerbose());
 }
 
 void
@@ -83,9 +95,53 @@ computeSchurComplement(const BM& A, const BM& BT, const BM& B, const BM& C)
     SHP(Teuchos::ParameterList) globalSchurOptions;
     globalSchurOptions.reset(new
         Teuchos::ParameterList(M_solversOptionsInner->sublist("GlobalSchurOperator")));
+
     M_approximatedSchurInverse->SetRowMatrix(Scoll2.data()->matrixPtr());
     M_approximatedSchurInverse->SetParameterList(*globalSchurOptions);
     M_approximatedSchurInverse->Compute();
+}
+
+void
+SaddlePointPreconditionerEp::
+allocateInverseSolvers(const BM& primalMatrix)
+{
+    unsigned int nrows = primalMatrix.nRows();
+    for (unsigned int i = 0; i < nrows; i++)
+    {
+        SHP(InvOp) invOper;
+        SHP(NSOp) oper(new NSOp);
+
+        boost::numeric::ublas::matrix<SHP(MATRIXEPETRA::matrix_type)> matrixGrid(2,2);
+        matrixGrid(0,0) = primalMatrix.block(i,i).block(0,0).data()->matrixPtr();
+        matrixGrid(1,0) = primalMatrix.block(i,i).block(1,0).data()->matrixPtr();
+        matrixGrid(0,1) = primalMatrix.block(i,i).block(0,1).data()->matrixPtr();
+        if (!primalMatrix.block(i,i).block(1,1).isNull())
+            matrixGrid(1,1) = primalMatrix.block(i,i).block(1,1).data()->matrixPtr();
+
+        oper->setUp(matrixGrid,
+                    primalMatrix.block(i,i).block(0,0).data()->rangeMap().commPtr());
+
+        SHP(Teuchos::ParameterList) options;
+
+        options.reset(new Teuchos::ParameterList(M_solversOptionsInner->sublist("InnerBlockOperator")));
+
+        double innertol = M_data("preconditioner/innertol", 1e-3);
+
+        std::string solverType(options->get<std::string>("Linear Solver Type"));
+        if (!std::strcmp(solverType.c_str(),"AztecOO"))
+            options->sublist(solverType).sublist("options")
+                                        .get<double>("tol") = innertol;
+        else if (!std::strcmp(solverType.c_str(),"Belos"))
+            options->sublist(solverType).sublist("options")
+                                        .get<double>("Convergence Tolerance") = innertol;
+
+        invOper.reset(LifeV::Operators::InvertibleOperatorFactory::instance().createObject(solverType));
+
+        invOper->setParameterList(options->sublist(solverType));
+        invOper->setOperator(oper);
+        invOper->setPreconditioner(M_innerPreconditioners[i]);
+        M_invOperators.push_back(invOper);
+    }
 }
 
 void
@@ -98,7 +154,7 @@ allocateInnerPreconditioners(const BM& primalMatrix)
     {
         SHP(NSPrec) newPrec;
         newPrec.reset(LifeV::Operators::NSPreconditionerFactory::
-                      instance().createObject(M_innerPrecType));
+                      instance().createObject("SIMPLE"));
         newPrec->setOptions(*M_solversOptionsInner);
 
         if (!primalMatrix.block(i,i).block(1,1).isNull())
@@ -133,7 +189,6 @@ allocateInnerPreconditioners(const BM& primalMatrix)
 
         newPrec->updateApproximatedMomentumOperator();
         newPrec->updateApproximatedSchurComplementOperator();
-
         M_innerPreconditioners.push_back(newPrec);
     }
 }
@@ -159,45 +214,72 @@ SaddlePointPreconditionerEp::
 computeSingleAm1BT(const BlockMatrix<MatrixEp>& A, const BlockMatrix<MatrixEp>& BT,
                    const unsigned int& index)
 {
+    LifeV::LifeChrono chrono;
+    chrono.start();
+    printlog(GREEN, "[SaddlePointPreconditionerEp] single AM1BT ...", M_data.getVerbose());
+
     BlockMatrix<MatrixEp> retMat;
     retMat.resize(A.nRows(), BT.nCols());
 
-    if (!std::strcmp(M_innerPrecType.c_str(),"SIMPLE"))
+    MAPEPETRA rangeMapU = BT.block(0,0).data()->rangeMap();
+    MAPEPETRA rangeMapP = A.block(1,0).data()->rangeMap();
+    MAPEPETRA domainMap = BT.block(0,0).data()->domainMap();
+
+    VECTOREPETRA selector(domainMap);
+    VECTOREPETRA colU(rangeMapU);
+    VECTOREPETRA colP(rangeMapP);
+
+    unsigned int ncols = domainMap.mapSize();
+
+    std::vector<VectorEp> ressU(ncols);
+    std::vector<VectorEp> ressP(ncols);
+    for (unsigned int i = 0; i < ncols; i++)
     {
-        MAPEPETRA rangeMapU = BT.block(0,0).data()->rangeMap();
-        MAPEPETRA rangeMapP = A.block(1,0).data()->rangeMap();
-        MAPEPETRA domainMap = BT.block(0,0).data()->domainMap();
+        selector.zero();
+        colU.zero();
+        colP.zero();
+        if (domainMap.isOwned(i))
+            selector[i] = 1.0;
 
-        VECTOREPETRA selector(domainMap);
-        VECTOREPETRA colU(rangeMapU);
-        VECTOREPETRA colP(rangeMapP);
+        colU = (*BT.block(0,0).data()) * selector;
 
-        unsigned int ncols = domainMap.mapSize();
+        ressU[i].data().reset(new VECTOREPETRA(rangeMapU));
+        ressP[i].data().reset(new VECTOREPETRA(rangeMapP));
 
-        std::vector<VectorEp> ressU(ncols);
-        std::vector<VectorEp> ressP(ncols);
-        for (unsigned int i = 0; i < ncols; i++)
+        if (!std::strcmp(M_approxSchurType.c_str(),"exact"))
         {
-            selector.zero();
-            colU.zero();
-            colP.zero();
-            if (domainMap.isOwned(i))
-                selector[i] = 1.0;
+            auto monolithicMap = rangeMapU;
+            monolithicMap += rangeMapP;
 
-            colU = (*BT.block(0,0).data()) * selector;
+            VECTOREPETRA X(monolithicMap);
+            VECTOREPETRA Y(monolithicMap);
+            X.zero();
+            Y.zero();
 
-            ressU[i].data().reset(new VECTOREPETRA(rangeMapU));
-            ressP[i].data().reset(new VECTOREPETRA(rangeMapP));
+            X.subset(colU, rangeMapU, 0, 0);
+            CoutRedirecter ct;
+            ct.redirect();
+            M_invOperators[index]->ApplyInverse(X.epetraVector(), Y.epetraVector());
+            ct.restore();
+
+            ressU[i].data()->subset(Y, rangeMapU, 0, 0);
+            ressP[i].data()->subset(Y, rangeMapP, rangeMapU.mapSize(), 0);
+        }
+        else if (!std::strcmp(M_approxSchurType.c_str(),"SIMPLE"))
             M_innerPreconditioners[index]->ApplyInverse(colU, colP,
                                                         *ressU[i].data(),
                                                         *ressP[i].data());
 
-        }
-        MatrixEp Am1BTu(ressU);
-        MatrixEp Am1BTp(ressP);
-        retMat.block(0,0).softCopy(Am1BTu);
-        retMat.block(1,0).softCopy(Am1BTp);
     }
+    MatrixEp Am1BTu(ressU);
+    MatrixEp Am1BTp(ressP);
+    retMat.block(0,0).softCopy(Am1BTu);
+    retMat.block(1,0).softCopy(Am1BTp);
+
+    std::string msg = "done, in ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(GREEN, msg, M_data.getVerbose());
 
     return retMat;
 }
@@ -224,60 +306,50 @@ solveEveryPrimalBlock(const VECTOREPETRA& X, VECTOREPETRA &Y) const
     unsigned int count = 0;
     for (unsigned int i = 0; i < M_nPrimalBlocks; i++)
     {
-        // mapEpetra_Type rangeVelocity = *M_matrix.rangeMap(i*2,i*2);
-        // mapEpetra_Type rangePressure;
-        // if (M_matrix.block(i*2+1,i*2) != nullptr)
-        //     rangePressure = *M_matrix.rangeMap(i*2+1,i*2);
-        // else
-        //     rangePressure = *M_matrix.rangeMap(i*2+1,i*2+1);
-
-        // if ((M_solvePrimalBlocksExactly && M_countIterations < M_numIterationExactSolve) ||
-        //     (M_solvePrimalBlocksExactly && M_numIterationExactSolve < 0))
-        // {
-        //     mapEpetra_Type monolithicMap = rangeVelocity;
-        //     monolithicMap += rangePressure;
-        //
-        //     vectorEpetra_Type subX(monolithicMap);
-        //     vectorEpetra_Type subY(monolithicMap);
-        //
-        //     subX.subset(X, monolithicMap, offset, 0);
-        //
-        //     RedMA::CoutRedirecter ct;
-        //     ct.redirect();
-        //
-        //     M_invOperators[i]->ApplyInverse(subX.epetraVector(),
-        //                                     subY.epetraVector());
-        //
-        //     ct.restore();
-        //
-        //     Y.subset(subY, monolithicMap, 0, offset);
-        //
-        //     offset += monolithicMap.mapSize();
-        // }
-        // else
-
         MAPEPETRA rangeVelocity = *M_rangeMaps[count];
         MAPEPETRA rangePressure = *M_rangeMaps[count+1];
 
-        VECTOREPETRA subVelocity(rangeVelocity);
-        VECTOREPETRA subPressure(rangePressure);
-        subVelocity.zero();
-        subPressure.zero();
+        if (!std::strcmp(M_innerPrecType.c_str(), "exact"))
+        {
+            auto monolithicMap = rangeVelocity;
+            monolithicMap += rangePressure;
 
-        subVelocity.subset(X, rangeVelocity, offset, 0);
-        subPressure.subset(X, rangePressure,
-                           offset + rangeVelocity.mapSize(), 0);
+            VECTOREPETRA subX(monolithicMap);
+            VECTOREPETRA subY(monolithicMap);
 
-        VECTOREPETRA resVelocity(rangeVelocity);
-        VECTOREPETRA resPressure(rangePressure);
+            subX.subset(X, monolithicMap, offset, 0);
 
-        M_innerPreconditioners[i]->ApplyInverse(subVelocity, subPressure,
-                                                resVelocity, resPressure);
+            RedMA::CoutRedirecter ct;
+            ct.redirect();
 
-        Y.subset(resVelocity, rangeVelocity, 0, offset);
-        Y.subset(resPressure, rangePressure, 0,
-                 offset + rangeVelocity.mapSize());
+            M_invOperators[i]->ApplyInverse(subX.epetraVector(),
+                                            subY.epetraVector());
 
+            ct.restore();
+
+            Y.subset(subY, monolithicMap, 0, offset);
+        }
+        else if (!std::strcmp(M_innerPrecType.c_str(), "SIMPLE"))
+        {
+            VECTOREPETRA subVelocity(rangeVelocity);
+            VECTOREPETRA subPressure(rangePressure);
+            subVelocity.zero();
+            subPressure.zero();
+
+            subVelocity.subset(X, rangeVelocity, offset, 0);
+            subPressure.subset(X, rangePressure,
+                               offset + rangeVelocity.mapSize(), 0);
+
+            VECTOREPETRA resVelocity(rangeVelocity);
+            VECTOREPETRA resPressure(rangePressure);
+
+            M_innerPreconditioners[i]->ApplyInverse(subVelocity, subPressure,
+                                                    resVelocity, resPressure);
+
+            Y.subset(resVelocity, rangeVelocity, 0, offset);
+            Y.subset(resPressure, rangePressure, 0,
+                     offset + rangeVelocity.mapSize());
+        }
         offset += rangeVelocity.mapSize() + rangePressure.mapSize();
         count = count + 2;
     }

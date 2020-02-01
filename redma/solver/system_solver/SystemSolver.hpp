@@ -41,9 +41,12 @@ public:
     BV solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
              BV initialGuess, int& status);
 
+    inline std::vector<SolverStatistics> getSolverStatistics() const {return M_solverStatistics;}
+
 private:
     DataContainer                                       M_data;
     LinearSystemSolver<InVectorType, InMatrixType>      M_linearSystemSolver;
+    std::vector<SolverStatistics>                       M_solverStatistics;
 };
 
 }

@@ -64,8 +64,11 @@ public:
 
     virtual const super::map_Type& OperatorRangeMap() const override {}
 
-private:
+    inline double getSetupTime() const {return M_setupTime;}
+
+protected:
     EPETRACOMM                      M_comm;
+    double                          M_setupTime;
 };
 
 }

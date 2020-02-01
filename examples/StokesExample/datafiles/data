@@ -17,9 +17,11 @@
 [../]
 
 [preconditioner]
-	options = datafiles/solversOptionsFast
-	outer   = saddlepoint
-	inner	= SIMPLE
+	options    = datafiles/solversOptionsFast
+	outer      = saddlepoint
+	inner	   = exact
+	approxshur = exact
+	innertol   = 0.5
 [../]
 
 [newton_method]
@@ -55,6 +57,7 @@
 	t0 = 0
 	T = 0.01
 	dt = 0.01
+	solverstatistics = solverstatistics.txt
 [../]
 
 [exporter]

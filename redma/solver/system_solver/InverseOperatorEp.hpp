@@ -44,8 +44,8 @@ public:
 
     void setSolverOptions();
 
-    void invert(const BlockVector<BlockVector<VectorEp>>& rhs,
-                BlockVector<BlockVector<VectorEp>>& sol);
+    int invert(const BlockVector<BlockVector<VectorEp>>& rhs,
+               BlockVector<BlockVector<VectorEp>>& sol);
 
 private:
     DataContainer                                   M_data;

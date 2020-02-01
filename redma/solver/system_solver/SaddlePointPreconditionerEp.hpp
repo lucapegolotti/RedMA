@@ -20,6 +20,7 @@
 #include <redma/solver/system_solver/PreconditionerOperatorEp.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
 #include <redma/utils/Exception.hpp>
+#include <redma/utils/PrintLog.hpp>
 
 #include <lifev/navier_stokes_blocks/solver/NavierStokesOperator.hpp>
 #include <lifev/navier_stokes_blocks/solver/aSIMPLEOperator.hpp>
@@ -39,6 +40,8 @@ class SaddlePointPreconditionerEp : public PreconditionerOperatorEp
     typedef BlockVector<BlockVector<VectorEp>>                       BV;
     typedef BlockMatrix<BlockMatrix<MatrixEp>>                       BM;
     typedef LifeV::Operators::NavierStokesPreconditionerOperator     NSPrec;
+    typedef LifeV::Operators::NavierStokesOperator                   NSOp;
+    typedef LifeV::Operators::InvertibleOperator                     InvOp;
     typedef LifeV::Operators::ApproximatedInvertibleRowMatrix        ApproxInv;
 
 public:
@@ -48,6 +51,8 @@ public:
                              super::vector_Type& Y) const override;
 
     void allocateInnerPreconditioners(const BM& primalMatrix);
+
+    void allocateInverseSolvers(const BM& primalMatrix);
 
     void setSolverOptions();
 
@@ -73,10 +78,12 @@ private:
     BlockMatrix<MatrixEp>                                M_matrixCollapsed;
     BM                                                   M_S;
     std::vector<SHP(NSPrec)>                             M_innerPreconditioners;
+    std::vector<SHP(InvOp)>                              M_invOperators;
     SHP(Teuchos::ParameterList)                          M_pListLinSolver;
     Teuchos::RCP<Teuchos::ParameterList>                 M_solversOptionsInner;
     BlockMatrix<BlockMatrix<MatrixEp>>                   M_Am1BT;
     std::string                                          M_innerPrecType;
+    std::string                                          M_approxSchurType;
     SHP(ApproxInv)                                       M_approximatedSchurInverse;
     SHP(MAPEPETRA)                                       M_primalMap;
     SHP(MAPEPETRA)                                       M_dualMap;

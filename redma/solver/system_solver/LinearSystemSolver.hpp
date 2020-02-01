@@ -31,6 +31,14 @@
 namespace RedMA
 {
 
+struct SolverStatistics
+{
+    double M_precSetupTime;
+    double M_numIterations;
+    double M_solveTime;
+};
+
+
 template<class InVectorType, class InMatrixType>
 class LinearSystemSolver
 {
@@ -46,12 +54,15 @@ public:
 
     void buildPreconditioner(const BM& matrix);
 
+    SolverStatistics getSolverStatistics() const {return M_statistics;}
+
 private:
 
     DataContainer                                   M_data;
     SHP(InverseOperatorEp)                          M_invOper;
     SHP(LinearOperatorEp)                           M_oper;
     SHP(PreconditionerOperatorEp)                   M_prec;
+    SolverStatistics                                M_statistics;
 };
 
 }

@@ -16,6 +16,8 @@ SystemSolver<InVectorType, InMatrixType>::
 solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
       BV initialGuess, int& status)
 {
+    M_solverStatistics.resize(0);
+
     BV incr;
     BV curFun;
     BV sol = initialGuess;
@@ -49,6 +51,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
             BM curJac = jac(sol);
             curJac.finalize();
             M_linearSystemSolver.solve(curJac, curFun, incr);
+            M_solverStatistics.push_back(M_linearSystemSolver.getSolverStatistics());
         }
         sol -= incr;
         count++;

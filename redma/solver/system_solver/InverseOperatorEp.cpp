@@ -45,7 +45,7 @@ setSolverOptions()
     M_pListLinSolver = monolithicOptions;
 }
 
-void
+int
 InverseOperatorEp::
 invert(const BlockVector<BlockVector<VectorEp>>& rhs,
        BlockVector<BlockVector<VectorEp>>& sol)
@@ -56,6 +56,8 @@ invert(const BlockVector<BlockVector<VectorEp>>& rhs,
     M_invOper->ApplyInverse(rhsEpetra->epetraVector(), solEpetra->epetraVector());
 
     sol = getBlockVector(solEpetra, *M_maps);
+
+    return M_invOper->NumIter();
 }
 
 
