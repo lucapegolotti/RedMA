@@ -23,6 +23,7 @@
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/solver/system_solver/FunctionFunctor.hpp>
 #include <redma/solver/system_solver/SystemSolver.hpp>
+#include <redma/solver/array/Double.hpp>
 
 #include <memory>
 
@@ -32,14 +33,19 @@ namespace RedMA
 template <class InVectorType, class InMatrixType>
 class BDF : public aTimeMarchingAlgorithm<InVectorType, InMatrixType>
 {
+    typedef aFunctionProvider<InVectorType COMMA InMatrixType>  FunProvider;
+
 public:
-    BDF(const DataContainer& data,
-        SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler);
+    BDF(const DataContainer& data, SHP(FunProvider) funProvider);
 
     void setup();
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
                                               int& status) override;
+
+    void shiftSolutions(const BlockVector<InVectorType>& sol) override;
+
+    inline double getRhsCoeff() const {return M_rhsCoeff;}
 
 protected:
     std::vector<BlockVector<InVectorType>>   M_prevSolutions;

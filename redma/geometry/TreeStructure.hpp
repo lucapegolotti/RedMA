@@ -39,6 +39,10 @@ class TreeNode
 public:
     TreeNode(std::shared_ptr<BuildingBlock> block, unsigned int id);
 
+    bool isOutletNode();
+
+    bool isInletNode();
+
     std::vector<std::shared_ptr<TreeNode> > M_children;
     std::shared_ptr<BuildingBlock>          M_block;
     unsigned int                            M_ID;

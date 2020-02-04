@@ -18,6 +18,8 @@
 #define DATACONTAINER_HPP
 
 #include <redma/RedMA.hpp>
+#include <redma/utils/Exception.hpp>
+
 #include <lifev/core/filter/GetPot.hpp>
 
 namespace RedMA
@@ -34,6 +36,9 @@ public:
 
     void setInflowDt(const std::function<double(double)>& inflowDt);
 
+    void setDistalPressure(const std::function<double(double)>& pressure,
+                           const unsigned int& indexOutlet);
+
     void setVerbose(bool verbose);
 
     inline GetPot getDatafile() const {return *M_datafile;}
@@ -43,6 +48,8 @@ public:
     inline std::function<double(double)> getInflowDt() const {return M_inflowDt;}
 
     inline bool getVerbose() const {return M_verbose;}
+
+    std::function<double(double)> getDistalPressure(const unsigned int& outletIndex) const;
 
     std::string operator()(std::string location, std::string defValue) const;
 
@@ -57,10 +64,11 @@ public:
     void setValue(std::string location, double defValue);
 
 protected:
-    SHP(GetPot)                     M_datafile;
-    std::function<double(double)>   M_inflow;
-    std::function<double(double)>   M_inflowDt;
-    bool                            M_verbose;
+    SHP(GetPot)                                           M_datafile;
+    std::function<double(double)>                         M_inflow;
+    std::function<double(double)>                         M_inflowDt;
+    std::map<unsigned int, std::function<double(double)>> M_distalPressures;
+    bool                                                  M_verbose;
 };
 
 }

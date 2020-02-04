@@ -24,6 +24,8 @@
 #include <redma/solver/array/VectorEp.hpp>
 #include <redma/solver/array/MatrixEp.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
+#include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
+#include <redma/solver/boundary_conditions/WindkesselModel.hpp>
 
 #include <lifev/core/fem/BCHandler.hpp>
 
@@ -32,6 +34,7 @@ namespace RedMA
 
 class BCManager
 {
+    typedef aTimeMarchingAlgorithm<Double COMMA Double>  TimeMarchingAlgorithm;
 public:
     BCManager(const DataContainer& datafile, SHP(TreeNode) treeNode);
 
@@ -50,9 +53,14 @@ public:
                                const unsigned int& index,
                                const double& diagCoefficient) const;
 
-    void setInflow(std::function<double(double)> inflow);
+    void applyNeumannBc(const double& time, BlockVector<VectorEp>& input,
+                        SHP(FESPACE) fespace, const unsigned int& index,
+                        const std::map<unsigned int, double> flowRates);
 
-    void setInflowDt(std::function<double(double)> inflowDt);
+    // actually derivative wrt to flowrate
+    double getNeumannJacobian(const double& flag, const double& rate);
+
+    void postProcess();
 
 private:
     static double poiseulle(const double& t, const double& x, const double& y,
@@ -63,6 +71,10 @@ private:
     static double fZero(const double& t, const double& x, const double& y,
                         const double& z, const unsigned int& i);
 
+    static double constantFunction(const double& t, const double& x, const double& y,
+                                   const double& z, const unsigned int& i,
+                                   const double& K);
+
     static double fZero2(double t);
 
     SHP(LifeV::BCHandler) createBCHandler0Dirichlet() const;
@@ -70,16 +82,21 @@ private:
     void addInletBC(SHP(LifeV::BCHandler) bcs,
                     std::function<double(double)> law) const;
 
-    SHP(TreeNode)                 M_treeNode;
-    DataContainer                 M_data;
-    std::function<double(double)> M_inflow;
-    std::function<double(double)> M_inflowDt;
-    bool                          M_useLifting;
+    void parseNeumannData();
 
-    const unsigned int            inletFlag = 1;
-    const unsigned int            wallFlag = 10;
-    const unsigned int            inletRing = 30;
-    const unsigned int            outletRing = 31;
+    SHP(TreeNode)                                    M_treeNode;
+    DataContainer                                    M_data;
+    std::function<double(double)>                    M_inflow;
+    std::function<double(double)>                    M_inflowDt;
+    bool                                             M_useLifting;
+
+    const unsigned int                               inletFlag = 1;
+    const unsigned int                               wallFlag = 10;
+    const unsigned int                               inletRing = 30;
+    const unsigned int                               outletRing = 31;
+
+    // key is the outlet index (more than one for bifurcations)
+    std::map<unsigned int,SHP(WindkesselModel)>   M_models;
 };
 
 }

@@ -14,6 +14,30 @@ TreeNode(std::shared_ptr<BuildingBlock> block, unsigned int id) :
         M_children[i] = nullptr;
 }
 
+bool
+TreeNode::
+isOutletNode()
+{
+    if (M_nChildren < M_block->getOutlets().size())
+    {
+        std::cout << "I am node " << M_ID << " and I am outlet" << std::endl;
+        return true;
+    }
+    return false;
+}
+
+bool
+TreeNode::
+isInletNode()
+{
+    if (M_ID == 0)
+    {
+        std::cout << "I am node " << M_ID << " and I am inlet" << std::endl;
+        return true;
+    }
+    return false;
+}
+
 TreeStructure::
 TreeStructure(bool verbose) :
   M_maxID(0),

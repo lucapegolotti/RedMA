@@ -18,7 +18,7 @@
 #define aTIMEMARCHINGALGORITHM_HPP
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/assemblers/aAssembler.hpp>
+#include <redma/solver/time_marching_algorithms/aFunctionProvider.hpp>
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/solver/system_solver/SystemSolver.hpp>
 
@@ -32,9 +32,11 @@ namespace RedMA
 template <class InVectorType, class InMatrixType>
 class aTimeMarchingAlgorithm
 {
+    typedef aFunctionProvider<InVectorType COMMA InMatrixType>  FunProvider;
 public:
+
     aTimeMarchingAlgorithm(const DataContainer& datafile,
-                           SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler);
+                           SHP(FunProvider) funProvider);
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
                                               int& status) = 0;
@@ -42,10 +44,15 @@ public:
     void dumpSolverStatistics(std::vector<SolverStatistics> statistics,
                               const double& t) const;
 
+    // this must be implemented by multistep methods (e.g. bdf)
+    virtual void shiftSolutions(const BlockVector<InVectorType>& sol) {}
+
 protected:
+    void initializeStatisticsFile();
+
     DataContainer                                       M_data;
     SystemSolver<InVectorType, InMatrixType>            M_systemSolver;
-    SHP(aAssembler<InVectorType COMMA InMatrixType>)    M_assembler;
+    SHP(FunProvider)                                    M_funProvider;
     std::string                                         M_statisticsFile;
 };
 

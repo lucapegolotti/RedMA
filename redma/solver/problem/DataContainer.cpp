@@ -30,6 +30,26 @@ setInflowDt(const std::function<double(double)>& inflowDt)
     M_inflowDt = inflowDt;
 }
 
+std::function<double(double)>
+DataContainer::
+getDistalPressure(const unsigned int& outletIndex) const
+{
+    auto it = M_distalPressures.find(outletIndex);
+
+    if (it == M_distalPressures.end())
+        throw new Exception("Error in DataContainer: requested Distal pressure not present");
+
+    return it->second;
+}
+
+void
+DataContainer::
+setDistalPressure(const std::function<double(double)>& pressure,
+                  const unsigned int& indexOutlet)
+{
+    M_distalPressures[indexOutlet] = pressure;
+}
+
 void
 DataContainer::
 setVerbose(bool verbose)

@@ -6,6 +6,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/aTimeMarchingAlgorithm_imp.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BDF.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BDF_imp.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/aFunctionProvider.hpp
     CACHE INTERNAL ""
 )
 

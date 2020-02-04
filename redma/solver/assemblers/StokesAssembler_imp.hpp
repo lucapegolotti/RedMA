@@ -30,6 +30,9 @@ setup()
     assembleMass();
     assembleDivergence();
 
+    assembleFlowRateVectors();
+    assembleFlowRateJacobians();
+
     setExporter();
 
     std::string msg = "done, in ";
@@ -96,7 +99,8 @@ void
 StokesAssembler<InVectorType, InMatrixType>::
 postProcess(const BlockVector<InVectorType>& sol)
 {
-
+    // shift solutions in multistep method embedded in windkessels
+    this->M_bcManager->postProcess();
 }
 
 template <class InVectorType, class InMatrixType>
@@ -134,7 +138,7 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
         retVec -= (M_mass * liftingDt);
     }
 
-    addNeumannBCs(retVec, time);
+    addNeumannBCs(retVec, time, sol);
 
     apply0DirichletBCs(retVec);
 
@@ -192,11 +196,51 @@ computeLiftingDt(const double& time) const
 }
 
 template <class InVectorType, class InMatrixType>
+std::map<unsigned int, double>
+StokesAssembler<InVectorType, InMatrixType>::
+computeFlowRates(const BlockVector<InVectorType>& sol)
+{
+    std::string msg;
+    std::map<unsigned int, double> flowRates;
+    if (this->M_treeNode->isInletNode())
+    {
+        auto face = this->M_treeNode->M_block->getInlet();
+
+        flowRates[face.M_flag] = std::abs(sol.block(0).data()->dot(*M_flowRateVectors[face.M_flag]));
+        msg = "[StokesAssembler] inflow rate =";
+        msg += std::to_string(flowRates[face.M_flag]);
+        msg += "\n";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
+    }
+
+    if (this->M_treeNode->isOutletNode())
+    {
+        auto faces = this->M_treeNode->M_block->getOutlets();
+
+        for (auto face : faces)
+        {
+            flowRates[face.M_flag] = std::abs(sol.block(0).data()->dot(*M_flowRateVectors[face.M_flag]));
+            msg = "[StokesAssembler] outflow rate = ";
+            msg += std::to_string(flowRates[face.M_flag]);
+            msg += "\n";
+            printlog(YELLOW, msg, this->M_data.getVerbose());
+        }
+    }
+
+    return flowRates;
+}
+
+
+template <class InVectorType, class InMatrixType>
 void
 StokesAssembler<InVectorType, InMatrixType>::
-addNeumannBCs(BlockVector<FEVECTOR>& input, const double& time) const
+addNeumannBCs(BlockVector<FEVECTOR>& input, const double& time,
+              const BlockVector<InVectorType>& sol)
 {
+    auto flowRates = computeFlowRates(sol);
 
+    if (this->M_treeNode->isOutletNode())
+        this->M_bcManager->applyNeumannBc(time, input, M_velocityFESpace, 0, flowRates);
 }
 
 template <class InVectorType, class InMatrixType>
@@ -213,6 +257,22 @@ getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& so
     retMat *= (-1.0);
     // ATTENTION: here I should add the part relative to Neumann conditions
     // if they depend on the solution (as with 0D coupling)
+
+    if (this->M_treeNode->isOutletNode())
+    {
+        auto flowRates = computeFlowRates(sol);
+
+        for (auto rate : flowRates)
+        {
+            double dhdQ = this->M_bcManager->getNeumannJacobian(rate.first, rate.second);
+            BlockMatrix<InMatrixType> curjac(this->M_nComponents, this->M_nComponents);
+
+            curjac.block(0,0).data().reset(new MATRIXEPETRA(*M_flowRateJacobians[rate.first]));
+            curjac.block(0,0) *= dhdQ;
+
+            retMat += curjac;
+        }
+    }
 
     return retMat;
 }

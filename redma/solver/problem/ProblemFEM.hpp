@@ -45,7 +45,7 @@ public:
 
     virtual void solve();
 
-    void solveTimestep(const double& t, double& dt);
+    int solveTimestep(const double& t, double& dt);
 
 private:
     SHP(aTimeMarchingAlgorithm<BV COMMA BM>)  M_TMAlgorithm;

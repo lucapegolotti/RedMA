@@ -20,6 +20,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/array/BlockMatrix.hpp>
 #include <redma/solver/boundary_conditions/BCManager.hpp>
+#include <redma/solver/time_marching_algorithms/aFunctionProvider.hpp>
 #include <redma/geometry/TreeStructure.hpp>
 
 #include <redma/solver/problem/DataContainer.hpp>
@@ -28,7 +29,7 @@ namespace RedMA
 {
 
 template <class InVectorType, class InMatrixType>
-class aAssembler
+class aAssembler : public aFunctionProvider<InVectorType, InMatrixType>
 {
 public:
     aAssembler(const DataContainer& datafile);

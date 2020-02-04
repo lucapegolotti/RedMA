@@ -22,6 +22,7 @@
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/solver/array/VectorEp.hpp>
 #include <redma/solver/array/MatrixEp.hpp>
+#include <redma/solver/array/Double.hpp>
 
 #include <boost/numeric/ublas/matrix.hpp>
 
@@ -115,7 +116,6 @@ protected:
     Grid            M_matrixGrid;
     unsigned int    M_nRows;
     unsigned int    M_nCols;
-    // this is relevant only when block<block<matrix>> at the moment
     bool            M_isFinalized;
     bool            M_isNull;
 };

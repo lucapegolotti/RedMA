@@ -14,28 +14,39 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef TIMEMARCHINGALGORITHMFACTORY_HPP
-#define TIMEMARCHINGALGORITHMFACTORY_HPP
+#ifndef aFUNCTIONPROVIDER_HPP
+#define aFUNCTIONPROVIDER_HPP
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/time_marching_algorithms/aTimeMarchingAlgorithm.hpp>
-#include <redma/solver/time_marching_algorithms/aFunctionProvider.hpp>
-#include <redma/solver/time_marching_algorithms/BDF.hpp>
-#include <redma/utils/Exception.hpp>
-#include <redma/solver/problem/DataContainer.hpp>
 
-#include <memory>
+#include <redma/solver/array/BlockVector.hpp>
+#include <redma/solver/array/BlockMatrix.hpp>
+
+#include <fstream>
 
 namespace RedMA
 {
 
 template <class InVectorType, class InMatrixType>
-SHP(aTimeMarchingAlgorithm<InVectorType COMMA InMatrixType>)
-TimeMarchingAlgorithmFactory(const DataContainer& data,
-                             SHP(aFunctionProvider<InVectorType COMMA InMatrixType>) funProvider);
+class aFunctionProvider
+{
+public:
+
+    aFunctionProvider() {};
+
+    virtual BlockVector<InVectorType> getZeroVector() const = 0;
+
+    virtual BlockMatrix<InMatrixType> getMass(const double& time,
+                                      const BlockVector<InVectorType>& sol) = 0;
+
+    virtual BlockVector<InVectorType> getRightHandSide(const double& time,
+                                      const BlockVector<InVectorType>& sol) = 0;
+
+    virtual BlockMatrix<InMatrixType> getJacobianRightHandSide(const double& time,
+                                      const BlockVector<InVectorType>& sol) = 0;
+
+};
 
 }
 
-#include "TimeMarchingAlgorithmFactory_imp.hpp"
-
-#endif // TIMEMARCHINGALGORITHMFACTORY_HPP
+#endif // aFUNCTIONPROVIDER_HPP

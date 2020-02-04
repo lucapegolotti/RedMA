@@ -11,13 +11,35 @@ BCManager(const DataContainer& data, SHP(TreeNode) treeNode) :
     M_inflow = data.getInflow();
     M_inflowDt = data.getInflowDt();
     M_useLifting = data("bc_conditions/lifting", true);
+
+    parseNeumannData();
+}
+
+void
+BCManager::
+parseNeumannData()
+{
+    unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
+
+    for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
+    {
+        std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
+
+        unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
+        if (M_treeNode->M_ID == blockindex)
+        {
+            unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 0);
+            M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
+        }
+    }
+
 }
 
 void
 BCManager::
 addInletBC(SHP(LifeV::BCHandler) bcs, std::function<double(double)> law) const
 {
-    if (M_treeNode->M_ID == 0)
+    if (M_treeNode->isInletNode())
     {
         auto foo = std::bind(poiseulle,
                              std::placeholders::_1,
@@ -144,20 +166,6 @@ createBCHandler0Dirichlet() const
     return bcs;
 }
 
-void
-BCManager::
-setInflow(std::function<double(double)> inflow)
-{
-    M_inflow = inflow;
-}
-
-void
-BCManager::
-setInflowDt(std::function<double(double)> inflowDt)
-{
-    M_inflowDt = inflowDt;
-}
-
 double
 BCManager::
 poiseulle(const double& t, const double& x, const double& y,
@@ -181,12 +189,82 @@ poiseulle(const double& t, const double& x, const double& y,
     return inflowValue[i];
 }
 
+void
+BCManager::
+applyNeumannBc(const double& time, BlockVector<VectorEp>& input,
+               SHP(FESPACE) fespace, const unsigned int& index,
+               const std::map<unsigned int, double> flowRates)
+{
+    auto curVec = input.block(index).data();
+
+    SHP(LifeV::BCHandler) bcs;
+    bcs.reset(new LifeV::BCHandler);
+
+    std::cout << "I am here " << std::endl << std::flush;
+    for (auto windkessel : M_models)
+    {
+        std::cout << 1 << std::endl << std::flush;
+        auto it = flowRates.find(windkessel.first);
+        std::cout << 2 << std::endl << std::flush;
+
+        if (it == flowRates.end())
+            throw new Exception("BCManager: flow rate not found!");
+        std::cout << 3 << std::endl << std::flush;
+
+        double neumannCondition = -windkessel.second->getNeumannCondition(time, it->second);
+        std::cout << 4 << std::endl << std::flush;
+
+        LifeV::BCFunctionBase constant(std::bind(
+            &constantFunction,
+            std::placeholders::_1,
+            std::placeholders::_2,
+            std::placeholders::_3,
+            std::placeholders::_4,
+            std::placeholders::_5,
+            neumannCondition));
+        std::cout << 5 << std::endl << std::flush;
+        bcs->addBC("Outflow" + std::to_string(windkessel.first), windkessel.first,
+                   LifeV::Natural, LifeV::Normal, constant);
+        std::cout << 6 << std::endl << std::flush;
+    }
+
+
+    bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
+
+    if (curVec)
+        bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
+                    *bcs, fespace->feBd(), 0.0, 0.0);
+}
+
+double
+BCManager::
+getNeumannJacobian(const double& flag, const double& rate)
+{
+    return -M_models[flag]->getNeumannJacobian(rate);
+}
+
+void
+BCManager::
+postProcess()
+{
+    for (auto windkessel : M_models)
+        windkessel.second->shiftSolutions();
+}
+
 double
 BCManager::
 fZero(const double& t, const double& x, const double& y,
       const double& z, const unsigned int& i)
 {
     return 0.0;
+}
+
+double
+BCManager::
+constantFunction(const double& t, const double& x, const double& y,
+                 const double& z, const unsigned int& i, const double& K)
+{
+    return K;
 }
 
 }

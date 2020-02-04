@@ -134,4 +134,102 @@ getZeroVector() const
     return retVec;
 }
 
+template <>
+SHP(LifeV::VectorEpetra)
+StokesAssembler<VectorEp, MatrixEp>::
+assembleFlowRateVector(const unsigned int& faceFlag)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    SHP(VECTOREPETRA) flowRateVectorRepeated;
+    flowRateVectorRepeated.reset(new VECTOREPETRA(M_velocityFESpace->map(),
+                                                  Repeated));
+
+    QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
+
+    integrate(boundary(M_velocityFESpaceETA->mesh(), faceFlag),
+              myBDQR,
+              M_velocityFESpaceETA,
+              dot(phi_i, Nface)
+          ) >> flowRateVectorRepeated;
+
+    flowRateVectorRepeated->globalAssemble();
+
+    SHP(VECTOREPETRA) flowRateVector(new VECTOREPETRA(*flowRateVectorRepeated,
+                                                      Unique));
+
+    return flowRateVector;
+}
+
+template <>
+void
+StokesAssembler<VectorEp, MatrixEp>::
+assembleFlowRateVectors()
+{
+    // assemble inflow flow rate vector
+    if (M_treeNode->isInletNode())
+    {
+        auto face = M_treeNode->M_block->getInlet();
+
+        M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face.M_flag);
+    }
+
+    if (M_treeNode->isOutletNode())
+    {
+        auto faces = M_treeNode->M_block->getOutlets();
+
+        for (auto face : faces)
+            M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face.M_flag);
+    }
+}
+
+template <>
+SHP(MATRIXEPETRA)
+StokesAssembler<VectorEp, MatrixEp>::
+assembleFlowRateJacobian(const unsigned int& faceFlag)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    SHP(MATRIXEPETRA) flowRateJacobian;
+    flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
+
+    QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
+
+    integrate(boundary(M_velocityFESpaceETA->mesh(), faceFlag),
+              myBDQR,
+              M_velocityFESpaceETA,
+              M_velocityFESpaceETA,
+              dot(value(M_velocityFESpaceETA, *M_flowRateVectors[faceFlag]),
+              phi_i)
+          ) >> flowRateJacobian;
+
+    flowRateJacobian->globalAssemble();
+
+    return flowRateJacobian;
+}
+
+template <>
+void
+StokesAssembler<VectorEp, MatrixEp>::
+assembleFlowRateJacobians()
+{
+    // assemble inflow flow rate vector
+    if (M_treeNode->isInletNode())
+    {
+        auto face = M_treeNode->M_block->getInlet();
+
+        M_flowRateJacobians[face.M_flag] = assembleFlowRateJacobian(face.M_flag);
+    }
+
+    if (M_treeNode->isOutletNode())
+    {
+        auto faces = M_treeNode->M_block->getOutlets();
+
+        for (auto face : faces)
+            M_flowRateJacobians[face.M_flag] = assembleFlowRateJacobian(face.M_flag);
+    }
+}
+
 }

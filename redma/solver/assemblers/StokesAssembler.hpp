@@ -60,7 +60,8 @@ public:
 
     BlockVector<FEVECTOR> computeLiftingDt(const double& time) const;
 
-    void addNeumannBCs(BlockVector<FEVECTOR>& input, const double& time) const;
+    void addNeumannBCs(BlockVector<FEVECTOR>& input, const double& time,
+                       const BlockVector<InVectorType>& sol);
 
     void initializeFEspaces();
 
@@ -69,6 +70,19 @@ public:
     void assembleMass();
 
     void assembleDivergence();
+
+    std::map<unsigned int, double> computeFlowRates(const BlockVector<InVectorType>& sol);
+
+    // these are int_{Gamma_N} phi_i * n inlets (just to check that it is preserved)
+    // and outlets (for boundary conditions)
+    void assembleFlowRateVectors();
+
+    // compute the jacobian of int_{Gamma_N}(int_{Gamma_N} u_i * n)phi_j
+    void assembleFlowRateJacobians();
+
+    SHP(VECTOREPETRA) assembleFlowRateVector(const unsigned int& faceFlag);
+
+    SHP(MATRIXEPETRA) assembleFlowRateJacobian(const unsigned int& faceFlag);
 
     void setExporter();
 
@@ -92,18 +106,21 @@ public:
 protected:
     void apply0DirichletBCs(BlockVector<InVectorType>& vector);
 
-    BlockMatrix<InMatrixType>            M_mass;
-    BlockMatrix<InMatrixType>            M_stiffness;
-    BlockMatrix<InMatrixType>            M_divergence;
-    SHP(FESPACE)                         M_velocityFESpace;
-    SHP(FESPACE)                         M_pressureFESpace;
-    SHP(ETFESPACE3)                      M_velocityFESpaceETA;
-    SHP(ETFESPACE1)                      M_pressureFESpaceETA;
-    double                               M_density;
-    double                               M_viscosity;
-    SHP(LifeV::VectorEpetra)             M_velocityExporter;
-    SHP(LifeV::VectorEpetra)             M_pressureExporter;
-    SHP(LifeV::Exporter<MESH>)           M_exporter;
+    BlockMatrix<InMatrixType>                           M_mass;
+    BlockMatrix<InMatrixType>                           M_stiffness;
+    BlockMatrix<InMatrixType>                           M_divergence;
+    SHP(FESPACE)                                        M_velocityFESpace;
+    SHP(FESPACE)                                        M_pressureFESpace;
+    SHP(ETFESPACE3)                                     M_velocityFESpaceETA;
+    SHP(ETFESPACE1)                                     M_pressureFESpaceETA;
+    double                                              M_density;
+    double                                              M_viscosity;
+    SHP(VECTOREPETRA)                                   M_velocityExporter;
+    SHP(VECTOREPETRA)                                   M_pressureExporter;
+    SHP(LifeV::Exporter<MESH>)                          M_exporter;
+    // first index is face flag
+    std::map<unsigned int, SHP(VECTOREPETRA)>           M_flowRateVectors;
+    std::map<unsigned int, SHP(MATRIXEPETRA)>           M_flowRateJacobians;
 };
 
 }

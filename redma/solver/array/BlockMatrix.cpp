@@ -147,6 +147,19 @@ convertVectorType(const BlockVector<VectorEp>& inputVector,
 
 template <>
 void
+BlockMatrix<Double>::
+finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father,
+         unsigned int* myRow, unsigned int* myCol)
+{
+    if (M_nRows != 1 || M_nCols != 1)
+        throw new Exception("This version of finalize is only for scalars");
+
+    M_isFinalized = true;
+    M_isNull = false;
+}
+
+template <>
+void
 BlockMatrix<MatrixEp>::
 finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father,
          unsigned int* myRow, unsigned int* myCol)
@@ -310,26 +323,6 @@ finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father,
     }
 
     M_isFinalized = true;
-}
-
-template <>
-void
-BlockMatrix<BlockMatrix<MatrixEp>>::
-printPattern() const
-{
-    for (unsigned int i = 0; i < M_nRows; i++)
-    {
-        for (unsigned int j = 0; j < M_nCols; j++)
-        {
-            auto curblock = block(i,j);
-            if (curblock.nRows() > 0)
-                std::cout << "(" << curblock.nRows() << "," << curblock.nCols() << ")";
-            else
-                std::cout << "o";
-            std::cout << "\t\t";
-        }
-        std::cout << "\n";
-    }
 }
 
 template <>

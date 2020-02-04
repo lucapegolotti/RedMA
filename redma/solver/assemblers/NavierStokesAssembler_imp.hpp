@@ -38,7 +38,7 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
         retVec -= (this->M_mass * liftingDt);
     }
 
-    this->addNeumannBCs(retVec, time);
+    this->addNeumannBCs(retVec, time, sol);
 
     this->apply0DirichletBCs(retVec);
     return retVec;

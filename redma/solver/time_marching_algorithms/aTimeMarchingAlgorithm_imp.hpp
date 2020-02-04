@@ -4,10 +4,18 @@ namespace RedMA
 template<class InVectorType, class InMatrixType>
 aTimeMarchingAlgorithm<InVectorType,InMatrixType>::
 aTimeMarchingAlgorithm(const DataContainer& data,
-                       SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler) :
+                       SHP(FunProvider) funProvider) :
   M_data(data),
   M_systemSolver(data),
-  M_assembler(assembler)
+  M_funProvider(funProvider)
+{
+    initializeStatisticsFile();
+}
+
+template<class InVectorType, class InMatrixType>
+void
+aTimeMarchingAlgorithm<InVectorType,InMatrixType>::
+initializeStatisticsFile()
 {
     M_statisticsFile = M_data("time_discretization/solverstatistics","none");
 

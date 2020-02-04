@@ -17,6 +17,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/MatrixEp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/VectorEp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockMatrix.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Double.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockMaps.cpp
     CACHE INTERNAL ""
 )

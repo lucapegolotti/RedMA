@@ -3,9 +3,8 @@ namespace RedMA
 
 template <class InVectorType, class InMatrixType>
 BDF<InVectorType, InMatrixType>::
-BDF(const DataContainer& data,
-    SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler) :
-  aTimeMarchingAlgorithm<InVectorType, InMatrixType>(data, assembler),
+BDF(const DataContainer& data, SHP(FunProvider) funProvider) :
+  aTimeMarchingAlgorithm<InVectorType, InMatrixType>(data, funProvider),
   M_order(data("time_discretization/order",2))
 {
     setup();
@@ -21,7 +20,7 @@ setup()
 
     for (unsigned int i = 0; i < M_order; i++)
     {
-        M_prevSolutions.push_back(this->M_assembler->getZeroVector());
+        M_prevSolutions.push_back(this->M_funProvider->getZeroVector());
     }
 
     if (M_order == 1)
@@ -65,8 +64,8 @@ advance(const double& time, double& dt, int& status)
     FunctionFunctor<BV,BV> fct(
         [this,time,dt](BV sol)
     {
-        BM mass(this->M_assembler->getMass(time+dt, sol));
-        BV f(this->M_assembler->getRightHandSide(time+dt, sol));
+        BM mass(this->M_funProvider->getMass(time+dt, sol));
+        BV f(this->M_funProvider->getRightHandSide(time+dt, sol));
         BV prevContribution;
 
         unsigned int count = 0;
@@ -90,32 +89,37 @@ advance(const double& time, double& dt, int& status)
         // here the choice of hard copies is compulsory
         BM retMat;
 
-        retMat.hardCopy(this->M_assembler->getJacobianRightHandSide(time+dt, sol));
+        retMat.hardCopy(this->M_funProvider->getJacobianRightHandSide(time+dt, sol));
         retMat *= (-1. * M_rhsCoeff * dt);
-        retMat += this->M_assembler->getMass(time+dt, sol);
+        retMat += this->M_funProvider->getMass(time+dt, sol);
 
         return retMat;
     });
 
-    BlockVector<InVectorType> sol = this->M_systemSolver.solve(fct, jac, initialGuess,
-                                                               status);
+    BV sol = this->M_systemSolver.solve(fct, jac, initialGuess, status);
+
+    if (!status)
+        throw new Exception("Solver has not converged!");
 
     std::vector<SolverStatistics> statistics = this->M_systemSolver.getSolverStatistics();
     this->dumpSolverStatistics(statistics, time+dt);
 
-    if (!status)
-    {
-        // shift solutions
-        std::vector<BlockVector<InVectorType>> newPrevSolutions(M_order);
-        newPrevSolutions[0].softCopy(sol);
-
-        for (unsigned int i = 0; i < M_order-1; i++)
-            newPrevSolutions[i+1].softCopy(M_prevSolutions[i]);
-
-        M_prevSolutions = newPrevSolutions;
-    }
-
     return sol;
+}
+
+template <class InVectorType, class InMatrixType>
+void
+BDF<InVectorType, InMatrixType>::
+shiftSolutions(const BlockVector<InVectorType>& sol)
+{
+    // shift solutions
+    std::vector<BlockVector<InVectorType>> newPrevSolutions(M_order);
+    newPrevSolutions[0].softCopy(sol);
+
+    for (unsigned int i = 0; i < M_order-1; i++)
+        newPrevSolutions[i+1].softCopy(M_prevSolutions[i]);
+
+    M_prevSolutions = newPrevSolutions;
 }
 
 }

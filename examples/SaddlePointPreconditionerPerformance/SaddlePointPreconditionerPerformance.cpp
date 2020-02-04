@@ -89,11 +89,14 @@ int main(int argc, char **argv)
                     }
                 }
             }
-            for (int numblocks = 1; numblocks < 40; )
+            else
             {
-                for (int nmax = 0; nmax < 3; nmax++)
-                    solveProblem(comm,inp,aps,0.5,numblocks,nmax);
-                numblocks = numblocks + 3;
+                for (int numblocks = 1; numblocks < 40; )
+                {
+                    for (int nmax = 0; nmax < 3; nmax++)
+                        solveProblem(comm,inp,aps,0.5,numblocks,nmax);
+                    numblocks = numblocks + 3;
+                }
             }
         }
     }

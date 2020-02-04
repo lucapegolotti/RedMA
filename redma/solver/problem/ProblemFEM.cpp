@@ -50,23 +50,29 @@ solve()
         std::string msg = "[ProblemFEM] solving timestep " + std::to_string(count-1) +
                           ", t = " + std::to_string(t) + "\n";
         printlog(MAGENTA, msg, M_data.getVerbose());
-        solveTimestep(t, dt);
+        int status = solveTimestep(t, dt);
+
+        if (!status)
+            throw new Exception("Error in solver. Status != 0.");
+
         t += dt;
 
         if (count % saveEvery == 0)
             M_assembler->exportSolution(t, M_solution);
 
         M_assembler->postProcess(M_solution);
+        M_TMAlgorithm->shiftSolutions(M_solution);
         count++;
     }
 }
 
-void
+int
 ProblemFEM::
 solveTimestep(const double& t, double& dt)
 {
     int status = -1;
     M_solution = M_TMAlgorithm->advance(t, dt, status);
+    return status;
 }
 
 }
