@@ -4,6 +4,47 @@ namespace RedMA
 {
 
 template <>
+void
+BlockMatrix<BlockMatrix<MatrixEp>>::
+printPattern() const
+{
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            auto curblock = block(i,j);
+            if (curblock.nRows() > 0)
+                std::cout << "(" << curblock.nRows() << "," << curblock.nCols() << ")";
+            else
+                std::cout << "o";
+            std::cout << "\t\t";
+        }
+        std::cout << "\n";
+    }
+}
+
+template <>
+void
+BlockMatrix<MatrixEp>::
+printPattern() const
+{
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            auto curblock = block(i,j);
+            if (curblock.data())
+                std::cout << "(" << curblock.data()->rangeMap().mapSize() <<
+                             "," << curblock.data()->domainMap().mapSize() << ")";
+            else
+                std::cout << "o";
+            std::cout << "\t\t";
+        }
+        std::cout << "\n";
+    }
+}
+
+template <>
 template <>
 void
 BlockMatrix<MatrixEp>::
@@ -218,17 +259,19 @@ finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father,
         }
     }
 
-    for (auto r : ranges)
-    {
-        if (!r)
-            throw new Exception("Error in BlockMatrix::finalize: empty blocks!");
-    }
+    // for (auto r : ranges)
+    // {
+    //     if (!r)
+    //         throw new Exception("Error in BlockMatrix::finalize: empty blocks!");
+    // }
+    //
+    // for (auto d : domains)
+    // {
+    //     if (!d)
+    //         throw new Exception("Error in BlockMatrix::finalize: empty blocks!");
+    // }
 
-    for (auto d : domains)
-    {
-        if (!d)
-            throw new Exception("Error in BlockMatrix::finalize: empty blocks!");
-    }
+    std::cout << "starting this part" << std::endl << std::flush;
 
     for (unsigned int i = 0; i < M_nRows; i++)
     {
@@ -236,13 +279,25 @@ finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father,
         {
             if (!block(i,j).data())
             {
-                block(i,j).data().reset(new MATRIXEPETRA(*ranges[i]));
+                MPptr curRange;
+                MPptr curDomain;
+                if (ranges[i])
+                    curRange = ranges[i];
+                else
+                    curRange.reset(new MP());
+                if (domains[j])
+                    curDomain = domains[j];
+                else
+                    curDomain.reset(new MP());
+                block(i,j).data().reset(new MATRIXEPETRA(*curRange));
                 block(i,j).data()->zero();
-                block(i,j).data()->globalAssemble(domains[j], ranges[i]);
+                if (ranges[i] && domains[j])
+                    block(i,j).data()->globalAssemble(curDomain, curRange);
             }
         }
     }
 
+    std::cout << "arrived here" << std::endl << std::flush;
     M_isNull = true;
     for (unsigned int i = 0; i < M_nRows; i++)
     {
@@ -251,6 +306,7 @@ finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father,
             M_isNull = M_isNull && block(i,j).isNull();
         }
     }
+    std::cout << "and here" << std::endl << std::flush;
 
     M_isFinalized = true;
 }
@@ -276,17 +332,17 @@ finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father,
         }
     }
 
-    for (auto r : rows)
-    {
-        if (r == 0)
-            throw new Exception("Error in BlockMatrix::finalize: empty blocks!");
-    }
-
-    for (auto c : cols)
-    {
-        if (c == 0)
-            throw new Exception("Error in BlockMatrix::finalize: empty blocks!");
-    }
+    // for (auto r : rows)
+    // {
+    //     if (r == 0)
+    //         throw new Exception("Error in BlockMatrix::finalize: empty blocks!");
+    // }
+    //
+    // for (auto c : cols)
+    // {
+    //     if (c == 0)
+    //         throw new Exception("Error in BlockMatrix::finalize: empty blocks!");
+    // }
 
     for (unsigned int i = 0; i < M_nRows; i++)
     {
@@ -296,6 +352,8 @@ finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father,
             {
                 block(i,j).resize(rows[i],rows[j]);
             }
+            std::cout << "i = " << i << " j = " << j << std::endl << std::flush;
+            block(i,j).printPattern();
             block(i,j).finalize(this, &i, &j);
         }
     }
@@ -310,47 +368,6 @@ finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father,
     }
 
     M_isFinalized = true;
-}
-
-template <>
-void
-BlockMatrix<BlockMatrix<MatrixEp>>::
-printPattern() const
-{
-    for (unsigned int i = 0; i < M_nRows; i++)
-    {
-        for (unsigned int j = 0; j < M_nCols; j++)
-        {
-            auto curblock = block(i,j);
-            if (curblock.nRows() > 0)
-                std::cout << "(" << curblock.nRows() << "," << curblock.nCols() << ")";
-            else
-                std::cout << "o";
-            std::cout << "\t\t";
-        }
-        std::cout << "\n";
-    }
-}
-
-template <>
-void
-BlockMatrix<MatrixEp>::
-printPattern() const
-{
-    for (unsigned int i = 0; i < M_nRows; i++)
-    {
-        for (unsigned int j = 0; j < M_nCols; j++)
-        {
-            auto curblock = block(i,j);
-            if (curblock.data())
-                std::cout << "(" << curblock.data()->rangeMap().mapSize() <<
-                             "," << curblock.data()->domainMap().mapSize() << ")";
-            else
-                std::cout << "o";
-            std::cout << "\t\t";
-        }
-        std::cout << "\n";
-    }
 }
 
 }

@@ -89,6 +89,8 @@ public:
 
     void resetNodesIDs();
 
+    std::map<unsigned int, unsigned int> getNumPointsMeshes();
+
 private:
 
     TreeNodePtr                         M_root;

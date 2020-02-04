@@ -10,6 +10,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/GeometryPrinter.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SegmentationParser.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SegmentationsMerger.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CommunicatorsDistributor.hpp
     CACHE INTERNAL ""
 )
 
@@ -25,5 +26,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/GeometryPrinter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SegmentationParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SegmentationsMerger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CommunicatorsDistributor.cpp
     CACHE INTERNAL ""
 )

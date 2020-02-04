@@ -18,24 +18,27 @@ void
 StokesAssembler<InVectorType,InMatrixType>::
 setup()
 {
-    LifeV::LifeChrono chrono;
-    chrono.start();
+    if (this->isOwned())
+    {
+        LifeV::LifeChrono chrono;
+        chrono.start();
 
-    printlog(YELLOW, "[StokesAssembler] initializing "
-                     "StokesAssembler ...", this->M_data.getVerbose());
+        printlog(YELLOW, "[StokesAssembler] initializing "
+                         "StokesAssembler ...", this->M_data.getVerbose());
 
-    initializeFEspaces();
+        initializeFEspaces();
 
-    assembleStiffness();
-    assembleMass();
-    assembleDivergence();
+        assembleStiffness();
+        assembleMass();
+        assembleDivergence();
 
-    setExporter();
+        setExporter();
 
-    std::string msg = "done, in ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(YELLOW, msg, this->M_data.getVerbose());
+        std::string msg = "done, in ";
+        msg += std::to_string(chrono.diff());
+        msg += " seconds\n";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
+    }
 }
 
 template <class InVectorType, class InMatrixType>
@@ -68,27 +71,30 @@ void
 StokesAssembler<InVectorType, InMatrixType>::
 exportSolution(const double& t, const BlockVector<InVectorType>& sol)
 {
-    bool useLifting = this->M_data("bc_conditions/lifting", true);
-    if (useLifting)
+    if (this->isOwned())
     {
-        BlockVector<InVectorType> copySol;
-        copySol.hardCopy(sol);
+        bool useLifting = this->M_data("bc_conditions/lifting", true);
+        if (useLifting)
+        {
+            BlockVector<InVectorType> copySol;
+            copySol.hardCopy(sol);
 
-        this->M_bcManager->applyDirichletBCs(t, copySol, getFESpaceBCs(),
-                                             getComponentBCs());
-        *M_velocityExporter = *copySol.block(0).data();
-        *M_pressureExporter = *copySol.block(1).data();
-    }
-    else
-    {
-        *M_velocityExporter = *sol.block(0).data();
-        *M_pressureExporter = *sol.block(1).data();
-    }
+            this->M_bcManager->applyDirichletBCs(t, copySol, getFESpaceBCs(),
+                                                 getComponentBCs());
+            *M_velocityExporter = *copySol.block(0).data();
+            *M_pressureExporter = *copySol.block(1).data();
+        }
+        else
+        {
+            *M_velocityExporter = *sol.block(0).data();
+            *M_pressureExporter = *sol.block(1).data();
+        }
 
-    CoutRedirecter ct;
-    ct.redirect();
-    M_exporter->postProcess(t);
-    printlog(CYAN, ct.restore());
+        CoutRedirecter ct;
+        ct.redirect();
+        M_exporter->postProcess(t);
+        printlog(CYAN, ct.restore());
+    }
 }
 
 template <class InVectorType, class InMatrixType>
@@ -113,31 +119,34 @@ StokesAssembler<InVectorType, InMatrixType>::
 getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 {
     BlockVector<InVectorType> retVec;
-    BlockMatrix<InMatrixType> systemMatrix;
 
-    systemMatrix.resize(this->M_nComponents, this->M_nComponents);
-    systemMatrix += M_stiffness;
-    systemMatrix += M_divergence;
-    systemMatrix *= (-1.0);
-
-    retVec.softCopy(systemMatrix * sol);
-
-    // treatment of Dirichlet bcs if needed
-    bool useLifting = this->M_data("bc_conditions/lifting", true);
-
-    if (useLifting)
+    if (this->isOwned())
     {
-        BlockVector<InVectorType> lifting = computeLifting(time);
-        retVec += (systemMatrix * lifting);
+        BlockMatrix<InMatrixType> systemMatrix;
 
-        BlockVector<InVectorType> liftingDt = computeLiftingDt(time);
-        retVec -= (M_mass * liftingDt);
+        systemMatrix.resize(this->M_nComponents, this->M_nComponents);
+        systemMatrix += M_stiffness;
+        systemMatrix += M_divergence;
+        systemMatrix *= (-1.0);
+
+        retVec.softCopy(systemMatrix * sol);
+
+        // treatment of Dirichlet bcs if needed
+        bool useLifting = this->M_data("bc_conditions/lifting", true);
+
+        if (useLifting)
+        {
+            BlockVector<InVectorType> lifting = computeLifting(time);
+            retVec += (systemMatrix * lifting);
+
+            BlockVector<InVectorType> liftingDt = computeLiftingDt(time);
+            retVec -= (M_mass * liftingDt);
+        }
+
+        addNeumannBCs(retVec, time);
+
+        apply0DirichletBCs(retVec);
     }
-
-    addNeumannBCs(retVec, time);
-
-    apply0DirichletBCs(retVec);
-
     return retVec;
 }
 
@@ -207,13 +216,15 @@ getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& so
     BlockMatrix<InMatrixType> retMat;
     retMat.resize(this->M_nComponents, this->M_nComponents);
 
-    retMat += M_stiffness;
-    retMat += M_divergence;
+    if (this->isOwned())
+    {
+        retMat += M_stiffness;
+        retMat += M_divergence;
 
-    retMat *= (-1.0);
-    // ATTENTION: here I should add the part relative to Neumann conditions
-    // if they depend on the solution (as with 0D coupling)
-
+        retMat *= (-1.0);
+        // ATTENTION: here I should add the part relative to Neumann conditions
+        // if they depend on the solution (as with 0D coupling)
+    }
     return retMat;
 }
 

@@ -81,8 +81,12 @@ InterfaceAssembler<VectorEp, MatrixEp>::
 buildMapLagrange(SHP(BasisFunctionFunctor) bfs)
 {
     unsigned int nBfs = bfs->getNumBasisFunctions();
-    auto aFather = M_interface.M_assemblerFather;
-    EPETRACOMM comm = aFather->getComm();
+    SHP(AssemblerType) assembl;
+    if (M_interface.M_assemblerFather->isOwned())
+        assembl = M_interface.M_assemblerFather;
+    else
+        assembl = M_interface.M_assemblerChild;
+    EPETRACOMM comm = assembl->getComm();
     // this must be changed e.g. for scalar coupling ...
     unsigned int myel = (3 * nBfs) / comm->NumProc();
 
@@ -296,7 +300,13 @@ std::vector<VectorEp>
 InterfaceAssembler<VectorEp, MatrixEp>::
 buildStabilizationVectorsLagrange() const
 {
-    auto lagrangeMap = M_fatherBT.block(0,0).data()->domainMapPtr();
+    SHP(const MAPEPETRA) lagrangeMap;
+
+    if (M_interface.M_assemblerFather->isOwned())
+        lagrangeMap = M_fatherBT.block(0,0).data()->domainMapPtr();
+    else
+        lagrangeMap = M_childBT.block(0,0).data()->domainMapPtr();
+
     unsigned int ncols = lagrangeMap->mapSize();
 
     std::vector<VectorEp> retVectors(ncols);
@@ -353,12 +363,12 @@ buildCouplingMatrices()
     auto asFather = M_interface.M_assemblerFather;
     GeometricFace outlet = asFather->getTreeNode()->M_block->getOutlet(indexOutlet);
 
-    buildCouplingMatrices(asFather, outlet, M_fatherBT, M_fatherB);
-
-    if (M_stabilizationCoupling > THRESHOLDSTAB)
+    if (asFather->isOwned())
     {
-        buildStabilizationMatrix(asFather, outlet, M_stabFather);
-        // M_stabFather *= 0.5;
+        buildCouplingMatrices(asFather, outlet, M_fatherBT, M_fatherB);
+
+        if (M_stabilizationCoupling > THRESHOLDSTAB)
+            buildStabilizationMatrix(asFather, outlet, M_stabFather);
     }
 
     auto asChild = M_interface.M_assemblerChild;
@@ -366,17 +376,18 @@ buildCouplingMatrices()
     // I invert the normal of the face such that it is the same as the outlet
     inlet.M_normal *= (-1.);
 
-    buildCouplingMatrices(asChild, inlet, M_childBT, M_childB);
-
-    if (M_stabilizationCoupling > THRESHOLDSTAB)
+    if (asChild->isOwned())
     {
-        buildStabilizationMatrix(asChild, inlet, M_stabChild);
-        // no need to multiply by -1 as the inlet is already reversed
-        // M_stabChild *= (-1.);
+        buildCouplingMatrices(asChild, inlet, M_childBT, M_childB);
+        if (M_stabilizationCoupling > THRESHOLDSTAB)
+        {
+            buildStabilizationMatrix(asChild, inlet, M_stabChild);
+            // no need to multiply by -1 as the inlet is already reversed
+            // M_stabChild *= (-1.);
+        }
+        M_childB *= (-1.);
+        M_childBT *= (-1.);
     }
-
-    M_childB *= (-1.);
-    M_childBT *= (-1.);
 }
 
 template <>
@@ -387,15 +398,19 @@ getZeroVector() const
     BlockVector<VectorEp> retVector;
     retVector.resize(1);
 
-    SHP(MAPEPETRA) lagrangeMap;
-    if (M_fatherBT.block(0,0).data())
-        lagrangeMap.reset(new MAPEPETRA(*M_fatherBT.block(0,0).data()->domainMapPtr()));
-    else
-        lagrangeMap.reset(new MAPEPETRA(*M_childBT.block(0,0).data()->domainMapPtr()));
+    if (M_interface.M_assemblerFather->isOwned() || M_interface.M_assemblerChild->isOwned())
 
-    retVector.block(0).data().reset(new VECTOREPETRA(*lagrangeMap, LifeV::Unique));
-    retVector.block(0).data()->zero();
+    {
+        SHP(MAPEPETRA) lagrangeMap;
+        if (M_fatherBT.nRows() > 0 && M_fatherBT.block(0,0).data())
+            lagrangeMap.reset(new MAPEPETRA(*M_fatherBT.block(0,0).data()->domainMapPtr()));
+        else if (M_childBT.nRows() > 0 && M_childBT.block(0,0).data())
+            lagrangeMap.reset(new MAPEPETRA(*M_childBT.block(0,0).data()->domainMapPtr()));
 
+
+        retVector.block(0).data().reset(new VECTOREPETRA(*lagrangeMap, LifeV::Unique));
+        retVector.block(0).data()->zero();
+    }
     return retVector;
 }
 

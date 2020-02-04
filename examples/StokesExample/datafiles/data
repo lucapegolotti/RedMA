@@ -6,6 +6,7 @@
 	xmlfile = geometries/tree.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
+	maxnumblocks = 3
 [../]
 
 [assembler]

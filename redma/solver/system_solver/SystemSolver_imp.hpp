@@ -35,6 +35,17 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
         {
             curFun = fun(sol);
             err = curFun.norm2();
+            // redistribute partial sum
+            if (M_data.getDistributed())
+            {
+                double* partSum = new double[1];
+                double* globalSum = new double[1];
+                partSum[0] = err * err;
+                M_data.getMasterComm()->SumAll(partSum, globalSum, 1);
+                err = std::sqrt(globalSum[0]);
+                delete[] partSum;
+                delete[] globalSum;
+            }
         }
 
         std::ostringstream streamOb;
@@ -44,12 +55,16 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
         msg += " error = " + streamOb.str();
         msg += ", iteration = " + std::to_string(count+1) + "\n";
         printlog(GREEN, msg, M_data.getVerbose());
-
+        M_data.getMasterComm()->Barrier();
         if (err > tol)
         {
             incr.zero();
             BM curJac = jac(sol);
-            curJac.finalize();
+            if (M_data.getMasterComm()->MyPID() == 0)
+                curJac.finalize();
+            M_data.getMasterComm()->Barrier();
+            std::cout << "finalized" << std::endl << std::flush;
+            exit(1);
             M_linearSystemSolver.solve(curJac, curFun, incr);
             M_solverStatistics.push_back(M_linearSystemSolver.getSolverStatistics());
         }

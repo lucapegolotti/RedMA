@@ -66,8 +66,7 @@ BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
   M_verbose(verbose),
   M_isChild(false)
 {
-    if (M_comm->MyPID() != 0)
-        M_verbose = false;
+    M_isOwned = M_comm != nullptr;
 
     double infty = GeometricParametersHandler::infty;
     double mp2 = 20 * M_PI;
@@ -108,30 +107,32 @@ int
 BuildingBlock::
 readMesh(std::string meshdir)
 {
-    printlog(MAGENTA, "[" + M_name +
-                    " BuildingBlock] reading mesh ...\n",
-                    M_verbose);
+    if (M_isOwned)
+    {
+        printlog(MAGENTA, "[" + M_name +
+                        " BuildingBlock] reading mesh ...\n",
+                        M_verbose);
 
-    meshPtr_Type fullMesh(new mesh_Type(M_comm));
-    LifeV::MeshData meshData;
-    GetPot meshDatafile(meshdir + M_datafileName);
-    meshDatafile.set("mesh/mesh_file", M_meshName.c_str());
-    meshData.setup(meshDatafile, "mesh");
-    meshData.setMeshDir(meshdir);
-    LifeV::readMesh(*fullMesh,meshData);
+        meshPtr_Type fullMesh(new mesh_Type(M_comm));
+        LifeV::MeshData meshData;
+        GetPot meshDatafile(meshdir + M_datafileName);
+        meshDatafile.set("mesh/mesh_file", M_meshName.c_str());
+        meshData.setup(meshDatafile, "mesh");
+        meshData.setMeshDir(meshdir);
+        LifeV::readMesh(*fullMesh,meshData);
+        M_numPointsMesh = fullMesh->numPoints();
+        LifeV::MeshPartitioner<mesh_Type> meshPart(fullMesh, M_comm);
 
-    LifeV::MeshPartitioner<mesh_Type> meshPart(fullMesh, M_comm);
+        // small trick to redirect std cout
+        // CoutRedirecter ct;
+        // ct.redirect();
+        // meshPart.doPartition(fullMesh, M_comm);
+        M_mesh.reset(new mesh_Type(M_comm));
+        M_mesh = meshPart.meshPartition();
 
-    // small trick to redirect std cout
-    // CoutRedirecter ct;
-    // ct.redirect();
-    // meshPart.doPartition(fullMesh, M_comm);
-    M_mesh.reset(new mesh_Type(M_comm));
-    M_mesh = meshPart.meshPartition();
-
-    // printlog(CYAN, ct.restore(), M_verbose);
-    printlog(MAGENTA, "done\n", M_verbose);
-
+        // printlog(CYAN, ct.restore(), M_verbose);
+        printlog(MAGENTA, "done\n", M_verbose);
+    }
     return 0;
 }
 
@@ -228,156 +229,159 @@ void
 BuildingBlock::
 applyAffineTransformation(bool transformMesh)
 {
-    printlog(MAGENTA, "[" + M_name +
-                    " BuildingBlock] applying affine transformation ...\n",
-                    M_verbose);
-    if (transformMesh && !M_mesh)
+    if (M_isOwned)
     {
-        std::string errorMsg = std::string("[") + M_name + " BuildingBlock] " +
-                               " mesh has not being read!";
-        throw Exception(errorMsg);
-    }
+        printlog(MAGENTA, "[" + M_name +
+                        " BuildingBlock] applying affine transformation ...\n",
+                        M_verbose);
+        if (transformMesh && !M_mesh)
+        {
+            std::string errorMsg = std::string("[") + M_name + " BuildingBlock] " +
+                                   " mesh has not being read!";
+            throw Exception(errorMsg);
+        }
 
-    std::shared_ptr<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
+        std::shared_ptr<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
 
-    if (transformMesh)
-        transformer.reset(new Transformer(*M_mesh));
+        if (transformMesh)
+            transformer.reset(new Transformer(*M_mesh));
 
-    Matrix3D R, R1, R2, R3;
-    double scale;
-    Vector3D scaleVec;
-    Vector3D rotation;
-    Vector3D translation;
+        Matrix3D R, R1, R2, R3;
+        double scale;
+        Vector3D scaleVec;
+        Vector3D rotation;
+        Vector3D translation;
 
-    if (M_isChild)
-    {
-        printlog(GREEN, "[" + M_name +
-                     " BuildingBlock] is child: conforming inlet/parent_outlet ...\n",
-                     M_verbose);
+        if (M_isChild)
+        {
+            printlog(GREEN, "[" + M_name +
+                         " BuildingBlock] is child: conforming inlet/parent_outlet ...\n",
+                         M_verbose);
 
-        R =  computeRotationMatrix(M_inletRotationAxis, M_inletAngle);
+            R =  computeRotationMatrix(M_inletRotationAxis, M_inletAngle);
 
-        translation = M_inletTranslation;
-        scale = M_inletScale;
+            translation = M_inletTranslation;
+            scale = M_inletScale;
+
+            auto foo = std::bind(rotationFunction,
+                                 std::placeholders::_1,
+                                 std::placeholders::_2,
+                                 std::placeholders::_3,
+                                 R, translation, scale);
+
+            std::string axisStr = std::string("(");
+            axisStr = axisStr + std::to_string(M_inletRotationAxis[0]) + ",";
+            axisStr = axisStr + std::to_string(M_inletRotationAxis[1]) + ",";
+            axisStr = axisStr + std::to_string(M_inletRotationAxis[2]) + ")";
+
+            printlog(YELLOW, "[" + M_name +
+                         " BuildingBlock] rotating about axis " + axisStr + " and" +
+                         " angle " + std::to_string(M_inletAngle) +
+                         " ...\n", M_verbose);
+
+            std::string transStr = std::string("(");
+            transStr  = "(";
+            transStr = transStr + std::to_string(translation[0]) + ",";
+            transStr = transStr + std::to_string(translation[1]) + ",";
+            transStr = transStr + std::to_string(translation[2]) + ")";
+
+            printlog(YELLOW, "[" + M_name +
+                      " BuildingBlock] translating with vector " + transStr +
+                      " ...\n", M_verbose);
+
+            printlog(YELLOW, "[" + M_name +
+                    " BuildingBlock] applying scaling of " + std::to_string(scale) +
+                    " ...\n", M_verbose);
+
+            if (transformMesh)
+                transformer->transformMesh(foo);
+            printlog(GREEN, "done\n", M_verbose);
+        }
+        else
+        {
+            printlog(GREEN, "[" + M_name +
+                         " BuildingBlock] is root: applying initial affine transformation ...\n",
+                         M_verbose);
+            scale = M_parametersHandler["scale"];
+
+            rotation[0] = M_parametersHandler["rotation_axis_x"];
+            rotation[1] = M_parametersHandler["rotation_axis_y"];
+            rotation[2] = M_parametersHandler["rotation_axis_z"];
+
+            double angle = M_parametersHandler["alpha"];
+
+            translation[0] = M_parametersHandler["bx"];
+            translation[1] = M_parametersHandler["by"];
+            translation[2] = M_parametersHandler["bz"];
+
+            std::string axisStr = std::string("(");
+            axisStr = axisStr + std::to_string(rotation[0]) + ",";
+            axisStr = axisStr + std::to_string(rotation[1]) + ",";
+            axisStr = axisStr + std::to_string(rotation[2]) + ")";
+
+            printlog(YELLOW, "[" + M_name +
+                         " BuildingBlock] rotating about axis " + axisStr +
+                         " with angle " + std::to_string(angle) + " ...\n", M_verbose);
+
+
+            std::string transStr = std::string("(");
+            transStr  = "(";
+            transStr = transStr + std::to_string(translation[0]) + ",";
+            transStr = transStr + std::to_string(translation[1]) + ",";
+            transStr = transStr + std::to_string(translation[2]) + ")";
+
+            printlog(YELLOW, "[" + M_name +
+                   " BuildingBlock] translating with vector " + transStr +
+                   " ...\n", M_verbose);
+
+            R =  computeRotationMatrix(rotation, angle);
+
+            auto foo = std::bind(rotationFunction,
+                                 std::placeholders::_1,
+                                 std::placeholders::_2,
+                                 std::placeholders::_3,
+                                 R, translation, scale);
+
+            if (transformMesh)
+                transformer->transformMesh(foo);
+
+            printlog(YELLOW, "[" + M_name +
+                    " BuildingBlock] applying scaling of " + std::to_string(scale) +
+                    " ...\n", M_verbose);
+
+            printlog(GREEN, "done\n", M_verbose);
+        }
+
+        applyAffineTransformationGeometricFace(M_inlet,R,translation,scale);
+        for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
+             it != M_outlets.end(); it++)
+        {
+            applyAffineTransformationGeometricFace(*it, R, translation,scale);
+        }
+
+        // Handle rotation along the axis of the inlet
+        double angle = M_parametersHandler["alpha_axis"];
+
+        Matrix3D Raxis = computeRotationMatrix(M_inlet.M_normal, angle);
+        Vector3D transZero = M_inlet.M_center - Raxis * M_inlet.M_center;
 
         auto foo = std::bind(rotationFunction,
                              std::placeholders::_1,
                              std::placeholders::_2,
                              std::placeholders::_3,
-                             R, translation, scale);
-
-        std::string axisStr = std::string("(");
-        axisStr = axisStr + std::to_string(M_inletRotationAxis[0]) + ",";
-        axisStr = axisStr + std::to_string(M_inletRotationAxis[1]) + ",";
-        axisStr = axisStr + std::to_string(M_inletRotationAxis[2]) + ")";
-
-        printlog(YELLOW, "[" + M_name +
-                     " BuildingBlock] rotating about axis " + axisStr + " and" +
-                     " angle " + std::to_string(M_inletAngle) +
-                     " ...\n", M_verbose);
-
-        std::string transStr = std::string("(");
-        transStr  = "(";
-        transStr = transStr + std::to_string(translation[0]) + ",";
-        transStr = transStr + std::to_string(translation[1]) + ",";
-        transStr = transStr + std::to_string(translation[2]) + ")";
-
-        printlog(YELLOW, "[" + M_name +
-                  " BuildingBlock] translating with vector " + transStr +
-                  " ...\n", M_verbose);
-
-        printlog(YELLOW, "[" + M_name +
-                " BuildingBlock] applying scaling of " + std::to_string(scale) +
-                " ...\n", M_verbose);
-
-        if (transformMesh)
-            transformer->transformMesh(foo);
-        printlog(GREEN, "done\n", M_verbose);
-    }
-    else
-    {
-        printlog(GREEN, "[" + M_name +
-                     " BuildingBlock] is root: applying initial affine transformation ...\n",
-                     M_verbose);
-        scale = M_parametersHandler["scale"];
-
-        rotation[0] = M_parametersHandler["rotation_axis_x"];
-        rotation[1] = M_parametersHandler["rotation_axis_y"];
-        rotation[2] = M_parametersHandler["rotation_axis_z"];
-
-        double angle = M_parametersHandler["alpha"];
-
-        translation[0] = M_parametersHandler["bx"];
-        translation[1] = M_parametersHandler["by"];
-        translation[2] = M_parametersHandler["bz"];
-
-        std::string axisStr = std::string("(");
-        axisStr = axisStr + std::to_string(rotation[0]) + ",";
-        axisStr = axisStr + std::to_string(rotation[1]) + ",";
-        axisStr = axisStr + std::to_string(rotation[2]) + ")";
-
-        printlog(YELLOW, "[" + M_name +
-                     " BuildingBlock] rotating about axis " + axisStr +
-                     " with angle " + std::to_string(angle) + " ...\n", M_verbose);
-
-
-        std::string transStr = std::string("(");
-        transStr  = "(";
-        transStr = transStr + std::to_string(translation[0]) + ",";
-        transStr = transStr + std::to_string(translation[1]) + ",";
-        transStr = transStr + std::to_string(translation[2]) + ")";
-
-        printlog(YELLOW, "[" + M_name +
-               " BuildingBlock] translating with vector " + transStr +
-               " ...\n", M_verbose);
-
-        R =  computeRotationMatrix(rotation, angle);
-
-        auto foo = std::bind(rotationFunction,
-                             std::placeholders::_1,
-                             std::placeholders::_2,
-                             std::placeholders::_3,
-                             R, translation, scale);
+                             Raxis, transZero, 1.0);
 
         if (transformMesh)
             transformer->transformMesh(foo);
 
-        printlog(YELLOW, "[" + M_name +
-                " BuildingBlock] applying scaling of " + std::to_string(scale) +
-                " ...\n", M_verbose);
+        for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
+             it != M_outlets.end(); it++)
+        {
+            applyAffineTransformationGeometricFace(*it, Raxis, transZero, 1.0);
+        }
 
-        printlog(GREEN, "done\n", M_verbose);
+        printlog(MAGENTA, "done\n", M_verbose);
     }
-
-    applyAffineTransformationGeometricFace(M_inlet,R,translation,scale);
-    for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
-         it != M_outlets.end(); it++)
-    {
-        applyAffineTransformationGeometricFace(*it, R, translation,scale);
-    }
-
-    // Handle rotation along the axis of the inlet
-    double angle = M_parametersHandler["alpha_axis"];
-
-    Matrix3D Raxis = computeRotationMatrix(M_inlet.M_normal, angle);
-    Vector3D transZero = M_inlet.M_center - Raxis * M_inlet.M_center;
-
-    auto foo = std::bind(rotationFunction,
-                         std::placeholders::_1,
-                         std::placeholders::_2,
-                         std::placeholders::_3,
-                         Raxis, transZero, 1.0);
-
-    if (transformMesh)
-        transformer->transformMesh(foo);
-
-    for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
-         it != M_outlets.end(); it++)
-    {
-        applyAffineTransformationGeometricFace(*it, Raxis, transZero, 1.0);
-    }
-
-    printlog(MAGENTA, "done\n", M_verbose);
 }
 
 void
@@ -430,35 +434,38 @@ void
 BuildingBlock::
 dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
 {
-    printlog(MAGENTA, "[" + M_name +
-                    " BuildingBlock] dumping mesh to file ...\n",
-                    M_verbose);
-
-    if (!M_mesh)
+    if (M_isOwned)
     {
-        std::string msg = "Mesh has not been read yet!\n";
-        throw Exception(msg);
+        printlog(MAGENTA, "[" + M_name +
+                        " BuildingBlock] dumping mesh to file ...\n",
+                        M_verbose);
+
+        if (!M_mesh)
+        {
+            std::string msg = "Mesh has not been read yet!\n";
+            throw Exception(msg);
+        }
+        boost::filesystem::create_directory(outdir);
+
+        GetPot exporterDatafile(meshdir + M_datafileName);
+        LifeV::ExporterVTK<mesh_Type> exporter(exporterDatafile, outputName);
+        exporter.setMeshProcId(M_mesh, M_comm->MyPID());
+
+        FESpacePtr_Type dummyFespace(new FESpace_Type(M_mesh, "P1", 3, M_comm));
+        vectorPtr_Type zero(new vector_Type(dummyFespace->map()) );
+        zero->zero();
+
+        exporter.addVariable(LifeV::ExporterData<mesh_Type>::ScalarField, "z",
+                             dummyFespace, zero, 0);
+        exporter.setPostDir(outdir);
+
+        CoutRedirecter ct;
+        ct.redirect();
+        exporter.postProcess(0.0);
+        printlog(CYAN, ct.restore(), M_verbose);
+
+        printlog(MAGENTA, "done\n", M_verbose);
     }
-    boost::filesystem::create_directory(outdir);
-
-    GetPot exporterDatafile(meshdir + M_datafileName);
-    LifeV::ExporterVTK<mesh_Type> exporter(exporterDatafile, outputName);
-    exporter.setMeshProcId(M_mesh, M_comm->MyPID());
-
-    FESpacePtr_Type dummyFespace(new FESpace_Type(M_mesh, "P1", 3, M_comm));
-    vectorPtr_Type zero(new vector_Type(dummyFespace->map()) );
-    zero->zero();
-
-    exporter.addVariable(LifeV::ExporterData<mesh_Type>::ScalarField, "z",
-                         dummyFespace, zero, 0);
-    exporter.setPostDir(outdir);
-
-    CoutRedirecter ct;
-    ct.redirect();
-    exporter.postProcess(0.0);
-    printlog(CYAN, ct.restore(), M_verbose);
-
-    printlog(MAGENTA, "done\n", M_verbose);
 }
 
 GeometricFace
@@ -522,8 +529,11 @@ void
 BuildingBlock::
 applyGlobalTransformation(bool transformMesh)
 {
-    applyNonAffineTransformation(transformMesh);
-    applyAffineTransformation(transformMesh);
+    if (M_isOwned)
+    {
+        applyNonAffineTransformation(transformMesh);
+        applyAffineTransformation(transformMesh);
+    }
 }
 
 void

@@ -62,25 +62,31 @@ addContributionRhs(BlockVector<BlockVector<InVectorType>>& rhs,
     assemblerFather = M_interface.M_assemblerFather;
     assemblerChild = M_interface.M_assemblerChild;
 
-    // we have (-1) because we are solving H un+1 = F(.) and coupling is in F
-    rhs.block(fatherID) -= M_fatherBT * sol.block(nPrimalBlocks + interfaceID);
-    rhs.block(childID)  -= M_childBT * sol.block(nPrimalBlocks + interfaceID);
-    assemblerFather->getBCManager()->apply0DirichletBCs(rhs.block(fatherID),
-                                                        assemblerFather->getFESpaceBCs(),
-                                                        assemblerFather->getComponentBCs());
-
-    assemblerChild->getBCManager()->apply0DirichletBCs(rhs.block(childID),
-                                                       assemblerChild->getFESpaceBCs(),
-                                                       assemblerChild->getComponentBCs());
-
-    rhs.block(nPrimalBlocks + interfaceID) -= M_fatherB * sol.block(fatherID);
-    rhs.block(nPrimalBlocks + interfaceID) -= M_childB * sol.block(childID);
+    if (assemblerFather->isOwned())
+    {
+        rhs.block(fatherID) -= M_fatherBT * sol.block(nPrimalBlocks + interfaceID);
+        assemblerFather->getBCManager()->apply0DirichletBCs(rhs.block(fatherID),
+                                                            assemblerFather->getFESpaceBCs(),
+                                                            assemblerFather->getComponentBCs());
+        rhs.block(nPrimalBlocks + interfaceID) -= M_fatherB * sol.block(fatherID);
+    }
+    if (assemblerChild->isOwned())
+    {
+        // we have (-1) because we are solving H un+1 = F(.) and coupling is in F
+        rhs.block(childID)  -= M_childBT * sol.block(nPrimalBlocks + interfaceID);
+        assemblerChild->getBCManager()->apply0DirichletBCs(rhs.block(childID),
+                                                           assemblerChild->getFESpaceBCs(),
+                                                           assemblerChild->getComponentBCs());
+        rhs.block(nPrimalBlocks + interfaceID) -= M_childB * sol.block(childID);
+    }
     // here + because the stabilization term is (stress - lagrange) => hence
     // + lagrange at rhs
     if (M_stabilizationCoupling > 1e-15)
     {
-        rhs.block(nPrimalBlocks + interfaceID) -= (M_stabFather * sol.block(fatherID)) * (0.5 * M_stabilizationCoupling);
-        rhs.block(nPrimalBlocks + interfaceID) -= (M_stabChild * sol.block(childID)) * (0.5 * M_stabilizationCoupling);
+        if (assemblerFather->isOwned())
+            rhs.block(nPrimalBlocks + interfaceID) -= (M_stabFather * sol.block(fatherID)) * (0.5 * M_stabilizationCoupling);
+        if (assemblerChild->isOwned())
+            rhs.block(nPrimalBlocks + interfaceID) -= (M_stabChild * sol.block(childID)) * (0.5 * M_stabilizationCoupling);
 
         rhs.block(nPrimalBlocks + interfaceID) -=
         sol.block(nPrimalBlocks + interfaceID) * M_stabilizationCoupling;

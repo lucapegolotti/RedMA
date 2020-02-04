@@ -32,9 +32,13 @@ public:
 
     void setInflow(const std::function<double(double)>& inflow);
 
+    void setDistributed(bool distributed);
+
     void setInflowDt(const std::function<double(double)>& inflowDt);
 
     void setVerbose(bool verbose);
+
+    void setMasterComm(EPETRACOMM comm);
 
     inline GetPot getDatafile() const {return *M_datafile;}
 
@@ -43,6 +47,10 @@ public:
     inline std::function<double(double)> getInflowDt() const {return M_inflowDt;}
 
     inline bool getVerbose() const {return M_verbose;}
+
+    inline bool getDistributed() const {return M_distributed;}
+
+    inline EPETRACOMM getMasterComm() const {return M_comm;}
 
     std::string operator()(std::string location, std::string defValue) const;
 
@@ -61,6 +69,12 @@ protected:
     std::function<double(double)>   M_inflow;
     std::function<double(double)>   M_inflowDt;
     bool                            M_verbose;
+    EPETRACOMM                      M_comm;
+    // this must be true if the building blocks are distributed across processors.
+    // It is important to know this because we want to know when to share values
+    // among the master comm (for example when we compute a local norm and we need)
+    // the global one
+    bool                            M_distributed;
 };
 
 }

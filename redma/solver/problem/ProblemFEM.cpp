@@ -21,6 +21,24 @@ ProblemFEM(const DataContainer& data, EPETRACOMM comm) :
     setup();
 }
 
+ProblemFEM::
+ProblemFEM(const DataContainer& data, const CommunicatorsDistributor& commD) :
+  aProblem(data),
+  M_geometryParser(data.getDatafile(),
+                   data("geometric_structure/xmlfile","tree.xml"),
+                   commD.getComms(), commD.getProcessMap(), data.getVerbose())
+{
+    M_tree = M_geometryParser.getTree();
+
+    std::string geometriesDir = data("geometric_structure/geometries_dir",
+                                     "../../../meshes/");
+
+    M_tree.readMeshes(geometriesDir);
+    M_tree.traverseAndDeformGeometries();
+
+    setup();
+}
+
 void
 ProblemFEM::
 setup()

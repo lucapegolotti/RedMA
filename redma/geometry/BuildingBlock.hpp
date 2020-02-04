@@ -146,7 +146,11 @@ public:
 
     inline commPtr_Type getComm() const {return M_comm;}
 
-    inline bool getIsChild() const {return M_isChild;} 
+    inline bool getIsChild() const {return M_isChild;}
+
+    inline unsigned int getNumPointsMesh() const {return M_numPointsMesh;}
+
+    inline bool isOwned() const {return M_isOwned;}
 
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
@@ -185,7 +189,11 @@ protected:
     Vector3D M_inletRotationAxis;
     double M_inletAngle;
 
+    unsigned int M_numPointsMesh;
+
     GetPot M_datafile;
+
+    bool M_isOwned;
 };
 
 }  // namespace RedMA

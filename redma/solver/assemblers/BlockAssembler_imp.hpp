@@ -31,8 +31,10 @@ setup()
         newAssembler->setup();
         M_primalAssemblers[it->second->M_ID] = newAssembler;
     }
+    this->M_data.getMasterComm()->Barrier();
 
-    // allocate interface assemblers
+
+        // allocate interface assemblers
     unsigned int interfaceID = 0;
     for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
     {
@@ -64,6 +66,8 @@ setup()
             countChildren++;
         }
     }
+    this->M_data.getMasterComm()->Barrier();
+
     M_numberBlocks = M_primalAssemblers.size() + M_dualAssemblers.size();
 
     printlog(GREEN, "done\n", this->M_data.getVerbose());
@@ -152,10 +156,12 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
         unsigned int ind = as.first;
         rhs.block(ind).softCopy(as.second->getRightHandSide(time, sol.block(ind)));
     }
+    this->M_data.getMasterComm()->Barrier();
 
     // add interface contributions
     for (auto as: M_dualAssemblers)
         as->addContributionRhs(rhs, sol, M_primalAssemblers.size());
+    this->M_data.getMasterComm()->Barrier();
 
     return rhs;
 }
@@ -168,15 +174,19 @@ getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& so
     BlockMatrix<InMatrixType> jac;
     jac.resize(M_numberBlocks, M_numberBlocks);
 
+    std::cout << "1" << std::endl;
     for (auto as: M_primalAssemblers)
     {
         unsigned int ind = as.first;
         jac.block(ind,ind).softCopy(as.second->getJacobianRightHandSide(time,
                                     sol.block(ind)));
     }
-
+    std::cout << "2" << std::endl;
+    this->M_data.getMasterComm()->Barrier();
     for (auto as: M_dualAssemblers)
         as->addContributionJacobianRhs(jac, sol, M_primalAssemblers.size());
+    std::cout << "3" << std::endl;
+    this->M_data.getMasterComm()->Barrier();
 
     return jac;
 }

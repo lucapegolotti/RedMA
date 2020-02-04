@@ -23,6 +23,7 @@ setup()
     {
         M_prevSolutions.push_back(this->M_assembler->getZeroVector());
     }
+    this->M_data.getMasterComm()->Barrier();
 
     if (M_order == 1)
     {

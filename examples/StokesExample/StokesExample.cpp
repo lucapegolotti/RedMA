@@ -17,6 +17,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/ProblemFEM.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
+#include <redma/geometry/CommunicatorsDistributor.hpp>
 
 using namespace RedMA;
 
@@ -39,15 +40,27 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
+    bool distributed = true;
+
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setInflow(inflow);
     data.setInflowDt(inflowDt);
+    data.setMasterComm(comm);
+    data.setDistributed(distributed);
     data.setVerbose(comm->MyPID() == 0);
 
-    ProblemFEM femProblem(data, comm);
-
-    femProblem.solve();
+    if (distributed)
+    {
+        CommunicatorsDistributor commD(data.getDatafile(), comm);
+        ProblemFEM femProblem(data, commD);
+        femProblem.solve();
+    }
+    else
+    {
+        ProblemFEM femProblem(data, comm);
+        femProblem.solve();
+    }
 
     return 0;
 }

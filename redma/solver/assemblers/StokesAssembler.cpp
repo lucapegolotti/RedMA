@@ -117,20 +117,24 @@ BlockVector<VectorEp>
 StokesAssembler<VectorEp,MatrixEp>::
 getZeroVector() const
 {
-    SHP(VECTOREPETRA) uComp(new VECTOREPETRA(M_velocityFESpace->map(),
-                                             LifeV::Unique));
-
-    uComp->zero();
-
-    SHP(VECTOREPETRA) pComp(new VECTOREPETRA(M_pressureFESpace->map(),
-                                             LifeV::Unique));
-
-    pComp->zero();
-
     BlockVector<VectorEp> retVec;
     retVec.resize(M_nComponents);
-    retVec.block(0).data() = uComp;
-    retVec.block(1).data() = pComp;
+
+    if (isOwned())
+    {
+        SHP(VECTOREPETRA) uComp(new VECTOREPETRA(M_velocityFESpace->map(),
+                                                 LifeV::Unique));
+
+        uComp->zero();
+
+        SHP(VECTOREPETRA) pComp(new VECTOREPETRA(M_pressureFESpace->map(),
+                                                 LifeV::Unique));
+
+        pComp->zero();
+
+        retVec.block(0).data() = uComp;
+        retVec.block(1).data() = pComp;
+    }
     return retVec;
 }
 

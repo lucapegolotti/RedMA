@@ -70,12 +70,15 @@ public:
 
     virtual inline SHP(ETFESPACE1) getETFESpaceSecondary() const {return nullptr;}
 
+    virtual inline bool isOwned() const {return M_treeNode->M_block->isOwned();}
+
 protected:
     DataContainer                        M_data;
     SHP(TreeNode)                        M_treeNode;
     SHP(BCManager)                       M_bcManager;
     unsigned int                         M_nComponents;
     EPETRACOMM                           M_comm;
+    bool                                 M_isOwned;
 };
 
 }

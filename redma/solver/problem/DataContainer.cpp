@@ -18,6 +18,20 @@ setDatafile(const std::string& datafile)
 
 void
 DataContainer::
+setMasterComm(EPETRACOMM comm)
+{
+    M_comm = comm;
+}
+
+void
+DataContainer::
+setDistributed(bool distributed)
+{
+    M_distributed = distributed;
+}
+
+void
+DataContainer::
 setInflow(const std::function<double(double)>& inflow)
 {
     M_inflow = inflow;

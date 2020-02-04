@@ -43,6 +43,11 @@ public:
     GeometryParser(const GetPot& datfile, std::string fileName,
                    commPtr_Type comm, bool verbose);
 
+    GeometryParser(const GetPot& datfile, std::string fileName,
+                   std::vector<commPtr_Type> comms,
+                   std::map<unsigned int, unsigned int> processMap,
+                   bool verbose);
+
     void traverseXML(XMLEl* curElement,
                      unsigned int IDfather);
 
@@ -51,12 +56,14 @@ public:
 private:
     BuildingBlockPtr parseElement(const XMLEl* element, unsigned int& outletParent);
 
-    commPtr_Type M_comm;
-    TreeStructure M_tree;
-    GetPot  M_datafile;
-    bool M_verbose;
-    int M_maxNumBlocks;
-    unsigned int M_numBlocks;
+    commPtr_Type                                      M_comm;
+    std::vector<commPtr_Type>                         M_comms;
+    TreeStructure                                     M_tree;
+    GetPot                                            M_datafile;
+    bool                                              M_verbose;
+    int                                               M_maxNumBlocks;
+    unsigned int                                      M_numBlocks;
+    std::map<unsigned int, unsigned int>              M_processMap;
 };
 
 }  // namespace RedMA

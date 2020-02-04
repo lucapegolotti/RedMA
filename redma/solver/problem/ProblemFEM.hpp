@@ -23,6 +23,7 @@
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/geometry/TreeStructure.hpp>
 #include <redma/geometry/GeometryParser.hpp>
+#include <redma/geometry/CommunicatorsDistributor.hpp>
 
 #include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
 #include <redma/solver/assemblers/BlockAssembler.hpp>
@@ -40,6 +41,8 @@ class ProblemFEM : public aProblem
     typedef BlockMatrix<BM>                         BBM;
 public:
     ProblemFEM(const DataContainer& data, EPETRACOMM comm);
+
+    ProblemFEM(const DataContainer& data, const CommunicatorsDistributor& commD);
 
     virtual void setup();
 

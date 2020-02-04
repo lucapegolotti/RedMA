@@ -9,7 +9,38 @@ GeometryParser(const GetPot& datafile, std::string fileName,
   M_comm(comm),
   M_datafile(datafile),
   M_verbose(verbose),
-  M_numBlocks()
+  M_numBlocks(0)
+{
+    printlog(MAGENTA, "[GeometryParser] parsing " +
+                    fileName + " structure file ...\n", M_verbose);
+    tinyxml2::XMLDocument doc;
+    int status = doc.LoadFile(fileName.c_str());
+
+    M_maxNumBlocks = M_datafile("geometric_structure/maxnumblocks", -1);
+
+    if (status)
+    {
+        std::string errorMsg = "[GeometryParser] " + fileName + " does not " +
+        " exist, or it is badly formatted!";
+        throw Exception(errorMsg);
+    }
+
+    tinyxml2::XMLElement* rootElement = doc.FirstChildElement();
+    traverseXML(rootElement, 0);
+
+    printlog(MAGENTA, "done\n", verbose);
+}
+
+GeometryParser::
+GeometryParser(const GetPot& datafile, std::string fileName,
+               std::vector<commPtr_Type> comms,
+               std::map<unsigned int, unsigned int> processMap,
+               bool verbose) :
+  M_comms(comms),
+  M_processMap(processMap),
+  M_datafile(datafile),
+  M_verbose(verbose),
+  M_numBlocks(0)
 {
     printlog(MAGENTA, "[GeometryParser] parsing " +
                     fileName + " structure file ...\n", M_verbose);
@@ -71,6 +102,14 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
 {
     BuildingBlockPtr returnBlock;
 
+    commPtr_Type comm;
+
+    if (M_comm != nullptr)
+        comm = M_comm;
+    else
+        // maybe using M_numBlocks as ID is dangerous
+        comm = M_comms[M_processMap[M_numBlocks]];
+
     outletParent = -1;
     if (element->Attribute("outlet"))
     {
@@ -104,7 +143,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
             L = std::atoi(element->Attribute("L"));
         }
 
-        returnBlock.reset(new Tube(M_comm, ref, M_verbose, d, L));
+        returnBlock.reset(new Tube(comm, ref, M_verbose, d, L));
     }
     else if (!std::strcmp(element->Attribute("type"),
                           "bifurcation_symmetric"))
@@ -118,7 +157,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
         if (element->Attribute("angle"))
             angle = std::atoi(element->Attribute("angle"));
 
-        returnBlock.reset(new BifurcationSymmetric(M_comm, ref, M_verbose, angle));
+        returnBlock.reset(new BifurcationSymmetric(comm, ref, M_verbose, angle));
     }
     // else if (!std::strcmp(element->Attribute("type"),
     //                       "bifurcation_asymmetric"))
@@ -156,7 +195,6 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
     returnBlock->setDatafile(M_datafile);
 
     M_numBlocks++;
-
     return returnBlock;
 }
 

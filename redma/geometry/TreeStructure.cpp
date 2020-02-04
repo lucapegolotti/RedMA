@@ -241,6 +241,22 @@ readMeshes(std::string meshdir)
     }
 }
 
+std::map<unsigned int, unsigned int>
+TreeStructure::
+getNumPointsMeshes()
+{
+    typedef std::map<unsigned int, TreeNodePtr> NodesMap;
+
+    std::map<unsigned int, unsigned int> retMap;
+
+    for (NodesMap::iterator it = M_nodesMap.begin();
+         it != M_nodesMap.end(); it++)
+    {
+        retMap[(*it).first] = (*it).second->M_block->getNumPointsMesh();
+    }
+    return retMap;
+}
+
 void
 TreeStructure::
 createRandom(unsigned int blocksNumber, std::shared_ptr<Epetra_Comm> comm)

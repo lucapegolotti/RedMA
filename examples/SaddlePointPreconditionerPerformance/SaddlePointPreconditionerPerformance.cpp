@@ -17,6 +17,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/ProblemFEM.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
+#include <redma/geometry/CommunicatorsDistributor.hpp>
 
 using namespace RedMA;
 
@@ -72,31 +73,43 @@ int main(int argc, char **argv)
     std::vector<std::string> approxSchur(2); approxSchur[0] = "SIMPLE"; approxSchur[1] = "exact";
     std::vector<double> intol(3); intol[0] = 0.5; intol[1] = 0.1; intol[2] = 0.01;
 
+    DataContainer data;
+    data.setDatafile("datafiles/data");
 
-    for (auto inp : innerPrec)
-    {
-        for (auto aps : approxSchur)
-        {
-            if (!std::strcmp(inp.c_str(),"exact") || !std::strcmp(aps.c_str(),"exact"))
-            {
-                for (auto tol : intol)
-                {
-                    for (int numblocks = 1; numblocks < 40; )
-                    {
-                        for (int nmax = 0; nmax < 3; nmax++)
-                            solveProblem(comm,inp,aps,tol,numblocks,nmax);
-                        numblocks = numblocks + 3;
-                    }
-                }
-            }
-            for (int numblocks = 1; numblocks < 40; )
-            {
-                for (int nmax = 0; nmax < 3; nmax++)
-                    solveProblem(comm,inp,aps,0.5,numblocks,nmax);
-                numblocks = numblocks + 3;
-            }
-        }
-    }
+    CommunicatorsDistributor commD(data.getDatafile(), comm);
+
+    // for (auto inp : innerPrec)
+    // {
+    //     for (auto aps : approxSchur)
+    //     {
+    //         if (!std::strcmp(inp.c_str(),"exact") || !std::strcmp(aps.c_str(),"exact"))
+    //         {
+    //             for (auto tol : intol)
+    //             {
+    //                 for (int numblocks = 1; numblocks < 40; )
+    //                 {
+    //                     for (int nmax = 0; nmax < 3; nmax++)
+    //                         solveProblem(comm,inp,aps,tol,numblocks,nmax);
+    //                     numblocks = numblocks + 3;
+    //                 }
+    //             }
+    //         }
+    //         else
+    //         {
+    //             for (int numblocks = 1; numblocks < 40; )
+    //             {
+    //                 for (int nmax = 0; nmax < 3; nmax++)
+    //                     solveProblem(comm,inp,aps,0.5,numblocks,nmax);
+    //                 numblocks = numblocks + 3;
+    //             }
+    //         }
+    //     }
+    // }
+
+    #ifdef HAVE_MPI
+    MPI_Finalize();
+    #endif
+    return ( EXIT_SUCCESS );
 
     return 0;
 }
