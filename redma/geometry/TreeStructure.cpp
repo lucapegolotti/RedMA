@@ -19,10 +19,7 @@ TreeNode::
 isOutletNode()
 {
     if (M_nChildren < M_block->getOutlets().size())
-    {
-        std::cout << "I am node " << M_ID << " and I am outlet" << std::endl;
         return true;
-    }
     return false;
 }
 
@@ -31,10 +28,7 @@ TreeNode::
 isInletNode()
 {
     if (M_ID == 0)
-    {
-        std::cout << "I am node " << M_ID << " and I am inlet" << std::endl;
         return true;
-    }
     return false;
 }
 
@@ -408,7 +402,7 @@ operator+(TreeStructure& other)
     {
         status = other.findBlockWithFace(M_root->M_block->getInlet().M_center,
                                          tol, outletIndex);
-        std::cout << status << std::endl;
+
         if (status < 0)
             throw new Exception("Operator += of treeStructure: no suitable face!");
 

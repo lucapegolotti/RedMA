@@ -71,7 +71,8 @@ public:
 
     void assembleDivergence();
 
-    std::map<unsigned int, double> computeFlowRates(const BlockVector<InVectorType>& sol);
+    std::map<unsigned int, double> computeFlowRates(const BlockVector<InVectorType>& sol,
+                                                    bool verbose = false);
 
     // these are int_{Gamma_N} phi_i * n inlets (just to check that it is preserved)
     // and outlets (for boundary conditions)

@@ -14,14 +14,17 @@
 
 [bc_conditions]
 	lifting = true
-	[outlet0]
+	numoutletbcs = 2
+	[./outlet0]
 		blockindex = 11
+		boundaryflag = 2
 		C = 1
 		Rp = 1
 		Rd = 1
 	[../]
-	[outlet1]
+	[./outlet1]
 		blockindex = 19
+		boundaryflag = 2
 		C = 1
 		Rp = 1
 		Rd = 1
@@ -31,8 +34,8 @@
 [preconditioner]
 	options    = datafiles/solversOptionsFast
 	outer      = saddlepoint
-	inner	   = exact
-	approxshur = exact
+	inner	   = SIMPLE
+	approxshur = SIMPLE
 	innertol   = 0.5
 [../]
 

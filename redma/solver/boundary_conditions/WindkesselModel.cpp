@@ -14,7 +14,10 @@ WindkesselModel(const DataContainer& data, const std::string& dataEntry,
     M_dt = data("time_discretization/dt", 0.01);
     M_pressureDrop.reset(new PressureDrop(M_C, M_Rp, M_Rd));
     M_Pd = data.getDistalPressure(indexOutlet);
+    CoutRedirecter ct;
+    ct.redirect();
     M_bdf.reset(new BDF<Double, Double>(data, M_pressureDrop));
+    ct.restore();
 }
 
 double
@@ -25,9 +28,13 @@ getNeumannCondition(const double& time, const double& rate)
     M_pressureDropSolution.resize(1);
 
     int status = -1;
-    M_pressureDropSolution = M_bdf->advance(time, M_dt, status);
 
-    if (!status)
+    CoutRedirecter ct;
+    ct.redirect();
+    M_pressureDropSolution = M_bdf->advance(time, M_dt, status);
+    ct.restore();
+
+    if (status)
         throw new Exception("Error in WindkesselModel: status != 0");
 
     BlockVector<Double> sol(1);

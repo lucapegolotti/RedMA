@@ -52,7 +52,7 @@ solve()
         printlog(MAGENTA, msg, M_data.getVerbose());
         int status = solveTimestep(t, dt);
 
-        if (!status)
+        if (status)
             throw new Exception("Error in solver. Status != 0.");
 
         t += dt;

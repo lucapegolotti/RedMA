@@ -178,6 +178,9 @@ operator-=(const BlockVector<InVectorType>& other)
         return *this;
     }
 
+    if (other.nRows() == 0)
+        return *this;
+
     if (M_nRows != other.M_nRows)
     {
         throw new Exception("Dimension of vectors being subtracted is not consistent!");

@@ -17,7 +17,7 @@ BlockVector<Double>
 PressureDrop::
 getZeroVector() const
 {
-    return BlockVector<Double>();
+    return BlockVector<Double>(1);
 }
 
 BlockMatrix<Double>

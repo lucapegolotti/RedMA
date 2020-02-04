@@ -88,6 +88,10 @@ exportSolution(const double& t, const BlockVector<InVectorType>& sol)
         *M_pressureExporter = *sol.block(1).data();
     }
 
+    BlockVector<InVectorType> solCopy(2);
+    solCopy.block(0).data() = M_velocityExporter;
+    computeFlowRates(solCopy, true);
+
     CoutRedirecter ct;
     ct.redirect();
     M_exporter->postProcess(t);
@@ -129,12 +133,14 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
     // treatment of Dirichlet bcs if needed
     bool useLifting = this->M_data("bc_conditions/lifting", true);
 
+    BlockVector<InVectorType> lifting;
+    BlockVector<InVectorType> liftingDt;
     if (useLifting)
     {
-        BlockVector<InVectorType> lifting = computeLifting(time);
+        lifting = computeLifting(time);
         retVec += (systemMatrix * lifting);
 
-        BlockVector<InVectorType> liftingDt = computeLiftingDt(time);
+        liftingDt = computeLiftingDt(time);
         retVec -= (M_mass * liftingDt);
     }
 
@@ -198,7 +204,7 @@ computeLiftingDt(const double& time) const
 template <class InVectorType, class InMatrixType>
 std::map<unsigned int, double>
 StokesAssembler<InVectorType, InMatrixType>::
-computeFlowRates(const BlockVector<InVectorType>& sol)
+computeFlowRates(const BlockVector<InVectorType>& sol, bool verbose)
 {
     std::string msg;
     std::map<unsigned int, double> flowRates;
@@ -207,10 +213,10 @@ computeFlowRates(const BlockVector<InVectorType>& sol)
         auto face = this->M_treeNode->M_block->getInlet();
 
         flowRates[face.M_flag] = std::abs(sol.block(0).data()->dot(*M_flowRateVectors[face.M_flag]));
-        msg = "[StokesAssembler] inflow rate =";
+        msg = "[StokesAssembler] inflow rate = ";
         msg += std::to_string(flowRates[face.M_flag]);
         msg += "\n";
-        printlog(YELLOW, msg, this->M_data.getVerbose());
+        printlog(YELLOW, msg, verbose);
     }
 
     if (this->M_treeNode->isOutletNode())
@@ -223,7 +229,7 @@ computeFlowRates(const BlockVector<InVectorType>& sol)
             msg = "[StokesAssembler] outflow rate = ";
             msg += std::to_string(flowRates[face.M_flag]);
             msg += "\n";
-            printlog(YELLOW, msg, this->M_data.getVerbose());
+            printlog(YELLOW, msg, verbose);
         }
     }
 

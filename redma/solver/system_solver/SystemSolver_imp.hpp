@@ -18,7 +18,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 {
     M_solverStatistics.resize(0);
 
-    BV incr;
+    BV incr(initialGuess.nRows());
     BV curFun;
     BV sol = initialGuess;
 

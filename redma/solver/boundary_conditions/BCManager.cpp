@@ -28,7 +28,7 @@ parseNeumannData()
         unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
         if (M_treeNode->M_ID == blockindex)
         {
-            unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 0);
+            unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
             M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
         }
     }
@@ -200,19 +200,14 @@ applyNeumannBc(const double& time, BlockVector<VectorEp>& input,
     SHP(LifeV::BCHandler) bcs;
     bcs.reset(new LifeV::BCHandler);
 
-    std::cout << "I am here " << std::endl << std::flush;
     for (auto windkessel : M_models)
     {
-        std::cout << 1 << std::endl << std::flush;
         auto it = flowRates.find(windkessel.first);
-        std::cout << 2 << std::endl << std::flush;
 
         if (it == flowRates.end())
             throw new Exception("BCManager: flow rate not found!");
-        std::cout << 3 << std::endl << std::flush;
 
         double neumannCondition = -windkessel.second->getNeumannCondition(time, it->second);
-        std::cout << 4 << std::endl << std::flush;
 
         LifeV::BCFunctionBase constant(std::bind(
             &constantFunction,
@@ -222,16 +217,15 @@ applyNeumannBc(const double& time, BlockVector<VectorEp>& input,
             std::placeholders::_4,
             std::placeholders::_5,
             neumannCondition));
-        std::cout << 5 << std::endl << std::flush;
+
         bcs->addBC("Outflow" + std::to_string(windkessel.first), windkessel.first,
                    LifeV::Natural, LifeV::Normal, constant);
-        std::cout << 6 << std::endl << std::flush;
     }
 
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
-    if (curVec)
+    if (curVec && M_models.size() > 0)
         bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
                     *bcs, fespace->feBd(), 0.0, 0.0);
 }
@@ -240,6 +234,10 @@ double
 BCManager::
 getNeumannJacobian(const double& flag, const double& rate)
 {
+    auto it = M_models.find(flag);
+    if (it == M_models.end())
+        return 0.0;
+    
     return -M_models[flag]->getNeumannJacobian(rate);
 }
 

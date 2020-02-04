@@ -98,7 +98,7 @@ advance(const double& time, double& dt, int& status)
 
     BV sol = this->M_systemSolver.solve(fct, jac, initialGuess, status);
 
-    if (!status)
+    if (status != 0)
         throw new Exception("Solver has not converged!");
 
     std::vector<SolverStatistics> statistics = this->M_systemSolver.getSolverStatistics();
