@@ -41,9 +41,6 @@ public:
     void applyDirichletBCs(const double& time, BlockVector<VectorEp>& input,
                            SHP(FESPACE) fespace, const unsigned int& index) const;
 
-    void applyDirichletBCsDt(const double& time, BlockVector<VectorEp>& input,
-                             SHP(FESPACE) fespace, const unsigned int& index) const;
-
     void apply0DirichletBCs(BlockVector<VectorEp>& input,
                             SHP(FESPACE) fespace,
                             const unsigned int& index) const;
@@ -58,7 +55,7 @@ public:
                         const std::map<unsigned int, double> flowRates);
 
     // actually derivative wrt to flowrate
-    double getNeumannJacobian(const double& flag, const double& rate);
+    double getNeumannJacobian(const double& time, const double& flag, const double& rate);
 
     void postProcess();
 

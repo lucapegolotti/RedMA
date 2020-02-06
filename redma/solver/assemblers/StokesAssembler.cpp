@@ -171,7 +171,8 @@ assembleFlowRateVectors()
     if (M_treeNode->isInletNode())
     {
         auto face = M_treeNode->M_block->getInlet();
-
+        std::cout << "Inlet normal " << std::endl;
+        face.print();
         M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face.M_flag);
     }
 

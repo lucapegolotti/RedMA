@@ -64,5 +64,16 @@ solve(const BlockMatrix<Double>& matrix,
     sol.block(0).data() = rhs.block(0).data() / matrix.block(0,0).data();
 }
 
+template <>
+void
+LinearSystemSolver<VectorEp, MatrixEp>::
+solve(const BlockMatrix<MatrixEp>& matrix,
+      const BlockVector<VectorEp>& rhs,
+      BlockVector<VectorEp>& sol)
+{
+    throw new Exception("This specialization of LinearSystemSolver::solve "
+                        "should not be used");
+}
+
 
 }

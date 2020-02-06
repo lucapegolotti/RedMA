@@ -9,7 +9,6 @@ BCManager(const DataContainer& data, SHP(TreeNode) treeNode) :
   M_treeNode(treeNode)
 {
     M_inflow = data.getInflow();
-    M_inflowDt = data.getInflowDt();
     M_useLifting = data("bc_conditions/lifting", true);
 
     parseNeumannData();
@@ -64,24 +63,6 @@ applyDirichletBCs(const double& time, BlockVector<VectorEp>& input,
     SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
 
     addInletBC(bcs, M_inflow);
-
-    bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
-
-    auto curVec = input.block(index).data();
-
-    if (curVec)
-        bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
-                    *bcs, fespace->feBd(), 1.0, time);
-}
-
-void
-BCManager::
-applyDirichletBCsDt(const double& time, BlockVector<VectorEp>& input,
-                    SHP(FESPACE) fespace, const unsigned int& index) const
-{
-    SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
-
-    addInletBC(bcs, M_inflowDt);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -232,13 +213,13 @@ applyNeumannBc(const double& time, BlockVector<VectorEp>& input,
 
 double
 BCManager::
-getNeumannJacobian(const double& flag, const double& rate)
+getNeumannJacobian(const double& time, const double& flag, const double& rate)
 {
     auto it = M_models.find(flag);
     if (it == M_models.end())
         return 0.0;
-    
-    return -M_models[flag]->getNeumannJacobian(rate);
+
+    return -M_models[flag]->getNeumannJacobian(time, rate);
 }
 
 void

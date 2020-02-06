@@ -11,6 +11,8 @@ StokesAssembler(const DataContainer& data,
     M_viscosity = this->M_data("fluid/viscosity", 0.035);
     this->M_nComponents = 2;
     this->M_bcManager.reset(new BCManager(data, treeNode));
+
+    M_useLifting = this->M_data("bc_conditions/lifting", true);
 }
 
 template <class InVectorType, class InMatrixType>
@@ -34,6 +36,12 @@ setup()
     assembleFlowRateJacobians();
 
     setExporter();
+
+    if (M_useLifting)
+    {
+        M_TMAlifting = TimeMarchingAlgorithmFactory<InVectorType COMMA InMatrixType>(this->M_data);
+        M_TMAlifting->setup(getZeroVector());
+    }
 
     std::string msg = "done, in ";
     msg += std::to_string(chrono.diff());
@@ -71,8 +79,7 @@ void
 StokesAssembler<InVectorType, InMatrixType>::
 exportSolution(const double& t, const BlockVector<InVectorType>& sol)
 {
-    bool useLifting = this->M_data("bc_conditions/lifting", true);
-    if (useLifting)
+    if (M_useLifting)
     {
         BlockVector<InVectorType> copySol;
         copySol.hardCopy(sol);
@@ -101,10 +108,17 @@ exportSolution(const double& t, const BlockVector<InVectorType>& sol)
 template <class InVectorType, class InMatrixType>
 void
 StokesAssembler<InVectorType, InMatrixType>::
-postProcess(const BlockVector<InVectorType>& sol)
+postProcess(const double& t, const BlockVector<InVectorType>& sol)
 {
     // shift solutions in multistep method embedded in windkessels
     this->M_bcManager->postProcess();
+
+    // shift liftings for derivative approximation
+    if (M_useLifting)
+    {
+        BlockVector<InVectorType> lifting = computeLifting(t);
+        M_TMAlifting->shiftSolutions(lifting);
+    }
 }
 
 template <class InVectorType, class InMatrixType>
@@ -130,17 +144,15 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 
     retVec.softCopy(systemMatrix * sol);
 
-    // treatment of Dirichlet bcs if needed
-    bool useLifting = this->M_data("bc_conditions/lifting", true);
-
     BlockVector<InVectorType> lifting;
     BlockVector<InVectorType> liftingDt;
-    if (useLifting)
+    if (M_useLifting)
     {
         lifting = computeLifting(time);
         retVec += (systemMatrix * lifting);
 
-        liftingDt = computeLiftingDt(time);
+        double dt = this->M_data("time_discretization/dt", 0.01);
+        liftingDt = M_TMAlifting->computeDerivative(lifting, dt);
         retVec -= (M_mass * liftingDt);
     }
 
@@ -156,9 +168,7 @@ void
 StokesAssembler<InVectorType, InMatrixType>::
 apply0DirichletBCs(BlockVector<InVectorType>& vector)
 {
-    bool useLifting = this->M_data("bc_conditions/lifting", true);
-
-    if (useLifting)
+    if (M_useLifting)
         this->M_bcManager->apply0DirichletBCs(vector, getFESpaceBCs(), getComponentBCs());
 }
 
@@ -180,25 +190,6 @@ computeLifting(const double& time) const
     this->M_bcManager->applyDirichletBCs(time, lifting, getFESpaceBCs(),
                                          getComponentBCs());
     return lifting;
-}
-
-template <class InVectorType, class InMatrixType>
-BlockVector<FEVECTOR>
-StokesAssembler<InVectorType, InMatrixType>::
-computeLiftingDt(const double& time) const
-{
-    BlockVector<InVectorType> liftingDt;
-    liftingDt.resize(2);
-    liftingDt.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map(),
-                                                     LifeV::Unique));
-    liftingDt.block(0).data()->zero();
-    liftingDt.block(1).data().reset(new VECTOREPETRA(M_pressureFESpace->map(),
-                                                     LifeV::Unique));
-    liftingDt.block(1).data()->zero();
-
-    this->M_bcManager->applyDirichletBCsDt(time, liftingDt, getFESpaceBCs(),
-                                           getComponentBCs());
-    return liftingDt;
 }
 
 template <class InVectorType, class InMatrixType>
@@ -270,7 +261,7 @@ getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& so
 
         for (auto rate : flowRates)
         {
-            double dhdQ = this->M_bcManager->getNeumannJacobian(rate.first, rate.second);
+            double dhdQ = this->M_bcManager->getNeumannJacobian(time, rate.first, rate.second);
             BlockMatrix<InMatrixType> curjac(this->M_nComponents, this->M_nComponents);
 
             curjac.block(0,0).data().reset(new MATRIXEPETRA(*M_flowRateJacobians[rate.first]));

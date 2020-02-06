@@ -38,7 +38,7 @@ public:
 
     double getNeumannCondition(const double& time, const double& rate);
 
-    double getNeumannJacobian(const double& rate);
+    double getNeumannJacobian(const double& time, const double& rate);
 
     void shiftSolutions();
 

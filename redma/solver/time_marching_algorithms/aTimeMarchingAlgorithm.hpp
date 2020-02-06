@@ -35,17 +35,25 @@ class aTimeMarchingAlgorithm
     typedef aFunctionProvider<InVectorType COMMA InMatrixType>  FunProvider;
 public:
 
+    aTimeMarchingAlgorithm(const DataContainer& datafile);
+
     aTimeMarchingAlgorithm(const DataContainer& datafile,
                            SHP(FunProvider) funProvider);
+
+    virtual void setup(const BlockVector<InVectorType>& zeroVector) = 0;
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
                                               int& status) = 0;
 
-    void dumpSolverStatistics(std::vector<SolverStatistics> statistics,
-                              const double& t) const;
+    // compute derivative of u at tn+1 given its value
+    virtual BlockVector<InVectorType> computeDerivative(const BlockVector<InVectorType>& solnp1,
+                                                        double& dt) = 0;
 
     // this must be implemented by multistep methods (e.g. bdf)
     virtual void shiftSolutions(const BlockVector<InVectorType>& sol) {}
+
+    void dumpSolverStatistics(std::vector<SolverStatistics> statistics,
+                              const double& t) const;
 
 protected:
     void initializeStatisticsFile();

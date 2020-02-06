@@ -43,7 +43,8 @@ public:
     virtual void exportSolution(const double& t,
                                 const BlockVector<InVectorType>& sol) = 0;
 
-    virtual void postProcess(const BlockVector<InVectorType>& sol) = 0;
+    virtual void postProcess(const double& t,
+                             const BlockVector<InVectorType>& sol) = 0;
 
     virtual BlockMatrix<InMatrixType> getMass(const double& time,
                                       const BlockVector<InVectorType>& sol) = 0;

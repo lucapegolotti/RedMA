@@ -31,6 +31,11 @@ namespace RedMA
 
 template <class InVectorType, class InMatrixType>
 SHP(aTimeMarchingAlgorithm<InVectorType COMMA InMatrixType>)
+TimeMarchingAlgorithmFactory(const DataContainer& data);
+
+
+template <class InVectorType, class InMatrixType>
+SHP(aTimeMarchingAlgorithm<InVectorType COMMA InMatrixType>)
 TimeMarchingAlgorithmFactory(const DataContainer& data,
                              SHP(aFunctionProvider<InVectorType COMMA InMatrixType>) funProvider);
 

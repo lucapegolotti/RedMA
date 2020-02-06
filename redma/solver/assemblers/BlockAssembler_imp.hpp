@@ -112,10 +112,10 @@ exportSolution(const double& t, const BlockVector<InVectorType>& sol)
 template <class InVectorType, class InMatrixType>
 void
 BlockAssembler<InVectorType, InMatrixType>::
-postProcess(const BlockVector<InVectorType>& sol)
+postProcess(const double& t, const BlockVector<InVectorType>& sol)
 {
     for (auto as : M_primalAssemblers)
-        as.second->postProcess(sol.block(as.first));
+        as.second->postProcess(t, sol.block(as.first));
 
     if (this->M_data("coupling/check_stabterm", false))
         checkStabTerm(sol);

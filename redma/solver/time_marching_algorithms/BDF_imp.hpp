@@ -3,24 +3,33 @@ namespace RedMA
 
 template <class InVectorType, class InMatrixType>
 BDF<InVectorType, InMatrixType>::
+BDF(const DataContainer& data) :
+  aTimeMarchingAlgorithm<InVectorType, InMatrixType>(data),
+  M_order(data("time_discretization/order",2))
+{
+}
+
+template <class InVectorType, class InMatrixType>
+BDF<InVectorType, InMatrixType>::
 BDF(const DataContainer& data, SHP(FunProvider) funProvider) :
   aTimeMarchingAlgorithm<InVectorType, InMatrixType>(data, funProvider),
   M_order(data("time_discretization/order",2))
 {
-    setup();
+    setup(this->M_funProvider->getZeroVector());
 }
 
 template <class InVectorType, class InMatrixType>
 void
 BDF<InVectorType, InMatrixType>::
-setup()
+setup(const BlockVector<InVectorType>& zeroVector)
 {
-    printlog(GREEN, "[BDF] initializing time advancing scheme ...", this->M_data.getVerbose());
     M_coefficients.reserve(M_order);
 
     for (unsigned int i = 0; i < M_order; i++)
     {
-        M_prevSolutions.push_back(this->M_funProvider->getZeroVector());
+        BlockVector<InVectorType> zeroVectorCopy;
+        zeroVectorCopy.hardCopy(zeroVector);
+        M_prevSolutions.push_back(zeroVectorCopy);
     }
 
     if (M_order == 1)
@@ -45,7 +54,6 @@ setup()
     {
         throw new Exception("BDF scheme of requested order not implemented");
     }
-    printlog(GREEN, "done\n", this->M_data.getVerbose());
 }
 
 template <class InVectorType, class InMatrixType>
@@ -105,6 +113,27 @@ advance(const double& time, double& dt, int& status)
     this->dumpSolverStatistics(statistics, time+dt);
 
     return sol;
+}
+
+template <class InVectorType, class InMatrixType>
+BlockVector<InVectorType>
+BDF<InVectorType, InMatrixType>::
+computeDerivative(const BlockVector<InVectorType>& solnp1, double& dt)
+{
+    typedef BlockVector<InVectorType>               BV;
+
+    BlockVector<InVectorType> retVec;
+    retVec.hardCopy(solnp1);
+
+    unsigned int count = 0;
+    for (BV vec : M_prevSolutions)
+    {
+        retVec += vec * M_coefficients[count];
+        count++;
+    }
+
+    retVec *= (1.0/(dt * M_rhsCoeff));
+    return retVec;
 }
 
 template <class InVectorType, class InMatrixType>

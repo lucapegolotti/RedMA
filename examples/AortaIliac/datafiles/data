@@ -14,20 +14,21 @@
 
 [bc_conditions]
 	lifting = true
+	inflowfile = datafiles/inflow.txt
 	numoutletbcs = 2
 	[./outlet0]
 		blockindex = 11
 		boundaryflag = 2
-		C = 1
-		Rp = 1
-		Rd = 1
+		C = 0.0000760
+		Rp = 718.27
+		Rd = 15945.20
 	[../]
 	[./outlet1]
 		blockindex = 19
 		boundaryflag = 2
-		C = 1
-		Rp = 1
-		Rd = 1
+		C =  0.0000760
+		Rp = 718.27
+		Rd = 15945.20
 	[../]
 [../]
 
@@ -47,9 +48,8 @@
 [fluid]
 	velocity_order = P2
 	pressure_order = P1
-	viscosity      = 0.035
-	density        = 1
-	inflow_bc      = dirichlet
+	viscosity      = 0.04
+	density        = 1.04
 [../]
 
 [structure]
@@ -68,9 +68,9 @@
 
 [time_discretization]
 	algorithm = bdf
-	order = 1
+	order = 2
 	t0 = 0
-	T = 0.01
+	T = 0.75
 	dt = 0.01
 	solverstatistics = solverstatistics.txt
 [../]
@@ -87,6 +87,6 @@
 [coupling]
 	type                = chebyshev
 	nMax                = 2
-	stab_coefficient	= 1e-4
+	stab_coefficient	= 1e-15
 	check_stabterm		= true
 [../]

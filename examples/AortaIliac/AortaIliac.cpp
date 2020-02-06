@@ -20,16 +20,6 @@
 
 using namespace RedMA;
 
-double inflow(double t)
-{
-    return 10*sin(t);
-}
-
-double inflowDt(double t)
-{
-    return 10*cos(t);
-}
-
 double distalPressure0(double t)
 {
     return 0;
@@ -51,11 +41,11 @@ int main(int argc, char **argv)
 
     DataContainer data;
     data.setDatafile("datafiles/data");
-    data.setInflow(inflow);
-    data.setInflowDt(inflowDt);
     data.setVerbose(comm->MyPID() == 0);
     data.setDistalPressure(distalPressure0, 0);
     data.setDistalPressure(distalPressure1, 1);
+    data.finalize();
+
     ProblemFEM femProblem(data, comm);
 
     femProblem.solve();

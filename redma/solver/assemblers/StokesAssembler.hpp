@@ -43,7 +43,7 @@ public:
     virtual void exportSolution(const double& t,
                                 const BlockVector<InVectorType>& sol) override;
 
-    virtual void postProcess(const BlockVector<InVectorType>& sol) override;
+    virtual void postProcess(const double& t, const BlockVector<InVectorType>& sol) override;
 
     virtual BlockMatrix<InMatrixType> getMass(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
@@ -57,8 +57,6 @@ public:
     virtual BlockVector<InVectorType> getZeroVector() const override;
 
     BlockVector<FEVECTOR> computeLifting(const double& time) const;
-
-    BlockVector<FEVECTOR> computeLiftingDt(const double& time) const;
 
     void addNeumannBCs(BlockVector<FEVECTOR>& input, const double& time,
                        const BlockVector<InVectorType>& sol);
@@ -107,21 +105,23 @@ public:
 protected:
     void apply0DirichletBCs(BlockVector<InVectorType>& vector);
 
-    BlockMatrix<InMatrixType>                           M_mass;
-    BlockMatrix<InMatrixType>                           M_stiffness;
-    BlockMatrix<InMatrixType>                           M_divergence;
-    SHP(FESPACE)                                        M_velocityFESpace;
-    SHP(FESPACE)                                        M_pressureFESpace;
-    SHP(ETFESPACE3)                                     M_velocityFESpaceETA;
-    SHP(ETFESPACE1)                                     M_pressureFESpaceETA;
-    double                                              M_density;
-    double                                              M_viscosity;
-    SHP(VECTOREPETRA)                                   M_velocityExporter;
-    SHP(VECTOREPETRA)                                   M_pressureExporter;
-    SHP(LifeV::Exporter<MESH>)                          M_exporter;
+    BlockMatrix<InMatrixType>                                       M_mass;
+    BlockMatrix<InMatrixType>                                       M_stiffness;
+    BlockMatrix<InMatrixType>                                       M_divergence;
+    SHP(FESPACE)                                                    M_velocityFESpace;
+    SHP(FESPACE)                                                    M_pressureFESpace;
+    SHP(ETFESPACE3)                                                 M_velocityFESpaceETA;
+    SHP(ETFESPACE1)                                                 M_pressureFESpaceETA;
+    double                                                          M_density;
+    double                                                          M_viscosity;
+    SHP(VECTOREPETRA)                                               M_velocityExporter;
+    SHP(VECTOREPETRA)                                               M_pressureExporter;
+    SHP(LifeV::Exporter<MESH>)                                      M_exporter;
     // first index is face flag
-    std::map<unsigned int, SHP(VECTOREPETRA)>           M_flowRateVectors;
-    std::map<unsigned int, SHP(MATRIXEPETRA)>           M_flowRateJacobians;
+    std::map<unsigned int, SHP(VECTOREPETRA)>                       M_flowRateVectors;
+    std::map<unsigned int, SHP(MATRIXEPETRA)>                       M_flowRateJacobians;
+    SHP(aTimeMarchingAlgorithm<InVectorType COMMA InMatrixType>)    M_TMAlifting;
+    bool                                                            M_useLifting;
 };
 
 }

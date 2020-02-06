@@ -7,9 +7,9 @@ WindkesselModel::
 WindkesselModel(const DataContainer& data, const std::string& dataEntry,
                 const unsigned int& indexOutlet)
 {
-    M_C = data(dataEntry + "/C", 0);
-    M_Rp = data(dataEntry + "/Rp", 0);
-    M_Rd = data(dataEntry + "/Rd", 0);
+    M_C = data(dataEntry + "/C", 0.0);
+    M_Rp = data(dataEntry + "/Rp", 0.0);
+    M_Rd = data(dataEntry + "/Rd", 0.0);
     // attention: here we assume that the timestep is constant!
     M_dt = data("time_discretization/dt", 0.01);
     M_pressureDrop.reset(new PressureDrop(M_C, M_Rp, M_Rd));
@@ -38,16 +38,24 @@ getNeumannCondition(const double& time, const double& rate)
         throw new Exception("Error in WindkesselModel: status != 0");
 
     BlockVector<Double> sol(1);
+    std::cout << M_pressureDropSolution.block(0).data() << std::endl << std::flush;
     sol.block(0).data() = M_Rp * rate + M_pressureDropSolution.block(0).data() + M_Pd(time);
-
     return sol.block(0).data();
 }
 
 double
 WindkesselModel::
-getNeumannJacobian(const double& rate)
+getNeumannJacobian(const double& time, const double& rate)
 {
-    return M_Rp + 1.0/M_C * M_dt * M_bdf->getRhsCoeff();
+    const double eps = 1e-12;
+
+    std::cout << "rate " << rate << std::endl;
+    // we approximate the jacobian via finite differences
+    double jac1 = getNeumannCondition(time, rate + eps);
+    double jac2 = getNeumannCondition(time, rate - eps);
+
+    std::cout << (jac1 - jac2) / (2 * eps) << std::endl << std::flush;
+    return (jac1 - jac2) / (2 * eps);
 }
 
 void

@@ -34,7 +34,8 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
         BlockVector<InVectorType> lifting = this->computeLifting(time);
         retVec += (systemMatrix * lifting);
 
-        BlockVector<InVectorType> liftingDt = this->computeLiftingDt(time);
+        double dt = this->M_data("time_discretization/dt", 0.01);
+        BlockVector<InVectorType> liftingDt = this->M_TMAlifting->computeDerivative(lifting, dt);
         retVec -= (this->M_mass * liftingDt);
     }
 

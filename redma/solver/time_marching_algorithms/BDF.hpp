@@ -36,14 +36,20 @@ class BDF : public aTimeMarchingAlgorithm<InVectorType, InMatrixType>
     typedef aFunctionProvider<InVectorType COMMA InMatrixType>  FunProvider;
 
 public:
+
+    BDF(const DataContainer& data);
+
     BDF(const DataContainer& data, SHP(FunProvider) funProvider);
 
-    void setup();
+    virtual void setup(const BlockVector<InVectorType>& zeroVector) override;
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
                                               int& status) override;
 
-    void shiftSolutions(const BlockVector<InVectorType>& sol) override;
+    virtual void shiftSolutions(const BlockVector<InVectorType>& sol) override;
+
+    virtual BlockVector<InVectorType> computeDerivative(const BlockVector<InVectorType>& solnp1,
+                                                        double& dt) override;
 
     inline double getRhsCoeff() const {return M_rhsCoeff;}
 

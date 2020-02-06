@@ -23,13 +23,6 @@ setInflow(const std::function<double(double)>& inflow)
     M_inflow = inflow;
 }
 
-void
-DataContainer::
-setInflowDt(const std::function<double(double)>& inflowDt)
-{
-    M_inflowDt = inflowDt;
-}
-
 std::function<double(double)>
 DataContainer::
 getDistalPressure(const unsigned int& outletIndex) const
@@ -98,6 +91,87 @@ DataContainer::
 setValue(std::string location, double value)
 {
     M_datafile->set(location.c_str(), value);
+}
+
+void
+DataContainer::
+finalize()
+{
+    if (!M_inflow)
+        generateInflow();
+}
+
+void
+DataContainer::
+generateInflow()
+{
+    auto flowValues = parseInflow();
+
+    linearInterpolation(flowValues, M_inflow);
+}
+
+void
+DataContainer::
+linearInterpolation(const std::vector<std::pair<double,double>>& values,
+                    std::function<double(double)>& funct)
+{
+    funct = [values](double x)
+    {
+        unsigned int count = 0;
+        for (auto curpair : values)
+        {
+            if (curpair.first - x < 1e-15)
+                break;
+            count++;
+        }
+
+        if (count == values.size())
+        {
+            printlog(YELLOW, "Warning: exiting the bounds of the inflow file");
+            return values[count].second;
+        }
+
+        if (std::abs(values[count].first - x) < 1e-15)
+            return values[count].second;
+
+        double coeff = (values[count+1].second - values[count].second) /
+                       (values[count+1].first - values[count].first);
+        return values[count].second + coeff * (x - values[count].second);
+    };
+}
+
+std::vector<std::pair<double, double>>
+DataContainer::
+parseInflow()
+{
+    std::ifstream inflowfile((*M_datafile)("bc_conditions/inflowfile",
+                                           "datafiles/inflow.txt"));
+    std::vector<std::pair<double, double>> flowValues;
+    if (inflowfile.is_open())
+    {
+        while (inflowfile.good())
+        {
+            std::pair<double, double> newpair;
+            std::string line;
+            std::getline(inflowfile,line);
+            if (std::strcmp(line.c_str(),""))
+            {
+                auto firstspace = line.find(" ");
+                if (firstspace == std::string::npos || firstspace == 0)
+                    throw new Exception("Inflow file is badly formatted");
+                newpair.first = std::stod(line.substr(0,firstspace));
+
+                auto lastspace = line.find_last_of(" ");
+                if (lastspace == std::string::npos || firstspace == 0)
+                    throw new Exception("Inflow file is badly formatted");
+
+                newpair.second = std::stod(line.substr(lastspace+1,line.size()));
+                flowValues.push_back(newpair);
+            }
+        }
+        inflowfile.close();
+    }
+    return flowValues;
 }
 
 }

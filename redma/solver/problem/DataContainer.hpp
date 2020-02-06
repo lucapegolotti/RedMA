@@ -22,6 +22,8 @@
 
 #include <lifev/core/filter/GetPot.hpp>
 
+#include <fstream>
+
 namespace RedMA
 {
 
@@ -34,18 +36,16 @@ public:
 
     void setInflow(const std::function<double(double)>& inflow);
 
-    void setInflowDt(const std::function<double(double)>& inflowDt);
-
     void setDistalPressure(const std::function<double(double)>& pressure,
                            const unsigned int& indexOutlet);
 
     void setVerbose(bool verbose);
 
+    void finalize();
+
     inline GetPot getDatafile() const {return *M_datafile;}
 
     inline std::function<double(double)> getInflow() const {return M_inflow;}
-
-    inline std::function<double(double)> getInflowDt() const {return M_inflowDt;}
 
     inline bool getVerbose() const {return M_verbose;}
 
@@ -64,9 +64,15 @@ public:
     void setValue(std::string location, double defValue);
 
 protected:
+    std::vector<std::pair<double,double>> parseInflow();
+
+    void generateInflow();
+
+    void linearInterpolation(const std::vector<std::pair<double,double>>& values,
+                             std::function<double(double)>& funct);
+
     SHP(GetPot)                                           M_datafile;
     std::function<double(double)>                         M_inflow;
-    std::function<double(double)>                         M_inflowDt;
     std::map<unsigned int, std::function<double(double)>> M_distalPressures;
     bool                                                  M_verbose;
 };
