@@ -38,7 +38,7 @@ getNeumannCondition(const double& time, const double& rate)
     if (status)
         throw new Exception("Error in WindkesselModel: status != 0");
 
-    return M_Rp * rate + M_pressureDropSolution.block(0).data() * 0 + M_Pd(time);
+    return M_Rp * rate + M_pressureDropSolution.block(0).data() + M_Pd(time);
 }
 
 double

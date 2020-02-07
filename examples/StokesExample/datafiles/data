@@ -3,7 +3,7 @@
 #-------------------------------------------------------------
 
 [geometric_structure]
-	xmlfile = geometries/tree.xml
+	xmlfile = geometries/pipe1.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -19,8 +19,8 @@
 [preconditioner]
 	options    = datafiles/solversOptionsFast
 	outer      = saddlepoint
-	inner	   = exact
-	approxshur = exact
+	inner	   = SIMPLE
+	approxshur = SIMPLE
 	innertol   = 0.5
 [../]
 

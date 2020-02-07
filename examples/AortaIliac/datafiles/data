@@ -42,7 +42,7 @@
 [../]
 
 [newton_method]
-	tol = 1e-7
+	tol = 1e-5
 	maxit = 10
 [../]
 
