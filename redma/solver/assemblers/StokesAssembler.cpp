@@ -113,6 +113,48 @@ assembleDivergence()
 }
 
 template <>
+void
+StokesAssembler<VectorEp,MatrixEp>::
+addBackFlowStabilization(BlockVector<VectorEp> input,
+                         const BlockVector<VectorEp>& sol,
+                         const unsigned int& faceFlag)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    SHP(VECTOREPETRA) vn(new VECTOREPETRA(*sol.block(0).data()));
+
+    *vn *= *M_flowRateVectors[faceFlag];
+
+    SHP(VECTOREPETRA) absvn(new VECTOREPETRA(*vn));
+    absvn->abs();
+
+    *vn -= *absvn;
+    *vn /= 2.0;
+
+    *vn *= *sol.block(0).data();
+
+    SHP(VECTOREPETRA) vnRepeated(new VECTOREPETRA(*vn, Repeated));
+    SHP(VECTOREPETRA) backflowStabRepeated(new VECTOREPETRA(vn->mapPtr(), Repeated));
+
+    QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
+
+    integrate(boundary(M_velocityFESpaceETA->mesh(), faceFlag),
+              myBDQR,
+              M_velocityFESpaceETA,
+              dot(value(M_velocityFESpaceETA, *vnRepeated), phi_i)
+          ) >> backflowStabRepeated;
+
+    backflowStabRepeated->globalAssemble();
+
+    *backflowStabRepeated *= 0.2 * M_density;
+
+    SHP(VECTOREPETRA) backflowStab(new VECTOREPETRA(*backflowStabRepeated, Unique));
+
+    *input.block(0).data() += *backflowStab;
+}
+
+template <>
 BlockVector<VectorEp>
 StokesAssembler<VectorEp,MatrixEp>::
 getZeroVector() const
@@ -137,7 +179,7 @@ getZeroVector() const
 template <>
 SHP(LifeV::VectorEpetra)
 StokesAssembler<VectorEp, MatrixEp>::
-assembleFlowRateVector(const unsigned int& faceFlag)
+assembleFlowRateVector(const GeometricFace& face)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -148,7 +190,7 @@ assembleFlowRateVector(const unsigned int& faceFlag)
 
     QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
 
-    integrate(boundary(M_velocityFESpaceETA->mesh(), faceFlag),
+    integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
               myBDQR,
               M_velocityFESpaceETA,
               dot(phi_i, Nface)
@@ -158,7 +200,6 @@ assembleFlowRateVector(const unsigned int& faceFlag)
 
     SHP(VECTOREPETRA) flowRateVector(new VECTOREPETRA(*flowRateVectorRepeated,
                                                       Unique));
-
     return flowRateVector;
 }
 
@@ -171,9 +212,9 @@ assembleFlowRateVectors()
     if (M_treeNode->isInletNode())
     {
         auto face = M_treeNode->M_block->getInlet();
-        std::cout << "Inlet normal " << std::endl;
+        std::cout << "\nInlet normal\n" << std::endl;
         face.print();
-        M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face.M_flag);
+        M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face);
     }
 
     if (M_treeNode->isOutletNode())
@@ -181,30 +222,61 @@ assembleFlowRateVectors()
         auto faces = M_treeNode->M_block->getOutlets();
 
         for (auto face : faces)
-            M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face.M_flag);
+            M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face);
     }
 }
 
 template <>
 SHP(MATRIXEPETRA)
 StokesAssembler<VectorEp, MatrixEp>::
-assembleFlowRateJacobian(const unsigned int& faceFlag)
+assembleFlowRateJacobian(const GeometricFace& face)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
+    const double dropTolerance(2.0 * std::numeric_limits<double>::min());
+
+    SHP(MAPEPETRA) rangeMap = M_flowRateVectors[face.M_flag]->mapPtr();
+    EPETRACOMM comm = rangeMap->commPtr();
+
+
+    Epetra_Map epetraMap = M_flowRateVectors[face.M_flag]->epetraMap();
+    unsigned int numElements = epetraMap.NumMyElements();
+    unsigned int numGlobalElements = epetraMap.NumGlobalElements();
+
     SHP(MATRIXEPETRA) flowRateJacobian;
-    flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
+    flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map(), numGlobalElements, false));
 
-    QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
+    // compute outer product of flowrate vector with itself
+    for (unsigned int j = 0; j < numGlobalElements; j++)
+    {
+        double myvaluecol = 0;
 
-    integrate(boundary(M_velocityFESpaceETA->mesh(), faceFlag),
-              myBDQR,
-              M_velocityFESpaceETA,
-              M_velocityFESpaceETA,
-              dot(value(M_velocityFESpaceETA, *M_flowRateVectors[faceFlag]),
-              phi_i)
-          ) >> flowRateJacobian;
+        if (M_flowRateVectors[face.M_flag]->isGlobalIDPresent(j))
+            myvaluecol = M_flowRateVectors[face.M_flag]->operator[](j);
+
+        double valuecol = 0;
+        comm->SumAll(&myvaluecol, &valuecol, 1);
+
+        if (std::abs(valuecol) > dropTolerance)
+        {
+            for (unsigned int i = 0; i < numElements; i++)
+            {
+                unsigned int gdof = epetraMap.GID(i);
+                if (M_flowRateVectors[face.M_flag]->isGlobalIDPresent(gdof))
+                {
+                    double valuerow = M_flowRateVectors[face.M_flag]->operator[](gdof);
+                    if (std::abs(valuerow) > dropTolerance)
+                    {
+                        flowRateJacobian->addToCoefficient(gdof, j, valuerow * valuecol);
+                    }
+                }
+            }
+        }
+
+    }
+
+    comm->Barrier();
 
     flowRateJacobian->globalAssemble();
 
@@ -220,8 +292,11 @@ assembleFlowRateJacobians()
     if (M_treeNode->isInletNode())
     {
         auto face = M_treeNode->M_block->getInlet();
-
-        M_flowRateJacobians[face.M_flag] = assembleFlowRateJacobian(face.M_flag);
+        M_flowRateJacobians[face.M_flag].resize(this->M_nComponents,
+                                                this->M_nComponents);
+        M_flowRateJacobians[face.M_flag].block(0,0).data() = assembleFlowRateJacobian(face);
+        M_bcManager->apply0DirichletMatrix(M_flowRateJacobians[face.M_flag], getFESpaceBCs(),
+                                           getComponentBCs(), 0.0);
     }
 
     if (M_treeNode->isOutletNode())
@@ -229,7 +304,13 @@ assembleFlowRateJacobians()
         auto faces = M_treeNode->M_block->getOutlets();
 
         for (auto face : faces)
-            M_flowRateJacobians[face.M_flag] = assembleFlowRateJacobian(face.M_flag);
+        {
+            M_flowRateJacobians[face.M_flag].resize(this->M_nComponents,
+                                                    this->M_nComponents);
+            M_flowRateJacobians[face.M_flag].block(0,0).data() = assembleFlowRateJacobian(face);
+            M_bcManager->apply0DirichletMatrix(M_flowRateJacobians[face.M_flag], getFESpaceBCs(),
+                                               getComponentBCs(), 0.0);
+        }
     }
 }
 

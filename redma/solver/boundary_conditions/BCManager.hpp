@@ -50,9 +50,7 @@ public:
                                const unsigned int& index,
                                const double& diagCoefficient) const;
 
-    void applyNeumannBc(const double& time, BlockVector<VectorEp>& input,
-                        SHP(FESPACE) fespace, const unsigned int& index,
-                        const std::map<unsigned int, double> flowRates);
+    double getNeumannBc(const double& time, const double& flag, const double& rate);
 
     // actually derivative wrt to flowrate
     double getNeumannJacobian(const double& time, const double& flag, const double& rate);

@@ -79,9 +79,9 @@ public:
     // compute the jacobian of int_{Gamma_N}(int_{Gamma_N} u_i * n)phi_j
     void assembleFlowRateJacobians();
 
-    SHP(VECTOREPETRA) assembleFlowRateVector(const unsigned int& faceFlag);
+    SHP(VECTOREPETRA) assembleFlowRateVector(const GeometricFace& face);
 
-    SHP(MATRIXEPETRA) assembleFlowRateJacobian(const unsigned int& faceFlag);
+    SHP(MATRIXEPETRA) assembleFlowRateJacobian(const GeometricFace& face);
 
     void setExporter();
 
@@ -102,6 +102,10 @@ public:
         return M_pressureFESpaceETA;
     }
 
+    void addBackFlowStabilization(BlockVector<InVectorType> input,
+                                  const BlockVector<InVectorType>& sol,
+                                  const unsigned int& faceFlag);
+
 protected:
     void apply0DirichletBCs(BlockVector<InVectorType>& vector);
 
@@ -119,7 +123,7 @@ protected:
     SHP(LifeV::Exporter<MESH>)                                      M_exporter;
     // first index is face flag
     std::map<unsigned int, SHP(VECTOREPETRA)>                       M_flowRateVectors;
-    std::map<unsigned int, SHP(MATRIXEPETRA)>                       M_flowRateJacobians;
+    std::map<unsigned int, BlockMatrix<InMatrixType>>               M_flowRateJacobians;
     SHP(aTimeMarchingAlgorithm<InVectorType COMMA InMatrixType>)    M_TMAlifting;
     bool                                                            M_useLifting;
 };

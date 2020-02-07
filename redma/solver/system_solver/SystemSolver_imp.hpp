@@ -78,13 +78,14 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
         std::ostringstream streamOb;
         streamOb << err;
 
+        status = 0;
+
         msg = "[SystemSolver] Newtons algorithm,";
         msg += " error = " + streamOb.str();
         msg += ", convergence at iteration = " + std::to_string(count) + "\n";
         printlog(GREEN, msg, M_data.getVerbose());
     }
 
-    status = 0;
     return sol;
 }
 

@@ -25,18 +25,12 @@ double inflow(double t)
     return 10;
 }
 
-double inflowDt(double t)
-{
-    return 0;
-}
-
 void solveProblem(EPETRACOMM comm, std::string innerprec, std::string approxschur,
                   double intol, int numblocks, int nmax)
 {
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setInflow(inflow);
-    data.setInflowDt(inflowDt);
     data.setVerbose(comm->MyPID() == 0);
 
     data.setValue("geometric_structure/maxnumblocks", numblocks);

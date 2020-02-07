@@ -31,31 +31,35 @@ getNeumannCondition(const double& time, const double& rate)
 
     CoutRedirecter ct;
     ct.redirect();
-    M_pressureDropSolution = M_bdf->advance(time, M_dt, status);
+    // time - M_dt because we are assuming that we are already in a newton iteration
+    M_pressureDropSolution = M_bdf->advance(time - M_dt, M_dt, status);
     ct.restore();
 
     if (status)
         throw new Exception("Error in WindkesselModel: status != 0");
 
-    BlockVector<Double> sol(1);
-    std::cout << M_pressureDropSolution.block(0).data() << std::endl << std::flush;
-    sol.block(0).data() = M_Rp * rate + M_pressureDropSolution.block(0).data() + M_Pd(time);
-    return sol.block(0).data();
+    return M_Rp * rate + M_pressureDropSolution.block(0).data() * 0 + M_Pd(time);
 }
 
 double
 WindkesselModel::
 getNeumannJacobian(const double& time, const double& rate)
 {
-    const double eps = 1e-12;
+    const double epsabs = 1e-8;
+    const double epsrel = 1e-5;
 
-    std::cout << "rate " << rate << std::endl;
+    double eps = epsabs > epsrel * std::abs(rate) ? epsabs : epsrel * std::abs(rate);
+
+    std::cout << "eps = " << eps << std::endl << std::flush;
+
     // we approximate the jacobian via finite differences
-    double jac1 = getNeumannCondition(time, rate + eps);
-    double jac2 = getNeumannCondition(time, rate - eps);
-
-    std::cout << (jac1 - jac2) / (2 * eps) << std::endl << std::flush;
-    return (jac1 - jac2) / (2 * eps);
+    double jac1 = getNeumannCondition(time, rate + eps / 2.);
+    double jac2 = getNeumannCondition(time, rate - eps / 2.);
+    // this is to restore M_pressureDropSolution (otherwise shiftSolutions will
+    // utilize a wrong one)
+    getNeumannCondition(time, rate);
+    std::cout << (jac1 - jac2) / eps << std::endl << std::flush;
+    return (jac1 - jac2) / eps;
 }
 
 void

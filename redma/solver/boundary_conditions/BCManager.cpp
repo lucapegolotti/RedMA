@@ -170,45 +170,15 @@ poiseulle(const double& t, const double& x, const double& y,
     return inflowValue[i];
 }
 
-void
+double
 BCManager::
-applyNeumannBc(const double& time, BlockVector<VectorEp>& input,
-               SHP(FESPACE) fespace, const unsigned int& index,
-               const std::map<unsigned int, double> flowRates)
+getNeumannBc(const double& time, const double& flag, const double& rate)
 {
-    auto curVec = input.block(index).data();
+    auto it = M_models.find(flag);
+    if (it == M_models.end())
+        return 0.0;
 
-    SHP(LifeV::BCHandler) bcs;
-    bcs.reset(new LifeV::BCHandler);
-
-    for (auto windkessel : M_models)
-    {
-        auto it = flowRates.find(windkessel.first);
-
-        if (it == flowRates.end())
-            throw new Exception("BCManager: flow rate not found!");
-
-        double neumannCondition = -windkessel.second->getNeumannCondition(time, it->second);
-
-        LifeV::BCFunctionBase constant(std::bind(
-            &constantFunction,
-            std::placeholders::_1,
-            std::placeholders::_2,
-            std::placeholders::_3,
-            std::placeholders::_4,
-            std::placeholders::_5,
-            neumannCondition));
-
-        bcs->addBC("Outflow" + std::to_string(windkessel.first), windkessel.first,
-                   LifeV::Natural, LifeV::Normal, constant);
-    }
-
-
-    bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
-
-    if (curVec && M_models.size() > 0)
-        bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
-                    *bcs, fespace->feBd(), 0.0, 0.0);
+    return -M_models[flag]->getNeumannCondition(time, rate);
 }
 
 double

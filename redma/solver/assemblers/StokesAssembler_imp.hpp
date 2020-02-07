@@ -203,7 +203,7 @@ computeFlowRates(const BlockVector<InVectorType>& sol, bool verbose)
     {
         auto face = this->M_treeNode->M_block->getInlet();
 
-        flowRates[face.M_flag] = std::abs(sol.block(0).data()->dot(*M_flowRateVectors[face.M_flag]));
+        flowRates[face.M_flag] = sol.block(0).data()->dot(*M_flowRateVectors[face.M_flag]);
         msg = "[StokesAssembler] inflow rate = ";
         msg += std::to_string(flowRates[face.M_flag]);
         msg += "\n";
@@ -216,7 +216,7 @@ computeFlowRates(const BlockVector<InVectorType>& sol, bool verbose)
 
         for (auto face : faces)
         {
-            flowRates[face.M_flag] = std::abs(sol.block(0).data()->dot(*M_flowRateVectors[face.M_flag]));
+            flowRates[face.M_flag] = sol.block(0).data()->dot(*M_flowRateVectors[face.M_flag]);
             msg = "[StokesAssembler] outflow rate = ";
             msg += std::to_string(flowRates[face.M_flag]);
             msg += "\n";
@@ -234,10 +234,25 @@ StokesAssembler<InVectorType, InMatrixType>::
 addNeumannBCs(BlockVector<FEVECTOR>& input, const double& time,
               const BlockVector<InVectorType>& sol)
 {
-    auto flowRates = computeFlowRates(sol);
+    // if (this->M_treeNode->isOutletNode())
+    //     this->M_bcManager->applyNeumannBc(time, input, M_velocityFESpace, 0, flowRates);
 
     if (this->M_treeNode->isOutletNode())
-        this->M_bcManager->applyNeumannBc(time, input, M_velocityFESpace, 0, flowRates);
+    {
+        auto flowRates = computeFlowRates(sol, true);
+
+        for (auto rate : flowRates)
+        {
+            double P = this->M_bcManager->getNeumannBc(time, rate.first, rate.second);
+            BlockVector<InVectorType> curvec(this->M_nComponents);
+
+            curvec.block(0).data().reset(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
+            curvec.block(0) *= P;
+            input += curvec;
+
+            addBackFlowStabilization(input, sol, rate.first);
+        }
+    }
 }
 
 template <class InVectorType, class InMatrixType>
@@ -262,10 +277,9 @@ getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& so
         for (auto rate : flowRates)
         {
             double dhdQ = this->M_bcManager->getNeumannJacobian(time, rate.first, rate.second);
-            BlockMatrix<InMatrixType> curjac(this->M_nComponents, this->M_nComponents);
-
-            curjac.block(0,0).data().reset(new MATRIXEPETRA(*M_flowRateJacobians[rate.first]));
-            curjac.block(0,0) *= dhdQ;
+            BlockMatrix<InMatrixType> curjac;
+            curjac.hardCopy(M_flowRateJacobians[rate.first]);
+            curjac *= dhdQ;
 
             retMat += curjac;
         }

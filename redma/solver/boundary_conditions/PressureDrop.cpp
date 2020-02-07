@@ -17,7 +17,9 @@ BlockVector<Double>
 PressureDrop::
 getZeroVector() const
 {
-    return BlockVector<Double>(1);
+    BlockVector<Double> retVec(1);
+    retVec.block(0).data() = 0;
+    return retVec;
 }
 
 BlockMatrix<Double>
@@ -33,7 +35,8 @@ BlockVector<Double>
 PressureDrop::
 getRightHandSide(const double& time, const BlockVector<Double>& sol)
 {
-    BlockVector<Double> retVec(sol);
+    BlockVector<Double> retVec;
+    retVec.hardCopy(sol);
     retVec.block(0).data() *= (-1.0 / (M_C * M_Rd));
     retVec.block(0).data() += M_Q / M_C;
     return retVec;
@@ -44,7 +47,7 @@ PressureDrop::
 getJacobianRightHandSide(const double& time, const BlockVector<Double>& sol)
 {
     BlockMatrix<Double> retMat(1,1);
-    retMat.block(0,0).data() = -1.0 / M_C;
+    retMat.block(0,0).data() = -1.0 / (M_C * M_Rd);
     return retMat;
 }
 

@@ -25,11 +25,6 @@ double inflow(double t)
     return 10*sin(t);
 }
 
-double inflowDt(double t)
-{
-    return 10*cos(t);
-}
-
 int main(int argc, char **argv)
 {
     #ifdef HAVE_MPI
@@ -42,7 +37,6 @@ int main(int argc, char **argv)
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setInflow(inflow);
-    data.setInflowDt(inflowDt);
     data.setVerbose(comm->MyPID() == 0);
 
     ProblemFEM femProblem(data, comm);
