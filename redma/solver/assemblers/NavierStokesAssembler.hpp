@@ -18,6 +18,7 @@
 #define NAVIERSTOKESASSEMBLER_HPP
 
 #include <redma/solver/assemblers/StokesAssembler.hpp>
+#include <redma/solver/assemblers/SUPGStabilization.hpp>
 
 namespace RedMA
 {

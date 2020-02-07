@@ -13,6 +13,7 @@ StokesAssembler(const DataContainer& data,
     this->M_bcManager.reset(new BCManager(data, treeNode));
 
     M_useLifting = this->M_data("bc_conditions/lifting", true);
+    M_useStabilization = this->M_data("assemblers/use_stabilization", false);
 }
 
 template <class InVectorType, class InMatrixType>
@@ -41,6 +42,15 @@ setup()
     {
         M_TMAlifting = TimeMarchingAlgorithmFactory<InVectorType COMMA InMatrixType>(this->M_data);
         M_TMAlifting->setup(getZeroVector());
+    }
+
+    if (M_useStabilization)
+    {
+        M_stabilization.reset(new SUPGStabilization(this->M_data,
+                                                    M_velocityFESpace,
+                                                    M_pressureFESpace,
+                                                    M_velocityFESpaceETA,
+                                                    M_pressureFESpaceETA));
     }
 
     std::string msg = "done, in ";

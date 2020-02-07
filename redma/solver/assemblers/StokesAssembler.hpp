@@ -18,6 +18,7 @@
 #define STOKESASSEMBLER_HPP
 
 #include <redma/solver/assemblers/aAssembler.hpp>
+#include <redma/solver/assemblers/SUPGStabilization.hpp>
 #include <redma/solver/array/VectorEp.hpp>
 #include <redma/solver/array/MatrixEp.hpp>
 #include <redma/geometry/BuildingBlock.hpp>
@@ -126,6 +127,8 @@ protected:
     std::map<unsigned int, BlockMatrix<InMatrixType>>               M_flowRateJacobians;
     SHP(aTimeMarchingAlgorithm<InVectorType COMMA InMatrixType>)    M_TMAlifting;
     bool                                                            M_useLifting;
+    bool                                                            M_useStabilization;
+    SHP(SUPGStabilization)                                          M_stabilization;
 };
 
 }
