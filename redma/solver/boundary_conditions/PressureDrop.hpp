@@ -39,13 +39,16 @@ public:
     virtual BlockVector<Double> getZeroVector() const;
 
     virtual BlockMatrix<Double> getMass(const double& time,
-                                        const BlockVector<Double>& sol);
+                                        const BlockVector<Double>& sol) override;
+
+    virtual BlockMatrix<Double> getMassJacobian(const double& time,
+                                                const BlockVector<Double>& sol) override;
 
     virtual BlockVector<Double> getRightHandSide(const double& time,
-                                                 const BlockVector<Double>& sol);
+                                                 const BlockVector<Double>& sol) override;
 
     virtual BlockMatrix<Double> getJacobianRightHandSide(const double& time,
-                                                         const BlockVector<Double>& sol);
+                                                         const BlockVector<Double>& sol) override;
 
     inline void setFlowRate(const double& Q) {M_Q = Q;}
 

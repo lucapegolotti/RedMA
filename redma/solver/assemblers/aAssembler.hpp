@@ -49,6 +49,9 @@ public:
     virtual BlockMatrix<InMatrixType> getMass(const double& time,
                                       const BlockVector<InVectorType>& sol) = 0;
 
+    virtual BlockMatrix<InMatrixType> getMassJacobian(const double& time,
+                                      const BlockVector<InVectorType>& sol) = 0;
+
     virtual BlockVector<InVectorType> getRightHandSide(const double& time,
                                       const BlockVector<InVectorType>& sol) = 0;
 
@@ -78,6 +81,7 @@ protected:
     SHP(BCManager)                       M_bcManager;
     unsigned int                         M_nComponents;
     EPETRACOMM                           M_comm;
+    std::string                          M_name;
 };
 
 }

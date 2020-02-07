@@ -100,6 +100,7 @@ advance(const double& time, double& dt, int& status)
         retMat.hardCopy(this->M_funProvider->getJacobianRightHandSide(time+dt, sol));
         retMat *= (-1. * M_rhsCoeff * dt);
         retMat += this->M_funProvider->getMass(time+dt, sol);
+        retMat += this->M_funProvider->getMassJacobian(time+dt, sol);
 
         return retMat;
     });

@@ -125,6 +125,22 @@ operator+=(const MatrixEp& other)
 
 MatrixEp&
 MatrixEp::
+operator-=(const MatrixEp& other)
+{
+    if (!M_matrix)
+    {
+        hardCopy(other);
+        *this *= (-1.0);
+        return *this;
+    }
+
+    if (other.data())
+        (*M_matrix) -= (*other.data());
+    return *this;
+}
+
+MatrixEp&
+MatrixEp::
 operator*=(const double& coeff)
 {
     if (M_matrix)

@@ -49,6 +49,9 @@ public:
     virtual BlockMatrix<InMatrixType> getMass(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
 
+    virtual BlockMatrix<InMatrixType> getMassJacobian(const double& time,
+                                      const BlockVector<InVectorType>& sol) override;
+
     virtual BlockVector<InVectorType> getRightHandSide(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
 
@@ -56,6 +59,8 @@ public:
                                       const BlockVector<InVectorType>& sol) override;
 
     virtual BlockVector<InVectorType> getZeroVector() const override;
+
+    BlockVector<InVectorType> getForcingTerm(const double& time) const;
 
     BlockVector<FEVECTOR> computeLifting(const double& time) const;
 
@@ -127,8 +132,6 @@ protected:
     std::map<unsigned int, BlockMatrix<InMatrixType>>               M_flowRateJacobians;
     SHP(aTimeMarchingAlgorithm<InVectorType COMMA InMatrixType>)    M_TMAlifting;
     bool                                                            M_useLifting;
-    bool                                                            M_useStabilization;
-    SHP(SUPGStabilization)                                          M_stabilization;
 };
 
 }

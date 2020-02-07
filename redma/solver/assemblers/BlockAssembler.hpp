@@ -47,6 +47,9 @@ public:
     virtual BlockMatrix<InMatrixType> getMass(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
 
+    virtual BlockMatrix<InMatrixType> getMassJacobian(const double& time,
+                                      const BlockVector<InVectorType>& sol) override;
+
     virtual BlockVector<InVectorType> getRightHandSide(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
 

@@ -9,7 +9,7 @@
 [../]
 
 [assembler]
-	type = stokes
+	type = navierstokes
 	use_stabilization = true
 [../]
 

@@ -11,9 +11,9 @@ StokesAssembler(const DataContainer& data,
     M_viscosity = this->M_data("fluid/viscosity", 0.035);
     this->M_nComponents = 2;
     this->M_bcManager.reset(new BCManager(data, treeNode));
+    this->M_name = "StokesAssembler";
 
     M_useLifting = this->M_data("bc_conditions/lifting", true);
-    M_useStabilization = this->M_data("assemblers/use_stabilization", false);
 }
 
 template <class InVectorType, class InMatrixType>
@@ -24,8 +24,10 @@ setup()
     LifeV::LifeChrono chrono;
     chrono.start();
 
-    printlog(YELLOW, "[StokesAssembler] initializing "
-                     "StokesAssembler ...", this->M_data.getVerbose());
+    std::string msg = "[";
+    msg += this->M_name;
+    msg += "] initializing ...";
+    printlog(YELLOW, msg, this->M_data.getVerbose());
 
     initializeFEspaces();
 
@@ -44,19 +46,28 @@ setup()
         M_TMAlifting->setup(getZeroVector());
     }
 
-    if (M_useStabilization)
-    {
-        M_stabilization.reset(new SUPGStabilization(this->M_data,
-                                                    M_velocityFESpace,
-                                                    M_pressureFESpace,
-                                                    M_velocityFESpaceETA,
-                                                    M_pressureFESpaceETA));
-    }
-
-    std::string msg = "done, in ";
+    msg = "done, in ";
     msg += std::to_string(chrono.diff());
     msg += " seconds\n";
     printlog(YELLOW, msg, this->M_data.getVerbose());
+}
+
+template <class InVectorType, class InMatrixType>
+BlockMatrix<InMatrixType>
+StokesAssembler<InVectorType, InMatrixType>::
+getMassJacobian(const double& time, const BlockVector<InVectorType>& sol)
+{
+    BlockMatrix<InMatrixType> retMat(this->M_nComponents, this->M_nComponents);
+    return retMat;
+}
+
+template <class InVectorType, class InMatrixType>
+BlockVector<InVectorType>
+StokesAssembler<InVectorType, InMatrixType>::
+getForcingTerm(const double& time) const
+{
+    // for the moment we don't consider forcing terms
+    return getZeroVector();
 }
 
 template <class InVectorType, class InMatrixType>
@@ -214,7 +225,9 @@ computeFlowRates(const BlockVector<InVectorType>& sol, bool verbose)
         auto face = this->M_treeNode->M_block->getInlet();
 
         flowRates[face.M_flag] = sol.block(0).data()->dot(*M_flowRateVectors[face.M_flag]);
-        msg = "[StokesAssembler] inflow rate = ";
+        std::string msg = "[";
+        msg += this->M_name;
+        msg += "]  inflow rate = ";
         msg += std::to_string(flowRates[face.M_flag]);
         msg += "\n";
         printlog(YELLOW, msg, verbose);
@@ -227,7 +240,9 @@ computeFlowRates(const BlockVector<InVectorType>& sol, bool verbose)
         for (auto face : faces)
         {
             flowRates[face.M_flag] = sol.block(0).data()->dot(*M_flowRateVectors[face.M_flag]);
-            msg = "[StokesAssembler] outflow rate = ";
+            std::string msg = "[";
+            msg += this->M_name;
+            msg += "]  outflow rate = ";
             msg += std::to_string(flowRates[face.M_flag]);
             msg += "\n";
             printlog(YELLOW, msg, verbose);
@@ -260,7 +275,7 @@ addNeumannBCs(BlockVector<FEVECTOR>& input, const double& time,
             curvec.block(0) *= P;
             input += curvec;
 
-            addBackFlowStabilization(input, sol, rate.first);
+            // addBackFlowStabilization(input, sol, rate.first);
         }
     }
 }

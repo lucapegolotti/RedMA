@@ -31,6 +31,14 @@ getMass(const double& time, const BlockVector<Double>& sol)
     return mass;
 }
 
+BlockMatrix<Double>
+PressureDrop::
+getMassJacobian(const double& time, const BlockVector<Double>& sol)
+{
+    BlockMatrix<Double> massJac(1,1);
+    return massJac;
+}
+
 BlockVector<Double>
 PressureDrop::
 getRightHandSide(const double& time, const BlockVector<Double>& sol)

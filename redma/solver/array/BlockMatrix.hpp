@@ -50,6 +50,8 @@ public:
 
     virtual BlockMatrix<InMatrixType>& operator+=(const BlockMatrix<InMatrixType>& other);
 
+    virtual BlockMatrix<InMatrixType>& operator-=(const BlockMatrix<InMatrixType>& other);
+
     virtual BlockMatrix<InMatrixType>& operator*=(const double& coeff);
 
     virtual BlockMatrix<InMatrixType> operator*(const double& coeff) const;
@@ -110,6 +112,8 @@ public:
 protected:
     // I introduce this only because on mac the operator+= behaves weirdly
     void sumMatrix(const BlockMatrix<InMatrixType>& other);
+
+    void subtractMatrix(const BlockMatrix<InMatrixType>& other);
 
     void multiplyCoeff(const double& coeff);
 

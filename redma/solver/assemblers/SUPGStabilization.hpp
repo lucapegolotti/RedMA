@@ -45,14 +45,14 @@ public:
 
     void setDensityAndViscosity(const double& density, const double& viscosity);
 
-    void assembleBlocks(const BlockVector<VectorEp>& sol,
-                        const BlockVector<VectorEp>& rhs);
+    BlockMatrix<MatrixEp> getMass(const BlockVector<VectorEp>& sol,
+                                  const BlockVector<VectorEp>& rhs);
 
-    BlockMatrix<MatrixEp> getMass(){return M_mass;}
+    BlockMatrix<MatrixEp> getMassJac(const BlockVector<VectorEp>& sol,
+                                     const BlockVector<VectorEp>& rhs);
 
-    BlockMatrix<MatrixEp> getMassJac(){return M_massJac;}
-
-    BlockMatrix<MatrixEp> getJac(){return M_jac;}
+    BlockMatrix<MatrixEp> getJac(const BlockVector<VectorEp>& sol,
+                                 const BlockVector<VectorEp>& rhs);
 
     BlockMatrix<MatrixEp> assembleMass(const BlockVector<VectorEp>& sol);
 

@@ -140,6 +140,23 @@ getMass(const double& time, const BlockVector<InVectorType>& sol)
 }
 
 template <class InVectorType, class InMatrixType>
+BlockMatrix<InMatrixType>
+BlockAssembler<InVectorType, InMatrixType>::
+getMassJacobian(const double& time, const BlockVector<InVectorType>& sol)
+{
+    BlockMatrix<InMatrixType> massJacobian;
+    massJacobian.resize(M_numberBlocks, M_numberBlocks);
+
+    for (auto as : M_primalAssemblers)
+    {
+        unsigned int ind = as.first;
+        massJacobian.block(ind, ind).softCopy(as.second->getMassJacobian(time, sol.block(ind)));
+    }
+
+    return massJacobian;
+}
+
+template <class InVectorType, class InMatrixType>
 BlockVector<InVectorType>
 BlockAssembler<InVectorType, InMatrixType>::
 getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)

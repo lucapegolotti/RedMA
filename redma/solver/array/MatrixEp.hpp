@@ -51,6 +51,8 @@ public:
 
     MatrixEp& operator+=(const MatrixEp& other);
 
+    MatrixEp& operator-=(const MatrixEp& other);
+
     MatrixEp& operator*=(const double& coeff);
 
     VectorEp operator*(const VectorEp& vector);

@@ -188,6 +188,46 @@ operator+=(const BlockMatrix<InMatrixType>& other)
 }
 
 template <class InMatrixType>
+BlockMatrix<InMatrixType>&
+BlockMatrix<InMatrixType>::
+operator-=(const BlockMatrix<InMatrixType>& other)
+{
+    if (M_nRows == 0 && M_nCols == 0)
+    {
+        hardCopy(other);
+        *this *= (-1.0);
+        return *this;
+    }
+
+    if (other.nRows() == 0 && other.nCols() == 0)
+    {
+        return *this;
+    }
+
+    if (M_nRows != other.M_nRows || M_nCols != other.M_nCols)
+    {
+        throw new Exception("Dimension of matrices being subtracted is not consistent!");
+    }
+
+    subtractMatrix(other);
+    return *this;
+}
+
+template <class InMatrixType>
+void
+BlockMatrix<InMatrixType>::
+subtractMatrix(const BlockMatrix<InMatrixType>& other)
+{
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            block(i,j) -= other.block(i,j);
+        }
+    }
+}
+
+template <class InMatrixType>
 void
 BlockMatrix<InMatrixType>::
 multiplyCoeff(const double& coeff)
