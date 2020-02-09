@@ -295,20 +295,20 @@ getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& so
     // ATTENTION: here I should add the part relative to Neumann conditions
     // if they depend on the solution (as with 0D coupling)
 
-    if (this->M_treeNode->isOutletNode())
-    {
-        auto flowRates = computeFlowRates(sol);
-
-        for (auto rate : flowRates)
-        {
-            double dhdQ = this->M_bcManager->getNeumannJacobian(time, rate.first, rate.second);
-            BlockMatrix<InMatrixType> curjac;
-            curjac.hardCopy(M_flowRateJacobians[rate.first]);
-            curjac *= dhdQ;
-
-            retMat += curjac;
-        }
-    }
+    // if (this->M_treeNode->isOutletNode())
+    // {
+    //     auto flowRates = computeFlowRates(sol);
+    //
+    //     for (auto rate : flowRates)
+    //     {
+    //         double dhdQ = this->M_bcManager->getNeumannJacobian(time, rate.first, rate.second);
+    //         BlockMatrix<InMatrixType> curjac;
+    //         curjac.hardCopy(M_flowRateJacobians[rate.first]);
+    //         curjac *= dhdQ;
+    //
+    //         retMat += curjac;
+    //     }
+    // }
 
     return retMat;
 }

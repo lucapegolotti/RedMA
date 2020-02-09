@@ -12,7 +12,9 @@ buildPreconditioner(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix)
 
     if (!std::strcmp(precType.c_str(), "saddlepoint"))
     {
-        M_prec.reset(new SaddlePointPreconditionerEp(M_data, matrix));
+        unsigned int recomputeevery = M_data("preconditioner/recomputeevery", 1);
+        if (M_prec == nullptr || M_numSolves % recomputeevery)
+            M_prec.reset(new SaddlePointPreconditionerEp(M_data, matrix));
     }
     else
     {
@@ -48,6 +50,8 @@ solve(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
     msg += std::to_string(M_statistics.M_solveTime);
     msg += " seconds\n";
     printlog(GREEN, msg, M_data.getVerbose());
+
+    M_numSolves;
 }
 
 template <>
@@ -62,6 +66,8 @@ solve(const BlockMatrix<Double>& matrix,
                             " dimension 1");
 
     sol.block(0).data() = rhs.block(0).data() / matrix.block(0,0).data();
+
+    M_numSolves++;
 }
 
 template <>

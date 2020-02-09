@@ -33,6 +33,8 @@ public:
 
     VectorEp operator+(const VectorEp& other);
 
+    VectorEp operator-(const VectorEp& other);
+
     VectorEp& operator+=(const VectorEp& other);
 
     VectorEp& operator-=(const VectorEp& other);

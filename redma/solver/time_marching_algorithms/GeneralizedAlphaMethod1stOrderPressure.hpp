@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef BDF_HPP
-#define BDF_HPP
+#ifndef GENERALIZEDALPHAMETHOD1STORDERPRESSURE_HPP
+#define GENERALIZEDALPHAMETHOD1STORDERPRESSURE_HPP
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/time_marching_algorithms/aTimeMarchingAlgorithm.hpp>
@@ -27,39 +27,55 @@
 
 #include <memory>
 
+// for the details:
+// https://arxiv.org/pdf/2002.01098.pdf
+// In this modified version we use 1st order integration for pressure, as done
+// in simvascular
 namespace RedMA
 {
 
 template <class InVectorType, class InMatrixType>
-class BDF : public aTimeMarchingAlgorithm<InVectorType, InMatrixType>
+class GeneralizedAlphaMethod1stOrderPressure : public aTimeMarchingAlgorithm<InVectorType, InMatrixType>
 {
     typedef aFunctionProvider<InVectorType COMMA InMatrixType>  FunProvider;
 
 public:
 
-    BDF(const DataContainer& data);
+    GeneralizedAlphaMethod1stOrderPressure(const DataContainer& data);
 
-    BDF(const DataContainer& data, SHP(FunProvider) funProvider);
+    GeneralizedAlphaMethod1stOrderPressure(const DataContainer& data, SHP(FunProvider) funProvider);
 
     virtual void setup(const BlockVector<InVectorType>& zeroVector) override;
 
     virtual BlockVector<InVectorType> advance(const double& time, double& dt,
                                               int& status) override;
 
-    virtual void shiftSolutions(const BlockVector<InVectorType>& sol) override;
-
     virtual BlockVector<InVectorType> computeDerivative(const BlockVector<InVectorType>& solnp1,
                                                         double& dt) override;
 
+    virtual void shiftSolutions(const BlockVector<InVectorType>& sol) override;
+
 protected:
-    std::vector<BlockVector<InVectorType>>   M_prevSolutions;
-    std::vector<double>                      M_coefficients;
-    unsigned int                             M_order;
-    double                                   M_rhsCoeff;
+    BlockVector<InVectorType> computesolnp1(BlockVector<InVectorType> dersol,
+                                            const double& dt);
+
+    BlockVector<InVectorType> computesolnpalphaf(BlockVector<InVectorType> solnp1);
+
+    BlockVector<InVectorType> computedersolnpalpham(BlockVector<InVectorType> dersol);
+
+
+    BlockVector<InVectorType>              M_prevSolution;
+    BlockVector<InVectorType>              M_prevDerivative;
+    unsigned int                           M_order;
+    double                                 M_alpham;
+    double                                 M_alphaf;
+    double                                 M_gamma;
+    double                                 M_rhoinf;
+    unsigned int                           M_nPrimalBlocks;
 };
 
 }
 
-#include "BDF_imp.hpp"
+#include "GeneralizedAlphaMethod1stOrderPressure_imp.hpp"
 
-#endif // BDF_HPP
+#endif // GENERALIZEDALPHAMETHOD1STORDERPRESSURE_HPP

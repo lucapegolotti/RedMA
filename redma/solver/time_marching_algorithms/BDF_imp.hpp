@@ -144,7 +144,7 @@ shiftSolutions(const BlockVector<InVectorType>& sol)
 {
     // shift solutions
     std::vector<BlockVector<InVectorType>> newPrevSolutions(M_order);
-    newPrevSolutions[0].softCopy(sol);
+    newPrevSolutions[0].hardCopy(sol);
 
     for (unsigned int i = 0; i < M_order-1; i++)
         newPrevSolutions[i+1].softCopy(M_prevSolutions[i]);

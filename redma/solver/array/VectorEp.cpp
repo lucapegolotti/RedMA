@@ -27,6 +27,24 @@ operator+(const VectorEp& other)
     return vec;
 }
 
+VectorEp
+VectorEp::
+operator-(const VectorEp& other)
+{
+    VectorEp vec;
+
+    if (!M_vector)
+    {
+        hardCopy(other);
+        *this *= -1.0;
+        return other;
+    }
+
+    vec.hardCopy(*this);
+    vec -= other;
+    return vec;
+}
+
 VectorEp&
 VectorEp::
 operator+=(const VectorEp& other)

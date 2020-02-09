@@ -21,6 +21,8 @@
 #include <redma/solver/time_marching_algorithms/aTimeMarchingAlgorithm.hpp>
 #include <redma/solver/time_marching_algorithms/aFunctionProvider.hpp>
 #include <redma/solver/time_marching_algorithms/BDF.hpp>
+#include <redma/solver/time_marching_algorithms/GeneralizedAlphaMethod.hpp>
+#include <redma/solver/time_marching_algorithms/GeneralizedAlphaMethod1stOrderPressure.hpp>
 #include <redma/utils/Exception.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
 

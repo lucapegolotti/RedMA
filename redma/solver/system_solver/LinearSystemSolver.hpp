@@ -63,6 +63,7 @@ private:
     SHP(LinearOperatorEp)                           M_oper;
     SHP(PreconditionerOperatorEp)                   M_prec;
     SolverStatistics                                M_statistics;
+    unsigned                                        M_numSolves;
 };
 
 }

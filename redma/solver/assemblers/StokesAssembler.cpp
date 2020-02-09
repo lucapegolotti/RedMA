@@ -266,7 +266,7 @@ assembleFlowRateJacobian(const GeometricFace& face)
                 if (M_flowRateVectors[face.M_flag]->isGlobalIDPresent(gdof))
                 {
                     double valuerow = M_flowRateVectors[face.M_flag]->operator[](gdof);
-                    if (std::abs(valuerow) > dropTolerance)
+                    if (std::abs(valuerow * valuecol) > dropTolerance)
                     {
                         flowRateJacobian->addToCoefficient(gdof, j, valuerow * valuecol);
                     }

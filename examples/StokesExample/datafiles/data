@@ -22,6 +22,7 @@
 	inner	   = SIMPLE
 	approxshur = SIMPLE
 	innertol   = 0.5
+	recompute  = true
 [../]
 
 [newton_method]
@@ -52,8 +53,10 @@
 [../]
 
 [time_discretization]
-	algorithm = bdf
-	order = 1
+	algorithm = alpha1storderp
+	rhoinf = 0.5
+	firstorderpressure = true # this should be set to true only when comparing with simvascular
+	order = 2
 	t0 = 0
 	T = 0.01
 	dt = 0.01

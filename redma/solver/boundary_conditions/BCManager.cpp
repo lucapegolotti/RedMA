@@ -158,15 +158,15 @@ poiseulle(const double& t, const double& x, const double& y,
 
     const Vector3D& center = face.M_center;
     const Vector3D& normal = face.M_normal;
-    double radius = face.M_radius;
+    double R = face.M_radius;
 
     Vector3D curPoint(x,y,z);
     Vector3D diff = curPoint - center;
-    double normDiff = radius - diff.norm();
+    double r = diff.norm();
 
     // we suppose that inflow is the flowrate and we want to find the max velocity
-    const double maxU = inflow(t) * 6 / (radius * radius * M_PI);
-    double inflowNorm = maxU * normDiff * normDiff / (radius * radius);
+    const double maxU = inflow(t) * 2.0 / (M_PI * R * R);
+    double inflowNorm = maxU * (1.0 - (r * r)/(R * R));
 
     Vector3D inflowValue = -inflowNorm * normal;
     return inflowValue[i];

@@ -49,8 +49,7 @@ public:
     virtual BlockVector<InVectorType> computeDerivative(const BlockVector<InVectorType>& solnp1,
                                                         double& dt) = 0;
 
-    // this must be implemented by multistep methods (e.g. bdf)
-    virtual void shiftSolutions(const BlockVector<InVectorType>& sol) {}
+    virtual void shiftSolutions(const BlockVector<InVectorType>& sol) = 0;
 
     void dumpSolverStatistics(std::vector<SolverStatistics> statistics,
                               const double& t) const;
