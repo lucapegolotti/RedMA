@@ -147,19 +147,9 @@ getMassJac(const BlockVector<VectorEp>& sol, const BlockVector<VectorEp>& rhs)
               M_velocityFESpaceETA,
               M_velocityFESpaceETA,
               TAU_M * (value(M_density*M_density)
-                       * dot(value(M_velocityFESpaceETA, *velocityRep)
-                       * grad(phi_i), phi_j)
-                    +  value(M_density*M_density)
-                       * dot(phi_j * grad(phi_i),
-                         value(M_velocityFESpaceETA, *velocityRep)))
+                     * dot(phi_j * grad(phi_i),
+                       value(M_velocityFESpaceETA, *velocityRep)))
              ) >> massjac00;
-
-    integrate(elements(M_velocityFESpace->mesh()),
-              M_pressureFESpace->qr(),
-              M_pressureFESpaceETA,
-              M_velocityFESpaceETA,
-              TAU_M * value(M_density) * dot(grad(phi_i), phi_j)
-              ) >> massjac10;
 
     massjac00->globalAssemble();
 
@@ -340,6 +330,7 @@ getResidual(const BlockVector<VectorEp>& sol,
     resvelrep->globalAssemble();
     SHP(VECTOREPETRA) resvel(new VECTOREPETRA(*resvelrep, Unique));
 
+    std::cout << "resevel = " << resvel->norm2() << std::endl << std::flush;
     SHP(VECTOREPETRA) respressrep(new VECTOREPETRA(M_pressureFESpace->map(), Repeated));
     respressrep->zero();
 
@@ -358,6 +349,7 @@ getResidual(const BlockVector<VectorEp>& sol,
              ) >> respressrep;
     respressrep->globalAssemble();
     SHP(VECTOREPETRA) respress(new VECTOREPETRA(*respressrep, Unique));
+    std::cout << "respress = " << respress->norm2() << std::endl << std::flush;
 
     BlockVector<VectorEp> retVec(2);
     retVec.block(0).data() = resvel;

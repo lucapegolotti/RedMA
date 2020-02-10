@@ -7,7 +7,7 @@ NavierStokesAssembler(const DataContainer& data, SHP(TreeNode) treeNode) :
   StokesAssembler<InVectorType, InMatrixType>(data, treeNode)
 {
     this->M_name = "NavierStokesAssembler";
-    M_useStabilization = this->M_data("assemblers/use_stabilization", false);
+    M_useStabilization = this->M_data("assembler/use_stabilization", false);
 }
 
 template <class InVectorType, class InMatrixType>
@@ -24,6 +24,7 @@ setup()
                                                     this->M_pressureFESpace,
                                                     this->M_velocityFESpaceETA,
                                                     this->M_pressureFESpaceETA));
+        M_stabilization->setDensityAndViscosity(this->M_density, this->M_viscosity);
     }
 
 }
@@ -34,14 +35,19 @@ NavierStokesAssembler<InVectorType, InMatrixType>::
 getMass(const double& time, const BlockVector<InVectorType>& sol)
 {
     BlockMatrix<InMatrixType> retMat;
-    retMat.softCopy(this->M_mass);
+    retMat.hardCopy(this->M_mass);
     if (M_useStabilization)
     {
-        retMat += M_stabilization->getMass(sol, this->getForcingTerm(time));
+        double dt = this->M_data("time_discretization/dt", 0.01);
+        BlockVector<InVectorType> liftingDt = this->M_TMAlifting->computeDerivative(this->computeLifting(time), dt);
+
+        retMat += M_stabilization->getMass(sol, liftingDt * (-1.0));
         // we do it here because matrices from stabilization have no bcs
         this->M_bcManager->apply0DirichletMatrix(retMat, this->getFESpaceBCs(),
                                                  this->getComponentBCs(), 1.0);
     }
+    std::cout << "mass" << std::endl;
+    retMat.printPattern();
     return retMat;
 }
 
@@ -53,11 +59,15 @@ getMassJacobian(const double& time, const BlockVector<InVectorType>& sol)
     BlockMatrix<InMatrixType> retMat(this->M_nComponents, this->M_nComponents);
     if (M_useStabilization)
     {
-        retMat += M_stabilization->getMassJac(sol, this->getForcingTerm(time));
+        double dt = this->M_data("time_discretization/dt", 0.01);
+        BlockVector<InVectorType> liftingDt = this->M_TMAlifting->computeDerivative(this->computeLifting(time), dt);
+        retMat += M_stabilization->getMassJac(sol, liftingDt * (-1.0));
         // we do it here because matrices from stabilization have no bcs
         this->M_bcManager->apply0DirichletMatrix(retMat, this->getFESpaceBCs(),
                                                  this->getComponentBCs(), 0.0);
     }
+    std::cout << "mass jacobian" << std::endl;
+    retMat.printPattern();
     return retMat;
 }
 
@@ -80,21 +90,27 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 
     // treatment of Dirichlet bcs if needed
     bool useLifting = this->M_data("bc_conditions/lifting", true);
-
+    BlockVector<InVectorType> lifting;
+    BlockVector<InVectorType> liftingDt;
     if (useLifting)
     {
-        BlockVector<InVectorType> lifting = this->computeLifting(time);
+        lifting = this->computeLifting(time);
         retVec += (systemMatrix * lifting);
 
         double dt = this->M_data("time_discretization/dt", 0.01);
-        BlockVector<InVectorType> liftingDt = this->M_TMAlifting->computeDerivative(lifting, dt);
+        liftingDt = this->M_TMAlifting->computeDerivative(lifting, dt);
         retVec -= (this->M_mass * liftingDt);
     }
 
     this->addNeumannBCs(retVec, time, sol);
 
     if (M_useStabilization)
-        retVec -= M_stabilization->getResidual(sol, this->getForcingTerm(time));
+    {
+        // we consider lifting dt as the forcing term
+        retVec -= M_stabilization->getResidual(sol, liftingDt * (-1.0));
+        // we must add the part corresponding to the lifting
+        retVec += M_stabilization->getResidual(lifting, this->getZeroVector());
+    }
 
     this->apply0DirichletBCs(retVec);
     return retVec;
@@ -119,12 +135,18 @@ getJacobianRightHandSide(const double& time,
 
     this->addConvectiveTermJacobianRightHandSide(sol, lifting, retMat);
 
+    std::cout << "M_useStabilization = " << M_useStabilization << std::endl << std::flush;
     if (M_useStabilization)
     {
-        retMat -= M_stabilization->getJac(sol, this->getForcingTerm(time));
+        double dt = this->M_data("time_discretization/dt", 0.01);
+        BlockVector<InVectorType> liftingDt = this->M_TMAlifting->computeDerivative(this->computeLifting(time), dt);
+
+        retMat -= M_stabilization->getJac(sol, liftingDt * (-1.0));
         this->M_bcManager->apply0DirichletMatrix(retMat, this->getFESpaceBCs(),
                                                  this->getComponentBCs(), 0.0);
     }
+    std::cout << "jacobian" << std::endl;
+    retMat.printPattern();
     return retMat;
 }
 
