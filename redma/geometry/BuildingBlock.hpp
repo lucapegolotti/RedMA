@@ -86,7 +86,7 @@ protected:
     typedef LifeV::VectorEpetra                            vector_Type;
     typedef std::shared_ptr<vector_Type>                   vectorPtr_Type;
     typedef LifeV::MeshUtility::MeshTransformer<mesh_Type> Transformer;
-    typedef std::shared_ptr<GeometricParameter>             GeometricParameterPtr;
+    typedef std::shared_ptr<GeometricParameter>            GeometricParameterPtr;
 
 public:
     BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose);
@@ -146,7 +146,7 @@ public:
 
     inline commPtr_Type getComm() const {return M_comm;}
 
-    inline bool getIsChild() const {return M_isChild;} 
+    inline bool getIsChild() const {return M_isChild;}
 
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,

@@ -13,7 +13,7 @@ buildPreconditioner(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix)
     if (!std::strcmp(precType.c_str(), "saddlepoint"))
     {
         unsigned int recomputeevery = M_data("preconditioner/recomputeevery", 1);
-        if (M_prec == nullptr || M_numSolves % recomputeevery)
+        if (M_prec == nullptr || (M_numSolves % recomputeevery) == 0)
             M_prec.reset(new SaddlePointPreconditionerEp(M_data, matrix));
     }
     else
@@ -51,7 +51,7 @@ solve(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
     msg += " seconds\n";
     printlog(GREEN, msg, M_data.getVerbose());
 
-    M_numSolves;
+    M_numSolves++;
 }
 
 template <>

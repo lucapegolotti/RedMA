@@ -12,8 +12,6 @@ StokesAssembler(const DataContainer& data,
     this->M_nComponents = 2;
     this->M_bcManager.reset(new BCManager(data, treeNode));
     this->M_name = "StokesAssembler";
-
-    M_useLifting = this->M_data("bc_conditions/lifting", true);
 }
 
 template <class InVectorType, class InMatrixType>
@@ -39,12 +37,6 @@ setup()
     assembleFlowRateJacobians();
 
     setExporter();
-
-    if (M_useLifting)
-    {
-        M_TMAlifting = TimeMarchingAlgorithmFactory<InVectorType COMMA InMatrixType>(this->M_data);
-        M_TMAlifting->setup(getZeroVector());
-    }
 
     msg = "done, in ";
     msg += std::to_string(chrono.diff());
@@ -100,21 +92,8 @@ void
 StokesAssembler<InVectorType, InMatrixType>::
 exportSolution(const double& t, const BlockVector<InVectorType>& sol)
 {
-    if (M_useLifting)
-    {
-        BlockVector<InVectorType> copySol;
-        copySol.hardCopy(sol);
-
-        this->M_bcManager->applyDirichletBCs(t, copySol, getFESpaceBCs(),
-                                             getComponentBCs());
-        *M_velocityExporter = *copySol.block(0).data();
-        *M_pressureExporter = *copySol.block(1).data();
-    }
-    else
-    {
-        *M_velocityExporter = *sol.block(0).data();
-        *M_pressureExporter = *sol.block(1).data();
-    }
+    *M_velocityExporter = *sol.block(0).data();
+    *M_pressureExporter = *sol.block(1).data();
 
     BlockVector<InVectorType> solCopy(2);
     solCopy.block(0).data() = M_velocityExporter;
@@ -134,12 +113,6 @@ postProcess(const double& t, const BlockVector<InVectorType>& sol)
     // shift solutions in multistep method embedded in windkessels
     this->M_bcManager->postProcess();
 
-    // shift liftings for derivative approximation
-    if (M_useLifting)
-    {
-        BlockVector<InVectorType> lifting = computeLifting(t);
-        M_TMAlifting->shiftSolutions(lifting);
-    }
 }
 
 template <class InVectorType, class InMatrixType>
@@ -165,18 +138,6 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 
     retVec.softCopy(systemMatrix * sol);
 
-    BlockVector<InVectorType> lifting;
-    BlockVector<InVectorType> liftingDt;
-    if (M_useLifting)
-    {
-        lifting = computeLifting(time);
-        retVec += (systemMatrix * lifting);
-
-        double dt = this->M_data("time_discretization/dt", 0.01);
-        liftingDt = M_TMAlifting->computeDerivative(lifting, dt);
-        retVec -= (M_mass * liftingDt);
-    }
-
     addNeumannBCs(retVec, time, sol);
 
     apply0DirichletBCs(retVec);
@@ -189,28 +150,7 @@ void
 StokesAssembler<InVectorType, InMatrixType>::
 apply0DirichletBCs(BlockVector<InVectorType>& vector)
 {
-    if (M_useLifting)
-        this->M_bcManager->apply0DirichletBCs(vector, getFESpaceBCs(), getComponentBCs());
-}
-
-
-template <class InVectorType, class InMatrixType>
-BlockVector<FEVECTOR>
-StokesAssembler<InVectorType, InMatrixType>::
-computeLifting(const double& time) const
-{
-    BlockVector<InVectorType> lifting;
-    lifting.resize(2);
-    lifting.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map(),
-                                                   LifeV::Unique));
-    lifting.block(0).data()->zero();
-    lifting.block(1).data().reset(new VECTOREPETRA(M_pressureFESpace->map(),
-                                                   LifeV::Unique));
-    lifting.block(1).data()->zero();
-
-    this->M_bcManager->applyDirichletBCs(time, lifting, getFESpaceBCs(),
-                                         getComponentBCs());
-    return lifting;
+    this->M_bcManager->apply0DirichletBCs(vector, getFESpaceBCs(), getComponentBCs());
 }
 
 template <class InVectorType, class InMatrixType>

@@ -60,9 +60,9 @@ public:
 
     virtual BlockVector<InVectorType> getZeroVector() const override;
 
-    BlockVector<InVectorType> getForcingTerm(const double& time) const;
+    virtual BlockVector<InVectorType> getLifting(const double& time) const override;
 
-    BlockVector<FEVECTOR> computeLifting(const double& time) const;
+    BlockVector<InVectorType> getForcingTerm(const double& time) const;
 
     void addNeumannBCs(BlockVector<FEVECTOR>& input, const double& time,
                        const BlockVector<InVectorType>& sol);
@@ -130,8 +130,6 @@ protected:
     // first index is face flag
     std::map<unsigned int, SHP(VECTOREPETRA)>                       M_flowRateVectors;
     std::map<unsigned int, BlockMatrix<InMatrixType>>               M_flowRateJacobians;
-    SHP(aTimeMarchingAlgorithm<InVectorType COMMA InMatrixType>)    M_TMAlifting;
-    bool                                                            M_useLifting;
 };
 
 }

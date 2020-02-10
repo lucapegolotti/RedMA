@@ -64,6 +64,25 @@ setup()
             countChildren++;
         }
     }
+
+    if (this->M_data("bc_conditions/weakdirichlet", true))
+    {
+        SHP(InnerAssembler) inletAssembler = M_primalAssemblers[0];
+
+        // we set the inlet to child such that we are consistent with the normal orientation
+        // with respect to flow direction
+        Interface<VInner, MInner> newInterface(nullptr, -1,
+                                               inletAssembler, 0,
+                                               interfaceID);
+
+        SHP(InterfaceAssembler<VInner COMMA MInner>) inletInAssembler;
+        inletInAssembler.reset(new InletInflowAssembler<VInner, MInner>(this->M_data,
+                                                                        newInterface));
+
+        M_dualAssemblers.push_back(inletInAssembler);
+        interfaceID++;
+    }
+
     M_numberBlocks = M_primalAssemblers.size() + M_dualAssemblers.size();
 
     printlog(GREEN, "done\n", this->M_data.getVerbose());
@@ -76,6 +95,20 @@ checkStabTerm(const BlockVector<InVectorType>& sol) const
 {
     for (auto as: M_dualAssemblers)
         as->checkStabilizationTerm(sol, M_primalAssemblers.size());
+}
+
+template <class InVectorType, class InMatrixType>
+BlockVector<InVectorType>
+BlockAssembler<InVectorType, InMatrixType>::
+getLifting(const double& time) const
+{
+    BlockVector<InVectorType> retVec(M_numberBlocks);
+
+    unsigned int count = 0;
+    for (auto as : M_primalAssemblers)
+        retVec.block(as.first) = as.second->getLifting(time);
+
+    return retVec;
 }
 
 template <class InVectorType, class InMatrixType>
@@ -172,7 +205,7 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 
     // add interface contributions
     for (auto as: M_dualAssemblers)
-        as->addContributionRhs(rhs, sol, M_primalAssemblers.size());
+        as->addContributionRhs(time, rhs, sol, M_primalAssemblers.size());
 
     return rhs;
 }
@@ -193,7 +226,7 @@ getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& so
     }
 
     for (auto as: M_dualAssemblers)
-        as->addContributionJacobianRhs(jac, sol, M_primalAssemblers.size());
+        as->addContributionJacobianRhs(time, jac, sol, M_primalAssemblers.size());
 
     return jac;
 }

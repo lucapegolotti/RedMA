@@ -21,6 +21,7 @@
 #include <redma/solver/assemblers/aAssembler.hpp>
 #include <redma/solver/assemblers/AssemblerFactory.hpp>
 #include <redma/solver/assemblers/InterfaceAssembler.hpp>
+#include <redma/solver/assemblers/InletInflowAssembler.hpp>
 
 #include <redma/geometry/TreeStructure.hpp>
 
@@ -55,6 +56,8 @@ public:
 
     virtual BlockMatrix<InMatrixType> getJacobianRightHandSide(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
+
+    virtual BlockVector<InVectorType> getLifting(const double& time) const override;
 
     virtual BlockVector<InVectorType> getZeroVector() const override;
 

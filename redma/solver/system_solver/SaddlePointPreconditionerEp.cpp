@@ -29,12 +29,16 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
     if (nBlocks > 1)
     {
         unsigned int nPrimal = 1;
-        while (nPrimal < nBlocks && matrix.block(0,nPrimal).isNull())
-            nPrimal++;
+        // if nBlocks == 2, then we are imposing weak boundary conditions and
+        // we know that nprimal = 1
+        if (nBlocks > 2)
+        {
+            while (nPrimal < nBlocks && matrix.block(0,nPrimal).isNull())
+                nPrimal++;
 
-        if (nPrimal == nBlocks)
-            throw new Exception("The system has not a saddle point structure");
-
+            if (nPrimal == nBlocks)
+                throw new Exception("The system has not a saddle point structure");
+        }
         unsigned int nDual = nBlocks - nPrimal;
         M_nPrimalBlocks = nPrimal;
         M_nDualBlocks = nDual;
@@ -71,8 +75,8 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
     }
     else
     {
-        std::cout << "I enter here" << std::endl << std::flush;
         M_nPrimalBlocks = 1;
+        M_nDualBlocks = 0;
         allocateInnerPreconditioners(matrix);
     }
 
@@ -118,7 +122,7 @@ allocateInverseSolvers(const BM& primalMatrix)
     {
         SHP(InvOp) invOper;
         SHP(NSOp) oper(new NSOp);
-        primalMatrix.block(i,i).printPattern();
+
         boost::numeric::ublas::matrix<SHP(MATRIXEPETRA::matrix_type)> matrixGrid(2,2);
         matrixGrid(0,0) = primalMatrix.block(i,i).block(0,0).data()->matrixPtr();
         matrixGrid(1,0) = primalMatrix.block(i,i).block(1,0).data()->matrixPtr();
@@ -164,8 +168,6 @@ allocateInnerPreconditioners(const BM& primalMatrix)
         newPrec.reset(LifeV::Operators::NSPreconditionerFactory::
                       instance().createObject("SIMPLE"));
         newPrec->setOptions(*M_solversOptionsInner);
-
-        primalMatrix.block(i,i).printPattern();
 
         if (!primalMatrix.block(i,i).block(1,1).isNull())
         {
@@ -437,7 +439,7 @@ int
 SaddlePointPreconditionerEp::
 ApplyInverse(const super::vector_Type& X, super::vector_Type& Y) const
 {
-    if (M_nPrimalBlocks > 1)
+    if (M_nDualBlocks > 0)
     {
         const VECTOREPETRA X_vectorEpetra(X, M_monolithicMap, LifeV::Unique);
         VECTOREPETRA Y_vectorEpetra(M_monolithicMap, LifeV::Unique);

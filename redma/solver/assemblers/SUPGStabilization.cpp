@@ -330,7 +330,6 @@ getResidual(const BlockVector<VectorEp>& sol,
     resvelrep->globalAssemble();
     SHP(VECTOREPETRA) resvel(new VECTOREPETRA(*resvelrep, Unique));
 
-    std::cout << "resevel = " << resvel->norm2() << std::endl << std::flush;
     SHP(VECTOREPETRA) respressrep(new VECTOREPETRA(M_pressureFESpace->map(), Repeated));
     respressrep->zero();
 
@@ -349,7 +348,6 @@ getResidual(const BlockVector<VectorEp>& sol,
              ) >> respressrep;
     respressrep->globalAssemble();
     SHP(VECTOREPETRA) respress(new VECTOREPETRA(*respressrep, Unique));
-    std::cout << "respress = " << respress->norm2() << std::endl << std::flush;
 
     BlockVector<VectorEp> retVec(2);
     retVec.block(0).data() = resvel;

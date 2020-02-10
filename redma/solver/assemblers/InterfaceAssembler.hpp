@@ -39,14 +39,14 @@ class Interface
 {
     typedef aAssembler<InVectorType COMMA InMatrixType>         AssemblerType;
 public:
-    Interface(SHP(AssemblerType) assemblerFather, const unsigned int& indexFather,
-              SHP(AssemblerType) assemblerChild, const unsigned int& indexChild,
+    Interface(SHP(AssemblerType) assemblerFather, const int& indexFather,
+              SHP(AssemblerType) assemblerChild, const int& indexChild,
               const unsigned int& interfaceID);
 
     SHP(AssemblerType)      M_assemblerFather;
     SHP(AssemblerType)      M_assemblerChild;
-    unsigned int            M_indexFather;
-    unsigned int            M_indexChild;
+    int                     M_indexFather;
+    int                     M_indexChild;
     unsigned int            M_ID;
     unsigned int            M_indexOutlet;
 };
@@ -75,13 +75,15 @@ public:
 
     void buildMapLagrange(SHP(BasisFunctionFunctor) bfs);
 
-    void addContributionRhs(BlockVector<BlockVector<InVectorType>>& rhs,
-                            const BlockVector<BlockVector<InVectorType>>& sol,
-                            const unsigned int& nPrimalBlocks);
-
-    void addContributionJacobianRhs(BlockMatrix<BlockMatrix<InMatrixType>>& jac,
+    virtual void addContributionRhs(const double& time,
+                                    BlockVector<BlockVector<InVectorType>>& rhs,
                                     const BlockVector<BlockVector<InVectorType>>& sol,
                                     const unsigned int& nPrimalBlocks);
+
+    virtual void addContributionJacobianRhs(const double& time,
+                                            BlockMatrix<BlockMatrix<InMatrixType>>& jac,
+                                            const BlockVector<BlockVector<InVectorType>>& sol,
+                                            const unsigned int& nPrimalBlocks);
 
     inline Interface<InVectorType, InMatrixType> getInterface() const {return M_interface;};
 
@@ -90,7 +92,7 @@ public:
     double checkStabilizationTerm(const BlockVector<BlockVector<InVectorType>>& sol,
                                   const unsigned int& nPrimalBlocks);
 
-private:
+protected:
     SHP(LifeV::QuadratureRule) generateQuadratureRule(std::string tag) const;
 
     std::vector<VectorEp> buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,

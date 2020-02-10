@@ -36,7 +36,7 @@ public:
 
     PressureDrop(const double& C, const double& Rp, const double& Rd);
 
-    virtual BlockVector<Double> getZeroVector() const;
+    virtual BlockVector<Double> getZeroVector() const override;
 
     virtual BlockMatrix<Double> getMass(const double& time,
                                         const BlockVector<Double>& sol) override;

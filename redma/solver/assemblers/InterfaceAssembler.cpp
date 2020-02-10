@@ -351,32 +351,38 @@ buildCouplingMatrices()
     unsigned int indexOutlet = M_interface.M_indexOutlet;
 
     auto asFather = M_interface.M_assemblerFather;
-    GeometricFace outlet = asFather->getTreeNode()->M_block->getOutlet(indexOutlet);
 
-    buildCouplingMatrices(asFather, outlet, M_fatherBT, M_fatherB);
-
-    if (M_stabilizationCoupling > THRESHOLDSTAB)
+    if (asFather)
     {
-        buildStabilizationMatrix(asFather, outlet, M_stabFather);
-        // M_stabFather *= 0.5;
+        GeometricFace outlet = asFather->getTreeNode()->M_block->getOutlet(indexOutlet);
+
+        buildCouplingMatrices(asFather, outlet, M_fatherBT, M_fatherB);
+
+        if (M_stabilizationCoupling > THRESHOLDSTAB)
+        {
+            buildStabilizationMatrix(asFather, outlet, M_stabFather);
+            // M_stabFather *= 0.5;
+        }
     }
 
     auto asChild = M_interface.M_assemblerChild;
-    GeometricFace inlet = asChild->getTreeNode()->M_block->getInlet();
-    // I invert the normal of the face such that it is the same as the outlet
-    inlet.M_normal *= (-1.);
-
-    buildCouplingMatrices(asChild, inlet, M_childBT, M_childB);
-
-    if (M_stabilizationCoupling > THRESHOLDSTAB)
+    if (asChild)
     {
-        buildStabilizationMatrix(asChild, inlet, M_stabChild);
-        // no need to multiply by -1 as the inlet is already reversed
-        // M_stabChild *= (-1.);
-    }
+        GeometricFace inlet = asChild->getTreeNode()->M_block->getInlet();
+        // I invert the normal of the face such that it is the same as the outlet
+        inlet.M_normal *= (-1.);
 
-    M_childB *= (-1.);
-    M_childBT *= (-1.);
+        buildCouplingMatrices(asChild, inlet, M_childBT, M_childB);
+
+        if (M_stabilizationCoupling > THRESHOLDSTAB)
+        {
+            buildStabilizationMatrix(asChild, inlet, M_stabChild);
+            // no need to multiply by -1 as the inlet is already reversed
+            // M_stabChild *= (-1.);
+        }
+        M_childB *= (-1.);
+        M_childBT *= (-1.);
+    }
 }
 
 template <>
@@ -388,7 +394,7 @@ getZeroVector() const
     retVector.resize(1);
 
     SHP(MAPEPETRA) lagrangeMap;
-    if (M_fatherBT.block(0,0).data())
+    if (M_fatherBT.nRows() > 0)
         lagrangeMap.reset(new MAPEPETRA(*M_fatherBT.block(0,0).data()->domainMapPtr()));
     else
         lagrangeMap.reset(new MAPEPETRA(*M_childBT.block(0,0).data()->domainMapPtr()));

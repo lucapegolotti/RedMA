@@ -89,7 +89,7 @@ apply0DirichletMatrix(BlockMatrix<MatrixEp>& input,
 {
     SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
 
-    addInletBC(bcs, fZero2);
+    // addInletBC(bcs, fZero2);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -118,7 +118,7 @@ apply0DirichletBCs(BlockVector<VectorEp>& input, SHP(FESPACE) fespace,
 {
     SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
 
-    addInletBC(bcs, fZero2);
+    // addInletBC(bcs, fZero2);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 

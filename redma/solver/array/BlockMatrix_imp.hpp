@@ -52,7 +52,7 @@ getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
         }
     }
 
-    retMatrix.M_isFinalized = true;
+    retMatrix.finalize();
 
     return retMatrix;
 }

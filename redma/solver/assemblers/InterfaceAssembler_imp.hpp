@@ -1,11 +1,10 @@
 namespace RedMA
 {
 
-
 template <class InVectorType, class InMatrixType>
 Interface<InVectorType, InMatrixType>::
-Interface(SHP(AssemblerType) assemblerFather, const unsigned int& indexFather,
-          SHP(AssemblerType) assemblerChild, const unsigned int& indexChild,
+Interface(SHP(AssemblerType) assemblerFather, const int& indexFather,
+          SHP(AssemblerType) assemblerChild, const int& indexChild,
           const unsigned int& interfaceID) :
   M_assemblerFather(assemblerFather),
   M_indexFather(indexFather),
@@ -50,7 +49,8 @@ setup()
 template <class InVectorType, class InMatrixType>
 void
 InterfaceAssembler<InVectorType, InMatrixType>::
-addContributionRhs(BlockVector<BlockVector<InVectorType>>& rhs,
+addContributionRhs(const double& time,
+                   BlockVector<BlockVector<InVectorType>>& rhs,
                    const BlockVector<BlockVector<InVectorType>>& sol,
                    const unsigned int& nPrimalBlocks)
 {
@@ -75,9 +75,8 @@ addContributionRhs(BlockVector<BlockVector<InVectorType>>& rhs,
 
     rhs.block(nPrimalBlocks + interfaceID) -= M_fatherB * sol.block(fatherID);
     rhs.block(nPrimalBlocks + interfaceID) -= M_childB * sol.block(childID);
-    // here + because the stabilization term is (stress - lagrange) => hence
-    // + lagrange at rhs
-    if (M_stabilizationCoupling > 1e-15)
+
+    if (M_stabilizationCoupling > THRESHOLDSTAB)
     {
         rhs.block(nPrimalBlocks + interfaceID) -= (M_stabFather * sol.block(fatherID)) * (0.5 * M_stabilizationCoupling);
         rhs.block(nPrimalBlocks + interfaceID) -= (M_stabChild * sol.block(childID)) * (0.5 * M_stabilizationCoupling);
@@ -127,7 +126,8 @@ checkStabilizationTerm(const BlockVector<BlockVector<InVectorType>>& sol,
 template <class InVectorType, class InMatrixType>
 void
 InterfaceAssembler<InVectorType, InMatrixType>::
-addContributionJacobianRhs(BlockMatrix<BlockMatrix<InMatrixType>>& jac,
+addContributionJacobianRhs(const double& time,
+                           BlockMatrix<BlockMatrix<InMatrixType>>& jac,
                            const BlockVector<BlockVector<InVectorType>>& sol,
                            const unsigned int& nPrimalBlocks)
 {
@@ -147,13 +147,12 @@ addContributionJacobianRhs(BlockMatrix<BlockMatrix<InMatrixType>>& jac,
     jac.block(nPrimalBlocks + interfaceID, fatherID) *= (-1);
     jac.block(nPrimalBlocks + interfaceID,  childID) *= (-1);
 
-    // identity is already multiplied by stabilization coefficient
     if (M_stabilizationCoupling > THRESHOLDSTAB)
     {
         jac.block(nPrimalBlocks + interfaceID, fatherID) += (M_stabFather * (-0.5 * M_stabilizationCoupling));
         jac.block(nPrimalBlocks + interfaceID,  childID) += (M_stabChild * (-0.5 * M_stabilizationCoupling));
 
-        jac.block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID).hardCopy(M_identity * (-1.0 *M_stabilizationCoupling));
+        jac.block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID).hardCopy(M_identity * (-1.0 * M_stabilizationCoupling));
     }
 }
 
