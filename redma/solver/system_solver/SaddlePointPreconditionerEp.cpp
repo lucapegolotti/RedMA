@@ -24,6 +24,8 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
     // solution method to approximate BAm1BT in schur
     M_approxSchurType = M_data("preconditioner/approxshur", "SIMPLE");
 
+    std::cout << "nBlocks = " << nBlocks << std::endl << std::flush;
+
     if (nBlocks > 1)
     {
         unsigned int nPrimal = 1;
@@ -69,6 +71,7 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
     }
     else
     {
+        std::cout << "I enter here" << std::endl << std::flush;
         M_nPrimalBlocks = 1;
         allocateInnerPreconditioners(matrix);
     }
@@ -115,7 +118,7 @@ allocateInverseSolvers(const BM& primalMatrix)
     {
         SHP(InvOp) invOper;
         SHP(NSOp) oper(new NSOp);
-
+        primalMatrix.block(i,i).printPattern();
         boost::numeric::ublas::matrix<SHP(MATRIXEPETRA::matrix_type)> matrixGrid(2,2);
         matrixGrid(0,0) = primalMatrix.block(i,i).block(0,0).data()->matrixPtr();
         matrixGrid(1,0) = primalMatrix.block(i,i).block(1,0).data()->matrixPtr();
@@ -161,6 +164,8 @@ allocateInnerPreconditioners(const BM& primalMatrix)
         newPrec.reset(LifeV::Operators::NSPreconditionerFactory::
                       instance().createObject("SIMPLE"));
         newPrec->setOptions(*M_solversOptionsInner);
+
+        primalMatrix.block(i,i).printPattern();
 
         if (!primalMatrix.block(i,i).block(1,1).isNull())
         {

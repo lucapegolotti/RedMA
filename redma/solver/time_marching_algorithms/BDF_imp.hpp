@@ -102,6 +102,14 @@ advance(const double& time, double& dt, int& status)
         retMat += this->M_funProvider->getMass(time+dt, sol);
         retMat += this->M_funProvider->getMassJacobian(time+dt, sol);
 
+        // this is the part relative to the previous steps
+        unsigned int count = 0;
+        for (BV vec : M_prevSolutions)
+        {
+            retMat += this->M_funProvider->getMassJacobian(time+dt, vec) * M_coefficients[count];
+            count++;
+        }
+
         return retMat;
     });
 

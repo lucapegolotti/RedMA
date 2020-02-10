@@ -51,17 +51,23 @@ public:
 
     std::function<double(double)> getDistalPressure(const unsigned int& outletIndex) const;
 
+    std::string operator()(std::string location, const char* defValue) const; 
+
     std::string operator()(std::string location, std::string defValue) const;
 
     int operator()(std::string location, int defValue) const;
 
     double operator()(std::string location, double defValue) const;
 
+    bool operator()(std::string location, bool defValue) const;
+
     void setValue(std::string location, std::string defValue);
 
     void setValue(std::string location, int defValue);
 
     void setValue(std::string location, double defValue);
+
+    void setValue(std::string location, bool defValue);
 
 protected:
     std::vector<std::pair<double,double>> parseInflow();

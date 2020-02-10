@@ -3,13 +3,14 @@
 #-------------------------------------------------------------
 
 [geometric_structure]
-	xmlfile = geometries/pipe3.xml
+	xmlfile = geometries/pipe1.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
 
 [assembler]
 	type = navierstokes
+	use_stabilization = true
 [../]
 
 [bc_conditions]
@@ -19,8 +20,8 @@
 [preconditioner]
 	options    = datafiles/solversOptionsFast
 	outer      = saddlepoint
-	inner	   = exact
-	approxshur = exact
+	inner	   = SIMPLE
+	approxshur = SIMPLE
 	innertol   = 1e-1
 [../]
 
@@ -30,7 +31,7 @@
 [../]
 
 [fluid]
-	velocity_order = P2
+	velocity_order = P1
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1

@@ -53,6 +53,13 @@ setVerbose(bool verbose)
 
 std::string
 DataContainer::
+operator()(std::string location, const char* defValue) const
+{
+    return M_datafile->operator()(location.c_str(), defValue);
+}
+
+std::string
+DataContainer::
 operator()(std::string location, std::string defValue) const
 {
     return M_datafile->operator()(location.c_str(), defValue.c_str());
@@ -68,6 +75,13 @@ operator()(std::string location, int defValue) const
 double
 DataContainer::
 operator()(std::string location, double defValue) const
+{
+    return M_datafile->operator()(location.c_str(), defValue);
+}
+
+bool
+DataContainer::
+operator()(std::string location, bool defValue) const
 {
     return M_datafile->operator()(location.c_str(), defValue);
 }
@@ -89,6 +103,13 @@ setValue(std::string location, int value)
 void
 DataContainer::
 setValue(std::string location, double value)
+{
+    M_datafile->set(location.c_str(), value);
+}
+
+void
+DataContainer::
+setValue(std::string location, bool value)
 {
     M_datafile->set(location.c_str(), value);
 }
