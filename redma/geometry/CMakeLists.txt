@@ -2,6 +2,7 @@ set(HEADERS
     ${HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/BuildingBlock.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Tube.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Aorta.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BifurcationSymmetric.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TreeStructure.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/GeometryParser.hpp
@@ -17,6 +18,7 @@ set(SOURCES
     ${SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/BuildingBlock.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Tube.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Aorta.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BifurcationSymmetric.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TreeStructure.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/GeometryParser.cpp

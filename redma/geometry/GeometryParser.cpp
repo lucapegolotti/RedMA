@@ -120,14 +120,15 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
 
         returnBlock.reset(new BifurcationSymmetric(M_comm, ref, M_verbose, angle));
     }
-    // else if (!std::strcmp(element->Attribute("type"),
-    //                       "bifurcation_asymmetric"))
-    // {
-    //     std::string msg = std::string("[GeometryParser] parsing") +
-    //               " building block of type bifurcation asymmetric\n";
-    //     printlog(GREEN, msg, M_verbose);
-    //     returnBlock.reset(new BifurcationAsymmetric(M_comm, ref, M_verbose));
-    // }
+    else if (!std::strcmp(element->Attribute("type"),
+                          "aorta"))
+    {
+        std::string msg = std::string("[GeometryParser] parsing") +
+                  " building block of type aorta\n";
+        printlog(GREEN, msg, M_verbose);
+
+        returnBlock.reset(new Aorta(M_comm, "aorta", M_verbose));
+    }
     else
     {
         std::string warningMsg = "[GeometryParser] building block "
