@@ -141,11 +141,10 @@ linearInterpolation(const std::vector<std::pair<double,double>>& values,
         unsigned int count = 0;
         for (auto curpair : values)
         {
-            if (curpair.first - x < 1e-15)
+            if (x - curpair.first < 1e-15)
                 break;
             count++;
         }
-
         if (count == values.size())
         {
             printlog(YELLOW, "Warning: exiting the bounds of the inflow file");
