@@ -54,7 +54,7 @@ public:
     BlockMatrix<MatrixEp> getJac(const BlockVector<VectorEp>& sol,
                                  const BlockVector<VectorEp>& rhs);
 
-    BlockMatrix<MatrixEp> assembleMass(const BlockVector<VectorEp>& sol);
+    // BlockMatrix<MatrixEp> assembleMass(const BlockVector<VectorEp>& sol);
 
     BlockVector<VectorEp> getResidual(const BlockVector<VectorEp>& sol,
                                       const BlockVector<VectorEp>& rhs);

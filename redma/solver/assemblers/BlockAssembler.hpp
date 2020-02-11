@@ -61,6 +61,10 @@ public:
 
     virtual BlockVector<InVectorType> getZeroVector() const override;
 
+    virtual void apply0DirichletBCs(BlockVector<InVectorType>& vector) const override;
+
+    virtual void applyDirichletBCs(const double& time, BlockVector<InVectorType>& vector) const override;
+
     virtual void checkStabTerm(const BlockVector<InVectorType>& sol) const;
 
 protected:

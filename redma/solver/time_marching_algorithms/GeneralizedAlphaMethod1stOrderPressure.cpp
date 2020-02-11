@@ -30,6 +30,9 @@ advance(const double& time, double& dt, int& status)
     BV initialGuess;
     initialGuess.hardCopy(M_prevDerivative);
 
+    std::cout << "think about boundary conditions for generalized alpha " << std::endl << std::flush;
+    exit(1);
+
     FunctionFunctor<BV,BV> fct(
         [this,time,dt](BV dersol)
     {

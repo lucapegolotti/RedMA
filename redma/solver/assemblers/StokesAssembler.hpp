@@ -112,8 +112,11 @@ public:
                                   const BlockVector<InVectorType>& sol,
                                   const unsigned int& faceFlag);
 
+    void apply0DirichletBCs(BlockVector<InVectorType>& vector) const override;
+
+    void applyDirichletBCs(const double& time, BlockVector<InVectorType>& vector) const override;
+
 protected:
-    void apply0DirichletBCs(BlockVector<InVectorType>& vector);
 
     BlockMatrix<InMatrixType>                                       M_mass;
     BlockMatrix<InMatrixType>                                       M_stiffness;

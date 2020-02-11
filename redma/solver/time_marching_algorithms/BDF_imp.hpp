@@ -69,6 +69,7 @@ advance(const double& time, double& dt, int& status)
     BV initialGuess;
     initialGuess.hardCopy(M_prevSolutions[0]);
 
+    this->M_funProvider->applyDirichletBCs(time+dt, initialGuess);
     FunctionFunctor<BV,BV> fct(
         [this,time,dt](BV sol)
     {
@@ -87,6 +88,9 @@ advance(const double& time, double& dt, int& status)
         retVec.softCopy(mass * (sol + prevContribution));
         f *= (-1. * M_rhsCoeff * dt);
         retVec += f;
+
+        // the previous solution satisfies the boundary conditions
+        this->M_funProvider->apply0DirichletBCs(retVec);
 
         return retVec;
     });

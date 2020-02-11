@@ -57,6 +57,8 @@ public:
 
     void postProcess();
 
+    inline bool useStrongDirichlet() const {return M_strongDirichlet;}
+
 private:
     static double poiseulle(const double& t, const double& x, const double& y,
                             const double& z, const unsigned int& i,
@@ -83,7 +85,7 @@ private:
     DataContainer                                    M_data;
     std::function<double(double)>                    M_inflow;
     std::function<double(double)>                    M_inflowDt;
-    bool                                             M_useLifting;
+    bool                                             M_strongDirichlet;
 
     const unsigned int                               inletFlag = 1;
     const unsigned int                               wallFlag = 10;
@@ -91,7 +93,7 @@ private:
     const unsigned int                               outletRing = 31;
 
     // key is the outlet index (more than one for bifurcations)
-    std::map<unsigned int,SHP(WindkesselModel)>   M_models;
+    std::map<unsigned int,SHP(WindkesselModel)>      M_models;
 };
 
 }

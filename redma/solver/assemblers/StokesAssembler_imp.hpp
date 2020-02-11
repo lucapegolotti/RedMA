@@ -140,17 +140,24 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 
     addNeumannBCs(retVec, time, sol);
 
-    apply0DirichletBCs(retVec);
-
     return retVec;
 }
 
 template <class InVectorType, class InMatrixType>
 void
 StokesAssembler<InVectorType, InMatrixType>::
-apply0DirichletBCs(BlockVector<InVectorType>& vector)
+apply0DirichletBCs(BlockVector<InVectorType>& vector) const
 {
     this->M_bcManager->apply0DirichletBCs(vector, getFESpaceBCs(), getComponentBCs());
+}
+
+template <class InVectorType, class InMatrixType>
+void
+StokesAssembler<InVectorType, InMatrixType>::
+applyDirichletBCs(const double& time, BlockVector<InVectorType>& vector) const
+{
+    this->M_bcManager->applyDirichletBCs(time, vector, getFESpaceBCs(),
+                                         getComponentBCs());
 }
 
 template <class InVectorType, class InMatrixType>

@@ -244,6 +244,7 @@ assembleFlowRateJacobian(const GeometricFace& face)
     unsigned int numElements = epetraMap.NumMyElements();
     unsigned int numGlobalElements = epetraMap.NumGlobalElements();
 
+    // this should be optimized
     SHP(MATRIXEPETRA) flowRateJacobian;
     flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map(), numGlobalElements, false));
 
@@ -279,6 +280,25 @@ assembleFlowRateJacobian(const GeometricFace& face)
     comm->Barrier();
 
     flowRateJacobian->globalAssemble();
+
+//     SHP(VECTOREPETRA) flowRateVector(new VECTOREPETRA(*M_flowRateVectors[face.M_flag],
+//                                                       Repeated));
+//     SHP(MatrixEpetra<double>) BT(new MatrixEpetra<double>(M_velocityFESpace->map()));
+//
+//     QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
+//
+//     integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
+//               myBDQR,
+//               M_velocityFESpaceETA,
+//               M_velocityFESpaceETA,
+//               dot(phi_i,Nface) * phi_j
+//           ) >> BT;
+// //dot(value(M_velocityFESpaceETA, *flowRateVector),Nface)
+//     BT->globalAssemble();
+//
+//     *BT -= *flowRateJacobian;
+//
+//     std::cout << BT->normInf() << std::endl << std::flush;
 
     return flowRateJacobian;
 }
@@ -328,8 +348,8 @@ getLifting(const double& time) const
                                                    LifeV::Unique));
     lifting.block(1).data()->zero();
 
-    this->M_bcManager->applyDirichletBCs(time, lifting, getFESpaceBCs(),
-                                         getComponentBCs());
+    applyDirichletBCs(time, lifting);
+
     return lifting;
 }
 

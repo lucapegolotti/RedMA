@@ -85,7 +85,6 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
     if (M_useStabilization)
         retVec -= M_stabilization->getResidual(sol, this->getForcingTerm(time));
 
-    this->apply0DirichletBCs(retVec);
     return retVec;
 }
 
@@ -107,6 +106,14 @@ getJacobianRightHandSide(const double& time,
                                                  this->getComponentBCs(), 0.0);
     }
     return retMat;
+}
+
+template <class InVectorType, class InMatrixType>
+void
+NavierStokesAssembler<InVectorType, InMatrixType>::
+postProcess(const double& t, const BlockVector<InVectorType>& sol)
+{
+    StokesAssembler<InVectorType, InMatrixType>::postProcess(t, sol);
 }
 
 

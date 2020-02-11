@@ -4,11 +4,11 @@
 // MACRO TO DEFINE TAU_M
 // #define TAU_M 	       value(1.0)/(eval(squareroot,TAU_M_DEN))
 // #define TAU_M_DEN      (TAU_M_DEN_DT + TAU_M_DEN_VEL + TAU_M_DEN_VISC)
-// #define TAU_M_DEN_DT   (value(M_density*M_density)*value(M_timeOrder*M_timeOrder)/value(dt * dt))
+// #define TAU_M_DEN_DT   (value(M_density*M_density)*value(M_timeOrder*M_timeOrder)/value(M_dt * M_dt))
 // #define TAU_M_DEN_VEL  (value(M_density*M_density)*dot(value(M_velocityFESpaceETA, *velocityRep), G*value(M_velocityFESpaceETA, *velocityRep)))
 // #define TAU_M_DEN_VISC (value(M_C_I)*value(M_viscosity*M_viscosity)*dot(G, G))
 //
-// #define TAU_C ( value(1.0)/( dot(g, TAU_M*g ) ) )
+// #define TAU_C ( value(1.0)/( TAU_M * trace(G)) )
 
 #define TAU_M 	       value(1.0)/(eval(squareroot,TAU_M_DEN))
 #define TAU_M_DEN      (TAU_M_DEN_DT + TAU_M_DEN_VEL + TAU_M_DEN_VISC)
@@ -265,35 +265,35 @@ getJac(const BlockVector<VectorEp>& sol, const BlockVector<VectorEp>& rhs)
     return M_jac;
 }
 
-BlockMatrix<MatrixEp>
-SUPGStabilization::
-assembleMass(const BlockVector<VectorEp>& sol)
-{
-    using namespace LifeV;
-    using namespace LifeV::ExpressionAssembly;
-
-    SHP(VECTOREPETRA) velocityRep(new VECTOREPETRA(*sol.block(0).data(), Repeated));
-
-    SHP(MATRIXEPETRA) mass;
-    mass.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
-    mass->zero();
-    SHP(SquareRoot) squareroot(new SquareRoot());
-
-    integrate(elements(M_velocityFESpace->mesh()),
-              M_velocityFESpace->qr(),
-              M_velocityFESpaceETA,
-              M_velocityFESpaceETA,
-              TAU_M * value(M_density*M_density)
-                    * dot(phi_j*grad(phi_i),
-                      value(M_velocityFESpaceETA, *velocityRep))
-              ) >> mass;
-    mass->globalAssemble();
-
-    BlockMatrix<MatrixEp> retMatrix(2,2);
-    retMatrix.block(0,0).data() = mass;
-
-    return retMatrix;
-}
+// BlockMatrix<MatrixEp>
+// SUPGStabilization::
+// assembleMass(const BlockVector<VectorEp>& sol)
+// {
+//     using namespace LifeV;
+//     using namespace LifeV::ExpressionAssembly;
+//
+//     SHP(VECTOREPETRA) velocityRep(new VECTOREPETRA(*sol.block(0).data(), Repeated));
+//
+//     SHP(MATRIXEPETRA) mass;
+//     mass.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
+//     mass->zero();
+//     SHP(SquareRoot) squareroot(new SquareRoot());
+//
+//     integrate(elements(M_velocityFESpace->mesh()),
+//               M_velocityFESpace->qr(),
+//               M_velocityFESpaceETA,
+//               M_velocityFESpaceETA,
+//               TAU_M * value(M_density*M_density)
+//                     * dot(value(M_velocityFESpaceETA, *velocityRep)*grad(phi_i),
+//                       phi_j)
+//               ) >> mass;
+//     mass->globalAssemble();
+//
+//     BlockMatrix<MatrixEp> retMatrix(2,2);
+//     retMatrix.block(0,0).data() = mass;
+//
+//     return retMatrix;
+// }
 
 BlockVector<VectorEp>
 SUPGStabilization::
@@ -307,6 +307,11 @@ getResidual(const BlockVector<VectorEp>& sol,
     SHP(VECTOREPETRA) velocityRhsRep(new VECTOREPETRA(*rhs.block(0).data(), Repeated));
     SHP(VECTOREPETRA) pressureRep(new VECTOREPETRA(*sol.block(1).data(), Repeated));
 
+    std::cout << velocityRep->norm2() << std::endl << std::flush;
+    std::cout << pressureRep->norm2() << std::endl << std::flush;
+
+    *velocityRep += 1.0;
+    *pressureRep += 1.0;
     SHP(SquareRoot) squareroot(new SquareRoot());
 
     SHP(VECTOREPETRA) resvelrep(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
@@ -348,6 +353,9 @@ getResidual(const BlockVector<VectorEp>& sol,
              ) >> respressrep;
     respressrep->globalAssemble();
     SHP(VECTOREPETRA) respress(new VECTOREPETRA(*respressrep, Unique));
+
+    std::cout << respress->norm2() << std::endl << std::flush;
+    std::cout << resvel->norm2() << std::endl << std::flush;
 
     BlockVector<VectorEp> retVec(2);
     retVec.block(0).data() = resvel;

@@ -24,8 +24,6 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
     // solution method to approximate BAm1BT in schur
     M_approxSchurType = M_data("preconditioner/approxshur", "SIMPLE");
 
-    std::cout << "nBlocks = " << nBlocks << std::endl << std::flush;
-
     if (nBlocks > 1)
     {
         unsigned int nPrimal = 1;
@@ -56,11 +54,14 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
         M_rangeMaps = allmaps.getRangeMapsEpetra();
         M_domainMaps = allmaps.getDomainMapsEpetra();
         M_monolithicMap = allmaps.getMonolithicRangeMapEpetra();
+        M_setupTime = chrono.diff();
+
         std::string msg = "Monolithic map size = ";
         msg += std::to_string(M_monolithicMap->mapSize());
         msg += "\n";
         printlog(GREEN, msg, M_data.getVerbose());
 
+        // this is to be optimized
         M_matrixCollapsed = collapseBlocks(matrix, allmaps);
 
         allocateInnerPreconditioners(A);
@@ -71,7 +72,10 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
             allocateInverseSolvers(A);
         }
 
+        printlog(MAGENTA, msg, M_data.getVerbose());
         computeSchurComplement(A, BT, B, C);
+
+        printlog(MAGENTA, msg, M_data.getVerbose());
     }
     else
     {

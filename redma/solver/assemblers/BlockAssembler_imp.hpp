@@ -65,7 +65,7 @@ setup()
         }
     }
 
-    if (this->M_data("bc_conditions/weakdirichlet", true))
+    if (!std::strcmp(this->M_data("bc_conditions/inletdirichlet", "weak").c_str(),"weak"))
     {
         SHP(InnerAssembler) inletAssembler = M_primalAssemblers[0];
 
@@ -104,11 +104,28 @@ getLifting(const double& time) const
 {
     BlockVector<InVectorType> retVec(M_numberBlocks);
 
-    unsigned int count = 0;
     for (auto as : M_primalAssemblers)
         retVec.block(as.first) = as.second->getLifting(time);
 
     return retVec;
+}
+
+template <class InVectorType, class InMatrixType>
+void
+BlockAssembler<InVectorType, InMatrixType>::
+apply0DirichletBCs(BlockVector<InVectorType>& initialGuess) const
+{
+    for (auto as : M_primalAssemblers)
+        as.second->apply0DirichletBCs(initialGuess.block(as.first));
+}
+
+template <class InVectorType, class InMatrixType>
+void
+BlockAssembler<InVectorType, InMatrixType>::
+applyDirichletBCs(const double& time, BlockVector<InVectorType>& initialGuess) const
+{
+    for (auto as : M_primalAssemblers)
+        as.second->applyDirichletBCs(time, initialGuess.block(as.first));
 }
 
 template <class InVectorType, class InMatrixType>

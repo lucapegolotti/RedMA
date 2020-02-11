@@ -9,7 +9,7 @@ BCManager(const DataContainer& data, SHP(TreeNode) treeNode) :
   M_treeNode(treeNode)
 {
     M_inflow = data.getInflow();
-    M_useLifting = data("bc_conditions/lifting", true);
+    M_strongDirichlet = std::strcmp(data("bc_conditions/inletdirichlet", "weak").c_str(),"strong") == 0;
 
     parseNeumannData();
 }
@@ -89,7 +89,8 @@ apply0DirichletMatrix(BlockMatrix<MatrixEp>& input,
 {
     SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
 
-    // addInletBC(bcs, fZero2);
+    if (M_strongDirichlet)
+        addInletBC(bcs, fZero2);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -118,7 +119,8 @@ apply0DirichletBCs(BlockVector<VectorEp>& input, SHP(FESPACE) fespace,
 {
     SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
 
-    // addInletBC(bcs, fZero2);
+    if (M_strongDirichlet)
+        addInletBC(bcs, fZero2);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 

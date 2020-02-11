@@ -52,6 +52,10 @@ public:
 
     inline void setFlowRate(const double& Q) {M_Q = Q;}
 
+    virtual void apply0DirichletBCs(BlockVector<Double>& vector) const override {}
+
+    virtual void applyDirichletBCs(const double& time, BlockVector<Double>& vector) const override {}
+
 private:
     double                      M_C;  // compliance
     double                      M_Rp; // proximal resistance

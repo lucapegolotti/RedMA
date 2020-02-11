@@ -14,7 +14,7 @@
 [../]
 
 [bc_conditions]
-	lifting = true
+	inletdirichlet = strong
 [../]
 
 [preconditioner]
