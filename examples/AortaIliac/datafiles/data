@@ -16,7 +16,7 @@
 [bc_conditions]
 	inletdirichlet = strong
 	inflowfile = datafiles/inflow.txt
-	coefficientinlet = 1.0341910688;
+	coefficientinflow = 1.0341910688;
 	numoutletbcs = 0
 	[./outlet0]
 		blockindex = 11

@@ -10,7 +10,7 @@ BCManager(const DataContainer& data, SHP(TreeNode) treeNode) :
 {
     M_inflow = data.getInflow();
     M_strongDirichlet = std::strcmp(data("bc_conditions/inletdirichlet", "weak").c_str(),"strong") == 0;
-    M_coefficientInlet = data("bc_conditions/coefficientinlet", 1.0);
+    M_coefficientInflow = data("bc_conditions/coefficientinflow", 1.0);
     parseNeumannData();
 }
 
@@ -40,14 +40,15 @@ addInletBC(SHP(LifeV::BCHandler) bcs, std::function<double(double)> law) const
 {
     if (M_treeNode->isInletNode())
     {
-        auto foo = std::bind(poiseulle,
+        auto foo = std::bind(poiseuille,
                              std::placeholders::_1,
                              std::placeholders::_2,
                              std::placeholders::_3,
                              std::placeholders::_4,
                              std::placeholders::_5,
                              M_treeNode->M_block->getInlet(),
-                             law);
+                             law,
+                             M_coefficientInflow);
 
         LifeV::BCFunctionBase inflowFunction(foo);
         bcs->addBC("Inlet", inletFlag, LifeV::Essential, LifeV::Full,
@@ -151,9 +152,10 @@ createBCHandler0Dirichlet() const
 
 double
 BCManager::
-poiseulle(const double& t, const double& x, const double& y,
+poiseuille(const double& t, const double& x, const double& y,
           const double& z, const unsigned int& i,
-          const GeometricFace& face, const std::function<double(double)> inflow)
+          const GeometricFace& face, const std::function<double(double)> inflow,
+          const double& coefficient)
 {
     typedef LifeV::VectorSmall<3>   Vector3D;
     // GeometricFace face = M_treeNode->M_block->getInlet();
@@ -175,7 +177,7 @@ poiseulle(const double& t, const double& x, const double& y,
 
     inflowNorm = inflowNorm > 0 ? inflowNorm : 0;
 
-    Vector3D inflowValue = -inflowNorm * normal * M_coefficientInlet;
+    Vector3D inflowValue = -inflowNorm * normal * coefficient;
     return inflowValue[i];
 }
 

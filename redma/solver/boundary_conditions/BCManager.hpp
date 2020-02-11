@@ -60,10 +60,11 @@ public:
     inline bool useStrongDirichlet() const {return M_strongDirichlet;}
 
 private:
-    static double poiseulle(const double& t, const double& x, const double& y,
-                            const double& z, const unsigned int& i,
-                            const GeometricFace& face,
-                            const std::function<double(double)> inflow);
+    static double poiseuille(const double& t, const double& x, const double& y,
+                             const double& z, const unsigned int& i,
+                             const GeometricFace& face,
+                             const std::function<double(double)> inflow,
+                             const double& coefficient);
 
     static double fZero(const double& t, const double& x, const double& y,
                         const double& z, const unsigned int& i);
@@ -95,7 +96,7 @@ private:
     // key is the outlet index (more than one for bifurcations)
     std::map<unsigned int,SHP(WindkesselModel)>      M_models;
 
-    double                                           M_coefficientInlet;
+    double                                           M_coefficientInflow;
 };
 
 }
