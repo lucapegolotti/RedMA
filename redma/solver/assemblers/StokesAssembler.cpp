@@ -40,9 +40,6 @@ assembleStiffness()
     A->globalAssemble();
 
     M_stiffness.block(0,0).data() = A;
-
-    M_bcManager->apply0DirichletMatrix(M_stiffness, getFESpaceBCs(),
-                                       getComponentBCs(), 0.0);
 }
 
 template <>
@@ -100,7 +97,7 @@ assembleDivergence()
              M_pressureFESpace->qr(),
              M_pressureFESpaceETA,
              M_velocityFESpaceETA,
-             value(-1.0) * phi_i * div(phi_j)
+             phi_i * div(phi_j)
          ) >> B;
 
     B->globalAssemble(M_velocityFESpace->mapPtr(),
@@ -108,8 +105,6 @@ assembleDivergence()
 
     M_divergence.block(0,1).data() = BT;
     M_divergence.block(1,0).data() = B;
-    M_bcManager->apply0DirichletMatrix(M_divergence, getFESpaceBCs(),
-                                       getComponentBCs(), 0.0);
 }
 
 template <>

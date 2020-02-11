@@ -239,6 +239,7 @@ getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& so
     retMat += M_divergence;
 
     retMat *= (-1.0);
+
     // ATTENTION: here I should add the part relative to Neumann conditions
     // if they depend on the solution (as with 0D coupling)
 
@@ -256,6 +257,9 @@ getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& so
     //         retMat += curjac;
     //     }
     // }
+
+    this->M_bcManager->apply0DirichletMatrix(retMat, getFESpaceBCs(),
+                                       getComponentBCs(), 0.0);
 
     return retMat;
 }

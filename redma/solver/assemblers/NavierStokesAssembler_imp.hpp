@@ -100,11 +100,10 @@ getJacobianRightHandSide(const double& time,
     this->addConvectiveTermJacobianRightHandSide(sol, this->getZeroVector(), retMat);
 
     if (M_useStabilization)
-    {
         retMat -= M_stabilization->getJac(sol, this->getForcingTerm(time));
-        this->M_bcManager->apply0DirichletMatrix(retMat, this->getFESpaceBCs(),
-                                                 this->getComponentBCs(), 0.0);
-    }
+
+    this->M_bcManager->apply0DirichletMatrix(retMat, this->getFESpaceBCs(),
+                                             this->getComponentBCs(), 0.0);
     return retMat;
 }
 

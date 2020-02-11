@@ -83,13 +83,12 @@ advance(const double& time, double& dt, int& status)
             prevContribution += vec * M_coefficients[count];
             count++;
         }
-
         BV retVec;
         retVec.softCopy(mass * (sol + prevContribution));
         f *= (-1. * M_rhsCoeff * dt);
         retVec += f;
-
-        // the previous solution satisfies the boundary conditions
+        // the previous solution satisfies the boundary conditions so we search
+        // for an increment with 0bcs
         this->M_funProvider->apply0DirichletBCs(retVec);
 
         return retVec;

@@ -27,8 +27,6 @@ addConvectiveMatrixRightHandSide(const BlockVector<VectorEp>& sol,
     convectiveMatrix->globalAssemble();
 
     *mat.block(0,0).data() -= *convectiveMatrix;
-    M_bcManager->apply0DirichletMatrix(mat, getFESpaceBCs(),
-                                       getComponentBCs(), 0.0);
 }
 
 template <>
@@ -64,8 +62,6 @@ addConvectiveTermJacobianRightHandSide(const BlockVector<VectorEp>& sol,
     convectiveMatrix->globalAssemble();
 
     *mat.block(0,0).data() -= *convectiveMatrix;
-    M_bcManager->apply0DirichletMatrix(mat, getFESpaceBCs(),
-                                       getComponentBCs(), 0.0);
 }
 
 }
