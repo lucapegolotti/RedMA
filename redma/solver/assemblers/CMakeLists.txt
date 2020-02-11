@@ -6,7 +6,9 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesAssembler.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockAssembler.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceAssembler.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesStabilization.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/VMSStabilization.hpp
     CACHE INTERNAL ""
 )
 
@@ -15,6 +17,8 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/StokesAssembler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesAssembler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceAssembler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesStabilization.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/VMSStabilization.cpp
     CACHE INTERNAL ""
 )

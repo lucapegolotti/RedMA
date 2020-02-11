@@ -19,6 +19,7 @@
 
 #include <redma/solver/assemblers/StokesAssembler.hpp>
 #include <redma/solver/assemblers/SUPGStabilization.hpp>
+#include <redma/solver/assemblers/VMSStabilization.hpp>
 
 namespace RedMA
 {
@@ -53,8 +54,8 @@ protected:
                                                 const BlockVector<InVectorType>& lifting,
                                                 BlockMatrix<InMatrixType>& rhs);
 
-    bool                                                            M_useStabilization;
-    SHP(SUPGStabilization)                                          M_stabilization;
+    bool                                                     M_useStabilization;
+    SHP(NavierStokesStabilization)                           M_stabilization;
 };
 
 }

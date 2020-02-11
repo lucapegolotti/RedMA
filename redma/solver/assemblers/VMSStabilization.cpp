@@ -1,15 +1,15 @@
 // implementation inspired by StabilizationSUPG.cpp in LifeV
-#include "SUPGStabilization.hpp"
+#include "VMSStabilization.hpp"
 
 namespace RedMA
 {
 
-SUPGStabilization::
-SUPGStabilization(const DataContainer& data,
-                  SHP(FESPACE) fespaceVelocity,
-                  SHP(FESPACE) fespacePressure,
-                  SHP(ETFESPACE3) etfespaceVelocity,
-                  SHP(ETFESPACE1) etfespacePressure) :
+VMSStabilization::
+VMSStabilization(const DataContainer& data,
+                 SHP(FESPACE) fespaceVelocity,
+                 SHP(FESPACE) fespacePressure,
+                 SHP(ETFESPACE3) etfespaceVelocity,
+                 SHP(ETFESPACE1) etfespacePressure) :
   NavierStokesStabilization(data,
                             fespaceVelocity, fespacePressure,
                             etfespaceVelocity, etfespacePressure)
@@ -17,7 +17,7 @@ SUPGStabilization(const DataContainer& data,
 }
 
 BlockMatrix<MatrixEp>
-SUPGStabilization::
+VMSStabilization::
 getMass(const BlockVector<VectorEp>& sol, const BlockVector<VectorEp>& rhs)
 {
     using namespace LifeV;
@@ -45,7 +45,15 @@ getMass(const BlockVector<VectorEp>& sol, const BlockVector<VectorEp>& rhs)
               TAU_M * value(M_density*M_density)
                     * dot(value(VH)
                     * grad(phi_i), phi_j)
+              -TAU_M * value(M_density*M_density)
+                    * dot(phi_j * grad(VH), phi_i)
+              +TAU_M * TAU_M * value(M_density*M_density*M_density)
+                    * dot(value(VH) * grad(phi_i), phi_j)
               ) >> mass00;
+
+    // note that in Davide's thesis, the stabilization term for the pressure
+    // has no 1/density in front of the test whereas on wikipedia there is
+    // https://en.wikipedia.org/wiki/Streamline_upwind_Petrov%E2%80%93Galerkin_pressure-stabilizing_Petrov%E2%80%93Galerkin_formulation_for_incompressible_Navier%E2%80%93Stokes_equations
 
     integrate(elements(M_velocityFESpace->mesh()),
               M_pressureFESpace->qr(),
@@ -74,7 +82,7 @@ getMass(const BlockVector<VectorEp>& sol, const BlockVector<VectorEp>& rhs)
 }
 
 BlockMatrix<MatrixEp>
-SUPGStabilization::
+VMSStabilization::
 getMassJac(const BlockVector<VectorEp>& sol, const BlockVector<VectorEp>& rhs)
 {
     using namespace LifeV;
@@ -102,6 +110,10 @@ getMassJac(const BlockVector<VectorEp>& sol, const BlockVector<VectorEp>& rhs)
               TAU_M * (value(M_density*M_density)
                      * dot(phi_j * grad(phi_i),
                        value(VH)))
+             -TAU_M * value(M_density*M_density)
+                    * dot(value(VH) * grad(phi_j), phi_i)
+             +TAU_M * TAU_M * value(M_density*M_density*M_density)
+                 * dot(phi_j * grad(phi_i), value(VH))
              ) >> massjac00;
 
     massjac00->globalAssemble();
@@ -124,7 +136,7 @@ getMassJac(const BlockVector<VectorEp>& sol, const BlockVector<VectorEp>& rhs)
 }
 
 BlockMatrix<MatrixEp>
-SUPGStabilization::
+VMSStabilization::
 getJac(const BlockVector<VectorEp>& sol, const BlockVector<VectorEp>& rhs)
 {
     using namespace LifeV;
@@ -152,6 +164,10 @@ getJac(const BlockVector<VectorEp>& sol, const BlockVector<VectorEp>& rhs)
               TAU_M * (dot(value(M_density) * value(VH) * grad(phi_i),
                        MOMENTUM_R_DER)
                     +  dot(value(M_density) * phi_j * grad(phi_i), MOMENTUM_R))
+            - TAU_M * (dot(value(M_density) * MOMENTUM_R * grad(phi_j), phi_i)
+                    +  dot(value(M_density) * MOMENTUM_R_DER * grad(VH), phi_i))
+            + TAU_M * TAU_M * (dot(value(M_density) * MOMENTUM_R_DER * grad(phi_i), MOMENTUM_R) +
+                               dot(value(M_density) * MOMENTUM_R * grad(phi_i), MOMENTUM_R_DER))
             + TAU_C *  div(phi_i)*div(phi_j)
               ) >> jac00;
 
@@ -166,7 +182,13 @@ getJac(const BlockVector<VectorEp>& sol, const BlockVector<VectorEp>& rhs)
               M_velocityFESpace->qr(),
               M_velocityFESpaceETA,
               M_pressureFESpaceETA,
-              TAU_M * dot(value(M_density) * value(VH) * grad(phi_i), grad(phi_j))
+              TAU_M * (value(M_density) * dot(value(VH) * grad(phi_i), grad(phi_j)))
+             -TAU_M * (dot(value(M_density) * grad(phi_j) * grad(VH), phi_i))
+             // there should probably a term like this in the jacobian but it seems to
+             // lead to worse convergence. Probably it is miscomputed
+             // +TAU_M * TAU_M * (dot(value(M_density) * MOMENTUM_R * grad(phi_i), grad(phi_j)) +
+             //                   dot(value(M_density) * grad(phi_j) * grad(phi_i), MOMENTUM_R)
+             //                   )
               ) >> jac01;
 
     integrate(elements(M_velocityFESpace->mesh()),
@@ -197,7 +219,7 @@ getJac(const BlockVector<VectorEp>& sol, const BlockVector<VectorEp>& rhs)
 }
 
 BlockVector<VectorEp>
-SUPGStabilization::
+VMSStabilization::
 getResidual(const BlockVector<VectorEp>& sol,
             const BlockVector<VectorEp>& rhs)
 {
@@ -218,6 +240,10 @@ getResidual(const BlockVector<VectorEp>& sol,
               M_velocityFESpaceETA,
               TAU_M * (dot(value(M_density) * value(VH) * grad(phi_i),
                        MOMENTUM_R))
+             -TAU_M * (dot(value(M_density) * MOMENTUM_R * grad(VH),
+                       phi_i))
+             +TAU_M * TAU_M * (dot(value(M_density) * MOMENTUM_R * grad(phi_i),
+                               MOMENTUM_R))
              +TAU_C * div(phi_i) * trace(grad(VH))
             ) >> resvelrep;
     resvelrep->globalAssemble();
