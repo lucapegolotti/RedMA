@@ -17,24 +17,12 @@
 #ifndef SUPGSTABILIZATION_HPP
 #define SUPGSTABILIZATION_HPP
 
-#include <redma/RedMA.hpp>
-
-#include <redma/solver/array/BlockVector.hpp>
-#include <redma/solver/array/BlockMatrix.hpp>
-#include <redma/solver/array/VectorEp.hpp>
-#include <redma/solver/array/MatrixEp.hpp>
-#include <redma/utils/Exception.hpp>
-#include <redma/solver/problem/DataContainer.hpp>
-
-#include <lifev/eta/utils/Functions.hpp>
-#include <lifev/eta/expression/Integrate.hpp>
-
-#include <functional>
+#include <redma/solver/assemblers/NavierStokesStabilization.hpp>
 
 namespace RedMA
 {
 
-class SUPGStabilization
+class SUPGStabilization : public NavierStokesStabilization
 {
 public:
     SUPGStabilization(const DataContainer& data,
@@ -43,36 +31,18 @@ public:
                       SHP(ETFESPACE3) etfespaceVelocity,
                       SHP(ETFESPACE1) etfespacePressure);
 
-    void setDensityAndViscosity(const double& density, const double& viscosity);
+    virtual BlockMatrix<MatrixEp> getMass(const BlockVector<VectorEp>& sol,
+                                          const BlockVector<VectorEp>& rhs) override;
 
-    BlockMatrix<MatrixEp> getMass(const BlockVector<VectorEp>& sol,
-                                  const BlockVector<VectorEp>& rhs);
+    virtual BlockMatrix<MatrixEp> getMassJac(const BlockVector<VectorEp>& sol,
+                                             const BlockVector<VectorEp>& rhs) override;
 
-    BlockMatrix<MatrixEp> getMassJac(const BlockVector<VectorEp>& sol,
-                                     const BlockVector<VectorEp>& rhs);
+    virtual BlockMatrix<MatrixEp> getJac(const BlockVector<VectorEp>& sol,
+                                         const BlockVector<VectorEp>& rhs) override;
 
-    BlockMatrix<MatrixEp> getJac(const BlockVector<VectorEp>& sol,
-                                 const BlockVector<VectorEp>& rhs);
+    virtual BlockVector<VectorEp> getResidual(const BlockVector<VectorEp>& sol,
+                                              const BlockVector<VectorEp>& rhs) override;
 
-    // BlockMatrix<MatrixEp> assembleMass(const BlockVector<VectorEp>& sol);
-
-    BlockVector<VectorEp> getResidual(const BlockVector<VectorEp>& sol,
-                                      const BlockVector<VectorEp>& rhs);
-
-private:
-    double                          M_density;
-    double                          M_viscosity;
-    unsigned int                    M_timeOrder;
-    unsigned int                    M_velocityOrder;
-    SHP(FESPACE)                    M_velocityFESpace;
-    SHP(FESPACE)                    M_pressureFESpace;
-    SHP(ETFESPACE3)                 M_velocityFESpaceETA;
-    SHP(ETFESPACE1)                 M_pressureFESpaceETA;
-    BlockMatrix<MatrixEp>           M_jac;
-    BlockMatrix<MatrixEp>           M_massJac;
-    BlockMatrix<MatrixEp>           M_mass;
-    double                          M_C_I;
-    double                          M_dt;
 };
 
 }  // namespace RedMA

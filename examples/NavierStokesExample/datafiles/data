@@ -10,7 +10,7 @@
 
 [assembler]
 	type = navierstokes
-	use_stabilization = true
+	stabilization = vms
 [../]
 
 [bc_conditions]
@@ -34,7 +34,7 @@
 	velocity_order = P1
 	pressure_order = P1
 	viscosity      = 0.035
-	density        = 1
+	density        = 10
 	inflow_bc      = dirichlet
 [../]
 
