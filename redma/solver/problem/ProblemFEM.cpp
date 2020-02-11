@@ -45,13 +45,12 @@ solve()
     double t = t0;
 
     unsigned int count = 1;
-    while (T - t > t/2)
+    while (T - t > t0/2)
     {
-        std::string msg = "[ProblemFEM] solving timestep " + std::to_string(count-1) +
-                          ", t = " + std::to_string(t) + "\n";
+        std::string msg = "[ProblemFEM] solving timestep " + std::to_string(count) +
+                          ", t = " + std::to_string(t+dt) + "\n";
         printlog(MAGENTA, msg, M_data.getVerbose());
         int status = solveTimestep(t, dt);
-
         if (status)
             throw new Exception("Error in solver. Status != 0.");
 

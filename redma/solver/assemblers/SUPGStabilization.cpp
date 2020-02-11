@@ -320,9 +320,6 @@ getResidual(const BlockVector<VectorEp>& sol,
     SHP(VECTOREPETRA) velocityRhsRep(new VECTOREPETRA(*rhs.block(0).data(), Repeated));
     SHP(VECTOREPETRA) pressureRep(new VECTOREPETRA(*sol.block(1).data(), Repeated));
 
-
-    *velocityRep += 1.0;
-    *pressureRep += 1.0;
     SHP(SquareRoot) squareroot(new SquareRoot());
 
     SHP(VECTOREPETRA) resvelrep(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));

@@ -94,6 +94,8 @@ private:
 
     // key is the outlet index (more than one for bifurcations)
     std::map<unsigned int,SHP(WindkesselModel)>      M_models;
+
+    double                                           M_coefficientInlet;
 };
 
 }

@@ -3,19 +3,20 @@
 #-------------------------------------------------------------
 
 [geometric_structure]
-	xmlfile = geometries/tree.xml
+	xmlfile = geometries/fullaorta.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
 
 [assembler]
 	type = navierstokes
-	use_stabilization = false
+	stabilization = vms
 [../]
 
 [bc_conditions]
-	lifting = true
+	inletdirichlet = strong
 	inflowfile = datafiles/inflow.txt
+	coefficientinlet = 1.0341910688;
 	numoutletbcs = 0
 	[./outlet0]
 		blockindex = 11
@@ -48,7 +49,7 @@
 [../]
 
 [fluid]
-	velocity_order = P2
+	velocity_order = P1
 	pressure_order = P1
 	viscosity      = 0.04
 	density        = 1.06
@@ -89,7 +90,7 @@
 
 [coupling]
 	type                = chebyshev
-	nMax                = 3
+	nMax                = 2
 	stab_coefficient	= 1e-9
 	check_stabterm		= true
 [../]

@@ -10,7 +10,7 @@ BCManager(const DataContainer& data, SHP(TreeNode) treeNode) :
 {
     M_inflow = data.getInflow();
     M_strongDirichlet = std::strcmp(data("bc_conditions/inletdirichlet", "weak").c_str(),"strong") == 0;
-
+    M_coefficientInlet = data("bc_conditions/coefficientinlet", 1.0);
     parseNeumannData();
 }
 
@@ -170,7 +170,12 @@ poiseulle(const double& t, const double& x, const double& y,
     const double maxU = inflow(t) * 2.0 / (M_PI * R * R);
     double inflowNorm = maxU * (1.0 - (r * r)/(R * R));
 
-    Vector3D inflowValue = -inflowNorm * normal;
+    if (inflow(t) < 0)
+        inflowNorm = inflowNorm < 0 ? inflowNorm : 0;
+
+    inflowNorm = inflowNorm > 0 ? inflowNorm : 0;
+
+    Vector3D inflowValue = -inflowNorm * normal * M_coefficientInlet;
     return inflowValue[i];
 }
 
