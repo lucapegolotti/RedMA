@@ -112,7 +112,6 @@ postProcess(const double& t, const BlockVector<InVectorType>& sol)
 {
     // shift solutions in multistep method embedded in windkessels
     this->M_bcManager->postProcess();
-
 }
 
 template <class InVectorType, class InMatrixType>

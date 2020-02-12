@@ -92,7 +92,8 @@ InterfaceAssembler<InVectorType, InMatrixType>::
 checkStabilizationTerm(const BlockVector<BlockVector<InVectorType>>& sol,
                        const unsigned int& nPrimalBlocks)
 {
-    if (M_stabilizationCoupling > THRESHOLDSTAB)
+    if (M_stabilizationCoupling > THRESHOLDSTAB &&
+        M_interface.M_assemblerFather && M_interface.M_assemblerChild)
     {
         unsigned int fatherID = M_interface.M_indexFather;
         unsigned int childID = M_interface.M_indexChild;

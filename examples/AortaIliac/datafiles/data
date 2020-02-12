@@ -3,18 +3,18 @@
 #-------------------------------------------------------------
 
 [geometric_structure]
-	xmlfile = geometries/fullaorta.xml
+	xmlfile = geometries/pip1.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
 
 [assembler]
 	type = navierstokes
-	stabilization = vms
+	stabilization = none
 [../]
 
 [bc_conditions]
-	inletdirichlet = strong
+	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 	coefficientinflow = 1.0341910688;
 	numoutletbcs = 0
@@ -49,7 +49,7 @@
 [../]
 
 [fluid]
-	velocity_order = P1
+	velocity_order = P2
 	pressure_order = P1
 	viscosity      = 0.04
 	density        = 1.06

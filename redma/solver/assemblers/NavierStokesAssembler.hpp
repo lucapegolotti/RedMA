@@ -44,8 +44,6 @@ public:
     virtual BlockMatrix<InMatrixType> getJacobianRightHandSide(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
 
-    virtual void postProcess(const double& t, const BlockVector<InVectorType>& sol) override;
-
 protected:
     void addConvectiveMatrixRightHandSide(const BlockVector<InVectorType>& sol,
                                           BlockMatrix<InMatrixType>& mat);

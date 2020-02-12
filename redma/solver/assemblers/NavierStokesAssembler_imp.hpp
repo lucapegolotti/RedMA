@@ -38,6 +38,10 @@ setup()
                                                    this->M_pressureFESpaceETA));
         M_stabilization->setDensityAndViscosity(this->M_density, this->M_viscosity);
     }
+    else if (!std::strcmp(stabilizationType.c_str(),"none"))
+    {
+
+    }
     else
         throw new Exception("Type of stabilization not implemented!");
 
@@ -120,14 +124,6 @@ getJacobianRightHandSide(const double& time,
     this->M_bcManager->apply0DirichletMatrix(retMat, this->getFESpaceBCs(),
                                              this->getComponentBCs(), 0.0);
     return retMat;
-}
-
-template <class InVectorType, class InMatrixType>
-void
-NavierStokesAssembler<InVectorType, InMatrixType>::
-postProcess(const double& t, const BlockVector<InVectorType>& sol)
-{
-    StokesAssembler<InVectorType, InMatrixType>::postProcess(t, sol);
 }
 
 

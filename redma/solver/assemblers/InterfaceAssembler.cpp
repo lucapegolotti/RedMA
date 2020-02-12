@@ -296,7 +296,11 @@ std::vector<VectorEp>
 InterfaceAssembler<VectorEp, MatrixEp>::
 buildStabilizationVectorsLagrange() const
 {
-    auto lagrangeMap = M_fatherBT.block(0,0).data()->domainMapPtr();
+    SHP(const MAPEPETRA) lagrangeMap;
+    if (M_fatherBT.nRows() > 0)
+        lagrangeMap = M_fatherBT.block(0,0).data()->domainMapPtr();
+    else
+        lagrangeMap = M_childBT.block(0,0).data()->domainMapPtr();
     unsigned int ncols = lagrangeMap->mapSize();
 
     std::vector<VectorEp> retVectors(ncols);

@@ -58,8 +58,9 @@ solve()
 
         if (count % saveEvery == 0)
             M_assembler->exportSolution(t, M_solution);
-
+        std::cout << "postProcess" << std::endl << std::flush;
         M_assembler->postProcess(t, M_solution);
+        std::cout << "shiftSolutions" << std::endl << std::flush;
         M_TMAlgorithm->shiftSolutions(M_solution);
         count++;
     }
