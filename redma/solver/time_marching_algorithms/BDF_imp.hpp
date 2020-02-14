@@ -34,7 +34,7 @@ setup(const BlockVector<InVectorType>& zeroVector)
 
     if (M_order == 1)
     {
-        M_coefficients[0] = 1.0;
+        M_coefficients[0] = -1.0;
         M_rhsCoeff = 1.0;
     }
     else if (M_order == 2)
