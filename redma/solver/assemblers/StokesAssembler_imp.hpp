@@ -34,7 +34,7 @@ setup()
     assembleDivergence();
 
     assembleFlowRateVectors();
-    assembleFlowRateJacobians();
+    // assembleFlowRateJacobians();
 
     setExporter();
 
@@ -289,8 +289,14 @@ setExporter()
     M_pressureExporter.reset(new VECTOREPETRA(M_pressureFESpace->map(),
                                               M_exporter->mapType()));
 
+    // M_WSSExporter.reset(new VECTOREPETRA(M_velocityFESpace->map(),
+    //                                      M_exporter->mapType()));
+
     M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
                          "velocity", M_velocityFESpace, M_velocityExporter, 0.0);
+
+    // M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
+    //                         "WSS", M_velocityFESpace, M_WSSExporter, 0.0);
 
     M_exporter->addVariable(LifeV::ExporterData<MESH>::ScalarField,
                          "pressure", M_pressureFESpace, M_pressureExporter, 0.0);

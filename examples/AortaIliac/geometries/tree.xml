@@ -1,4 +1,4 @@
-<buildingblock type="tube" refinement="normal" d="1" L="1">
+<buildingblock type="tube" refinement="fine" d="1" L="1">
     <L_ratio>1</L_ratio>
     <Rout_ratio>0.99770541502839494</Rout_ratio>
     <alpha>2.5108529289142552</alpha>
@@ -12,7 +12,7 @@
     <rotation_axis_z>0</rotation_axis_z>
     <scale>2.4384757321677206</scale>
     <use_linear_elasticity>0</use_linear_elasticity>
-    <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+    <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
         <L_ratio>1</L_ratio>
         <Rout_ratio>1.034215904041931</Rout_ratio>
         <alpha>2.6257003884253254</alpha>
@@ -26,7 +26,7 @@
         <rotation_axis_z>0</rotation_axis_z>
         <scale>2.4328804423990649</scale>
         <use_linear_elasticity>0</use_linear_elasticity>
-        <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+        <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
             <L_ratio>1</L_ratio>
             <Rout_ratio>1.0501865460011459</Rout_ratio>
             <alpha>2.9835958159168916</alpha>
@@ -40,7 +40,7 @@
             <rotation_axis_z>0</rotation_axis_z>
             <scale>2.5161236461616818</scale>
             <use_linear_elasticity>0</use_linear_elasticity>
-            <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+            <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                 <L_ratio>1</L_ratio>
                 <Rout_ratio>0.82745380848264505</Rout_ratio>
                 <alpha>2.9048232940788932</alpha>
@@ -54,7 +54,7 @@
                 <rotation_axis_z>0</rotation_axis_z>
                 <scale>2.6423992012743462</scale>
                 <use_linear_elasticity>0</use_linear_elasticity>
-                <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                     <L_ratio>1</L_ratio>
                     <Rout_ratio>0.83280953743373987</Rout_ratio>
                     <alpha>3.0568240383852161</alpha>
@@ -68,7 +68,7 @@
                     <rotation_axis_z>-0</rotation_axis_z>
                     <scale>2.1864632826259571</scale>
                     <use_linear_elasticity>0</use_linear_elasticity>
-                    <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                    <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                         <L_ratio>1</L_ratio>
                         <Rout_ratio>0.9631544781703093</Rout_ratio>
                         <alpha>2.853107439476779</alpha>
@@ -82,7 +82,7 @@
                         <rotation_axis_z>-0</rotation_axis_z>
                         <scale>1.8209074750195797</scale>
                         <use_linear_elasticity>0</use_linear_elasticity>
-                        <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                        <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                             <L_ratio>1</L_ratio>
                             <Rout_ratio>0.96335635581067047</Rout_ratio>
                             <alpha>2.8520742760166895</alpha>
@@ -96,7 +96,7 @@
                             <rotation_axis_z>-0</rotation_axis_z>
                             <scale>1.7538151888988989</scale>
                             <use_linear_elasticity>0</use_linear_elasticity>
-                            <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                            <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                 <L_ratio>1</L_ratio>
                                 <Rout_ratio>1.0210587026385209</Rout_ratio>
                                 <alpha>2.7461348715711549</alpha>
@@ -110,7 +110,7 @@
                                 <rotation_axis_z>0</rotation_axis_z>
                                 <scale>1.6895490091430458</scale>
                                 <use_linear_elasticity>0</use_linear_elasticity>
-                                <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                     <L_ratio>1</L_ratio>
                                     <Rout_ratio>0.97273977459937921</Rout_ratio>
                                     <alpha>2.8392807000408884</alpha>
@@ -124,7 +124,7 @@
                                     <rotation_axis_z>0</rotation_axis_z>
                                     <scale>1.7251287193197968</scale>
                                     <use_linear_elasticity>0</use_linear_elasticity>
-                                    <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                    <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                         <L_ratio>1.0755163177244176</L_ratio>
                                         <Rout_ratio>0.85396584592590108</Rout_ratio>
                                         <alpha>2.6237226050783842</alpha>
@@ -154,7 +154,7 @@
                                             <rotation_axis_y>-0.95699429467439168</rotation_axis_y>
                                             <rotation_axis_z>-0</rotation_axis_z>
                                             <scale>1.4330412146376081</scale>
-                                            <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                            <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                 <L_ratio>1</L_ratio>
                                                 <Rout_ratio>0.89255320668701321</Rout_ratio>
                                                 <alpha>2.9575930309887672</alpha>
@@ -168,7 +168,7 @@
                                                 <rotation_axis_z>0</rotation_axis_z>
                                                 <scale>1.4330412146376081</scale>
                                                 <use_linear_elasticity>0</use_linear_elasticity>
-                                                <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                     <L_ratio>1</L_ratio>
                                                     <Rout_ratio>1.3004291596332163</Rout_ratio>
                                                     <alpha>2.098608311713805</alpha>
@@ -182,7 +182,7 @@
                                                     <rotation_axis_z>0</rotation_axis_z>
                                                     <scale>1.2790655314394495</scale>
                                                     <use_linear_elasticity>0</use_linear_elasticity>
-                                                    <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                    <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                         <L_ratio>1</L_ratio>
                                                         <Rout_ratio>1.144931581151819</Rout_ratio>
                                                         <alpha>1.8818490591649615</alpha>
@@ -196,7 +196,7 @@
                                                         <rotation_axis_z>0</rotation_axis_z>
                                                         <scale>1.6633341141656164</scale>
                                                         <use_linear_elasticity>0</use_linear_elasticity>
-                                                        <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                        <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                             <L_ratio>1</L_ratio>
                                                             <Rout_ratio>0.84007204151165782</Rout_ratio>
                                                             <alpha>1.968433237583421</alpha>
@@ -210,7 +210,7 @@
                                                             <rotation_axis_z>0</rotation_axis_z>
                                                             <scale>1.9044037573153996</scale>
                                                             <use_linear_elasticity>0</use_linear_elasticity>
-                                                            <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                            <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                 <L_ratio>1</L_ratio>
                                                                 <Rout_ratio>0.7437617209013403</Rout_ratio>
                                                                 <alpha>2.2122135733833788</alpha>
@@ -224,7 +224,7 @@
                                                                 <rotation_axis_z>0</rotation_axis_z>
                                                                 <scale>1.5998363522704195</scale>
                                                                 <use_linear_elasticity>0</use_linear_elasticity>
-                                                                <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                     <L_ratio>1</L_ratio>
                                                                     <Rout_ratio>0.88193667004811216</Rout_ratio>
                                                                     <alpha>2.574242610106614</alpha>
@@ -238,7 +238,7 @@
                                                                     <rotation_axis_z>0</rotation_axis_z>
                                                                     <scale>1.1898970385251701</scale>
                                                                     <use_linear_elasticity>0</use_linear_elasticity>
-                                                                    <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                    <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                         <L_ratio>1</L_ratio>
                                                                         <Rout_ratio>1.039570982492243</Rout_ratio>
                                                                         <alpha>2.9851360720337472</alpha>
@@ -252,7 +252,7 @@
                                                                         <rotation_axis_z>0</rotation_axis_z>
                                                                         <scale>1.0494138318569988</scale>
                                                                         <use_linear_elasticity>0</use_linear_elasticity>
-                                                                        <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                        <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                             <L_ratio>1</L_ratio>
                                                                             <Rout_ratio>0.92890836845192504</Rout_ratio>
                                                                             <alpha>2.5096688015045969</alpha>
@@ -266,7 +266,7 @@
                                                                             <rotation_axis_z>0</rotation_axis_z>
                                                                             <scale>1.0909401682245297</scale>
                                                                             <use_linear_elasticity>0</use_linear_elasticity>
-                                                                            <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                            <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                 <L_ratio>1</L_ratio>
                                                                                 <Rout_ratio>0.94224643061220226</Rout_ratio>
                                                                                 <alpha>1.9220768772724905</alpha>
@@ -280,7 +280,7 @@
                                                                                 <rotation_axis_z>0</rotation_axis_z>
                                                                                 <scale>1.0133834517441165</scale>
                                                                                 <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                     <L_ratio>1</L_ratio>
                                                                                     <Rout_ratio>0.9973871677304238</Rout_ratio>
                                                                                     <alpha>1.4559943249711584</alpha>
@@ -294,7 +294,7 @@
                                                                                     <rotation_axis_z>0</rotation_axis_z>
                                                                                     <scale>0.95485694024736667</scale>
                                                                                     <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                    <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                    <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                         <L_ratio>1</L_ratio>
                                                                                         <Rout_ratio>1.1173818183456357</Rout_ratio>
                                                                                         <alpha>1.2841707546302883</alpha>
@@ -308,7 +308,7 @@
                                                                                         <rotation_axis_z>0</rotation_axis_z>
                                                                                         <scale>0.95236205922105954</scale>
                                                                                         <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                        <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                        <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                             <L_ratio>1</L_ratio>
                                                                                             <Rout_ratio>1.0150298597675664</Rout_ratio>
                                                                                             <alpha>1.3890549599966586</alpha>
@@ -322,7 +322,7 @@
                                                                                             <rotation_axis_z>-0</rotation_axis_z>
                                                                                             <scale>1.0641520494558214</scale>
                                                                                             <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                            <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                            <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                                 <L_ratio>1</L_ratio>
                                                                                                 <Rout_ratio>0.99553116514255324</Rout_ratio>
                                                                                                 <alpha>1.7753571108484223</alpha>
@@ -336,7 +336,7 @@
                                                                                                 <rotation_axis_z>-0</rotation_axis_z>
                                                                                                 <scale>1.0801461055305108</scale>
                                                                                                 <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                                <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                                     <L_ratio>1</L_ratio>
                                                                                                     <Rout_ratio>0.92890628575056367</Rout_ratio>
                                                                                                     <alpha>2.1950799721010865</alpha>
@@ -350,7 +350,7 @@
                                                                                                     <rotation_axis_z>-0</rotation_axis_z>
                                                                                                     <scale>1.0753191109629807</scale>
                                                                                                     <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                    <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                                    <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                                         <L_ratio>1</L_ratio>
                                                                                                         <Rout_ratio>1.001809460466113</Rout_ratio>
                                                                                                         <alpha>2.5145389548417429</alpha>
@@ -364,7 +364,7 @@
                                                                                                         <rotation_axis_z>-0</rotation_axis_z>
                                                                                                         <scale>0.99887068136122059</scale>
                                                                                                         <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                        <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                                        <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                                             <L_ratio>1</L_ratio>
                                                                                                             <Rout_ratio>1.0245651219360263</Rout_ratio>
                                                                                                             <alpha>2.5716752449292386</alpha>
@@ -378,7 +378,7 @@
                                                                                                             <rotation_axis_z>-0</rotation_axis_z>
                                                                                                             <scale>1.0006780983699031</scale>
                                                                                                             <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                            <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                                            <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                                                 <L_ratio>1</L_ratio>
                                                                                                                 <Rout_ratio>1.0253048328953105</Rout_ratio>
                                                                                                                 <alpha>2.6067017420798226</alpha>
@@ -392,7 +392,7 @@
                                                                                                                 <rotation_axis_z>-0</rotation_axis_z>
                                                                                                                 <scale>1.0252598778750708</scale>
                                                                                                                 <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                                <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                                                <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                                                     <L_ratio>1.104763595534461</L_ratio>
                                                                                                                     <Rout_ratio>0.96000452846640472</Rout_ratio>
                                                                                                                     <alpha>2.5944077715633993</alpha>
@@ -424,7 +424,7 @@
                                                     </buildingblock>
                                                 </buildingblock>
                                             </buildingblock>
-                                            <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="2">
+                                            <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="2">
                                                 <L_ratio>1</L_ratio>
                                                 <Rout_ratio>1.208963171347408</Rout_ratio>
                                                 <alpha>2.5230524099920895</alpha>
@@ -438,7 +438,7 @@
                                                 <rotation_axis_z>0</rotation_axis_z>
                                                 <scale>1.4330412146376081</scale>
                                                 <use_linear_elasticity>0</use_linear_elasticity>
-                                                <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                     <L_ratio>1</L_ratio>
                                                     <Rout_ratio>1.3270232419481678</Rout_ratio>
                                                     <alpha>2.2811007259627041</alpha>
@@ -452,7 +452,7 @@
                                                     <rotation_axis_z>0</rotation_axis_z>
                                                     <scale>1.7324940515198244</scale>
                                                     <use_linear_elasticity>0</use_linear_elasticity>
-                                                    <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                    <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                         <L_ratio>1</L_ratio>
                                                         <Rout_ratio>0.67299792620560639</Rout_ratio>
                                                         <alpha>2.2121245833885448</alpha>
@@ -466,7 +466,7 @@
                                                         <rotation_axis_z>0</rotation_axis_z>
                                                         <scale>2.2990598729037535</scale>
                                                         <use_linear_elasticity>0</use_linear_elasticity>
-                                                        <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                        <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                             <L_ratio>1</L_ratio>
                                                             <Rout_ratio>0.69079845016006192</Rout_ratio>
                                                             <alpha>2.362289477703432</alpha>
@@ -480,7 +480,7 @@
                                                             <rotation_axis_z>0</rotation_axis_z>
                                                             <scale>1.547262526686751</scale>
                                                             <use_linear_elasticity>0</use_linear_elasticity>
-                                                            <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                            <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                 <L_ratio>1</L_ratio>
                                                                 <Rout_ratio>1.0240564832797803</Rout_ratio>
                                                                 <alpha>2.3354252911119926</alpha>
@@ -494,7 +494,7 @@
                                                                 <rotation_axis_z>0</rotation_axis_z>
                                                                 <scale>1.068846555425949</scale>
                                                                 <use_linear_elasticity>0</use_linear_elasticity>
-                                                                <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                     <L_ratio>1</L_ratio>
                                                                     <Rout_ratio>1.0441386563134012</Rout_ratio>
                                                                     <alpha>2.3418916791642546</alpha>
@@ -508,7 +508,7 @@
                                                                     <rotation_axis_z>0</rotation_axis_z>
                                                                     <scale>1.0945592447152039</scale>
                                                                     <use_linear_elasticity>0</use_linear_elasticity>
-                                                                    <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                    <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                         <L_ratio>1</L_ratio>
                                                                         <Rout_ratio>0.95493057150868321</Rout_ratio>
                                                                         <alpha>2.7824529915809797</alpha>
@@ -522,7 +522,7 @@
                                                                         <rotation_axis_z>0</rotation_axis_z>
                                                                         <scale>1.1428716190323442</scale>
                                                                         <use_linear_elasticity>0</use_linear_elasticity>
-                                                                        <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                        <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                             <L_ratio>1</L_ratio>
                                                                             <Rout_ratio>0.93721005040318983</Rout_ratio>
                                                                             <alpha>2.1538222897762158</alpha>
@@ -536,7 +536,7 @@
                                                                             <rotation_axis_z>0</rotation_axis_z>
                                                                             <scale>1.0913630483236105</scale>
                                                                             <use_linear_elasticity>0</use_linear_elasticity>
-                                                                            <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                            <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                 <L_ratio>1</L_ratio>
                                                                                 <Rout_ratio>0.99826757370125585</Rout_ratio>
                                                                                 <alpha>1.5407325718488964</alpha>
@@ -550,7 +550,7 @@
                                                                                 <rotation_axis_z>-0</rotation_axis_z>
                                                                                 <scale>1.0228364175275499</scale>
                                                                                 <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                     <L_ratio>1</L_ratio>
                                                                                     <Rout_ratio>1.0252520079223886</Rout_ratio>
                                                                                     <alpha>1.3089824842391899</alpha>
@@ -564,7 +564,7 @@
                                                                                     <rotation_axis_z>0</rotation_axis_z>
                                                                                     <scale>1.021064428818512</scale>
                                                                                     <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                    <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                    <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                         <L_ratio>1</L_ratio>
                                                                                         <Rout_ratio>1.0648327452130046</Rout_ratio>
                                                                                         <alpha>1.4907134779896178</alpha>
@@ -578,7 +578,7 @@
                                                                                         <rotation_axis_z>0</rotation_axis_z>
                                                                                         <scale>1.0468483558643062</scale>
                                                                                         <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                        <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                        <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                             <L_ratio>1</L_ratio>
                                                                                             <Rout_ratio>0.91889912338172186</Rout_ratio>
                                                                                             <alpha>1.8403446196707773</alpha>
@@ -592,7 +592,7 @@
                                                                                             <rotation_axis_z>0</rotation_axis_z>
                                                                                             <scale>1.1147184085967097</scale>
                                                                                             <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                            <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                            <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                                 <L_ratio>1</L_ratio>
                                                                                                 <Rout_ratio>1.0088330337134102</Rout_ratio>
                                                                                                 <alpha>2.2769281995110124</alpha>
@@ -606,7 +606,7 @@
                                                                                                 <rotation_axis_z>0</rotation_axis_z>
                                                                                                 <scale>1.0243137684769845</scale>
                                                                                                 <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                                <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                                     <L_ratio>1</L_ratio>
                                                                                                     <Rout_ratio>1.0353381830691608</Rout_ratio>
                                                                                                     <alpha>2.5500738026669985</alpha>
@@ -620,7 +620,7 @@
                                                                                                     <rotation_axis_z>0</rotation_axis_z>
                                                                                                     <scale>1.0333615665270519</scale>
                                                                                                     <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                    <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                                    <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                                         <L_ratio>1</L_ratio>
                                                                                                         <Rout_ratio>0.99425081726298425</Rout_ratio>
                                                                                                         <alpha>2.7072130579322069</alpha>
@@ -634,7 +634,7 @@
                                                                                                         <rotation_axis_z>0</rotation_axis_z>
                                                                                                         <scale>1.0698786867416197</scale>
                                                                                                         <use_linear_elasticity>0</use_linear_elasticity>
-                                                                                                        <buildingblock type="tube" refinement="normal" d="1" L="1" outlet="1">
+                                                                                                        <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
                                                                                                             <L_ratio>0.8672014248730926</L_ratio>
                                                                                                             <Rout_ratio>1.0440749168614298</Rout_ratio>
                                                                                                             <alpha>2.6616110161243762</alpha>

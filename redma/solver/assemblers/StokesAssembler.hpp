@@ -18,7 +18,6 @@
 #define STOKESASSEMBLER_HPP
 
 #include <redma/solver/assemblers/aAssembler.hpp>
-#include <redma/solver/assemblers/SUPGStabilization.hpp>
 #include <redma/solver/array/VectorEp.hpp>
 #include <redma/solver/array/MatrixEp.hpp>
 #include <redma/geometry/BuildingBlock.hpp>
@@ -117,6 +116,7 @@ public:
     void applyDirichletBCs(const double& time, BlockVector<InVectorType>& vector) const override;
 
 protected:
+    // void computeWallShearStress(const BlockVector<InVectorType>& sol);
 
     BlockMatrix<InMatrixType>                                       M_mass;
     BlockMatrix<InMatrixType>                                       M_stiffness;
@@ -129,6 +129,7 @@ protected:
     double                                                          M_viscosity;
     SHP(VECTOREPETRA)                                               M_velocityExporter;
     SHP(VECTOREPETRA)                                               M_pressureExporter;
+    SHP(VECTOREPETRA)                                               M_WSSExporter;
     SHP(LifeV::Exporter<MESH>)                                      M_exporter;
     // first index is face flag
     std::map<unsigned int, SHP(VECTOREPETRA)>                       M_flowRateVectors;

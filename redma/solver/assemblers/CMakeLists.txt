@@ -9,6 +9,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesStabilization.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/VMSStabilization.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/HFStabilization.hpp
     CACHE INTERNAL ""
 )
 
@@ -20,5 +21,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesStabilization.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/VMSStabilization.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/HFStabilization.cpp
     CACHE INTERNAL ""
 )

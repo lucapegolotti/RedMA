@@ -329,6 +329,32 @@ assembleFlowRateJacobians()
     }
 }
 
+// template <>
+// void
+// StokesAssembler<FEVECTOR, FEMATRIX>::
+// computeWallShearStress(const BlockVector<InVectorType>& sol)
+// {
+//     using namespace LifeV;
+//     using namespace LifeV::ExpressionAssembly;
+//
+//     SHP(VECTOREPETRA)  velocityRepeated(new VECTOREPETRA(*sol.block(0).data(),
+//                                                          Repeated));
+//     SHP(VECTOREPETRA)  wssRepeated(new VECTOREPETRA(*M_velocityFESpace,
+//                                                     Repeated));
+//
+//     integrate(elements(M_velocityFESpaceETA->mesh()),
+//                M_velocityFESpace->qr(),
+//                M_velocityFESpaceETA,
+//                M_velocityFESpaceETA,
+//                value(this->M_density) *
+//                dot(value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j),
+//                phi_i)
+//              ) >> wssRepeated;
+//     wssRepeated->globalAssemble();
+//
+//     sol.block(,0).data().reset(new VECTOREPETRA(*wssRepeated, Unique));
+// }
+
 template <>
 BlockVector<FEVECTOR>
 StokesAssembler<FEVECTOR, FEMATRIX>::

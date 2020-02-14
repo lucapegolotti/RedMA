@@ -20,6 +20,7 @@
 #include <redma/solver/assemblers/StokesAssembler.hpp>
 #include <redma/solver/assemblers/SUPGStabilization.hpp>
 #include <redma/solver/assemblers/VMSStabilization.hpp>
+#include <redma/solver/assemblers/HFStabilization.hpp>
 
 namespace RedMA
 {

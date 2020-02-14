@@ -38,6 +38,15 @@ setup()
                                                    this->M_pressureFESpaceETA));
         M_stabilization->setDensityAndViscosity(this->M_density, this->M_viscosity);
     }
+    else if (!std::strcmp(stabilizationType.c_str(),"hf"))
+    {
+        M_stabilization.reset(new HFStabilization(this->M_data,
+                                                  this->M_velocityFESpace,
+                                                  this->M_pressureFESpace,
+                                                  this->M_velocityFESpaceETA,
+                                                  this->M_pressureFESpaceETA));
+        M_stabilization->setDensityAndViscosity(this->M_density, this->M_viscosity);
+    }
     else if (!std::strcmp(stabilizationType.c_str(),"none"))
     {
 
