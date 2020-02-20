@@ -86,6 +86,8 @@ public:
 
     std::map<unsigned int, TreeNodePtr> getNodesMap();
 
+    void randomSampleAroundOriginalValue(const double& bound);
+
     TreeStructure& operator+(TreeStructure& other);
 
     int findBlockWithFace(const Vector3D& centerOfTheFace, const double& tol,

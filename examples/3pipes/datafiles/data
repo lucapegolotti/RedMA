@@ -1,0 +1,88 @@
+#-------------------------------------------------------------
+#           Data file for NavierStokesExample
+#-------------------------------------------------------------
+
+[geometric_structure]
+	xmlfile = geometries/pipe3.xml
+	xmldeformer = datafiles/SolverParamList.xml
+	geometries_dir = ../../../meshes/
+[../]
+
+[assembler]
+	type = navierstokes
+	stabilization = none
+[../]
+
+[bc_conditions]
+	inletdirichlet = strong
+	inflowfile = datafiles/inflow.txt
+	coefficientinflow = 1.0341910688;
+	numoutletbcs = 0
+[../]
+
+[snapshots]
+	number = 1
+	bound = 0.2
+	take_every = 5
+[../]
+
+[preconditioner]
+	options    	   = datafiles/solversOptionsFast
+	outer      	   = saddlepoint
+	inner	   	   = SIMPLE
+	approxshur 	   = SIMPLE
+	innertol   	   = 0.5
+	recomputeevery = 5
+[../]
+
+[newton_method]
+	tol = 1e-5
+	maxit = 10
+[../]
+
+[fluid]
+	velocity_order = P2
+	pressure_order = P1
+	viscosity      = 0.04
+	density        = 1.06
+[../]
+
+[structure]
+	time_integration_order = 3
+	poisson      = 0.3
+	num_young    = 1
+	young    	 = 3.e+6 # 1.07e7 4.07e6'
+	thickness    = 0.1 # 0.2 0.15'
+	density	     = 1.2
+	flag = 10
+	[./external_wall]
+		elastic = 1e4
+		plastic = 1e4
+	[../]
+[../]
+
+[time_discretization]
+	algorithm = bdf
+	rhoinf = 0.5
+	order = 1
+	t0 = 0
+	T = 0.75
+	dt = 0.01
+	solverstatistics = solverstatistics.txt
+[../]
+
+[exporter]
+	outdir	   = solutions/
+	type       = hdf5
+	multimesh  = false
+	start      = 0
+	save_every = 1
+	filename   = tube
+[../]
+
+[coupling]
+	type                = chebyshev
+	nMax                = 3
+	stab_coefficient	= 1e-10
+	check_stabterm		= true
+[../]

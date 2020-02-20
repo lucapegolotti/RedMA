@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 ProblemFEM::
-ProblemFEM(const DataContainer& data, EPETRACOMM comm) :
+ProblemFEM(const DataContainer& data, EPETRACOMM comm, bool doSetup) :
   aProblem(data),
   M_geometryParser(data.getDatafile(),
                    data("geometric_structure/xmlfile","tree.xml"),
@@ -12,13 +12,8 @@ ProblemFEM(const DataContainer& data, EPETRACOMM comm) :
 {
     M_tree = M_geometryParser.getTree();
 
-    std::string geometriesDir = data("geometric_structure/geometries_dir",
-                                     "../../../meshes/");
-
-    M_tree.readMeshes(geometriesDir);
-    M_tree.traverseAndDeformGeometries();
-
-    setup();
+    if (doSetup)
+        setup();
 }
 
 void
@@ -26,8 +21,14 @@ ProblemFEM::
 setup()
 {
     typedef BlockAssembler<BV, BM> BAssembler;
-
     printlog(MAGENTA, "[ProblemFEM] starting setup ... \n", M_data.getVerbose());
+
+    std::string geometriesDir = M_data("geometric_structure/geometries_dir",
+                                       "../../../meshes/");
+
+    M_tree.readMeshes(geometriesDir);
+    M_tree.traverseAndDeformGeometries();
+
     M_assembler.reset(new BAssembler(M_data, M_tree));
     M_TMAlgorithm = TimeMarchingAlgorithmFactory<BV, BM>(M_data, M_assembler);
     printlog(MAGENTA, "done\n", M_data.getVerbose());
@@ -58,9 +59,7 @@ solve()
 
         if (count % saveEvery == 0)
             M_assembler->exportSolution(t, M_solution);
-        std::cout << "postProcess" << std::endl << std::flush;
         M_assembler->postProcess(t, M_solution);
-        std::cout << "shiftSolutions" << std::endl << std::flush;
         M_TMAlgorithm->shiftSolutions(M_solution);
         count++;
     }

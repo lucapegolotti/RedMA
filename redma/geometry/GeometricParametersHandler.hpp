@@ -48,6 +48,8 @@ public:
 
     void randomSample();
 
+    void randomSampleAroundOriginalValue(const double& bounds);
+
     bool isRandomizible();
 
     std::string name();
@@ -61,6 +63,9 @@ private:
 
     std::string M_name;
     double M_value;
+    // this is for when we sample around the original value. It is always equal
+    // to value, except when we invoke randomSampleAroundOriginalValue
+    double M_originalValue;
     double M_minValue;
     double M_maxValue;
     bool M_randomizible;
@@ -92,6 +97,8 @@ public:
     std::map<std::string,GeometricParameterPtr>& getParametersMap();
 
     void randomizeParameters();
+
+    void randomizeParametersAroundOriginalValue(const double& bounds);
 
     GeometricParameterPtr getParameter(std::string name){return M_parametersMap[name];};
 

@@ -9,6 +9,7 @@ GeometricParameter(std::string name, const double& value,
                    bool randomizible, bool periodic) :
   M_name(name),
   M_value(value),
+  M_originalValue(value),
   M_minValue(minValue),
   M_maxValue(maxValue),
   M_randomizible(randomizible),
@@ -21,6 +22,7 @@ GeometricParameter(const GeometricParameter& other)
 {
     M_name = other.M_name;
     M_value = other.M_value;
+    M_originalValue = other.M_originalValue;
     M_minValue = other.M_minValue;
     M_maxValue = other.M_maxValue;
     M_randomizible = other.M_randomizible;
@@ -65,7 +67,23 @@ operator=(const double& value)
         while (M_value < M_minValue)
             M_value += interval;
     }
+    M_originalValue = M_value;
     return 0;
+}
+
+void
+GeometricParameter::
+randomSampleAroundOriginalValue(const double& bounds)
+{
+    // note: the seed must have been set at this point
+    float randomNumber = static_cast<float>(rand())/static_cast<float>(RAND_MAX);
+    double minvalue = M_value - bounds;
+    double maxvalue = M_value + bounds;
+
+    minvalue = minvalue > M_minValue ? minvalue : M_minValue;
+    maxvalue = maxvalue < M_maxValue ? maxvalue : M_maxValue;
+
+    M_value = minvalue + randomNumber * (maxvalue - minvalue);
 }
 
 double
@@ -87,8 +105,7 @@ GeometricParameter::
 randomSample()
 {
     // note: the seed must have been set at this point
-    float randomNumber =
-                        static_cast<float>(rand())/static_cast<float>(RAND_MAX);
+    float randomNumber = static_cast<float>(rand())/static_cast<float>(RAND_MAX);
     M_value = M_minValue + randomNumber * (M_maxValue - M_minValue);
 }
 
@@ -184,6 +201,21 @@ randomizeParameters()
         GeometricParameterPtr gp = it->second;
         if (gp->isRandomizible())
             gp->randomSample();
+    }
+}
+
+void
+GeometricParametersHandler::
+randomizeParametersAroundOriginalValue(const double& bounds)
+{
+    typedef std::map<std::string, GeometricParameterPtr> mapType;
+
+    for (mapType::iterator it = M_parametersMap.begin();
+         it != M_parametersMap.end(); it++)
+    {
+        GeometricParameterPtr gp = it->second;
+        if (gp->isRandomizible())
+            gp->randomSampleAroundOriginalValue(bounds);
     }
 }
 

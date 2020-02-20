@@ -95,8 +95,9 @@ public:
 
     GeometricParameterPtr getParameter(std::string name){return M_parametersHandler.getParameter(name);};
 
-    std::map<std::string,std::shared_ptr<GeometricParameter> >&
-                                                             getParametersMap();
+    std::map<std::string,std::shared_ptr<GeometricParameter> >& getParametersMap();
+
+    GeometricParametersHandler& getGeometricParametersHandler() {return M_parametersHandler;}
 
     int readMesh(std::string meshdir = "../../../meshes/");
 
@@ -147,6 +148,8 @@ public:
     inline commPtr_Type getComm() const {return M_comm;}
 
     inline bool getIsChild() const {return M_isChild;}
+
+    inline std::string getMeshName() const {return M_meshName;}
 
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,

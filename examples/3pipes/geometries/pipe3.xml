@@ -1,0 +1,45 @@
+<buildingblock type="tube" refinement="fine" d="1" L="1">
+    <L_ratio>1</L_ratio>
+    <Rout_ratio>1.0900287956632535</Rout_ratio>
+    <alpha>2.5108529289142552</alpha>
+    <alpha_axis>2.4390251961233331</alpha_axis>
+    <bend>0.54132007130225834</bend>
+    <bx>-1.9669753010155726</bx>
+    <by>-1.6249333236549719</by>
+    <bz>12.92390868702873</bz>
+    <rotation_axis_x>-0.64791360649523078</rotation_axis_x>
+    <rotation_axis_y>0.76171382980640645</rotation_axis_y>
+    <rotation_axis_z>0</rotation_axis_z>
+    <scale>2.4384757321677206</scale>
+    <use_linear_elasticity>0</use_linear_elasticity>
+    <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
+        <L_ratio>1</L_ratio>
+        <Rout_ratio>0.64487519691404249</Rout_ratio>
+        <alpha>3.0521641970721145</alpha>
+        <alpha_axis>0.79856771019014006</alpha_axis>
+        <bend>0.3539718361154609</bend>
+        <bx>-0.024628925058689521</bx>
+        <by>0.021456200505967749</by>
+        <bz>6.1609157858410386</bz>
+        <rotation_axis_x>-0.63786121928487061</rotation_axis_x>
+        <rotation_axis_y>0.77015132599536451</rotation_axis_y>
+        <rotation_axis_z>0</rotation_axis_z>
+        <scale>2.6580087655888507</scale>
+        <use_linear_elasticity>0</use_linear_elasticity>
+        <buildingblock type="tube" refinement="fine" d="1" L="1" outlet="1">
+            <L_ratio>1.1129380775935764</L_ratio>
+            <Rout_ratio>0.83569053710528129</Rout_ratio>
+            <alpha>2.7700417218166025</alpha>
+            <alpha_axis>2.1780942793842564</alpha_axis>
+            <bend>0.60909563452763749</bend>
+            <bx>-0.28934694651624332</bx>
+            <by>1.6097657275660102</by>
+            <bz>-1.6063968615142104</bz>
+            <rotation_axis_x>-0.92886766903716711</rotation_axis_x>
+            <rotation_axis_y>-0.37041173498886293</rotation_axis_y>
+            <rotation_axis_z>-0</rotation_axis_z>
+            <scale>1.7140839261083611</scale>
+            <use_linear_elasticity>0</use_linear_elasticity>
+        </buildingblock>
+    </buildingblock>
+</buildingblock>

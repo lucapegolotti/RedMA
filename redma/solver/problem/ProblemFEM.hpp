@@ -39,13 +39,15 @@ class ProblemFEM : public aProblem
     typedef BlockMatrix<FEMATRIX>                   BM;
     typedef BlockMatrix<BM>                         BBM;
 public:
-    ProblemFEM(const DataContainer& data, EPETRACOMM comm);
+    ProblemFEM(const DataContainer& data, EPETRACOMM comm, bool doSetup = true);
 
     virtual void setup();
 
     virtual void solve();
 
     int solveTimestep(const double& t, double& dt);
+
+    inline TreeStructure& getTree() {return M_tree;}
 
 private:
     SHP(aTimeMarchingAlgorithm<BV COMMA BM>)  M_TMAlgorithm;

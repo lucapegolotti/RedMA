@@ -224,6 +224,33 @@ resetInletOutlets()
     }
 }
 
+void
+TreeStructure::
+randomSampleAroundOriginalValue(const double& bound)
+{
+    std::queue<TreeNodePtr> nodesQueue;
+    nodesQueue.push(M_root);
+    while(nodesQueue.size() != 0)
+    {
+        TreeNodePtr curNode = nodesQueue.front();
+        nodesQueue.pop();
+        curNode->M_block->getGeometricParametersHandler().randomizeParametersAroundOriginalValue(bound);
+        typedef std::vector<TreeNodePtr> TreeNodesVector;
+        TreeNodesVector& children = curNode->M_children;
+        unsigned int expectedChildren =
+                     curNode->M_block->expectedNumberOfChildren();
+        for (int i = 0; i < expectedChildren; i++)
+        {
+            TreeNodePtr curChild = children[i];
+
+            if (curChild)
+            {
+                nodesQueue.push(curChild);
+            }
+        }
+    }
+}
+
 unsigned int
 TreeStructure::
 depth()
