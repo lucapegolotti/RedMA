@@ -8,7 +8,8 @@ ProblemFEM(const DataContainer& data, EPETRACOMM comm, bool doSetup) :
   aProblem(data),
   M_geometryParser(data.getDatafile(),
                    data("geometric_structure/xmlfile","tree.xml"),
-                   comm, data.getVerbose())
+                   comm, data.getVerbose()),
+  M_storeSolutions(false)
 {
     M_tree = M_geometryParser.getTree();
 
@@ -71,6 +72,8 @@ solveTimestep(const double& t, double& dt)
 {
     int status = -1;
     M_solution = M_TMAlgorithm->advance(t, dt, status);
+    if (M_storeSolutions)
+        M_solutions.push_back(M_solution);
     return status;
 }
 

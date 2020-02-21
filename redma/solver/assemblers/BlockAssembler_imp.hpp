@@ -248,4 +248,16 @@ getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& so
     return jac;
 }
 
+template <class InVectorType, class InMatrixType>
+std::map<unsigned int, std::string>
+BlockAssembler<InVectorType, InMatrixType>::
+getIDMeshTypeMap() const
+{
+    std::map<unsigned int, std::string> retMap;
+    for (auto as: M_primalAssemblers)
+        retMap[as.first] = as.second->getTreeNode()->M_block->getMeshName();
+
+    return retMap;
+}
+
 }

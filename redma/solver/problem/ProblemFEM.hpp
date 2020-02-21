@@ -47,14 +47,22 @@ public:
 
     int solveTimestep(const double& t, double& dt);
 
+    void doStoreSolutions(){M_storeSolutions = true;}
+
     inline TreeStructure& getTree() {return M_tree;}
+
+    inline std::vector<BBV> getSolutions() {return M_solutions;}
+
+    inline SHP(BlockAssembler<BV COMMA BM>) getBlockAssembler() {return M_assembler;}
 
 private:
     SHP(aTimeMarchingAlgorithm<BV COMMA BM>)  M_TMAlgorithm;
-    SHP(aAssembler<BV COMMA BM>)              M_assembler;
+    SHP(BlockAssembler<BV COMMA BM>)          M_assembler;
     BBV                                       M_solution;
     TreeStructure                             M_tree;
     GeometryParser                            M_geometryParser;
+    bool                                      M_storeSolutions;
+    std::vector<BBV>                          M_solutions;
 };
 
 }

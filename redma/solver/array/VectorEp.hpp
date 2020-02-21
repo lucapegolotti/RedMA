@@ -53,6 +53,8 @@ public:
 
     std::shared_ptr<VECTOREPETRA> data() const;
 
+    std::string getString(const char& delimiter) const;
+
 private:
     std::shared_ptr<VECTOREPETRA>  M_vector;
 };

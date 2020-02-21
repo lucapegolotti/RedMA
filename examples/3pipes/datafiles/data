@@ -24,6 +24,7 @@
 	number = 1
 	bound = 0.2
 	take_every = 5
+	dumpbinary = true
 [../]
 
 [preconditioner]
@@ -66,7 +67,7 @@
 	rhoinf = 0.5
 	order = 1
 	t0 = 0
-	T = 0.75
+	T = 0.03
 	dt = 0.01
 	solverstatistics = solverstatistics.txt
 [../]

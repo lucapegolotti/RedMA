@@ -33,6 +33,7 @@ initializeStatisticsFile()
 
         outfile.open(M_statisticsFile, std::ios_base::app);
         outfile << "time,solvetime,numiterations,precsetup\n";
+        outfile.close();
     }
 }
 
@@ -53,6 +54,7 @@ dumpSolverStatistics(std::vector<SolverStatistics> statistics,
                     << std::to_string(entry.M_numIterations) << ","
                     << std::to_string(entry.M_precSetupTime) << "\n";
         }
+        outfile.close();
     }
 }
 

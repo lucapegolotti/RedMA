@@ -67,6 +67,8 @@ public:
 
     virtual void checkStabTerm(const BlockVector<InVectorType>& sol) const;
 
+    std::map<unsigned int, std::string> getIDMeshTypeMap() const;
+
 protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;

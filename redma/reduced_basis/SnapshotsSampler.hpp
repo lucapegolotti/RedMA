@@ -35,8 +35,11 @@ public:
 
     void takeSnapshots();
 
+    void dumpSnapshots(const std::vector<BlockVector<BlockVector<FEVECTOR>>>& solutions,
+                       std::map<unsigned int, std::string> IDmeshTypeMap,
+                       std::string outdir);
+
 private:
-    ProblemFEM          M_problem;
     DataContainer       M_data;
     EPETRACOMM          M_comm;
 };
