@@ -77,13 +77,33 @@ randomSampleAroundOriginalValue(const double& bounds)
 {
     // note: the seed must have been set at this point
     float randomNumber = static_cast<float>(rand())/static_cast<float>(RAND_MAX);
+    std::cout << randomNumber << std::endl << std::flush;
     double minvalue = M_value - bounds;
     double maxvalue = M_value + bounds;
 
     minvalue = minvalue > M_minValue ? minvalue : M_minValue;
     maxvalue = maxvalue < M_maxValue ? maxvalue : M_maxValue;
 
+    std::cout << "-----" << std::endl << std::flush;
+    if (!std::strcmp(M_name.c_str(),"L_ratio"))
+    {
+        std::cout << "minvalue = " << minvalue << std::endl;
+        std::cout << "maxvalue = " << maxvalue << std::endl;
+        std::cout << "M_minValue = " << M_minValue << std::endl;
+        std::cout << "M_maxValue = " << M_maxValue << std::endl;
+        std::cout << "randomNumber = " << randomNumber << std::endl;
+        std::cout << "M_value = " << M_value << std::endl;
+    }
     M_value = minvalue + randomNumber * (maxvalue - minvalue);
+    if (!std::strcmp(M_name.c_str(),"L_ratio"))
+    {
+        std::cout << "minvalue = " << minvalue << std::endl;
+        std::cout << "maxvalue = " << maxvalue << std::endl;
+        std::cout << "M_minValue = " << M_minValue << std::endl;
+        std::cout << "M_maxValue = " << M_maxValue << std::endl;
+        std::cout << "randomNumber = " << randomNumber << std::endl;
+        std::cout << "M_value = " << M_value << std::endl;
+    }
 }
 
 double

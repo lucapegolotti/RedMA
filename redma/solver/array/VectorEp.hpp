@@ -18,6 +18,7 @@
 #define VECTOREP_HPP
 
 #include <redma/solver/array/aMatrix.hpp>
+#include <redma/utils/Exception.hpp>
 
 #include <lifev/core/array/VectorEpetra.hpp>
 
@@ -54,6 +55,8 @@ public:
     std::shared_ptr<VECTOREPETRA> data() const;
 
     std::string getString(const char& delimiter) const;
+
+    double maxMagnitude3D() const;
 
 private:
     std::shared_ptr<VECTOREPETRA>  M_vector;

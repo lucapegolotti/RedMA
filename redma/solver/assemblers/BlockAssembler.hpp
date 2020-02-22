@@ -69,6 +69,8 @@ public:
 
     std::map<unsigned int, std::string> getIDMeshTypeMap() const;
 
+    inline SHP(aAssembler<VInner COMMA MInner>) block(const unsigned int& index) {return M_primalAssemblers[index];}
+
 protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;

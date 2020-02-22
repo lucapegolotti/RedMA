@@ -116,6 +116,10 @@ applyNonAffineTransformation(bool transformMesh)
                      M_parametersHandler["Rout_ratio"],
                      transformer);
 
+    std::cout << "L_ratio = " << M_parametersHandler["L_ratio"] << std::endl;
+    std::cout << "Rout_ratio = " << M_parametersHandler["Rout_ratio"] << std::endl;
+    std::cout << "bend = " << M_parametersHandler["bend"] << std::endl;
+
     bend(M_parametersHandler["bend"], transformer, transformMesh);
     printlog(MAGENTA, "done\n", M_verbose);
 }

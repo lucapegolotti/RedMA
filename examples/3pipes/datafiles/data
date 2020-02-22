@@ -21,10 +21,12 @@
 [../]
 
 [snapshots]
-	number = 1
-	bound = 0.2
-	take_every = 5
-	dumpbinary = true
+	number 			= 3
+	bound 			= 0.2
+	take_every 		= 1
+	dumpbinary 		= true
+	computereynolds = true
+	seed 			= 1234
 [../]
 
 [preconditioner]

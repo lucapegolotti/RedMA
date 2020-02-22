@@ -20,7 +20,10 @@ takeSnapshots()
     GeometryPrinter printer;
 
     unsigned int nSnapshots = M_data("snapshots/number", 10);
-    unsigned int bound = M_data("snapshots/bound", 0.2);
+    double bound = M_data("snapshots/bound", 0.2);
+    int seed = M_data("snapshots/seed", 1234);
+
+    srand(seed);
 
     for (unsigned int i = 0; i < nSnapshots; i++)
     {
@@ -38,20 +41,24 @@ takeSnapshots()
         std::string filename = curdir + "/tree.xml";
         printer.saveToFile(problem.getTree(), filename, M_comm);
 
-        auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
-        auto solutions = problem.getSolutions();
-        dumpSnapshots(solutions, IDmeshTypeMap, curdir);
+        dumpSnapshots(problem, curdir);
     }
 }
 
 void
 SnapshotsSampler::
-dumpSnapshots(const std::vector<BlockVector<BlockVector<FEVECTOR>>>& solutions,
-              std::map<unsigned int, std::string> IDmeshTypeMap,
+dumpSnapshots(ProblemFEM& problem,
               std::string outdir)
 {
+    auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
+    auto solutions = problem.getSolutions();
+
     unsigned int takeEvery = M_data("snapshots/take_every", 5);
     bool binary = M_data("snapshots/dumpbinary", true);
+    bool computereynolds = M_data("snapshots/computereynolds", true);
+    double density = M_data("fluid/density", 1.0);
+    double viscosity = M_data("fluid/viscosity", 1.0);
+
     std::ios_base::openmode omode = std::ios_base::app;
     if (binary)
         omode = omode | std::ios::binary;
@@ -79,15 +86,30 @@ dumpSnapshots(const std::vector<BlockVector<BlockVector<FEVECTOR>>>& solutions,
                 if (count % takeEvery == 0)
                 {
                     std::string str2write = sol.block(idmeshtype.first).block(i).getString(',') + "\n";
-                    if (binary)
+                    if (M_comm->MyPID() == 0)
                         outfile.write(str2write.c_str(), str2write.size());
-                    else
-                        outfile << str2write;
                 }
 
                 count++;
             }
             outfile.close();
+        }
+
+        if (computereynolds)
+        {
+            std::ofstream reynoldsfile;
+            reynoldsfile.open(meshtypedir + "/reynolds.txt", std::ios::binary);
+            for (auto sol : solutions)
+            {
+                double Umax = sol.block(idmeshtype.first).block(0).maxMagnitude3D();
+                auto tNode = problem.getBlockAssembler()->block(0)->getTreeNode();
+                double D = 2 * tNode->M_block->getInlet().M_radius;
+                double curReynolds = Umax * density * D / viscosity;
+
+                if (M_comm->MyPID() == 0)
+                    reynoldsfile << std::to_string(curReynolds) << std::endl;
+            }
+            reynoldsfile.close();
         }
     }
 }

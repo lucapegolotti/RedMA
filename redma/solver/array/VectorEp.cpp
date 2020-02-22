@@ -156,5 +156,37 @@ getString(const char& delimiter) const
     return ret;
 }
 
+// here we assume that the vector is stacked 1st component, 2nd component ecc
+double
+VectorEp::
+maxMagnitude3D() const
+{
+    double retval = -1;
+
+    // we reduce the vector to processor 0
+    VECTOREPETRA redVec(*M_vector, 0);
+
+    if (redVec.epetraVector().GlobalLength() % 3 != 0)
+        throw new Exception("norm2_3D: this is not a 3D vector!");
+
+    unsigned int N = redVec.epetraVector().GlobalLength() / 3;
+
+    if (redVec.epetraVector().Comm().MyPID())
+        return retval;
+
+    const double* values = redVec.epetraVector()[0];
+    for (unsigned int i = 0; i < N; i++)
+    {
+        double curval = 0;
+        for (unsigned int j = 0; j < 3; j++)
+            curval += values[i + N*j] * values[i + N*j];
+        curval = std::sqrt(curval);
+
+        retval = retval < curval ? curval : retval;
+    }
+
+    return retval;
+}
+
 
 };
