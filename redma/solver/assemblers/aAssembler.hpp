@@ -66,6 +66,8 @@ public:
 
     virtual void applyDirichletBCs(const double& time, BlockVector<InVectorType>& vector) const = 0;
 
+    virtual inline SHP(FESPACE) getFEspace(unsigned int index) const {return nullptr;}
+
     // this must be implemented by the inner assemblers
     virtual inline SHP(FESPACE) getFESpaceBCs() const {return nullptr;}
 

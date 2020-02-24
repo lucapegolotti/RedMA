@@ -304,4 +304,19 @@ setExporter()
     M_exporter->setPostDir(outdir);
 }
 
+template <class InVectorType, class InMatrixType>
+SHP(FESPACE)
+StokesAssembler<InVectorType, InMatrixType>::
+getFEspace(unsigned int index) const
+{
+    if (index == 0)
+        return M_velocityFESpace;
+    else if (index == 1)
+        return M_pressureFESpace;
+    else
+        throw new Exception("Index of component not present in StokesAssembler!");
+
+    return nullptr;
+}
+
 }

@@ -115,6 +115,8 @@ public:
 
     void applyDirichletBCs(const double& time, BlockVector<InVectorType>& vector) const override;
 
+    virtual inline SHP(FESPACE) getFEspace(unsigned int index) const override;
+
 protected:
     // void computeWallShearStress(const BlockVector<InVectorType>& sol);
 
