@@ -80,8 +80,6 @@ VectorEp&
 VectorEp::
 operator=(const std::shared_ptr<VECTOREPETRA>& other)
 {
-    std::cout << "Operator = could be buggy (we might expect a hard copy)" << std::endl;
-    exit(1);
     M_vector = other;
 }
 

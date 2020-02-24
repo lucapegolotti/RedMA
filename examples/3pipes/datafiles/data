@@ -29,6 +29,12 @@
 	seed 			= 1234
 [../]
 
+[rbbasis]
+	directory  = basis
+	podtol     = 1e-5
+	dumpbinary = true
+[../]
+
 [preconditioner]
 	options    	   = datafiles/solversOptionsFast
 	outer      	   = saddlepoint

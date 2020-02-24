@@ -38,9 +38,9 @@ namespace RedMA
 
 class BasisGenerator
 {
-    typedef aAssembler<FEVECTOR COMMA FEMATRIX>           AssemblerType;
-    typedef std::vector<std::vector<SHP(VECTOREPETRA)>>   Snapshots;
-    typedef std::pair<SHP(AssemblerType), Snapshots>      AssemblerSnapshotPair;
+    typedef aAssembler<FEVECTOR COMMA FEMATRIX>             AssemblerType;
+    typedef std::vector<std::vector<SHP(VECTOREPETRA)>>     VectorFunctions;
+    typedef std::pair<SHP(AssemblerType), VectorFunctions>  AssemblerSnapshotPair;
 public:
     BasisGenerator(const DataContainer& data, EPETRACOMM comm);
 
@@ -51,6 +51,8 @@ private:
     void parseFiles();
 
     void performPOD();
+
+    void dumpBasis();
 
     SHP(TreeNode) generateDefaultTreeNode(const std::string& nameMesh);
 
@@ -65,6 +67,7 @@ private:
     DataContainer                                       M_data;
     EPETRACOMM                                          M_comm;
     std::map<std::string, AssemblerSnapshotPair>        M_meshASPairMap;
+    std::map<std::string, VectorFunctions>              M_rbFunctions;
 };
 
 }  // namespace RedMA

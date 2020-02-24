@@ -11,6 +11,11 @@ BasisGenerator(const DataContainer& data, EPETRACOMM comm) :
     if (M_comm->MyPID() != 0)
         throw new Exception("BasisGenerator does not support more than one proc");
 
+        std::string outdir = M_data("rbbasis/directory", "basis");
+
+    if (boost::filesystem::exists(outdir))
+        throw new Exception("Basis directory already exists!");
+
 }
 
 void
@@ -19,6 +24,7 @@ generateBasis()
 {
     parseFiles();
     performPOD();
+    dumpBasis();
 }
 
 void
@@ -57,19 +63,29 @@ performPOD()
 {
     using namespace rbLifeV;
 
+    double podtol = M_data("rbbasis/podtol", 1e-5);
+
     printlog(MAGENTA, "[BasisGenerator] performing POD ... \n", M_data.getVerbose());
     for (auto pair : M_meshASPairMap)
     {
         unsigned int count = 0;
+        VectorFunctions newBasisFunctions(pair.second.second.size());
         for (auto sn : pair.second.second)
         {
             ProperOrthogonalDecomposition pod(M_comm,
                                               pair.second.first->getFEspace(count)->map(),
                                               true);
             pod.initPOD(sn.size(), sn.data());
-            pod.generatePODbasisTol(1e-5);
+            pod.generatePODbasisTol(podtol);
+
+            unsigned int nbfs = pod.getRBdimension();
+            std::vector<SHP(VECTOREPETRA)> basisFunctions(nbfs);
+
+            pod.swapReducedBasis(basisFunctions, 0);
+            newBasisFunctions[count] = basisFunctions;
             count++;
         }
+        M_rbFunctions[pair.first] = newBasisFunctions;
     }
     printlog(MAGENTA, "done\n", M_data.getVerbose());
 }
@@ -166,6 +182,48 @@ addSnapshotsFromFile(const std::string& snapshotsFile,
         snapshots.push_back(newVector);
     }
     infile.close();
+}
+
+void
+BasisGenerator::
+dumpBasis()
+{
+    using namespace boost::filesystem;
+
+    std::string outdir = M_data("rbbasis/directory", "basis");
+    bool binary = M_data("rbbasis/dumpbinary", true);
+
+    std::ios_base::openmode omode = std::ios_base::app;
+    if (binary)
+        omode = omode | std::ios::binary;
+
+    create_directory(outdir);
+
+    for (auto meshbasis : M_rbFunctions)
+    {
+        std::string meshdir = outdir + "/" + meshbasis.first;
+        create_directory(meshdir);
+
+        unsigned int fieldIndex = 0;
+        for (auto singlebasis : meshbasis.second)
+        {
+            std::ofstream outfile;
+            outfile.open(meshdir + "/field" + std::to_string(fieldIndex) + ".basis", omode);
+
+            for (auto vec : singlebasis)
+            {
+                FEVECTOR curvec;
+                curvec.data() = vec;
+                std::string str2write = curvec.getString(',') + "\n";
+
+                outfile.write(str2write.c_str(), str2write.size());
+            }
+
+            outfile.close();
+            fieldIndex++;
+        }
+    }
+
 }
 
 }  // namespace RedMA
