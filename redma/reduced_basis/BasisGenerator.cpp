@@ -10,12 +10,23 @@ BasisGenerator(const DataContainer& data, EPETRACOMM comm) :
 {
     if (M_comm->MyPID() != 0)
         throw new Exception("BasisGenerator does not support more than one proc");
+
 }
 
 void
 BasisGenerator::
 generateBasis()
 {
+    parseFiles();
+    performPOD();
+}
+
+void
+BasisGenerator::
+parseFiles()
+{
+    printlog(MAGENTA, "[BasisGenerator] parsing files ... \n", M_data.getVerbose());
+
     using namespace boost::filesystem;
 
     std::string snapshotsdir = M_data("snapshots/directory", "snapshots");
@@ -37,6 +48,30 @@ generateBasis()
 
         i++;
     }
+    printlog(MAGENTA, "done\n", M_data.getVerbose());
+}
+
+void
+BasisGenerator::
+performPOD()
+{
+    using namespace rbLifeV;
+
+    printlog(MAGENTA, "[BasisGenerator] performing POD ... \n", M_data.getVerbose());
+    for (auto pair : M_meshASPairMap)
+    {
+        unsigned int count = 0;
+        for (auto sn : pair.second.second)
+        {
+            ProperOrthogonalDecomposition pod(M_comm,
+                                              pair.second.first->getFEspace(count)->map(),
+                                              true);
+            pod.initPOD(sn.size(), sn.data());
+            pod.generatePODbasisTol(1e-5);
+            count++;
+        }
+    }
+    printlog(MAGENTA, "done\n", M_data.getVerbose());
 }
 
 SHP(TreeNode)
@@ -130,6 +165,7 @@ addSnapshotsFromFile(const std::string& snapshotsFile,
 
         snapshots.push_back(newVector);
     }
+    infile.close();
 }
 
 }  // namespace RedMA

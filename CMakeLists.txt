@@ -74,6 +74,7 @@ set(LINKED_LIBRARIES
     lifevcore
     lifeveta
     lifevnavierstokesblocks
+    lifevreducedbasis
     ${TRILINOS_LIBRARIES}
     hdf5
     parmetis

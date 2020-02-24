@@ -18,6 +18,7 @@
 #define BASISGENERATOR_HPP
 
 #include <redma/RedMA.hpp>
+#include <redma/utils/PrintLog.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
 #include <redma/solver/problem/ProblemFEM.hpp>
 #include <redma/solver/assemblers/AssemblerFactory.hpp>
@@ -25,6 +26,8 @@
 #include <redma/geometry/TreeStructure.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
 #include <redma/geometry/Tube.hpp>
+
+#include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
 
 #include <boost/filesystem.hpp>
 
@@ -43,7 +46,12 @@ public:
 
     void generateBasis();
 
+
 private:
+    void parseFiles();
+
+    void performPOD();
+
     SHP(TreeNode) generateDefaultTreeNode(const std::string& nameMesh);
 
     SHP(TreeNode) generateDefaultTube(const std::string& nameMesh);

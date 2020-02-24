@@ -14,8 +14,14 @@ void
 SnapshotsSampler::
 takeSnapshots()
 {
+    using namespace boost::filesystem;
+
     std::string outdir = M_data("snapshots/directory", "snapshots");
-    boost::filesystem::create_directory(outdir);
+
+    if (exists(outdir))
+        throw new Exception("Snapshots directory already exists!");
+
+    create_directory(outdir);
 
     GeometryPrinter printer;
 
@@ -33,7 +39,7 @@ takeSnapshots()
         problem.doStoreSolutions();
 
         std::string curdir = outdir + "/param" + std::to_string(i);
-        boost::filesystem::create_directory(curdir);
+        create_directory(curdir);
         problem.getTree().randomSampleAroundOriginalValue(bound);
         problem.setup();
         problem.solve();
