@@ -9,7 +9,7 @@
 [../]
 
 [assembler]
-	type = navierstokes
+	type = stokes
 	stabilization = none
 [../]
 
@@ -27,6 +27,12 @@
 	dumpbinary 		= true
 	computereynolds = true
 	seed 			= 1234
+[../]
+
+[mdeim]
+	numbersnapshots = 2
+	podtol 			= 1e-5
+
 [../]
 
 [rbbasis]

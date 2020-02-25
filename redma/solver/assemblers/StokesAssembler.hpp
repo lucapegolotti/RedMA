@@ -117,6 +117,8 @@ public:
 
     virtual inline SHP(FESPACE) getFEspace(unsigned int index) const override;
 
+    virtual std::vector<BlockMatrix<MatrixEp>> getMatrices() const override;
+
 protected:
     // void computeWallShearStress(const BlockVector<InVectorType>& sol);
 

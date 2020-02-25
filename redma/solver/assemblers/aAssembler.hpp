@@ -83,6 +83,8 @@ public:
 
     virtual inline SHP(ETFESPACE1) getETFESpaceSecondary() const {return nullptr;}
 
+    virtual std::vector<BlockMatrix<MatrixEp>> getMatrices() const {return std::vector<BlockMatrix<MatrixEp>>();}
+
 protected:
     DataContainer                        M_data;
     SHP(TreeNode)                        M_treeNode;

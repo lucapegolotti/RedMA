@@ -319,4 +319,18 @@ getFEspace(unsigned int index) const
     return nullptr;
 }
 
+template <class InVectorType, class InMatrixType>
+std::vector<BlockMatrix<MatrixEp>>
+StokesAssembler<InVectorType, InMatrixType>::
+getMatrices() const
+{
+    std::vector<BlockMatrix<MatrixEp>> retVec;
+
+    retVec.push_back(M_mass);
+    retVec.push_back(M_stiffness);
+    retVec.push_back(M_divergence);
+
+    return retVec;
+}
+
 }

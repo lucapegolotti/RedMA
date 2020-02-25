@@ -6,6 +6,10 @@ add_executable(3pipes_generatebasis 3pipes_generatebasis.cpp)
 target_link_libraries(3pipes_generatebasis ${LINKED_LIBRARIES})
 target_include_directories(3pipes_generatebasis PRIVATE ${HEADERS_DIRS})
 
+add_executable(3pipes_mdeim 3pipes_mdeim.cpp)
+target_link_libraries(3pipes_mdeim ${LINKED_LIBRARIES})
+target_include_directories(3pipes_mdeim PRIVATE ${HEADERS_DIRS})
+
 add_custom_command(
     TARGET 3pipes_snapshots PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

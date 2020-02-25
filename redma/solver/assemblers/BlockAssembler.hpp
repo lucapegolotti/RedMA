@@ -71,6 +71,8 @@ public:
 
     inline SHP(aAssembler<VInner COMMA MInner>) block(const unsigned int& index) {return M_primalAssemblers[index];}
 
+    std::map<unsigned int, SHP(aAssembler<VInner COMMA MInner>)> getAssemblersMap() const {return M_primalAssemblers;}
+
 protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;
