@@ -51,6 +51,7 @@ takeMatricesSnapshots()
             {
                 M_mdeimsMap[IDmeshTypeMap[as.first]][i].setComm(M_comm);
                 M_mdeimsMap[IDmeshTypeMap[as.first]][i].setDataContainer(M_data);
+                M_mdeimsMap[IDmeshTypeMap[as.first]][i].setAssembler(assemblers[as.first]);
                 M_mdeimsMap[IDmeshTypeMap[as.first]][i].addSnapshot(matrices[i]);
             }
         }

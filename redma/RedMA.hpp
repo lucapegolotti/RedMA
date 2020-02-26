@@ -36,6 +36,10 @@
 #include <lifev/core/mesh/RegionMesh.hpp>
 #include <lifev/core/util/LifeChrono.hpp>
 
+#include <Epetra_SerialDenseMatrix.h>
+#include <Epetra_SerialDenseVector.h>
+#include <Epetra_SerialDenseSolver.h>
+
 // we define the namespace
 namespace RedMA
 {

@@ -20,8 +20,10 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
 #include <redma/solver/problem/ProblemFEM.hpp>
+#include <redma/solver/assemblers/AssemblerFactory.hpp>
 
 #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
+#include <rb/reduced_basis/util/EpetraArrayUtils.hpp>
 
 namespace RedMA
 {
@@ -40,6 +42,12 @@ struct SingleMDEIMStructure
         {
             delete[] numMyEntries;
             delete[] partialSumMyEntries;
+            delete[] myRowMatrixEntriesOfMagicPoints;
+            delete[] myColMatrixEntriesOfMagicPoints;
+            delete[] rowLocalReducedIndeces;
+            delete[] globalReducedNodes;
+            delete[] myGlobalReducedNodes;
+            delete[] reducedElements;
 
             for (unsigned int i = 0; i < numMyRows; i++)
                 delete[] columnIndeces[i];
@@ -48,14 +56,30 @@ struct SingleMDEIMStructure
         }
     }
 
-    bool           allocated;
-    int            numGlobalNonzeros;
-    int            numMyNonzeros;
-    int            numMyRows;
-    int*           numMyEntries;
-    int**          columnIndeces;
-    int*           partialSumMyEntries;
-    SHP(MAPEPETRA) vectorMap;
+    int                             N;
+    bool                            allocated;
+    int                             numGlobalNonzeros;
+    int                             numMyNonzeros;
+    int                             numMyRows;
+    int*                            numMyEntries;
+    int**                           columnIndeces;
+    int*                            partialSumMyEntries;
+    int                             numMyLocalMagicPoints;
+    std::vector<int>                myLocalMagicPoints;
+    std::vector<int>                localIndecesMagicPoints;
+    std::vector<int>                magicPointsProcOwner;
+    std::vector<int>                globalIndecesMagicPoints;
+    int*                            myRowMatrixEntriesOfMagicPoints;
+    int*                            myColMatrixEntriesOfMagicPoints;
+    int*                            rowLocalReducedIndeces;
+    int*                            globalReducedNodes;
+    int*                            myGlobalReducedNodes;
+    int                             numGlobalReducedNodes;
+    int                             numMyGlobalReducedNodes;
+    int                             numReducedElements;
+    unsigned int*                   reducedElements;
+    Epetra_SerialDenseMatrix        Qj;
+    SHP(MAPEPETRA)                  vectorMap;
 };
 
 class MDEIM
@@ -69,6 +93,8 @@ public:
     void setDataContainer(const DataContainer& dataContainer);
 
     void setComm(EPETRACOMM comm);
+
+    void setAssembler(SHP(aAssembler<FEVECTOR COMMA FEMATRIX>));
 
     void addSnapshot(BlockMatrix<MatrixEp> newSnapshot);
 
@@ -90,12 +116,30 @@ private:
 
     void performPOD();
 
+    void pickMagicPoints(const unsigned int& i, const unsigned int& j);
+
+    void computeInterpolationVectorOffline(VECTOREPETRA& vector,
+                                           Epetra_SerialDenseVector& interpolationCoefficients,
+                                           Epetra_SerialDenseSolver& solver,
+                                           SHP(SingleMDEIMStructure) mstruct);
+
+    void computeFeInterpolation(const unsigned int& i, const unsigned int& j,
+                                Epetra_SerialDenseVector& interpolationCoefficients,
+                                VECTOREPETRA& vector);
+
+    void buildReducedMesh(const unsigned int& i, const unsigned int& j);
+
+    void identifyReducedNodes(const unsigned int& i, const unsigned int& j);
+
+    void identifyReducedElements(const unsigned int& i, const unsigned int& j);
+
     std::vector<BlockMatrix<MatrixEp>>          M_snapshots;
     GridVectors                                 M_snapshotsVectorized;
     GridVectors                                 M_bases;
     GridStructures                              M_structures;
     EPETRACOMM                                  M_comm;
     DataContainer                               M_data;
+    SHP(aAssembler<FEVECTOR COMMA FEMATRIX>)    M_assembler;
     // rows and cols of the block structures
     unsigned int                                M_nRows;
     unsigned int                                M_nCols;
