@@ -4,6 +4,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/BasisGenerator.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/MDEIMGenerator.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/MDEIM.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SingleMDEIMStructure.hpp
     CACHE INTERNAL ""
 )
 

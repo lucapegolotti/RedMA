@@ -39,6 +39,8 @@ private:
 
     void performMDEIM();
 
+    void checkMDEIM();
+
     DataContainer                                M_data;
     EPETRACOMM                                   M_comm;
     // one MDEIM instance for every matrix of the problem (e.g. stiffness, mass, ecc)

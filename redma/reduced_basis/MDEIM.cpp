@@ -202,6 +202,61 @@ buildReducedMesh(const unsigned int& i, const unsigned int& j)
 
 void
 MDEIM::
+prepareOnline()
+{
+    BlockMatrix<FEMATRIX> mat = M_assembler->assembleMatrix(M_matIndex, &M_structures);
+
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            if (M_structures(i,j))
+                prepareOnline(i,j,mat);
+        }
+    }
+}
+
+void
+MDEIM::
+prepareOnline(const unsigned int& i, const unsigned int& j, BlockMatrix<FEMATRIX> mat)
+{
+    SHP(SingleMDEIMStructure) ms = M_structures(i,j);
+    auto matrixEpetra = mat.block(i,j).data();
+
+    buildReducedMesh(i, j);
+
+    ms->numReducedGlobalNonzeros = matrixEpetra->matrixPtr()->NumGlobalNonzeros();
+    ms->numReducedMyNonzeros = matrixEpetra->matrixPtr()->NumMyNonzeros();
+    ms->numReducedMyRows = matrixEpetra->matrixPtr()->NumMyRows();
+
+    ms->numMyReducedEntries = new int[ms->numMyLocalMagicPoints];
+    ms->columnLocalReducedIndeces = new int[ms->numMyLocalMagicPoints];
+    int numEntries;
+
+    for (int iMp = 0; iMp < ms->numMyLocalMagicPoints; iMp++)
+    {
+        ms->numMyReducedEntries[iMp] = matrixEpetra->matrixPtr()->NumMyEntries(ms->rowLocalReducedIndeces[iMp]);
+        double* values = new double[ms->numMyReducedEntries[iMp]];
+        int* indeces = new int[ms->numMyReducedEntries[iMp]];
+
+        matrixEpetra->matrixPtr()->ExtractMyRowCopy(ms->rowLocalReducedIndeces[iMp], ms->numMyReducedEntries[iMp], numEntries, values, indeces);
+
+        for (unsigned int iC = 0; iC < ms->numMyReducedEntries[iMp]; iC++)
+        {
+            if (ms->myColMatrixEntriesOfMagicPoints[iMp] == matrixEpetra->matrixPtr()->ColMap().GID(indeces[iC]))
+            {
+                ms->columnLocalReducedIndeces[iMp] = iC;
+                iC = ms->numMyReducedEntries[iMp];
+            }
+        }
+        delete [] values;
+        delete [] indeces;
+    }
+}
+
+
+void
+MDEIM::
 identifyReducedNodes(const unsigned int& i, const unsigned int& j)
 {
     SHP(SingleMDEIMStructure) ms = M_structures(i,j);
@@ -409,6 +464,71 @@ identifyReducedElements(const unsigned int& i, const unsigned int& j)
 
 void
 MDEIM::
+computeInterpolationVectorOnline(const unsigned int& i,
+                                 const unsigned int& j,
+                                 Epetra_SerialDenseVector& interpVector)
+{
+    auto ms = M_structures(i,j);
+
+    Epetra_SerialDenseVector rhsVector;
+
+    computeInterpolationRhsOnline(i,j,rhsVector);
+
+    Epetra_SerialDenseSolver solverQj;
+    solverQj.SetMatrix(ms->Qj);
+    solverQj.SetVectors(interpVector, rhsVector);
+    solverQj.Solve();
+}
+
+void
+MDEIM::
+computeInterpolationRhsOnline(const unsigned int& i,
+                              const unsigned int& j,
+                              Epetra_SerialDenseVector& interpVector)
+{
+    auto ms = M_structures(i,j);
+
+    interpVector.Resize(ms->N);
+
+    auto map = M_assembler->getFEspace(i)->map();
+
+    BlockMatrix<FEMATRIX> mat = M_assembler->assembleMatrix(M_matIndex, &M_structures);
+    SHP(MATRIXEPETRA) Ah = mat.block(i,j).data();
+
+    Epetra_SerialDenseVector localInterpVector(std::max(ms->numMyLocalMagicPoints, 1));
+    localInterpVector(0) = 1.2345;
+
+    int numEntries;
+    double * values;
+
+    for (int iMp = 0; iMp < ms->numMyLocalMagicPoints; iMp++ )
+    {
+        values = new double[ms->numMyReducedEntries[iMp]];
+
+        Ah->matrixPtr()->ExtractMyRowCopy(ms->rowLocalReducedIndeces[iMp],
+                                          ms->numMyReducedEntries[iMp],
+                                          numEntries, values);
+        localInterpVector(iMp) = values[ms->columnLocalReducedIndeces[iMp]];
+        delete[] values;
+    }
+
+    unsigned int moveOn = 0;
+    double value;
+
+    for (int iMp = 0; iMp < ms->N; iMp++)
+    {
+        value = localInterpVector(moveOn);
+        M_comm->Broadcast(&value, 1, ms->magicPointsProcOwner[iMp]);
+
+        interpVector(iMp) = value;
+
+        if (ms->magicPointsProcOwner[iMp] == M_comm->MyPID())
+            moveOn++;
+    }
+}
+
+void
+MDEIM::
 computeFeInterpolation(const unsigned int& i, const unsigned int& j,
                        Epetra_SerialDenseVector& interpolationCoefficients,
                        VECTOREPETRA& vector)
@@ -419,6 +539,84 @@ computeFeInterpolation(const unsigned int& i, const unsigned int& j,
     for (int iB = 0; iB < currentDeimBasisSize; iB++)
         vector.epetraVector().Update(interpolationCoefficients(iB),
                                      M_bases(i,j)[iB]->epetraVector(), 1.);
+}
+
+void
+MDEIM::
+checkOnline()
+{
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            if (M_structures(i,j))
+                checkOnline(i,j);
+        }
+    }
+}
+
+void
+MDEIM::
+checkOnline(const unsigned int& i, const unsigned int& j)
+{
+    auto ms = M_structures(i,j);
+
+    // Comparison vectors
+    SHP(VECTOREPETRA) approximation;
+
+    // Compute interpolation vector
+    Epetra_SerialDenseVector myInterpVector(ms->N);
+    computeInterpolationVectorOnline(i,j,myInterpVector);
+
+    // Build FEM vector from interpolation vector
+    approximation.reset(new VECTOREPETRA(*ms->vectorMap));
+    computeFeInterpolation(i,j,myInterpVector, *approximation);
+
+    // Comparison matrix
+    SHP(MATRIXEPETRA) apprMatrix;
+    apprMatrix.reset(new MATRIXEPETRA(M_assembler->getFEspace(i)->map(), 100));
+    apprMatrix->matrixPtr( )->Scale(0.);
+
+    reconstructMatrixFromVectorizedForm(i,j,*approximation,*apprMatrix);
+
+    SHP(MATRIXEPETRA) actualMatrix = M_assembler->assembleMatrix(M_matIndex).block(i,j).data();
+
+    apprMatrix->globalAssemble(actualMatrix->domainMapPtr(), actualMatrix->rangeMapPtr());
+
+    std::cout << "===============" << std::endl << std::flush;
+    std::cout << "NORM apprMatrix = " << apprMatrix->normFrobenius() << std::endl << std::flush;
+
+    *apprMatrix -= *actualMatrix;
+
+    std::cout << "NORM DIFFERENCE = " << apprMatrix->normFrobenius() << std::endl << std::flush;
+    std::cout << "NORM actualMatrix = " << actualMatrix->normFrobenius() << std::endl << std::flush;
+
+}
+
+void
+MDEIM::
+checkOnSnapshots()
+{
+
+}
+
+void
+MDEIM::
+reconstructMatrixFromVectorizedForm(const unsigned int& i,
+                                    const unsigned int& j,
+                                    VECTOREPETRA& vectorizedAh,
+                                    MATRIXEPETRA& Ah)
+{
+    auto ms = M_structures(i,j);
+
+    int rowStart = 0;
+
+    for (int iR = 0; iR < ms->numMyRows; iR++)
+    {
+        Ah.matrixPtr()->InsertGlobalValues(Ah.matrixPtr()->GRID(iR), ms->numMyEntries[iR],
+                                           vectorizedAh.epetraVector()[0] + rowStart, ms->columnIndeces[iR]);
+        rowStart += ms->numMyEntries[iR];
+    }
 }
 
 void

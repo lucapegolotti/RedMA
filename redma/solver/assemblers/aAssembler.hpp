@@ -23,6 +23,8 @@
 #include <redma/solver/time_marching_algorithms/aFunctionProvider.hpp>
 #include <redma/geometry/TreeStructure.hpp>
 
+#include <redma/reduced_basis/SingleMDEIMStructure.hpp>
+
 #include <redma/solver/problem/DataContainer.hpp>
 
 namespace RedMA
@@ -83,7 +85,10 @@ public:
 
     virtual inline SHP(ETFESPACE1) getETFESpaceSecondary() const {return nullptr;}
 
-    virtual std::vector<BlockMatrix<MatrixEp>> getMatrices() const {return std::vector<BlockMatrix<MatrixEp>>();}
+    virtual std::vector<BlockMatrix<InMatrixType>> getMatrices() const {return std::vector<BlockMatrix<InMatrixType>>();}
+
+    virtual BlockMatrix<InMatrixType> assembleMatrix(const unsigned int& index,
+                                                     GridMDEIMStructures* structure = nullptr) {return BlockMatrix<InMatrixType>();}
 
 protected:
     DataContainer                        M_data;

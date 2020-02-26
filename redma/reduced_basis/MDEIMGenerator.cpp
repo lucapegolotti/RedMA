@@ -18,6 +18,38 @@ generateMDEIM()
 {
     takeMatricesSnapshots();
     performMDEIM();
+    checkMDEIM();
+}
+
+void
+MDEIMGenerator::
+checkMDEIM()
+{
+    unsigned int nChecks = M_data("mdeim/checksonline", 5);
+    double bound = M_data("mdeim/bound", 0.2);
+
+    for (unsigned int i = 0; i < nChecks; i++)
+    {
+        ProblemFEM problem(M_data, M_comm, false);
+
+        problem.getTree().randomSampleAroundOriginalValue(bound);
+        problem.setup();
+
+        auto assemblers = problem.getBlockAssembler()->getAssemblersMap();
+        auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
+
+        for (auto as : assemblers)
+        {
+            for (auto& mdeim : M_mdeimsMap[IDmeshTypeMap[as.first]])
+            {
+                mdeim.setAssembler(as.second);
+                mdeim.prepareOnline();
+                mdeim.checkOnline();
+                // mdeim.checkOnSnapshots();
+            }
+        }
+    }
+
 }
 
 void
@@ -53,6 +85,7 @@ takeMatricesSnapshots()
                 M_mdeimsMap[IDmeshTypeMap[as.first]][i].setDataContainer(M_data);
                 M_mdeimsMap[IDmeshTypeMap[as.first]][i].setAssembler(assemblers[as.first]);
                 M_mdeimsMap[IDmeshTypeMap[as.first]][i].addSnapshot(matrices[i]);
+                M_mdeimsMap[IDmeshTypeMap[as.first]][i].setMatrixIndex(i);
             }
         }
     }
@@ -62,12 +95,14 @@ void
 MDEIMGenerator::
 performMDEIM()
 {
-    for (auto mapit : M_mdeimsMap)
+    for (auto& mapit : M_mdeimsMap)
     {
-        auto mdeims = mapit.second;
-        for (auto mdeim : mdeims)
+        auto& mdeims = mapit.second;
+        for (auto& mdeim : mdeims)
             mdeim.performMDEIM();
     }
 }
+
+
 
 }  // namespace RedMA

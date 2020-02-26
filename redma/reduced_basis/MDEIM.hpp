@@ -24,67 +24,13 @@
 
 #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
 #include <rb/reduced_basis/util/EpetraArrayUtils.hpp>
+#include <redma/reduced_basis/SingleMDEIMStructure.hpp>
 
 namespace RedMA
 {
 
-struct SingleMDEIMStructure
-{
-    SingleMDEIMStructure() :
-      allocated(false)
-    {
-
-    }
-
-    ~SingleMDEIMStructure()
-    {
-        if (allocated)
-        {
-            delete[] numMyEntries;
-            delete[] partialSumMyEntries;
-            delete[] myRowMatrixEntriesOfMagicPoints;
-            delete[] myColMatrixEntriesOfMagicPoints;
-            delete[] rowLocalReducedIndeces;
-            delete[] globalReducedNodes;
-            delete[] myGlobalReducedNodes;
-            delete[] reducedElements;
-
-            for (unsigned int i = 0; i < numMyRows; i++)
-                delete[] columnIndeces[i];
-
-            delete[] columnIndeces;
-        }
-    }
-
-    int                             N;
-    bool                            allocated;
-    int                             numGlobalNonzeros;
-    int                             numMyNonzeros;
-    int                             numMyRows;
-    int*                            numMyEntries;
-    int**                           columnIndeces;
-    int*                            partialSumMyEntries;
-    int                             numMyLocalMagicPoints;
-    std::vector<int>                myLocalMagicPoints;
-    std::vector<int>                localIndecesMagicPoints;
-    std::vector<int>                magicPointsProcOwner;
-    std::vector<int>                globalIndecesMagicPoints;
-    int*                            myRowMatrixEntriesOfMagicPoints;
-    int*                            myColMatrixEntriesOfMagicPoints;
-    int*                            rowLocalReducedIndeces;
-    int*                            globalReducedNodes;
-    int*                            myGlobalReducedNodes;
-    int                             numGlobalReducedNodes;
-    int                             numMyGlobalReducedNodes;
-    int                             numReducedElements;
-    unsigned int*                   reducedElements;
-    Epetra_SerialDenseMatrix        Qj;
-    SHP(MAPEPETRA)                  vectorMap;
-};
-
 class MDEIM
 {
-    typedef boost::numeric::ublas::matrix<SHP(SingleMDEIMStructure)>      GridStructures;
     typedef boost::numeric::ublas::matrix<std::vector<SHP(VECTOREPETRA)>> GridVectors;
 
 public:
@@ -99,6 +45,14 @@ public:
     void addSnapshot(BlockMatrix<MatrixEp> newSnapshot);
 
     void performMDEIM();
+
+    void prepareOnline();
+
+    void checkOnline();
+
+    void checkOnSnapshots();
+
+    inline void setMatrixIndex(const unsigned int& index) {M_matIndex = index;}
 
 private:
 
@@ -133,13 +87,31 @@ private:
 
     void identifyReducedElements(const unsigned int& i, const unsigned int& j);
 
+    void computeInterpolationRhsOnline(const unsigned int& i,
+                                       const unsigned int& j,
+                                       Epetra_SerialDenseVector& interpVector);
+
+    void prepareOnline(const unsigned int& i, const unsigned int& j, BlockMatrix<FEMATRIX> mat);
+
+    void checkOnline(const unsigned int& i, const unsigned int& j);
+
+    void computeInterpolationVectorOnline(const unsigned int& i,
+                                          const unsigned int& j,
+                                          Epetra_SerialDenseVector& interpVector);
+
+    void reconstructMatrixFromVectorizedForm(const unsigned int& i,
+                                             const unsigned int& j,
+                                             VECTOREPETRA& vectorizedAh,
+                                             MATRIXEPETRA& Ah);
+
     std::vector<BlockMatrix<MatrixEp>>          M_snapshots;
     GridVectors                                 M_snapshotsVectorized;
     GridVectors                                 M_bases;
-    GridStructures                              M_structures;
+    GridMDEIMStructures                         M_structures;
     EPETRACOMM                                  M_comm;
     DataContainer                               M_data;
     SHP(aAssembler<FEVECTOR COMMA FEMATRIX>)    M_assembler;
+    unsigned int                                M_matIndex;
     // rows and cols of the block structures
     unsigned int                                M_nRows;
     unsigned int                                M_nCols;

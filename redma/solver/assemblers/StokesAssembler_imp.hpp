@@ -320,11 +320,11 @@ getFEspace(unsigned int index) const
 }
 
 template <class InVectorType, class InMatrixType>
-std::vector<BlockMatrix<MatrixEp>>
+std::vector<BlockMatrix<InMatrixType>>
 StokesAssembler<InVectorType, InMatrixType>::
 getMatrices() const
 {
-    std::vector<BlockMatrix<MatrixEp>> retVec;
+    std::vector<BlockMatrix<InMatrixType>> retVec;
 
     retVec.push_back(M_mass);
     retVec.push_back(M_stiffness);

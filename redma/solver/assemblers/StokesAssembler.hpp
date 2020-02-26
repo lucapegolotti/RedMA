@@ -117,7 +117,24 @@ public:
 
     virtual inline SHP(FESPACE) getFEspace(unsigned int index) const override;
 
-    virtual std::vector<BlockMatrix<MatrixEp>> getMatrices() const override;
+    virtual std::vector<BlockMatrix<InMatrixType>> getMatrices() const override;
+
+    virtual BlockMatrix<InMatrixType> assembleMatrix(const unsigned int& index,
+                                                     GridMDEIMStructures* structure = nullptr) override
+    {
+        if (index == 0)
+        {
+            return M_mass;
+        }
+        else if (index == 1)
+        {
+            return M_stiffness;
+        }
+        else if (index == 2)
+        {
+            return M_divergence;
+        }
+    }
 
 protected:
     // void computeWallShearStress(const BlockVector<InVectorType>& sol);
