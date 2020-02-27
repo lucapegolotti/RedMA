@@ -30,9 +30,8 @@
 [../]
 
 [mdeim]
-	numbersnapshots = 2
+	numbersnapshots = 3
 	podtol 			= 1e-5
-
 [../]
 
 [rbbasis]

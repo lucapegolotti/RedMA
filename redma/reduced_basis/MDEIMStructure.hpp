@@ -14,42 +14,42 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef SINGLEMDEIMSTRUCTURE_HPP
-#define SINGLEMDEIMSTRUCTURE_HPP
+#ifndef MDEIMSTRUCTURE_HPP
+#define MDEIMSTRUCTURE_HPP
 
 #include <redma/RedMA.hpp>
 
 namespace RedMA
 {
 
-struct SingleMDEIMStructure
+struct MDEIMStructure
 {
-    SingleMDEIMStructure() :
+    MDEIMStructure() :
       allocated(false)
     {
 
     }
 
-    ~SingleMDEIMStructure()
+    ~MDEIMStructure()
     {
-        if (allocated)
-        {
-            delete[] numMyEntries;
-            delete[] partialSumMyEntries;
-            delete[] myRowMatrixEntriesOfMagicPoints;
-            delete[] myColMatrixEntriesOfMagicPoints;
-            delete[] rowLocalReducedIndeces;
-            delete[] globalReducedNodes;
-            delete[] myGlobalReducedNodes;
-            delete[] reducedElements;
-            delete[] numMyReducedEntries;
-            delete[] columnLocalReducedIndeces;
-
-            for (unsigned int i = 0; i < numMyRows; i++)
-                delete[] columnIndeces[i];
-
-            delete[] columnIndeces;
-        }
+        // if (allocated)
+        // {
+        //     delete[] numMyEntries;
+        //     delete[] partialSumMyEntries;
+        //     delete[] myRowMatrixEntriesOfMagicPoints;
+        //     delete[] myColMatrixEntriesOfMagicPoints;
+        //     delete[] rowLocalReducedIndeces;
+        //     delete[] globalReducedNodes;
+        //     delete[] myGlobalReducedNodes;
+        //     delete[] reducedElements;
+        //     delete[] numMyReducedEntries;
+        //     delete[] columnLocalReducedIndeces;
+        //
+        //     for (unsigned int i = 0; i < numMyRows; i++)
+        //         delete[] columnIndeces[i];
+        //
+        //     delete[] columnIndeces;
+        // }
     }
 
     int                             N;
@@ -83,7 +83,7 @@ struct SingleMDEIMStructure
     SHP(MAPEPETRA)                  vectorMap;
 };
 
-typedef boost::numeric::ublas::matrix<SHP(SingleMDEIMStructure)>   GridMDEIMStructures;
+typedef boost::numeric::ublas::matrix<SHP(MDEIMStructure)>   BlockMDEIMStructure;
 
 }  // namespace RedMA
 

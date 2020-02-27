@@ -24,15 +24,13 @@
 
 #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
 #include <rb/reduced_basis/util/EpetraArrayUtils.hpp>
-#include <redma/reduced_basis/SingleMDEIMStructure.hpp>
+#include <redma/reduced_basis/MDEIMStructure.hpp>
 
 namespace RedMA
 {
 
 class MDEIM
 {
-    typedef boost::numeric::ublas::matrix<std::vector<SHP(VECTOREPETRA)>> GridVectors;
-
 public:
     MDEIM();
 
@@ -40,81 +38,62 @@ public:
 
     void setComm(EPETRACOMM comm);
 
-    void setAssembler(SHP(aAssembler<FEVECTOR COMMA FEMATRIX>));
-
-    void addSnapshot(BlockMatrix<MatrixEp> newSnapshot);
+    void addSnapshot(MatrixEp newSnapshot);
 
     void performMDEIM();
 
-    void prepareOnline();
+    void prepareOnline(MatrixEp matrix);
 
-    void checkOnline();
+    void checkOnline(MatrixEp reducedMatrix, MatrixEp fullMatrix);
+
+    void initialize(MatrixEp matrix);
+
+    void setFESpace(SHP(FESPACE) fespace);
 
     void checkOnSnapshots();
 
-    inline void setMatrixIndex(const unsigned int& index) {M_matIndex = index;}
+    SHP(MDEIMStructure)& getMDEIMStructure() {return M_structure;}
 
 private:
 
-    void initializeMDEIMStructures(BlockMatrix<MatrixEp> matrix);
-
-    void initializeSingleMDEIMStructure(const unsigned int& i,
-                                        const unsigned int& j,
-                                        MatrixEp matrix);
-
     void vectorizeSnapshots();
 
-    SHP(VECTOREPETRA) vectorizeMatrix(const unsigned int& i,
-                                      const unsigned int& j,
-                                      SHP(MATRIXEPETRA) matrix);
+    SHP(VECTOREPETRA) vectorizeMatrix(MatrixEp matrix);
 
     void performPOD();
 
-    void pickMagicPoints(const unsigned int& i, const unsigned int& j);
+    void pickMagicPoints();
 
     void computeInterpolationVectorOffline(VECTOREPETRA& vector,
                                            Epetra_SerialDenseVector& interpolationCoefficients,
-                                           Epetra_SerialDenseSolver& solver,
-                                           SHP(SingleMDEIMStructure) mstruct);
+                                           Epetra_SerialDenseSolver& solver);
 
-    void computeFeInterpolation(const unsigned int& i, const unsigned int& j,
-                                Epetra_SerialDenseVector& interpolationCoefficients,
+    void computeFeInterpolation(Epetra_SerialDenseVector& interpolationCoefficients,
                                 VECTOREPETRA& vector);
 
-    void buildReducedMesh(const unsigned int& i, const unsigned int& j);
+    void buildReducedMesh();
 
-    void identifyReducedNodes(const unsigned int& i, const unsigned int& j);
+    void identifyReducedNodes();
 
-    void identifyReducedElements(const unsigned int& i, const unsigned int& j);
+    void identifyReducedElements();
 
-    void computeInterpolationRhsOnline(const unsigned int& i,
-                                       const unsigned int& j,
-                                       Epetra_SerialDenseVector& interpVector);
+    void computeInterpolationRhsOnline(Epetra_SerialDenseVector& interpVector,
+                                       MatrixEp reducedMat);
 
-    void prepareOnline(const unsigned int& i, const unsigned int& j, BlockMatrix<FEMATRIX> mat);
+    void computeInterpolationVectorOnline(Epetra_SerialDenseVector& interpVector,
+                                          MatrixEp reducedMat);
 
-    void checkOnline(const unsigned int& i, const unsigned int& j);
-
-    void computeInterpolationVectorOnline(const unsigned int& i,
-                                          const unsigned int& j,
-                                          Epetra_SerialDenseVector& interpVector);
-
-    void reconstructMatrixFromVectorizedForm(const unsigned int& i,
-                                             const unsigned int& j,
-                                             VECTOREPETRA& vectorizedAh,
+    void reconstructMatrixFromVectorizedForm(VECTOREPETRA& vectorizedAh,
                                              MATRIXEPETRA& Ah);
 
-    std::vector<BlockMatrix<MatrixEp>>          M_snapshots;
-    GridVectors                                 M_snapshotsVectorized;
-    GridVectors                                 M_bases;
-    GridMDEIMStructures                         M_structures;
+    std::vector<MatrixEp>                       M_snapshots;
+    std::vector<SHP(VECTOREPETRA)>              M_snapshotsVectorized;
+    std::vector<SHP(VECTOREPETRA)>              M_basis;
+    SHP(MDEIMStructure)                         M_structure;
     EPETRACOMM                                  M_comm;
     DataContainer                               M_data;
-    SHP(aAssembler<FEVECTOR COMMA FEMATRIX>)    M_assembler;
-    unsigned int                                M_matIndex;
-    // rows and cols of the block structures
-    unsigned int                                M_nRows;
-    unsigned int                                M_nCols;
+    SHP(FESPACE)                                M_fespace;
+    bool                                        M_isInitialized;
 };
 
 }  // namespace RedMA

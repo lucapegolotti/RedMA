@@ -17,6 +17,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
 #include <redma/reduced_basis/MDEIMGenerator.hpp>
+#include <redma/reduced_basis/SnapshotsSampler.hpp>
 
 using namespace RedMA;
 
@@ -37,6 +38,9 @@ int main(int argc, char **argv)
 
     MDEIMGenerator generator(data, comm);
     generator.generateMDEIM();
+
+    // SnapshotsSampler sampler(data, comm);
+    // sampler.takeSnapshots();
 
     return 0;
 }

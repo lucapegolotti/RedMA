@@ -23,7 +23,7 @@
 #include <redma/solver/time_marching_algorithms/aFunctionProvider.hpp>
 #include <redma/geometry/TreeStructure.hpp>
 
-#include <redma/reduced_basis/SingleMDEIMStructure.hpp>
+#include <redma/reduced_basis/MDEIMStructure.hpp>
 
 #include <redma/solver/problem/DataContainer.hpp>
 
@@ -88,7 +88,7 @@ public:
     virtual std::vector<BlockMatrix<InMatrixType>> getMatrices() const {return std::vector<BlockMatrix<InMatrixType>>();}
 
     virtual BlockMatrix<InMatrixType> assembleMatrix(const unsigned int& index,
-                                                     GridMDEIMStructures* structure = nullptr) {return BlockMatrix<InMatrixType>();}
+                                                     BlockMDEIMStructure* structure = nullptr) {return BlockMatrix<InMatrixType>();}
 
 protected:
     DataContainer                        M_data;

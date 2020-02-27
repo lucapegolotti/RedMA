@@ -20,8 +20,11 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
 #include <redma/solver/problem/ProblemFEM.hpp>
+#include <redma/geometry/GeometryPrinter.hpp>
 
-#include <redma/reduced_basis/MDEIM.hpp>
+#include <redma/reduced_basis/BlockMDEIM.hpp>
+
+#include <boost/filesystem.hpp>
 
 namespace RedMA
 {
@@ -41,10 +44,10 @@ private:
 
     void checkMDEIM();
 
-    DataContainer                                M_data;
-    EPETRACOMM                                   M_comm;
+    DataContainer                                     M_data;
+    EPETRACOMM                                        M_comm;
     // one MDEIM instance for every matrix of the problem (e.g. stiffness, mass, ecc)
-    std::map<std::string, std::vector<MDEIM>>    M_mdeimsMap;
+    std::map<std::string, std::vector<BlockMDEIM>>    M_blockMDEIMsMap;
 
 };
 

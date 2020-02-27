@@ -120,7 +120,7 @@ public:
     virtual std::vector<BlockMatrix<InMatrixType>> getMatrices() const override;
 
     virtual BlockMatrix<InMatrixType> assembleMatrix(const unsigned int& index,
-                                                     GridMDEIMStructures* structure = nullptr) override
+                                                     BlockMDEIMStructure* structure = nullptr) override
     {
         if (index == 0)
         {

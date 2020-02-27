@@ -24,6 +24,8 @@
 #include <iostream>
 #include <redma/utils/Exception.hpp>
 
+#include <random>
+
 #include <redma/utils/PrintLog.hpp>
 
 #include <ctime>

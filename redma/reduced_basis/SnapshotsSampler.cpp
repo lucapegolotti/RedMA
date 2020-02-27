@@ -27,9 +27,6 @@ takeSnapshots()
 
     unsigned int nSnapshots = M_data("snapshots/number", 10);
     double bound = M_data("snapshots/bound", 0.2);
-    int seed = M_data("snapshots/seed", 1234);
-
-    srand(seed);
 
     for (unsigned int i = 0; i < nSnapshots; i++)
     {

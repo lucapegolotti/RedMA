@@ -75,8 +75,11 @@ void
 GeometricParameter::
 randomSampleAroundOriginalValue(const double& bounds)
 {
-    // note: the seed must have been set at this point
-    float randomNumber = static_cast<float>(rand())/static_cast<float>(RAND_MAX);
+    static std::default_random_engine e;
+    static std::uniform_real_distribution<> dis(0, 1);
+
+    float randomNumber = dis(e);
+
     double minvalue = M_value - bounds;
     double maxvalue = M_value + bounds;
 
@@ -104,8 +107,11 @@ void
 GeometricParameter::
 randomSample()
 {
-    // note: the seed must have been set at this point
-    float randomNumber = static_cast<float>(rand())/static_cast<float>(RAND_MAX);
+    static std::default_random_engine e;
+    static std::uniform_real_distribution<> dis(0, 1);
+
+    float randomNumber = dis(e);
+
     M_value = M_minValue + randomNumber * (M_maxValue - M_minValue);
 }
 

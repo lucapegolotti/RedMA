@@ -4,9 +4,9 @@ namespace RedMA
 {
 
 MDEIM::
-MDEIM()
+MDEIM() :
+  M_isInitialized(false)
 {
-
 }
 
 void
@@ -25,52 +25,27 @@ setComm(EPETRACOMM comm)
 
 void
 MDEIM::
-setAssembler(SHP(aAssembler<FEVECTOR COMMA FEMATRIX>) assembler)
+addSnapshot(MatrixEp newSnapshot)
 {
-    M_assembler = assembler;
-}
-
-void
-MDEIM::
-addSnapshot(BlockMatrix<MatrixEp> newSnapshot)
-{
-    if (M_snapshots.size() == 0)
-    {
-        initializeMDEIMStructures(newSnapshot);
-        M_nRows = newSnapshot.nRows();
-        M_nCols = newSnapshot.nCols();
-    }
-
     M_snapshots.push_back(newSnapshot);
 }
 
 void
 MDEIM::
-initializeMDEIMStructures(BlockMatrix<MatrixEp> matrix)
+setFESpace(SHP(FESPACE) fespace)
 {
-    unsigned int nrows = matrix.nRows();
-    unsigned int ncols = matrix.nCols();
-    M_structures.resize(nrows, ncols);
-
-    for (unsigned int i = 0; i < nrows; i++)
-    {
-        for (unsigned int j = 0; j < ncols; j++)
-        {
-            initializeSingleMDEIMStructure(i, j, matrix.block(i, j));
-        }
-    }
+    M_fespace = fespace;
 }
 
 void
 MDEIM::
-initializeSingleMDEIMStructure(const unsigned int& i,
-                               const unsigned int& j, MatrixEp matrix)
+initialize(MatrixEp matrix)
 {
     SHP(MATRIXEPETRA) matrixEpetra = matrix.data();
 
     if (matrixEpetra)
     {
-        SHP(SingleMDEIMStructure) ms(new SingleMDEIMStructure());
+        SHP(MDEIMStructure) ms(new MDEIMStructure());
 
         ms->numGlobalNonzeros = matrixEpetra->matrixPtr()->NumGlobalNonzeros();
         ms->numMyNonzeros = matrixEpetra->matrixPtr()->NumMyNonzeros();
@@ -112,29 +87,33 @@ initializeSingleMDEIMStructure(const unsigned int& i,
                                          myGlobalElements, M_comm));
 
         ms->allocated = true;
-        M_structures(i,j) = ms;
+        M_isInitialized = true;
+        M_structure = ms;
+    }
+}
+//
+void
+MDEIM::
+performMDEIM()
+{
+    if (M_isInitialized)
+    {
+        vectorizeSnapshots();
+        performPOD();
     }
 }
 
 void
 MDEIM::
-performMDEIM()
+pickMagicPoints()
 {
-    vectorizeSnapshots();
-    performPOD();
-}
+    SHP(MDEIMStructure) ms = M_structure;
 
-void
-MDEIM::
-pickMagicPoints(const unsigned int& i, const unsigned int& j)
-{
-    std::vector<SHP(VECTOREPETRA)> basis = M_bases(i,j);
-    SHP(SingleMDEIMStructure) ms = M_structures(i,j);
     // get first coefficient manually
     int maxInfo[3];
     Epetra_SerialDenseVector interpCoef(1);
 
-    unsigned int N = basis.size();
+    unsigned int N = M_basis.size();
 
     ms->N = N;
     ms->Qj.Reshape(1,1);
@@ -144,13 +123,13 @@ pickMagicPoints(const unsigned int& i, const unsigned int& j)
     ms->magicPointsProcOwner.resize(N);
     ms->globalIndecesMagicPoints.resize(N);
 
-    rbLifeV::getInfNorm(*(basis[0]), maxInfo);
+    rbLifeV::getInfNorm(*(M_basis[0]), maxInfo);
 
     ms->localIndecesMagicPoints[0] = maxInfo[1];
     ms->magicPointsProcOwner[0] = maxInfo[0];
     ms->globalIndecesMagicPoints[0] = maxInfo[2];
 
-    rbLifeV::extractSubVector(*(basis[0]), ms->localIndecesMagicPoints,
+    rbLifeV::extractSubVector(*(M_basis[0]), ms->localIndecesMagicPoints,
                               ms->magicPointsProcOwner, interpCoef, 1);
     ms->Qj(0,0) = interpCoef(0);
 
@@ -162,12 +141,12 @@ pickMagicPoints(const unsigned int& i, const unsigned int& j)
 
     for (unsigned int iB = 1; iB < N; iB++)
     {
-        rm = *(basis[iB]);
-        rm.epetraVector().Update(1., basis[iB]->epetraVector(), 0.);
+        rm = *(M_basis[iB]);
+        rm.epetraVector().Update(1., M_basis[iB]->epetraVector(), 0.);
 
-        computeInterpolationVectorOffline(rm, interpCoef, solverQj, ms);
+        computeInterpolationVectorOffline(rm, interpCoef, solverQj);
 
-        computeFeInterpolation(i, j, interpCoef, QQjrm);
+        computeFeInterpolation(interpCoef, QQjrm);
 
         rm.epetraVector().Update(-1., QQjrm.epetraVector(), 1.);
 
@@ -181,7 +160,7 @@ pickMagicPoints(const unsigned int& i, const unsigned int& j)
 
         for (int jB = 0; jB < iB + 1; jB++)
         {
-            rbLifeV::extractSubVector(*(basis[jB]), ms->localIndecesMagicPoints,
+            rbLifeV::extractSubVector(*(M_basis[jB]), ms->localIndecesMagicPoints,
                                       ms->magicPointsProcOwner, interpCoef, iB + 1);
 
             for(int kB = 0; kB < iB + 1; kB++)
@@ -194,72 +173,58 @@ pickMagicPoints(const unsigned int& i, const unsigned int& j)
 
 void
 MDEIM::
-buildReducedMesh(const unsigned int& i, const unsigned int& j)
+buildReducedMesh()
 {
-    identifyReducedNodes(i,j);
-    identifyReducedElements(i,j);
+    identifyReducedNodes();
+    identifyReducedElements();
 }
 
 void
 MDEIM::
-prepareOnline()
+prepareOnline(MatrixEp mat)
 {
-    BlockMatrix<FEMATRIX> mat = M_assembler->assembleMatrix(M_matIndex, &M_structures);
-
-    for (unsigned int i = 0; i < M_nRows; i++)
+    if (M_isInitialized)
     {
-        for (unsigned int j = 0; j < M_nCols; j++)
+        SHP(MDEIMStructure) ms = M_structure;
+        auto matrixEpetra = mat.data();
+
+        buildReducedMesh();
+
+        ms->numReducedGlobalNonzeros = matrixEpetra->matrixPtr()->NumGlobalNonzeros();
+        ms->numReducedMyNonzeros = matrixEpetra->matrixPtr()->NumMyNonzeros();
+        ms->numReducedMyRows = matrixEpetra->matrixPtr()->NumMyRows();
+
+        ms->numMyReducedEntries = new int[ms->numMyLocalMagicPoints];
+        ms->columnLocalReducedIndeces = new int[ms->numMyLocalMagicPoints];
+        int numEntries;
+
+        for (int iMp = 0; iMp < ms->numMyLocalMagicPoints; iMp++)
         {
-            if (M_structures(i,j))
-                prepareOnline(i,j,mat);
-        }
-    }
-}
+            ms->numMyReducedEntries[iMp] = matrixEpetra->matrixPtr()->NumMyEntries(ms->rowLocalReducedIndeces[iMp]);
+            double* values = new double[ms->numMyReducedEntries[iMp]];
+            int* indeces = new int[ms->numMyReducedEntries[iMp]];
 
-void
-MDEIM::
-prepareOnline(const unsigned int& i, const unsigned int& j, BlockMatrix<FEMATRIX> mat)
-{
-    SHP(SingleMDEIMStructure) ms = M_structures(i,j);
-    auto matrixEpetra = mat.block(i,j).data();
+            matrixEpetra->matrixPtr()->ExtractMyRowCopy(ms->rowLocalReducedIndeces[iMp], ms->numMyReducedEntries[iMp], numEntries, values, indeces);
 
-    buildReducedMesh(i, j);
-
-    ms->numReducedGlobalNonzeros = matrixEpetra->matrixPtr()->NumGlobalNonzeros();
-    ms->numReducedMyNonzeros = matrixEpetra->matrixPtr()->NumMyNonzeros();
-    ms->numReducedMyRows = matrixEpetra->matrixPtr()->NumMyRows();
-
-    ms->numMyReducedEntries = new int[ms->numMyLocalMagicPoints];
-    ms->columnLocalReducedIndeces = new int[ms->numMyLocalMagicPoints];
-    int numEntries;
-
-    for (int iMp = 0; iMp < ms->numMyLocalMagicPoints; iMp++)
-    {
-        ms->numMyReducedEntries[iMp] = matrixEpetra->matrixPtr()->NumMyEntries(ms->rowLocalReducedIndeces[iMp]);
-        double* values = new double[ms->numMyReducedEntries[iMp]];
-        int* indeces = new int[ms->numMyReducedEntries[iMp]];
-
-        matrixEpetra->matrixPtr()->ExtractMyRowCopy(ms->rowLocalReducedIndeces[iMp], ms->numMyReducedEntries[iMp], numEntries, values, indeces);
-
-        for (unsigned int iC = 0; iC < ms->numMyReducedEntries[iMp]; iC++)
-        {
-            if (ms->myColMatrixEntriesOfMagicPoints[iMp] == matrixEpetra->matrixPtr()->ColMap().GID(indeces[iC]))
+            for (unsigned int iC = 0; iC < ms->numMyReducedEntries[iMp]; iC++)
             {
-                ms->columnLocalReducedIndeces[iMp] = iC;
-                iC = ms->numMyReducedEntries[iMp];
+                if (ms->myColMatrixEntriesOfMagicPoints[iMp] == matrixEpetra->matrixPtr()->ColMap().GID(indeces[iC]))
+                {
+                    ms->columnLocalReducedIndeces[iMp] = iC;
+                    iC = ms->numMyReducedEntries[iMp];
+                }
             }
+            delete [] values;
+            delete [] indeces;
         }
-        delete [] values;
-        delete [] indeces;
     }
 }
 
-
 void
 MDEIM::
-identifyReducedNodes(const unsigned int& i, const unsigned int& j)
+identifyReducedNodes()
 {
-    SHP(SingleMDEIMStructure) ms = M_structures(i,j);
+    SHP(MDEIMStructure) ms = M_structure;
 
     ms->myLocalMagicPoints.resize(ms->N);
     ms->numMyLocalMagicPoints = 0;
@@ -280,9 +245,9 @@ identifyReducedNodes(const unsigned int& i, const unsigned int& j)
 
     ms->rowLocalReducedIndeces = new int[ms->numMyLocalMagicPoints];
 
-    int localCol(-1);
+    int localCol = -1;
 
-    auto feMap = M_assembler->getFEspace(i)->map();
+    auto feMap = M_fespace->map();
 
     for (int iMp = 0; iMp < ms->numMyLocalMagicPoints; iMp++)
     {
@@ -302,7 +267,7 @@ identifyReducedNodes(const unsigned int& i, const unsigned int& j)
         }
     }
 
-    int dimensionOfField = M_assembler->getFEspace(i)->dof().numTotalDof();
+    int dimensionOfField = M_fespace->dof().numTotalDof();
 
     ms->globalReducedNodes = new int[2 * ms->numMyLocalMagicPoints];
 
@@ -385,10 +350,11 @@ identifyReducedNodes(const unsigned int& i, const unsigned int& j)
 
 void
 MDEIM::
-identifyReducedElements(const unsigned int& i, const unsigned int& j)
+identifyReducedElements()
 {
-    SHP(SingleMDEIMStructure) ms = M_structures(i,j);
-    auto ufespace = M_assembler->getFEspace(i);
+    SHP(MDEIMStructure) ms = M_structure;
+
+    auto ufespace = M_fespace;
 
     LifeV::QuadratureRule interpQuad;
     interpQuad.setDimensionShape(shapeDimension(ufespace->refFE().shape()), ufespace->refFE().shape());
@@ -399,7 +365,6 @@ identifyReducedElements(const unsigned int& i, const unsigned int& j)
     int totalNumberElements = ufespace->mesh()->numElements();
     int numberLocalDof = ufespace->dof().numLocalDof();
     int dimensionOfField = ufespace->dof().numTotalDof();
-
 
     ms->numReducedElements = 0;
     bool keepSearching = false;
@@ -464,36 +429,36 @@ identifyReducedElements(const unsigned int& i, const unsigned int& j)
 
 void
 MDEIM::
-computeInterpolationVectorOnline(const unsigned int& i,
-                                 const unsigned int& j,
-                                 Epetra_SerialDenseVector& interpVector)
+computeInterpolationVectorOnline(Epetra_SerialDenseVector& interpVector,
+                                 MatrixEp reducedMat)
 {
-    auto ms = M_structures(i,j);
+    auto ms = M_structure;
 
     Epetra_SerialDenseVector rhsVector;
 
-    computeInterpolationRhsOnline(i,j,rhsVector);
+    computeInterpolationRhsOnline(rhsVector, reducedMat);
 
     Epetra_SerialDenseSolver solverQj;
-    solverQj.SetMatrix(ms->Qj);
+
+    // for some reason the matrix is changed after solve. So, we make a copy of Qj
+    Epetra_SerialDenseMatrix Qj = M_structure->Qj;
+    solverQj.SetMatrix(Qj);
     solverQj.SetVectors(interpVector, rhsVector);
     solverQj.Solve();
 }
 
 void
 MDEIM::
-computeInterpolationRhsOnline(const unsigned int& i,
-                              const unsigned int& j,
-                              Epetra_SerialDenseVector& interpVector)
+computeInterpolationRhsOnline(Epetra_SerialDenseVector& interpVector,
+                              MatrixEp reducedMat)
 {
-    auto ms = M_structures(i,j);
+    auto ms = M_structure;
 
     interpVector.Resize(ms->N);
 
-    auto map = M_assembler->getFEspace(i)->map();
+    auto map = M_fespace->map();
 
-    BlockMatrix<FEMATRIX> mat = M_assembler->assembleMatrix(M_matIndex, &M_structures);
-    SHP(MATRIXEPETRA) Ah = mat.block(i,j).data();
+    SHP(MATRIXEPETRA) Ah = reducedMat.data();
 
     Epetra_SerialDenseVector localInterpVector(std::max(ms->numMyLocalMagicPoints, 1));
     localInterpVector(0) = 1.2345;
@@ -501,7 +466,7 @@ computeInterpolationRhsOnline(const unsigned int& i,
     int numEntries;
     double * values;
 
-    for (int iMp = 0; iMp < ms->numMyLocalMagicPoints; iMp++ )
+    for (int iMp = 0; iMp < ms->numMyLocalMagicPoints; iMp++)
     {
         values = new double[ms->numMyReducedEntries[iMp]];
 
@@ -529,85 +494,63 @@ computeInterpolationRhsOnline(const unsigned int& i,
 
 void
 MDEIM::
-computeFeInterpolation(const unsigned int& i, const unsigned int& j,
-                       Epetra_SerialDenseVector& interpolationCoefficients,
+computeFeInterpolation(Epetra_SerialDenseVector& interpolationCoefficients,
                        VECTOREPETRA& vector)
 {
-    int currentDeimBasisSize(M_structures(i,j)->Qj.M());
+    int currentDeimBasisSize(M_structure->Qj.M());
     vector.epetraVector().PutScalar(0.);
 
     for (int iB = 0; iB < currentDeimBasisSize; iB++)
         vector.epetraVector().Update(interpolationCoefficients(iB),
-                                     M_bases(i,j)[iB]->epetraVector(), 1.);
+                                     M_basis[iB]->epetraVector(), 1.);
 }
 
 void
 MDEIM::
-checkOnline()
+checkOnline(MatrixEp reducedMatrix, MatrixEp fullMatrix)
 {
-    for (unsigned int i = 0; i < M_nRows; i++)
+    if (M_isInitialized)
     {
-        for (unsigned int j = 0; j < M_nCols; j++)
-        {
-            if (M_structures(i,j))
-                checkOnline(i,j);
-        }
+        auto ms = M_structure;
+
+        // Comparison vectors
+        SHP(VECTOREPETRA) approximation;
+
+        // Compute interpolation vector
+        Epetra_SerialDenseVector myInterpVector(ms->N);
+        computeInterpolationVectorOnline(myInterpVector, reducedMatrix);
+
+        // Build FEM vector from interpolation vector
+        approximation.reset(new VECTOREPETRA(*ms->vectorMap));
+        computeFeInterpolation(myInterpVector, *approximation);
+
+        // Comparison matrix
+        SHP(MATRIXEPETRA) apprMatrix;
+        apprMatrix.reset(new MATRIXEPETRA(M_fespace->map(), 100));
+        apprMatrix->matrixPtr( )->Scale(0.);
+
+        reconstructMatrixFromVectorizedForm(*approximation,*apprMatrix);
+
+        SHP(MATRIXEPETRA) actualMatrix = fullMatrix.data();
+
+        apprMatrix->globalAssemble(actualMatrix->domainMapPtr(), actualMatrix->rangeMapPtr());
+
+        std::cout << "===============" << std::endl << std::flush;
+        std::cout << "NORM apprMatrix = " << apprMatrix->normFrobenius() << std::endl << std::flush;
+
+        *apprMatrix -= *actualMatrix;
+
+        std::cout << "NORM actualMatrix = " << actualMatrix->normFrobenius() << std::endl << std::flush;
+        std::cout << "NORM DIFFERENCE = " << apprMatrix->normFrobenius() << std::endl << std::flush;
     }
 }
 
 void
 MDEIM::
-checkOnline(const unsigned int& i, const unsigned int& j)
-{
-    auto ms = M_structures(i,j);
-
-    // Comparison vectors
-    SHP(VECTOREPETRA) approximation;
-
-    // Compute interpolation vector
-    Epetra_SerialDenseVector myInterpVector(ms->N);
-    computeInterpolationVectorOnline(i,j,myInterpVector);
-
-    // Build FEM vector from interpolation vector
-    approximation.reset(new VECTOREPETRA(*ms->vectorMap));
-    computeFeInterpolation(i,j,myInterpVector, *approximation);
-
-    // Comparison matrix
-    SHP(MATRIXEPETRA) apprMatrix;
-    apprMatrix.reset(new MATRIXEPETRA(M_assembler->getFEspace(i)->map(), 100));
-    apprMatrix->matrixPtr( )->Scale(0.);
-
-    reconstructMatrixFromVectorizedForm(i,j,*approximation,*apprMatrix);
-
-    SHP(MATRIXEPETRA) actualMatrix = M_assembler->assembleMatrix(M_matIndex).block(i,j).data();
-
-    apprMatrix->globalAssemble(actualMatrix->domainMapPtr(), actualMatrix->rangeMapPtr());
-
-    std::cout << "===============" << std::endl << std::flush;
-    std::cout << "NORM apprMatrix = " << apprMatrix->normFrobenius() << std::endl << std::flush;
-
-    *apprMatrix -= *actualMatrix;
-
-    std::cout << "NORM DIFFERENCE = " << apprMatrix->normFrobenius() << std::endl << std::flush;
-    std::cout << "NORM actualMatrix = " << actualMatrix->normFrobenius() << std::endl << std::flush;
-
-}
-
-void
-MDEIM::
-checkOnSnapshots()
-{
-
-}
-
-void
-MDEIM::
-reconstructMatrixFromVectorizedForm(const unsigned int& i,
-                                    const unsigned int& j,
-                                    VECTOREPETRA& vectorizedAh,
+reconstructMatrixFromVectorizedForm(VECTOREPETRA& vectorizedAh,
                                     MATRIXEPETRA& Ah)
 {
-    auto ms = M_structures(i,j);
+    auto ms = M_structure;
 
     int rowStart = 0;
 
@@ -623,18 +566,18 @@ void
 MDEIM::
 computeInterpolationVectorOffline(VECTOREPETRA& vector,
                                   Epetra_SerialDenseVector& interpolationCoefficients,
-                                  Epetra_SerialDenseSolver& solver,
-                                  SHP(SingleMDEIMStructure) mstruct)
+                                  Epetra_SerialDenseSolver& solver)
 {
-    int currentDeimBasisSize(mstruct->Qj.M());
+    int currentDeimBasisSize(M_structure->Qj.M());
 
     // Create vector with number of entries to match
     interpolationCoefficients.Resize(currentDeimBasisSize);
 
     // Extract from real vector the entries to match
     Epetra_SerialDenseVector subVector(currentDeimBasisSize);
-    rbLifeV::extractSubVector(vector, mstruct->localIndecesMagicPoints,
-                              mstruct->magicPointsProcOwner, subVector, currentDeimBasisSize);
+    rbLifeV::extractSubVector(vector, M_structure->localIndecesMagicPoints,
+                              M_structure->magicPointsProcOwner, subVector,
+                              currentDeimBasisSize);
 
     // Set the unknown vectors and rhs for the interpolation problem
     solver.SetVectors(interpolationCoefficients, subVector);
@@ -642,25 +585,24 @@ computeInterpolationVectorOffline(VECTOREPETRA& vector,
     // Solve the interpolation coefficients
     solver.Solve( );
 }
-
+//
 SHP(VECTOREPETRA)
 MDEIM::
-vectorizeMatrix(const unsigned int& i, const unsigned int& j, SHP(MATRIXEPETRA) matrix)
+vectorizeMatrix(MatrixEp matrix)
 {
-    SHP(SingleMDEIMStructure) ms = M_structures(i,j);
-
-    SHP(VECTOREPETRA) vectorizedMatrix(new VECTOREPETRA(*ms->vectorMap,
+    SHP(VECTOREPETRA) vectorizedMatrix(new VECTOREPETRA(*M_structure->vectorMap,
                                                         LifeV::Unique));
 
-    double * values(nullptr);
+    double* values = nullptr;
     int rowCounter = 0;
     int numEntries;
 
-    for (unsigned int iR = 0; iR < ms->numMyRows; iR++)
+    for (unsigned int iR = 0; iR < M_structure->numMyRows; iR++)
     {
         values = &(vectorizedMatrix->epetraVector()[0][rowCounter]);
-        matrix->matrixPtr()->ExtractMyRowCopy(iR, ms->numMyEntries[iR], numEntries, values);
-        rowCounter += ms->numMyEntries[iR];
+        matrix.data()->matrixPtr()->ExtractMyRowCopy(iR, M_structure->numMyEntries[iR],
+                                                     numEntries, values);
+        rowCounter += M_structure->numMyEntries[iR];
     }
 
     vectorizedMatrix->globalAssemble();
@@ -672,18 +614,8 @@ void
 MDEIM::
 vectorizeSnapshots()
 {
-    M_snapshotsVectorized.resize(M_nRows,M_nCols);
     for (auto snap : M_snapshots)
-    {
-        for (unsigned int i = 0; i < M_nRows; i++)
-        {
-            for (unsigned int j = 0; j < M_nCols; j++)
-            {
-                if (M_structures(i,j))
-                    M_snapshotsVectorized(i,j).push_back(vectorizeMatrix(i,j,snap.block(i,j).data()));
-            }
-        }
-    }
+        M_snapshotsVectorized.push_back(vectorizeMatrix(snap));
 }
 
 void
@@ -694,35 +626,33 @@ performPOD()
 
     printlog(MAGENTA, "[MDEIM] performing POD(s) ... \n", M_data.getVerbose());
 
-    M_bases.resize(M_nRows, M_nCols);
-
-    for (unsigned int i = 0; i < M_nRows; i++)
+    if (M_isInitialized)
     {
-        for (unsigned int j = 0; j < M_nCols; j++)
-        {
-            if (M_structures(i,j))
-            {
-                auto map = *M_structures(i,j)->vectorMap;
-                rbLifeV::ProperOrthogonalDecomposition pod(M_comm,
-                                                           map,
-                                                           true);
-                pod.initPOD(M_snapshotsVectorized(i,j).size(),
-                            M_snapshotsVectorized(i,j).data());
-                pod.generatePODbasisTol(podtol);
+        auto map = *M_structure->vectorMap;
+        rbLifeV::ProperOrthogonalDecomposition pod(M_comm, map, true);
+        pod.initPOD(M_snapshotsVectorized.size(),
+                    M_snapshotsVectorized.data());
+        pod.generatePODbasisTol(podtol);
 
-                unsigned int nbfs = pod.getRBdimension();
-                std::vector<SHP(VECTOREPETRA)> basisFunctions(nbfs);
+        unsigned int nbfs = pod.getRBdimension();
+        std::vector<SHP(VECTOREPETRA)> basisFunctions(nbfs);
 
-                pod.swapReducedBasis(basisFunctions, 0);
-                M_bases(i,j) = basisFunctions;
+        pod.swapReducedBasis(basisFunctions, 0);
+        M_basis = basisFunctions;
 
-                pickMagicPoints(i,j);
-                buildReducedMesh(i,j);
-            }
-        }
+        pickMagicPoints();
+        buildReducedMesh();
     }
 
     printlog(MAGENTA, "done\n", M_data.getVerbose());
+}
+
+void
+MDEIM::
+checkOnSnapshots()
+{
+    for (auto snap : M_snapshots)
+        checkOnline(snap, snap);
 }
 
 }  // namespace RedMA
