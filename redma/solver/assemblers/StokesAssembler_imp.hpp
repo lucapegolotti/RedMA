@@ -29,9 +29,9 @@ setup()
 
     initializeFEspaces();
 
-    assembleStiffness();
-    assembleMass();
-    assembleDivergence();
+    M_stiffness = assembleStiffness();
+    M_mass = assembleMass();
+    M_divergence = assembleDivergence();
 
     assembleFlowRateVectors();
     // assembleFlowRateJacobians();
@@ -331,6 +331,25 @@ getMatrices() const
     retVec.push_back(M_divergence);
 
     return retVec;
+}
+
+template <class InVectorType, class InMatrixType>
+BlockMatrix<InMatrixType>
+StokesAssembler<InVectorType, InMatrixType>::
+assembleMatrix(const unsigned int& index, BlockMDEIMStructure* structure)
+{
+    if (index == 0)
+    {
+        return assembleMass(structure);
+    }
+    else if (index == 1)
+    {
+        return assembleStiffness(structure);
+    }
+    else if (index == 2)
+    {
+        return assembleDivergence(structure);
+    }
 }
 
 }

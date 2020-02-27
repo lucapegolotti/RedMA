@@ -21,7 +21,7 @@
 [../]
 
 [snapshots]
-	number 			= 3
+	number 			= 20
 	bound 			= 0.2
 	take_every 		= 1
 	dumpbinary 		= true

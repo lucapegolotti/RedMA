@@ -32,24 +32,24 @@ struct MDEIMStructure
 
     ~MDEIMStructure()
     {
-        // if (allocated)
-        // {
-        //     delete[] numMyEntries;
-        //     delete[] partialSumMyEntries;
-        //     delete[] myRowMatrixEntriesOfMagicPoints;
-        //     delete[] myColMatrixEntriesOfMagicPoints;
-        //     delete[] rowLocalReducedIndeces;
-        //     delete[] globalReducedNodes;
-        //     delete[] myGlobalReducedNodes;
-        //     delete[] reducedElements;
-        //     delete[] numMyReducedEntries;
-        //     delete[] columnLocalReducedIndeces;
-        //
-        //     for (unsigned int i = 0; i < numMyRows; i++)
-        //         delete[] columnIndeces[i];
-        //
-        //     delete[] columnIndeces;
-        // }
+        if (allocated)
+        {
+            delete[] numMyEntries;
+            delete[] partialSumMyEntries;
+            delete[] myRowMatrixEntriesOfMagicPoints;
+            delete[] myColMatrixEntriesOfMagicPoints;
+            delete[] rowLocalReducedIndeces;
+            delete[] globalReducedNodes;
+            delete[] myGlobalReducedNodes;
+            delete[] reducedElements;
+            delete[] numMyReducedEntries;
+            delete[] columnLocalReducedIndeces;
+
+            for (unsigned int i = 0; i < numMyRows; i++)
+                delete[] columnIndeces[i];
+
+            delete[] columnIndeces;
+        }
     }
 
     int                             N;

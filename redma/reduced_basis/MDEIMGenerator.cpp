@@ -19,6 +19,14 @@ generateMDEIM()
     takeMatricesSnapshots();
     performMDEIM();
     checkMDEIM();
+    dumpMDEIMstructures();
+}
+
+void
+MDEIMGenerator::
+dumpMDEIMstructures()
+{
+
 }
 
 void
@@ -33,6 +41,7 @@ checkMDEIM()
         ProblemFEM problem(M_data, M_comm, false);
 
         problem.getTree().randomSampleAroundOriginalValue(bound);
+        // this can be optimized. Matrices are assembled twice
         problem.setup();
 
         auto assemblers = problem.getBlockAssembler()->getAssemblersMap();

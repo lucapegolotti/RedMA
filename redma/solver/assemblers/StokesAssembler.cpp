@@ -4,28 +4,102 @@ namespace RedMA
 {
 
 template <>
-void
+BlockMatrix<MatrixEp>
 StokesAssembler<VectorEp,MatrixEp>::
-assembleStiffness()
+assembleStiffness(BlockMDEIMStructure* structure)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    M_stiffness.resize(this->M_nComponents, this->M_nComponents);
+    BlockMatrix<MatrixEp> stiffness;
+
+    stiffness.resize(this->M_nComponents, this->M_nComponents);
     bool useFullStrain = M_data("fluid/use_strain", true);
 
     SHP(MatrixEpetra<double>) A(new MatrixEpetra<double>(M_velocityFESpace->map()));
 
-    if (useFullStrain)
+    if (structure)
     {
-        integrate(elements(M_velocityFESpaceETA->mesh()),
+        unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
+        unsigned int* volumes = (*structure)(0,0)->reducedElements;
+
+        if (useFullStrain)
+        {
+            integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+                      M_velocityFESpace->qr(),
+                      M_velocityFESpaceETA,
+                      M_velocityFESpaceETA,
+                      value(0.5 * M_viscosity) *
+                      dot(grad(phi_i) + transpose(grad(phi_i)),
+                      grad(phi_j) + transpose(grad(phi_j)))
+                  ) >> A;
+        }
+        else
+        {
+            integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+                      M_velocityFESpace->qr(),
+                      M_velocityFESpaceETA,
+                      M_velocityFESpaceETA,
+                      value(M_viscosity) *
+                      dot(grad(phi_i),grad(phi_j))
+                  ) >> A;
+        }
+    }
+    else
+    {
+        if (useFullStrain)
+        {
+            integrate(elements(M_velocityFESpaceETA->mesh()),
+                      M_velocityFESpace->qr(),
+                      M_velocityFESpaceETA,
+                      M_velocityFESpaceETA,
+                      value(0.5 * M_viscosity) *
+                      dot(grad(phi_i) + transpose(grad(phi_i)),
+                      grad(phi_j) + transpose(grad(phi_j)))
+                  ) >> A;
+        }
+        else
+        {
+            integrate(elements(M_velocityFESpaceETA->mesh()),
+                      M_velocityFESpace->qr(),
+                      M_velocityFESpaceETA,
+                      M_velocityFESpaceETA,
+                      value(M_viscosity) *
+                      dot(grad(phi_i),grad(phi_j))
+                  ) >> A;
+        }
+    }
+    A->globalAssemble();
+
+    stiffness.block(0,0).data() = A;
+
+    return stiffness;
+}
+
+template <>
+BlockMatrix<MatrixEp>
+StokesAssembler<VectorEp,MatrixEp>::
+assembleMass(BlockMDEIMStructure* structure)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    BlockMatrix<MatrixEp> mass;
+
+    mass.resize(this->M_nComponents, this->M_nComponents);
+
+    SHP(MatrixEpetra<double>) M(new MatrixEpetra<double>(M_velocityFESpace->map()));
+
+    if (structure)
+    {
+        unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
+        unsigned int* volumes = (*structure)(0,0)->reducedElements;
+        integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
                   M_velocityFESpace->qr(),
                   M_velocityFESpaceETA,
                   M_velocityFESpaceETA,
-                  value(0.5 * M_viscosity) *
-                  dot(grad(phi_i) + transpose(grad(phi_i)),
-                  grad(phi_j) + transpose(grad(phi_j)))
-              ) >> A;
+                  value(M_density) * dot(phi_i, phi_j)
+              ) >> M;
     }
     else
     {
@@ -33,78 +107,86 @@ assembleStiffness()
                   M_velocityFESpace->qr(),
                   M_velocityFESpaceETA,
                   M_velocityFESpaceETA,
-                  value(M_viscosity) *
-                  dot(grad(phi_i),grad(phi_j))
-              ) >> A;
+                  value(M_density) * dot(phi_i, phi_j)
+              ) >> M;
     }
-    A->globalAssemble();
-
-    M_stiffness.block(0,0).data() = A;
-}
-
-template <>
-void
-StokesAssembler<VectorEp,MatrixEp>::
-assembleMass()
-{
-    using namespace LifeV;
-    using namespace ExpressionAssembly;
-
-    M_mass.resize(this->M_nComponents, this->M_nComponents);
-
-    SHP(MatrixEpetra<double>) M(new MatrixEpetra<double>(M_velocityFESpace->map()));
-
-    integrate(elements(M_velocityFESpaceETA->mesh()),
-              M_velocityFESpace->qr(),
-              M_velocityFESpaceETA,
-              M_velocityFESpaceETA,
-              value(M_density) * dot(phi_i, phi_j)
-          ) >> M;
-
     M->globalAssemble();
 
-    M_mass.block(0,0).data() = M;
+    mass.block(0,0).data() = M;
 
-    M_bcManager->apply0DirichletMatrix(M_mass, getFESpaceBCs(),
+    M_bcManager->apply0DirichletMatrix(mass, getFESpaceBCs(),
                                        getComponentBCs(), 1.0);
+
+    return mass;
 }
 
 template <>
-void
+BlockMatrix<MatrixEp>
 StokesAssembler<VectorEp,MatrixEp>::
-assembleDivergence()
+assembleDivergence(BlockMDEIMStructure* structure)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    M_divergence.resize(this->M_nComponents, this->M_nComponents);
+    BlockMatrix<MatrixEp> divergence;
+
+    divergence.resize(this->M_nComponents, this->M_nComponents);
 
     SHP(MatrixEpetra<double>) BT(new MatrixEpetra<double>(M_velocityFESpace->map()));
 
+    if (structure)
+    {
+        unsigned int numVolumes = (*structure)(0,1)->numReducedElements;
+        unsigned int* volumes = (*structure)(0,1)->reducedElements;
+        integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+                  M_velocityFESpace->qr(),
+                  M_velocityFESpaceETA,
+                  M_pressureFESpaceETA,
+                  value(-1.0) * phi_j * div(phi_i)
+              ) >> BT;
+    }
+    else
+    {
     integrate(elements(M_velocityFESpaceETA->mesh()),
               M_velocityFESpace->qr(),
               M_velocityFESpaceETA,
               M_pressureFESpaceETA,
               value(-1.0) * phi_j * div(phi_i)
           ) >> BT;
-
+    }
     BT->globalAssemble(M_pressureFESpace->mapPtr(),
                        M_velocityFESpace->mapPtr());
 
     SHP(MatrixEpetra<double>) B(new MatrixEpetra<double>(M_pressureFESpace->map()));
 
-    integrate(elements(M_velocityFESpaceETA->mesh()),
-             M_pressureFESpace->qr(),
-             M_pressureFESpaceETA,
-             M_velocityFESpaceETA,
-             phi_i * div(phi_j)
-         ) >> B;
+    if (structure)
+    {
+        unsigned int numVolumes = (*structure)(1,0)->numReducedElements;
+        unsigned int* volumes = (*structure)(1,0)->reducedElements;
 
+        integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+                 M_pressureFESpace->qr(),
+                 M_pressureFESpaceETA,
+                 M_velocityFESpaceETA,
+                 phi_i * div(phi_j)
+             ) >> B;
+    }
+    else
+    {
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                 M_pressureFESpace->qr(),
+                 M_pressureFESpaceETA,
+                 M_velocityFESpaceETA,
+                 phi_i * div(phi_j)
+             ) >> B;
+    }
     B->globalAssemble(M_velocityFESpace->mapPtr(),
                       M_pressureFESpace->mapPtr());
 
-    M_divergence.block(0,1).data() = BT;
-    M_divergence.block(1,0).data() = B;
+    divergence.block(0,1).data() = BT;
+    divergence.block(1,0).data() = B;
+
+    return divergence;
 }
 
 template <>

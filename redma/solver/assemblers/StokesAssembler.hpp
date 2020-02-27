@@ -68,11 +68,11 @@ public:
 
     void initializeFEspaces();
 
-    void assembleStiffness();
+    BlockMatrix<MatrixEp> assembleStiffness(BlockMDEIMStructure* structure = nullptr);
 
-    void assembleMass();
+    BlockMatrix<MatrixEp> assembleMass(BlockMDEIMStructure* structure = nullptr);
 
-    void assembleDivergence();
+    BlockMatrix<MatrixEp> assembleDivergence(BlockMDEIMStructure* structure = nullptr);
 
     std::map<unsigned int, double> computeFlowRates(const BlockVector<InVectorType>& sol,
                                                     bool verbose = false);
@@ -120,21 +120,7 @@ public:
     virtual std::vector<BlockMatrix<InMatrixType>> getMatrices() const override;
 
     virtual BlockMatrix<InMatrixType> assembleMatrix(const unsigned int& index,
-                                                     BlockMDEIMStructure* structure = nullptr) override
-    {
-        if (index == 0)
-        {
-            return M_mass;
-        }
-        else if (index == 1)
-        {
-            return M_stiffness;
-        }
-        else if (index == 2)
-        {
-            return M_divergence;
-        }
-    }
+                                                     BlockMDEIMStructure* structure = nullptr) override;
 
 protected:
     // void computeWallShearStress(const BlockVector<InVectorType>& sol);
