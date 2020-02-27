@@ -533,7 +533,7 @@ checkOnline(MatrixEp reducedMatrix, MatrixEp fullMatrix)
 
         SHP(MATRIXEPETRA) actualMatrix = fullMatrix.data();
 
-        apprMatrix->globalAssemble(actualMatrix->domainMapPtr(), actualMatrix->rangeMapPtr());
+        apprMatrix->globalAssemble(reducedMatrix->domainMapPtr(), reducedMatrix->rangeMapPtr());
 
         std::cout << "===============" << std::endl << std::flush;
         std::cout << "NORM apprMatrix = " << apprMatrix->normFrobenius() << std::endl << std::flush;

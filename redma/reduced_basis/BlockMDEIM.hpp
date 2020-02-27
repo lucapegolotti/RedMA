@@ -56,6 +56,8 @@ public:
 
     inline void setMatrixIndex(const unsigned int& index) {M_matIndex = index;}
 
+    SHP(aAssembler<FEVECTOR COMMA FEMATRIX>) getAssembler() {return M_assembler;}
+
 private:
 
     void initializeMDEIMs(BlockMatrix<MatrixEp> matrix);

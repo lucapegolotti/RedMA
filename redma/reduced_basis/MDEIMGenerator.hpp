@@ -44,7 +44,12 @@ private:
 
     void checkMDEIM();
 
+    void projectMDEIM();
+
     void dumpMDEIMstructures();
+
+    std::vector<SHP(VECTOREPETRA)> readRBBasisFromFile(std::string file,
+                                                       SHP(FESPACE) fespace);
 
     DataContainer                                     M_data;
     EPETRACOMM                                        M_comm;
