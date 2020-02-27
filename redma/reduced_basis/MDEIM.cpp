@@ -52,22 +52,22 @@ initialize(MatrixEp matrix)
         ms->numMyRows = matrixEpetra->matrixPtr()->NumMyRows();
 
         ms->numMyEntries = new int[ms->numMyRows];
-        ms->columnIndeces = new int* [ms->numMyRows];
+        ms->columnIndices = new int* [ms->numMyRows];
         int numEntries;
 
         for (unsigned int iR = 0; iR < ms->numMyRows; iR++)
         {
             ms->numMyEntries[iR] = matrixEpetra->matrixPtr()->NumMyEntries(iR);
-            ms->columnIndeces[iR] = new int[ms->numMyEntries[iR]];
+            ms->columnIndices[iR] = new int[ms->numMyEntries[iR]];
             double * values = new double[ms->numMyEntries[iR]];
             matrixEpetra->matrixPtr()->ExtractMyRowCopy(iR, ms->numMyEntries[iR],
                                                         numEntries, values,
-                                                        ms->columnIndeces[iR]);
+                                                        ms->columnIndices[iR]);
 
             for(unsigned int iC; iC < numEntries; iC++)
             {
-                ms->columnIndeces[iR][iC] = matrixEpetra->matrixPtr()->ColMap().
-                                                    GID(ms->columnIndeces[iR][iC]);
+                ms->columnIndices[iR][iC] = matrixEpetra->matrixPtr()->ColMap().
+                                                    GID(ms->columnIndices[iR][iC]);
             }
             delete [] values;
         }
@@ -119,17 +119,17 @@ pickMagicPoints()
     ms->Qj.Reshape(1,1);
 
     // I keep these structures even if I don't plan to call this routine in parallel
-    ms->localIndecesMagicPoints.resize(N);
+    ms->localIndicesMagicPoints.resize(N);
     ms->magicPointsProcOwner.resize(N);
-    ms->globalIndecesMagicPoints.resize(N);
+    ms->globalIndicesMagicPoints.resize(N);
 
     rbLifeV::getInfNorm(*(M_basis[0]), maxInfo);
 
-    ms->localIndecesMagicPoints[0] = maxInfo[1];
+    ms->localIndicesMagicPoints[0] = maxInfo[1];
     ms->magicPointsProcOwner[0] = maxInfo[0];
-    ms->globalIndecesMagicPoints[0] = maxInfo[2];
+    ms->globalIndicesMagicPoints[0] = maxInfo[2];
 
-    rbLifeV::extractSubVector(*(M_basis[0]), ms->localIndecesMagicPoints,
+    rbLifeV::extractSubVector(*(M_basis[0]), ms->localIndicesMagicPoints,
                               ms->magicPointsProcOwner, interpCoef, 1);
     ms->Qj(0,0) = interpCoef(0);
 
@@ -153,14 +153,14 @@ pickMagicPoints()
         rbLifeV::getInfNorm(rm, maxInfo);
 
         ms->magicPointsProcOwner[iB] = maxInfo[0];
-        ms->localIndecesMagicPoints[iB] = maxInfo[1];
-        ms->globalIndecesMagicPoints[iB] = maxInfo[2];
+        ms->localIndicesMagicPoints[iB] = maxInfo[1];
+        ms->globalIndicesMagicPoints[iB] = maxInfo[2];
 
         ms->Qj.Reshape(iB + 1, iB + 1);
 
         for (int jB = 0; jB < iB + 1; jB++)
         {
-            rbLifeV::extractSubVector(*(M_basis[jB]), ms->localIndecesMagicPoints,
+            rbLifeV::extractSubVector(*(M_basis[jB]), ms->localIndicesMagicPoints,
                                       ms->magicPointsProcOwner, interpCoef, iB + 1);
 
             for(int kB = 0; kB < iB + 1; kB++)
@@ -195,22 +195,22 @@ prepareOnline(MatrixEp mat)
         ms->numReducedMyRows = matrixEpetra->matrixPtr()->NumMyRows();
 
         ms->numMyReducedEntries = new int[ms->numMyLocalMagicPoints];
-        ms->columnLocalReducedIndeces = new int[ms->numMyLocalMagicPoints];
+        ms->columnLocalReducedIndices = new int[ms->numMyLocalMagicPoints];
         int numEntries;
 
         for (int iMp = 0; iMp < ms->numMyLocalMagicPoints; iMp++)
         {
-            ms->numMyReducedEntries[iMp] = matrixEpetra->matrixPtr()->NumMyEntries(ms->rowLocalReducedIndeces[iMp]);
+            ms->numMyReducedEntries[iMp] = matrixEpetra->matrixPtr()->NumMyEntries(ms->rowLocalReducedIndices[iMp]);
             double* values = new double[ms->numMyReducedEntries[iMp]];
             int* indeces = new int[ms->numMyReducedEntries[iMp]];
 
-            matrixEpetra->matrixPtr()->ExtractMyRowCopy(ms->rowLocalReducedIndeces[iMp], ms->numMyReducedEntries[iMp], numEntries, values, indeces);
+            matrixEpetra->matrixPtr()->ExtractMyRowCopy(ms->rowLocalReducedIndices[iMp], ms->numMyReducedEntries[iMp], numEntries, values, indeces);
 
             for (unsigned int iC = 0; iC < ms->numMyReducedEntries[iMp]; iC++)
             {
                 if (ms->myColMatrixEntriesOfMagicPoints[iMp] == matrixEpetra->matrixPtr()->ColMap().GID(indeces[iC]))
                 {
-                    ms->columnLocalReducedIndeces[iMp] = iC;
+                    ms->columnLocalReducedIndices[iMp] = iC;
                     iC = ms->numMyReducedEntries[iMp];
                 }
             }
@@ -233,7 +233,7 @@ identifyReducedNodes()
     {
         if (ms->magicPointsProcOwner[iMp] == M_comm->MyPID())
         {
-            ms->myLocalMagicPoints[ms->numMyLocalMagicPoints] = ms->localIndecesMagicPoints[iMp];
+            ms->myLocalMagicPoints[ms->numMyLocalMagicPoints] = ms->localIndicesMagicPoints[iMp];
             ms->numMyLocalMagicPoints++;
         }
     }
@@ -243,7 +243,7 @@ identifyReducedNodes()
     ms->myRowMatrixEntriesOfMagicPoints = new int[ms->numMyLocalMagicPoints];
     ms->myColMatrixEntriesOfMagicPoints = new int[ms->numMyLocalMagicPoints];
 
-    ms->rowLocalReducedIndeces = new int[ms->numMyLocalMagicPoints];
+    ms->rowLocalReducedIndices = new int[ms->numMyLocalMagicPoints];
 
     int localCol = -1;
 
@@ -260,9 +260,9 @@ identifyReducedNodes()
                 // attention: we consider the fespace of the row i because that's
                 // the range map of the matrix
                 ms->myRowMatrixEntriesOfMagicPoints[iMp] = feMap.map(LifeV::Unique)->GID(iR);
-                ms->myColMatrixEntriesOfMagicPoints[iMp] = ms->columnIndeces[iR][localCol];
+                ms->myColMatrixEntriesOfMagicPoints[iMp] = ms->columnIndices[iR][localCol];
 
-                ms->rowLocalReducedIndeces[iMp] = iR;
+                ms->rowLocalReducedIndices[iMp] = iR;
             }
         }
     }
@@ -470,10 +470,10 @@ computeInterpolationRhsOnline(Epetra_SerialDenseVector& interpVector,
     {
         values = new double[ms->numMyReducedEntries[iMp]];
 
-        Ah->matrixPtr()->ExtractMyRowCopy(ms->rowLocalReducedIndeces[iMp],
+        Ah->matrixPtr()->ExtractMyRowCopy(ms->rowLocalReducedIndices[iMp],
                                           ms->numMyReducedEntries[iMp],
                                           numEntries, values);
-        localInterpVector(iMp) = values[ms->columnLocalReducedIndeces[iMp]];
+        localInterpVector(iMp) = values[ms->columnLocalReducedIndices[iMp]];
         delete[] values;
     }
 
@@ -557,7 +557,7 @@ reconstructMatrixFromVectorizedForm(VECTOREPETRA& vectorizedAh,
     for (int iR = 0; iR < ms->numMyRows; iR++)
     {
         Ah.matrixPtr()->InsertGlobalValues(Ah.matrixPtr()->GRID(iR), ms->numMyEntries[iR],
-                                           vectorizedAh.epetraVector()[0] + rowStart, ms->columnIndeces[iR]);
+                                           vectorizedAh.epetraVector()[0] + rowStart, ms->columnIndices[iR]);
         rowStart += ms->numMyEntries[iR];
     }
 }
@@ -575,7 +575,7 @@ computeInterpolationVectorOffline(VECTOREPETRA& vector,
 
     // Extract from real vector the entries to match
     Epetra_SerialDenseVector subVector(currentDeimBasisSize);
-    rbLifeV::extractSubVector(vector, M_structure->localIndecesMagicPoints,
+    rbLifeV::extractSubVector(vector, M_structure->localIndicesMagicPoints,
                               M_structure->magicPointsProcOwner, subVector,
                               currentDeimBasisSize);
 
@@ -653,6 +653,17 @@ checkOnSnapshots()
 {
     for (auto snap : M_snapshots)
         checkOnline(snap, snap);
+}
+
+void
+MDEIM::
+dumpMDEIM(std::string dir)
+{
+    if (M_isInitialized)
+    {
+        M_structure->dumpMDEIMStructure(dir);
+        // dumpBasis(dir);
+    }
 }
 
 }  // namespace RedMA

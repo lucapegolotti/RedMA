@@ -54,6 +54,8 @@ public:
 
     SHP(MDEIMStructure)& getMDEIMStructure() {return M_structure;}
 
+    void dumpMDEIM(std::string dir);
+
 private:
 
     void vectorizeSnapshots();

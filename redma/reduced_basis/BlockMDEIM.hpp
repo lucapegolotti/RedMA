@@ -52,6 +52,8 @@ public:
 
     void checkOnSnapshots();
 
+    void dumpMDEIMs(std::string dir);
+
     inline void setMatrixIndex(const unsigned int& index) {M_matIndex = index;}
 
 private:

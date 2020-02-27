@@ -26,7 +26,25 @@ void
 MDEIMGenerator::
 dumpMDEIMstructures()
 {
+    using namespace boost::filesystem;
 
+    std::string outdir = M_data("mdeim/directory", "mdeims");
+
+    create_directory(outdir);
+
+    for (auto& mapit : M_blockMDEIMsMap)
+    {
+        unsigned int dashpos = mapit.first.find("/");
+        unsigned int formatpos = mapit.first.find(".mesh");
+        std::string actualmeshname = mapit.first.substr(dashpos + 1, formatpos - dashpos - 1);
+
+        std::string curdir = outdir + "/" + actualmeshname;
+        create_directory(curdir);
+
+        auto& mdeims = mapit.second;
+        for (auto& mdeim : mdeims)
+            mdeim.dumpMDEIMs(curdir);
+    }
 }
 
 void
@@ -65,8 +83,15 @@ void
 MDEIMGenerator::
 takeMatricesSnapshots()
 {
+    using namespace boost::filesystem;
+
     unsigned int nSnapshots = M_data("mdeim/numbersnapshots", 50);
     double bound = M_data("mdeim/bound", 0.2);
+
+    std::string outdir = M_data("mdeim/directory", "mdeims");
+
+    if (exists(outdir))
+        throw new Exception("Mdeims directory already exists!");
 
     for (unsigned int i = 0; i < nSnapshots; i++)
     {

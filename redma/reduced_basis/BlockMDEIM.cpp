@@ -136,4 +136,25 @@ checkOnSnapshots()
     }
 }
 
+void
+BlockMDEIM::
+dumpMDEIMs(std::string dir)
+{
+    using namespace boost::filesystem;
+
+    std::string outdir = dir + "/blockmdeim" + std::to_string(M_matIndex);
+    create_directory(outdir);
+
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            std::string curdir = outdir + "/mdeim_" + std::to_string(i) + "_" + std::to_string(j);
+
+            create_directory(curdir);
+            M_mdeims(i,j)->dumpMDEIM(curdir);
+        }
+    }
+}
+
 }  // namespace RedMA
