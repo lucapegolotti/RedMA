@@ -55,7 +55,7 @@ struct MDEIMStructure
     void dumpMDEIMStructure(std::string dir)
     {
         std::ofstream outfile;
-        outfile.open(dir + "/structure.txt", std::ios_base::out);
+        outfile.open(dir + "/structure.mstr", std::ios_base::out);
 
         outfile << value2string("N", N);
         outfile << value2string("numGlobalNonzeros", numGlobalNonzeros);

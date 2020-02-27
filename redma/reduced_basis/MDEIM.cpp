@@ -662,8 +662,25 @@ dumpMDEIM(std::string dir)
     if (M_isInitialized)
     {
         M_structure->dumpMDEIMStructure(dir);
-        // dumpBasis(dir);
+        dumpBasis(dir);
     }
+}
+
+void
+MDEIM::
+dumpBasis(std::string dir)
+{
+    std::ofstream outfile;
+    outfile.open(dir + "/basis.mbasis", std::ios_base::out);
+
+    for (auto basis : M_basis)
+    {
+        VectorEp newVec;
+        newVec.data() = basis;
+        outfile << newVec.getString(',') + "\n";
+    }
+
+    outfile.close();
 }
 
 }  // namespace RedMA

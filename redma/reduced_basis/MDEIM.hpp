@@ -88,6 +88,8 @@ private:
     void reconstructMatrixFromVectorizedForm(VECTOREPETRA& vectorizedAh,
                                              MATRIXEPETRA& Ah);
 
+    void dumpBasis(std::string dir);
+
     std::vector<MatrixEp>                       M_snapshots;
     std::vector<SHP(VECTOREPETRA)>              M_snapshotsVectorized;
     std::vector<SHP(VECTOREPETRA)>              M_basis;
