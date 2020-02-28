@@ -63,6 +63,13 @@ addSnapshot(BlockMatrix<MatrixEp> newSnapshot)
 
 void
 BlockMDEIM::
+setRBBases(std::vector<std::vector<SHP(VECTOREPETRA)>> bases)
+{
+    M_RBbases = bases;
+}
+
+void
+BlockMDEIM::
 initializeMDEIMs(BlockMatrix<MatrixEp> matrix)
 {
 
@@ -74,6 +81,8 @@ initializeMDEIMs(BlockMatrix<MatrixEp> matrix)
             M_mdeims(i,j)->setDataContainer(M_data);
             M_mdeims(i,j)->initialize(matrix.block(i,j));
             M_mdeims(i,j)->setFESpace(M_assembler->getFEspace(i));
+            M_mdeims(i,j)->setRangeMap(M_assembler->getFEspace(i)->mapPtr());
+            M_mdeims(i,j)->setDomainMap(M_assembler->getFEspace(j)->mapPtr());
             M_structures(i,j) = M_mdeims(i,j)->getMDEIMStructure();
         }
     }
@@ -153,6 +162,19 @@ dumpMDEIMs(std::string dir)
 
             create_directory(curdir);
             M_mdeims(i,j)->dumpMDEIM(curdir);
+        }
+    }
+}
+
+void
+BlockMDEIM::
+projectMDEIMs()
+{
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            M_mdeims(i,j)->projectMDEIM(M_RBbases[i], M_RBbases[j]);
         }
     }
 }

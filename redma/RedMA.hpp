@@ -28,6 +28,7 @@
 
 #include <redma/solver/array/MatrixEp.hpp>
 #include <redma/solver/array/VectorEp.hpp>
+#include <redma/solver/array/DenseVector.hpp>
 #include <redma/utils/PrintLog.hpp>
 
 #include <lifev/core/fem/FESpace.hpp>
@@ -37,7 +38,6 @@
 #include <lifev/core/util/LifeChrono.hpp>
 
 #include <Epetra_SerialDenseMatrix.h>
-#include <Epetra_SerialDenseVector.h>
 #include <Epetra_SerialDenseSolver.h>
 
 // we define the namespace
@@ -58,6 +58,8 @@ namespace RedMA
 
 #define FEVECTOR            RedMA::VectorEp
 #define FEMATRIX            RedMA::MatrixEp
+#define DENSEMATRIX         Epetra_SerialDenseMatrix
+#define DENSESOLVER         Epetra_SerialDenseSolver
 
 #define MESH                LifeV::RegionMesh<LifeV::LinearTetra>
 #define MAPEPETRA           LifeV::MapEpetra

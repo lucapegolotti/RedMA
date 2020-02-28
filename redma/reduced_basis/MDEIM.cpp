@@ -529,11 +529,11 @@ checkOnline(MatrixEp reducedMatrix, MatrixEp fullMatrix)
         apprMatrix.reset(new MATRIXEPETRA(M_fespace->map(), 100));
         apprMatrix->matrixPtr( )->Scale(0.);
 
-        reconstructMatrixFromVectorizedForm(*approximation,*apprMatrix);
+        reconstructMatrixFromVectorizedForm(*approximation, *apprMatrix);
+
+        apprMatrix->globalAssemble(M_domainMap, M_rangeMap);
 
         SHP(MATRIXEPETRA) actualMatrix = fullMatrix.data();
-
-        apprMatrix->globalAssemble(reducedMatrix->domainMapPtr(), reducedMatrix->rangeMapPtr());
 
         std::cout << "===============" << std::endl << std::flush;
         std::cout << "NORM apprMatrix = " << apprMatrix->normFrobenius() << std::endl << std::flush;
@@ -663,6 +663,8 @@ dumpMDEIM(std::string dir)
     {
         M_structure->dumpMDEIMStructure(dir);
         dumpBasis(dir);
+        if (M_basisProjected.size() > 0)
+            dumpProjectedBasis(dir);
     }
 }
 
@@ -681,6 +683,73 @@ dumpBasis(std::string dir)
     }
 
     outfile.close();
+}
+
+void
+MDEIM::
+dumpProjectedBasis(std::string dir)
+{
+    std::ofstream outfile;
+    outfile.open(dir + "/projbasis.mbasis", std::ios_base::out);
+
+    for (auto basis : M_basisProjected)
+    {
+        DenseVector newVec;
+        newVec.data() = basis;
+        outfile << newVec.getString(',') + "\n";
+    }
+
+    outfile.close();
+}
+
+void
+MDEIM::
+projectMDEIM(std::vector<SHP(VECTOREPETRA)> leftBasis,
+             std::vector<SHP(VECTOREPETRA)> rightBasis)
+{
+    if (M_isInitialized)
+    {
+        unsigned int Nleft = leftBasis.size();
+        unsigned int Nright = rightBasis.size();
+
+        M_structure->Nleft = Nleft;
+        M_structure->Nright = Nright;
+        std::cout << "Nleft " << Nleft << std::endl;
+        std::cout << "Nright " << Nright << std::endl;
+
+        for (unsigned int bind = 0; bind < M_basis.size(); bind++)
+        {
+            SHP(DENSEMATRIX) newMatrix(new DENSEMATRIX(Nleft, Nright));
+
+            SHP(MATRIXEPETRA) basisMatrix(new MATRIXEPETRA(*M_rangeMap));
+
+            reconstructMatrixFromVectorizedForm(*M_basis[bind], *basisMatrix);
+            basisMatrix->globalAssemble(M_domainMap, M_rangeMap);
+            for (unsigned int i = 0; i < Nleft; i++)
+            {
+                for (unsigned int j = 0; j < Nright; j++)
+                {
+                    VECTOREPETRA aux(*rightBasis[0]->mapPtr());
+                    basisMatrix->matrixPtr()->Multiply(true,
+                                    leftBasis[i]->epetraVector(), aux.epetraVector());
+                    (*newMatrix)(i,j) += aux.dot(*rightBasis[j]);
+                }
+            }
+
+            SHP(DENSEVECTOR) newBasis(new DENSEVECTOR(Nleft * Nright));
+
+            unsigned int count = 0;
+            for (unsigned int i = 0; i < Nleft; i++)
+            {
+                for (unsigned int j = 0; j < Nright; j++)
+                {
+                    (*newBasis)(count) = (*newMatrix)(i,j);
+                    count++;
+                }
+            }
+            M_basisProjected.push_back(newBasis);
+        }
+    }
 }
 
 }  // namespace RedMA

@@ -145,11 +145,44 @@ projectMDEIM()
 {
     using namespace boost::filesystem;
 
-    unsigned int basisdir = M_data("rbbasis/directory", "basis");
+    std::string basisdir = M_data("rbbasis/directory", "basis");
 
     if (exists(basisdir))
     {
+        for (auto mdeims : M_blockMDEIMsMap)
+        {
+            unsigned int dashpos = mdeims.first.find("/");
+            unsigned int formatpos = mdeims.first.find(".mesh");
+            std::string actualmeshname = mdeims.first.substr(dashpos + 1, formatpos - dashpos - 1);
 
+            for (auto mdeim : mdeims.second)
+            {
+                std::vector<std::vector<SHP(VECTOREPETRA)>> bases;
+                std::string curdir = basisdir + "/" + actualmeshname + "/";
+
+                directory_iterator end_it;
+
+                for (directory_iterator it(curdir); it != end_it; it++)
+                {
+                    std::string curfile = it->path().string();
+
+                    if (curfile.find(".basis") != std::string::npos)
+                    {
+                        unsigned int dotpos = curfile.find_last_of(".");
+                        unsigned int componentIndex = std::atoi(curfile.substr(dotpos-1,dotpos).c_str());
+
+                        std::vector<SHP(VECTOREPETRA)> curBasis =
+                        readRBBasisFromFile(curfile,
+                                            mdeim.getAssembler()->getFEspace(componentIndex));
+                        std::cout << "curBasis size = " << curBasis.size() << std::endl << std::flush;
+                        bases.push_back(curBasis);
+                    }
+                }
+
+                mdeim.setRBBases(bases);
+                mdeim.projectMDEIMs();
+            }
+        }
     }
 }
 

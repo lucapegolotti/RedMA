@@ -9,6 +9,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockMaps.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/MatrixEp.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/VectorEp.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DenseVector.hpp
     CACHE INTERNAL ""
 )
 
@@ -19,5 +20,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockMatrix.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Double.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockMaps.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DenseVector.cpp
     CACHE INTERNAL ""
 )

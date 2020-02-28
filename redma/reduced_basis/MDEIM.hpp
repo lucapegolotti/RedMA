@@ -38,15 +38,15 @@ public:
 
     void setComm(EPETRACOMM comm);
 
-    void addSnapshot(MatrixEp newSnapshot);
+    void addSnapshot(FEMATRIX newSnapshot);
 
     void performMDEIM();
 
-    void prepareOnline(MatrixEp matrix);
+    void prepareOnline(FEMATRIX matrix);
 
-    void checkOnline(MatrixEp reducedMatrix, MatrixEp fullMatrix);
+    void checkOnline(FEMATRIX reducedMatrix, FEMATRIX fullMatrix);
 
-    void initialize(MatrixEp matrix);
+    void initialize(FEMATRIX matrix);
 
     void setFESpace(SHP(FESPACE) fespace);
 
@@ -56,21 +56,28 @@ public:
 
     void dumpMDEIM(std::string dir);
 
+    void projectMDEIM(std::vector<SHP(VECTOREPETRA)> leftBasis,
+                      std::vector<SHP(VECTOREPETRA)> rightBasis);
+
+    void setDomainMap(SHP(MAPEPETRA) domainMap) {M_domainMap = domainMap;}
+
+    void setRangeMap(SHP(MAPEPETRA) rangeMap) {M_rangeMap = rangeMap;}
+
 private:
 
     void vectorizeSnapshots();
 
-    SHP(VECTOREPETRA) vectorizeMatrix(MatrixEp matrix);
+    SHP(VECTOREPETRA) vectorizeMatrix(FEMATRIX matrix);
 
     void performPOD();
 
     void pickMagicPoints();
 
     void computeInterpolationVectorOffline(VECTOREPETRA& vector,
-                                           Epetra_SerialDenseVector& interpolationCoefficients,
-                                           Epetra_SerialDenseSolver& solver);
+                                           DENSEVECTOR& interpolationCoefficients,
+                                           DENSESOLVER& solver);
 
-    void computeFeInterpolation(Epetra_SerialDenseVector& interpolationCoefficients,
+    void computeFeInterpolation(DENSEVECTOR& interpolationCoefficients,
                                 VECTOREPETRA& vector);
 
     void buildReducedMesh();
@@ -79,25 +86,30 @@ private:
 
     void identifyReducedElements();
 
-    void computeInterpolationRhsOnline(Epetra_SerialDenseVector& interpVector,
-                                       MatrixEp reducedMat);
+    void computeInterpolationRhsOnline(DENSEVECTOR& interpVector,
+                                       FEMATRIX reducedMat);
 
-    void computeInterpolationVectorOnline(Epetra_SerialDenseVector& interpVector,
-                                          MatrixEp reducedMat);
+    void computeInterpolationVectorOnline(DENSEVECTOR& interpVector,
+                                          FEMATRIX reducedMat);
 
     void reconstructMatrixFromVectorizedForm(VECTOREPETRA& vectorizedAh,
                                              MATRIXEPETRA& Ah);
 
     void dumpBasis(std::string dir);
 
-    std::vector<MatrixEp>                       M_snapshots;
+    void dumpProjectedBasis(std::string dir);
+
+    std::vector<FEMATRIX>                       M_snapshots;
     std::vector<SHP(VECTOREPETRA)>              M_snapshotsVectorized;
     std::vector<SHP(VECTOREPETRA)>              M_basis;
+    std::vector<SHP(DENSEVECTOR)>               M_basisProjected;
     SHP(MDEIMStructure)                         M_structure;
     EPETRACOMM                                  M_comm;
     DataContainer                               M_data;
     SHP(FESPACE)                                M_fespace;
     bool                                        M_isInitialized;
+    SHP(MAPEPETRA)                              M_domainMap;
+    SHP(MAPEPETRA)                              M_rangeMap;
 };
 
 }  // namespace RedMA

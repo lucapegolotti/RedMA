@@ -75,7 +75,8 @@ public:
     {
         if (!M_matrix)
             return true;
-        return M_matrix->matrixPtr()->NumGlobalNonzeros() == 0;
+        return M_matrix->matrixPtr()->NormInf() < 1e-15;
+        // return M_matrix->matrixPtr()->NumGlobalNonzeros() == 0;
     };
 
 private:

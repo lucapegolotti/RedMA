@@ -67,6 +67,8 @@ struct MDEIMStructure
         outfile << value2string("numReducedMyNonzeros", numReducedMyNonzeros);
         outfile << value2string("numReducedMyRows", numReducedMyRows);
         outfile << value2string("numMyLocalMagicPoints", numMyLocalMagicPoints);
+        outfile << value2string("Nleft", Nleft);
+        outfile << value2string("Nright", Nright);
 
         outfile << array2string("numMyEntries", numMyEntries, numMyRows);
         outfile << array2string("partialSumMyEntries", partialSumMyEntries, numMyRows + 1);
@@ -146,6 +148,8 @@ struct MDEIMStructure
     }
 
     int                             N;
+    int                             Nleft;
+    int                             Nright;
     bool                            allocated;
     int                             numGlobalNonzeros;
     int                             numMyNonzeros;

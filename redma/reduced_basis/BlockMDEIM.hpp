@@ -54,6 +54,10 @@ public:
 
     void dumpMDEIMs(std::string dir);
 
+    void projectMDEIMs();
+
+    void setRBBases(std::vector<std::vector<SHP(VECTOREPETRA)>> bases);
+
     inline void setMatrixIndex(const unsigned int& index) {M_matIndex = index;}
 
     SHP(aAssembler<FEVECTOR COMMA FEMATRIX>) getAssembler() {return M_assembler;}
@@ -70,6 +74,7 @@ private:
     unsigned int                                M_nRows;
     unsigned int                                M_nCols;
     BlockMDEIMStructure                         M_structures;
+    std::vector<std::vector<SHP(VECTOREPETRA)>> M_RBbases;
 };
 
 }  // namespace RedMA
