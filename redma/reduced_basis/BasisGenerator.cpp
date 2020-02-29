@@ -65,17 +65,24 @@ performPOD()
 
     double podtol = M_data("rbbasis/podtol", 1e-5);
 
+    std::string outdir = M_data("rbbasis/directory", "basis");
+    boost::filesystem::create_directory(outdir);
+
     printlog(MAGENTA, "[BasisGenerator] performing POD ... \n", M_data.getVerbose());
     for (auto pair : M_meshASPairMap)
     {
         unsigned int count = 0;
         VectorFunctions newBasisFunctions(pair.second.second.size());
+        boost::filesystem::create_directory(outdir + "/" + pair.first);
+
         for (auto sn : pair.second.second)
         {
             ProperOrthogonalDecomposition pod(M_comm,
                                               pair.second.first->getFEspace(count)->map(),
                                               true);
             pod.initPOD(sn.size(), sn.data());
+            pod.setSvdFileName(outdir + "/" + pair.first + "/svd" +
+                               std::to_string(count) + ".txt");
             pod.generatePODbasisTol(podtol);
 
             unsigned int nbfs = pod.getRBdimension();

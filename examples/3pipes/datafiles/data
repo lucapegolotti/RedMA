@@ -33,6 +33,7 @@
 	numbersnapshots = 3
 	podtol 			= 1e-5
 	checksonline    = 1
+	loadfullbasis   = true
 [../]
 
 [rbbasis]

@@ -255,7 +255,13 @@ getIDMeshTypeMap() const
 {
     std::map<unsigned int, std::string> retMap;
     for (auto as: M_primalAssemblers)
-        retMap[as.first] = as.second->getTreeNode()->M_block->getMeshName();
+    {
+        std::string meshname = as.second->getTreeNode()->M_block->getMeshName();
+        unsigned int dashpos = meshname.find("/");
+        unsigned int formatpos = meshname.find(".mesh");
+        std::string actualmeshname = meshname.substr(dashpos + 1, formatpos - dashpos - 1);
+        retMap[as.first] = actualmeshname;
+    }
 
     return retMap;
 }

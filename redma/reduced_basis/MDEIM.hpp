@@ -40,7 +40,7 @@ public:
 
     void addSnapshot(FEMATRIX newSnapshot);
 
-    void performMDEIM();
+    void performMDEIM(std::string outdir);
 
     void prepareOnline(FEMATRIX matrix);
 
@@ -63,13 +63,15 @@ public:
 
     void setRangeMap(SHP(MAPEPETRA) rangeMap) {M_rangeMap = rangeMap;}
 
+    void loadMDEIM(std::string pathdir);
+
 private:
 
     void vectorizeSnapshots();
 
     SHP(VECTOREPETRA) vectorizeMatrix(FEMATRIX matrix);
 
-    void performPOD();
+    void performPOD(std::string outdir);
 
     void pickMagicPoints();
 
@@ -79,6 +81,8 @@ private:
 
     void computeFeInterpolation(DENSEVECTOR& interpolationCoefficients,
                                 VECTOREPETRA& vector);
+
+    void loadBasis(std::string filename);
 
     void buildReducedMesh();
 

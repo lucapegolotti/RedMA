@@ -94,12 +94,12 @@ initialize(MatrixEp matrix)
 //
 void
 MDEIM::
-performMDEIM()
+performMDEIM(std::string outdir)
 {
     if (M_isInitialized)
     {
         vectorizeSnapshots();
-        performPOD();
+        performPOD(outdir);
     }
 }
 
@@ -519,7 +519,6 @@ checkOnline(MatrixEp reducedMatrix, MatrixEp fullMatrix)
         // Compute interpolation vector
         Epetra_SerialDenseVector myInterpVector(ms->N);
         computeInterpolationVectorOnline(myInterpVector, reducedMatrix);
-
         // Build FEM vector from interpolation vector
         approximation.reset(new VECTOREPETRA(*ms->vectorMap));
         computeFeInterpolation(myInterpVector, *approximation);
@@ -543,6 +542,61 @@ checkOnline(MatrixEp reducedMatrix, MatrixEp fullMatrix)
         std::cout << "NORM actualMatrix = " << actualMatrix->normFrobenius() << std::endl << std::flush;
         std::cout << "NORM DIFFERENCE = " << apprMatrix->normFrobenius() << std::endl << std::flush;
     }
+}
+
+void
+MDEIM::
+loadMDEIM(std::string pathdir)
+{
+    using namespace boost::filesystem;
+
+    if (exists(pathdir + "/structure.mstr"))
+    {
+        M_structure.reset(new MDEIMStructure(pathdir + "/structure.mstr", M_comm));
+        create_directory(pathdir + "/copy");
+        M_structure->dumpMDEIMStructure(pathdir + "/copy");
+        M_isInitialized = true;
+    }
+
+    if (exists(pathdir + "/basis.mbasis") && M_data("mdeim/loadfullbasis", false))
+    {
+        if (!M_isInitialized)
+            throw new Exception("MDEIM structure not loaded!");
+        loadBasis(pathdir + "/basis.mbasis");
+    }
+
+    if (exists(pathdir + "/basis.mbasis"))
+    {
+        if (!M_isInitialized)
+            throw new Exception("MDEIM structure not loaded!");
+        // loadProjectedBasis(pathdir + "/projbasis.mbasis");
+    }
+
+}
+
+void
+MDEIM::
+loadBasis(std::string filename)
+{
+    std::ifstream infile(filename);
+    std::string line;
+    while(std::getline(infile,line))
+    {
+        SHP(VECTOREPETRA) newVector(new VECTOREPETRA(*M_structure->vectorMap));
+
+        std::stringstream linestream(line);
+        std::string value;
+        unsigned int i = 0;
+        while(getline(linestream,value,','))
+        {
+            newVector->operator[](i) = std::atof(value.c_str());
+            i++;
+        }
+        if (i != newVector->epetraVector().GlobalLength())
+            throw new Exception("Stored snapshot length does not match fespace dimension!");
+        M_basis.push_back(newVector);
+    }
+    infile.close();
 }
 
 void
@@ -620,7 +674,7 @@ vectorizeSnapshots()
 
 void
 MDEIM::
-performPOD()
+performPOD(std::string outdir)
 {
     double podtol = M_data("mdeim/podtol", 1e-5);
 
@@ -632,6 +686,7 @@ performPOD()
         rbLifeV::ProperOrthogonalDecomposition pod(M_comm, map, true);
         pod.initPOD(M_snapshotsVectorized.size(),
                     M_snapshotsVectorized.data());
+        pod.setSvdFileName(outdir + "/svd.txt");
         pod.generatePODbasisTol(podtol);
 
         unsigned int nbfs = pod.getRBdimension();
@@ -714,8 +769,6 @@ projectMDEIM(std::vector<SHP(VECTOREPETRA)> leftBasis,
 
         M_structure->Nleft = Nleft;
         M_structure->Nright = Nright;
-        std::cout << "Nleft " << Nleft << std::endl;
-        std::cout << "Nright " << Nright << std::endl;
 
         for (unsigned int bind = 0; bind < M_basis.size(); bind++)
         {

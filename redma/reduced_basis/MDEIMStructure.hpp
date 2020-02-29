@@ -24,10 +24,54 @@ namespace RedMA
 
 struct MDEIMStructure
 {
-    MDEIMStructure() :
+    MDEIMStructure(std::string pathfile = "", EPETRACOMM comm = nullptr) :
       allocated(false)
     {
+        if (pathfile != "")
+        {
+            std::ifstream infile;
+            infile.open(pathfile, std::ios_base::in);
 
+            // If anyone will ever read this code, I am sorry
+            loadValue(infile, N);
+            loadValue(infile, numGlobalNonzeros);
+            loadValue(infile, numMyNonzeros);
+            loadValue(infile, numMyRows);
+            loadValue(infile, numGlobalReducedNodes);
+            loadValue(infile, numMyGlobalReducedNodes);
+            loadValue(infile, numReducedElements);
+            loadValue(infile, numReducedGlobalNonzeros);
+            loadValue(infile, numReducedMyNonzeros);
+            loadValue(infile, numReducedMyRows);
+            loadValue(infile, numMyLocalMagicPoints);
+            loadValue(infile, Nleft);
+            loadValue(infile, Nright);
+            loadRawVector(infile, numMyEntries, numMyRows);
+            loadRawVector(infile, partialSumMyEntries, numMyRows+1);
+            loadRawVector(infile, myRowMatrixEntriesOfMagicPoints, numMyLocalMagicPoints);
+            loadRawVector(infile, myColMatrixEntriesOfMagicPoints, numMyLocalMagicPoints);
+            loadRawVector(infile, rowLocalReducedIndices, numMyLocalMagicPoints);
+            loadRawVector(infile, globalReducedNodes, 2 * numMyLocalMagicPoints);
+            loadRawVector(infile, myGlobalReducedNodes, numMyGlobalReducedNodes);
+            loadRawVector(infile, reducedElements, numReducedElements);
+            loadRawVector(infile, numMyReducedEntries, numMyLocalMagicPoints);
+            loadRawVector(infile, columnLocalReducedIndices, numMyLocalMagicPoints);
+            loadSTDVector(infile, myLocalMagicPoints);
+            loadSTDVector(infile, localIndicesMagicPoints);
+            loadSTDVector(infile, magicPointsProcOwner);
+            loadSTDVector(infile, globalIndicesMagicPoints);
+            loadMatrix(infile, Qj, N, N);
+            loadMatrix(infile, columnIndices, numMyRows, numMyEntries);
+
+            int * myGlobalElements = 0;
+
+            vectorMap.reset(new MAPEPETRA(numGlobalNonzeros,
+                                          numMyNonzeros,
+                                          myGlobalElements, comm));
+
+            infile.close();
+            allocated = true;
+        }
     }
 
     ~MDEIMStructure()
@@ -52,6 +96,85 @@ struct MDEIMStructure
         }
     }
 
+    void loadMatrix(std::ifstream& infile, Epetra_SerialDenseMatrix& matrix,
+                    int dim1, int dim2)
+    {
+        matrix.Reshape(dim1, dim2);
+
+        std::string value;
+        std::string line;
+        getline(infile,line);
+
+        std::stringstream linestream(line);
+        getline(linestream,value,','); // we discard the first value (field name)
+
+        for (int i = 0; i < dim1; i++)
+        {
+            for (int j = 0; j < dim2; j++)
+            {
+                getline(linestream, value, ',');
+                matrix[i][j] = std::atof(value.c_str());
+            }
+        }
+    }
+
+    void loadMatrix(std::ifstream& infile, int**& matrix, int dim1, int* dim2)
+    {
+        matrix = new int*[dim1];
+
+        std::string value;
+        std::string line;
+        getline(infile,line);
+
+        std::stringstream linestream(line);
+        getline(linestream,value,','); // we discard the first value (field name)
+
+        for (int i = 0; i < dim1; i++)
+        {
+            matrix[i] = new int[dim2[i]];
+            for (int j = 0; j < dim2[i]; j++)
+            {
+                getline(linestream, value, ',');
+                matrix[i][j] = std::atoi(value.c_str());
+            }
+        }
+    }
+
+    template <typename Type>
+    void loadRawVector(std::ifstream& infile, Type*& targetVector, unsigned int numElements)
+    {
+        targetVector = new Type[numElements];
+
+        std::string line;
+        std::getline(infile,line);
+
+        unsigned int count = 0;
+        std::stringstream linestream(line);
+        std::string value;
+        while (getline(linestream,value,','))
+        {
+            if (count > 0)
+                targetVector[count-1] = std::atoi(value.c_str());
+            count++;
+        }
+    }
+
+    void loadSTDVector(std::ifstream& infile, std::vector<int>& targetVector)
+    {
+        std::string line;
+        std::getline(infile,line);
+
+        unsigned int count = 0;
+        std::stringstream linestream(line);
+        std::string value;
+        while (getline(linestream,value,','))
+        {
+            if (count > 0)
+                targetVector.push_back(std::atoi(value.c_str()));
+            count++;
+        }
+    }
+
     void dumpMDEIMStructure(std::string dir)
     {
         std::ofstream outfile;
@@ -62,6 +185,7 @@ struct MDEIMStructure
         outfile << value2string("numMyNonzeros", numMyNonzeros);
         outfile << value2string("numMyRows", numMyRows);
         outfile << value2string("numGlobalReducedNodes", numGlobalReducedNodes);
+        outfile << value2string("numMyGlobalReducedNodes", numMyGlobalReducedNodes);
         outfile << value2string("numReducedElements", numReducedElements);
         outfile << value2string("numReducedGlobalNonzeros", numReducedGlobalNonzeros);
         outfile << value2string("numReducedMyNonzeros", numReducedMyNonzeros);
@@ -89,6 +213,23 @@ struct MDEIMStructure
         outfile << matrix2string("columnIndices", columnIndices, numMyRows, numMyEntries);
 
         outfile.close();
+    }
+
+    template <typename Type>
+    void loadValue(std::ifstream& infile, Type& value)
+    {
+        std::string line;
+        std::getline(infile,line);
+
+        unsigned int count = 0;
+        std::stringstream linestream(line);
+        std::string stringValue;
+        while (getline(linestream,stringValue,','))
+        {
+            if (count == 1)
+                value = std::atoi(stringValue.c_str());
+            count++;
+        }
     }
 
     template <typename Type>

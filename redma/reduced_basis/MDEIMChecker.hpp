@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef MDEIMGENERATOR_HPP
-#define MDEIMGENERATOR_HPP
+#ifndef MDEIMCHECKER_HPP
+#define MDEIMCHECKER_HPP
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
@@ -29,37 +29,24 @@
 namespace RedMA
 {
 
-class MDEIMGenerator
+class MDEIMChecker
 {
 public:
 
-    MDEIMGenerator(const DataContainer& data, EPETRACOMM comm);
+    MDEIMChecker(const DataContainer& data, EPETRACOMM comm);
 
-    void generateMDEIM();
+    void checkOnlineMDEIM();
 
 private:
-    void takeMatricesSnapshots();
 
-    void performMDEIM();
-
-    void checkMDEIM();
-
-    void projectMDEIM();
-
-    void dumpMDEIMstructures();
-
-    std::vector<SHP(VECTOREPETRA)> readRBBasisFromFile(std::string file,
-                                                       SHP(FESPACE) fespace);
-
-    std::string getMeshName(std::string mapkey);
+    void loadMDEIMs();
 
     DataContainer                                     M_data;
     EPETRACOMM                                        M_comm;
-    // one MDEIM instance for every matrix of the problem (e.g. stiffness, mass, ecc)
-    std::map<std::string, std::vector<BlockMDEIM>>    M_blockMDEIMsMap;
 
+    std::map<std::string, std::vector<BlockMDEIM>>    M_blockMDEIMsMap;
 };
 
 }  // namespace RedMA
 
-#endif  // MDEIMGENERATOR_HPP
+#endif  // MDEIMChecker

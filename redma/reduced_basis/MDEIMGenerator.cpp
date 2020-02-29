@@ -18,7 +18,7 @@ generateMDEIM()
 {
     takeMatricesSnapshots();
     performMDEIM();
-    projectMDEIM();
+    // projectMDEIM();
 
     checkMDEIM();
     dumpMDEIMstructures();
@@ -36,11 +36,7 @@ dumpMDEIMstructures()
 
     for (auto& mapit : M_blockMDEIMsMap)
     {
-        unsigned int dashpos = mapit.first.find("/");
-        unsigned int formatpos = mapit.first.find(".mesh");
-        std::string actualmeshname = mapit.first.substr(dashpos + 1, formatpos - dashpos - 1);
-
-        std::string curdir = outdir + "/" + actualmeshname;
+        std::string curdir = outdir + "/" + mapit.first;
         create_directory(curdir);
 
         auto& mdeims = mapit.second;
@@ -131,11 +127,19 @@ void
 MDEIMGenerator::
 performMDEIM()
 {
+    using namespace boost::filesystem;
+
+    std::string outdir = M_data("mdeim/directory", "mdeims");
+    create_directory(outdir);
+
     for (auto& mapit : M_blockMDEIMsMap)
     {
+        std::string curdir = outdir + "/" + mapit.first;
+        create_directory(curdir);
+
         auto& mdeims = mapit.second;
         for (auto& mdeim : mdeims)
-            mdeim.performMDEIM();
+            mdeim.performMDEIM(curdir);
     }
 }
 
@@ -151,14 +155,10 @@ projectMDEIM()
     {
         for (auto mdeims : M_blockMDEIMsMap)
         {
-            unsigned int dashpos = mdeims.first.find("/");
-            unsigned int formatpos = mdeims.first.find(".mesh");
-            std::string actualmeshname = mdeims.first.substr(dashpos + 1, formatpos - dashpos - 1);
-
             for (auto mdeim : mdeims.second)
             {
                 std::vector<std::vector<SHP(VECTOREPETRA)>> bases;
-                std::string curdir = basisdir + "/" + actualmeshname + "/";
+                std::string curdir = basisdir + "/" + mdeims.first + "/";
 
                 directory_iterator end_it;
 
@@ -174,7 +174,6 @@ projectMDEIM()
                         std::vector<SHP(VECTOREPETRA)> curBasis =
                         readRBBasisFromFile(curfile,
                                             mdeim.getAssembler()->getFEspace(componentIndex));
-                        std::cout << "curBasis size = " << curBasis.size() << std::endl << std::flush;
                         bases.push_back(curBasis);
                     }
                 }

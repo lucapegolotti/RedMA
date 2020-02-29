@@ -44,7 +44,7 @@ public:
 
     void addSnapshot(BlockMatrix<MatrixEp> newSnapshot);
 
-    void performMDEIM();
+    void performMDEIM(std::string outdir);
 
     void prepareOnline();
 
@@ -56,15 +56,19 @@ public:
 
     void projectMDEIMs();
 
+    void loadMDEIM(std::string dir);
+
     void setRBBases(std::vector<std::vector<SHP(VECTOREPETRA)>> bases);
 
     inline void setMatrixIndex(const unsigned int& index) {M_matIndex = index;}
 
     SHP(aAssembler<FEVECTOR COMMA FEMATRIX>) getAssembler() {return M_assembler;}
 
+    void resize(unsigned int rows, unsigned int cols);
+
 private:
 
-    void initializeMDEIMs(BlockMatrix<MatrixEp> matrix);
+    void setupMDEIMs();
 
     GridMDEIM                                   M_mdeims;
     unsigned int                                M_matIndex;

@@ -68,11 +68,7 @@ dumpSnapshots(ProblemFEM& problem,
 
     for (auto idmeshtype : IDmeshTypeMap)
     {
-        unsigned int dashpos = idmeshtype.second.find("/");
-        unsigned int formatpos = idmeshtype.second.find(".mesh");
-        std::string actualmeshname = idmeshtype.second.substr(dashpos + 1, formatpos - dashpos - 1);
-
-        std::string meshtypedir = outdir + "/" + actualmeshname;
+        std::string meshtypedir = outdir + "/" + idmeshtype.second;
         boost::filesystem::create_directory(meshtypedir);
 
         unsigned int nfields = solutions[0].block(idmeshtype.first).nRows();
@@ -101,7 +97,8 @@ dumpSnapshots(ProblemFEM& problem,
         if (computereynolds)
         {
             std::ofstream reynoldsfile;
-            reynoldsfile.open(meshtypedir + "/reynolds.txt", std::ios::binary);
+            reynoldsfile.open(meshtypedir + "/reynolds.txt", std::ios_base::app |
+                                                             std::ios::binary);
             for (auto sol : solutions)
             {
                 double Umax = sol.block(idmeshtype.first).block(0).maxMagnitude3D();
