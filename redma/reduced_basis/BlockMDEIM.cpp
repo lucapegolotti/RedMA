@@ -153,7 +153,7 @@ checkOnline()
                 curMat -= completeMat.block(i,j);
 
                 std::cout << "NORM actualMatrix = " << completeMat.block(i,j).data()->normFrobenius() << std::endl << std::flush;
-                std::cout << "NORM DIFFERENCE = " << curMat.data()->normFrobenius() << std::endl << std::flush;
+                std::cout << "REL NORM DIFFERENCE = " << curMat.data()->normFrobenius() / completeMat.block(i,j).data()->normFrobenius() << std::endl << std::flush;
             }
         }
     }

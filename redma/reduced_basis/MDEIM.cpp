@@ -521,7 +521,7 @@ checkOnline(MatrixEp reducedMatrix, MatrixEp fullMatrix)
         approxMat -= fullMatrix;
 
         std::cout << "NORM actualMatrix = " << actualMatrix->normFrobenius() << std::endl << std::flush;
-        std::cout << "NORM DIFFERENCE = " << approxMat.data()->normFrobenius() << std::endl << std::flush;
+        std::cout << "REL NORM DIFFERENCE = " << approxMat.data()->normFrobenius() / actualMatrix->normFrobenius() << std::endl << std::flush;
     }
 }
 
@@ -794,11 +794,12 @@ projectMDEIM(std::vector<SHP(VECTOREPETRA)> leftBasis,
             basisMatrix->globalAssemble(M_domainMap, M_rangeMap);
             for (unsigned int i = 0; i < Nleft; i++)
             {
+                VECTOREPETRA aux(*rightBasis[0]->mapPtr());
+                basisMatrix->matrixPtr()->Multiply(true,
+                                leftBasis[i]->epetraVector(), aux.epetraVector());
+
                 for (unsigned int j = 0; j < Nright; j++)
                 {
-                    VECTOREPETRA aux(*rightBasis[0]->mapPtr());
-                    basisMatrix->matrixPtr()->Multiply(true,
-                                    leftBasis[i]->epetraVector(), aux.epetraVector());
                     (*newMatrix)(i,j) += aux.dot(*rightBasis[j]);
                 }
             }

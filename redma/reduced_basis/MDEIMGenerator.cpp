@@ -18,7 +18,7 @@ generateMDEIM()
 {
     takeMatricesSnapshots();
     performMDEIM();
-    // projectMDEIM();
+    projectMDEIM();
 
     checkMDEIM();
     dumpMDEIMstructures();
@@ -49,29 +49,39 @@ void
 MDEIMGenerator::
 checkMDEIM()
 {
-    unsigned int nChecks = M_data("mdeim/checksonline", 5);
-    double bound = M_data("mdeim/bound", 0.2);
+    // unsigned int nChecks = M_data("mdeim/checksonline", 5);
+    // double bound = M_data("mdeim/bound", 0.2);
+    //
+    // for (unsigned int i = 0; i < nChecks; i++)
+    // {
+    //     ProblemFEM problem(M_data, M_comm, false);
+    //
+    //     problem.getTree().randomSampleAroundOriginalValue(bound);
+    //     // this can be optimized. Matrices are assembled twice
+    //     problem.setup();
+    //
+    //     auto assemblers = problem.getBlockAssembler()->getAssemblersMap();
+    //     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
+    //
+    //     for (auto as : assemblers)
+    //     {
+    //         for (auto& mdeim : M_blockMDEIMsMap[IDmeshTypeMap[as.first]])
+    //         {
+    //             mdeim.setAssembler(as.second);
+    //             mdeim.prepareOnline();
+    //             // mdeim.checkOnline();
+    //             mdeim.checkOnSnapshots();
+    //         }
+    //     }
+    // }
 
-    for (unsigned int i = 0; i < nChecks; i++)
+
+    for (auto& blockmdeims : M_blockMDEIMsMap)
     {
-        ProblemFEM problem(M_data, M_comm, false);
-
-        problem.getTree().randomSampleAroundOriginalValue(bound);
-        // this can be optimized. Matrices are assembled twice
-        problem.setup();
-
-        auto assemblers = problem.getBlockAssembler()->getAssemblersMap();
-        auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
-
-        for (auto as : assemblers)
+        for (auto& mdeim : blockmdeims.second)
         {
-            for (auto& mdeim : M_blockMDEIMsMap[IDmeshTypeMap[as.first]])
-            {
-                mdeim.setAssembler(as.second);
-                mdeim.prepareOnline();
-                mdeim.checkOnline();
-                // mdeim.checkOnSnapshots();
-            }
+            mdeim.prepareOnline();
+            mdeim.checkOnSnapshots();
         }
     }
 
