@@ -65,6 +65,8 @@ public:
 
     void loadMDEIM(std::string pathdir);
 
+    FEMATRIX assembleMatrix(FEMATRIX reducedMatrix);
+
 private:
 
     void vectorizeSnapshots();

@@ -66,6 +66,8 @@ public:
 
     void resize(unsigned int rows, unsigned int cols);
 
+    BlockMatrix<FEMATRIX> assembleMatrix();
+
 private:
 
     void setupMDEIMs();

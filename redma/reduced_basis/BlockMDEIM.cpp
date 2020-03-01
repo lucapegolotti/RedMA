@@ -122,7 +122,6 @@ void
 BlockMDEIM::
 prepareOnline()
 {
-    std::cout << "preparing online " << std::endl << std::flush;
     BlockMatrix<FEMATRIX> mat = M_assembler->assembleMatrix(M_matIndex, &M_structures);
 
     for (unsigned int i = 0; i < M_nRows; i++)
@@ -138,17 +137,45 @@ void
 BlockMDEIM::
 checkOnline()
 {
-    BlockMatrix<FEMATRIX> reducedMat = M_assembler->assembleMatrix(M_matIndex, &M_structures);
-
     BlockMatrix<FEMATRIX> completeMat = M_assembler->assembleMatrix(M_matIndex);
+    BlockMatrix<FEMATRIX> approxMat = assembleMatrix();
 
     for (unsigned int i = 0; i < M_nRows; i++)
     {
         for (unsigned int j = 0; j < M_nCols; j++)
         {
-            M_mdeims(i,j)->checkOnline(reducedMat.block(i,j), completeMat.block(i,j));
+            FEMATRIX curMat(approxMat.block(i,j));
+            if (curMat.data())
+            {
+                std::cout << "=======CHECKING ONLINE MDEIM========" << std::endl << std::flush;
+                std::cout << "NORM apprMatrix = " << curMat.data()->normFrobenius() << std::endl << std::flush;
+
+                curMat -= completeMat.block(i,j);
+
+                std::cout << "NORM actualMatrix = " << completeMat.block(i,j).data()->normFrobenius() << std::endl << std::flush;
+                std::cout << "NORM DIFFERENCE = " << curMat.data()->normFrobenius() << std::endl << std::flush;
+            }
         }
     }
+}
+
+BlockMatrix<MatrixEp>
+BlockMDEIM::
+assembleMatrix()
+{
+    BlockMatrix<FEMATRIX> retMat;
+    retMat.resize(M_nRows, M_nCols);
+
+    BlockMatrix<FEMATRIX> reducedMat = M_assembler->assembleMatrix(M_matIndex, &M_structures);
+
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            retMat.block(i,j).softCopy(M_mdeims(i,j)->assembleMatrix(reducedMat.block(i,j)));
+        }
+    }
+    return retMat;
 }
 
 void

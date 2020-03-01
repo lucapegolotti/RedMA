@@ -511,6 +511,28 @@ checkOnline(MatrixEp reducedMatrix, MatrixEp fullMatrix)
 {
     if (M_isInitialized)
     {
+        FEMATRIX approxMat(assembleMatrix(reducedMatrix));
+
+        SHP(MATRIXEPETRA) actualMatrix = fullMatrix.data();
+
+        std::cout << "=======CHECKING ONLINE MDEIM========" << std::endl << std::flush;
+        std::cout << "NORM apprMatrix = " << approxMat.data()->normFrobenius() << std::endl << std::flush;
+
+        approxMat -= fullMatrix;
+
+        std::cout << "NORM actualMatrix = " << actualMatrix->normFrobenius() << std::endl << std::flush;
+        std::cout << "NORM DIFFERENCE = " << approxMat.data()->normFrobenius() << std::endl << std::flush;
+    }
+}
+
+FEMATRIX
+MDEIM::
+assembleMatrix(FEMATRIX reducedMatrix)
+{
+    FEMATRIX retMat;
+
+    if (M_isInitialized)
+    {
         auto ms = M_structure;
 
         // Comparison vectors
@@ -531,17 +553,9 @@ checkOnline(MatrixEp reducedMatrix, MatrixEp fullMatrix)
         reconstructMatrixFromVectorizedForm(*approximation, *apprMatrix);
 
         apprMatrix->globalAssemble(M_domainMap, M_rangeMap);
-
-        SHP(MATRIXEPETRA) actualMatrix = fullMatrix.data();
-
-        std::cout << "===============" << std::endl << std::flush;
-        std::cout << "NORM apprMatrix = " << apprMatrix->normFrobenius() << std::endl << std::flush;
-
-        *apprMatrix -= *actualMatrix;
-
-        std::cout << "NORM actualMatrix = " << actualMatrix->normFrobenius() << std::endl << std::flush;
-        std::cout << "NORM DIFFERENCE = " << apprMatrix->normFrobenius() << std::endl << std::flush;
+        retMat.data() = apprMatrix;
     }
+    return retMat;
 }
 
 void
