@@ -494,7 +494,7 @@ computeInterpolationRhsOnline(Epetra_SerialDenseVector& interpVector,
 
 void
 MDEIM::
-computeFeInterpolation(Epetra_SerialDenseVector& interpolationCoefficients,
+computeFeInterpolation(DENSEVECTOR& interpolationCoefficients,
                        VECTOREPETRA& vector)
 {
     int currentDeimBasisSize(M_structure->Qj.M());
@@ -503,6 +503,22 @@ computeFeInterpolation(Epetra_SerialDenseVector& interpolationCoefficients,
     for (int iB = 0; iB < currentDeimBasisSize; iB++)
         vector.epetraVector().Update(interpolationCoefficients(iB),
                                      M_basis[iB]->epetraVector(), 1.);
+}
+
+void
+MDEIM::
+computeProjectedInterpolation(DENSEVECTOR& interpolationCoefficients,
+                              DENSEVECTOR& vector)
+{
+    int currentDeimBasisSize(M_structure->Qj.M());
+    vector.Scale(0.);
+
+    for (int iB = 0; iB < currentDeimBasisSize; iB++)
+    {
+        DENSEVECTOR aux(*M_basisProjected[iB]);
+        aux.Scale(interpolationCoefficients(iB));
+        vector += aux;
+    }
 }
 
 void
@@ -545,7 +561,6 @@ assembleMatrix(FEMATRIX reducedMatrix)
         approximation.reset(new VECTOREPETRA(*ms->vectorMap));
         computeFeInterpolation(myInterpVector, *approximation);
 
-        // Comparison matrix
         SHP(MATRIXEPETRA) apprMatrix;
         apprMatrix.reset(new MATRIXEPETRA(M_fespace->map(), 100));
         apprMatrix->matrixPtr( )->Scale(0.);
@@ -553,6 +568,36 @@ assembleMatrix(FEMATRIX reducedMatrix)
         reconstructMatrixFromVectorizedForm(*approximation, *apprMatrix);
 
         apprMatrix->globalAssemble(M_domainMap, M_rangeMap);
+        retMat.data() = apprMatrix;
+    }
+    return retMat;
+}
+
+RBMATRIX
+MDEIM::
+assembleProjectedMatrix(FEMATRIX reducedMatrix)
+{
+    RBMATRIX retMat;
+
+    if (M_isInitialized)
+    {
+        auto ms = M_structure;
+
+        // Comparison vectors
+        SHP(DENSEVECTOR) approximation;
+
+        // Compute interpolation vector
+        Epetra_SerialDenseVector myInterpVector(ms->N);
+        computeInterpolationVectorOnline(myInterpVector, reducedMatrix);
+        // Build FEM vector from interpolation vector
+        approximation.reset(new DENSEVECTOR((ms->Nleft) * (ms->Nright)));
+        computeProjectedInterpolation(myInterpVector, *approximation);
+
+        SHP(DENSEMATRIX) apprMatrix;
+        apprMatrix->Scale(0.);
+
+        reconstructMatrixFromVectorizedForm(*approximation, *apprMatrix);
+
         retMat.data() = apprMatrix;
     }
     return retMat;
@@ -627,6 +672,29 @@ reconstructMatrixFromVectorizedForm(VECTOREPETRA& vectorizedAh,
         Ah.matrixPtr()->InsertGlobalValues(Ah.matrixPtr()->GRID(iR), ms->numMyEntries[iR],
                                            vectorizedAh.epetraVector()[0] + rowStart, ms->columnIndices[iR]);
         rowStart += ms->numMyEntries[iR];
+    }
+}
+
+void
+MDEIM::
+reconstructMatrixFromVectorizedForm(DENSEVECTOR& vectorizedAn,
+                                    DENSEMATRIX& An)
+{
+    auto ms = M_structure;
+
+    unsigned int nrows = ms->Nleft;
+    unsigned int ncols = ms->Nright;
+
+    An.Reshape(nrows, ncols);
+
+    unsigned int linearcount = 0;
+    for (unsigned int i = 0; i < nrows; i++)
+    {
+        for (unsigned int j = 0; j < ncols; j++)
+        {
+            An(i,j) = vectorizedAn(linearcount);
+            linearcount++;
+        }
     }
 }
 

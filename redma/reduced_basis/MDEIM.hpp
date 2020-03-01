@@ -67,6 +67,8 @@ public:
 
     FEMATRIX assembleMatrix(FEMATRIX reducedMatrix);
 
+    RBMATRIX assembleProjectedMatrix(FEMATRIX reducedMatrix);
+
 private:
 
     void vectorizeSnapshots();
@@ -84,6 +86,9 @@ private:
     void computeFeInterpolation(DENSEVECTOR& interpolationCoefficients,
                                 VECTOREPETRA& vector);
 
+    void computeProjectedInterpolation(DENSEVECTOR& interpolationCoefficients,
+                                       DENSEVECTOR& vector);
+
     void loadBasis(std::string filename);
 
     void buildReducedMesh();
@@ -100,6 +105,9 @@ private:
 
     void reconstructMatrixFromVectorizedForm(VECTOREPETRA& vectorizedAh,
                                              MATRIXEPETRA& Ah);
+
+    void reconstructMatrixFromVectorizedForm(DENSEVECTOR& vectorizedAn,
+                                             DENSEMATRIX& An);
 
     void dumpBasis(std::string dir);
 

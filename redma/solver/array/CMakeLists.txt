@@ -21,5 +21,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Double.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockMaps.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DenseVector.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DenseMatrix.cpp
     CACHE INTERNAL ""
 )
