@@ -71,9 +71,9 @@ resize(unsigned int rows, unsigned int cols)
 
 void
 BlockMDEIM::
-setRBBases(std::vector<std::vector<SHP(VECTOREPETRA)>> bases)
+setRBBases(SHP(RBBases) bases)
 {
-    M_RBbases = bases;
+    M_bases = bases;
 }
 
 void
@@ -220,7 +220,7 @@ projectMDEIMs()
     {
         for (unsigned int j = 0; j < M_nCols; j++)
         {
-            M_mdeims(i,j)->projectMDEIM(M_RBbases[i], M_RBbases[j]);
+            M_mdeims(i,j)->projectMDEIM(M_bases->getBasis(i), M_bases->getBasis(j));
         }
     }
 }

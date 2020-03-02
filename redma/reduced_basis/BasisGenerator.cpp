@@ -11,7 +11,7 @@ BasisGenerator(const DataContainer& data, EPETRACOMM comm) :
     if (M_comm->MyPID() != 0)
         throw new Exception("BasisGenerator does not support more than one proc");
 
-        std::string outdir = M_data("rbbasis/directory", "basis");
+    std::string outdir = M_data("rbbasis/directory", "basis");
 
     if (boost::filesystem::exists(outdir))
         throw new Exception("Basis directory already exists!");
@@ -24,6 +24,7 @@ generateBasis()
 {
     parseFiles();
     performPOD();
+    addSupremizers();
     dumpBasis();
 }
 
@@ -55,6 +56,121 @@ parseFiles()
         i++;
     }
     printlog(MAGENTA, "done\n", M_data.getVerbose());
+}
+
+LifeV::LinearSolver
+BasisGenerator::
+setupLinearSolver(MatrixEp matrix)
+{
+    // vectorPtr_Type solution;
+    // // reset solution vector
+    // solution.reset(new vector_Type(M_fespace->map(), LifeV::Unique));
+    // solution->zero();
+    //
+    // // solver part
+    // LifeV::LinearSolver linearSolver(M_comm);
+    // linearSolver.setOperator(M_stiffness);
+    //
+    // Teuchos::RCP<Teuchos::ParameterList> aztecList =
+    //                                    Teuchos::rcp(new Teuchos::ParameterList);
+    // aztecList = Teuchos::getParametersFromXmlFile(M_XMLsolver);
+    // linearSolver.setParameters(*aztecList);
+    //
+    // typedef LifeV::PreconditionerML         precML_type;
+    // typedef std::shared_ptr<precML_type>    precMLPtr_type;
+    // precML_type * precRawPtr;
+    // precRawPtr = new precML_type;
+    // // we set to look for the "fake" precMLL entry in order to set the
+    // // default parameters of ML preconditioner
+    // GetPot dummyDatafile;
+    // precRawPtr->setDataFromGetPot(dummyDatafile, "precMLL");
+    // std::shared_ptr<LifeV::Preconditioner> precPtr;
+    // precPtr.reset(precRawPtr);
+    //
+    // linearSolver.setPreconditioner(precPtr);
+    // linearSolver.setRightHandSide(M_rhs);
+    // linearSolver.solve(solution);
+
+    // vectorPtr_Type solution;
+    // // reset solution vector
+    // solution.reset(new vector_Type(M_fespace->map(), LifeV::Unique));
+    // solution->zero();
+
+    // solver part
+    LifeV::LinearSolver linearSolver(M_comm);
+    linearSolver.setOperator(matrix.data());
+
+    Teuchos::RCP<Teuchos::ParameterList> aztecList =
+                                       Teuchos::rcp(new Teuchos::ParameterList);
+
+    std::string xmlfile = M_data("rbbasis/primal_supremizers/xmlfile", "SolverParamList.xml");
+    aztecList = Teuchos::getParametersFromXmlFile(xmlfile);
+    linearSolver.setParameters(*aztecList);
+
+    typedef LifeV::PreconditionerML         precML_type;
+    typedef std::shared_ptr<precML_type>    precMLPtr_type;
+    precML_type * precRawPtr;
+    precRawPtr = new precML_type;
+
+    GetPot dummyDatafile;
+    precRawPtr->setDataFromGetPot(dummyDatafile, "precMLL");
+    std::shared_ptr<LifeV::Preconditioner> precPtr;
+    precPtr.reset(precRawPtr);
+
+    linearSolver.setPreconditioner(precPtr);
+    // linearSolver.setRightHandSide(M_rhs);
+    // linearSolver.solve(solution);
+    return linearSolver;
+}
+
+void
+BasisGenerator::
+addSupremizers()
+{
+    bool addprimalsupremizers = M_data("rbbasis/addprimalsupremizers", true);
+    if (addprimalsupremizers)
+    {
+        printlog(MAGENTA, "[BasisGenerator] adding primal supremizers ... \n", M_data.getVerbose());
+
+        unsigned int field2augment = M_data("rbbasis/primal_supremizers/field2augment", 0);
+        unsigned int limitingfield = M_data("rbbasis/primal_supremizers/limitingfield", 1);
+
+        for (auto& meshas : M_meshASPairMap)
+        {
+            printlog(GREEN, "mesh = " + meshas.first + "\n", M_data.getVerbose());
+            // note: BCs. Here the matrix must have ones on the nodes corresponding
+            // to dirichlet nodes. So, if norm = mass + stiffness (H1 norm),
+            // than mass can have 1s on diagonal and stiffness 0s
+            MatrixEp normMatrix = meshas.second.first->getNorm(field2augment);
+
+            // here the matrix must have 0 on the nodes corresponding to dirichlet
+            // nodes
+            MatrixEp constraintMatrix = meshas.second.first->getConstraintMatrix();
+            auto map = *constraintMatrix.data()->rangeMapPtr();
+            auto linearSolver = setupLinearSolver(normMatrix);
+
+            std::vector<SHP(VECTOREPETRA)> basisFunctions = M_bases[meshas.first]->getBasis(limitingfield);
+            for (unsigned int i = 0; i < basisFunctions.size(); i++)
+            {
+                printlog(YELLOW, "adding supremizer " + std::to_string(i) + " ... \n",
+                         M_data.getVerbose());
+
+                VectorEp basisFunction;
+                basisFunction = basisFunctions[i];
+
+                VectorEp rhs = constraintMatrix * basisFunction;
+
+                linearSolver.setRightHandSide(rhs.data());
+
+                SHP(VECTOREPETRA) solution(new VECTOREPETRA(map, LifeV::Unique));
+                linearSolver.solve(solution);
+
+                meshas.second.second[field2augment].push_back(solution);
+            }
+        }
+    }
+    // bool adddualsupremizers = M_data("rbbasis/adddualsupremizers", true);
+
 }
 
 void
@@ -89,10 +205,10 @@ performPOD()
             std::vector<SHP(VECTOREPETRA)> basisFunctions(nbfs);
 
             pod.swapReducedBasis(basisFunctions, 0);
-            newBasisFunctions[count] = basisFunctions;
+            M_bases[pair.first]->setPath(outdir + "/" + pair.first);
+            M_bases[pair.first]->getBasis(count) = basisFunctions;
             count++;
         }
-        M_rbFunctions[pair.first] = newBasisFunctions;
     }
     printlog(MAGENTA, "done\n", M_data.getVerbose());
 }
@@ -144,6 +260,16 @@ parseParameterSnapshots(const std::string& paramDir)
 
         M_meshASPairMap[nameMesh].first = defAssembler;
         M_meshASPairMap[nameMesh].second.resize(defAssembler->getNumComponents());
+
+        M_bases[nameMesh].reset(new RBBases(M_data, M_comm));
+        M_bases[nameMesh]->setNumberOfFields(defAssembler->getNumComponents());
+        unsigned int indexField = 0;
+        while (defAssembler->getFEspace(indexField))
+        {
+            M_bases[nameMesh]->setFESpace(defAssembler->getFEspace(indexField),
+                                          indexField);
+            indexField++;
+        }
     }
 
     directory_iterator end_it;
@@ -206,29 +332,12 @@ dumpBasis()
 
     create_directory(outdir);
 
-    for (auto meshbasis : M_rbFunctions)
+    for (auto meshbasis : M_bases)
     {
         std::string meshdir = outdir + "/" + meshbasis.first;
         create_directory(meshdir);
 
-        unsigned int fieldIndex = 0;
-        for (auto singlebasis : meshbasis.second)
-        {
-            std::ofstream outfile;
-            outfile.open(meshdir + "/field" + std::to_string(fieldIndex) + ".basis", omode);
-
-            for (auto vec : singlebasis)
-            {
-                FEVECTOR curvec;
-                curvec.data() = vec;
-                std::string str2write = curvec.getString(',') + "\n";
-
-                outfile.write(str2write.c_str(), str2write.size());
-            }
-
-            outfile.close();
-            fieldIndex++;
-        }
+        M_bases[meshbasis.first]->dump();
     }
 
 }

@@ -1,0 +1,59 @@
+// Reduced Modeling of Arteries (RedMA)
+// Copyright (C) 2019  Luca Pegolotti
+//
+// RedMA is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// RedMA is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#ifndef RBBASES_HPP
+#define RBBASES_HPP
+
+#include <redma/RedMA.hpp>
+#include <redma/solver/problem/DataContainer.hpp>
+#include <redma/solver/problem/ProblemFEM.hpp>
+
+namespace RedMA
+{
+
+class RBBases
+{
+public:
+    RBBases(const DataContainer& data, EPETRACOMM comm);
+
+    void setNumberOfFields(const unsigned int& nfields);
+
+    void setPath(std::string path);
+
+    void loadSingularValues();
+
+    void loadBases();
+
+    void dump();
+
+    void setFESpace(SHP(FESPACE) fespace, const unsigned int& indexbasis);
+
+    std::vector<SHP(VECTOREPETRA)>& getBasis(const unsigned int& index, double tol = 0);
+
+private:
+    unsigned int                                    M_numFields;
+    DataContainer                                   M_data;
+    EPETRACOMM                                      M_comm;
+    std::vector<std::vector<SHP(VECTOREPETRA)>>     M_bases;
+    std::string                                     M_meshName;
+    std::string                                     M_path;
+    std::vector<std::vector<double>>                M_svs;
+    std::vector<SHP(FESPACE)>                       M_fespaces;
+};
+
+}  // namespace RedMA
+
+#endif  // RBBASES_HPP

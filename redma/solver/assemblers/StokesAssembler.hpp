@@ -122,6 +122,10 @@ public:
     virtual BlockMatrix<InMatrixType> assembleMatrix(const unsigned int& index,
                                                      BlockMDEIMStructure* structure = nullptr) override;
 
+    virtual InMatrixType getNorm(const unsigned int& fieldIndex) override;
+
+    virtual InMatrixType getConstraintMatrix() override;
+
 protected:
     // void computeWallShearStress(const BlockVector<InVectorType>& sol);
 

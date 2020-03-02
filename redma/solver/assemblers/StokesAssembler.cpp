@@ -73,6 +73,9 @@ assembleStiffness(BlockMDEIMStructure* structure)
 
     stiffness.block(0,0).data() = A;
 
+    M_bcManager->apply0DirichletMatrix(stiffness, getFESpaceBCs(),
+                                       getComponentBCs(), 0.0);
+
     return stiffness;
 }
 
@@ -185,6 +188,9 @@ assembleDivergence(BlockMDEIMStructure* structure)
 
     divergence.block(0,1).data() = BT;
     divergence.block(1,0).data() = B;
+
+    M_bcManager->apply0DirichletMatrix(divergence, getFESpaceBCs(),
+                                       getComponentBCs(), 0.0);
 
     return divergence;
 }

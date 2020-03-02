@@ -49,33 +49,6 @@ void
 MDEIMGenerator::
 checkMDEIM()
 {
-    // unsigned int nChecks = M_data("mdeim/checksonline", 5);
-    // double bound = M_data("mdeim/bound", 0.2);
-    //
-    // for (unsigned int i = 0; i < nChecks; i++)
-    // {
-    //     ProblemFEM problem(M_data, M_comm, false);
-    //
-    //     problem.getTree().randomSampleAroundOriginalValue(bound);
-    //     // this can be optimized. Matrices are assembled twice
-    //     problem.setup();
-    //
-    //     auto assemblers = problem.getBlockAssembler()->getAssemblersMap();
-    //     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
-    //
-    //     for (auto as : assemblers)
-    //     {
-    //         for (auto& mdeim : M_blockMDEIMsMap[IDmeshTypeMap[as.first]])
-    //         {
-    //             mdeim.setAssembler(as.second);
-    //             mdeim.prepareOnline();
-    //             // mdeim.checkOnline();
-    //             mdeim.checkOnSnapshots();
-    //         }
-    //     }
-    // }
-
-
     for (auto& blockmdeims : M_blockMDEIMsMap)
     {
         for (auto& mdeim : blockmdeims.second)
@@ -163,32 +136,21 @@ projectMDEIM()
 
     if (exists(basisdir))
     {
-        for (auto mdeims : M_blockMDEIMsMap)
+        for (auto& mdeims : M_blockMDEIMsMap)
         {
-            for (auto mdeim : mdeims.second)
+            for (auto& mdeim : mdeims.second)
             {
-                std::vector<std::vector<SHP(VECTOREPETRA)>> bases;
-                std::string curdir = basisdir + "/" + mdeims.first + "/";
+                unsigned int numFields = mdeim.getAssembler()->getNumComponents();
 
-                directory_iterator end_it;
+                SHP(RBBases) curBases(new RBBases(M_data, M_comm));
+                curBases->setPath(basisdir + "/" + mdeims.first);
+                curBases->setNumberOfFields(numFields);
 
-                for (directory_iterator it(curdir); it != end_it; it++)
-                {
-                    std::string curfile = it->path().string();
+                for (unsigned int i = 0; i < numFields; i++)
+                    curBases->setFESpace(mdeim.getAssembler()->getFEspace(i), i);
 
-                    if (curfile.find(".basis") != std::string::npos)
-                    {
-                        unsigned int dotpos = curfile.find_last_of(".");
-                        unsigned int componentIndex = std::atoi(curfile.substr(dotpos-1,dotpos).c_str());
-
-                        std::vector<SHP(VECTOREPETRA)> curBasis =
-                        readRBBasisFromFile(curfile,
-                                            mdeim.getAssembler()->getFEspace(componentIndex));
-                        bases.push_back(curBasis);
-                    }
-                }
-
-                mdeim.setRBBases(bases);
+                curBases->loadBases();
+                mdeim.setRBBases(curBases);
                 mdeim.projectMDEIMs();
             }
         }

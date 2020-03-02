@@ -90,6 +90,10 @@ public:
     virtual BlockMatrix<InMatrixType> assembleMatrix(const unsigned int& index,
                                                      BlockMDEIMStructure* structure = nullptr) {return BlockMatrix<InMatrixType>();}
 
+    virtual InMatrixType getNorm(const unsigned int& fieldIndex) {return InMatrixType();}
+
+    virtual InMatrixType getConstraintMatrix() {return InMatrixType();}
+
 protected:
     DataContainer                        M_data;
     SHP(TreeNode)                        M_treeNode;

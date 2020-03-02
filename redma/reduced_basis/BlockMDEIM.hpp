@@ -21,6 +21,7 @@
 #include <redma/solver/problem/DataContainer.hpp>
 #include <redma/solver/problem/ProblemFEM.hpp>
 #include <redma/solver/assemblers/AssemblerFactory.hpp>
+#include <redma/reduced_basis/RBBases.hpp>
 
 #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
 #include <rb/reduced_basis/util/EpetraArrayUtils.hpp>
@@ -58,7 +59,7 @@ public:
 
     void loadMDEIM(std::string dir);
 
-    void setRBBases(std::vector<std::vector<SHP(VECTOREPETRA)>> bases);
+    void setRBBases(SHP(RBBases) bases);
 
     inline void setMatrixIndex(const unsigned int& index) {M_matIndex = index;}
 
@@ -80,7 +81,7 @@ private:
     unsigned int                                M_nRows;
     unsigned int                                M_nCols;
     BlockMDEIMStructure                         M_structures;
-    std::vector<std::vector<SHP(VECTOREPETRA)>> M_RBbases;
+    SHP(RBBases)                                M_bases;
 };
 
 }  // namespace RedMA

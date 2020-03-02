@@ -28,6 +28,13 @@
 #include <redma/geometry/Tube.hpp>
 
 #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
+#include <redma/reduced_basis/RBBases.hpp>
+
+#include <lifev/core/algorithm/LinearSolver.hpp>
+#include <lifev/core/algorithm/PreconditionerML.hpp>
+#include <Teuchos_ParameterList.hpp>
+#include <Teuchos_XMLParameterListHelpers.hpp>
+#include <Teuchos_RCP.hpp>
 
 #include <boost/filesystem.hpp>
 
@@ -54,6 +61,8 @@ private:
 
     void dumpBasis();
 
+    void addSupremizers();
+
     SHP(TreeNode) generateDefaultTreeNode(const std::string& nameMesh);
 
     SHP(TreeNode) generateDefaultTube(const std::string& nameMesh);
@@ -64,10 +73,12 @@ private:
                               std::vector<SHP(VECTOREPETRA)>& snapshots,
                               SHP(FESPACE) fespace);
 
+    LifeV::LinearSolver setupLinearSolver(MatrixEp matrix);
+
     DataContainer                                       M_data;
     EPETRACOMM                                          M_comm;
     std::map<std::string, AssemblerSnapshotPair>        M_meshASPairMap;
-    std::map<std::string, VectorFunctions>              M_rbFunctions;
+    std::map<std::string, SHP(RBBases)>                 M_bases;
 };
 
 }  // namespace RedMA

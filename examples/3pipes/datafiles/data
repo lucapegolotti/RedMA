@@ -21,16 +21,16 @@
 [../]
 
 [snapshots]
-	number 			= 20
-	bound 			= 0.2
-	take_every 		= 1
-	dumpbinary 		= true
-	computereynolds = true
-	seed 			= 1234
+	number 			     = 20
+	bound 			     = 0.2
+	take_every 		     = 1
+	dumpbinary 		     = true
+	computereynolds      = true
+	seed 			     = 1234
 [../]
 
 [mdeim]
-	numbersnapshots = 3
+	numbersnapshots = 1
 	podtol 			= 1e-5
 	checksonline    = 1
 	loadfullbasis   = true
@@ -40,6 +40,12 @@
 	directory  = basis
 	podtol     = 1e-5
 	dumpbinary = true
+	addprimalsupremizers = true
+	[./primal_supremizers]
+		field2augment = 0
+		limitingfield = 1
+		xmlfile = datafiles/SolverParamList.xml
+	[../]
 [../]
 
 [preconditioner]

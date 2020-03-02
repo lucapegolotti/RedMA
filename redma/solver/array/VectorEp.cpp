@@ -81,6 +81,7 @@ VectorEp::
 operator=(const std::shared_ptr<VECTOREPETRA>& other)
 {
     M_vector = other;
+    return *this;
 }
 
 VectorEp&
