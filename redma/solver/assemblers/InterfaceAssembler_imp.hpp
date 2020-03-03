@@ -78,13 +78,15 @@ addContributionRhs(const double& time,
     // we have (-1) because we are solving H un+1 = F(.) and coupling is in F
     rhs.block(fatherID) -= M_fatherBT * sol.block(nPrimalBlocks + interfaceID);
     rhs.block(childID)  -= M_childBT * sol.block(nPrimalBlocks + interfaceID);
-    assemblerFather->getBCManager()->apply0DirichletBCs(rhs.block(fatherID),
-                                                        assemblerFather->getFESpaceBCs(),
-                                                        assemblerFather->getComponentBCs());
 
-    assemblerChild->getBCManager()->apply0DirichletBCs(rhs.block(childID),
-                                                       assemblerChild->getFESpaceBCs(),
-                                                       assemblerChild->getComponentBCs());
+    // no need to apply bcs as matrices have already bcs in them
+    // assemblerFather->getBCManager()->apply0DirichletBCs(rhs.block(fatherID),
+    //                                                     assemblerFather->getFESpaceBCs(),
+    //                                                     assemblerFather->getComponentBCs());
+    //
+    // assemblerChild->getBCManager()->apply0DirichletBCs(rhs.block(childID),
+    //                                                    assemblerChild->getFESpaceBCs(),
+    //                                                    assemblerChild->getComponentBCs());
 
     rhs.block(nPrimalBlocks + interfaceID) -= M_fatherB * sol.block(fatherID);
     rhs.block(nPrimalBlocks + interfaceID) -= M_childB * sol.block(childID);

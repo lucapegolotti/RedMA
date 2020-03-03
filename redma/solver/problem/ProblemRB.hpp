@@ -32,14 +32,14 @@
 namespace RedMA
 {
 
-class ProblemFEM : public aProblem
+class ProblemRB : public aProblem
 {
-    typedef BlockVector<FEVECTOR>                   BV;
+    typedef BlockVector<RBVECTOR>                   BV;
     typedef BlockVector<BV>                         BBV;
-    typedef BlockMatrix<FEMATRIX>                   BM;
+    typedef BlockMatrix<RBMATRIX>                   BM;
     typedef BlockMatrix<BM>                         BBM;
 public:
-    ProblemFEM(const DataContainer& data, EPETRACOMM comm, bool doSetup = true);
+    ProblemRB(const DataContainer& data, EPETRACOMM comm, bool doSetup = true);
 
     virtual void setup();
 
@@ -47,7 +47,7 @@ public:
 
     int solveTimestep(const double& t, double& dt);
 
-    void doStoreSolutions() {M_storeSolutions = true;}
+    void doStoreSolutions(){M_storeSolutions = true;}
 
     inline TreeStructure& getTree() {return M_tree;}
 

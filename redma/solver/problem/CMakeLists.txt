@@ -2,6 +2,7 @@ set(HEADERS
     ${HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/aProblem.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ProblemFEM.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ProblemRB.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DataContainer.hpp
     CACHE INTERNAL ""
 )
@@ -10,6 +11,7 @@ set(SOURCES
     ${SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/aProblem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ProblemFEM.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ProblemRB.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DataContainer.cpp
     CACHE INTERNAL ""
 )

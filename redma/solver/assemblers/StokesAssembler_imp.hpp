@@ -45,6 +45,33 @@ setup()
 }
 
 template <class InVectorType, class InMatrixType>
+SHP(VECTOREPETRA)
+StokesAssembler<InVectorType, InMatrixType>::
+assembleFlowRateVector(const GeometricFace& face)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    SHP(VECTOREPETRA) flowRateVectorRepeated;
+    flowRateVectorRepeated.reset(new VECTOREPETRA(M_velocityFESpace->map(),
+                                                  Repeated));
+
+    QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
+
+    integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
+              myBDQR,
+              M_velocityFESpaceETA,
+              dot(phi_i, Nface)
+          ) >> flowRateVectorRepeated;
+
+    flowRateVectorRepeated->globalAssemble();
+
+    SHP(VECTOREPETRA) flowRateVector(new VECTOREPETRA(*flowRateVectorRepeated,
+                                                      Unique));
+    return flowRateVector;
+}
+
+template <class InVectorType, class InMatrixType>
 BlockMatrix<InMatrixType>
 StokesAssembler<InVectorType, InMatrixType>::
 getMassJacobian(const double& time, const BlockVector<InVectorType>& sol)
@@ -90,24 +117,6 @@ initializeFEspaces()
 template <class InVectorType, class InMatrixType>
 void
 StokesAssembler<InVectorType, InMatrixType>::
-exportSolution(const double& t, const BlockVector<InVectorType>& sol)
-{
-    *M_velocityExporter = *sol.block(0).data();
-    *M_pressureExporter = *sol.block(1).data();
-
-    BlockVector<InVectorType> solCopy(2);
-    solCopy.block(0).data() = M_velocityExporter;
-    computeFlowRates(solCopy, true);
-
-    CoutRedirecter ct;
-    ct.redirect();
-    M_exporter->postProcess(t);
-    printlog(CYAN, ct.restore());
-}
-
-template <class InVectorType, class InMatrixType>
-void
-StokesAssembler<InVectorType, InMatrixType>::
 postProcess(const double& t, const BlockVector<InVectorType>& sol)
 {
     // shift solutions in multistep method embedded in windkessels
@@ -120,6 +129,29 @@ StokesAssembler<InVectorType, InMatrixType>::
 getMass(const double& time, const BlockVector<InVectorType>& sol)
 {
     return M_mass;
+}
+
+template <class InVectorType, class InMatrixType>
+void
+StokesAssembler<InVectorType, InMatrixType>::
+assembleFlowRateVectors()
+{
+    // assemble inflow flow rate vector
+    if (this->M_treeNode->isInletNode())
+    {
+        auto face = this->M_treeNode->M_block->getInlet();
+        std::cout << "\nInlet normal\n" << std::endl;
+        face.print();
+        this->M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face);
+    }
+
+    if (this->M_treeNode->isOutletNode())
+    {
+        auto faces = this->M_treeNode->M_block->getOutlets();
+
+        for (auto face : faces)
+            this->M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face);
+    }
 }
 
 template <class InVectorType, class InMatrixType>
@@ -137,26 +169,9 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 
     retVec.softCopy(systemMatrix * sol);
 
-    addNeumannBCs(retVec, time, sol);
+    // addNeumannBCs(retVec, time, sol);
 
     return retVec;
-}
-
-template <class InVectorType, class InMatrixType>
-void
-StokesAssembler<InVectorType, InMatrixType>::
-apply0DirichletBCs(BlockVector<InVectorType>& vector) const
-{
-    this->M_bcManager->apply0DirichletBCs(vector, getFESpaceBCs(), getComponentBCs());
-}
-
-template <class InVectorType, class InMatrixType>
-void
-StokesAssembler<InVectorType, InMatrixType>::
-applyDirichletBCs(const double& time, BlockVector<InVectorType>& vector) const
-{
-    this->M_bcManager->applyDirichletBCs(time, vector, getFESpaceBCs(),
-                                         getComponentBCs());
 }
 
 template <class InVectorType, class InMatrixType>
@@ -257,8 +272,8 @@ getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& so
     //     }
     // }
 
-    this->M_bcManager->apply0DirichletMatrix(retMat, getFESpaceBCs(),
-                                       getComponentBCs(), 0.0);
+    // this->M_bcManager->apply0DirichletMatrix(retMat, getFESpaceBCs(),
+    //                                    getComponentBCs(), 0.0);
 
     return retMat;
 }
@@ -289,14 +304,8 @@ setExporter()
     M_pressureExporter.reset(new VECTOREPETRA(M_pressureFESpace->map(),
                                               M_exporter->mapType()));
 
-    // M_WSSExporter.reset(new VECTOREPETRA(M_velocityFESpace->map(),
-    //                                      M_exporter->mapType()));
-
     M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
                          "velocity", M_velocityFESpace, M_velocityExporter, 0.0);
-
-    // M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
-    //                         "WSS", M_velocityFESpace, M_WSSExporter, 0.0);
 
     M_exporter->addVariable(LifeV::ExporterData<MESH>::ScalarField,
                          "pressure", M_pressureFESpace, M_pressureExporter, 0.0);

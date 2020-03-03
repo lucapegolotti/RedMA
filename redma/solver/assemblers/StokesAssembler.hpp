@@ -68,11 +68,11 @@ public:
 
     void initializeFEspaces();
 
-    BlockMatrix<MatrixEp> assembleStiffness(BlockMDEIMStructure* structure = nullptr);
+    BlockMatrix<InMatrixType> assembleStiffness(BlockMDEIMStructure* structure = nullptr);
 
-    BlockMatrix<MatrixEp> assembleMass(BlockMDEIMStructure* structure = nullptr);
+    BlockMatrix<InMatrixType> assembleMass(BlockMDEIMStructure* structure = nullptr);
 
-    BlockMatrix<MatrixEp> assembleDivergence(BlockMDEIMStructure* structure = nullptr);
+    BlockMatrix<InMatrixType> assembleDivergence(BlockMDEIMStructure* structure = nullptr);
 
     std::map<unsigned int, double> computeFlowRates(const BlockVector<InVectorType>& sol,
                                                     bool verbose = false);
@@ -111,6 +111,8 @@ public:
                                   const BlockVector<InVectorType>& sol,
                                   const unsigned int& faceFlag);
 
+    void apply0DirichletBCsMatrix(BlockMatrix<InMatrixType>& matrix, double diagCoeff) const override;
+
     void apply0DirichletBCs(BlockVector<InVectorType>& vector) const override;
 
     void applyDirichletBCs(const double& time, BlockVector<InVectorType>& vector) const override;
@@ -127,7 +129,6 @@ public:
     virtual InMatrixType getConstraintMatrix() override;
 
 protected:
-    // void computeWallShearStress(const BlockVector<InVectorType>& sol);
 
     BlockMatrix<InMatrixType>                                       M_mass;
     BlockMatrix<InMatrixType>                                       M_stiffness;

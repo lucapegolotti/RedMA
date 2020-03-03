@@ -24,9 +24,10 @@ addContributionRhs(const double& time,
 
     rhs.block(childID)  -= this->M_childBT * sol.block(nPrimalBlocks + interfaceID);
 
-    assemblerChild->getBCManager()->apply0DirichletBCs(rhs.block(childID),
-                                                       assemblerChild->getFESpaceBCs(),
-                                                       assemblerChild->getComponentBCs());
+    // bcs are already in matrices
+    // assemblerChild->getBCManager()->apply0DirichletBCs(rhs.block(childID),
+    //                                                    assemblerChild->getFESpaceBCs(),
+    //                                                    assemblerChild->getComponentBCs());
 
     rhs.block(nPrimalBlocks + interfaceID) -= this->M_childB * sol.block(childID);
     rhs.block(nPrimalBlocks + interfaceID) += this->M_childB *

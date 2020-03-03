@@ -54,21 +54,6 @@ solve(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
     M_numSolves++;
 }
 
-template <>
-void
-LinearSystemSolver<Double, Double>::
-solve(const BlockMatrix<Double>& matrix,
-      const BlockVector<Double>& rhs,
-      BlockVector<Double>& sol)
-{
-    if (matrix.nRows() > 1 || matrix.nCols() > 1 || rhs.nRows() > 1)
-        throw new Exception("solve with blocks of doubles is implemented only in"
-                            " dimension 1");
-
-    sol.block(0).data() = rhs.block(0).data() / matrix.block(0,0).data();
-
-    M_numSolves++;
-}
 
 template <>
 void

@@ -113,6 +113,15 @@ getLifting(const double& time) const
 template <class InVectorType, class InMatrixType>
 void
 BlockAssembler<InVectorType, InMatrixType>::
+apply0DirichletBCsMatrix(BlockMatrix<InMatrixType>& matrix, double diagCoeff) const
+{
+    for (auto as : M_primalAssemblers)
+        as.second->apply0DirichletBCsMatrix(matrix.block(as.first, as.first), diagCoeff);
+}
+
+template <class InVectorType, class InMatrixType>
+void
+BlockAssembler<InVectorType, InMatrixType>::
 apply0DirichletBCs(BlockVector<InVectorType>& initialGuess) const
 {
     for (auto as : M_primalAssemblers)

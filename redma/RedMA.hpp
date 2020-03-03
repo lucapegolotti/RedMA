@@ -58,6 +58,7 @@ namespace RedMA
 
 #define FEVECTOR            RedMA::VectorEp
 #define FEMATRIX            RedMA::MatrixEp
+#define RBVECTOR            RedMA::DenseVector
 #define RBMATRIX            RedMA::DenseMatrix
 #define DENSESOLVER         Epetra_SerialDenseSolver
 

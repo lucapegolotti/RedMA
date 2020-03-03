@@ -4,6 +4,32 @@ namespace RedMA
 {
 
 template <>
+void
+StokesAssembler<VectorEp, MatrixEp>::
+apply0DirichletBCsMatrix(BlockMatrix<MatrixEp>& matrix, double diagCoeff) const
+{
+    this->M_bcManager->apply0DirichletMatrix(matrix, getFESpaceBCs(),
+                                             getComponentBCs(), diagCoeff);
+}
+
+template <>
+void
+StokesAssembler<VectorEp, MatrixEp>::
+apply0DirichletBCs(BlockVector<VectorEp>& vector) const
+{
+    this->M_bcManager->apply0DirichletBCs(vector, getFESpaceBCs(), getComponentBCs());
+}
+
+template <>
+void
+StokesAssembler<VectorEp, MatrixEp>::
+applyDirichletBCs(const double& time, BlockVector<VectorEp>& vector) const
+{
+    this->M_bcManager->applyDirichletBCs(time, vector, getFESpaceBCs(),
+                                         getComponentBCs());
+}
+
+template <>
 BlockMatrix<MatrixEp>
 StokesAssembler<VectorEp,MatrixEp>::
 assembleStiffness(BlockMDEIMStructure* structure)
@@ -73,8 +99,7 @@ assembleStiffness(BlockMDEIMStructure* structure)
 
     stiffness.block(0,0).data() = A;
 
-    M_bcManager->apply0DirichletMatrix(stiffness, getFESpaceBCs(),
-                                       getComponentBCs(), 0.0);
+    apply0DirichletBCsMatrix(stiffness, 0.0);
 
     return stiffness;
 }
@@ -117,8 +142,7 @@ assembleMass(BlockMDEIMStructure* structure)
 
     mass.block(0,0).data() = M;
 
-    M_bcManager->apply0DirichletMatrix(mass, getFESpaceBCs(),
-                                       getComponentBCs(), 1.0);
+    apply0DirichletBCsMatrix(mass, 1.0);
 
     return mass;
 }
@@ -189,8 +213,7 @@ assembleDivergence(BlockMDEIMStructure* structure)
     divergence.block(0,1).data() = BT;
     divergence.block(1,0).data() = B;
 
-    M_bcManager->apply0DirichletMatrix(divergence, getFESpaceBCs(),
-                                       getComponentBCs(), 0.0);
+    apply0DirichletBCsMatrix(divergence, 0.0);
 
     return divergence;
 }
@@ -260,56 +283,6 @@ getZeroVector() const
 }
 
 template <>
-SHP(LifeV::VectorEpetra)
-StokesAssembler<VectorEp, MatrixEp>::
-assembleFlowRateVector(const GeometricFace& face)
-{
-    using namespace LifeV;
-    using namespace ExpressionAssembly;
-
-    SHP(VECTOREPETRA) flowRateVectorRepeated;
-    flowRateVectorRepeated.reset(new VECTOREPETRA(M_velocityFESpace->map(),
-                                                  Repeated));
-
-    QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
-
-    integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
-              myBDQR,
-              M_velocityFESpaceETA,
-              dot(phi_i, Nface)
-          ) >> flowRateVectorRepeated;
-
-    flowRateVectorRepeated->globalAssemble();
-
-    SHP(VECTOREPETRA) flowRateVector(new VECTOREPETRA(*flowRateVectorRepeated,
-                                                      Unique));
-    return flowRateVector;
-}
-
-template <>
-void
-StokesAssembler<VectorEp, MatrixEp>::
-assembleFlowRateVectors()
-{
-    // assemble inflow flow rate vector
-    if (M_treeNode->isInletNode())
-    {
-        auto face = M_treeNode->M_block->getInlet();
-        std::cout << "\nInlet normal\n" << std::endl;
-        face.print();
-        M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face);
-    }
-
-    if (M_treeNode->isOutletNode())
-    {
-        auto faces = M_treeNode->M_block->getOutlets();
-
-        for (auto face : faces)
-            M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face);
-    }
-}
-
-template <>
 SHP(MATRIXEPETRA)
 StokesAssembler<VectorEp, MatrixEp>::
 assembleFlowRateJacobian(const GeometricFace& face)
@@ -364,25 +337,6 @@ assembleFlowRateJacobian(const GeometricFace& face)
 
     flowRateJacobian->globalAssemble();
 
-//     SHP(VECTOREPETRA) flowRateVector(new VECTOREPETRA(*M_flowRateVectors[face.M_flag],
-//                                                       Repeated));
-//     SHP(MatrixEpetra<double>) BT(new MatrixEpetra<double>(M_velocityFESpace->map()));
-//
-//     QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
-//
-//     integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
-//               myBDQR,
-//               M_velocityFESpaceETA,
-//               M_velocityFESpaceETA,
-//               dot(phi_i,Nface) * phi_j
-//           ) >> BT;
-// //dot(value(M_velocityFESpaceETA, *flowRateVector),Nface)
-//     BT->globalAssemble();
-//
-//     *BT -= *flowRateJacobian;
-//
-//     std::cout << BT->normInf() << std::endl << std::flush;
-
     return flowRateJacobian;
 }
 
@@ -398,8 +352,8 @@ assembleFlowRateJacobians()
         M_flowRateJacobians[face.M_flag].resize(this->M_nComponents,
                                                 this->M_nComponents);
         M_flowRateJacobians[face.M_flag].block(0,0).data() = assembleFlowRateJacobian(face);
-        M_bcManager->apply0DirichletMatrix(M_flowRateJacobians[face.M_flag], getFESpaceBCs(),
-                                           getComponentBCs(), 0.0);
+
+        apply0DirichletBCsMatrix(M_flowRateJacobians[face.M_flag], 0.0);
     }
 
     if (M_treeNode->isOutletNode())
@@ -411,37 +365,11 @@ assembleFlowRateJacobians()
             M_flowRateJacobians[face.M_flag].resize(this->M_nComponents,
                                                     this->M_nComponents);
             M_flowRateJacobians[face.M_flag].block(0,0).data() = assembleFlowRateJacobian(face);
-            M_bcManager->apply0DirichletMatrix(M_flowRateJacobians[face.M_flag], getFESpaceBCs(),
-                                               getComponentBCs(), 0.0);
+
+            apply0DirichletBCsMatrix(M_flowRateJacobians[face.M_flag], 0.0);
         }
     }
 }
-
-// template <>
-// void
-// StokesAssembler<FEVECTOR, FEMATRIX>::
-// computeWallShearStress(const BlockVector<InVectorType>& sol)
-// {
-//     using namespace LifeV;
-//     using namespace LifeV::ExpressionAssembly;
-//
-//     SHP(VECTOREPETRA)  velocityRepeated(new VECTOREPETRA(*sol.block(0).data(),
-//                                                          Repeated));
-//     SHP(VECTOREPETRA)  wssRepeated(new VECTOREPETRA(*M_velocityFESpace,
-//                                                     Repeated));
-//
-//     integrate(elements(M_velocityFESpaceETA->mesh()),
-//                M_velocityFESpace->qr(),
-//                M_velocityFESpaceETA,
-//                M_velocityFESpaceETA,
-//                value(this->M_density) *
-//                dot(value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j),
-//                phi_i)
-//              ) >> wssRepeated;
-//     wssRepeated->globalAssemble();
-//
-//     sol.block(,0).data().reset(new VECTOREPETRA(*wssRepeated, Unique));
-// }
 
 template <>
 BlockVector<FEVECTOR>
@@ -460,6 +388,24 @@ getLifting(const double& time) const
     applyDirichletBCs(time, lifting);
 
     return lifting;
+}
+
+template <>
+void
+StokesAssembler<VectorEp, MatrixEp>::
+exportSolution(const double& t, const BlockVector<VectorEp>& sol)
+{
+    *M_velocityExporter = *sol.block(0).data();
+    *M_pressureExporter = *sol.block(1).data();
+
+    BlockVector<VectorEp> solCopy(2);
+    solCopy.block(0).data() = M_velocityExporter;
+    computeFlowRates(solCopy, true);
+
+    CoutRedirecter ct;
+    ct.redirect();
+    M_exporter->postProcess(t);
+    printlog(CYAN, ct.restore());
 }
 
 }

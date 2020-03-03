@@ -22,6 +22,7 @@
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/solver/array/VectorEp.hpp>
 #include <redma/solver/array/MatrixEp.hpp>
+#include <redma/solver/array/DenseMatrix.hpp>
 #include <redma/solver/array/Double.hpp>
 
 #include <boost/numeric/ublas/matrix.hpp>
@@ -105,7 +106,7 @@ public:
 
     void printPattern() const;
 
-    void finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father = nullptr,
+    void finalize(BlockMatrix<BlockMatrix<InMatrixType>>* father = nullptr,
                   unsigned int* myRow = nullptr,
                   unsigned int* myCol = nullptr);
 

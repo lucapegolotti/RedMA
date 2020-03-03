@@ -15,9 +15,11 @@ set(HEADERS
 
 set(SOURCES
     ${SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/StokesAssembler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StokesAssembler_fem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StokesAssembler_rb.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesAssembler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceAssembler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceAssembler_fem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceAssembler_rb.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesStabilization.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/VMSStabilization.cpp

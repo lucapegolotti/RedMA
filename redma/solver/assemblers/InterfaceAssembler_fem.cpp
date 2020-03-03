@@ -285,10 +285,7 @@ buildCouplingMatrices(SHP(AssemblerType) assembler, const GeometricFace& face,
     matrixT.block(0,0).softCopy(MatrixEp(couplingVectors));
     matrix.block(0,0).softCopy(matrixT.block(0,0).transpose());
 
-    assembler->getBCManager()->apply0DirichletMatrix(matrixT,
-                                                     assembler->getFESpaceBCs(),
-                                                     assembler->getComponentBCs(),
-                                                     0.0);
+    assembler->apply0DirichletBCsMatrix(matrixT, 0.0);
 }
 
 template <>
@@ -367,6 +364,8 @@ buildCouplingMatrices()
             buildStabilizationMatrix(asFather, outlet, M_stabFather);
             // M_stabFather *= 0.5;
         }
+
+
     }
 
     auto asChild = M_interface.M_assemblerChild;

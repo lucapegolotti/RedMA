@@ -148,7 +148,7 @@ convertVectorType(const BlockVector<VectorEp>& inputVector,
 template <>
 void
 BlockMatrix<Double>::
-finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father,
+finalize(BlockMatrix<BlockMatrix<Double>>* father,
          unsigned int* myRow, unsigned int* myCol)
 {
     if (M_nRows != 1 || M_nCols != 1)
@@ -271,7 +271,7 @@ finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father,
 template <>
 void
 BlockMatrix<BlockMatrix<MatrixEp>>::
-finalize(BlockMatrix<BlockMatrix<MatrixEp>>* father,
+finalize(BlockMatrix<BlockMatrix<BlockMatrix<MatrixEp>>>* father,
          unsigned int* myRow, unsigned int* myCol)
 {
     std::vector<unsigned int> rows(M_nRows);

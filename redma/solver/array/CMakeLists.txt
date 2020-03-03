@@ -17,7 +17,8 @@ set(SOURCES
     ${SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/MatrixEp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/VectorEp.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/BlockMatrix.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/BlockMatrix_dense.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/BlockMatrix_sparse.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Double.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockMaps.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DenseVector.cpp

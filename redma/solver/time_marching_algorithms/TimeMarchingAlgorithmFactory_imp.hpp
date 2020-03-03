@@ -12,8 +12,8 @@ TimeMarchingAlgorithmFactory(const DataContainer& data)
         ret.reset(new BDF<InVectorType, InMatrixType>(data));
     else if (!std::strcmp(algorithmString.c_str(),"alpha"))
         ret.reset(new GeneralizedAlphaMethod<InVectorType, InMatrixType>(data));
-    else if (!std::strcmp(algorithmString.c_str(),"alpha1storderp"))
-        ret.reset(new GeneralizedAlphaMethod<InVectorType, InMatrixType>(data));
+    // else if (!std::strcmp(algorithmString.c_str(),"alpha1storderp"))
+    //     ret.reset(new GeneralizedAlphaMethod<InVectorType, InMatrixType>(data));
     else
         throw new Exception("Requested time marching algorithm is not implemented!");
 
@@ -32,8 +32,8 @@ TimeMarchingAlgorithmFactory(const DataContainer& data,
         ret.reset(new BDF<InVectorType, InMatrixType>(data, funProvider));
     else if (!std::strcmp(algorithmString.c_str(),"alpha"))
         ret.reset(new GeneralizedAlphaMethod<InVectorType, InMatrixType>(data, funProvider));
-    else if (!std::strcmp(algorithmString.c_str(),"alpha1storderp"))
-        ret.reset(new GeneralizedAlphaMethod1stOrderPressure<InVectorType, InMatrixType>(data, funProvider));
+    // else if (!std::strcmp(algorithmString.c_str(),"alpha1storderp"))
+    //     ret.reset(new GeneralizedAlphaMethod1stOrderPressure<InVectorType, InMatrixType>(data, funProvider));
     else
         throw new Exception("Requested time marching algorithm is not implemented!");
 

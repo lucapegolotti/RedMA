@@ -99,19 +99,19 @@ public:
 protected:
     SHP(LifeV::QuadratureRule) generateQuadratureRule(std::string tag) const;
 
-    std::vector<VectorEp> buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
+    std::vector<InVectorType> buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
                                                const GeometricFace& face,
-                                               SHP(aAssembler<VectorEp COMMA MatrixEp>) assembler) const;
+                                               SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler) const;
 
-    std::vector<VectorEp> buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
+    std::vector<InVectorType> buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
                                                             const GeometricFace& face,
-                                                            SHP(aAssembler<VectorEp COMMA MatrixEp>) assembler) const;
+                                                            SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler) const;
 
-    std::vector<VectorEp> buildStabilizationVectorsPressure(SHP(BasisFunctionFunctor) bfs,
+    std::vector<InVectorType> buildStabilizationVectorsPressure(SHP(BasisFunctionFunctor) bfs,
                                                             const GeometricFace& face,
-                                                            SHP(aAssembler<VectorEp COMMA MatrixEp>) assembler) const;
+                                                            SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler) const;
 
-    std::vector<VectorEp> buildStabilizationVectorsLagrange() const;
+    std::vector<InVectorType> buildStabilizationVectorsLagrange() const;
 
     Interface<InVectorType, InMatrixType>           M_interface;
 

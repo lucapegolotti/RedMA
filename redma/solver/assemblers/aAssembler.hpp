@@ -64,6 +64,8 @@ public:
 
     virtual BlockVector<InVectorType> getZeroVector() const = 0;
 
+    virtual void apply0DirichletBCsMatrix(BlockMatrix<InMatrixType>& matrix, double diagCoeff) const = 0;
+
     virtual void apply0DirichletBCs(BlockVector<InVectorType>& vector) const = 0;
 
     virtual void applyDirichletBCs(const double& time, BlockVector<InVectorType>& vector) const = 0;
