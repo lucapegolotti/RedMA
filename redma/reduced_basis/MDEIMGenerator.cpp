@@ -157,33 +157,4 @@ projectMDEIM()
     }
 }
 
-std::vector<SHP(VECTOREPETRA)>
-MDEIMGenerator::
-readRBBasisFromFile(std::string file, SHP(FESPACE) fespace)
-{
-    std::vector<SHP(VECTOREPETRA)> retBasis;
-
-    std::ifstream infile(file);
-    std::string line;
-    while(std::getline(infile,line))
-    {
-        SHP(VECTOREPETRA) newVector(new VECTOREPETRA(fespace->map()));
-
-        std::stringstream linestream(line);
-        std::string value;
-        unsigned int i = 0;
-        while(getline(linestream,value,','))
-        {
-            newVector->operator[](i) = std::atof(value.c_str());
-            i++;
-        }
-        if (i != newVector->epetraVector().GlobalLength())
-            throw new Exception("Stored basis length does not match fespace dimension!");
-
-        retBasis.push_back(newVector);
-    }
-    infile.close();
-    return retBasis;
-}
-
 }  // namespace RedMA

@@ -48,9 +48,6 @@ private:
 
     void dumpMDEIMstructures();
 
-    std::vector<SHP(VECTOREPETRA)> readRBBasisFromFile(std::string file,
-                                                       SHP(FESPACE) fespace);
-
     std::string getMeshName(std::string mapkey);
 
     DataContainer                                     M_data;
