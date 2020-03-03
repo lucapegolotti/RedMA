@@ -22,8 +22,10 @@
 #include <redma/solver/problem/DataContainer.hpp>
 #include <redma/solver/problem/ProblemFEM.hpp>
 #include <redma/solver/assemblers/AssemblerFactory.hpp>
+#include <redma/solver/assemblers/InterfaceAssembler.hpp>
 
 #include <redma/geometry/TreeStructure.hpp>
+#include <redma/geometry/BuildingBlock.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
 #include <redma/geometry/Tube.hpp>
 

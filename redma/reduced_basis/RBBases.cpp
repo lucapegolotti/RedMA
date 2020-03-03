@@ -19,6 +19,8 @@ setNumberOfFields(const unsigned int& nfields)
     M_bases.resize(nfields);
     M_svs.resize(nfields);
     M_fespaces.resize(nfields);
+    M_primalSupremizers.resize(nfields,nfields);
+    M_dualSupremizers.resize(nfields);
 }
 
 void
@@ -51,6 +53,22 @@ loadSingularValues()
 
 void
 RBBases::
+addPrimalSupremizer(SHP(VECTOREPETRA) supremizer,
+                    const unsigned int& fieldToAugment,
+                    const unsigned int& fieldConstraint)
+{
+    M_primalSupremizers(fieldToAugment,fieldConstraint).push_back(supremizer);
+}
+
+void
+RBBases::
+addDualSupremizer(SHP(VECTOREPETRA) supremizer, const unsigned int& fieldToAugment)
+{
+    M_dualSupremizers[fieldToAugment].push_back(supremizer);
+}
+
+void
+RBBases::
 setFESpace(SHP(FESPACE) fespace, const unsigned int& indexbasis)
 {
     M_fespaces[indexbasis] = fespace;
@@ -58,17 +76,20 @@ setFESpace(SHP(FESPACE) fespace, const unsigned int& indexbasis)
 
 void
 RBBases::
-loadBases()
+addVectorsFromFile(std::string filename, std::vector<SHP(VECTOREPETRA)>& vectors,
+                   const unsigned int& indexField)
 {
-    for (unsigned int i = 0; i < M_numFields; i++)
+    using namespace boost::filesystem;
+
+    if (exists(filename))
     {
         std::ifstream infile;
-        infile.open(M_path + "/field" + std::to_string(i) + ".basis");
+        infile.open(filename);
 
         std::string line;
         while (std::getline(infile,line))
         {
-            SHP(VECTOREPETRA) newVector(new VECTOREPETRA(M_fespaces[i]->map()));
+            SHP(VECTOREPETRA) newVector(new VECTOREPETRA(M_fespaces[indexField]->map()));
 
             std::stringstream linestream(line);
             std::string value;
@@ -81,9 +102,37 @@ loadBases()
             if (index != newVector->epetraVector().GlobalLength())
                 throw new Exception("Stored basis length does not match fespace dimension!");
 
-            M_bases[i].push_back(newVector);
+            vectors.push_back(newVector);
         }
         infile.close();
+    }
+}
+
+void
+RBBases::
+loadBases()
+{
+
+    // load bases
+    for (unsigned int i = 0; i < M_numFields; i++)
+        addVectorsFromFile(M_path + "/field" + std::to_string(i) + ".basis", M_bases[i], i);
+
+    // load primal supremizers
+    for (unsigned int i = 0; i < M_numFields; i++)
+    {
+        for (unsigned int j = 0; j < M_numFields; j++)
+        {
+            std::string name = "/primal_supremizers_" + std::to_string(i) + "_" + std::to_string(j);
+            addVectorsFromFile(M_path + name + ".basis", M_primalSupremizers(i,j), i);
+        }
+    }
+
+    // load bases
+    for (unsigned int i = 0; i < M_numFields; i++)
+    {
+        addVectorsFromFile(M_path + "/dual_supremizers" + std::to_string(i) + ".basis",
+                           M_dualSupremizers[i], i);
+
     }
 }
 
@@ -117,6 +166,53 @@ dump()
         outfile.close();
         fieldIndex++;
     }
+
+    // dump primal supremizers
+    for (unsigned int i = 0; i < M_numFields; i++)
+    {
+        for (unsigned int j = 0; j < M_numFields; j++)
+        {
+            if (M_primalSupremizers(i,j).size() > 0)
+            {
+                std::ofstream outfile;
+                std::string name = "/primal_supremizers_" + std::to_string(i) + "_" + std::to_string(j);
+                outfile.open(M_path + name + ".basis", omode);
+
+                for (auto vec : M_primalSupremizers(i,j))
+                {
+                    FEVECTOR curvec;
+                    curvec.data() = vec;
+                    std::string str2write = curvec.getString(',') + "\n";
+
+                    outfile.write(str2write.c_str(), str2write.size());
+                }
+
+                outfile.close();
+            }
+        }
+    }
+
+    fieldIndex = 0;
+    // dump dual supremizers
+    for (auto singlebasis : M_dualSupremizers)
+    {
+        if (singlebasis.size() > 0)
+        {
+            std::ofstream outfile;
+            outfile.open(M_path + "/dual_supremizers" + std::to_string(fieldIndex) + ".basis", omode);
+
+            for (auto vec : singlebasis)
+            {
+                FEVECTOR curvec;
+                curvec.data() = vec;
+                std::string str2write = curvec.getString(',') + "\n";
+
+                outfile.write(str2write.c_str(), str2write.size());
+            }
+            outfile.close();
+        }
+        fieldIndex++;
+    }
 }
 
 std::vector<SHP(VECTOREPETRA)>&
@@ -126,4 +222,21 @@ getBasis(const unsigned int& index, double tol)
     return M_bases[index];
 }
 
+std::vector<SHP(VECTOREPETRA)>
+RBBases::
+getEnrichedBasis(const unsigned int& index, double tol)
+{
+    std::vector<SHP(VECTOREPETRA)> retVectors = getBasis(index, tol);
+
+    for (unsigned int j = 0; j < M_numFields; j++)
+    {
+        for (auto primal : M_primalSupremizers(index,j))
+            retVectors.push_back(primal);
+    }
+
+    for (auto dual : M_dualSupremizers[index])
+        retVectors.push_back(dual);
+
+    return retVectors;
+}
 }  // namespace RedMA

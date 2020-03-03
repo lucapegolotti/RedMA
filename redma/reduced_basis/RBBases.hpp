@@ -26,6 +26,8 @@ namespace RedMA
 
 class RBBases
 {
+    typedef boost::numeric::ublas::matrix<std::vector<SHP(VECTOREPETRA)>> GridVectors;
+
 public:
     RBBases(const DataContainer& data, EPETRACOMM comm);
 
@@ -43,11 +45,28 @@ public:
 
     std::vector<SHP(VECTOREPETRA)>& getBasis(const unsigned int& index, double tol = 0);
 
+    std::vector<SHP(VECTOREPETRA)> getEnrichedBasis(const unsigned int& index, double tol = 0);
+
+    void addPrimalSupremizer(SHP(VECTOREPETRA) supremizer,
+                             const unsigned int& fieldToAugment,
+                             const unsigned int& fieldConstraint);
+
+    void addDualSupremizer(SHP(VECTOREPETRA) supremizer,
+                           const unsigned int& fieldToAugment);
+
 private:
+    void addVectorsFromFile(std::string filename,
+                            std::vector<SHP(VECTOREPETRA)>& vectors,
+                            const unsigned int& indexField);
+
     unsigned int                                    M_numFields;
     DataContainer                                   M_data;
     EPETRACOMM                                      M_comm;
     std::vector<std::vector<SHP(VECTOREPETRA)>>     M_bases;
+    // this is a grid because the row indicates the field to be augmented (velocity)
+    // and the column indicates the constraining field (pressure)
+    GridVectors                                     M_primalSupremizers;
+    std::vector<std::vector<SHP(VECTOREPETRA)>>     M_dualSupremizers;
     std::string                                     M_meshName;
     std::string                                     M_path;
     std::vector<std::vector<double>>                M_svs;

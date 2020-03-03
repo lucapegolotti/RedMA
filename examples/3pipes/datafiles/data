@@ -40,11 +40,15 @@
 	directory  = basis
 	podtol     = 1e-5
 	dumpbinary = true
+	xmlfile = datafiles/SolverParamList.xml
 	addprimalsupremizers = true
+	adddualsupremizers = true
 	[./primal_supremizers]
 		field2augment = 0
 		limitingfield = 1
-		xmlfile = datafiles/SolverParamList.xml
+	[../]
+	[./dual_supremizers]
+		field2augment = 0
 	[../]
 [../]
 

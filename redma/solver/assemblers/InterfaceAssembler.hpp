@@ -39,6 +39,8 @@ class Interface
 {
     typedef aAssembler<InVectorType COMMA InMatrixType>         AssemblerType;
 public:
+    Interface ();
+
     Interface(SHP(AssemblerType) assemblerFather, const int& indexFather,
               SHP(AssemblerType) assemblerChild, const int& indexChild,
               const unsigned int& interfaceID);
@@ -57,6 +59,8 @@ class InterfaceAssembler
     typedef aAssembler<InVectorType COMMA InMatrixType>         AssemblerType;
 
 public:
+    InterfaceAssembler(const DataContainer& data);
+
     InterfaceAssembler(const DataContainer& data,
                        const Interface<InVectorType, InMatrixType>& interface);
 

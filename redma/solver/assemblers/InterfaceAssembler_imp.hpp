@@ -3,6 +3,12 @@ namespace RedMA
 
 template <class InVectorType, class InMatrixType>
 Interface<InVectorType, InMatrixType>::
+Interface()
+{
+}
+
+template <class InVectorType, class InMatrixType>
+Interface<InVectorType, InMatrixType>::
 Interface(SHP(AssemblerType) assemblerFather, const int& indexFather,
           SHP(AssemblerType) assemblerChild, const int& indexChild,
           const unsigned int& interfaceID) :
@@ -13,6 +19,13 @@ Interface(SHP(AssemblerType) assemblerFather, const int& indexFather,
   M_ID(interfaceID)
 {
 
+}
+
+template <class InVectorType, class InMatrixType>
+InterfaceAssembler<InVectorType, InMatrixType>::
+InterfaceAssembler(const DataContainer& data) :
+  M_data(data)
+{
 }
 
 template <class InVectorType, class InMatrixType>

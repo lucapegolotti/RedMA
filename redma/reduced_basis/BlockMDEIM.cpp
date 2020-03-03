@@ -220,7 +220,8 @@ projectMDEIMs()
     {
         for (unsigned int j = 0; j < M_nCols; j++)
         {
-            M_mdeims(i,j)->projectMDEIM(M_bases->getBasis(i), M_bases->getBasis(j));
+            M_mdeims(i,j)->projectMDEIM(M_bases->getEnrichedBasis(i),
+                                        M_bases->getEnrichedBasis(j));
         }
     }
 }

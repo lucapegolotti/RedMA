@@ -62,39 +62,6 @@ LifeV::LinearSolver
 BasisGenerator::
 setupLinearSolver(MatrixEp matrix)
 {
-    // vectorPtr_Type solution;
-    // // reset solution vector
-    // solution.reset(new vector_Type(M_fespace->map(), LifeV::Unique));
-    // solution->zero();
-    //
-    // // solver part
-    // LifeV::LinearSolver linearSolver(M_comm);
-    // linearSolver.setOperator(M_stiffness);
-    //
-    // Teuchos::RCP<Teuchos::ParameterList> aztecList =
-    //                                    Teuchos::rcp(new Teuchos::ParameterList);
-    // aztecList = Teuchos::getParametersFromXmlFile(M_XMLsolver);
-    // linearSolver.setParameters(*aztecList);
-    //
-    // typedef LifeV::PreconditionerML         precML_type;
-    // typedef std::shared_ptr<precML_type>    precMLPtr_type;
-    // precML_type * precRawPtr;
-    // precRawPtr = new precML_type;
-    // // we set to look for the "fake" precMLL entry in order to set the
-    // // default parameters of ML preconditioner
-    // GetPot dummyDatafile;
-    // precRawPtr->setDataFromGetPot(dummyDatafile, "precMLL");
-    // std::shared_ptr<LifeV::Preconditioner> precPtr;
-    // precPtr.reset(precRawPtr);
-    //
-    // linearSolver.setPreconditioner(precPtr);
-    // linearSolver.setRightHandSide(M_rhs);
-    // linearSolver.solve(solution);
-
-    // vectorPtr_Type solution;
-    // // reset solution vector
-    // solution.reset(new vector_Type(M_fespace->map(), LifeV::Unique));
-    // solution->zero();
 
     // solver part
     LifeV::LinearSolver linearSolver(M_comm);
@@ -103,7 +70,7 @@ setupLinearSolver(MatrixEp matrix)
     Teuchos::RCP<Teuchos::ParameterList> aztecList =
                                        Teuchos::rcp(new Teuchos::ParameterList);
 
-    std::string xmlfile = M_data("rbbasis/primal_supremizers/xmlfile", "SolverParamList.xml");
+    std::string xmlfile = M_data("rbbasis/xmlfile", "SolverParamList.xml");
     aztecList = Teuchos::getParametersFromXmlFile(xmlfile);
     linearSolver.setParameters(*aztecList);
 
@@ -118,8 +85,7 @@ setupLinearSolver(MatrixEp matrix)
     precPtr.reset(precRawPtr);
 
     linearSolver.setPreconditioner(precPtr);
-    // linearSolver.setRightHandSide(M_rhs);
-    // linearSolver.solve(solution);
+
     return linearSolver;
 }
 
@@ -165,11 +131,99 @@ addSupremizers()
                 SHP(VECTOREPETRA) solution(new VECTOREPETRA(map, LifeV::Unique));
                 linearSolver.solve(solution);
 
-                meshas.second.second[field2augment].push_back(solution);
+                M_bases[meshas.first]->addPrimalSupremizer(solution, field2augment, limitingfield);
             }
         }
     }
-    // bool adddualsupremizers = M_data("rbbasis/adddualsupremizers", true);
+
+    bool adddualsupremizers = M_data("rbbasis/adddualsupremizers", true);
+    if (adddualsupremizers)
+    {
+        printlog(MAGENTA, "[BasisGenerator] adding dual supremizers ... \n", M_data.getVerbose());
+
+        unsigned int field2augment = M_data("rbbasis/dual_supremizers/field2augment", 0);
+
+        for (auto& meshas : M_meshASPairMap)
+        {
+            printlog(GREEN, "mesh = " + meshas.first + "\n", M_data.getVerbose());
+            // note: BCs. same as above
+            MatrixEp normMatrix = meshas.second.first->getNorm(field2augment);
+
+            InterfaceAssembler<VectorEp, MatrixEp> interfaceAssembler(M_data);
+
+            SHP(BuildingBlock) buildingBlock = meshas.second.first->getTreeNode()->M_block;
+
+            // create list of faces
+            std::vector<GeometricFace> faces = buildingBlock->getOutlets();
+            faces.push_back(buildingBlock->getInlet());
+
+            for (auto face : faces)
+            {
+                BlockMatrix<MatrixEp> constraintMatrixBlock;
+                BlockMatrix<MatrixEp> constraintMatrixDummyBlock;
+                interfaceAssembler.buildCouplingMatrices(meshas.second.first,
+                                                         face,
+                                                         constraintMatrixBlock,
+                                                         constraintMatrixDummyBlock);
+                // we assume that the first block is the one to be coupled
+                // (as in interface assembler)
+                MatrixEp constraintMatrix = constraintMatrixBlock.block(0,0);
+                auto map = *constraintMatrix.data()->rangeMapPtr();
+                auto linearSolver = setupLinearSolver(normMatrix);
+                auto lagrangeMap = *constraintMatrix.data()->domainMapPtr();
+                unsigned int numLagrange = lagrangeMap.mapSize();
+
+                for (unsigned int i = 0; i < numLagrange; i++)
+                {
+                    printlog(YELLOW, "adding supremizer " + std::to_string(i) + " ... \n",
+                             M_data.getVerbose());
+
+                    SHP(VECTOREPETRA) selector(new VECTOREPETRA(lagrangeMap, LifeV::Unique));
+                    selector->zero();
+                    selector->operator[](i) = 1.0;
+
+                    VectorEp basisFunction;
+                    basisFunction = selector;
+
+                    VectorEp rhs = constraintMatrix * basisFunction;
+
+                    linearSolver.setRightHandSide(rhs.data());
+
+                    SHP(VECTOREPETRA) solution(new VECTOREPETRA(map, LifeV::Unique));
+                    linearSolver.solve(solution);
+
+                    M_bases[meshas.first]->addDualSupremizer(solution, field2augment);
+                }
+            }
+
+            //
+            // // here the matrix must have 0 on the nodes corresponding to dirichlet
+            // // nodes
+            // MatrixEp constraintMatrix = meshas.second.first->getConstraintMatrix();
+            // auto map = *constraintMatrix.data()->rangeMapPtr();
+            // auto linearSolver = setupLinearSolver(normMatrix);
+            //
+            // std::vector<SHP(VECTOREPETRA)> basisFunctions = M_bases[meshas.first]->getBasis(limitingfield);
+            // for (unsigned int i = 0; i < basisFunctions.size(); i++)
+            // {
+            //     printlog(YELLOW, "adding supremizer " + std::to_string(i) + " ... \n",
+            //              M_data.getVerbose());
+            //
+            //     VectorEp basisFunction;
+            //     basisFunction = basisFunctions[i];
+            //
+            //     VectorEp rhs = constraintMatrix * basisFunction;
+            //
+            //     linearSolver.setRightHandSide(rhs.data());
+            //
+            //     SHP(VECTOREPETRA) solution(new VECTOREPETRA(map, LifeV::Unique));
+            //     linearSolver.solve(solution);
+            //
+            //     meshas.second.second[field2augment].push_back(solution);
+            // }
+        }
+    }
+
 
 }
 
