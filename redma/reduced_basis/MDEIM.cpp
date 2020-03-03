@@ -617,7 +617,7 @@ loadMDEIM(std::string pathdir)
         M_isInitialized = true;
     }
 
-    if (exists(pathdir + "/basis.mbasis") && M_data("mdeim/loadfullbasis", false))
+    if (exists(pathdir + "/basis.mbasis") && M_data("rb/mdeim/loadfullbasis", false))
     {
         if (!M_isInitialized)
             throw new Exception("MDEIM structure not loaded!");
@@ -758,7 +758,7 @@ void
 MDEIM::
 performPOD(std::string outdir)
 {
-    double podtol = M_data("mdeim/podtol", 1e-5);
+    double podtol = M_data("rb/mdeim/podtol", 1e-5);
 
     printlog(MAGENTA, "[MDEIM] performing POD(s) ... \n", M_data.getVerbose());
 

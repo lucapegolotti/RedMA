@@ -18,8 +18,8 @@ void
 MDEIMChecker::
 checkOnlineMDEIM()
 {
-    unsigned int nChecks = M_data("mdeim/checksonline", 5);
-    double bound = M_data("mdeim/bound", 0.2);
+    unsigned int nChecks = M_data("rb/mdeim/checksonline", 5);
+    double bound = M_data("rb/mdeim/bound", 0.2);
 
     for (unsigned int i = 0; i < nChecks; i++)
     {
@@ -55,7 +55,7 @@ loadMDEIMs()
     auto assemblers = problem.getBlockAssembler()->getAssemblersMap();
     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
 
-    std::string outdir = M_data("mdeim/directory", "mdeims");
+    std::string outdir = M_data("rb/mdeim/directory", "mdeims");
 
     if (!exists(outdir))
         throw new Exception("MDEIMS directory does not exist");

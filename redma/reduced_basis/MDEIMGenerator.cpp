@@ -30,7 +30,7 @@ dumpMDEIMstructures()
 {
     using namespace boost::filesystem;
 
-    std::string outdir = M_data("mdeim/directory", "mdeims");
+    std::string outdir = M_data("rb/mdeim/directory", "mdeims");
 
     create_directory(outdir);
 
@@ -66,10 +66,10 @@ takeMatricesSnapshots()
 {
     using namespace boost::filesystem;
 
-    unsigned int nSnapshots = M_data("mdeim/numbersnapshots", 50);
-    double bound = M_data("mdeim/bound", 0.2);
+    unsigned int nSnapshots = M_data("rb/mdeim/numbersnapshots", 50);
+    double bound = M_data("rb/mdeim/bound", 0.2);
 
-    std::string outdir = M_data("mdeim/directory", "mdeims");
+    std::string outdir = M_data("rb/mdeim/directory", "mdeims");
 
     if (exists(outdir))
         throw new Exception("Mdeims directory already exists!");
@@ -112,7 +112,7 @@ performMDEIM()
 {
     using namespace boost::filesystem;
 
-    std::string outdir = M_data("mdeim/directory", "mdeims");
+    std::string outdir = M_data("rb/mdeim/directory", "mdeims");
     create_directory(outdir);
 
     for (auto& mapit : M_blockMDEIMsMap)
@@ -132,7 +132,7 @@ projectMDEIM()
 {
     using namespace boost::filesystem;
 
-    std::string basisdir = M_data("rbbasis/directory", "basis");
+    std::string basisdir = M_data("rb/basis/directory", "basis");
 
     if (exists(basisdir))
     {

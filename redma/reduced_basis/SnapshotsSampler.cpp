@@ -16,7 +16,7 @@ takeSnapshots()
 {
     using namespace boost::filesystem;
 
-    std::string outdir = M_data("snapshots/directory", "snapshots");
+    std::string outdir = M_data("rb/snapshots/directory", "snapshots");
 
     if (exists(outdir))
         throw new Exception("Snapshots directory already exists!");
@@ -25,8 +25,8 @@ takeSnapshots()
 
     GeometryPrinter printer;
 
-    unsigned int nSnapshots = M_data("snapshots/number", 10);
-    double bound = M_data("snapshots/bound", 0.2);
+    unsigned int nSnapshots = M_data("rb/snapshots/number", 10);
+    double bound = M_data("rb/snapshots/bound", 0.2);
 
     for (unsigned int i = 0; i < nSnapshots; i++)
     {
@@ -56,11 +56,11 @@ dumpSnapshots(ProblemFEM& problem,
     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
     auto solutions = problem.getSolutions();
 
-    unsigned int takeEvery = M_data("snapshots/take_every", 5);
-    bool binary = M_data("snapshots/dumpbinary", true);
-    bool computereynolds = M_data("snapshots/computereynolds", true);
-    double density = M_data("fluid/density", 1.0);
-    double viscosity = M_data("fluid/viscosity", 1.0);
+    unsigned int takeEvery = M_data("rb/snapshots/take_every", 5);
+    bool binary = M_data("rb/snapshots/dumpbinary", true);
+    bool computereynolds = M_data("rb/snapshots/computereynolds", true);
+    double density = M_data("rb/fluid/density", 1.0);
+    double viscosity = M_data("rb/fluid/viscosity", 1.0);
 
     std::ios_base::openmode omode = std::ios_base::app;
     if (binary)
