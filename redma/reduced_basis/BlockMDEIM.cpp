@@ -42,6 +42,21 @@ BlockMDEIM::
 setFESpace(SHP(FESPACE) fespace, const unsigned int& index)
 {
     M_fespaces[index] = fespace;
+
+    for (unsigned int j = 0; j < M_nCols; j++)
+    {
+        if (M_mdeims(index,j))
+        {
+            M_mdeims(index,j)->setFESpace(M_fespaces[index]);
+            M_mdeims(index,j)->setRangeMap(M_fespaces[index]->mapPtr());
+        }
+    }
+
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        if (M_mdeims(i,index))
+            M_mdeims(i,index)->setDomainMap(M_fespaces[index]->mapPtr());
+    }
 }
 
 void
@@ -109,9 +124,6 @@ initialize(BlockMatrix<FEMATRIX> reducedMatrix)
             M_mdeims(i,j).reset(new MDEIM());
             M_mdeims(i,j)->setComm(M_comm);
             M_mdeims(i,j)->setDataContainer(M_data);
-            M_mdeims(i,j)->setFESpace(M_fespaces[i]);
-            M_mdeims(i,j)->setRangeMap(M_fespaces[i]->mapPtr());
-            M_mdeims(i,j)->setDomainMap(M_fespaces[j]->mapPtr());
             M_mdeims(i,j)->initialize(reducedMatrix.block(i,j));
             M_structures(i,j) = M_mdeims(i,j)->getMDEIMStructure();
         }
@@ -155,6 +167,23 @@ assembleMatrix(BlockMatrix<FEMATRIX> reducedMat)
         for (unsigned int j = 0; j < M_nCols; j++)
         {
             retMat.block(i,j).softCopy(M_mdeims(i,j)->assembleMatrix(reducedMat.block(i,j)));
+        }
+    }
+    return retMat;
+}
+
+BlockMatrix<RBMATRIX>
+BlockMDEIM::
+assembleProjectedMatrix(BlockMatrix<FEMATRIX> reducedMat)
+{
+    BlockMatrix<RBMATRIX> retMat;
+    retMat.resize(M_nRows, M_nCols);
+
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            retMat.block(i,j).softCopy(M_mdeims(i,j)->assembleProjectedMatrix(reducedMat.block(i,j)));
         }
     }
     return retMat;
@@ -221,11 +250,9 @@ loadMDEIM(std::string dir)
             std::string curdir = dir + "/mdeim_" + std::to_string(i) + "_" + std::to_string(j);
 
             M_mdeims(i,j).reset(new MDEIM());
+
             M_mdeims(i,j)->setComm(M_comm);
             M_mdeims(i,j)->setDataContainer(M_data);
-            M_mdeims(i,j)->setFESpace(M_fespaces[i]);
-            M_mdeims(i,j)->setRangeMap(M_fespaces[i]->mapPtr());
-            M_mdeims(i,j)->setDomainMap(M_fespaces[j]->mapPtr());
             M_mdeims(i,j)->loadMDEIM(curdir);
             M_structures(i,j) = M_mdeims(i,j)->getMDEIMStructure();
         }

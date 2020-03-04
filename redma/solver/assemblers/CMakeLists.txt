@@ -17,6 +17,8 @@ set(SOURCES
     ${SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/StokesAssembler_fem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/StokesAssembler_rb.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/BlockAssembler_fem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/BlockAssembler_rb.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesAssembler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceAssembler_fem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceAssembler_rb.cpp

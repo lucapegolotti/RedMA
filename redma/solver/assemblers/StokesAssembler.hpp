@@ -22,6 +22,8 @@
 #include <redma/solver/array/MatrixEp.hpp>
 #include <redma/geometry/BuildingBlock.hpp>
 
+#include <redma/reduced_basis/BlockMDEIM.hpp>
+
 #include <lifev/eta/expression/Integrate.hpp>
 #include <lifev/core/filter/Exporter.hpp>
 #include <lifev/core/filter/ExporterVTK.hpp>
@@ -72,9 +74,15 @@ public:
 
     BlockMatrix<InMatrixType> assembleStiffness(BlockMDEIMStructure* structure = nullptr);
 
+    BlockMatrix<MatrixEp> assembleReducedStiffness(BlockMDEIMStructure* structure);
+
     BlockMatrix<InMatrixType> assembleMass(BlockMDEIMStructure* structure = nullptr);
 
+    BlockMatrix<MatrixEp> assembleReducedMass(BlockMDEIMStructure* structure);
+
     BlockMatrix<InMatrixType> assembleDivergence(BlockMDEIMStructure* structure = nullptr);
+
+    BlockMatrix<MatrixEp> assembleReducedDivergence(BlockMDEIMStructure* structure);
 
     std::map<unsigned int, double> computeFlowRates(const BlockVector<InVectorType>& sol,
                                                     bool verbose = false);
@@ -130,6 +138,8 @@ public:
 
     virtual InMatrixType getConstraintMatrix() override;
 
+    virtual void setMDEIMs(SHP(MDEIMManager) mdeimManager) override;
+
 protected:
 
     BlockMatrix<InMatrixType>                                       M_mass;
@@ -150,9 +160,9 @@ protected:
     std::map<unsigned int, BlockMatrix<InMatrixType>>               M_flowRateJacobians;
 
     // rb structures
-    // SHP(BlockMDEIM)                                                 M_mdeimMass;
-    // SHP(BlockMDEIM)                                                 M_mdeimStiffness;
-    // SHP(BlockMDEIM)                                                 M_mdeimDivergence;
+    SHP(BlockMDEIM)                                                 M_mdeimMass;
+    SHP(BlockMDEIM)                                                 M_mdeimStiffness;
+    SHP(BlockMDEIM)                                                 M_mdeimDivergence;
 };
 
 }

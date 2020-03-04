@@ -140,8 +140,8 @@ assembleFlowRateVectors()
     if (this->M_treeNode->isInletNode())
     {
         auto face = this->M_treeNode->M_block->getInlet();
-        std::cout << "\nInlet normal\n" << std::endl;
-        face.print();
+        // std::cout << "\nInlet normal\n" << std::endl;
+        // face.print();
         this->M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face);
     }
 
@@ -383,5 +383,159 @@ getConstraintMatrix()
 {
     return M_divergence.block(0,1);
 }
+
+template <class InVectorType, class InMatrixType>
+BlockMatrix<MatrixEp>
+StokesAssembler<InVectorType,InMatrixType>::
+assembleReducedStiffness(BlockMDEIMStructure* structure)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    BlockMatrix<MatrixEp> stiffness;
+
+    stiffness.resize(this->M_nComponents, this->M_nComponents);
+    bool useFullStrain = this->M_data("fluid/use_strain", true);
+
+    SHP(MatrixEpetra<double>) A(new MatrixEpetra<double>(M_velocityFESpace->map()));
+
+    unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
+    unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
+
+    if (useFullStrain)
+    {
+        integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+                  M_velocityFESpace->qr(),
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  value(0.5 * M_viscosity) *
+                  dot(grad(phi_i) + transpose(grad(phi_i)),
+                  grad(phi_j) + transpose(grad(phi_j)))
+              ) >> A;
+    }
+    else
+    {
+        integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+                  M_velocityFESpace->qr(),
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  value(M_viscosity) *
+                  dot(grad(phi_i),grad(phi_j))
+              ) >> A;
+    }
+
+    A->globalAssemble();
+
+    stiffness.block(0,0).data() = A;
+
+    this->M_bcManager->apply0DirichletMatrix(stiffness, getFESpaceBCs(),
+                                             getComponentBCs(), 0.0);
+
+    return stiffness;
+}
+
+template <class InVectorType, class InMatrixType>
+BlockMatrix<MatrixEp>
+StokesAssembler<InVectorType,InMatrixType>::
+assembleReducedMass(BlockMDEIMStructure* structure)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    BlockMatrix<MatrixEp> mass;
+
+    mass.resize(this->M_nComponents, this->M_nComponents);
+
+    SHP(MatrixEpetra<double>) M(new MatrixEpetra<double>(M_velocityFESpace->map()));
+
+    unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
+    unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
+    integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+              M_velocityFESpace->qr(),
+              M_velocityFESpaceETA,
+              M_velocityFESpaceETA,
+              value(M_density) * dot(phi_i, phi_j)
+          ) >> M;
+
+    M->globalAssemble();
+
+    mass.block(0,0).data() = M;
+
+    this->M_bcManager->apply0DirichletMatrix(mass, getFESpaceBCs(),
+                                             getComponentBCs(), 1.0);
+
+    return mass;
+}
+
+template <class InVectorType, class InMatrixType>
+BlockMatrix<MatrixEp>
+StokesAssembler<InVectorType,InMatrixType>::
+assembleReducedDivergence(BlockMDEIMStructure* structure)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    BlockMatrix<MatrixEp> divergence;
+
+    divergence.resize(this->M_nComponents, this->M_nComponents);
+
+    SHP(MatrixEpetra<double>) BT(new MatrixEpetra<double>(this->M_velocityFESpace->map()));
+
+    unsigned int numVolumes = (*structure)(0,1)->numReducedElements;
+    unsigned int* volumes = (*structure)(0,1)->reducedElements.data();
+    integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+              M_velocityFESpace->qr(),
+              M_velocityFESpaceETA,
+              M_pressureFESpaceETA,
+              value(-1.0) * phi_j * div(phi_i)
+          ) >> BT;
+
+    BT->globalAssemble(M_pressureFESpace->mapPtr(),
+                       M_velocityFESpace->mapPtr());
+
+    SHP(MatrixEpetra<double>) B(new MatrixEpetra<double>(M_pressureFESpace->map()));
+
+
+    numVolumes = (*structure)(1,0)->numReducedElements;
+    volumes = (*structure)(1,0)->reducedElements.data();
+
+    integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+             M_pressureFESpace->qr(),
+             M_pressureFESpaceETA,
+             M_velocityFESpaceETA,
+             phi_i * div(phi_j)
+         ) >> B;
+
+    B->globalAssemble(M_velocityFESpace->mapPtr(),
+                      M_pressureFESpace->mapPtr());
+
+    divergence.block(0,1).data() = BT;
+    divergence.block(1,0).data() = B;
+
+    this->M_bcManager->apply0DirichletMatrix(divergence, getFESpaceBCs(),
+                                             getComponentBCs(), 0.0);
+
+    return divergence;
+}
+
+template <class InVectorType, class InMatrixType>
+void
+StokesAssembler<InVectorType,InMatrixType>::
+setMDEIMs(SHP(MDEIMManager) mdeimManager)
+{
+    std::string mdeimdir = this->M_data("rb/online/mdeim/directory", "mdeims");
+    std::string meshName = this->M_treeNode->M_block->getMeshName();
+    unsigned int dashpos = meshName.find("/");
+    unsigned int formatpos = meshName.find(".mesh");
+    std::string actualName = meshName.substr(dashpos + 1,
+                                             formatpos - dashpos - 1);
+
+    auto mdeims = mdeimManager->getMDEIMS(actualName);
+
+    M_mdeimMass = mdeims[0];
+    M_mdeimStiffness = mdeims[1];
+    M_mdeimDivergence = mdeims[2];
+}
+
 
 }

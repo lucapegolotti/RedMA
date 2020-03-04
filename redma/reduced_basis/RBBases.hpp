@@ -19,7 +19,8 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
-#include <redma/solver/problem/ProblemFEM.hpp>
+
+#include <boost/filesystem.hpp>
 
 namespace RedMA
 {

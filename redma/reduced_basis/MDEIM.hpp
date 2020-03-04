@@ -19,12 +19,12 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
-#include <redma/solver/problem/ProblemFEM.hpp>
-#include <redma/solver/assemblers/AssemblerFactory.hpp>
 
 #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
 #include <rb/reduced_basis/util/EpetraArrayUtils.hpp>
 #include <redma/reduced_basis/MDEIMStructure.hpp>
+
+#include <boost/filesystem.hpp>
 
 namespace RedMA
 {
@@ -90,6 +90,8 @@ private:
                                        DENSEVECTOR& vector);
 
     void loadBasis(std::string filename);
+
+    void loadProjectedBasis(std::string filename);
 
     void buildReducedMesh();
 

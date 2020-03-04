@@ -29,11 +29,11 @@ BlockMatrix<DenseMatrix>
 StokesAssembler<DenseVector,DenseMatrix>::
 assembleMass(BlockMDEIMStructure* structure)
 {
-    // load MDEIM
-    // M_mdeimMass.reset(new BlockMDEIM(M_data, M_comm));
+    M_mdeimMass->setFESpace(M_velocityFESpace, 0);
+    M_mdeimMass->setFESpace(M_pressureFESpace, 1);
 
-
-    BlockMatrix<DenseMatrix> mass;
+    BlockMatrix<MatrixEp> reducedMass = assembleReducedMass(&M_mdeimMass->getMDEIMStructure());
+    BlockMatrix<DenseMatrix> mass = M_mdeimMass->assembleProjectedMatrix(reducedMass);
 
     return mass;
 }
@@ -43,7 +43,11 @@ BlockMatrix<DenseMatrix>
 StokesAssembler<DenseVector,DenseMatrix>::
 assembleStiffness(BlockMDEIMStructure* structure)
 {
-    BlockMatrix<DenseMatrix> stiffness;
+    M_mdeimStiffness->setFESpace(M_velocityFESpace, 0);
+    M_mdeimStiffness->setFESpace(M_pressureFESpace, 1);
+
+    BlockMatrix<MatrixEp> reducedStiffness = assembleReducedStiffness(&M_mdeimStiffness->getMDEIMStructure());
+    BlockMatrix<DenseMatrix> stiffness = M_mdeimStiffness->assembleProjectedMatrix(reducedStiffness);
 
     return stiffness;
 }
@@ -53,7 +57,11 @@ BlockMatrix<DenseMatrix>
 StokesAssembler<DenseVector,DenseMatrix>::
 assembleDivergence(BlockMDEIMStructure* structure)
 {
-    BlockMatrix<DenseMatrix> divergence;
+    M_mdeimDivergence->setFESpace(M_velocityFESpace, 0);
+    M_mdeimDivergence->setFESpace(M_pressureFESpace, 1);
+
+    BlockMatrix<MatrixEp> reducedDivergence = assembleReducedDivergence(&M_mdeimDivergence->getMDEIMStructure());
+    BlockMatrix<DenseMatrix> divergence = M_mdeimDivergence->assembleProjectedMatrix(reducedDivergence);
 
     return divergence;
 }

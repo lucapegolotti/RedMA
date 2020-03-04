@@ -29,6 +29,8 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
+    if (comm == nullptr) std::cout << "comm is nullptr!" << std::endl << std::flush;
+
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);

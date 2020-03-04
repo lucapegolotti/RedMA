@@ -19,12 +19,15 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
-#include <redma/solver/problem/ProblemFEM.hpp>
 #include <redma/reduced_basis/RBBases.hpp>
+#include <redma/solver/array/BlockMatrix.hpp>
+#include <redma/solver/array/BlockVector.hpp>
 
 #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
 #include <rb/reduced_basis/util/EpetraArrayUtils.hpp>
 #include <redma/reduced_basis/MDEIM.hpp>
+
+#include <boost/filesystem.hpp>
 
 namespace RedMA
 {
@@ -63,6 +66,8 @@ public:
     void resize(unsigned int rows, unsigned int cols);
 
     BlockMatrix<FEMATRIX> assembleMatrix(BlockMatrix<FEMATRIX> reducedMatrix);
+
+    BlockMatrix<RBMATRIX> assembleProjectedMatrix(BlockMatrix<FEMATRIX> reducedMatrix);
 
     void setFESpace(SHP(FESPACE) fespace, const unsigned int& index);
 

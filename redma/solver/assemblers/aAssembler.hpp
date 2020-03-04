@@ -24,6 +24,7 @@
 #include <redma/geometry/TreeStructure.hpp>
 
 #include <redma/reduced_basis/MDEIMStructure.hpp>
+#include <redma/reduced_basis/MDEIMManager.hpp>
 
 #include <redma/solver/problem/DataContainer.hpp>
 
@@ -95,6 +96,8 @@ public:
     virtual InMatrixType getNorm(const unsigned int& fieldIndex) {return InMatrixType();}
 
     virtual InMatrixType getConstraintMatrix() {return InMatrixType();}
+
+    virtual void setMDEIMs(SHP(MDEIMManager) mdeimManager) {}
 
 protected:
     DataContainer                        M_data;

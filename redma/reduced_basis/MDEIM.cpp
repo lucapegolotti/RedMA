@@ -593,7 +593,7 @@ assembleProjectedMatrix(FEMATRIX reducedMatrix)
         approximation.reset(new DENSEVECTOR((ms->Nleft) * (ms->Nright)));
         computeProjectedInterpolation(myInterpVector, *approximation);
 
-        SHP(DENSEMATRIX) apprMatrix;
+        SHP(DENSEMATRIX) apprMatrix(new DENSEMATRIX(ms->Nleft, ms->Nright));
         apprMatrix->Scale(0.);
 
         reconstructMatrixFromVectorizedForm(*approximation, *apprMatrix);
@@ -613,23 +613,23 @@ loadMDEIM(std::string pathdir)
     {
         M_structure.reset(new MDEIMStructure(pathdir + "/structure.mstr", M_comm));
 
-        create_directory(pathdir + "/copy");
-        M_structure->dumpMDEIMStructure(pathdir + "/copy");
+        // create_directory(pathdir + "/copy");
+        // M_structure->dumpMDEIMStructure(pathdir + "/copy");
         M_isInitialized = true;
     }
 
-    if (exists(pathdir + "/basis.mbasis") && M_data("rb/offline/mdeim/loadfullbasis", false))
+    if (exists(pathdir + "/basis.mbasis") && M_data("rb/online/mdeim/loadfullbasis", false))
     {
         if (!M_isInitialized)
             throw new Exception("MDEIM structure not loaded!");
         loadBasis(pathdir + "/basis.mbasis");
     }
 
-    if (exists(pathdir + "/basis.mbasis"))
+    if (exists(pathdir + "/projbasis.mbasis"))
     {
         if (!M_isInitialized)
             throw new Exception("MDEIM structure not loaded!");
-        // loadProjectedBasis(pathdir + "/projbasis.mbasis");
+        loadProjectedBasis(pathdir + "/projbasis.mbasis");
     }
 
 }
@@ -655,6 +655,31 @@ loadBasis(std::string filename)
         if (i != newVector->epetraVector().GlobalLength())
             throw new Exception("Stored snapshot length does not match fespace dimension!");
         M_basis.push_back(newVector);
+    }
+    infile.close();
+}
+
+void
+MDEIM::
+loadProjectedBasis(std::string filename)
+{
+    std::ifstream infile(filename);
+    std::string line;
+    while(std::getline(infile,line))
+    {
+        unsigned int N = (M_structure->Nleft) * (M_structure->Nright);
+        SHP(DENSEVECTOR) newVector(new DENSEVECTOR(N));
+        std::stringstream linestream(line);
+        std::string value;
+        unsigned int i = 0;
+        while(getline(linestream,value,','))
+        {
+            newVector->operator()(i) = std::atof(value.c_str());
+            i++;
+        }
+        if (i != N)
+            throw new Exception("Stored snapshot length does not match fespace dimension!");
+        M_basisProjected.push_back(newVector);
     }
     infile.close();
 }

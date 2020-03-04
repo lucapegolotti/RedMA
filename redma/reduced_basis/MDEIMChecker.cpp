@@ -11,6 +11,9 @@ MDEIMChecker(const DataContainer& data, EPETRACOMM comm) :
     if (M_comm->MyPID() != 0)
         throw new Exception("MDEIMChecker does not support more than one proc");
 
+    if (!M_data("rb/online/mdeim/loadfullbasis", false))
+        throw new Exception("rb/online/mdeim/loadfullbasis == false!");
+
     loadMDEIMs();
 }
 
