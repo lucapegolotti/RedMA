@@ -51,18 +51,18 @@ initialize(MatrixEp matrix)
         ms->numMyNonzeros = matrixEpetra->matrixPtr()->NumMyNonzeros();
         ms->numMyRows = matrixEpetra->matrixPtr()->NumMyRows();
 
-        ms->numMyEntries = new int[ms->numMyRows];
-        ms->columnIndices = new int* [ms->numMyRows];
+        ms->numMyEntries.resize(ms->numMyRows);
+        ms->columnIndices.resize(ms->numMyRows);
         int numEntries;
 
         for (unsigned int iR = 0; iR < ms->numMyRows; iR++)
         {
             ms->numMyEntries[iR] = matrixEpetra->matrixPtr()->NumMyEntries(iR);
-            ms->columnIndices[iR] = new int[ms->numMyEntries[iR]];
+            ms->columnIndices[iR].resize(ms->numMyEntries[iR]);
             double * values = new double[ms->numMyEntries[iR]];
             matrixEpetra->matrixPtr()->ExtractMyRowCopy(iR, ms->numMyEntries[iR],
                                                         numEntries, values,
-                                                        ms->columnIndices[iR]);
+                                                        ms->columnIndices[iR].data());
 
             for(unsigned int iC; iC < numEntries; iC++)
             {
@@ -72,7 +72,7 @@ initialize(MatrixEp matrix)
             delete [] values;
         }
 
-        ms->partialSumMyEntries = new int[ms->numMyRows + 1];
+        ms->partialSumMyEntries.resize(ms->numMyRows + 1);
         ms->partialSumMyEntries[0] = 0;
 
         for (unsigned int iR = 0; iR < ms->numMyRows; iR++)
@@ -181,12 +181,12 @@ buildReducedMesh()
 
 void
 MDEIM::
-prepareOnline(MatrixEp mat)
+prepareOnline()
 {
     if (M_isInitialized)
     {
         SHP(MDEIMStructure) ms = M_structure;
-        auto matrixEpetra = mat.data();
+        auto matrixEpetra = M_snapshots[0].data();
 
         buildReducedMesh();
 
@@ -194,8 +194,8 @@ prepareOnline(MatrixEp mat)
         ms->numReducedMyNonzeros = matrixEpetra->matrixPtr()->NumMyNonzeros();
         ms->numReducedMyRows = matrixEpetra->matrixPtr()->NumMyRows();
 
-        ms->numMyReducedEntries = new int[ms->numMyLocalMagicPoints];
-        ms->columnLocalReducedIndices = new int[ms->numMyLocalMagicPoints];
+        ms->numMyReducedEntries.resize(ms->numMyLocalMagicPoints);
+        ms->columnLocalReducedIndices.resize(ms->numMyLocalMagicPoints);
         int numEntries;
 
         for (int iMp = 0; iMp < ms->numMyLocalMagicPoints; iMp++)
@@ -240,10 +240,10 @@ identifyReducedNodes()
 
     ms->myLocalMagicPoints.resize(ms->numMyLocalMagicPoints);
 
-    ms->myRowMatrixEntriesOfMagicPoints = new int[ms->numMyLocalMagicPoints];
-    ms->myColMatrixEntriesOfMagicPoints = new int[ms->numMyLocalMagicPoints];
+    ms->myRowMatrixEntriesOfMagicPoints.resize(ms->numMyLocalMagicPoints);
+    ms->myColMatrixEntriesOfMagicPoints.resize(ms->numMyLocalMagicPoints);
 
-    ms->rowLocalReducedIndices = new int[ms->numMyLocalMagicPoints];
+    ms->rowLocalReducedIndices.resize(ms->numMyLocalMagicPoints);
 
     int localCol = -1;
 
@@ -269,7 +269,7 @@ identifyReducedNodes()
 
     int dimensionOfField = M_fespace->dof().numTotalDof();
 
-    ms->globalReducedNodes = new int[2 * ms->numMyLocalMagicPoints];
+    ms->globalReducedNodes.resize(2 * ms->numMyLocalMagicPoints);
 
     int countMp = 0;
 
@@ -333,7 +333,7 @@ identifyReducedNodes()
 
     int localCount = 0;
 
-    ms->myGlobalReducedNodes = new int[ms->numMyGlobalReducedNodes];
+    ms->myGlobalReducedNodes.resize(ms->numMyGlobalReducedNodes);
 
     for (int iGrn = 0; iGrn < numAllGlobalReducedNodes; iGrn++)
     {
@@ -397,7 +397,7 @@ identifyReducedElements()
     }
 
     int localElement = 0;
-    ms->reducedElements = new unsigned int [ms->numReducedElements];
+    ms->reducedElements.resize(ms->numReducedElements);
 
     for (int iterElement = 0; iterElement < totalNumberElements; iterElement++)
     {
@@ -612,12 +612,13 @@ loadMDEIM(std::string pathdir)
     if (exists(pathdir + "/structure.mstr"))
     {
         M_structure.reset(new MDEIMStructure(pathdir + "/structure.mstr", M_comm));
+
         create_directory(pathdir + "/copy");
         M_structure->dumpMDEIMStructure(pathdir + "/copy");
         M_isInitialized = true;
     }
 
-    if (exists(pathdir + "/basis.mbasis") && M_data("rb/mdeim/loadfullbasis", false))
+    if (exists(pathdir + "/basis.mbasis") && M_data("rb/offline/mdeim/loadfullbasis", false))
     {
         if (!M_isInitialized)
             throw new Exception("MDEIM structure not loaded!");
@@ -670,7 +671,7 @@ reconstructMatrixFromVectorizedForm(VECTOREPETRA& vectorizedAh,
     for (int iR = 0; iR < ms->numMyRows; iR++)
     {
         Ah.matrixPtr()->InsertGlobalValues(Ah.matrixPtr()->GRID(iR), ms->numMyEntries[iR],
-                                           vectorizedAh.epetraVector()[0] + rowStart, ms->columnIndices[iR]);
+                                           vectorizedAh.epetraVector()[0] + rowStart, ms->columnIndices[iR].data());
         rowStart += ms->numMyEntries[iR];
     }
 }
@@ -758,7 +759,7 @@ void
 MDEIM::
 performPOD(std::string outdir)
 {
-    double podtol = M_data("rb/mdeim/podtol", 1e-5);
+    double podtol = M_data("rb/offline/mdeim/podtol", 1e-5);
 
     printlog(MAGENTA, "[MDEIM] performing POD(s) ... \n", M_data.getVerbose());
 

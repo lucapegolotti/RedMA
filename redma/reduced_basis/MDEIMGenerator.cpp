@@ -19,7 +19,6 @@ generateMDEIM()
     takeMatricesSnapshots();
     performMDEIM();
     projectMDEIM();
-
     checkMDEIM();
     dumpMDEIMstructures();
 }
@@ -30,7 +29,7 @@ dumpMDEIMstructures()
 {
     using namespace boost::filesystem;
 
-    std::string outdir = M_data("rb/mdeim/directory", "mdeims");
+    std::string outdir = M_data("rb/offline/mdeim/directory", "mdeims");
 
     create_directory(outdir);
 
@@ -66,15 +65,15 @@ takeMatricesSnapshots()
 {
     using namespace boost::filesystem;
 
-    unsigned int nSnapshots = M_data("rb/mdeim/numbersnapshots", 50);
-    double bound = M_data("rb/mdeim/bound", 0.2);
+    unsigned int nSnapshots = M_data("rb/offline/mdeim/numbersnapshots", 50);
+    double bound = M_data("rb/offline/mdeim/bound", 0.2);
 
-    std::string outdir = M_data("rb/mdeim/directory", "mdeims");
+    std::string outdir = M_data("rb/offline/mdeim/directory", "mdeims");
 
     if (exists(outdir))
         throw new Exception("Mdeims directory already exists!");
 
-    for (unsigned int i = 0; i < nSnapshots; i++)
+    for (unsigned int isnapshot = 0; isnapshot < nSnapshots; isnapshot++)
     {
         ProblemFEM problem(M_data, M_comm, false);
         problem.doStoreSolutions();
@@ -96,11 +95,24 @@ takeMatricesSnapshots()
 
             for (unsigned int i = 0; i < nmatrices; i++)
             {
-                M_blockMDEIMsMap[IDmeshTypeMap[as.first]][i].setComm(M_comm);
-                M_blockMDEIMsMap[IDmeshTypeMap[as.first]][i].setDataContainer(M_data);
-                M_blockMDEIMsMap[IDmeshTypeMap[as.first]][i].setAssembler(assemblers[as.first]);
-                M_blockMDEIMsMap[IDmeshTypeMap[as.first]][i].addSnapshot(matrices[i]);
-                M_blockMDEIMsMap[IDmeshTypeMap[as.first]][i].setMatrixIndex(i);
+                auto& curmdeim = M_blockMDEIMsMap[IDmeshTypeMap[as.first]][i];
+
+                if (isnapshot == 0)
+                {
+                    curmdeim.setComm(M_comm);
+                    curmdeim.setDataContainer(M_data);
+                    curmdeim.resize(as.second->getNumComponents(),
+                                    as.second->getNumComponents());
+                    unsigned int fieldIndex = 0;
+                    while (as.second->getFEspace(fieldIndex))
+                    {
+                        curmdeim.setFESpace(as.second->getFEspace(fieldIndex), fieldIndex);
+                        fieldIndex++;
+                    }
+                    curmdeim.setMatrixIndex(i);
+                    curmdeim.initialize(matrices[i]);
+                }
+                curmdeim.addSnapshot(matrices[i]);
             }
         }
     }
@@ -112,7 +124,7 @@ performMDEIM()
 {
     using namespace boost::filesystem;
 
-    std::string outdir = M_data("rb/mdeim/directory", "mdeims");
+    std::string outdir = M_data("rb/offline/mdeim/directory", "mdeims");
     create_directory(outdir);
 
     for (auto& mapit : M_blockMDEIMsMap)
@@ -132,7 +144,7 @@ projectMDEIM()
 {
     using namespace boost::filesystem;
 
-    std::string basisdir = M_data("rb/basis/directory", "basis");
+    std::string basisdir = M_data("rb/offline/basis/directory", "basis");
 
     if (exists(basisdir))
     {
@@ -140,14 +152,14 @@ projectMDEIM()
         {
             for (auto& mdeim : mdeims.second)
             {
-                unsigned int numFields = mdeim.getAssembler()->getNumComponents();
+                unsigned int numFields = mdeim.getNumRows();
 
                 SHP(RBBases) curBases(new RBBases(M_data, M_comm));
                 curBases->setPath(basisdir + "/" + mdeims.first);
                 curBases->setNumberOfFields(numFields);
 
                 for (unsigned int i = 0; i < numFields; i++)
-                    curBases->setFESpace(mdeim.getAssembler()->getFEspace(i), i);
+                    curBases->setFESpace(mdeim.getFESpace(i), i);
 
                 curBases->loadBases();
                 mdeim.setRBBases(curBases);

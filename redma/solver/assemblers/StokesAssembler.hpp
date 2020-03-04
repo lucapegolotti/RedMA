@@ -29,6 +29,8 @@
 
 #include <boost/filesystem.hpp>
 
+// class BlockMDEIM;
+
 namespace RedMA
 {
 
@@ -146,6 +148,11 @@ protected:
     // first index is face flag
     std::map<unsigned int, SHP(VECTOREPETRA)>                       M_flowRateVectors;
     std::map<unsigned int, BlockMatrix<InMatrixType>>               M_flowRateJacobians;
+
+    // rb structures
+    // SHP(BlockMDEIM)                                                 M_mdeimMass;
+    // SHP(BlockMDEIM)                                                 M_mdeimStiffness;
+    // SHP(BlockMDEIM)                                                 M_mdeimDivergence;
 };
 
 }

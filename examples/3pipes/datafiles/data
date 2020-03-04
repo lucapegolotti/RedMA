@@ -22,7 +22,7 @@
 
 [rb]
 	[./offline]
-		[snapshots]
+		[./snapshots]
 			number 			     = 20
 			bound 			     = 0.2
 			take_every 		     = 1

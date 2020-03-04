@@ -47,7 +47,7 @@ assembleStiffness(BlockMDEIMStructure* structure)
     if (structure)
     {
         unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
-        unsigned int* volumes = (*structure)(0,0)->reducedElements;
+        unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
 
         if (useFullStrain)
         {
@@ -121,7 +121,7 @@ assembleMass(BlockMDEIMStructure* structure)
     if (structure)
     {
         unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
-        unsigned int* volumes = (*structure)(0,0)->reducedElements;
+        unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
         integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
                   M_velocityFESpace->qr(),
                   M_velocityFESpaceETA,
@@ -164,7 +164,7 @@ assembleDivergence(BlockMDEIMStructure* structure)
     if (structure)
     {
         unsigned int numVolumes = (*structure)(0,1)->numReducedElements;
-        unsigned int* volumes = (*structure)(0,1)->reducedElements;
+        unsigned int* volumes = (*structure)(0,1)->reducedElements.data();
         integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
                   M_velocityFESpace->qr(),
                   M_velocityFESpaceETA,
@@ -189,7 +189,7 @@ assembleDivergence(BlockMDEIMStructure* structure)
     if (structure)
     {
         unsigned int numVolumes = (*structure)(1,0)->numReducedElements;
-        unsigned int* volumes = (*structure)(1,0)->reducedElements;
+        unsigned int* volumes = (*structure)(1,0)->reducedElements.data();
 
         integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
                  M_pressureFESpace->qr(),

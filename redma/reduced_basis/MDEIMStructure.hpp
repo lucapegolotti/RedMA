@@ -46,16 +46,16 @@ struct MDEIMStructure
             loadValue(infile, numMyLocalMagicPoints);
             loadValue(infile, Nleft);
             loadValue(infile, Nright);
-            loadRawVector(infile, numMyEntries, numMyRows);
-            loadRawVector(infile, partialSumMyEntries, numMyRows+1);
-            loadRawVector(infile, myRowMatrixEntriesOfMagicPoints, numMyLocalMagicPoints);
-            loadRawVector(infile, myColMatrixEntriesOfMagicPoints, numMyLocalMagicPoints);
-            loadRawVector(infile, rowLocalReducedIndices, numMyLocalMagicPoints);
-            loadRawVector(infile, globalReducedNodes, 2 * numMyLocalMagicPoints);
-            loadRawVector(infile, myGlobalReducedNodes, numMyGlobalReducedNodes);
-            loadRawVector(infile, reducedElements, numReducedElements);
-            loadRawVector(infile, numMyReducedEntries, numMyLocalMagicPoints);
-            loadRawVector(infile, columnLocalReducedIndices, numMyLocalMagicPoints);
+            loadSTDVector(infile, numMyEntries);
+            loadSTDVector(infile, partialSumMyEntries);
+            loadSTDVector(infile, myRowMatrixEntriesOfMagicPoints);
+            loadSTDVector(infile, myColMatrixEntriesOfMagicPoints);
+            loadSTDVector(infile, rowLocalReducedIndices);
+            loadSTDVector(infile, globalReducedNodes);
+            loadSTDVector(infile, myGlobalReducedNodes);
+            loadSTDVector(infile, reducedElements);
+            loadSTDVector(infile, numMyReducedEntries);
+            loadSTDVector(infile, columnLocalReducedIndices);
             loadSTDVector(infile, myLocalMagicPoints);
             loadSTDVector(infile, localIndicesMagicPoints);
             loadSTDVector(infile, magicPointsProcOwner);
@@ -71,28 +71,6 @@ struct MDEIMStructure
 
             infile.close();
             allocated = true;
-        }
-    }
-
-    ~MDEIMStructure()
-    {
-        if (allocated)
-        {
-            delete[] numMyEntries;
-            delete[] partialSumMyEntries;
-            delete[] myRowMatrixEntriesOfMagicPoints;
-            delete[] myColMatrixEntriesOfMagicPoints;
-            delete[] rowLocalReducedIndices;
-            delete[] globalReducedNodes;
-            delete[] myGlobalReducedNodes;
-            delete[] reducedElements;
-            delete[] numMyReducedEntries;
-            delete[] columnLocalReducedIndices;
-
-            for (unsigned int i = 0; i < numMyRows; i++)
-                delete[] columnIndices[i];
-
-            delete[] columnIndices;
         }
     }
 
@@ -118,9 +96,10 @@ struct MDEIMStructure
         }
     }
 
-    void loadMatrix(std::ifstream& infile, int**& matrix, int dim1, int* dim2)
+    void loadMatrix(std::ifstream& infile, std::vector<std::vector<int>>& matrix,
+                    int dim1, std::vector<int> dim2)
     {
-        matrix = new int*[dim1];
+        matrix.resize(dim1);
 
         std::string value;
         std::string line;
@@ -131,7 +110,7 @@ struct MDEIMStructure
 
         for (int i = 0; i < dim1; i++)
         {
-            matrix[i] = new int[dim2[i]];
+            matrix[i].resize(dim2[i]);
             for (int j = 0; j < dim2[i]; j++)
             {
                 getline(linestream, value, ',');
@@ -159,7 +138,8 @@ struct MDEIMStructure
         }
     }
 
-    void loadSTDVector(std::ifstream& infile, std::vector<int>& targetVector)
+    template <typename Type>
+    void loadSTDVector(std::ifstream& infile, std::vector<Type>& targetVector)
     {
         std::string line;
         std::getline(infile,line);
@@ -194,16 +174,16 @@ struct MDEIMStructure
         outfile << value2string("Nleft", Nleft);
         outfile << value2string("Nright", Nright);
 
-        outfile << array2string("numMyEntries", numMyEntries, numMyRows);
-        outfile << array2string("partialSumMyEntries", partialSumMyEntries, numMyRows + 1);
-        outfile << array2string("myRowMatrixEntriesOfMagicPoints", myRowMatrixEntriesOfMagicPoints, numMyLocalMagicPoints);
-        outfile << array2string("myColMatrixEntriesOfMagicPoints", myColMatrixEntriesOfMagicPoints, numMyLocalMagicPoints);
-        outfile << array2string("rowLocalReducedIndices", rowLocalReducedIndices, numMyLocalMagicPoints);
-        outfile << array2string("globalReducedNodes", globalReducedNodes, 2 * numMyLocalMagicPoints);
-        outfile << array2string("myGlobalReducedNodes", myGlobalReducedNodes, numMyGlobalReducedNodes);
-        outfile << array2string("reducedElements", reducedElements, numReducedElements);
-        outfile << array2string("numMyReducedEntries", numMyReducedEntries, numMyLocalMagicPoints);
-        outfile << array2string("columnLocalReducedIndices", columnLocalReducedIndices, numMyLocalMagicPoints);
+        outfile << array2string("numMyEntries", numMyEntries.data(), numMyRows);
+        outfile << array2string("partialSumMyEntries", partialSumMyEntries.data(), numMyRows + 1);
+        outfile << array2string("myRowMatrixEntriesOfMagicPoints", myRowMatrixEntriesOfMagicPoints.data(), numMyLocalMagicPoints);
+        outfile << array2string("myColMatrixEntriesOfMagicPoints", myColMatrixEntriesOfMagicPoints.data(), numMyLocalMagicPoints);
+        outfile << array2string("rowLocalReducedIndices", rowLocalReducedIndices.data(), numMyLocalMagicPoints);
+        outfile << array2string("globalReducedNodes", globalReducedNodes.data(), 2 * numMyLocalMagicPoints);
+        outfile << array2string("myGlobalReducedNodes", myGlobalReducedNodes.data(), numMyGlobalReducedNodes);
+        outfile << array2string("reducedElements", reducedElements.data(), numReducedElements);
+        outfile << array2string("numMyReducedEntries", numMyReducedEntries.data(), numMyLocalMagicPoints);
+        outfile << array2string("columnLocalReducedIndices", columnLocalReducedIndices.data(), numMyLocalMagicPoints);
         outfile << array2string("myLocalMagicPoints", myLocalMagicPoints.data(), myLocalMagicPoints.size());
         outfile << array2string("localIndicesMagicPoints", localIndicesMagicPoints.data(), localIndicesMagicPoints.size());
         outfile << array2string("magicPointsProcOwner", magicPointsProcOwner.data(), magicPointsProcOwner.size());
@@ -271,8 +251,8 @@ struct MDEIMStructure
         return retString;
     }
 
-    std::string matrix2string(std::string name, int** mat,
-                              int dim1, int* dim2)
+    std::string matrix2string(std::string name, std::vector<std::vector<int>> mat,
+                              int dim1, std::vector<int> dim2)
     {
         std::string retString = name + ",";
         for (int i = 0; i < dim1; i++)
@@ -302,21 +282,21 @@ struct MDEIMStructure
     int                             numReducedMyNonzeros;
     int                             numReducedMyRows;
     int                             numMyLocalMagicPoints;
-    int*                            numMyEntries;
-    int*                            partialSumMyEntries;
-    int*                            myRowMatrixEntriesOfMagicPoints;
-    int*                            myColMatrixEntriesOfMagicPoints;
-    int*                            rowLocalReducedIndices;
-    int*                            globalReducedNodes;
-    int*                            myGlobalReducedNodes;
-    unsigned int*                   reducedElements;
-    int*                            numMyReducedEntries;
-    int*                            columnLocalReducedIndices;
+    std::vector<int>                numMyEntries;
+    std::vector<int>                partialSumMyEntries;
+    std::vector<int>                myRowMatrixEntriesOfMagicPoints;
+    std::vector<int>                myColMatrixEntriesOfMagicPoints;
+    std::vector<int>                rowLocalReducedIndices;
+    std::vector<int>                globalReducedNodes;
+    std::vector<int>                myGlobalReducedNodes;
+    std::vector<unsigned int>       reducedElements;
+    std::vector<int>                numMyReducedEntries;
+    std::vector<int>                columnLocalReducedIndices;
     std::vector<int>                myLocalMagicPoints;
     std::vector<int>                localIndicesMagicPoints;
     std::vector<int>                magicPointsProcOwner;
     std::vector<int>                globalIndicesMagicPoints;
-    int**                           columnIndices;
+    std::vector<std::vector<int>>   columnIndices;
     Epetra_SerialDenseMatrix        Qj;
     SHP(MAPEPETRA)                  vectorMap;
 };

@@ -20,7 +20,6 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
 #include <redma/solver/problem/ProblemFEM.hpp>
-#include <redma/solver/assemblers/AssemblerFactory.hpp>
 #include <redma/reduced_basis/RBBases.hpp>
 
 #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
@@ -41,15 +40,13 @@ public:
 
     void setComm(EPETRACOMM comm);
 
-    void setAssembler(SHP(aAssembler<FEVECTOR COMMA FEMATRIX>));
-
     void addSnapshot(BlockMatrix<MatrixEp> newSnapshot);
 
     void performMDEIM(std::string outdir);
 
-    void prepareOnline();
+    void initialize(BlockMatrix<FEMATRIX> reducedMatrix);
 
-    void checkOnline();
+    void checkOnline(BlockMatrix<FEMATRIX> completeMat, BlockMatrix<FEMATRIX> reducedMat);
 
     void checkOnSnapshots();
 
@@ -63,25 +60,35 @@ public:
 
     inline void setMatrixIndex(const unsigned int& index) {M_matIndex = index;}
 
-    SHP(aAssembler<FEVECTOR COMMA FEMATRIX>) getAssembler() {return M_assembler;}
-
     void resize(unsigned int rows, unsigned int cols);
 
-    BlockMatrix<FEMATRIX> assembleMatrix();
+    BlockMatrix<FEMATRIX> assembleMatrix(BlockMatrix<FEMATRIX> reducedMatrix);
+
+    void setFESpace(SHP(FESPACE) fespace, const unsigned int& index);
+
+    void prepareOnline();
+
+    inline SHP(FESPACE) getFESpace(const unsigned int& index) {return M_fespaces[index];}
+
+    inline unsigned int getNumRows() const {return M_nRows;}
+
+    inline unsigned int getNumCols() const {return M_nCols;}
+
+    inline unsigned int getIndex() const {return M_matIndex;}
+
+    inline BlockMDEIMStructure& getMDEIMStructure() {return M_structures;};
 
 private:
-
-    void setupMDEIMs();
 
     GridMDEIM                                   M_mdeims;
     unsigned int                                M_matIndex;
     EPETRACOMM                                  M_comm;
     DataContainer                               M_data;
-    SHP(aAssembler<FEVECTOR COMMA FEMATRIX>)    M_assembler;
     unsigned int                                M_nRows;
     unsigned int                                M_nCols;
     BlockMDEIMStructure                         M_structures;
     SHP(RBBases)                                M_bases;
+    std::vector<SHP(FESPACE)>                   M_fespaces;
 };
 
 }  // namespace RedMA

@@ -42,7 +42,7 @@ public:
 
     void performMDEIM(std::string outdir);
 
-    void prepareOnline(FEMATRIX matrix);
+    void prepareOnline();
 
     void checkOnline(FEMATRIX reducedMatrix, FEMATRIX fullMatrix);
 

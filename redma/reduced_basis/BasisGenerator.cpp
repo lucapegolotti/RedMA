@@ -11,7 +11,7 @@ BasisGenerator(const DataContainer& data, EPETRACOMM comm) :
     if (M_comm->MyPID() != 0)
         throw new Exception("BasisGenerator does not support more than one proc");
 
-    std::string outdir = M_data("rb/basis/directory", "basis");
+    std::string outdir = M_data("rb/offline/basis/directory", "basis");
 
     if (boost::filesystem::exists(outdir))
         throw new Exception("Basis directory already exists!");
@@ -36,7 +36,7 @@ parseFiles()
 
     using namespace boost::filesystem;
 
-    std::string snapshotsdir = M_data("rb/snapshots/directory", "snapshots");
+    std::string snapshotsdir = M_data("rb/offline/snapshots/directory", "snapshots");
 
     if (!exists(snapshotsdir))
         throw new Exception("Snapshots directory has not been generated yet!");
@@ -70,7 +70,7 @@ setupLinearSolver(MatrixEp matrix)
     Teuchos::RCP<Teuchos::ParameterList> aztecList =
                                        Teuchos::rcp(new Teuchos::ParameterList);
 
-    std::string xmlfile = M_data("rb/basis/xmlfile", "SolverParamList.xml");
+    std::string xmlfile = M_data("rb/offline/basis/xmlfile", "SolverParamList.xml");
     aztecList = Teuchos::getParametersFromXmlFile(xmlfile);
     linearSolver.setParameters(*aztecList);
 
@@ -93,13 +93,13 @@ void
 BasisGenerator::
 addSupremizers()
 {
-    bool addprimalsupremizers = M_data("rb/basis/addprimalsupremizers", true);
+    bool addprimalsupremizers = M_data("rb/offline/basis/addprimalsupremizers", true);
     if (addprimalsupremizers)
     {
         printlog(MAGENTA, "[BasisGenerator] adding primal supremizers ... \n", M_data.getVerbose());
 
-        unsigned int field2augment = M_data("rb/basis/primal_supremizers/field2augment", 0);
-        unsigned int limitingfield = M_data("rb/basis/primal_supremizers/limitingfield", 1);
+        unsigned int field2augment = M_data("rb/offline/basis/primal_supremizers/field2augment", 0);
+        unsigned int limitingfield = M_data("rb/offline/basis/primal_supremizers/limitingfield", 1);
 
         for (auto& meshas : M_meshASPairMap)
         {
@@ -136,12 +136,12 @@ addSupremizers()
         }
     }
 
-    bool adddualsupremizers = M_data("rb/basis/adddualsupremizers", true);
+    bool adddualsupremizers = M_data("rb/offline/basis/adddualsupremizers", true);
     if (adddualsupremizers)
     {
         printlog(MAGENTA, "[BasisGenerator] adding dual supremizers ... \n", M_data.getVerbose());
 
-        unsigned int field2augment = M_data("rb/basis/dual_supremizers/field2augment", 0);
+        unsigned int field2augment = M_data("rb/offline/basis/dual_supremizers/field2augment", 0);
 
         for (auto& meshas : M_meshASPairMap)
         {
@@ -205,9 +205,9 @@ performPOD()
 {
     using namespace rbLifeV;
 
-    double podtol = M_data("rb/basis/podtol", 1e-5);
+    double podtol = M_data("rb/offline/basis/podtol", 1e-5);
 
-    std::string outdir = M_data("rb/basis/directory", "basis");
+    std::string outdir = M_data("rb/offline/basis/directory", "basis");
     boost::filesystem::create_directory(outdir);
 
     printlog(MAGENTA, "[BasisGenerator] performing POD ... \n", M_data.getVerbose());
@@ -349,8 +349,8 @@ dumpBasis()
 {
     using namespace boost::filesystem;
 
-    std::string outdir = M_data("rb/basis/directory", "basis");
-    bool binary = M_data("rb/basis/dumpbinary", true);
+    std::string outdir = M_data("rb/offline/basis/directory", "basis");
+    bool binary = M_data("rb/offline/basis/dumpbinary", true);
 
     std::ios_base::openmode omode = std::ios_base::app;
     if (binary)

@@ -29,9 +29,9 @@ setup()
 
     initializeFEspaces();
 
-    M_stiffness = assembleStiffness();
-    M_mass = assembleMass();
-    M_divergence = assembleDivergence();
+    M_mass = assembleMass(); // #1
+    M_stiffness = assembleStiffness(); // #2
+    M_divergence = assembleDivergence(); // #3
 
     assembleFlowRateVectors();
     // assembleFlowRateJacobians();

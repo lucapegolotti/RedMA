@@ -18,8 +18,8 @@ void
 MDEIMChecker::
 checkOnlineMDEIM()
 {
-    unsigned int nChecks = M_data("rb/mdeim/checksonline", 5);
-    double bound = M_data("rb/mdeim/bound", 0.2);
+    unsigned int nChecks = M_data("rb/offline/mdeim/checksonline", 5);
+    double bound = M_data("rb/offline/mdeim/bound", 0.2);
 
     for (unsigned int i = 0; i < nChecks; i++)
     {
@@ -36,8 +36,10 @@ checkOnlineMDEIM()
         {
             for (auto& mdeim : M_blockMDEIMsMap[IDmeshTypeMap[as.first]])
             {
-                mdeim.setAssembler(as.second);
-                mdeim.checkOnline();
+                BlockMatrix<MatrixEp> fullMatrix = as.second->assembleMatrix(mdeim.getIndex());
+                BlockMatrix<MatrixEp> reducedMatrix = as.second->assembleMatrix(mdeim.getIndex(),
+                                                                                &mdeim.getMDEIMStructure());
+                mdeim.checkOnline(fullMatrix, reducedMatrix);
             }
         }
     }
@@ -55,7 +57,7 @@ loadMDEIMs()
     auto assemblers = problem.getBlockAssembler()->getAssemblersMap();
     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
 
-    std::string outdir = M_data("rb/mdeim/directory", "mdeims");
+    std::string outdir = M_data("rb/offline/mdeim/directory", "mdeims");
 
     if (!exists(outdir))
         throw new Exception("MDEIMS directory does not exist");
@@ -83,7 +85,16 @@ loadMDEIMs()
                 if (idmesh.second == meshName)
                     id = idmesh.first;
 
-            newMdeim.setAssembler(assemblers[id]);
+            newMdeim.resize(assemblers[id]->getNumComponents(),
+                            assemblers[id]->getNumComponents());
+
+            unsigned int fieldIndex = 0;
+            while (assemblers[id]->getFEspace(fieldIndex))
+            {
+                newMdeim.setFESpace(assemblers[id]->getFEspace(fieldIndex), fieldIndex);
+                fieldIndex++;
+            }
+
             newMdeim.setMatrixIndex(matrixIndex);
             newMdeim.loadMDEIM(curdir);
             M_blockMDEIMsMap[meshName].push_back(newMdeim);
