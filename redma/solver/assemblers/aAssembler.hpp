@@ -102,6 +102,8 @@ public:
 
     virtual void setRBBases(SHP(RBBasesManager) rbManager) {}
 
+    virtual SHP(RBBases) getRBBases() const {}
+
 protected:
     DataContainer                        M_data;
     SHP(TreeNode)                        M_treeNode;

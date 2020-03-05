@@ -6,25 +6,13 @@ namespace RedMA
 template <>
 std::vector<DenseVector>
 InterfaceAssembler<DenseVector, DenseMatrix>::
-buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
-                     const GeometricFace& face,
-                     SHP(aAssembler<DenseVector COMMA DenseMatrix>) assembler) const
-{
-    unsigned int nBasisFunctions = bfs->getNumBasisFunctions();
-    std::vector<DenseVector> couplingVectors(3 * nBasisFunctions);
-
-    return couplingVectors;
-}
-
-template <>
-std::vector<DenseVector>
-InterfaceAssembler<DenseVector, DenseMatrix>::
 buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
                                   const GeometricFace& face,
                                   SHP(aAssembler<DenseVector COMMA DenseMatrix>) assembler) const
 {
     unsigned int nBasisFunctions = bfs->getNumBasisFunctions();
     std::vector<DenseVector> couplingVectors(3 * nBasisFunctions);
+    throw new Exception("Stabilization matrices not implemented in rb setting");
 
     return couplingVectors;
 }
@@ -39,15 +27,9 @@ buildStabilizationVectorsPressure(SHP(BasisFunctionFunctor) bfs,
     unsigned int nBasisFunctions = bfs->getNumBasisFunctions();
     std::vector<DenseVector> couplingVectors(3 * nBasisFunctions);
 
-    return couplingVectors;
-}
+    throw new Exception("Stabilization matrices not implemented in rb setting");
 
-template <>
-void
-InterfaceAssembler<DenseVector, DenseMatrix>::
-buildCouplingMatrices(SHP(AssemblerType) assembler, const GeometricFace& face,
-                      BlockMatrix<DenseMatrix>& matrixT, BlockMatrix<DenseMatrix>& matrix)
-{
+    return couplingVectors;
 }
 
 template <>
@@ -56,6 +38,8 @@ InterfaceAssembler<DenseVector, DenseMatrix>::
 buildStabilizationVectorsLagrange() const
 {
     std::vector<DenseVector> retVectors(0);
+
+    throw new Exception("Stabilization matrices not implemented in rb setting");
 
     return retVectors;
 }
@@ -67,6 +51,7 @@ buildStabilizationMatrix(SHP(AssemblerType) assembler,
                          const GeometricFace& face,
                          BlockMatrix<DenseMatrix>& matrix)
 {
+    throw new Exception("Stabilization matrices not implemented in rb setting");
 }
 
 template <>
@@ -74,6 +59,39 @@ void
 InterfaceAssembler<DenseVector, DenseMatrix>::
 buildCouplingMatrices()
 {
+    unsigned int indexOutlet = M_interface.M_indexOutlet;
+
+    auto asFather = M_interface.M_assemblerFather;
+
+    if (asFather)
+    {
+        GeometricFace outlet = asFather->getTreeNode()->M_block->getOutlet(indexOutlet);
+
+        BlockMatrix<MatrixEp> fatherBT;
+        BlockMatrix<MatrixEp> fatherB;
+        buildCouplingMatrices(asFather, outlet, fatherBT, fatherB);
+
+        M_fatherBT = asFather->getRBBases()->leftProject(fatherBT);
+        M_fatherB = asFather->getRBBases()->rightProject(fatherB);
+    }
+
+    auto asChild = M_interface.M_assemblerChild;
+    if (asChild)
+    {
+        GeometricFace inlet = asChild->getTreeNode()->M_block->getInlet();
+        // I invert the normal of the face such that it is the same as the outlet
+        inlet.M_normal *= (-1.);
+
+        BlockMatrix<MatrixEp> childBT;
+        BlockMatrix<MatrixEp> childB;
+        buildCouplingMatrices(asChild, inlet, childBT, childB);
+
+        childB *= (-1.);
+        childBT *= (-1.);
+
+        M_childBT = asChild->getRBBases()->leftProject(childBT);
+        M_childB = asChild->getRBBases()->rightProject(childB);
+    }
 }
 
 template <>

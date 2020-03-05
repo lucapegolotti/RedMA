@@ -215,6 +215,97 @@ dump()
     }
 }
 
+BlockMatrix<DenseMatrix>
+RBBases::
+leftProject(BlockMatrix<MatrixEp> matrix)
+{
+    BlockMatrix<DenseMatrix> projectedMatrix(matrix.nRows(), matrix.nCols());
+
+    for (unsigned int i = 0; i < matrix.nRows(); i++)
+    {
+        for (unsigned int j = 0; j < matrix.nCols(); j++)
+        {
+            projectedMatrix.block(i,j) = leftProject(matrix.block(i,j), i);
+        }
+    }
+    return projectedMatrix;
+}
+
+DenseMatrix
+RBBases::
+leftProject(MatrixEp matrix, unsigned int basisIndex)
+{
+    DenseMatrix retMat;
+
+    if (matrix.data())
+    {
+        std::vector<SHP(VECTOREPETRA)> basis = getEnrichedBasis(basisIndex);
+
+        unsigned int nrows = basis.size();
+        unsigned int ncols = matrix.data()->domainMapPtr()->mapSize();
+        SHP(DENSEMATRIX) innerMatrix(new DENSEMATRIX(nrows, ncols));
+
+        VECTOREPETRA result(*matrix.data()->domainMapPtr());
+        for (unsigned int i = 0; i < nrows; i++)
+        {
+            result.zero();
+            matrix.data()->matrixPtr()->Multiply(true, basis[i]->epetraVector(),
+                                                 result.epetraVector());
+
+            for (unsigned int j = 0; j < ncols; j++)
+                (*innerMatrix)(i,j) = result[j];
+        }
+        retMat.data() = innerMatrix;
+    }
+    return retMat;
+}
+
+BlockMatrix<DenseMatrix>
+RBBases::
+rightProject(BlockMatrix<MatrixEp> matrix)
+{
+    BlockMatrix<DenseMatrix> projectedMatrix(matrix.nRows(), matrix.nCols());
+
+    for (unsigned int i = 0; i < matrix.nRows(); i++)
+    {
+        for (unsigned int j = 0; j < matrix.nCols(); j++)
+        {
+            projectedMatrix.block(i,j) = rightProject(matrix.block(i,j), j);
+        }
+    }
+    return projectedMatrix;
+}
+
+DenseMatrix
+RBBases::
+rightProject(MatrixEp matrix, unsigned int basisIndex)
+{
+    DenseMatrix retMat;
+    if (matrix.data())
+    {
+        std::vector<SHP(VECTOREPETRA)> basis = getEnrichedBasis(basisIndex);
+
+        unsigned int nrows = matrix.data()->rangeMapPtr()->mapSize();
+        unsigned int ncols = basis.size();
+        SHP(DENSEMATRIX) innerMatrix(new DENSEMATRIX(nrows, ncols));
+
+        VECTOREPETRA result(*matrix.data()->rangeMapPtr());
+
+        for (unsigned int j = 0; j < ncols; j++)
+        {
+            result.zero();
+            matrix.data()->matrixPtr()->Multiply(false, basis[j]->epetraVector(),
+                                                 result.epetraVector());
+
+            for (unsigned int i = 0; i < nrows; i++)
+                (*innerMatrix)(i,j) = result[i];
+        }
+        retMat.data() = innerMatrix;
+    }
+    return retMat;
+}
+
+
 std::vector<SHP(VECTOREPETRA)>&
 RBBases::
 getBasis(const unsigned int& index, double tol)

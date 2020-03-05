@@ -142,6 +142,8 @@ public:
 
     virtual void setRBBases(SHP(RBBasesManager) rbManager) override;
 
+    virtual SHP(RBBases) getRBBases() const override {return M_bases;}
+
 protected:
 
     BlockMatrix<InMatrixType>                                       M_mass;

@@ -27,6 +27,8 @@
 #include <redma/utils/Exception.hpp>
 #include <redma/solver/coupling/BasisFunctionFactory.hpp>
 
+#include <redma/reduced_basis/RBBases.hpp>
+
 #include <lifev/eta/expression/Integrate.hpp>
 
 #define THRESHOLDSTAB       1e-15
@@ -70,8 +72,8 @@ public:
 
     void buildCouplingMatrices(SHP(AssemblerType) assembler,
                                const GeometricFace& face,
-                               BlockMatrix<InMatrixType>& matrixT,
-                               BlockMatrix<InMatrixType>& matrix);
+                               BlockMatrix<MatrixEp>& matrixT,
+                               BlockMatrix<MatrixEp>& matrix);
 
     void buildStabilizationMatrix(SHP(AssemblerType) assembler,
                                   const GeometricFace& face,
@@ -107,7 +109,7 @@ public:
 protected:
     SHP(LifeV::QuadratureRule) generateQuadratureRule(std::string tag) const;
 
-    std::vector<InVectorType> buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
+    std::vector<VectorEp> buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
                                                const GeometricFace& face,
                                                SHP(aAssembler<InVectorType COMMA InMatrixType>) assembler) const;
 

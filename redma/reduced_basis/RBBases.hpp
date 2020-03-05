@@ -20,6 +20,8 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
 
+#include <redma/solver/array/BlockMatrix.hpp>
+
 #include <boost/filesystem.hpp>
 
 namespace RedMA
@@ -47,6 +49,14 @@ public:
     std::vector<SHP(VECTOREPETRA)>& getBasis(const unsigned int& index, double tol = 0);
 
     std::vector<SHP(VECTOREPETRA)> getEnrichedBasis(const unsigned int& index, double tol = 0);
+
+    BlockMatrix<DenseMatrix> leftProject(BlockMatrix<MatrixEp> matrix);
+
+    DenseMatrix leftProject(MatrixEp matrix, unsigned int basisIndex);
+
+    BlockMatrix<DenseMatrix> rightProject(BlockMatrix<MatrixEp> matrix);
+
+    DenseMatrix rightProject(MatrixEp matrix, unsigned int basisIndex);
 
     void addPrimalSupremizer(SHP(VECTOREPETRA) supremizer,
                              const unsigned int& fieldToAugment,
