@@ -117,6 +117,6 @@
 [coupling]
 	type                = chebyshev
 	nMax                = 3
-	stab_coefficient	= 1e-10
+	stab_coefficient	= 1e-16
 	check_stabterm		= true
 [../]

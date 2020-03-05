@@ -75,6 +75,8 @@ public:
 
     std::map<unsigned int, SHP(aAssembler<VInner COMMA MInner>)> getAssemblersMap() const {return M_primalAssemblers;}
 
+    std::vector<SHP(InterfaceAssembler<VInner COMMA MInner>)> getDualAssemblers() const {return M_dualAssemblers;}
+
 protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;

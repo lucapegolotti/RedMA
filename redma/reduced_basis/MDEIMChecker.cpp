@@ -95,6 +95,8 @@ loadMDEIMs()
             while (assemblers[id]->getFEspace(fieldIndex))
             {
                 newMdeim.setFESpace(assemblers[id]->getFEspace(fieldIndex), fieldIndex);
+                newMdeim.setRangeMap(assemblers[id]->getFEspace(fieldIndex)->mapPtr(), fieldIndex);
+                newMdeim.setDomainMap(assemblers[id]->getFEspace(fieldIndex)->mapPtr(), fieldIndex);
                 fieldIndex++;
             }
 

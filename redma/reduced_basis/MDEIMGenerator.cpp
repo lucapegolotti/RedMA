@@ -33,7 +33,7 @@ dumpMDEIMstructures()
 
     create_directory(outdir);
 
-    for (auto& mapit : M_blockMDEIMsMap)
+    for (auto& mapit : M_primalBlockMDEIMsMap)
     {
         std::string curdir = outdir + "/" + mapit.first;
         create_directory(curdir);
@@ -48,7 +48,7 @@ void
 MDEIMGenerator::
 checkMDEIM()
 {
-    for (auto& blockmdeims : M_blockMDEIMsMap)
+    for (auto& blockmdeims : M_primalBlockMDEIMsMap)
     {
         for (auto& mdeim : blockmdeims.second)
         {
@@ -81,21 +81,23 @@ takeMatricesSnapshots()
         problem.getTree().randomSampleAroundOriginalValue(bound);
         problem.setup();
 
-        auto assemblers = problem.getBlockAssembler()->getAssemblersMap();
         auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
 
-        for (auto as : assemblers)
+        // get primal assemblers
+        auto primalAssemblers = problem.getBlockAssembler()->getAssemblersMap();
+
+        for (auto as : primalAssemblers)
         {
             unsigned int matCount = 0;
             std::vector<BlockMatrix<MatrixEp>> matrices = as.second->getMatrices();
             unsigned int nmatrices = matrices.size();
 
-            if (M_blockMDEIMsMap.find(IDmeshTypeMap[as.first]) == M_blockMDEIMsMap.end())
-                M_blockMDEIMsMap[IDmeshTypeMap[as.first]].resize(nmatrices);
+            if (M_primalBlockMDEIMsMap.find(IDmeshTypeMap[as.first]) == M_primalBlockMDEIMsMap.end())
+                M_primalBlockMDEIMsMap[IDmeshTypeMap[as.first]].resize(nmatrices);
 
             for (unsigned int i = 0; i < nmatrices; i++)
             {
-                auto& curmdeim = M_blockMDEIMsMap[IDmeshTypeMap[as.first]][i];
+                auto& curmdeim = M_primalBlockMDEIMsMap[IDmeshTypeMap[as.first]][i];
 
                 if (isnapshot == 0)
                 {
@@ -107,6 +109,8 @@ takeMatricesSnapshots()
                     while (as.second->getFEspace(fieldIndex))
                     {
                         curmdeim.setFESpace(as.second->getFEspace(fieldIndex), fieldIndex);
+                        curmdeim.setRangeMap(as.second->getFEspace(fieldIndex)->mapPtr(), fieldIndex);
+                        curmdeim.setDomainMap(as.second->getFEspace(fieldIndex)->mapPtr(), fieldIndex);
                         fieldIndex++;
                     }
                     curmdeim.setMatrixIndex(i);
@@ -127,7 +131,7 @@ performMDEIM()
     std::string outdir = M_data("rb/offline/mdeim/directory", "mdeims");
     create_directory(outdir);
 
-    for (auto& mapit : M_blockMDEIMsMap)
+    for (auto& mapit : M_primalBlockMDEIMsMap)
     {
         std::string curdir = outdir + "/" + mapit.first;
         create_directory(curdir);
@@ -148,7 +152,7 @@ projectMDEIM()
 
     if (exists(basisdir))
     {
-        for (auto& mdeims : M_blockMDEIMsMap)
+        for (auto& mdeims : M_primalBlockMDEIMsMap)
         {
             for (auto& mdeim : mdeims.second)
             {

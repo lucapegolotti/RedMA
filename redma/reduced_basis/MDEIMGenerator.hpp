@@ -53,7 +53,10 @@ private:
     DataContainer                                     M_data;
     EPETRACOMM                                        M_comm;
     // one MDEIM instance for every matrix of the problem (e.g. stiffness, mass, ecc)
-    std::map<std::string, std::vector<BlockMDEIM>>    M_blockMDEIMsMap;
+    std::map<std::string, std::vector<BlockMDEIM>>    M_primalBlockMDEIMsMap;
+    // first mdeim: inlet, then outlets in order
+    // std::map<std::string, std::vector<BlockMDEIM>>    M_dualBlockTMDEIMsMap;
+    // std::map<std::string, std::vector<BlockMDEIM>>    M_dualBlockMDEIMsMap;
 
 };
 

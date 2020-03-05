@@ -557,6 +557,7 @@ assembleMatrix(FEMATRIX reducedMatrix)
         // Compute interpolation vector
         Epetra_SerialDenseVector myInterpVector(ms->N);
         computeInterpolationVectorOnline(myInterpVector, reducedMatrix);
+
         // Build FEM vector from interpolation vector
         approximation.reset(new VECTOREPETRA(*ms->vectorMap));
         computeFeInterpolation(myInterpVector, *approximation);

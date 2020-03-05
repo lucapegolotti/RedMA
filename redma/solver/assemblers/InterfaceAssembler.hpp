@@ -96,6 +96,14 @@ public:
     double checkStabilizationTerm(const BlockVector<BlockVector<InVectorType>>& sol,
                                   const unsigned int& nPrimalBlocks);
 
+    inline BlockMatrix<InMatrixType> getFatherBT() const {return M_fatherBT;}
+
+    inline BlockMatrix<InMatrixType> getFatherB() const {return M_fatherB;}
+
+    inline BlockMatrix<InMatrixType> getChildBT() const {return M_childBT;}
+
+    inline BlockMatrix<InMatrixType> getChildB() const {return M_childB;}
+
 protected:
     SHP(LifeV::QuadratureRule) generateQuadratureRule(std::string tag) const;
 

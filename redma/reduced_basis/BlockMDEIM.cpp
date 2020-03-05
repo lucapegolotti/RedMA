@@ -23,7 +23,6 @@ setComm(EPETRACOMM comm)
     M_comm = comm;
 }
 
-// this method works also as a "setup" method for the mdeims
 void
 BlockMDEIM::
 addSnapshot(BlockMatrix<MatrixEp> newSnapshot)
@@ -42,20 +41,38 @@ BlockMDEIM::
 setFESpace(SHP(FESPACE) fespace, const unsigned int& index)
 {
     M_fespaces[index] = fespace;
-
     for (unsigned int j = 0; j < M_nCols; j++)
     {
         if (M_mdeims(index,j))
         {
-            M_mdeims(index,j)->setFESpace(M_fespaces[index]);
-            M_mdeims(index,j)->setRangeMap(M_fespaces[index]->mapPtr());
+            M_mdeims(index,j)->setFESpace(fespace);
         }
     }
+}
+
+void
+BlockMDEIM::
+setRangeMap(SHP(MAPEPETRA) map, const unsigned int& index)
+{
+    M_rangeMaps[index] = map;
+
+    for (unsigned int j = 0; j < M_nCols; j++)
+    {
+        if (M_mdeims(index,j))
+            M_mdeims(index,j)->setRangeMap(map);
+    }
+}
+
+void
+BlockMDEIM::
+setDomainMap(SHP(MAPEPETRA) map, const unsigned int& index)
+{
+    M_domainMaps[index] = map;
 
     for (unsigned int i = 0; i < M_nRows; i++)
     {
         if (M_mdeims(i,index))
-            M_mdeims(i,index)->setDomainMap(M_fespaces[index]->mapPtr());
+            M_mdeims(i,index)->setDomainMap(map);
     }
 }
 
@@ -67,7 +84,17 @@ resize(unsigned int rows, unsigned int cols)
     M_nCols = cols;
     M_mdeims.resize(M_nRows, M_nCols);
     M_fespaces.resize(M_nRows);
+    M_rangeMaps.resize(M_nRows);
+    M_domainMaps.resize(M_nCols);
     M_structures.resize(M_nRows, M_nCols);
+
+    for (unsigned int i = 0; i < M_nRows; i++)
+    {
+        for (unsigned int j = 0; j < M_nCols; j++)
+        {
+            M_mdeims(i,j).reset(new MDEIM());
+        }
+    }
 }
 
 void
@@ -121,7 +148,6 @@ initialize(BlockMatrix<FEMATRIX> reducedMatrix)
     {
         for (unsigned int j = 0; j < M_nCols; j++)
         {
-            M_mdeims(i,j).reset(new MDEIM());
             M_mdeims(i,j)->setComm(M_comm);
             M_mdeims(i,j)->setDataContainer(M_data);
             M_mdeims(i,j)->initialize(reducedMatrix.block(i,j));
@@ -204,11 +230,11 @@ checkOnSnapshots()
 
 void
 BlockMDEIM::
-dumpMDEIMs(std::string dir)
+dumpMDEIMs(std::string dir, std::string prefix)
 {
     using namespace boost::filesystem;
 
-    std::string outdir = dir + "/blockmdeim" + std::to_string(M_matIndex);
+    std::string outdir = dir + "/" + prefix + std::to_string(M_matIndex);
     create_directory(outdir);
 
     for (unsigned int i = 0; i < M_nRows; i++)
@@ -248,8 +274,6 @@ loadMDEIM(std::string dir)
         for (unsigned int j = 0; j < M_nCols; j++)
         {
             std::string curdir = dir + "/mdeim_" + std::to_string(i) + "_" + std::to_string(j);
-
-            M_mdeims(i,j).reset(new MDEIM());
 
             M_mdeims(i,j)->setComm(M_comm);
             M_mdeims(i,j)->setDataContainer(M_data);

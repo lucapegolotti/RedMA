@@ -53,7 +53,7 @@ public:
 
     void checkOnSnapshots();
 
-    void dumpMDEIMs(std::string dir);
+    void dumpMDEIMs(std::string dir, std::string prefix = "blockmdeim");
 
     void projectMDEIMs();
 
@@ -69,11 +69,19 @@ public:
 
     BlockMatrix<RBMATRIX> assembleProjectedMatrix(BlockMatrix<FEMATRIX> reducedMatrix);
 
-    void setFESpace(SHP(FESPACE) fespace, const unsigned int& index);
-
     void prepareOnline();
 
+    void setFESpace(SHP(FESPACE) fespace, const unsigned int& index);
+
+    void setRangeMap(SHP(MAPEPETRA) map, const unsigned int& index);
+
+    void setDomainMap(SHP(MAPEPETRA) map, const unsigned int& index);
+
     inline SHP(FESPACE) getFESpace(const unsigned int& index) {return M_fespaces[index];}
+
+    inline SHP(MAPEPETRA) getRangeMap(const unsigned int& index) {return M_rangeMaps[index];}
+
+    inline SHP(MAPEPETRA) getDomainMap(const unsigned int& index) {return M_domainMaps[index];}
 
     inline unsigned int getNumRows() const {return M_nRows;}
 
@@ -94,6 +102,8 @@ private:
     BlockMDEIMStructure                         M_structures;
     SHP(RBBases)                                M_bases;
     std::vector<SHP(FESPACE)>                   M_fespaces;
+    std::vector<SHP(MAPEPETRA)>                 M_rangeMaps;
+    std::vector<SHP(MAPEPETRA)>                 M_domainMaps;
 };
 
 }  // namespace RedMA
