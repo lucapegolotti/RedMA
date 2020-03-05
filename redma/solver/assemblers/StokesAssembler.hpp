@@ -140,6 +140,8 @@ public:
 
     virtual void setMDEIMs(SHP(MDEIMManager) mdeimManager) override;
 
+    virtual void setRBBases(SHP(RBBasesManager) rbManager) override;
+
 protected:
 
     BlockMatrix<InMatrixType>                                       M_mass;
@@ -163,6 +165,7 @@ protected:
     SHP(BlockMDEIM)                                                 M_mdeimMass;
     SHP(BlockMDEIM)                                                 M_mdeimStiffness;
     SHP(BlockMDEIM)                                                 M_mdeimDivergence;
+    SHP(RBBases)                                                    M_bases;
 };
 
 }

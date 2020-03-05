@@ -537,5 +537,24 @@ setMDEIMs(SHP(MDEIMManager) mdeimManager)
     M_mdeimDivergence = mdeims[2];
 }
 
+template <class InVectorType, class InMatrixType>
+void
+StokesAssembler<InVectorType,InMatrixType>::
+setRBBases(SHP(RBBasesManager) rbManager)
+{
+    std::string mdeimdir = this->M_data("rb/online/mdeim/directory", "mdeims");
+    std::string meshName = this->M_treeNode->M_block->getMeshName();
+    unsigned int dashpos = meshName.find("/");
+    unsigned int formatpos = meshName.find(".mesh");
+    std::string actualName = meshName.substr(dashpos + 1,
+                                             formatpos - dashpos - 1);
+
+    // beware that at this point the rb bases have not been loaded yet
+    M_bases = rbManager->getRBBases(actualName);
+    M_bases->setFESpace(M_velocityFESpace, 0);
+    M_bases->setFESpace(M_pressureFESpace, 1);
+}
+
+
 
 }

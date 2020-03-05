@@ -23,6 +23,8 @@
 #include <redma/solver/assemblers/InterfaceAssembler.hpp>
 #include <redma/solver/assemblers/InletInflowAssembler.hpp>
 
+#include <redma/reduced_basis/RBBasesManager.hpp>
+
 #include <redma/geometry/TreeStructure.hpp>
 
 namespace RedMA
@@ -84,7 +86,7 @@ protected:
     std::vector<SHP(InterfaceAssembler<VInner COMMA MInner>)>     M_dualAssemblers;
     unsigned int                                                  M_numberBlocks;
     SHP(MDEIMManager)                                             M_mdeimManager;
-    // SHP(RBBasesManager)                                           M_basesManager;
+    SHP(RBBasesManager)                                           M_basesManager;
 };
 
 }

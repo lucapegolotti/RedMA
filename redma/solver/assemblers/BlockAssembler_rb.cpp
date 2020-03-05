@@ -24,14 +24,19 @@ setup()
         M_primalAssemblers[it->second->M_ID] = newAssembler;
     }
 
+    M_basesManager.reset(new RBBasesManager(M_data, M_comm, getIDMeshTypeMap()));
+    M_basesManager->load();
     M_mdeimManager.reset(new MDEIMManager(M_data, M_comm, getIDMeshTypeMap()));
     M_mdeimManager->load();
-
     for (auto& primalas : M_primalAssemblers)
     {
         primalas.second->setMDEIMs(M_mdeimManager);
         primalas.second->setup();
+        // we set the RBBases later because we need the finite element space
+        primalas.second->setRBBases(M_basesManager);
     }
+    // we need to load the bases here because now we have the finite element space
+    M_basesManager->loadBases();
 
     // allocate interface assemblers
     unsigned int interfaceID = 0;

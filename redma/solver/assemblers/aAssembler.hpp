@@ -25,6 +25,7 @@
 
 #include <redma/reduced_basis/MDEIMStructure.hpp>
 #include <redma/reduced_basis/MDEIMManager.hpp>
+#include <redma/reduced_basis/RBBasesManager.hpp>
 
 #include <redma/solver/problem/DataContainer.hpp>
 
@@ -98,6 +99,8 @@ public:
     virtual InMatrixType getConstraintMatrix() {return InMatrixType();}
 
     virtual void setMDEIMs(SHP(MDEIMManager) mdeimManager) {}
+
+    virtual void setRBBases(SHP(RBBasesManager) rbManager) {}
 
 protected:
     DataContainer                        M_data;
