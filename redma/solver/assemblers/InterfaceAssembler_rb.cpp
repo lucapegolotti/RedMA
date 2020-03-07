@@ -102,6 +102,15 @@ getZeroVector() const
     BlockVector<DenseVector> retVector;
     retVector.resize(1);
 
+    unsigned int nlag;
+    if (M_interface.M_assemblerFather)
+        nlag = M_fatherBT.block(0,0).data()->N();
+    else
+        nlag = M_childBT.block(0,0).data()->N();
+
+    retVector.block(0).data().reset(new DENSEVECTOR(nlag));
+    retVector.block(0).data()->Scale(0.0);
+
     return retVector;
 }
 

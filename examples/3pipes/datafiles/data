@@ -14,7 +14,7 @@
 [../]
 
 [bc_conditions]
-	inletdirichlet = strong
+	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 	coefficientinflow = 1.0341910688;
 	numoutletbcs = 0
@@ -100,8 +100,8 @@
 	rhoinf = 0.5
 	order = 1
 	t0 = 0
-	T = 0.03
-	dt = 0.01
+	T = 0.20
+	dt = 0.02
 	solverstatistics = solverstatistics.txt
 [../]
 

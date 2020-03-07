@@ -54,6 +54,10 @@ public:
 
     DenseMatrix leftProject(MatrixEp matrix, unsigned int basisIndex);
 
+    BlockVector<DenseVector> leftProject(BlockVector<VectorEp> vector);
+
+    DenseVector leftProject(VectorEp vector, unsigned int basisIndex);
+
     BlockMatrix<DenseMatrix> rightProject(BlockMatrix<MatrixEp> matrix);
 
     DenseMatrix rightProject(MatrixEp matrix, unsigned int basisIndex);
@@ -64,6 +68,10 @@ public:
 
     void addDualSupremizer(SHP(VECTOREPETRA) supremizer,
                            const unsigned int& fieldToAugment);
+
+    inline unsigned int getSizeBasis(const unsigned int& index) {return M_bases[index].size();}
+
+    inline unsigned int getSizeEnrichedBasis(const unsigned int& index) {return getEnrichedBasis(index).size();}
 
 private:
     void addVectorsFromFile(std::string filename,

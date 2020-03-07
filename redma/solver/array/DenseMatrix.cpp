@@ -152,11 +152,11 @@ operator*(const DenseVector& vector)
     if (M_matrix && vector.data())
     {
         std::shared_ptr<DENSEVECTOR> res;
-        res.reset(new DENSEVECTOR());
-        std::cout << "DenseVector this could give a seg fault" << std::endl << std::flush;
+        res.reset(new DENSEVECTOR(M_matrix->N()));
         M_matrix->Multiply(false, *vector.data(), *res);
         vec.data() = res;
     }
+
     return vec;
 }
 

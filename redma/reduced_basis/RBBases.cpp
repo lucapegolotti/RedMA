@@ -260,6 +260,41 @@ leftProject(MatrixEp matrix, unsigned int basisIndex)
     return retMat;
 }
 
+BlockVector<DenseVector>
+RBBases::
+leftProject(BlockVector<VectorEp> vector)
+{
+    BlockVector<DenseVector> projectedVector(vector.nRows());
+
+    for (unsigned int i = 0; i < vector.nRows(); i++)
+        projectedVector.block(i) = leftProject(vector.block(i), i);
+
+    return projectedVector;
+}
+
+DenseVector
+RBBases::
+leftProject(VectorEp vector, unsigned int basisIndex)
+{
+    DenseVector retVec;
+
+    if (vector.data())
+    {
+        std::vector<SHP(VECTOREPETRA)> basis = getEnrichedBasis(basisIndex);
+
+        unsigned int nrows = basis.size();
+        SHP(DENSEVECTOR) innerVector(new DENSEVECTOR(nrows));
+
+        double result = 0;
+        for (unsigned int i = 0; i < nrows; i++)
+        {
+            (*innerVector)(i) = basis[i]->dot(*vector.data());
+        }
+        retVec.data() = innerVector;
+    }
+    return retVec;
+}
+
 BlockMatrix<DenseMatrix>
 RBBases::
 rightProject(BlockMatrix<MatrixEp> matrix)

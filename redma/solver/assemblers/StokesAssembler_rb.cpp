@@ -80,6 +80,15 @@ getZeroVector() const
 {
     BlockVector<DenseVector> retVec;
 
+    SHP(DENSEVECTOR) uComp(new DENSEVECTOR(M_bases->getSizeEnrichedBasis(0)));
+    uComp->Scale(0.0);
+    SHP(DENSEVECTOR) pComp(new DENSEVECTOR(M_bases->getSizeEnrichedBasis(1)));
+    pComp->Scale(0.0);
+
+    retVec.resize(M_nComponents);
+    retVec.block(0).data() = uComp;
+    retVec.block(1).data() = pComp;
+
     return retVec;
 }
 
@@ -88,8 +97,22 @@ BlockVector<RBVECTOR>
 StokesAssembler<RBVECTOR, RBMATRIX>::
 getLifting(const double& time) const
 {
-    BlockVector<RBVECTOR> lifting;
+    // compute fe lifting and then project
+    BlockVector<FEVECTOR> liftingFE;
+    liftingFE.resize(2);
+    liftingFE.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map(),
+                                                     LifeV::Unique));
+    liftingFE.block(0).data()->zero();
 
+    liftingFE.block(1).data().reset(new VECTOREPETRA(M_pressureFESpace->map(),
+                                                     LifeV::Unique));
+    liftingFE.block(1).data()->zero();
+
+    this->M_bcManager->applyDirichletBCs(time, liftingFE, getFESpaceBCs(),
+                                         getComponentBCs());
+
+    BlockVector<RBVECTOR> lifting;
+    lifting = M_bases->leftProject(liftingFE);
     return lifting;
 }
 
