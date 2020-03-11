@@ -89,6 +89,8 @@ buildCouplingMatrices()
         childB *= (-1.);
         childBT *= (-1.);
 
+        M_childBEp = childB;
+
         M_childBT = asChild->getRBBases()->leftProject(childBT);
         M_childB = asChild->getRBBases()->rightProject(childB);
     }

@@ -327,6 +327,26 @@ getFEspace(unsigned int index) const
 }
 
 template <class InVectorType, class InMatrixType>
+BlockVector<FEVECTOR>
+StokesAssembler<InVectorType, InMatrixType>::
+getFELifting(const double& time) const
+{
+    BlockVector<FEVECTOR> lifting;
+    lifting.resize(2);
+    lifting.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map(),
+                                                   LifeV::Unique));
+    lifting.block(0).data()->zero();
+    lifting.block(1).data().reset(new VECTOREPETRA(M_pressureFESpace->map(),
+                                                   LifeV::Unique));
+    lifting.block(1).data()->zero();
+
+    this->M_bcManager->applyDirichletBCs(time, lifting, this->getFESpaceBCs(),
+                                         this->getComponentBCs());
+
+    return lifting;
+}
+
+template <class InVectorType, class InMatrixType>
 std::vector<BlockMatrix<InMatrixType>>
 StokesAssembler<InVectorType, InMatrixType>::
 getMatrices() const

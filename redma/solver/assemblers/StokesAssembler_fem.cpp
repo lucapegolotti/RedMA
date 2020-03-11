@@ -318,18 +318,7 @@ BlockVector<FEVECTOR>
 StokesAssembler<FEVECTOR, FEMATRIX>::
 getLifting(const double& time) const
 {
-    BlockVector<FEVECTOR> lifting;
-    lifting.resize(2);
-    lifting.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map(),
-                                                   LifeV::Unique));
-    lifting.block(0).data()->zero();
-    lifting.block(1).data().reset(new VECTOREPETRA(M_pressureFESpace->map(),
-                                                   LifeV::Unique));
-    lifting.block(1).data()->zero();
-
-    applyDirichletBCs(time, lifting);
-
-    return lifting;
+    return getFELifting(time);
 }
 
 template <>

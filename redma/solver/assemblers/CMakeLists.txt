@@ -22,6 +22,8 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesAssembler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceAssembler_fem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceAssembler_rb.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/InletInflowAssembler_dense.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/InletInflowAssembler_sparse.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesStabilization.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/VMSStabilization.cpp

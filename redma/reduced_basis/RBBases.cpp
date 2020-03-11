@@ -260,6 +260,26 @@ leftProject(MatrixEp matrix, unsigned int basisIndex)
     return retMat;
 }
 
+// we assume that the basis for the lagrange multiplier is the identity
+BlockVector<DenseVector>
+RBBases::
+projectOnLagrangeSpace(BlockVector<VectorEp> vector)
+{
+    if (vector.nRows() > 1)
+        throw new Exception("projectOnLagrangeSpace: error!");
+
+    auto mapPtr = vector.block(0).data()->mapPtr();
+    SHP(DENSEVECTOR) innerVector(new DENSEVECTOR(mapPtr->mapSize()));
+
+    for (unsigned int i = 0; i < innerVector->Length(); i++)
+        (*innerVector)(i) = vector.block(0).data()->operator[](i);
+
+    BlockVector<DenseVector> retVec(1);
+    retVec.block(0).data() = innerVector;
+
+    return retVec;
+}
+
 BlockVector<DenseVector>
 RBBases::
 leftProject(BlockVector<VectorEp> vector)
@@ -365,4 +385,16 @@ getEnrichedBasis(const unsigned int& index, double tol)
 
     return retVectors;
 }
+
+void
+RBBases::
+reconstructFEFunction(SHP(VECTOREPETRA) feFunction, DenseVector rbSolution, unsigned int index)
+{
+    feFunction->zero();
+
+    auto basis = getEnrichedBasis(index);
+    for (unsigned int i = 0; i < rbSolution.getNumRows(); i++)
+        *feFunction += (*basis[i]) * (*rbSolution.data())(i);
+}
+
 }  // namespace RedMA

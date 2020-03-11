@@ -252,7 +252,7 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
     msg += std::to_string(chrono.diff());
     msg += " seconds\n";
     printlog(YELLOW, msg, this->M_data.getVerbose());
-    exit(1);
+    // exit(1);
 }
 
 template <>

@@ -60,9 +60,13 @@ public:
 
     DenseVector leftProject(VectorEp vector, unsigned int basisIndex);
 
+    BlockVector<DenseVector> projectOnLagrangeSpace(BlockVector<VectorEp> vector);
+
     BlockMatrix<DenseMatrix> rightProject(BlockMatrix<MatrixEp> matrix);
 
     DenseMatrix rightProject(MatrixEp matrix, unsigned int basisIndex);
+
+    void reconstructFEFunction(SHP(VECTOREPETRA) feFunction, DenseVector rbSolution, unsigned int index);
 
     void addPrimalSupremizer(SHP(VECTOREPETRA) supremizer,
                              const unsigned int& fieldToAugment,

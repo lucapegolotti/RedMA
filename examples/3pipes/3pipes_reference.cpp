@@ -16,7 +16,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
-#include <redma/solver/problem/ProblemRB.hpp>
+#include <redma/solver/problem/ProblemFEM.hpp>
 
 using namespace RedMA;
 
@@ -34,8 +34,8 @@ int main(int argc, char **argv)
     data.setVerbose(comm->MyPID() == 0);
     data.finalize();
 
-    ProblemRB rbProblem(data, comm);
-    rbProblem.solve();
+    ProblemFEM femProblem(data, comm);
+    femProblem.solve();
 
     return 0;
 }

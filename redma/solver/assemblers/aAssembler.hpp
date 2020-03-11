@@ -64,6 +64,9 @@ public:
 
     virtual BlockVector<InVectorType> getLifting(const double& time) const = 0;
 
+    // ugly
+    virtual BlockVector<FEVECTOR> getFELifting(const double& time) const {}
+
     virtual BlockVector<InVectorType> getZeroVector() const = 0;
 
     virtual void apply0DirichletBCsMatrix(BlockMatrix<InMatrixType>& matrix, double diagCoeff) const = 0;

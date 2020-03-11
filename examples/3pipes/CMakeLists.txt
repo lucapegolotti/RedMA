@@ -18,6 +18,10 @@ add_executable(3pipes_online 3pipes_online.cpp)
 target_link_libraries(3pipes_online ${LINKED_LIBRARIES})
 target_include_directories(3pipes_online PRIVATE ${HEADERS_DIRS})
 
+add_executable(3pipes_reference 3pipes_reference.cpp)
+target_link_libraries(3pipes_reference ${LINKED_LIBRARIES})
+target_include_directories(3pipes_reference PRIVATE ${HEADERS_DIRS})
+
 add_custom_command(
     TARGET 3pipes_snapshots PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

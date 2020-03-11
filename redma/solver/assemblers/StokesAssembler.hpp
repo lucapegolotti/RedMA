@@ -84,6 +84,8 @@ public:
 
     BlockMatrix<MatrixEp> assembleReducedDivergence(BlockMDEIMStructure* structure);
 
+    BlockVector<FEVECTOR> getFELifting(const double& time) const override;
+
     std::map<unsigned int, double> computeFlowRates(const BlockVector<InVectorType>& sol,
                                                     bool verbose = false);
 

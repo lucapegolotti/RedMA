@@ -130,6 +130,8 @@ protected:
     BlockMatrix<InMatrixType>                       M_fatherB;
     BlockMatrix<InMatrixType>                       M_childBT;
     BlockMatrix<InMatrixType>                       M_childB;
+    // this is required in the RB setting to impose weakly dirichlet conditions
+    BlockMatrix<MatrixEp>                           M_childBEp;
     BlockMatrix<InMatrixType>                       M_stabChild;
     BlockMatrix<InMatrixType>                       M_stabFather;
     DataContainer                                   M_data;

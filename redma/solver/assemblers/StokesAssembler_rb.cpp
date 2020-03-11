@@ -71,6 +71,17 @@ void
 StokesAssembler<DenseVector, DenseMatrix>::
 exportSolution(const double& t, const BlockVector<DenseVector>& sol)
 {
+    M_bases->reconstructFEFunction(M_velocityExporter, sol.block(0), 0);
+    M_bases->reconstructFEFunction(M_pressureExporter, sol.block(1), 1);
+
+    // BlockVector<VectorEp> solCopy(2);
+    // solCopy.block(0).data() = M_velocityExporter;
+    // computeFlowRates(solCopy, true);
+
+    CoutRedirecter ct;
+    ct.redirect();
+    M_exporter->postProcess(t);
+    printlog(CYAN, ct.restore());
 }
 
 template <>
@@ -97,19 +108,7 @@ BlockVector<RBVECTOR>
 StokesAssembler<RBVECTOR, RBMATRIX>::
 getLifting(const double& time) const
 {
-    // compute fe lifting and then project
-    BlockVector<FEVECTOR> liftingFE;
-    liftingFE.resize(2);
-    liftingFE.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map(),
-                                                     LifeV::Unique));
-    liftingFE.block(0).data()->zero();
-
-    liftingFE.block(1).data().reset(new VECTOREPETRA(M_pressureFESpace->map(),
-                                                     LifeV::Unique));
-    liftingFE.block(1).data()->zero();
-
-    this->M_bcManager->applyDirichletBCs(time, liftingFE, getFESpaceBCs(),
-                                         getComponentBCs());
+    auto liftingFE = getFELifting(time);
 
     BlockVector<RBVECTOR> lifting;
     lifting = M_bases->leftProject(liftingFE);
