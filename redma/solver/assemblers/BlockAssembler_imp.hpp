@@ -159,6 +159,32 @@ getRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
 }
 
 template <class InVectorType, class InMatrixType>
+BlockVector<BlockVector<VectorEp>>
+BlockAssembler<InVectorType, InMatrixType>::
+convertFunctionRBtoFEM(BlockVector<BlockVector<DenseVector>> rbFunction,
+                       EPETRACOMM comm) const
+{
+    BlockVector<BlockVector<VectorEp>> retVec(rbFunction.nRows());
+
+    for (auto as : M_primalAssemblers)
+    {
+        unsigned int ind = as.first;
+        retVec.block(ind).softCopy(as.second->convertFunctionRBtoFEM(rbFunction.block(ind)));
+    }
+
+    for (auto as : M_dualAssemblers)
+    {
+        unsigned int indInterface = as->getInterface().M_ID + M_primalAssemblers.size();
+        retVec.block(indInterface).resize(1);
+        retVec.block(indInterface).block(0).softCopy(
+                VectorEp::convertDenseVector(rbFunction.block(indInterface).block(0),
+                comm));
+    }
+
+    return retVec;
+}
+
+template <class InVectorType, class InMatrixType>
 BlockMatrix<InMatrixType>
 BlockAssembler<InVectorType, InMatrixType>::
 getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& sol)

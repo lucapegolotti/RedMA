@@ -107,6 +107,8 @@ public:
 
     virtual SHP(RBBases) getRBBases() const {}
 
+    virtual BlockVector<FEVECTOR> convertFunctionRBtoFEM(BlockVector<RBVECTOR> rbSolution) const {};
+
 protected:
     DataContainer                        M_data;
     SHP(TreeNode)                        M_treeNode;

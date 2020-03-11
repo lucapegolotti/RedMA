@@ -4,6 +4,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ProblemFEM.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ProblemRB.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DataContainer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ComparisonFEMvsRB.hpp
     CACHE INTERNAL ""
 )
 
@@ -13,5 +14,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ProblemFEM.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ProblemRB.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DataContainer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ComparisonFEMvsRB.cpp
     CACHE INTERNAL ""
 )

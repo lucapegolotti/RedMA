@@ -268,14 +268,8 @@ projectOnLagrangeSpace(BlockVector<VectorEp> vector)
     if (vector.nRows() > 1)
         throw new Exception("projectOnLagrangeSpace: error!");
 
-    auto mapPtr = vector.block(0).data()->mapPtr();
-    SHP(DENSEVECTOR) innerVector(new DENSEVECTOR(mapPtr->mapSize()));
-
-    for (unsigned int i = 0; i < innerVector->Length(); i++)
-        (*innerVector)(i) = vector.block(0).data()->operator[](i);
-
     BlockVector<DenseVector> retVec(1);
-    retVec.block(0).data() = innerVector;
+    retVec.block(0).data() = vector.block(0).toDenseVector().data();
 
     return retVec;
 }

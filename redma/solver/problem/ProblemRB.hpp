@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef PROBLEMFEM_HPP
-#define PROBLEMFEM_HPP
+#ifndef PROBLEMRB_HPP
+#define PROBLEMRB_HPP
 
 #include <redma/RedMA.hpp>
 
@@ -67,4 +67,4 @@ private:
 
 }
 
-#endif // PROBLEMFEM_HPP
+#endif // PROBLEMRB_HPP

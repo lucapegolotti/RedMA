@@ -558,6 +558,21 @@ setRBBases(SHP(RBBasesManager) rbManager)
     M_bases->setFESpace(M_pressureFESpace, 1);
 }
 
+template <class InVectorType, class InMatrixType>
+BlockVector<FEVECTOR>
+StokesAssembler<InVectorType,InMatrixType>::
+convertFunctionRBtoFEM(BlockVector<RBVECTOR> rbSolution) const
+{
+    BlockVector<FEVECTOR> retVec(2);
+
+    retVec.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map()));
+    M_bases->reconstructFEFunction(retVec.block(0).data(), rbSolution.block(0), 0);
+    retVec.block(1).data().reset(new VECTOREPETRA(M_pressureFESpace->map()));
+    M_bases->reconstructFEFunction(retVec.block(1).data(), rbSolution.block(1), 1);
+
+    return retVec;
+}
+
 
 
 }

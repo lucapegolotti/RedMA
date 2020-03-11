@@ -19,6 +19,7 @@
 
 #include <redma/solver/array/aMatrix.hpp>
 #include <redma/utils/Exception.hpp>
+#include <redma/solver/array/DenseVector.hpp>
 
 #include <lifev/core/array/VectorEpetra.hpp>
 
@@ -57,6 +58,11 @@ public:
     std::string getString(const char& delimiter) const;
 
     double maxMagnitude3D() const;
+
+    DenseVector toDenseVector() const;
+
+    static VectorEp convertDenseVector(DenseVector denseVector,
+                                       std::shared_ptr<Epetra_Comm> comm);
 
 private:
     std::shared_ptr<VECTOREPETRA>  M_vector;

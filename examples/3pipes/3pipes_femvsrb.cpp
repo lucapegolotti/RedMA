@@ -16,7 +16,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
-#include <redma/solver/problem/ProblemFEM.hpp>
+#include <redma/solver/problem/ComparisonFEMvsRB.hpp>
 
 using namespace RedMA;
 
@@ -29,24 +29,16 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    LifeV::LifeChrono chrono;
-    chrono.start();
-
-    std::string msg = "Starting chrono\n";
-    printlog(MAGENTA, msg, true);
-
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);
+    // data.setValue("exporter/outdir", "error/");
     data.finalize();
 
-    ProblemFEM femProblem(data, comm);
-    femProblem.solve();
-
-    msg = "Total time =  ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(MAGENTA, msg, true);
+    ComparisonFEMvsRB comparison(data, comm);
+    comparison.runFEM();
+    comparison.runRB();
+    comparison.postProcess();
 
     return 0;
 }

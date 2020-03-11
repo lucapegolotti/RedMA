@@ -29,6 +29,12 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
+    LifeV::LifeChrono chrono;
+    chrono.start();
+
+    std::string msg = "Starting chrono\n";
+    printlog(MAGENTA, msg, true);
+
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);
@@ -36,6 +42,11 @@ int main(int argc, char **argv)
 
     ProblemRB rbProblem(data, comm);
     rbProblem.solve();
+
+    msg = "Total time =  ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(MAGENTA, msg, true);
 
     return 0;
 }

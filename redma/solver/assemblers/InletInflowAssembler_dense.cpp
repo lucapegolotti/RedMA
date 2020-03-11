@@ -16,7 +16,7 @@ addContributionRhs(const double& time,
     SHP(aAssembler<DenseVector COMMA DenseMatrix>) assemblerChild;
     assemblerChild = this->M_interface.M_assemblerChild;
 
-    rhs.block(childID)  -= this->M_childBT * sol.block(nPrimalBlocks + interfaceID);
+    rhs.block(childID) -= this->M_childBT * sol.block(nPrimalBlocks + interfaceID);
 
     rhs.block(nPrimalBlocks + interfaceID) -= this->M_childB * sol.block(childID);
     BlockVector<VectorEp> lifting = assemblerChild->getFELifting(time);

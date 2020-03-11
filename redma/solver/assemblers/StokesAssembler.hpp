@@ -146,6 +146,8 @@ public:
 
     virtual SHP(RBBases) getRBBases() const override {return M_bases;}
 
+    virtual BlockVector<FEVECTOR> convertFunctionRBtoFEM(BlockVector<RBVECTOR> rbSolution) const override;
+
 protected:
 
     BlockMatrix<InMatrixType>                                       M_mass;

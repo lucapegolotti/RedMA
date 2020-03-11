@@ -42,7 +42,7 @@ solve()
     double t0 = M_data("time_discretization/t0", 0.0);
     double T = M_data("time_discretization/T", 1.0);
     double dt = M_data("time_discretization/dt", 0.01);
-    unsigned int saveEvery = M_data("exporter/save_every", 1);
+    int saveEvery = M_data("exporter/save_every", 1);
 
     double t = t0;
 
@@ -58,7 +58,7 @@ solve()
 
         t += dt;
 
-        if (count % saveEvery == 0)
+        if (saveEvery > 0 && count % saveEvery == 0)
             M_assembler->exportSolution(t, M_solution);
         M_assembler->postProcess(t, M_solution);
         M_TMAlgorithm->shiftSolutions(M_solution);

@@ -187,5 +187,47 @@ maxMagnitude3D() const
     return retval;
 }
 
+DenseVector
+VectorEp::
+toDenseVector() const
+{
+    DenseVector retVec;
+
+    if (M_vector)
+    {
+        auto mapPtr = M_vector->mapPtr();
+        std::shared_ptr<DENSEVECTOR> innerVector(new DENSEVECTOR(mapPtr->mapSize()));
+
+        for (unsigned int i = 0; i < innerVector->Length(); i++)
+            (*innerVector)(i) = M_vector->operator[](i);
+
+        retVec.data() = innerVector;
+    }
+
+    return retVec;
+}
+
+VectorEp
+VectorEp::
+convertDenseVector(DenseVector denseVector, std::shared_ptr<Epetra_Comm> comm)
+{
+    using namespace LifeV;
+    VectorEp retVec;
+
+    if (comm->MyPID() != 0)
+        throw new Exception("convertDenseVector does not support more than one proc");
+
+    unsigned int length = denseVector.getNumRows();
+
+    std::shared_ptr<MapEpetra> map(new MapEpetra(length, length, 0, comm));
+
+    retVec.data().reset(new VECTOREPETRA(*map));
+
+    for (unsigned int i = 0; i < length; i++)
+        retVec.data()->operator[](i) = (*denseVector.data())(i);
+
+    return retVec;
+}
+
 
 };

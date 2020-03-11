@@ -79,6 +79,8 @@ public:
 
     std::vector<SHP(InterfaceAssembler<VInner COMMA MInner>)> getDualAssemblers() const {return M_dualAssemblers;}
 
+    BlockVector<BlockVector<VectorEp>> convertFunctionRBtoFEM(BlockVector<BlockVector<DenseVector>> rbFunction, EPETRACOMM comm) const;
+
 protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;
