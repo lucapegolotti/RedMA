@@ -47,10 +47,10 @@ solve()
     double t = t0;
 
     unsigned int count = 1;
-    while (T - t > t0/2)
+    while (T - t > dt/2)
     {
         std::string msg = "[ProblemFEM] solving timestep " + std::to_string(count) +
-                          ", t = " + std::to_string(t+dt) + "\n";
+                          ", t = " + std::to_string(t) + " -> " + std::to_string(t+dt) + "\n";
         printlog(MAGENTA, msg, M_data.getVerbose());
         int status = solveTimestep(t, dt);
         if (status)

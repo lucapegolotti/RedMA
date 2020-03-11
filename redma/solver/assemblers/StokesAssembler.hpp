@@ -134,7 +134,7 @@ public:
     virtual BlockMatrix<InMatrixType> assembleMatrix(const unsigned int& index,
                                                      BlockMDEIMStructure* structure = nullptr) override;
 
-    virtual InMatrixType getNorm(const unsigned int& fieldIndex) override;
+    virtual MatrixEp getNorm(const unsigned int& fieldIndex) override;
 
     virtual InMatrixType getConstraintMatrix() override;
 
@@ -158,6 +158,8 @@ protected:
     SHP(VECTOREPETRA)                                               M_velocityExporter;
     SHP(VECTOREPETRA)                                               M_pressureExporter;
     SHP(VECTOREPETRA)                                               M_WSSExporter;
+    MatrixEp                                                        M_massVelocity;
+    MatrixEp                                                        M_massPressure;
     SHP(LifeV::Exporter<MESH>)                                      M_exporter;
     // first index is face flag
     std::map<unsigned int, SHP(VECTOREPETRA)>                       M_flowRateVectors;

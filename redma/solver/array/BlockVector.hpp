@@ -18,6 +18,7 @@
 #define BLOCKVECTOR_HPP
 
 #include <redma/utils/Exception.hpp>
+#include <redma/solver/array/DenseVector.hpp>
 
 #include <boost/numeric/ublas/matrix.hpp>
 
@@ -58,6 +59,8 @@ public:
 
     InVectorType block(const unsigned int& iblock) const;
 
+    BlockVector getSubvector(const unsigned int& ibegin, const unsigned int& iend) const;
+
     double norm2() const;
 
     void resize(const unsigned int& nRows);
@@ -69,6 +72,8 @@ public:
     inline unsigned int nRows() const {return M_nRows;}
 
     void zero();
+
+    InVectorType collapse() const;
 
 protected:
 

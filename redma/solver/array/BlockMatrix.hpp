@@ -110,6 +110,8 @@ public:
                   unsigned int* myRow = nullptr,
                   unsigned int* myCol = nullptr);
 
+    InMatrixType collapse() const;
+
 protected:
     // I introduce this only because on mac the operator+= behaves weirdly
     void sumMatrix(const BlockMatrix<InMatrixType>& other);

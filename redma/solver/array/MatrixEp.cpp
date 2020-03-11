@@ -207,4 +207,11 @@ data() const
     return M_matrix;
 }
 
+void
+MatrixEp::
+dump(std::string filename) const
+{
+    M_matrix->spy(filename);
+}
+
 }

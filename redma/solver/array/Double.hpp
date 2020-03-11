@@ -17,6 +17,8 @@
 #ifndef DOUBLE_HPP
 #define DOUBLE_HPP
 
+#include <iostream>
+
 namespace RedMA
 {
 
@@ -47,6 +49,10 @@ public:
     double& data();
 
     double data() const;
+
+    void dump(std::string filename) const {}
+
+    Double block(unsigned int i, unsigned int j) {return *this;}
 
 private:
     double  M_double;

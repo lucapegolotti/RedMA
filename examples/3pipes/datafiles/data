@@ -53,6 +53,7 @@
 		[../]
 	[../]
 	[./online]
+		monolithicSolve = false
 		[./mdeim]
 			loadfullbasis   = false
 			directory 		= mdeims

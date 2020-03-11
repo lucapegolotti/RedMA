@@ -71,6 +71,8 @@ public:
 
     std::shared_ptr<MATRIXEPETRA> data() const;
 
+    void dump(std::string namefile) const;
+
     inline bool isNull() const
     {
         if (!M_matrix)

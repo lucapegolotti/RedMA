@@ -151,4 +151,34 @@ getString(const char& delimiter) const
     return ret;
 }
 
+unsigned int
+DenseVector::
+getNumRows() const
+{
+    if (!M_vector)
+        throw new Exception("DenseVector::getNumRows() inner vector not set");
+
+    return M_vector->Length();
+}
+
+void
+DenseVector::
+dump(std::string filename) const
+{
+    std::ofstream outfile(filename);
+
+    if (M_vector)
+    {
+        unsigned int N = M_vector->Length();
+
+        for (unsigned int i = 0; i < N; i++)
+        {
+            outfile << (*M_vector)(i);
+            outfile << "\n";
+        }
+    }
+
+    outfile.close();
+}
+
 };

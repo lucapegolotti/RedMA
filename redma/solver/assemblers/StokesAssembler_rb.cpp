@@ -116,4 +116,15 @@ getLifting(const double& time) const
     return lifting;
 }
 
+template <>
+MatrixEp
+StokesAssembler<DenseVector, DenseMatrix>::
+getNorm(const unsigned int& fieldIndex)
+{
+    MatrixEp retMat;
+    throw new Exception("Norm matrix not implemented for RB!");
+
+    return retMat;
+}
+
 }

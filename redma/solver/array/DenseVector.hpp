@@ -22,6 +22,8 @@
 
 #include <Epetra_SerialDenseVector.h>
 
+#include <fstream>
+
 #define DENSEVECTOR         Epetra_SerialDenseVector
 
 namespace RedMA
@@ -55,6 +57,10 @@ public:
     std::shared_ptr<DENSEVECTOR> data() const;
 
     std::string getString(const char& delimiter) const;
+
+    unsigned int getNumRows() const;
+
+    void dump(std::string filename) const;
 
 private:
     std::shared_ptr<DENSEVECTOR>  M_vector;

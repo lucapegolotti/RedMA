@@ -350,4 +350,70 @@ exportSolution(const double& t, const BlockVector<VectorEp>& sol)
     printlog(CYAN, ct.restore());
 }
 
+template <>
+MatrixEp
+StokesAssembler<VectorEp, MatrixEp>::
+getNorm(const unsigned int& fieldIndex)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    MatrixEp retMat;
+    if (fieldIndex == 0)
+    {
+        if (!M_massVelocity.data())
+        {
+            SHP(MATRIXEPETRA) Nu(new MATRIXEPETRA(M_velocityFESpace->map()));
+
+            integrate(elements(M_velocityFESpaceETA->mesh()),
+                      M_velocityFESpace->qr(),
+                      M_velocityFESpaceETA,
+                      M_velocityFESpaceETA,
+                      dot(phi_i, phi_j) +
+                      dot(grad(phi_i),grad(phi_j))
+                  ) >> Nu;
+
+            Nu->globalAssemble();
+
+            BlockMatrix<MatrixEp> normWrap;
+            normWrap.resize(1,1);
+            normWrap.block(0,0).data() = Nu;
+
+            // note. Applying bcs does not change the norm if Dirichlet bcs are
+            // homogeneous (=> lifting) or imposed weakly. Here we impose bcs
+            // in order to have the correct conditions in the computation of the
+            // supremizers (we have to solve a linear system..)
+            apply0DirichletBCsMatrix(normWrap, 1.0);
+
+            M_massVelocity.data() = Nu;
+            retMat.data() = Nu;
+        }
+        else
+            retMat = M_massVelocity;
+    }
+    else
+    {
+        if (!M_massPressure.data())
+        {
+            SHP(MATRIXEPETRA) Np(new MATRIXEPETRA(M_pressureFESpace->map()));
+
+            integrate(elements(M_pressureFESpaceETA->mesh()),
+                      M_pressureFESpace->qr(),
+                      M_pressureFESpaceETA,
+                      M_pressureFESpaceETA,
+                      phi_i * phi_j
+                  ) >> Np;
+
+            Np->globalAssemble();
+
+            M_massPressure.data() = Np;
+            retMat.data() = Np;
+        }
+        else
+            retMat = M_massPressure;
+    }
+
+    return retMat;
+}
+
 }

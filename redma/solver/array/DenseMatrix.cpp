@@ -5,7 +5,9 @@ namespace RedMA
 
 DenseMatrix::
 DenseMatrix() :
-  M_matrix(nullptr)
+  M_matrix(nullptr),
+  M_nRows(0),
+  M_nCols(0)
 {
 }
 
@@ -133,6 +135,9 @@ void
 DenseMatrix::
 hardCopy(const DenseMatrix& other)
 {
+    M_nRows = other.M_nRows;
+    M_nCols = other.M_nCols;
+
     if (other.data())
         M_matrix.reset(new DENSEMATRIX(*other.data()));
 }
@@ -141,6 +146,8 @@ void
 DenseMatrix::
 softCopy(const DenseMatrix& other)
 {
+    M_nRows = other.M_nRows;
+    M_nCols = other.M_nCols;
     M_matrix = other.M_matrix;
 }
 
@@ -186,6 +193,71 @@ DenseMatrix::
 data() const
 {
     return M_matrix;
+}
+
+void
+DenseMatrix::
+dump(std::string filename) const
+{
+    std::ofstream outfile(filename);
+
+    if (M_matrix)
+    {
+        unsigned int M = M_matrix->M();
+        unsigned int N = M_matrix->N();
+
+
+        for (unsigned int i = 0; i < M; i++)
+        {
+            for (unsigned int j = 0; j < N; j++)
+            {
+                outfile << (*M_matrix)(i,j);
+                if (j != N-1)
+                    outfile << ",";
+            }
+            outfile << "\n";
+        }
+    }
+
+    outfile.close();
+}
+
+unsigned int
+DenseMatrix::
+getNumRows() const
+{
+    if (M_matrix != nullptr)
+        return M_matrix->M();
+    return M_nRows;
+}
+
+unsigned int
+DenseMatrix::
+getNumCols() const
+{
+    if (M_matrix != nullptr)
+        return M_matrix->N();
+    return M_nCols;
+}
+
+void
+DenseMatrix::
+setNumRows(unsigned int numRows)
+{
+    if (M_matrix)
+        throw new Exception("setNumRows should be called when M_matrix == nullptr");
+
+    M_nRows = numRows;
+}
+
+void
+DenseMatrix::
+setNumCols(unsigned int numCols)
+{
+    if (M_matrix)
+        throw new Exception("setNumCols should be called when M_matrix == nullptr");
+
+    M_nCols = numCols;
 }
 
 }

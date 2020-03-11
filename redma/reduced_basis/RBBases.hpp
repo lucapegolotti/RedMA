@@ -50,6 +50,8 @@ public:
 
     std::vector<SHP(VECTOREPETRA)> getEnrichedBasis(const unsigned int& index, double tol = 0);
 
+    std::vector<SHP(VECTOREPETRA)> getPrimalSupremizers(const unsigned int& i, const unsigned int& j) {return M_primalSupremizers(i,j);}
+
     BlockMatrix<DenseMatrix> leftProject(BlockMatrix<MatrixEp> matrix);
 
     DenseMatrix leftProject(MatrixEp matrix, unsigned int basisIndex);

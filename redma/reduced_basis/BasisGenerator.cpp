@@ -108,6 +108,7 @@ addSupremizers()
             // to dirichlet nodes. So, if norm = mass + stiffness (H1 norm),
             // than mass can have 1s on diagonal and stiffness 0s
             MatrixEp normMatrix = meshas.second.first->getNorm(field2augment);
+            normMatrix.data()->spy("matrices/normmat");
 
             // here the matrix must have 0 on the nodes corresponding to dirichlet
             // nodes
@@ -116,6 +117,7 @@ addSupremizers()
             auto linearSolver = setupLinearSolver(normMatrix);
 
             std::vector<SHP(VECTOREPETRA)> basisFunctions = M_bases[meshas.first]->getBasis(limitingfield);
+
             for (unsigned int i = 0; i < basisFunctions.size(); i++)
             {
                 printlog(YELLOW, "adding supremizer " + std::to_string(i) + " ... \n",
@@ -130,6 +132,30 @@ addSupremizers()
 
                 SHP(VECTOREPETRA) solution(new VECTOREPETRA(map, LifeV::Unique));
                 linearSolver.solve(solution);
+
+
+                auto orthoBasis = M_bases[meshas.first]->getEnrichedBasis(field2augment);
+
+                // orthonormalization wrt field2augment (stabilized gram schmidt).
+                // Note: we are using the fact that the bfs are orthonormal wrt to matrix
+                // hence denominator of "coeff" == 1
+                for (unsigned int j = 0; j < orthoBasis.size(); j++)
+                {
+                    std::cout << "orth1 " << j << std::endl << std::flush;
+                    VECTOREPETRA aux(*orthoBasis[j]->mapPtr());
+                    normMatrix.data()->matrixPtr()->Multiply(false, solution->epetraVector(),
+                                                             aux.epetraVector());
+
+                    double coeff = aux.dot(*orthoBasis[j]);
+                    *solution -= (*orthoBasis[j]) * coeff;
+                }
+
+                VECTOREPETRA aux_(*solution->mapPtr());
+                normMatrix.data()->matrixPtr()->Multiply(false, solution->epetraVector(),
+                                                         aux_.epetraVector());
+
+                double normsSupr = aux_.dot(*solution);
+                *solution /= sqrt(normsSupr);
 
                 M_bases[meshas.first]->addPrimalSupremizer(solution, field2augment, limitingfield);
             }
@@ -168,6 +194,7 @@ addSupremizers()
                 // we assume that the first block is the one to be coupled
                 // (as in interface assembler)
                 MatrixEp constraintMatrix = constraintMatrixBlock.block(0,0);
+                constraintMatrix.dump("../constraintMatrix");
                 auto map = *constraintMatrix.data()->rangeMapPtr();
                 auto linearSolver = setupLinearSolver(normMatrix);
                 auto lagrangeMap = *constraintMatrix.data()->domainMapPtr();
@@ -191,6 +218,26 @@ addSupremizers()
 
                     SHP(VECTOREPETRA) solution(new VECTOREPETRA(map, LifeV::Unique));
                     linearSolver.solve(solution);
+
+                    auto orthoBasis = M_bases[meshas.first]->getEnrichedBasis(field2augment);
+
+                    for (unsigned int j = 0; j < orthoBasis.size(); j++)
+                    {
+                        std::cout << "orth2 " << j << std::endl << std::flush;
+                        VECTOREPETRA aux(*orthoBasis[j]->mapPtr());
+                        normMatrix.data()->matrixPtr()->Multiply(false, solution->epetraVector(),
+                                                                 aux.epetraVector());
+
+                        double coeff = aux.dot(*orthoBasis[j]);
+                        *solution -= (*orthoBasis[j]) * coeff;
+                    }
+
+                    VECTOREPETRA aux_(*solution->mapPtr());
+                    normMatrix.data()->matrixPtr()->Multiply(false, solution->epetraVector(),
+                                                             aux_.epetraVector());
+
+                    double normsSupr = aux_.dot(*solution);
+                    *solution /= sqrt(normsSupr);
 
                     M_bases[meshas.first]->addDualSupremizer(solution, field2augment);
                 }
@@ -222,7 +269,7 @@ performPOD()
             ProperOrthogonalDecomposition pod(M_comm,
                                               pair.second.first->getFEspace(count)->map(),
                                               true);
-            pod.initPOD(sn.size(), sn.data());
+            pod.initPOD(sn.size(), sn.data(), pair.second.first->getNorm(count).data());
             pod.setSvdFileName(outdir + "/" + pair.first + "/svd" +
                                std::to_string(count) + ".txt");
             pod.generatePODbasisTol(podtol);

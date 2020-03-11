@@ -240,4 +240,20 @@ block(const unsigned int& iblock) const
     return M_vectorGrid(iblock,0);
 }
 
+template <class InVectorType>
+BlockVector<InVectorType>
+BlockVector<InVectorType>::
+getSubvector(const unsigned int& ibegin, const unsigned int& iend) const
+{
+    BlockVector<InVectorType> retVector;
+
+    unsigned int nrows = iend-ibegin+1;
+    retVector.resize(iend-ibegin+1);
+
+    for (unsigned int i = ibegin; i <= iend; i++)
+        retVector.block(i-ibegin).softCopy(block(i));
+
+    return retVector;
+}
+
 }

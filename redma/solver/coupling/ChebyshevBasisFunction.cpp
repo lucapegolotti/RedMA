@@ -49,7 +49,7 @@ operator()(const Vector3D& pos)
 
     unsigned int k = M_ks[M_index];
     unsigned int n = M_ns[M_index];
-    unsigned int ind = (k * M_PI) / (n + 1);
+    double ind = static_cast<float>((k * M_PI)) / (n + 1);
 
     returnVal = M_sqrtPIm1 * chebyshevU(x/M_R*std::cos(ind) +
                                         y/M_R*std::sin(ind), n)/M_R;

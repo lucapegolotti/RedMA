@@ -32,6 +32,8 @@
 
 #include <Epetra_SerialDenseMatrix.h>
 
+#include <fstream>
+
 #define DENSEMATRIX         Epetra_SerialDenseMatrix
 
 namespace RedMA
@@ -62,24 +64,39 @@ public:
 
     void softCopy(const DenseMatrix& other);
 
-    // void getRowProperty(std::shared_ptr<LifeV::MapEpetra>& outMap);
-    //
-    // void getColProperty(std::shared_ptr<LifeV::MapEpetra>& outMap);
-
     std::shared_ptr<DENSEMATRIX>& data();
 
     std::shared_ptr<DENSEMATRIX> data() const;
 
+    void dump(std::string filename) const;
+
+    // this method calls the corresponding method on the internal pointer.
+    // If it is null, it returns the M_nRows
+    unsigned int getNumRows() const;
+
+    // this method calls the corresponding method on the internal pointer.
+    // If it is null, it returns the M_nCols
+    unsigned int getNumCols() const;
+
+    void setNumRows(unsigned int numRows);
+
+    void setNumCols(unsigned int numCols);
+
     inline bool isNull() const
     {
-        // if (!M_matrix)
-        //     return true;
-        // return M_matrix->matrixPtr()->NormInf() < 1e-15;
-        // return M_matrix->matrixPtr()->NumGlobalNonzeros() == 0;
+        if (!M_matrix)
+            return true;
+        return M_matrix->NormInf() < 1e-15;
     };
 
 private:
     std::shared_ptr<DENSEMATRIX>  M_matrix;
+    // differently from sparse matrices, we introduce num rows and cols. This is
+    // because we don't want to allocate a dense matrix a zeros. So if in a block
+    // system a matrix is zero, we store no pointer and we set the number of cols
+    // rows
+    unsigned int                  M_nCols;
+    unsigned int                  M_nRows;
 };
 
 }

@@ -94,7 +94,7 @@ public:
     virtual BlockMatrix<InMatrixType> assembleMatrix(const unsigned int& index,
                                                      BlockMDEIMStructure* structure = nullptr) {return BlockMatrix<InMatrixType>();}
 
-    virtual InMatrixType getNorm(const unsigned int& fieldIndex) {return InMatrixType();}
+    virtual MatrixEp getNorm(const unsigned int& fieldIndex) {return MatrixEp();}
 
     virtual InMatrixType getConstraintMatrix() {return InMatrixType();}
 

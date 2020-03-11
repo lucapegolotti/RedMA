@@ -362,23 +362,6 @@ assembleMatrix(const unsigned int& index, BlockMDEIMStructure* structure)
 template <class InVectorType, class InMatrixType>
 InMatrixType
 StokesAssembler<InVectorType, InMatrixType>::
-getNorm(const unsigned int& fieldIndex)
-{
-    InMatrixType retMat;
-    if (fieldIndex == 0)
-    {
-        retMat = M_mass.block(0,0);
-        retMat += M_stiffness.block(0,0);
-    }
-    else
-        throw new Exception("Mass pressure has not been implemented yet");
-
-    return retMat;
-}
-
-template <class InVectorType, class InMatrixType>
-InMatrixType
-StokesAssembler<InVectorType, InMatrixType>::
 getConstraintMatrix()
 {
     return M_divergence.block(0,1);
