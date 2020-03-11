@@ -573,6 +573,25 @@ convertFunctionRBtoFEM(BlockVector<RBVECTOR> rbSolution) const
     return retVec;
 }
 
+template <class InVectorType, class InMatrixType>
+void
+StokesAssembler<InVectorType,InMatrixType>::
+exportNorms(double t)
+{
+    bool exportNorms = this->M_data("exporter/exportnorms", true);
+
+    if (exportNorms)
+    {
+        std::string outputName = this->M_data("exporter/outdir", "solutions/") + "block";
+        outputName += std::to_string(this->M_treeNode->M_ID);
+        outputName += "_norm.txt";
+        std::ofstream filename(outputName, std::ios_base::app);
+        filename << t << ",";
+        filename << M_velocityFESpace->h1Norm(*M_velocityExporter) << ",";
+        filename << M_pressureFESpace->l2Norm(*M_pressureExporter) << "\n";
+    }
+}
+
 
 
 }

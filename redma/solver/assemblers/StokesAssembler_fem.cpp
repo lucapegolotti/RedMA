@@ -333,6 +333,8 @@ exportSolution(const double& t, const BlockVector<VectorEp>& sol)
     solCopy.block(0).data() = M_velocityExporter;
     computeFlowRates(solCopy, true);
 
+    exportNorms(t);
+
     CoutRedirecter ct;
     ct.redirect();
     M_exporter->postProcess(t);

@@ -113,6 +113,7 @@
 	start      = 0
 	save_every = 1
 	filename   = tube
+	exportnorms = true
 [../]
 
 [coupling]

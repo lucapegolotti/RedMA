@@ -32,7 +32,8 @@ int main(int argc, char **argv)
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);
-    // data.setValue("exporter/outdir", "error/");
+    std::string outdir = "error/";
+    data.setValue("exporter/outdir", outdir);
     data.finalize();
 
     ComparisonFEMvsRB comparison(data, comm);

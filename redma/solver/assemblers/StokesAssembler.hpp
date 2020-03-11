@@ -148,6 +148,8 @@ public:
 
     virtual BlockVector<FEVECTOR> convertFunctionRBtoFEM(BlockVector<RBVECTOR> rbSolution) const override;
 
+    void exportNorms(double t);
+
 protected:
 
     BlockMatrix<InMatrixType>                                       M_mass;
