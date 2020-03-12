@@ -54,6 +54,10 @@
 	[../]
 	[./online]
 		monolithicSolve = true
+		[./basis]
+			directory = basis
+			podtol = 1e-5
+		[../]
 		[./mdeim]
 			loadfullbasis   = false
 			directory 		= mdeims

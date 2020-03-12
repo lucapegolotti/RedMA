@@ -46,9 +46,9 @@ public:
 
     void setFESpace(SHP(FESPACE) fespace, const unsigned int& indexbasis);
 
-    std::vector<SHP(VECTOREPETRA)>& getBasis(const unsigned int& index, double tol = 0);
+    std::vector<SHP(VECTOREPETRA)> getBasis(const unsigned int& index);
 
-    std::vector<SHP(VECTOREPETRA)> getEnrichedBasis(const unsigned int& index, double tol = 0);
+    std::vector<SHP(VECTOREPETRA)> getEnrichedBasis(const unsigned int& index);
 
     std::vector<SHP(VECTOREPETRA)> getPrimalSupremizers(const unsigned int& i, const unsigned int& j) {return M_primalSupremizers(i,j);}
 
@@ -75,9 +75,16 @@ public:
     void addDualSupremizer(SHP(VECTOREPETRA) supremizer,
                            const unsigned int& fieldToAugment);
 
-    inline unsigned int getSizeBasis(const unsigned int& index) {return M_bases[index].size();}
+    inline unsigned int getSizeBasis(const unsigned int& index) {return getBasis(index).size();}
+
+    inline unsigned int getFullSizeBasis(const unsigned int& index) {return M_bases[index].size();}
 
     inline unsigned int getSizeEnrichedBasis(const unsigned int& index) {return getEnrichedBasis(index).size();}
+
+    void computeOnlineNumberBasisFunctions(unsigned int index);
+
+    // indices of the vectors from the ith enriched basis to keep
+    std::vector<unsigned int> getSelectors(unsigned int index);
 
 private:
     void addVectorsFromFile(std::string filename,
@@ -96,6 +103,8 @@ private:
     std::string                                     M_path;
     std::vector<std::vector<double>>                M_svs;
     std::vector<SHP(FESPACE)>                       M_fespaces;
+    double                                          M_onlineTol;
+    std::vector<unsigned int>                       M_NsOnline;
 };
 
 }  // namespace RedMA

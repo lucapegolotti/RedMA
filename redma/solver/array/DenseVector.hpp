@@ -23,6 +23,7 @@
 #include <Epetra_SerialDenseVector.h>
 
 #include <fstream>
+#include <memory>
 
 #define DENSEVECTOR         Epetra_SerialDenseVector
 

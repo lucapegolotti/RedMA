@@ -150,6 +150,8 @@ public:
 
     void exportNorms(double t);
 
+    virtual void restrictRBMatrices() override;
+
 protected:
 
     BlockMatrix<InMatrixType>                                       M_mass;

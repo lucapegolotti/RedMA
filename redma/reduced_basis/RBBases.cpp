@@ -8,7 +8,7 @@ RBBases(const DataContainer& data, EPETRACOMM comm) :
   M_data(data),
   M_comm(comm)
 {
-
+    M_onlineTol = M_data("rb/online/basis/podtol", 0);
 }
 
 void
@@ -18,6 +18,7 @@ setNumberOfFields(const unsigned int& nfields)
     M_numFields = nfields;
     M_bases.resize(nfields);
     M_svs.resize(nfields);
+    M_NsOnline.resize(nfields);
     M_fespaces.resize(nfields);
     M_primalSupremizers.resize(nfields,nfields);
     M_dualSupremizers.resize(nfields);
@@ -48,6 +49,9 @@ loadSingularValues()
         }
 
         infile.close();
+
+        if (M_onlineTol > 1e-15)
+            computeOnlineNumberBasisFunctions(i);
     }
 }
 
@@ -58,6 +62,26 @@ addPrimalSupremizer(SHP(VECTOREPETRA) supremizer,
                     const unsigned int& fieldConstraint)
 {
     M_primalSupremizers(fieldToAugment,fieldConstraint).push_back(supremizer);
+}
+
+void
+RBBases::
+computeOnlineNumberBasisFunctions(unsigned int index)
+{
+    unsigned int totalenergy = 0;
+
+    for (auto sv : M_svs[index])
+        totalenergy += sv * sv;
+
+    unsigned int partialSum = 0;
+    unsigned int N = 0;
+    while (M_onlineTol*M_onlineTol < 1.0 - partialSum / totalenergy)
+    {
+        partialSum += M_svs[index][N] * M_svs[index][N];
+        N++;
+    }
+
+    M_NsOnline[index] = N;
 }
 
 void
@@ -355,18 +379,26 @@ rightProject(MatrixEp matrix, unsigned int basisIndex)
 }
 
 
-std::vector<SHP(VECTOREPETRA)>&
+std::vector<SHP(VECTOREPETRA)>
 RBBases::
-getBasis(const unsigned int& index, double tol)
+getBasis(const unsigned int& index)
 {
-    return M_bases[index];
+    if (M_onlineTol < 1e-15)
+        return M_bases[index];
+
+    std::vector<SHP(VECTOREPETRA)> basis;
+
+    for (unsigned int i = 0; i < M_NsOnline[index]; i++)
+        basis.push_back(M_bases[index][i]);
+
+    return basis;
 }
 
 std::vector<SHP(VECTOREPETRA)>
 RBBases::
-getEnrichedBasis(const unsigned int& index, double tol)
+getEnrichedBasis(const unsigned int& index)
 {
-    std::vector<SHP(VECTOREPETRA)> retVectors = getBasis(index, tol);
+    std::vector<SHP(VECTOREPETRA)> retVectors = getBasis(index);
 
     for (unsigned int j = 0; j < M_numFields; j++)
     {
@@ -378,6 +410,33 @@ getEnrichedBasis(const unsigned int& index, double tol)
         retVectors.push_back(dual);
 
     return retVectors;
+}
+
+std::vector<unsigned int>
+RBBases::
+getSelectors(unsigned int index)
+{
+    std::vector<unsigned int> selectors;
+
+    if (M_onlineTol > 1e-15)
+    {
+        for (unsigned int i = 0; i < M_NsOnline[index]; i++)
+            selectors.push_back(i);
+
+        unsigned int offset = M_bases[index].size();
+        // primal supremizers also depend on the ns online
+        for (unsigned int j = 0; j < M_numFields; j++)
+        {
+            for (unsigned int jj = 0; jj < M_NsOnline[j]; j++)
+                selectors.push_back(jj + offset);
+
+            offset += M_primalSupremizers(index,j).size();
+        }
+
+        for (unsigned int i = 0; i < M_dualSupremizers[index].size(); i++)
+            selectors.push_back(i + offset);
+    }
+    return selectors;
 }
 
 void

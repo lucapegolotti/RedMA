@@ -128,4 +128,90 @@ getNorm(const unsigned int& fieldIndex)
     return retMat;
 }
 
+template <>
+void
+StokesAssembler<DenseVector, DenseMatrix>::
+restrictRBMatrices()
+{
+    if (M_bases == nullptr)
+        throw new Exception("RB bases have not been set yet");
+
+    std::vector<unsigned int> selectorsU = M_bases->getSelectors(0);
+    std::vector<unsigned int> selectorsP = M_bases->getSelectors(1);
+
+    // this is the case when we do not choose to keep all the vectors in the basis
+    if (selectorsU.size() > 0)
+    {
+        unsigned int Nu = selectorsU.size();
+        unsigned int Np = selectorsP.size();
+
+        // restrict mass
+        SHP(DENSEMATRIX) restrictedMass(new DENSEMATRIX(Nu,Nu));
+
+        unsigned int inew = 0;
+        for (auto i : selectorsU)
+        {
+            unsigned int jnew = 0;
+            for (auto j : selectorsU)
+            {
+                (*restrictedMass)(inew,jnew) = (*M_mass.block(0,0).data())(i,j);
+                jnew++;
+            }
+            inew++;
+        }
+
+        M_mass.block(0,0).data() = restrictedMass;
+
+        // restrict stiffness
+        SHP(DENSEMATRIX) restrictedStiffness(new DENSEMATRIX(Nu,Nu));
+
+        inew = 0;
+        for (auto i : selectorsU)
+        {
+            unsigned int jnew = 0;
+            for (auto j : selectorsU)
+            {
+                (*restrictedStiffness)(inew,jnew) = (*M_stiffness.block(0,0).data())(i,j);
+                jnew++;
+            }
+            inew++;
+        }
+
+        M_stiffness.block(0,0).data() = restrictedStiffness;
+
+        // restrict divergence
+        SHP(DENSEMATRIX) restrictedBT(new DENSEMATRIX(Nu,Np));
+
+        inew = 0;
+        for (auto i : selectorsU)
+        {
+            unsigned int jnew = 0;
+            for (auto j : selectorsP)
+            {
+                (*restrictedBT)(inew,jnew) = (*M_divergence.block(0,1).data())(i,j);
+                jnew++;
+            }
+            inew++;
+        }
+
+        M_divergence.block(0,1).data() = restrictedBT;
+
+        SHP(DENSEMATRIX) restrictedB(new DENSEMATRIX(Np,Nu));
+
+        inew = 0;
+        for (auto i : selectorsP)
+        {
+            unsigned int jnew = 0;
+            for (auto j : selectorsU)
+            {
+                (*restrictedB)(inew,jnew) = (*M_divergence.block(1,0).data())(i,j);
+                jnew++;
+            }
+            inew++;
+        }
+
+        M_divergence.block(1,0).data() = restrictedB;
+    }
+}
+
 }

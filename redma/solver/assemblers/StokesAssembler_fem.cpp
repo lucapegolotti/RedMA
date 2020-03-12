@@ -407,4 +407,12 @@ getNorm(const unsigned int& fieldIndex)
     return retMat;
 }
 
+template <>
+void
+StokesAssembler<VectorEp, MatrixEp>::
+restrictRBMatrices()
+{
+    throw new Exception("restrictRBMatrices not available for fem assembler");
+}
+
 }

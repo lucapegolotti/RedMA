@@ -38,6 +38,12 @@ setup()
     // we need to load the bases here because now we have the finite element space
     M_basesManager->loadBases();
 
+    for (auto& primalas : M_primalAssemblers)
+    {
+        // restrict RB matrices based on desired pod tolerance (if needed)
+        primalas.second->restrictRBMatrices();
+    }
+
     // allocate interface assemblers
     unsigned int interfaceID = 0;
     for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)

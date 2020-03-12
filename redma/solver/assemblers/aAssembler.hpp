@@ -109,6 +109,8 @@ public:
 
     virtual BlockVector<FEVECTOR> convertFunctionRBtoFEM(BlockVector<RBVECTOR> rbSolution) const {};
 
+    virtual void restrictRBMatrices() {};
+
 protected:
     DataContainer                        M_data;
     SHP(TreeNode)                        M_treeNode;
