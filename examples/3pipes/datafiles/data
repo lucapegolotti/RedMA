@@ -23,9 +23,9 @@
 [rb]
 	[./offline]
 		[./snapshots]
-			number 			     = 20
+			number 			     = 30
 			bound 			     = 0.2
-			take_every 		     = 1
+			take_every 		     = 2
 			dumpbinary 		     = true
 			computereynolds      = true
 			seed 			     = 1234
@@ -101,8 +101,8 @@
 	rhoinf = 0.5
 	order = 1
 	t0 = 0
-	T = 0.04
-	dt = 0.02
+	T = 0.75
+	dt = 0.01
 	solverstatistics = solverstatistics.txt
 [../]
 
