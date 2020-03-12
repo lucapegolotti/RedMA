@@ -86,6 +86,8 @@ public:
     // indices of the vectors from the ith enriched basis to keep
     std::vector<unsigned int> getSelectors(unsigned int index);
 
+    void print();
+
 private:
     void addVectorsFromFile(std::string filename,
                             std::vector<SHP(VECTOREPETRA)>& vectors,

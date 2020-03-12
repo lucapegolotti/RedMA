@@ -30,9 +30,7 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         Epetra_SerialDenseSolver monolithicSolver;
 
         DenseMatrix matrixCollapsed = matrix.collapse().block(0,0);
-        matrixCollapsed.dump("matrixCollapsed.txt");
         DenseVector rhsCollapsed = rhs.collapse().block(0);
-        rhsCollapsed.dump("rhsCollapsed.txt");
         DenseVector solCollapsed;
         solCollapsed.data().reset(new DENSEVECTOR(rhsCollapsed.getNumRows()));
 

@@ -8,7 +8,7 @@ RBBases(const DataContainer& data, EPETRACOMM comm) :
   M_data(data),
   M_comm(comm)
 {
-    M_onlineTol = M_data("rb/online/basis/podtol", 0);
+    M_onlineTol = M_data("rb/online/basis/podtol", 0.0);
 }
 
 void
@@ -68,14 +68,14 @@ void
 RBBases::
 computeOnlineNumberBasisFunctions(unsigned int index)
 {
-    unsigned int totalenergy = 0;
+    double totalenergy = 0;
 
     for (auto sv : M_svs[index])
         totalenergy += sv * sv;
 
-    unsigned int partialSum = 0;
+    double partialSum = 0;
     unsigned int N = 0;
-    while (M_onlineTol*M_onlineTol < 1.0 - partialSum / totalenergy)
+    while (M_onlineTol * M_onlineTol < 1.0 - partialSum / totalenergy)
     {
         partialSum += M_svs[index][N] * M_svs[index][N];
         N++;
@@ -158,6 +158,38 @@ loadBases()
                            M_dualSupremizers[i], i);
 
     }
+
+    print();
+
+    for (unsigned i = 0; i < M_numFields; i++)
+    if (M_bases[i].size() < M_NsOnline[i])
+        throw new Exception("Selected tolerance requires more vectors than the ones stored");
+
+}
+
+void
+RBBases::
+print()
+{
+    printlog(WHITE, "\n[RBBases] printing details\n", M_data.getVerbose());
+    std::string msg = "";
+    if (M_onlineTol > 1e-15)
+        msg += "POD tolerance = " + std::to_string(M_onlineTol) + "\n";
+    else
+        msg += "POD tolerance = all vectors\n";
+
+    for (int i = 0; i < M_numFields; i++)
+    {
+        msg += "Field #" + std::to_string(i) + ":\n";
+        msg += "\tTotal basis size = " + std::to_string(M_bases[i].size()) + "\n";
+        if (M_onlineTol > 1e-15)
+            msg += "\tSelected basis size = " + std::to_string(M_NsOnline[i]) + "\n";
+        for (int j = 0; j < M_numFields; j++)
+            msg += "\tPrimal supremizers wrt field " + std::to_string(j) +
+                   " = " + std::to_string(M_primalSupremizers(i,j).size()) + "\n";
+        msg += "\tDual supremizers = " + std::to_string(M_dualSupremizers[i].size()) + "\n";
+    }
+    printlog(WHITE, msg, M_data.getVerbose());
 }
 
 void
@@ -399,11 +431,20 @@ RBBases::
 getEnrichedBasis(const unsigned int& index)
 {
     std::vector<SHP(VECTOREPETRA)> retVectors = getBasis(index);
-
     for (unsigned int j = 0; j < M_numFields; j++)
     {
-        for (auto primal : M_primalSupremizers(index,j))
-            retVectors.push_back(primal);
+        if (M_onlineTol > 1e-15 && M_primalSupremizers(index,j).size() > 0)
+        {
+            for (unsigned int i = 0; i < M_NsOnline[j]; i++)
+            {
+                retVectors.push_back(M_primalSupremizers(index,j)[i]);
+            }
+        }
+        else
+        {
+            for (auto primal : M_primalSupremizers(index,j))
+                retVectors.push_back(primal);
+        }
     }
 
     for (auto dual : M_dualSupremizers[index])
@@ -427,9 +468,11 @@ getSelectors(unsigned int index)
         // primal supremizers also depend on the ns online
         for (unsigned int j = 0; j < M_numFields; j++)
         {
-            for (unsigned int jj = 0; jj < M_NsOnline[j]; j++)
-                selectors.push_back(jj + offset);
-
+            if (M_primalSupremizers(index,j).size() > 0)
+            {
+                for (unsigned int jj = 0; jj < M_NsOnline[j]; jj++)
+                    selectors.push_back(jj + offset);
+            }
             offset += M_primalSupremizers(index,j).size();
         }
 

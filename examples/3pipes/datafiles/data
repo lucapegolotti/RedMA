@@ -56,7 +56,7 @@
 		monolithicSolve = true
 		[./basis]
 			directory = basis
-			podtol = 1e-5
+			podtol = 1e-4
 		[../]
 		[./mdeim]
 			loadfullbasis   = false
