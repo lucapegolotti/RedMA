@@ -67,6 +67,7 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
             solversAs[i].reset(new Epetra_SerialDenseSolver());
             collapsedAs[i] = A.block(i,i).collapse();
             solversAs[i]->SetMatrix(*collapsedAs[i].data());
+            solversAs[i]->Factor();
         }
 
         // compute Am1BT
@@ -108,8 +109,8 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
                         for (unsigned int ii = 0 ; ii < currows; ii++)
                             (*curVector)(ii) = (*BTcollapsed.data())(ii,jj);
 
-                        collapsedAs[i] = A.block(i,i).collapse();
-                        solversAs[i]->SetMatrix(*collapsedAs[i].data());
+                        // collapsedAs[i] = A.block(i,i).collapse();
+                        // solversAs[i]->SetMatrix(*collapsedAs[i].data());
                         solversAs[i]->SetVectors(*resVector, *curVector);
                         solversAs[i]->Solve();
 
@@ -136,7 +137,6 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         schurComplement += C;
 
         DenseMatrix schurComplementColl = schurComplement.collapse().block(0,0);
-        schurComplementColl.dump("schur.txt");
 
         // compute Am1 ru
         BV Am1ru;
@@ -147,8 +147,8 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
             DenseVector collapsedRui = rhsU.block(i).collapse();
             SHP(DENSEVECTOR) sol(new DENSEVECTOR(collapsedRui.getNumRows()));
 
-            collapsedAs[i] = A.block(i,i).collapse();
-            solversAs[i]->SetMatrix(*collapsedAs[i].data());
+            // collapsedAs[i] = A.block(i,i).collapse();
+            // solversAs[i]->SetMatrix(*collapsedAs[i].data());
             solversAs[i]->SetVectors(*sol, *collapsedRui.data());
             solversAs[i]->Solve();
 
@@ -172,7 +172,6 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         rhsSchur -= B * Am1ru;
 
         DenseVector rhsSchurCollapsed = rhsSchur.collapse().block(0);
-        rhsSchurCollapsed.dump("rhsSchurCollapsed.txt");
 
         DenseVector solLCollapsed;
         solLCollapsed.data().reset(new DENSEVECTOR(rhsSchurCollapsed.getNumRows()));
@@ -182,8 +181,6 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         schurSolver.SetMatrix(*schurComplementColl.data());
         schurSolver.SetVectors(*solLCollapsed.data(), *rhsSchurCollapsed.data());
         schurSolver.Solve();
-        std::cout << (schurComplement.collapse().block(0,0) * solLCollapsed - rhsSchurCollapsed).norm2() << std::endl << std::flush;
-        solLCollapsed.dump("solLCollapsed.txt");
 
         BV solL;
         B.convertVectorType(solLCollapsed, solL);
@@ -191,8 +188,6 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         BV rhsA;
         rhsA.hardCopy(rhsU);
         rhsA -= BT * solL;
-
-        rhsA.collapse().block(0).dump("rhsA.txt");
 
         // solve for u
         BV solU;
@@ -203,8 +198,8 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
             DenseVector collapsedRhsAi = rhsA.block(i).collapse();
             SHP(DENSEVECTOR) sol(new DENSEVECTOR(collapsedRhsAi.getNumRows()));
 
-            collapsedAs[i] = A.block(i,i).collapse();
-            solversAs[i]->SetMatrix(*collapsedAs[i].data());
+            // collapsedAs[i] = A.block(i,i).collapse();
+            // solversAs[i]->SetMatrix(*collapsedAs[i].data());
             solversAs[i]->SetVectors(*sol, *collapsedRhsAi.data());
             solversAs[i]->Solve();
 
@@ -222,7 +217,6 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
                 offset += rhsU.block(i).block(ii).getNumRows();
             }
         }
-        solU.block(0).collapse().dump("solU.txt");
 
         // soft copy sol u in solution vector
         sol.resize(rhs.nRows());
