@@ -55,7 +55,6 @@ public:
 
     void generateBasis();
 
-
 private:
     void parseFiles();
 

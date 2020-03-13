@@ -16,6 +16,8 @@ BasisGenerator(const DataContainer& data, EPETRACOMM comm) :
     if (boost::filesystem::exists(outdir))
         throw new Exception("Basis directory already exists!");
 
+    // we want to consider the whole basis when adding supremizers
+    M_data.setValue("rb/online/basis/podtol", 0.0);
 }
 
 void
@@ -117,7 +119,7 @@ addSupremizers()
             auto linearSolver = setupLinearSolver(normMatrix);
 
             std::vector<SHP(VECTOREPETRA)> basisFunctions = M_bases[meshas.first]->getBasis(limitingfield);
-
+            std::cout << "number of basis functions " << basisFunctions.size() << std::endl << std::flush;
             for (unsigned int i = 0; i < basisFunctions.size(); i++)
             {
                 printlog(YELLOW, "adding supremizer " + std::to_string(i) + " ... \n",
@@ -141,7 +143,6 @@ addSupremizers()
                 // hence denominator of "coeff" == 1
                 for (unsigned int j = 0; j < orthoBasis.size(); j++)
                 {
-                    std::cout << "orth1 " << j << std::endl << std::flush;
                     VECTOREPETRA aux(*orthoBasis[j]->mapPtr());
                     normMatrix.data()->matrixPtr()->Multiply(false, solution->epetraVector(),
                                                              aux.epetraVector());
@@ -223,7 +224,6 @@ addSupremizers()
 
                     for (unsigned int j = 0; j < orthoBasis.size(); j++)
                     {
-                        std::cout << "orth2 " << j << std::endl << std::flush;
                         VECTOREPETRA aux(*orthoBasis[j]->mapPtr());
                         normMatrix.data()->matrixPtr()->Multiply(false, solution->epetraVector(),
                                                                  aux.epetraVector());
@@ -279,7 +279,7 @@ performPOD()
 
             pod.swapReducedBasis(basisFunctions, 0);
             M_bases[pair.first]->setPath(outdir + "/" + pair.first);
-            M_bases[pair.first]->getBasis(count) = basisFunctions;
+            M_bases[pair.first]->setBasisFunctions(basisFunctions, count);
             count++;
         }
     }

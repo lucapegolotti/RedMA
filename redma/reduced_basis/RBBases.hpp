@@ -88,6 +88,9 @@ public:
 
     void print();
 
+    void setBasisFunctions(std::vector<SHP(VECTOREPETRA)> basisFunctions,
+                           unsigned int index) {M_bases[index] = basisFunctions;}
+
 private:
     void addVectorsFromFile(std::string filename,
                             std::vector<SHP(VECTOREPETRA)>& vectors,

@@ -10,6 +10,9 @@ MDEIMGenerator(const DataContainer& data, EPETRACOMM comm) :
 {
     if (M_comm->MyPID() != 0)
         throw new Exception("MDEIMGenerator does not support more than one proc");
+
+    // we want to consider the whole basis
+    M_data.setValue("rb/online/basis/podtol", 0.0);
 }
 
 void
