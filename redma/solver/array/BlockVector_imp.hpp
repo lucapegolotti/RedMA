@@ -59,6 +59,9 @@ double
 BlockVector<InVectorType>::
 norm2() const
 {
+    if (M_nRows == 0)
+        return 0;
+
     double ret = 0;
 
     for (unsigned int i = 0; i < M_nRows; i++)

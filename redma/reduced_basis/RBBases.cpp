@@ -426,6 +426,41 @@ getBasis(const unsigned int& index)
     return basis;
 }
 
+DenseMatrix
+RBBases::
+matrixProject(MatrixEp matrix, unsigned int basisIndexRow,
+                               unsigned int basisIndexCol)
+{
+    DenseMatrix retMat;
+    if (matrix.data())
+    {
+        std::vector<SHP(VECTOREPETRA)> basisLeft = getEnrichedBasis(basisIndexRow);
+        std::vector<SHP(VECTOREPETRA)> basisRight = getEnrichedBasis(basisIndexCol);
+
+        unsigned int Nleft = basisLeft.size();
+        unsigned int Nright = basisRight.size();
+
+        SHP(DENSEMATRIX) newMatrix(new DENSEMATRIX(Nleft, Nright));
+
+        SHP(MATRIXEPETRA) matrixEpetra = matrix.data();
+
+        for (unsigned int i = 0; i < Nleft; i++)
+        {
+            VECTOREPETRA aux(*basisRight[0]->mapPtr());
+            matrixEpetra->matrixPtr()->Multiply(true,
+                            basisLeft[i]->epetraVector(), aux.epetraVector());
+
+            for (unsigned int j = 0; j < Nright; j++)
+            {
+                (*newMatrix)(i,j) += aux.dot(*basisRight[j]);
+            }
+        }
+
+        retMat.data() = newMatrix;
+    }
+    return retMat;
+}
+
 std::vector<SHP(VECTOREPETRA)>
 RBBases::
 getEnrichedBasis(const unsigned int& index)

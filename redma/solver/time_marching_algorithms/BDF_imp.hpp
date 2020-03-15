@@ -7,6 +7,12 @@ BDF(const DataContainer& data) :
   aTimeMarchingAlgorithm<InVectorType, InMatrixType>(data),
   M_order(data("time_discretization/order",2))
 {
+    M_useExtrapolation = this->M_data("time_discretization/use_extrapolation", false);
+
+    // if we set this we save the evaluation of the residual at the end of resolution
+    // (important for rb method)
+    if (M_useExtrapolation)
+        this->M_systemSolver.isLinearProblem();
 }
 
 template <class InVectorType, class InMatrixType>
@@ -16,6 +22,11 @@ BDF(const DataContainer& data, SHP(FunProvider) funProvider) :
   M_order(data("time_discretization/order",2))
 {
     setup(this->M_funProvider->getZeroVector());
+
+    M_useExtrapolation = this->M_data("time_discretization/use_extrapolation", false);
+
+    if (M_useExtrapolation)
+        this->M_systemSolver.isLinearProblem();
 }
 
 template <class InVectorType, class InMatrixType>
@@ -95,15 +106,15 @@ advance(const double& time, double& dt, int& status)
 
     // we set the initial guess equal to the last solution
     // keep in mind that this MUST be a hard copy
-    BV initialGuess;
-    initialGuess.hardCopy(M_prevSolutions[0]);
+    BV initialGuess = computeExtrapolatedSolution();
+    // initialGuess.hardCopy(M_prevSolutions[0]);
 
     this->M_funProvider->applyDirichletBCs(time+dt, initialGuess);
     FunctionFunctor<BV,BV> fct(
         [this,time,dt](BV sol)
     {
         BM mass(this->M_funProvider->getMass(time+dt, sol));
-        if (this->M_data("time_discretization/use_extrapolation", false))
+        if (M_useExtrapolation)
             this->M_funProvider->setExtrapolatedSolution(computeExtrapolatedSolution());
         BV f(this->M_funProvider->getRightHandSide(time+dt, sol));
         BV prevContribution;
@@ -130,6 +141,9 @@ advance(const double& time, double& dt, int& status)
     {
         // here the choice of hard copies is compulsory
         BM retMat;
+
+        if (M_useExtrapolation)
+            this->M_funProvider->setExtrapolatedSolution(computeExtrapolatedSolution());
 
         retMat.hardCopy(this->M_funProvider->getJacobianRightHandSide(time+dt, sol));
         retMat *= (-1. * M_rhsCoeff * dt);

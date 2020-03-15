@@ -52,6 +52,9 @@ public:
 
     std::vector<SHP(VECTOREPETRA)> getPrimalSupremizers(const unsigned int& i, const unsigned int& j) {return M_primalSupremizers(i,j);}
 
+    DenseMatrix matrixProject(MatrixEp matrix, unsigned int basisIndexRow,
+                                               unsigned int basisIndexCol);
+
     BlockMatrix<DenseMatrix> leftProject(BlockMatrix<MatrixEp> matrix);
 
     DenseMatrix leftProject(MatrixEp matrix, unsigned int basisIndex);

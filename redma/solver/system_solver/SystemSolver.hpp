@@ -43,10 +43,13 @@ public:
 
     inline std::vector<SolverStatistics> getSolverStatistics() const {return M_solverStatistics;}
 
+    void isLinearProblem() {return M_isLinearProblem = true;}
+
 private:
     DataContainer                                       M_data;
     LinearSystemSolver<InVectorType, InMatrixType>      M_linearSystemSolver;
     std::vector<SolverStatistics>                       M_solverStatistics;
+    bool                                                M_isLinearProblem;
 };
 
 }

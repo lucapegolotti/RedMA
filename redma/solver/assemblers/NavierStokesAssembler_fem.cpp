@@ -45,7 +45,9 @@ addConvectiveTermJacobianRightHandSide(const BlockVector<VectorEp>& sol,
     SHP(VECTOREPETRA)  liftingRepeated(new VECTOREPETRA(*lifting.block(0).data(),
                                                         Repeated));
 
-    if (M_extrapolatedSolution.nRows() == 0)
+    // if the extrapolation is null (e.g. first step), the matrix is singular.
+    // Hence we solve the non linear problem for the first step
+    if (M_extrapolatedSolution.norm2() > 1e-15)
     {
         integrate(elements(M_velocityFESpaceETA->mesh()),
                    M_velocityFESpace->qr(),
@@ -55,7 +57,6 @@ addConvectiveTermJacobianRightHandSide(const BlockVector<VectorEp>& sol,
                    dot(
                    (
                    value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j) +
-                   phi_j * grad(M_velocityFESpaceETA , *velocityRepeated) +
                    value(M_velocityFESpaceETA , *liftingRepeated) * grad(phi_j)
                    ),
                    phi_i)
@@ -71,6 +72,7 @@ addConvectiveTermJacobianRightHandSide(const BlockVector<VectorEp>& sol,
                    dot(
                    (
                    value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j) +
+                   phi_j * grad(M_velocityFESpaceETA , *velocityRepeated) +
                    value(M_velocityFESpaceETA , *liftingRepeated) * grad(phi_j)
                    ),
                    phi_i)
@@ -90,7 +92,12 @@ getMass(const double& time, const BlockVector<VectorEp>& sol)
     retMat.hardCopy(this->M_mass);
     if (M_useStabilization)
     {
-        retMat += M_stabilization->getMass(sol, this->getForcingTerm(time));
+        if (M_extrapolatedSolution.norm2() < 1e-15)
+            retMat += M_stabilization->getMass(sol,
+                                               this->getForcingTerm(time));
+        else
+            retMat += M_stabilization->getMass(M_extrapolatedSolution, this->getForcingTerm(time));
+
         this->M_bcManager->apply0DirichletMatrix(retMat, this->getFESpaceBCs(),
                                                  this->getComponentBCs(), 1.0);
     }
@@ -106,10 +113,13 @@ getMassJacobian(const double& time, const BlockVector<VectorEp>& sol)
     BlockMatrix<MatrixEp> retMat(this->M_nComponents, this->M_nComponents);
     if (M_useStabilization)
     {
-        retMat += M_stabilization->getMassJac(sol, this->getForcingTerm(time));
-        // we do it here because matrices from stabilization have no bcs
-        this->M_bcManager->apply0DirichletMatrix(retMat, this->getFESpaceBCs(),
-                                                 this->getComponentBCs(), 0.0);
+        if (M_extrapolatedSolution.norm2() < 1e-15)
+        {
+            retMat += M_stabilization->getMassJac(sol, this->getForcingTerm(time));
+            // we do it here because matrices from stabilization have no bcs
+            this->M_bcManager->apply0DirichletMatrix(retMat, this->getFESpaceBCs(),
+                                                     this->getComponentBCs(), 0.0);
+        }
     }
 
     return retMat;
@@ -128,7 +138,7 @@ getRightHandSide(const double& time, const BlockVector<VectorEp>& sol)
     systemMatrix += this->M_divergence;
     systemMatrix *= (-1.0);
 
-    if (this->M_extrapolatedSolution.nRows() > 0)
+    if (this->M_extrapolatedSolution.nRows() > 0 && this->M_extrapolatedSolution.norm2() > 1e-15)
         this->addConvectiveMatrixRightHandSide(this->M_extrapolatedSolution, systemMatrix);
     else
         this->addConvectiveMatrixRightHandSide(sol, systemMatrix);
@@ -138,7 +148,17 @@ getRightHandSide(const double& time, const BlockVector<VectorEp>& sol)
     this->addNeumannBCs(retVec, time, sol);
 
     if (M_useStabilization)
-        retVec -= M_stabilization->getResidual(sol, this->getForcingTerm(time));
+    {
+        if (this->M_extrapolatedSolution.norm2() > 1e-15)
+        {
+            throw new Exception("Stabilization is not supported with extrapolation");
+
+            retVec -= M_stabilization->getResidual(M_extrapolatedSolution,
+                                                   this->getForcingTerm(time));
+        }
+        else
+            retVec -= M_stabilization->getResidual(sol, this->getForcingTerm(time));
+    }
 
     return retVec;
 }
@@ -152,7 +172,7 @@ getJacobianRightHandSide(const double& time,
     BlockMatrix<MatrixEp> retMat;
     retMat = StokesAssembler<VectorEp,MatrixEp>::getJacobianRightHandSide(time, sol);
 
-    if (this->M_extrapolatedSolution.nRows() > 0)
+    if (this->M_extrapolatedSolution.nRows() > 0 && this->M_extrapolatedSolution.norm2() > 1e-15)
         this->addConvectiveTermJacobianRightHandSide(this->M_extrapolatedSolution,
                                                      this->getZeroVector(), retMat);
     else
@@ -160,10 +180,14 @@ getJacobianRightHandSide(const double& time,
                                                      this->getZeroVector(), retMat);
 
     if (M_useStabilization)
-        retMat -= M_stabilization->getJac(sol, this->getForcingTerm(time));
+    {
+        if (M_extrapolatedSolution.norm2() == 0)
+            retMat -= M_stabilization->getJac(sol, this->getForcingTerm(time));
+    }
 
     this->M_bcManager->apply0DirichletMatrix(retMat, this->getFESpaceBCs(),
                                              this->getComponentBCs(), 0.0);
+
     return retMat;
 }
 

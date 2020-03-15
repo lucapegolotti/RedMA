@@ -58,6 +58,7 @@ protected:
     std::vector<double>                      M_coefficients;
     unsigned int                             M_order;
     double                                   M_rhsCoeff;
+    bool                                     M_useExtrapolation;
 };
 
 }
