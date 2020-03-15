@@ -51,6 +51,8 @@ public:
     virtual BlockVector<InVectorType> computeDerivative(const BlockVector<InVectorType>& solnp1,
                                                         double& dt) override;
 
+    BlockVector<InVectorType> computeExtrapolatedSolution();
+
 protected:
     std::vector<BlockVector<InVectorType>>   M_prevSolutions;
     std::vector<double>                      M_coefficients;

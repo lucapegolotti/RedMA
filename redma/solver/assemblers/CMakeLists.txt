@@ -19,9 +19,10 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/StokesAssembler_rb.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockAssembler_fem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockAssembler_rb.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesAssembler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceAssembler_fem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceAssembler_rb.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesAssembler_fem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesAssembler_rb.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InletInflowAssembler_dense.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InletInflowAssembler_sparse.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesStabilization.cpp

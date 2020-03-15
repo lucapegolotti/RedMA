@@ -51,6 +51,8 @@ public:
     virtual void apply0DirichletBCs(BlockVector<InVectorType>& vector) const = 0;
 
     virtual void applyDirichletBCs(const double& time, BlockVector<InVectorType>& vector) const = 0;
+
+    virtual void setExtrapolatedSolution(const BlockVector<InVectorType>& exSol) = 0;
 };
 
 }

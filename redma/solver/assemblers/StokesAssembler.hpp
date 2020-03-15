@@ -152,6 +152,8 @@ public:
 
     virtual void restrictRBMatrices() override;
 
+    void setExtrapolatedSolution(const BlockVector<InVectorType>& exSol) override;
+
 protected:
 
     BlockMatrix<InMatrixType>                                       M_mass;
@@ -172,6 +174,8 @@ protected:
     // first index is face flag
     std::map<unsigned int, SHP(VECTOREPETRA)>                       M_flowRateVectors;
     std::map<unsigned int, BlockMatrix<InMatrixType>>               M_flowRateJacobians;
+
+    BlockVector<InVectorType>                                       M_extrapolatedSolution;
 
     // rb structures
     SHP(BlockMDEIM)                                                 M_mdeimMass;

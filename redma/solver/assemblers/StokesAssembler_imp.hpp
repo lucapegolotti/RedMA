@@ -592,6 +592,14 @@ exportNorms(double t)
     }
 }
 
+template <class InVectorType, class InMatrixType>
+void
+StokesAssembler<InVectorType,InMatrixType>::
+setExtrapolatedSolution(const BlockVector<InVectorType>& exSol)
+{
+    M_extrapolatedSolution.softCopy(exSol);
+}
+
 
 
 }

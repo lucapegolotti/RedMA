@@ -59,6 +59,35 @@ setup(const BlockVector<InVectorType>& zeroVector)
 template <class InVectorType, class InMatrixType>
 BlockVector<InVectorType>
 BDF<InVectorType, InMatrixType>::
+computeExtrapolatedSolution()
+{
+    BlockVector<InVectorType> extrapolatedSolution;
+    extrapolatedSolution.hardCopy(M_prevSolutions[0]);
+
+    if (M_order == 1)
+    {
+
+    }
+    else if (M_order == 2)
+    {
+        extrapolatedSolution *= 2;
+        extrapolatedSolution -= M_prevSolutions[1];
+    }
+    else if (M_order == 3)
+    {
+        extrapolatedSolution *= 3;
+        extrapolatedSolution -= M_prevSolutions[1] * 3;
+        extrapolatedSolution += M_prevSolutions[2];
+    }
+    else
+        throw new Exception("BDF scheme of requested order not implemented");
+
+    return extrapolatedSolution;
+}
+
+template <class InVectorType, class InMatrixType>
+BlockVector<InVectorType>
+BDF<InVectorType, InMatrixType>::
 advance(const double& time, double& dt, int& status)
 {
     typedef BlockVector<InVectorType>               BV;
@@ -74,6 +103,8 @@ advance(const double& time, double& dt, int& status)
         [this,time,dt](BV sol)
     {
         BM mass(this->M_funProvider->getMass(time+dt, sol));
+        if (this->M_data("time_discretization/use_extrapolation", false))
+            this->M_funProvider->setExtrapolatedSolution(computeExtrapolatedSolution());
         BV f(this->M_funProvider->getRightHandSide(time+dt, sol));
         BV prevContribution;
 

@@ -81,6 +81,8 @@ public:
 
     BlockVector<BlockVector<VectorEp>> convertFunctionRBtoFEM(BlockVector<BlockVector<DenseVector>> rbFunction, EPETRACOMM comm) const;
 
+    virtual void setExtrapolatedSolution(const BlockVector<InVectorType>& exSol) override;
+
 protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;

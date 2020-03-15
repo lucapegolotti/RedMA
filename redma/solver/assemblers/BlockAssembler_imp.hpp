@@ -93,6 +93,15 @@ exportSolution(const double& t, const BlockVector<InVectorType>& sol)
 template <class InVectorType, class InMatrixType>
 void
 BlockAssembler<InVectorType, InMatrixType>::
+setExtrapolatedSolution(const BlockVector<InVectorType>& exSol)
+{
+    for (auto as : M_primalAssemblers)
+        as.second->setExtrapolatedSolution(exSol.block(as.first));
+}
+
+template <class InVectorType, class InMatrixType>
+void
+BlockAssembler<InVectorType, InMatrixType>::
 postProcess(const double& t, const BlockVector<InVectorType>& sol)
 {
     for (auto as : M_primalAssemblers)

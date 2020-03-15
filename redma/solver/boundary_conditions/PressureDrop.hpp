@@ -56,6 +56,8 @@ public:
 
     virtual void applyDirichletBCs(const double& time, BlockVector<Double>& vector) const override {}
 
+    void setExtrapolatedSolution(const BlockVector<Double>& exSol) override {throw new Exception("function must still be implemented PressureDrop");}
+
 private:
     double                      M_C;  // compliance
     double                      M_Rp; // proximal resistance
