@@ -23,9 +23,9 @@
 [rb]
 	[./offline]
 		[./snapshots]
-			number 			     = 30
+			number 			     = 50
 			bound 			     = 0.2
-			take_every 		     = 2
+			take_every 		     = 8
 			dumpbinary 		     = true
 			computereynolds      = true
 			seed 			     = 1234
@@ -75,7 +75,7 @@
 [../]
 
 [newton_method]
-	tol = 1e-5
+	tol = 1e-4
 	maxit = 10
 [../]
 
@@ -103,11 +103,11 @@
 [time_discretization]
 	algorithm = bdf
 	rhoinf = 0.5
-	order = 2
+	order = 1
 	t0 = 0
-	T = 0.75
-	dt = 0.01
-	use_extrapolation = true
+	T = 0.30
+	dt = 0.0025
+	use_extrapolation = false
 	solverstatistics = solverstatistics.txt
 [../]
 

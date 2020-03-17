@@ -154,9 +154,10 @@ linearInterpolation(const std::vector<std::pair<double,double>>& values,
         if (std::abs(values[count].first - x) < 1e-15)
             return values[count].second;
 
-        double coeff = (values[count+1].second - values[count].second) /
-                       (values[count+1].first - values[count].first);
-        return values[count].second + coeff * (x - values[count].second);
+        double coeff = (values[count].second - values[count-1].second) /
+                       (values[count].first - values[count-1].first);
+
+        return values[count-1].second + coeff * (x - values[count-1].first);
     };
 }
 
