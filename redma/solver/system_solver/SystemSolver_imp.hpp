@@ -58,23 +58,29 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
         double err = tol + 1;
         unsigned int count = 0;
-        while (err > tol && count < maxit)
+        double initialError = 1;
+        while (err / initialError > tol && count < maxit)
         {
             if (count == 0)
             {
                 curFun = fun(sol);
                 err = curFun.norm2();
+                initialError = err;
             }
 
             std::ostringstream streamOb;
-            streamOb << err;
+            streamOb << err / initialError;
 
             msg = "[SystemSolver] Newtons algorithm,";
-            msg += " error = " + streamOb.str();
+            msg += " rel error = " + streamOb.str();
+            streamOb.str("");
+            streamOb.clear();
+            streamOb << err;
+            msg += ", abs error = " + streamOb.str();
             msg += ", iteration = " + std::to_string(count+1) + "\n";
             printlog(GREEN, msg, M_data.getVerbose());
 
-            if (err > tol)
+            if (err / initialError > tol)
             {
                 incr.zero();
                 BM curJac = jac(sol);
@@ -90,28 +96,39 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
         }
 
         // newton method has failed
-        if (count == maxit && err > tol)
+        if (count == maxit && err / initialError > tol)
         {
             status = -1;
 
             std::ostringstream streamOb;
-            streamOb << err;
 
-            msg = "[SystemSolver] Newtons algorithm, failed,";
-            msg += " error = " + streamOb.str();
+            streamOb << err / initialError;
+
+            msg = "[SystemSolver] Newtons algorithm, failed";
+            msg += " rel error = " + streamOb.str();
+            streamOb.str("");
+            streamOb.clear();
+            streamOb << err;
+            msg += ", abs error = " + streamOb.str();
             msg += ", iteration = " + std::to_string(count+1) + "\n";
             printlog(GREEN, msg, M_data.getVerbose());
         }
         else
         {
-            std::ostringstream streamOb;
-            streamOb << err;
-
             status = 0;
 
-            msg = "[SystemSolver] Newtons algorithm,";
-            msg += " error = " + streamOb.str();
-            msg += ", convergence at iteration = " + std::to_string(count) + "\n";
+            std::ostringstream streamOb;
+
+            streamOb << err / initialError;
+
+            msg = "[SystemSolver] Newtons algorithm converged,";
+            msg += " rel error = " + streamOb.str();
+            streamOb.str("");
+            streamOb.clear();
+            streamOb << err;
+            msg += ", abs error = " + streamOb.str();
+            msg += ", iteration = " + std::to_string(count+1) + "\n";
+
             printlog(GREEN, msg, M_data.getVerbose());
         }
     }
