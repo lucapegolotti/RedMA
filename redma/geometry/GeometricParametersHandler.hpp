@@ -21,9 +21,10 @@
 #include <memory>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <chrono>
 #include <iostream>
 #include <redma/utils/Exception.hpp>
-
+#include <functional>
 #include <random>
 
 #include <redma/utils/PrintLog.hpp>
