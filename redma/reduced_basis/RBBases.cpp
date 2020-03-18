@@ -528,4 +528,125 @@ reconstructFEFunction(SHP(VECTOREPETRA) feFunction, DenseVector rbSolution, unsi
         *feFunction += (*basis[i]) * (*rbSolution.data())(i);
 }
 
+void
+RBBases::
+normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
+{
+    printlog(MAGENTA, "\n[RBBases] normalizing via stabilized Gram Schimdt...\n", M_data.getVerbose());
+
+    const double thrsh = 1e-12;
+
+    std::vector<SHP(VECTOREPETRA)> incrBasis;
+
+    auto project = [normMatrix] (const SHP(VECTOREPETRA)& vec1,
+                                 const SHP(VECTOREPETRA)& vec2)->double
+    {
+        auto rmap = *normMatrix->rangeMapPtr();
+
+        VECTOREPETRA aux(rmap);
+        normMatrix->matrixPtr()->Multiply(false, vec1->epetraVector(),
+                                          aux.epetraVector());
+
+        return aux.dot(*vec2);
+    };
+
+    auto orthonormalizeWrtBasis = [normMatrix,thrsh,project,this](SHP(VECTOREPETRA)& vector,
+                                                                  std::vector<SHP(VECTOREPETRA)>& basis,
+                                                                  const unsigned int& count)->int
+    {
+        auto rmap = *normMatrix->rangeMapPtr();
+
+        for (auto& basisV : basis)
+        {
+            double coeff = project(vector, basisV);
+            SHP(VECTOREPETRA) aux(new VECTOREPETRA(rmap));
+            *aux = *vector - (*basisV) * coeff;
+            double normOrth = project(aux, aux);
+
+            std::string msg = std::to_string(count) + ": norm orthogonal projection = ";
+            msg += std::to_string(normOrth);
+            msg += "\n";
+            printlog(YELLOW, msg, M_data.getVerbose());
+
+            if (normOrth > thrsh)
+                vector = aux;
+            else
+                return 1;
+        }
+
+        double normVector = project(vector, vector);
+        *vector /= std::sqrt(normVector);
+        return 0;
+    };
+
+    auto rmap = *normMatrix->rangeMapPtr();
+
+    // first orthonormalize primal supremizers
+    printlog(GREEN, "normalizing primal supremizers\n", M_data.getVerbose());
+    for (unsigned int j = 0; j < M_numFields; j++)
+    {
+        if (M_primalSupremizers(index,j).size() > 0)
+        {
+            unsigned int count = 0;
+            for (auto& supr : M_primalSupremizers(index,j))
+            {
+                int status = orthonormalizeWrtBasis(supr, incrBasis, count);
+                if (status != 0)
+                    throw new Exception("Primal supremizers are not independent");
+
+                incrBasis.push_back(supr);
+                count++;
+            }
+
+        }
+    }
+
+    // then dual supremizers
+    printlog(GREEN, "normalizing dual supremizers\n", M_data.getVerbose());
+    if (M_dualSupremizers[index].size() > 0)
+    {
+        unsigned int count = 0;
+        for (auto& supr : M_dualSupremizers[index])
+        {
+            int status = orthonormalizeWrtBasis(supr, incrBasis, count);
+            if (status != 0)
+                throw new Exception("Dual supremizers are not independent");
+
+            incrBasis.push_back(supr);
+            count++;
+        }
+    }
+
+    // finally basis functions
+    std::vector<SHP(VECTOREPETRA)> newBasis;
+    printlog(GREEN, "normalizing basis functions\n", M_data.getVerbose());
+    if (M_bases[index].size() > 0)
+    {
+        unsigned int count = 0;
+        for (auto& basis : M_bases[index])
+        {
+            int status = orthonormalizeWrtBasis(basis, incrBasis, count);
+            if (status != 0)
+                printlog(RED, "status != 0, skipping basis", M_data.getVerbose());
+            else
+            {
+                incrBasis.push_back(basis);
+                newBasis.push_back(basis);
+            }
+            count++;
+        }
+    }
+    M_bases[index] = newBasis;
+
+    // // double check
+    // for (unsigned int i = 0; i < incrBasis.size(); i++)
+    // {
+    //     for (unsigned int j = 0; j < incrBasis.size(); j++)
+    //     {
+    //         double proj = project(incrBasis[i],incrBasis[j]);
+    //         std::cout << "i = " << i << " j = " << j << " proj = " << proj << std::endl;
+    //     }
+    // }
+}
+
 }  // namespace RedMA

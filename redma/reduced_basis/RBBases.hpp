@@ -84,6 +84,8 @@ public:
 
     inline unsigned int getSizeEnrichedBasis(const unsigned int& index) {return getEnrichedBasis(index).size();}
 
+    void normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix);
+
     void computeOnlineNumberBasisFunctions(unsigned int index);
 
     // indices of the vectors from the ith enriched basis to keep
@@ -93,6 +95,22 @@ public:
 
     void setBasisFunctions(std::vector<SHP(VECTOREPETRA)> basisFunctions,
                            unsigned int index) {M_bases[index] = basisFunctions;}
+
+    inline unsigned int getNumFields() {return M_numFields;}
+
+    inline bool hasSupremizers(const unsigned int& index)
+    {
+        for (unsigned int j = 0; j < M_numFields; j++)
+        {
+            if (M_primalSupremizers(index,j).size() > 0)
+                return true;
+        }
+
+        if (M_dualSupremizers[index].size() > 0)
+            return true;
+
+        return false;
+    }
 
 private:
     void addVectorsFromFile(std::string filename,
