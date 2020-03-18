@@ -64,6 +64,8 @@ private:
 
     void addSupremizers();
 
+    void orthonormalize();
+
     SHP(TreeNode) generateDefaultTreeNode(const std::string& nameMesh);
 
     SHP(TreeNode) generateDefaultTube(const std::string& nameMesh);
