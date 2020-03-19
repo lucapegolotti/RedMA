@@ -22,6 +22,8 @@
 
 #include <redma/solver/array/BlockMatrix.hpp>
 
+#include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
+
 #include <boost/filesystem.hpp>
 
 namespace RedMA
