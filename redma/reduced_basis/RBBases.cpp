@@ -534,9 +534,10 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
 {
     printlog(MAGENTA, "\n[RBBases] normalizing via stabilized Gram Schimdt...\n", M_data.getVerbose());
 
-    const double thrsh = 1e-12;
+    const double thrsh = 1e-10;
 
-    std::vector<SHP(VECTOREPETRA)> incrBasis;
+    std::vector<SHP(VECTOREPETRA)> incrBasis = M_bases[index];
+    std::vector<bool> keepVector(incrBasis.size(), true);
 
     auto project = [normMatrix] (const SHP(VECTOREPETRA)& vec1,
                                  const SHP(VECTOREPETRA)& vec2)->double
@@ -550,18 +551,22 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
         return aux.dot(*vec2);
     };
 
-    auto orthonormalizeWrtBasis = [normMatrix,thrsh,project,this](SHP(VECTOREPETRA)& vector,
-                                                                  std::vector<SHP(VECTOREPETRA)>& basis,
-                                                                  const unsigned int& count)->int
+    auto orthonormalizeWrtBasis = [&](SHP(VECTOREPETRA)& vector,
+                                      std::vector<SHP(VECTOREPETRA)>& basis,
+                                      const unsigned int& count)->void
     {
         auto rmap = *normMatrix->rangeMapPtr();
 
+        double normVector = project(vector, vector);
+        *vector /= std::sqrt(normVector);
+
+        unsigned int basisIndex = 0;
         for (auto& basisV : basis)
         {
             double coeff = project(vector, basisV);
             SHP(VECTOREPETRA) aux(new VECTOREPETRA(rmap));
             *aux = *vector - (*basisV) * coeff;
-            double normOrth = project(aux, aux);
+            double normOrth = sqrt(project(aux, aux));
 
             std::string msg = std::to_string(count) + ": norm orthogonal projection = ";
             msg += std::to_string(normOrth);
@@ -569,17 +574,32 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
             printlog(YELLOW, msg, M_data.getVerbose());
 
             if (normOrth > thrsh)
+            {
+                *aux /= normOrth;
                 vector = aux;
+            }
             else
-                return 1;
+            {
+                // in this case the supremizer is essentially in the column space.
+                // therefore we set it equal to the vector that triggers the check
+                vector = basisV;
+                if (basisIndex > keepVector.size())
+                {
+                    msg = "Attention: basisIndex > size of keepVector. ";
+                    msg += "This indicates that two supremizers are not independent";
+                    msg += " between each other\n";
+                    printlog(RED, msg, M_data.getVerbose());
+                }
+                else
+                {
+                    msg = "Swapping supremizer with primal vector\n";
+                    printlog(WHITE, msg, M_data.getVerbose());
+                    keepVector[basisIndex] = false;
+                }
+            }
+            basisIndex++;
         }
-
-        double normVector = project(vector, vector);
-        *vector /= std::sqrt(normVector);
-        return 0;
     };
-
-    auto rmap = *normMatrix->rangeMapPtr();
 
     // first orthonormalize primal supremizers
     printlog(GREEN, "normalizing primal supremizers\n", M_data.getVerbose());
@@ -590,10 +610,7 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
             unsigned int count = 0;
             for (auto& supr : M_primalSupremizers(index,j))
             {
-                int status = orthonormalizeWrtBasis(supr, incrBasis, count);
-                if (status != 0)
-                    throw new Exception("Primal supremizers are not independent");
-
+                orthonormalizeWrtBasis(supr, incrBasis, count);
                 incrBasis.push_back(supr);
                 count++;
             }
@@ -608,34 +625,20 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
         unsigned int count = 0;
         for (auto& supr : M_dualSupremizers[index])
         {
-            int status = orthonormalizeWrtBasis(supr, incrBasis, count);
-            if (status != 0)
-                throw new Exception("Dual supremizers are not independent");
-
+            orthonormalizeWrtBasis(supr, incrBasis, count);
             incrBasis.push_back(supr);
             count++;
         }
     }
 
-    // finally basis functions
+    // finally select the basis functions that we keep
     std::vector<SHP(VECTOREPETRA)> newBasis;
-    printlog(GREEN, "normalizing basis functions\n", M_data.getVerbose());
-    if (M_bases[index].size() > 0)
+    for (unsigned int i = 0; i < keepVector.size(); i++)
     {
-        unsigned int count = 0;
-        for (auto& basis : M_bases[index])
-        {
-            int status = orthonormalizeWrtBasis(basis, incrBasis, count);
-            if (status != 0)
-                printlog(RED, "status != 0, skipping basis", M_data.getVerbose());
-            else
-            {
-                incrBasis.push_back(basis);
-                newBasis.push_back(basis);
-            }
-            count++;
-        }
+        if (keepVector[i])
+            newBasis.push_back(M_bases[index][i]);
     }
+
     M_bases[index] = newBasis;
 
     // // double check
