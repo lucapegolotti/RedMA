@@ -597,14 +597,14 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
                     vector = basisV;
                     if (basisIndex > keepVector.size())
                     {
-                        msg = "Attention: basisIndex > size of keepVector. ";
+                        msg = "\nAttention: basisIndex > size of keepVector. ";
                         msg += "This indicates that two supremizers are not independent";
                         msg += " between each other\n";
                         printlog(RED, msg, M_data.getVerbose());
                     }
                     else
                     {
-                        msg = "Swapping supremizer with primal vector\n";
+                        msg = "\nSwapping supremizer with primal vector\n";
                         printlog(WHITE, msg, M_data.getVerbose());
                         keepVector[basisIndex] = false;
                     }
