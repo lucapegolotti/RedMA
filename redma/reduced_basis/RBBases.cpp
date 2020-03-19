@@ -534,7 +534,7 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
 {
     printlog(MAGENTA, "\n[RBBases] normalizing via stabilized Gram Schimdt...\n", M_data.getVerbose());
 
-    const double thrsh = 1e-10;
+    const double thrsh = 1e-5;
 
     std::vector<SHP(VECTOREPETRA)> incrBasis = M_bases[index];
     std::vector<bool> keepVector(incrBasis.size(), true);
@@ -563,38 +563,52 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
         unsigned int basisIndex = 0;
         for (auto& basisV : basis)
         {
-            double coeff = project(vector, basisV);
-            SHP(VECTOREPETRA) aux(new VECTOREPETRA(rmap));
-            *aux = *vector - (*basisV) * coeff;
-            double normOrth = sqrt(project(aux, aux));
-
-            std::string msg = std::to_string(count) + ": norm orthogonal projection = ";
-            msg += std::to_string(normOrth);
-            msg += "\n";
-            printlog(YELLOW, msg, M_data.getVerbose());
-
-            if (normOrth > thrsh)
+            if (keepVector[basisIndex])
             {
-                *aux /= normOrth;
-                vector = aux;
-            }
-            else
-            {
-                // in this case the supremizer is essentially in the column space.
-                // therefore we set it equal to the vector that triggers the check
-                vector = basisV;
-                if (basisIndex > keepVector.size())
+                // if this is close to 1 then the vectors are almost parallel
+                // because they are both unitary
+                double coeff = project(vector, basisV);
+
+                std::ostringstream streamOb;
+                streamOb << std::abs(1.0 - std::abs(coeff));
+
+                std::string msg = std::to_string(count) + ": abs(1 - abs(coeff projection)) = ";
+                msg += streamOb.str();
+                printlog(YELLOW, msg, M_data.getVerbose());
+
+                if (std::abs(1.0 - std::abs(coeff)) > thrsh)
                 {
-                    msg = "Attention: basisIndex > size of keepVector. ";
-                    msg += "This indicates that two supremizers are not independent";
-                    msg += " between each other\n";
-                    printlog(RED, msg, M_data.getVerbose());
+                    SHP(VECTOREPETRA) aux(new VECTOREPETRA(rmap));
+                    *aux = *vector - (*basisV) * coeff;
+                    double normOrth = sqrt(project(aux, aux));
+
+                    std::string msg = " norm orthogonal projection = ";
+                    msg += std::to_string(normOrth);
+                    msg += "\n";
+                    printlog(YELLOW, msg, M_data.getVerbose());
+
+                    *aux /= normOrth;
+                    vector = aux;
                 }
                 else
                 {
-                    msg = "Swapping supremizer with primal vector\n";
-                    printlog(WHITE, msg, M_data.getVerbose());
-                    keepVector[basisIndex] = false;
+                    // in this case the supremizer is essentially in the column space.
+                    // therefore we set it equal to the vector that triggers the check
+                    vector = basisV;
+                    if (basisIndex > keepVector.size())
+                    {
+                        msg = "\nAttention: basisIndex > size of keepVector. ";
+                        msg += "This indicates that two supremizers are not independent";
+                        msg += " between each other\n";
+                        printlog(RED, msg, M_data.getVerbose());
+                    }
+                    else
+                    {
+                        msg = "\nSwapping supremizer with primal vector\n";
+                        printlog(WHITE, msg, M_data.getVerbose());
+                        keepVector[basisIndex] = false;
+                    }
+                    return;
                 }
             }
             basisIndex++;
