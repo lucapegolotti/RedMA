@@ -565,28 +565,16 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
             if (keepVector[basisIndex])
             {
                 // if this is close to 1 then the vectors are almost parallel
-                // because they are both unitary
-                double coeff = project(vector, basisV) / project(basisV, basisV);
+                // because they are both unitary. Note that we assume basisV to be
+                // unitary
+                double coeff = project(vector, basisV);
 
-                // std::ostringstream streamOb;
-                // streamOb << std::abs(1.0 - std::abs(coeff));
-                //
-                // std::string msg = std::to_string(count) + ": abs(1 - abs(coeff projection)) = ";
-                // msg += streamOb.str();
-                // printlog(YELLOW, msg, M_data.getVerbose());
 
                 if (std::abs(1.0 - std::abs(coeff)) > thrsh)
                 {
                     SHP(VECTOREPETRA) aux(new VECTOREPETRA(rmap));
                     *aux = *vector - (*basisV) * coeff;
-                    double normOrth = sqrt(project(aux, aux));
 
-                    // std::string msg = " norm orthogonal projection = ";
-                    // msg += std::to_string(normOrth);
-                    // msg += "\n";
-                    // printlog(YELLOW, msg, M_data.getVerbose());
-
-                    *aux /= normOrth;
                     vector = aux;
                 }
                 else
@@ -613,6 +601,8 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
             }
             basisIndex++;
         }
+        normVector = project(vector, vector);
+        *vector /= std::sqrt(normVector);
     };
 
     // re-orthonormalize the primal basis because if it is not orhonormal to
