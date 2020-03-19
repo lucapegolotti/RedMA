@@ -568,12 +568,12 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
                 // because they are both unitary
                 double coeff = project(vector, basisV) / project(basisV, basisV);
 
-                std::ostringstream streamOb;
-                streamOb << std::abs(1.0 - std::abs(coeff));
-
-                std::string msg = std::to_string(count) + ": abs(1 - abs(coeff projection)) = ";
-                msg += streamOb.str();
-                printlog(YELLOW, msg, M_data.getVerbose());
+                // std::ostringstream streamOb;
+                // streamOb << std::abs(1.0 - std::abs(coeff));
+                //
+                // std::string msg = std::to_string(count) + ": abs(1 - abs(coeff projection)) = ";
+                // msg += streamOb.str();
+                // printlog(YELLOW, msg, M_data.getVerbose());
 
                 if (std::abs(1.0 - std::abs(coeff)) > thrsh)
                 {
@@ -581,10 +581,10 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
                     *aux = *vector - (*basisV) * coeff;
                     double normOrth = sqrt(project(aux, aux));
 
-                    std::string msg = " norm orthogonal projection = ";
-                    msg += std::to_string(normOrth);
-                    msg += "\n";
-                    printlog(YELLOW, msg, M_data.getVerbose());
+                    // std::string msg = " norm orthogonal projection = ";
+                    // msg += std::to_string(normOrth);
+                    // msg += "\n";
+                    // printlog(YELLOW, msg, M_data.getVerbose());
 
                     *aux /= normOrth;
                     vector = aux;
@@ -593,6 +593,7 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
                 {
                     // in this case the supremizer is essentially in the column space.
                     // therefore we set it equal to the vector that triggers the check
+                    std::string msg;
                     vector = basisV;
                     if (basisIndex > keepVector.size())
                     {
@@ -617,19 +618,14 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
     // re-orthonormalize the primal basis because if it is not orhonormal to
     // machine precision it's a mess
 
-    // rbLifeV::ProperOrthogonalDecomposition pod(M_comm, M_fespaces[index]->map(), true);
-    // pod.initPOD(M_bases[index].size(),
-    //             M_bases[index].data(),
-    //             normMatrix);
-    // pod.setSvdFileName(M_path + "/svd_ortho" +
-    //                    std::to_string(index) + ".txt");
-    // pod.generatePODbasisTol(1e-16);
-    //
-    // unsigned int nbfs = pod.getRBdimension();
-    // std::vector<SHP(VECTOREPETRA)> incrBasis(nbfs);
-    // pod.swapReducedBasis(incrBasis, 0);
-    //
-    std::vector<SHP(VECTOREPETRA)> incrBasis = M_bases[index];
+    std::vector<SHP(VECTOREPETRA)> incrBasis;
+
+    printlog(GREEN, "normalizing basis\n", M_data.getVerbose());
+    for (unsigned int i = 0; i < M_bases[index].size(); i++)
+    {
+        orthonormalizeWrtBasis(M_bases[index][i], incrBasis, 0);
+        incrBasis.push_back(M_bases[index][i]);
+    }
 
     // double check
     for (unsigned int i = 10; i < 11; i++)
@@ -652,6 +648,11 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
             unsigned int count = 0;
             for (auto& supr : M_primalSupremizers(index,j))
             {
+                std::string msg = "orthonormalizing primal supremizer ";
+                msg += std::to_string(count);
+                msg += "\n";
+                printlog(YELLOW, msg, M_data.getVerbose());
+
                 orthonormalizeWrtBasis(supr, incrBasis, count);
                 incrBasis.push_back(supr);
                 count++;
@@ -666,6 +667,11 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
         unsigned int count = 0;
         for (auto& supr : M_dualSupremizers[index])
         {
+            std::string msg = "orthonormalizing primal supremizer ";
+            msg += std::to_string(count);
+            msg += "\n";
+            printlog(YELLOW, msg, M_data.getVerbose());
+
             orthonormalizeWrtBasis(supr, incrBasis, count);
             incrBasis.push_back(supr);
             count++;
