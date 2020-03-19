@@ -536,9 +536,6 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
 
     const double thrsh = 1e-5;
 
-    std::vector<SHP(VECTOREPETRA)> incrBasis = M_bases[index];
-    std::vector<bool> keepVector(incrBasis.size(), true);
-
     auto project = [normMatrix] (const SHP(VECTOREPETRA)& vec1,
                                  const SHP(VECTOREPETRA)& vec2)->double
     {
@@ -550,6 +547,8 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
 
         return aux.dot(*vec2);
     };
+
+    std::vector<bool> keepVector(M_bases[index].size(), true);
 
     auto orthonormalizeWrtBasis = [&](SHP(VECTOREPETRA)& vector,
                                       std::vector<SHP(VECTOREPETRA)>& basis,
@@ -567,7 +566,7 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
             {
                 // if this is close to 1 then the vectors are almost parallel
                 // because they are both unitary
-                double coeff = project(vector, basisV);
+                double coeff = project(vector, basisV) / project(basisV, basisV);
 
                 std::ostringstream streamOb;
                 streamOb << std::abs(1.0 - std::abs(coeff));
@@ -614,6 +613,28 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
             basisIndex++;
         }
     };
+
+    std::vector<SHP(VECTOREPETRA)> incrBasis;
+
+    // re-orthonormalize the primal basis because if it is not orhonormal to
+    // machine precision it's a mess
+    for (unsigned int i = 0; i < M_bases[index].size(); i++)
+    {
+        orthonormalizeWrtBasis(M_bases[index][i], incrBasis, i);
+        incrBasis.push_back(M_bases[index][i]);
+    }
+
+    // double check
+    for (unsigned int i = 0; i < incrBasis.size(); i++)
+    {
+        for (unsigned int j = 0; j < incrBasis.size(); j++)
+        {
+            double proj = project(incrBasis[i],incrBasis[j]);
+            std::cout << "i = " << i << " j = " << j << " proj = " << proj << std::endl;
+            if (i == j)
+                std::cout << "i = " << i << " j = " << j << " 1 - proj = " << abs(1 - proj) << std::endl;
+        }
+    }
 
     // first orthonormalize primal supremizers
     printlog(GREEN, "normalizing primal supremizers\n", M_data.getVerbose());
