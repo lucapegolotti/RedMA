@@ -617,17 +617,19 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
     // re-orthonormalize the primal basis because if it is not orhonormal to
     // machine precision it's a mess
 
-    rbLifeV::ProperOrthogonalDecomposition pod(M_comm, M_fespaces[index]->map(), true);
-    pod.initPOD(M_bases[index].size(),
-                M_bases[index].data(),
-                normMatrix);
-    pod.setSvdFileName(M_path + "/svd_ortho" +
-                       std::to_string(index) + ".txt");
-    pod.generatePODbasisTol(1e-16);
-
-    unsigned int nbfs = pod.getRBdimension();
-    std::vector<SHP(VECTOREPETRA)> incrBasis(nbfs);
-    pod.swapReducedBasis(incrBasis, 0);
+    // rbLifeV::ProperOrthogonalDecomposition pod(M_comm, M_fespaces[index]->map(), true);
+    // pod.initPOD(M_bases[index].size(),
+    //             M_bases[index].data(),
+    //             normMatrix);
+    // pod.setSvdFileName(M_path + "/svd_ortho" +
+    //                    std::to_string(index) + ".txt");
+    // pod.generatePODbasisTol(1e-16);
+    //
+    // unsigned int nbfs = pod.getRBdimension();
+    // std::vector<SHP(VECTOREPETRA)> incrBasis(nbfs);
+    // pod.swapReducedBasis(incrBasis, 0);
+    //
+    std::vector<SHP(VECTOREPETRA)> incrBasis = M_bases[index];
 
     // double check
     for (unsigned int i = 10; i < 11; i++)
