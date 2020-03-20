@@ -568,7 +568,7 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
                 // because they are both unitary. Note that we assume basisV to be
                 // unitary
                 double coeff = project(vector, basisV);
-
+                std::cout << coeff << std::endl << std::flush;
 
                 if (std::abs(1.0 - std::abs(coeff)) > thrsh)
                 {
@@ -613,7 +613,8 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
     printlog(GREEN, "normalizing basis\n", M_data.getVerbose());
     for (unsigned int i = 0; i < M_bases[index].size(); i++)
     {
-        orthonormalizeWrtBasis(M_bases[index][i], incrBasis, 0);
+        // orthonormalizeWrtBasis(M_bases[index][i], incrBasis, 0);
+        *M_bases[index][i] /= std::sqrt(project(M_bases[index][i],M_bases[index][i]));
         incrBasis.push_back(M_bases[index][i]);
     }
 
