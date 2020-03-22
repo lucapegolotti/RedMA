@@ -138,21 +138,23 @@ std::string
 VectorEp::
 getString(const char& delimiter) const
 {
-    std::string ret = "";
     // we reduce the vector to processor 0
     VECTOREPETRA redVec(*M_vector, 0);
 
+    std::ostringstream streamObj;
+    streamObj << "";
+
     if (redVec.epetraVector().Comm().MyPID())
-        return ret;
+        return streamObj.str();
 
     const double* values = redVec.epetraVector()[0];
     for (unsigned int i = 0; i < redVec.epetraVector().GlobalLength(); ++i)
     {
-        ret += std::to_string(values[i]);
+        streamObj << values[i];
         if (i != redVec.epetraVector().GlobalLength()-1)
-            ret += delimiter;
+            streamObj << delimiter;
     }
-    return ret;
+    return streamObj.str();
 }
 
 // here we assume that the vector is stacked 1st component, 2nd component ecc
