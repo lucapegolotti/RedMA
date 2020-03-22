@@ -59,7 +59,7 @@
 			podtol = 1e-4
 		[../]
 		[./mdeim]
-			loadfullbasis   = false
+			loadfullbasis   = true
 			directory 		= mdeims
 		[../]
 	[../]

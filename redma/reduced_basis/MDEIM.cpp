@@ -442,6 +442,7 @@ computeInterpolationVectorOnline(Epetra_SerialDenseVector& interpVector,
 
     // for some reason the matrix is changed after solve. So, we make a copy of Qj
     Epetra_SerialDenseMatrix Qj = M_structure->Qj;
+
     solverQj.SetMatrix(Qj);
     solverQj.SetVectors(interpVector, rhsVector);
     solverQj.Solve();
@@ -557,11 +558,9 @@ assembleMatrix(FEMATRIX reducedMatrix)
         // Compute interpolation vector
         Epetra_SerialDenseVector myInterpVector(ms->N);
         computeInterpolationVectorOnline(myInterpVector, reducedMatrix);
-
         // Build FEM vector from interpolation vector
         approximation.reset(new VECTOREPETRA(*ms->vectorMap));
         computeFeInterpolation(myInterpVector, *approximation);
-
         SHP(MATRIXEPETRA) apprMatrix;
         apprMatrix.reset(new MATRIXEPETRA(M_fespace->map(), 100));
         apprMatrix->matrixPtr( )->Scale(0.);
