@@ -226,18 +226,15 @@ struct MDEIMStructure
         std::ostringstream streamObj;
 
         std::string retString = name + ",";
+        streamObj << retString;
         for (int i = 0; i < numEntries; i++)
         {
-            streamObj.str() = "";
             streamObj << array[i];
-            retString += streamObj.str();
             if (i != numEntries - 1)
-            {
-                retString += ",";
-            }
+                streamObj << ",";
         }
-        retString += "\n";
-        return retString;
+        streamObj << "\n";
+        return streamObj.str();
     }
 
     std::string matrix2string(std::string name, Epetra_SerialDenseMatrix mat,
@@ -246,17 +243,16 @@ struct MDEIMStructure
         std::ostringstream streamObj;
 
         std::string retString = name + ",";
+        streamObj << retString;
         for (int i = 0; i < dim1; i++)
         {
             for (int j = 0; j < dim2; j++)
             {
-                streamObj.str() = "";
                 streamObj << mat[i][j];
-                retString += streamObj.str();
-                retString += ",";
+                streamObj << ",";
             }
         }
-        retString = retString.substr(0, retString.size()-1);
+        retString = streamObj.str().substr(0, streamObj.str().size()-1);
         retString += "\n";
         return retString;
     }
@@ -267,17 +263,16 @@ struct MDEIMStructure
         std::ostringstream streamObj;
 
         std::string retString = name + ",";
+        streamObj << retString;
         for (int i = 0; i < dim1; i++)
         {
             for (int j = 0; j < dim2[i]; j++)
             {
-                streamObj.str() = "";
                 streamObj << mat[i][j];
-                retString += streamObj.str();
-                retString += ",";
+                streamObj << ",";
             }
         }
-        retString = retString.substr(0, retString.size()-1);
+        retString = streamObj.str().substr(0, streamObj.str().size()-1);
         retString += "\n";
         return retString;
     }
