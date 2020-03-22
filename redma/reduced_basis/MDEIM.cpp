@@ -137,7 +137,7 @@ pickMagicPoints()
     VECTOREPETRA QQjrm(*ms->vectorMap);
 
     Epetra_SerialDenseSolver solverQj;
-    Epetra_SerialDenseMatrix copyQj(ms->Qj);
+    Epetra_SerialDenseMatrix copyQj = ms->Qj;
     solverQj.SetMatrix(copyQj);
 
     for (unsigned int iB = 1; iB < N; iB++)
@@ -169,7 +169,7 @@ pickMagicPoints()
         }
 
         // we copy Qj because it is changed inside de solver for some reason
-        Epetra_SerialDenseMatrix copyQj(ms->Qj);
+        copyQj = ms->Qj;
         solverQj.SetMatrix(copyQj);
     }
 }
