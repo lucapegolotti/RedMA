@@ -137,8 +137,7 @@ pickMagicPoints()
     VECTOREPETRA QQjrm(*ms->vectorMap);
 
     Epetra_SerialDenseSolver solverQj;
-    Epetra_SerialDenseMatrix copyQj = ms->Qj;
-    solverQj.SetMatrix(copyQj);
+    solverQj.SetMatrix(ms->Qj);
 
     for (unsigned int iB = 1; iB < N; iB++)
     {
@@ -167,10 +166,9 @@ pickMagicPoints()
             for(int kB = 0; kB < iB + 1; kB++)
                 ms->Qj(kB, jB) = interpCoef(kB);
         }
+        std::cout << "Qj norm = " << ms->Qj.NormInf() << std::endl << std::flush;
 
-        // we copy Qj because it is changed inside de solver for some reason
-        copyQj = ms->Qj;
-        solverQj.SetMatrix(copyQj);
+        solverQj.SetMatrix(ms->Qj);
     }
 }
 
@@ -448,6 +446,7 @@ computeInterpolationVectorOnline(Epetra_SerialDenseVector& interpVector,
     Epetra_SerialDenseMatrix Qj = M_structure->Qj;
 
     solverQj.SetMatrix(Qj);
+    std::cout << "Qj norm = " << Qj.NormInf() << std::endl << std::flush;
     solverQj.SetVectors(interpVector, rhsVector);
     solverQj.Solve();
     std::cout << "interpVector " << interpVector.Norm2() << std::endl << std::flush;
