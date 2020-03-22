@@ -215,16 +215,22 @@ struct MDEIMStructure
     template <typename Type>
     std::string value2string(std::string name, Type value)
     {
-        return name + "," + std::to_string(value) + "\n";
+        std::ostringstream streamObj;
+        streamObj << value;
+        return name + "," + streamObj.str() + "\n";
     }
 
     template <typename Type>
     std::string array2string(std::string name, Type* array, int numEntries)
     {
+        std::ostringstream streamObj;
+
         std::string retString = name + ",";
         for (int i = 0; i < numEntries; i++)
         {
-            retString += std::to_string(array[i]);
+            streamObj.str() = "";
+            streamObj << array[i];
+            retString += streamObj.str();
             if (i != numEntries - 1)
             {
                 retString += ",";
@@ -237,12 +243,16 @@ struct MDEIMStructure
     std::string matrix2string(std::string name, Epetra_SerialDenseMatrix mat,
                               int dim1, int dim2)
     {
+        std::ostringstream streamObj;
+
         std::string retString = name + ",";
         for (int i = 0; i < dim1; i++)
         {
             for (int j = 0; j < dim2; j++)
             {
-                retString += std::to_string(mat[i][j]);
+                streamObj.str() = "";
+                streamObj << mat[i][j];
+                retString += streamObj.str();
                 retString += ",";
             }
         }
@@ -254,12 +264,16 @@ struct MDEIMStructure
     std::string matrix2string(std::string name, std::vector<std::vector<int>> mat,
                               int dim1, std::vector<int> dim2)
     {
+        std::ostringstream streamObj;
+
         std::string retString = name + ",";
         for (int i = 0; i < dim1; i++)
         {
             for (int j = 0; j < dim2[i]; j++)
             {
-                retString += std::to_string(mat[i][j]);
+                streamObj.str() = "";
+                streamObj << mat[i][j];
+                retString += streamObj.str();
                 retString += ",";
             }
         }
