@@ -446,8 +446,49 @@ computeInterpolationVectorOnline(Epetra_SerialDenseVector& interpVector,
 
     solverQj.SetMatrix(Qj);
     solverQj.SetVectors(interpVector, rhsVector);
-    std::cout << "interpVector " << interpVector.Norm2() << std::endl << std::flush;
     solverQj.Solve();
+    std::cout << "interpVector " << interpVector.Norm2() << std::endl << std::flush;
+
+    if (interpVector.Norm2() != interpVector.Norm2())
+    {
+        std::cout << "it's nan, quitting" << std::endl << std::flush;
+
+        std::ofstream outfile;
+        outfile.open("Qj.csv", std::ios_base::out);
+
+        unsigned int M = Qj.M();
+        unsigned int N = Qj.N();
+
+        std::ostringstream streamObj;
+        for (unsigned int i = 0; i < M; i++)
+        {
+            for (unsigned int j = 0; j < N; j++)
+            {
+                streamObj << Qj(i,j);
+                if (j != M-1)
+                    streamObj << ",";
+            }
+            if (i != N-1)
+                streamObj << "\n";
+        }
+        outfile << streamObj.str();
+        outfile.close();
+
+        outfile.open("rhsVector.csv", std::ios_base::out);
+        N = rhsVector.Length();
+
+        streamObj.str() = "";
+        for (unsigned int i = 0; i < N; i++)
+        {
+            streamObj << rhsVector(i);
+            if (i != N-1)
+                streamObj << "\n";
+        }
+        outfile << streamObj.str();
+        outfile.close();
+
+        exit(1);
+    }
 }
 
 void
