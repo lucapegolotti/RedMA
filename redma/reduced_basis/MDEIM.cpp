@@ -432,12 +432,13 @@ MDEIM::
 computeInterpolationVectorOnline(Epetra_SerialDenseVector& interpVector,
                                  MatrixEp reducedMat)
 {
+    std::cout << "+++++++++" << std::endl << std::flush;
     auto ms = M_structure;
 
     Epetra_SerialDenseVector rhsVector;
 
     computeInterpolationRhsOnline(rhsVector, reducedMat);
-
+    std::cout << "rhsVector " << rhsVector.Norm2() << std::endl << std::flush;
     Epetra_SerialDenseSolver solverQj;
 
     // for some reason the matrix is changed after solve. So, we make a copy of Qj
@@ -445,6 +446,7 @@ computeInterpolationVectorOnline(Epetra_SerialDenseVector& interpVector,
 
     solverQj.SetMatrix(Qj);
     solverQj.SetVectors(interpVector, rhsVector);
+    std::cout << "interpVector " << interpVector.Norm2() << std::endl << std::flush;
     solverQj.Solve();
 }
 
@@ -558,16 +560,19 @@ assembleMatrix(FEMATRIX reducedMatrix)
         // Compute interpolation vector
         Epetra_SerialDenseVector myInterpVector(ms->N);
         computeInterpolationVectorOnline(myInterpVector, reducedMatrix);
+        std::cout << "reducedMatrix " << reducedMatrix.data()->normInf() << std::endl << std::flush;
         // Build FEM vector from interpolation vector
         approximation.reset(new VECTOREPETRA(*ms->vectorMap));
         computeFeInterpolation(myInterpVector, *approximation);
+        std::cout << "myInterpVector " << myInterpVector.Norm2() << std::endl << std::flush;
+        std::cout << "approximation " << approximation->norm2() << std::endl << std::flush;
         SHP(MATRIXEPETRA) apprMatrix;
         apprMatrix.reset(new MATRIXEPETRA(M_fespace->map(), 100));
         apprMatrix->matrixPtr( )->Scale(0.);
 
         reconstructMatrixFromVectorizedForm(*approximation, *apprMatrix);
-
         apprMatrix->globalAssemble(M_domainMap, M_rangeMap);
+        std::cout << "apprMatrix " << apprMatrix->normInf() << std::endl << std::flush;
         retMat.data() = apprMatrix;
     }
     return retMat;
