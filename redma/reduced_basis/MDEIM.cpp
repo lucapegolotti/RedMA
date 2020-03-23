@@ -145,8 +145,9 @@ pickMagicPoints()
         rm.epetraVector().Update(1., M_basis[iB]->epetraVector(), 0.);
 
         computeInterpolationVectorOffline(rm, interpCoef, solverQj);
-
+        std::cout << "interpCoef = " << interpCoef.Norm2() << std::endl << std::flush;
         computeFeInterpolation(interpCoef, QQjrm);
+        std::cout << "QQjrm = " << QQjrm.norm2() << std::endl << std::flush;
 
         rm.epetraVector().Update(-1., QQjrm.epetraVector(), 1.);
 
@@ -160,7 +161,7 @@ pickMagicPoints()
 
         for (int jB = 0; jB < iB + 1; jB++)
         {
-            std::cout << jB << "=========" << std::endl << std::flush;
+            // std::cout << jB << "=========" << std::endl << std::flush;
             // rbLifeV::extractSubVector(*(M_basis[jB]), ms->localIndicesMagicPoints,
             //                           ms->magicPointsProcOwner, interpCoef, iB + 1);
 
@@ -178,8 +179,8 @@ pickMagicPoints()
                 }
             }
 
-            for (int kB = 0; kB < iB + 1; kB++)
-                std::cout << "vector = " << interpCoef(kB) << std::endl << std::flush;
+            // for (int kB = 0; kB < iB + 1; kB++)
+            //     std::cout << "vector = " << interpCoef(kB) << std::endl << std::flush;
 
             for(int kB = 0; kB < iB + 1; kB++)
                 ms->Qj(kB, jB) = interpCoef(kB);
