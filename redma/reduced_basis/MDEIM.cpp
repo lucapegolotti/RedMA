@@ -828,7 +828,7 @@ computeInterpolationVectorOffline(VECTOREPETRA& vector,
     // Set the unknown vectors and rhs for the interpolation problem
     solver.SetVectors(interpolationCoefficients, subVector);
 
-    auto Qj = solver.Matrix();
+    auto Qj = *solver.Matrix();
     // Solve the interpolation coefficients
     solver.Solve( );
 
@@ -840,15 +840,15 @@ computeInterpolationVectorOffline(VECTOREPETRA& vector,
         std::ofstream outfile;
         outfile.open("matrixInterp.csv", std::ios_base::out);
 
-        unsigned int M = Qj->M();
-        unsigned int N = Qj->N();
+        unsigned int M = Qj.M();
+        unsigned int N = Qj.N();
 
         std::ostringstream streamObj;
         for (unsigned int i = 0; i < M; i++)
         {
             for (unsigned int j = 0; j < N; j++)
             {
-                streamObj << Qj->operator()(i,j);
+                streamObj << Qj(i,j);
                 if (j != M-1)
                     streamObj << ",";
             }
