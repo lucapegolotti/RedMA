@@ -160,8 +160,12 @@ pickMagicPoints()
 
         for (int jB = 0; jB < iB + 1; jB++)
         {
+            std::cout << jB << "=========" << std::endl << std::flush;
             rbLifeV::extractSubVector(*(M_basis[jB]), ms->localIndicesMagicPoints,
                                       ms->magicPointsProcOwner, interpCoef, iB + 1);
+
+            for (int kB = 0; kB < iB + 1; kB++)
+                std::cout << "vector = " << interpCoef(kB) << std::endl << std::flush;
 
             for(int kB = 0; kB < iB + 1; kB++)
                 ms->Qj(kB, jB) = interpCoef(kB);
@@ -170,6 +174,23 @@ pickMagicPoints()
 
         solverQj.SetMatrix(ms->Qj);
     }
+
+    unsigned int M = ms->Qj.M();
+    N = ms->Qj.N();
+
+    std::ostringstream streamObj;
+    for (unsigned int i = 0; i < M; i++)
+    {
+        for (unsigned int j = 0; j < N; j++)
+        {
+            streamObj << M_structure->Qj(i,j);
+            if (j != M-1)
+                streamObj << ",";
+        }
+        if (i != N-1)
+            streamObj << "\n";
+    }
+    std::cout << streamObj.str() << std::endl << std::flush;
 }
 
 void
@@ -466,7 +487,7 @@ computeInterpolationVectorOnline(Epetra_SerialDenseVector& interpVector,
         {
             for (unsigned int j = 0; j < N; j++)
             {
-                streamObj << Qj(i,j);
+                streamObj << M_structure->Qj(i,j);
                 if (j != M-1)
                     streamObj << ",";
             }
