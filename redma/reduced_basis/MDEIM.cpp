@@ -161,8 +161,22 @@ pickMagicPoints()
         for (int jB = 0; jB < iB + 1; jB++)
         {
             std::cout << jB << "=========" << std::endl << std::flush;
-            rbLifeV::extractSubVector(*(M_basis[jB]), ms->localIndicesMagicPoints,
-                                      ms->magicPointsProcOwner, interpCoef, iB + 1);
+            // rbLifeV::extractSubVector(*(M_basis[jB]), ms->localIndicesMagicPoints,
+            //                           ms->magicPointsProcOwner, interpCoef, iB + 1);
+
+            interpCoef.Resize(iB + 1);
+
+            for (int iV = 0; iV < iB + 1; iV++)
+            {
+                interpCoef[iV] = M_basis[jB]->epetraVector().Values()[ms->localIndicesMagicPoints[iV]];
+                M_basis[jB]->mapPtr()->commPtr()->Broadcast(&(interpCoef[iV]), 1, ms->magicPointsProcOwner[iV]);
+
+                if (std::abs(interpCoef[iV]) < 1e-15)
+                {
+                    std::cout << "basis value " << M_basis[jB]->epetraVector().Values()[ms->localIndicesMagicPoints[iV]] << std::endl << std::flush;
+                    std::cout << "approximation value " << QQjrm.epetraVector().Values()[ms->localIndicesMagicPoints[iV]] << std::endl << std::flush;
+                }
+            }
 
             for (int kB = 0; kB < iB + 1; kB++)
                 std::cout << "vector = " << interpCoef(kB) << std::endl << std::flush;
