@@ -171,34 +171,74 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
 
     retVec.softCopy(systemMatrix * sol);
 
-    SHP(VECTOREPETRA)  convectiveTerm(new VECTOREPETRA(M_velocityFESpace->map()));
-    SHP(VECTOREPETRA)  velocityRepeated(new VECTOREPETRA(M_velocityFESpace->map()));
+    printlog(YELLOW, msg, this->M_data.getVerbose());
+
+    SHP(VECTOREPETRA)  nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
+    SHP(VECTOREPETRA)  velocityReconstructed(new VECTOREPETRA(M_velocityFESpace->map()));
+
+    M_bases->reconstructFEFunction(velocityReconstructed, sol.block(0), 0);
 
     if (M_extrapolatedSolution.nRows() == 0)
-        M_bases->reconstructFEFunction(velocityRepeated, sol.block(0), 0);
+    {
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                   M_velocityFESpace->qr(),
+                   M_velocityFESpaceETA,
+                   value(this->M_density) *
+                   dot(value(M_velocityFESpaceETA , *velocityReconstructed) *
+                       grad(M_velocityFESpaceETA , *velocityReconstructed),
+                   phi_i)
+                 ) >> nonLinearTerm;
+    }
     else
-        M_bases->reconstructFEFunction(velocityRepeated, M_extrapolatedSolution.block(0), 0);
+    {
+        SHP(VECTOREPETRA)  extrapolatedSolution(new VECTOREPETRA(M_velocityFESpace->map()));
+        M_bases->reconstructFEFunction(extrapolatedSolution, M_extrapolatedSolution.block(0), 0);
 
-    integrate(elements(M_velocityFESpaceETA->mesh()),
-               M_velocityFESpace->qr(),
-               M_velocityFESpaceETA,
-               value(this->M_density) *
-               dot(value(M_velocityFESpaceETA , *velocityRepeated) *
-                   grad(M_velocityFESpaceETA , *velocityRepeated),
-               phi_i)
-             ) >> convectiveTerm;
-    convectiveTerm->globalAssemble();
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                   M_velocityFESpace->qr(),
+                   M_velocityFESpaceETA,
+                   value(this->M_density) *
+                   dot(value(M_velocityFESpaceETA , *velocityReconstructed) *
+                       grad(M_velocityFESpaceETA , *extrapolatedSolution),
+                   phi_i)
+                 ) >> nonLinearTerm;
+    }
 
-    BlockVector<VectorEp> convectiveTermWrap(2);
-    convectiveTermWrap.block(0).data() = convectiveTerm;
+    nonLinearTerm->globalAssemble();
 
-    M_bcManager->apply0DirichletBCs(convectiveTermWrap,
+    BlockVector<VectorEp> nonLinearTermWrap(2);
+    nonLinearTermWrap.block(0).data() = nonLinearTerm;
+
+    if (M_useStabilization)
+    {
+        if (this->M_extrapolatedSolution.norm2() > 1e-15)
+            throw new Exception("Stabilization is not supported with extrapolation");
+        else
+        {
+            SHP(VECTOREPETRA)  pressureReconstructed(new VECTOREPETRA(M_pressureFESpace->map()));
+            M_bases->reconstructFEFunction(pressureReconstructed, sol.block(1), 1);
+
+            BlockVector<VectorEp> zeroVec(2);
+            zeroVec.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map()));
+            zeroVec.block(1).data().reset(new VECTOREPETRA(M_pressureFESpace->map()));
+            zeroVec *= 0.0;
+
+            BlockVector<VectorEp> solWrap(2);
+            solWrap.block(0).data() = velocityReconstructed;
+            solWrap.block(1).data() = pressureReconstructed;
+
+            nonLinearTermWrap += M_stabilization->getResidual(solWrap, zeroVec);
+        }
+    }
+
+    M_bcManager->apply0DirichletBCs(nonLinearTermWrap,
                                     getFESpaceBCs(),
                                     getComponentBCs());
 
-    BlockVector<DenseVector> convectiveTermProjected = M_bases->leftProject(convectiveTermWrap);
+    BlockVector<DenseVector> nonLinearTermProjected = M_bases->leftProject(nonLinearTermWrap);
 
-    retVec -= convectiveTermProjected;
+
+    retVec -= nonLinearTermProjected;
     // this->addNeumannBCs(retVec, time, sol);
 
     msg = "done, in ";

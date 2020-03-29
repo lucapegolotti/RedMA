@@ -137,6 +137,7 @@ protected:
     DataContainer                                   M_data;
     SHP(LifeV::MapEpetra)                           M_mapLagrange;
     double                                          M_stabilizationCoupling;
+    bool                                            M_isInlet;
 };
 
 }

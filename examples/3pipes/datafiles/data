@@ -53,10 +53,14 @@
 		[../]
 	[../]
 	[./online]
+		usemdeim = false
 		monolithicSolve = true
 		[./basis]
 			directory = basis
-			podtol = 1e-4
+			podtol_field0 = 1e-3
+			podtol_field1 = 1e-5
+			useprimalsupremizers = true
+			usedualsupremizers = false
 		[../]
 		[./mdeim]
 			loadfullbasis   = true
@@ -123,7 +127,8 @@
 
 [coupling]
 	type                = chebyshev
-	nMax                = 3
+	nMax                = 6
 	stab_coefficient	= 1e-16
 	check_stabterm		= true
+	nfcts_weak_dirichlet = 6
 [../]

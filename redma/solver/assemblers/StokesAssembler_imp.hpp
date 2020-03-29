@@ -402,31 +402,57 @@ assembleReducedStiffness(BlockMDEIMStructure* structure)
 
     SHP(MatrixEpetra<double>) A(new MatrixEpetra<double>(M_velocityFESpace->map()));
 
-    unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
-    unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
-
-    if (useFullStrain)
+    if (structure)
     {
-        integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-                  M_velocityFESpace->qr(),
-                  M_velocityFESpaceETA,
-                  M_velocityFESpaceETA,
-                  value(0.5 * M_viscosity) *
-                  dot(grad(phi_i) + transpose(grad(phi_i)),
-                  grad(phi_j) + transpose(grad(phi_j)))
-              ) >> A;
+        unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
+        unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
+
+        if (useFullStrain)
+        {
+            integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+                      M_velocityFESpace->qr(),
+                      M_velocityFESpaceETA,
+                      M_velocityFESpaceETA,
+                      value(0.5 * M_viscosity) *
+                      dot(grad(phi_i) + transpose(grad(phi_i)),
+                      grad(phi_j) + transpose(grad(phi_j)))
+                  ) >> A;
+        }
+        else
+        {
+            integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+                      M_velocityFESpace->qr(),
+                      M_velocityFESpaceETA,
+                      M_velocityFESpaceETA,
+                      value(M_viscosity) *
+                      dot(grad(phi_i),grad(phi_j))
+                  ) >> A;
+        }
     }
     else
     {
-        integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-                  M_velocityFESpace->qr(),
-                  M_velocityFESpaceETA,
-                  M_velocityFESpaceETA,
-                  value(M_viscosity) *
-                  dot(grad(phi_i),grad(phi_j))
-              ) >> A;
+        if (useFullStrain)
+        {
+            integrate(elements(M_velocityFESpaceETA->mesh()),
+                      M_velocityFESpace->qr(),
+                      M_velocityFESpaceETA,
+                      M_velocityFESpaceETA,
+                      value(0.5 * M_viscosity) *
+                      dot(grad(phi_i) + transpose(grad(phi_i)),
+                      grad(phi_j) + transpose(grad(phi_j)))
+                  ) >> A;
+        }
+        else
+        {
+            integrate(elements(M_velocityFESpaceETA->mesh()),
+                      M_velocityFESpace->qr(),
+                      M_velocityFESpaceETA,
+                      M_velocityFESpaceETA,
+                      value(M_viscosity) *
+                      dot(grad(phi_i),grad(phi_j))
+                  ) >> A;
+        }
     }
-
     A->globalAssemble();
 
     stiffness.block(0,0).data() = A;
@@ -451,17 +477,28 @@ assembleReducedMass(BlockMDEIMStructure* structure)
 
     SHP(MatrixEpetra<double>) M(new MatrixEpetra<double>(M_velocityFESpace->map()));
 
-    unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
-    unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
-    integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-              M_velocityFESpace->qr(),
-              M_velocityFESpaceETA,
-              M_velocityFESpaceETA,
-              value(M_density) * dot(phi_i, phi_j)
-          ) >> M;
+    if (structure)
+    {
+        unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
+        unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
+        integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+                  M_velocityFESpace->qr(),
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  value(M_density) * dot(phi_i, phi_j)
+              ) >> M;
 
+    }
+    else
+    {
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                  M_velocityFESpace->qr(),
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  value(M_density) * dot(phi_i, phi_j)
+              ) >> M;
+    }
     M->globalAssemble();
-
     mass.block(0,0).data() = M;
 
     this->M_bcManager->apply0DirichletMatrix(mass, getFESpaceBCs(),
@@ -484,31 +521,52 @@ assembleReducedDivergence(BlockMDEIMStructure* structure)
 
     SHP(MatrixEpetra<double>) BT(new MatrixEpetra<double>(this->M_velocityFESpace->map()));
 
-    unsigned int numVolumes = (*structure)(0,1)->numReducedElements;
-    unsigned int* volumes = (*structure)(0,1)->reducedElements.data();
-    integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-              M_velocityFESpace->qr(),
-              M_velocityFESpaceETA,
-              M_pressureFESpaceETA,
-              value(-1.0) * phi_j * div(phi_i)
-          ) >> BT;
+    if (structure)
+    {
+        unsigned int numVolumes = (*structure)(0,1)->numReducedElements;
+        unsigned int* volumes = (*structure)(0,1)->reducedElements.data();
+        integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+                  M_velocityFESpace->qr(),
+                  M_velocityFESpaceETA,
+                  M_pressureFESpaceETA,
+                  value(-1.0) * phi_j * div(phi_i)
+              ) >> BT;
+    }
+    else
+    {
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                  M_velocityFESpace->qr(),
+                  M_velocityFESpaceETA,
+                  M_pressureFESpaceETA,
+                  value(-1.0) * phi_j * div(phi_i)
+              ) >> BT;
+    }
 
     BT->globalAssemble(M_pressureFESpace->mapPtr(),
                        M_velocityFESpace->mapPtr());
 
     SHP(MatrixEpetra<double>) B(new MatrixEpetra<double>(M_pressureFESpace->map()));
 
-
-    numVolumes = (*structure)(1,0)->numReducedElements;
-    volumes = (*structure)(1,0)->reducedElements.data();
-
-    integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-             M_pressureFESpace->qr(),
-             M_pressureFESpaceETA,
-             M_velocityFESpaceETA,
-             phi_i * div(phi_j)
-         ) >> B;
-
+    if (structure)
+    {
+        unsigned int numVolumes = (*structure)(1,0)->numReducedElements;
+        unsigned int* volumes = (*structure)(1,0)->reducedElements.data();
+        integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+                 M_pressureFESpace->qr(),
+                 M_pressureFESpaceETA,
+                 M_velocityFESpaceETA,
+                 phi_i * div(phi_j)
+             ) >> B;
+    }
+    else
+    {
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                 M_pressureFESpace->qr(),
+                 M_pressureFESpaceETA,
+                 M_velocityFESpaceETA,
+                 phi_i * div(phi_j)
+             ) >> B;
+    }
     B->globalAssemble(M_velocityFESpace->mapPtr(),
                       M_pressureFESpace->mapPtr());
 

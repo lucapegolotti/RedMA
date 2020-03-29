@@ -22,6 +22,29 @@ void
 StokesAssembler<DenseVector, DenseMatrix>::
 applyDirichletBCs(const double& time, BlockVector<DenseVector>& vector) const
 {
+    if (std::strcmp(M_data("bc_conditions/inletdirichlet","weak").c_str(),"weak"))
+    {
+        printlog(YELLOW, "[StokesAssembler] applying strong dirichlet bcs \t", M_data.getVerbose());
+        LifeV::LifeChrono chrono;
+        chrono.start();
+
+        SHP(VECTOREPETRA) velocityReconstructed(new VECTOREPETRA(M_velocityFESpace->map()));;
+
+        M_bases->reconstructFEFunction(velocityReconstructed, vector.block(0), 0);
+        BlockVector<VectorEp> velocityWrap(2);
+
+        velocityWrap.block(0).data() = velocityReconstructed;
+
+        this->M_bcManager->applyDirichletBCs(time, velocityWrap, getFESpaceBCs(),
+                                             getComponentBCs());
+
+        vector.block(0) = M_bases->leftProject(velocityWrap.block(0), 0);
+
+        std::string msg = "done, in ";
+        msg += std::to_string(chrono.diff());
+        msg += " seconds\n";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
+    }
 }
 
 template <>
@@ -29,11 +52,15 @@ BlockMatrix<DenseMatrix>
 StokesAssembler<DenseVector,DenseMatrix>::
 assembleMass(BlockMDEIMStructure* structure)
 {
-    M_mdeimMass->setFESpace(M_velocityFESpace, 0);
-    M_mdeimMass->setFESpace(M_pressureFESpace, 1);
+    BlockMatrix<DenseMatrix> mass(M_nComponents, M_nComponents);
+    if (M_data("rb/online/usemdeim", true))
+    {
+        M_mdeimMass->setFESpace(M_velocityFESpace, 0);
+        M_mdeimMass->setFESpace(M_pressureFESpace, 1);
 
-    BlockMatrix<MatrixEp> reducedMass = assembleReducedMass(&M_mdeimMass->getMDEIMStructure());
-    BlockMatrix<DenseMatrix> mass = M_mdeimMass->assembleProjectedMatrix(reducedMass);
+        BlockMatrix<MatrixEp> reducedMass = assembleReducedMass(&M_mdeimMass->getMDEIMStructure());
+        mass = M_mdeimMass->assembleProjectedMatrix(reducedMass);
+    }
 
     return mass;
 }
@@ -43,12 +70,15 @@ BlockMatrix<DenseMatrix>
 StokesAssembler<DenseVector,DenseMatrix>::
 assembleStiffness(BlockMDEIMStructure* structure)
 {
-    M_mdeimStiffness->setFESpace(M_velocityFESpace, 0);
-    M_mdeimStiffness->setFESpace(M_pressureFESpace, 1);
+    BlockMatrix<DenseMatrix> stiffness(M_nComponents, M_nComponents);
+    if (M_data("rb/online/usemdeim", true))
+    {
+        M_mdeimStiffness->setFESpace(M_velocityFESpace, 0);
+        M_mdeimStiffness->setFESpace(M_pressureFESpace, 1);
 
-    BlockMatrix<MatrixEp> reducedStiffness = assembleReducedStiffness(&M_mdeimStiffness->getMDEIMStructure());
-    BlockMatrix<DenseMatrix> stiffness = M_mdeimStiffness->assembleProjectedMatrix(reducedStiffness);
-
+        BlockMatrix<MatrixEp> reducedStiffness = assembleReducedStiffness(&M_mdeimStiffness->getMDEIMStructure());
+        stiffness = M_mdeimStiffness->assembleProjectedMatrix(reducedStiffness);
+    }
     return stiffness;
 }
 
@@ -57,12 +87,15 @@ BlockMatrix<DenseMatrix>
 StokesAssembler<DenseVector,DenseMatrix>::
 assembleDivergence(BlockMDEIMStructure* structure)
 {
-    M_mdeimDivergence->setFESpace(M_velocityFESpace, 0);
-    M_mdeimDivergence->setFESpace(M_pressureFESpace, 1);
+    BlockMatrix<DenseMatrix> divergence(M_nComponents, M_nComponents);
+    if (M_data("rb/online/usemdeim", true))
+    {
+        M_mdeimDivergence->setFESpace(M_velocityFESpace, 0);
+        M_mdeimDivergence->setFESpace(M_pressureFESpace, 1);
 
-    BlockMatrix<MatrixEp> reducedDivergence = assembleReducedDivergence(&M_mdeimDivergence->getMDEIMStructure());
-    BlockMatrix<DenseMatrix> divergence = M_mdeimDivergence->assembleProjectedMatrix(reducedDivergence);
-
+        BlockMatrix<MatrixEp> reducedDivergence = assembleReducedDivergence(&M_mdeimDivergence->getMDEIMStructure());
+        divergence = M_mdeimDivergence->assembleProjectedMatrix(reducedDivergence);
+    }
     return divergence;
 }
 
@@ -136,81 +169,105 @@ restrictRBMatrices()
     if (M_bases == nullptr)
         throw new Exception("RB bases have not been set yet");
 
-    std::vector<unsigned int> selectorsU = M_bases->getSelectors(0);
-    std::vector<unsigned int> selectorsP = M_bases->getSelectors(1);
-
-    // this is the case when we do not choose to keep all the vectors in the basis
-    if (selectorsU.size() > 0)
+    if (M_data("rb/online/usemdeim", true))
     {
-        unsigned int Nu = selectorsU.size();
-        unsigned int Np = selectorsP.size();
+        std::vector<unsigned int> selectorsU = M_bases->getSelectors(0);
+        std::vector<unsigned int> selectorsP = M_bases->getSelectors(1);
 
-        // restrict mass
-        SHP(DENSEMATRIX) restrictedMass(new DENSEMATRIX(Nu,Nu));
-
-        unsigned int inew = 0;
-        for (auto i : selectorsU)
+        // this is the case when we do not choose to keep all the vectors in the basis
+        if (selectorsU.size() > 0)
         {
-            unsigned int jnew = 0;
-            for (auto j : selectorsU)
+            unsigned int Nu = selectorsU.size();
+            unsigned int Np = selectorsP.size();
+
+            // restrict mass
+            SHP(DENSEMATRIX) restrictedMass(new DENSEMATRIX(Nu,Nu));
+
+            unsigned int inew = 0;
+            for (auto i : selectorsU)
             {
-                (*restrictedMass)(inew,jnew) = (*M_mass.block(0,0).data())(i,j);
-                jnew++;
+                unsigned int jnew = 0;
+                for (auto j : selectorsU)
+                {
+                    (*restrictedMass)(inew,jnew) = (*M_mass.block(0,0).data())(i,j);
+                    jnew++;
+                }
+                inew++;
             }
-            inew++;
-        }
 
-        M_mass.block(0,0).data() = restrictedMass;
+            M_mass.block(0,0).data() = restrictedMass;
 
-        // restrict stiffness
-        SHP(DENSEMATRIX) restrictedStiffness(new DENSEMATRIX(Nu,Nu));
+            // restrict stiffness
+            SHP(DENSEMATRIX) restrictedStiffness(new DENSEMATRIX(Nu,Nu));
 
-        inew = 0;
-        for (auto i : selectorsU)
-        {
-            unsigned int jnew = 0;
-            for (auto j : selectorsU)
+            inew = 0;
+            for (auto i : selectorsU)
             {
-                (*restrictedStiffness)(inew,jnew) = (*M_stiffness.block(0,0).data())(i,j);
-                jnew++;
+                unsigned int jnew = 0;
+                for (auto j : selectorsU)
+                {
+                    (*restrictedStiffness)(inew,jnew) = (*M_stiffness.block(0,0).data())(i,j);
+                    jnew++;
+                }
+                inew++;
             }
-            inew++;
-        }
 
-        M_stiffness.block(0,0).data() = restrictedStiffness;
+            M_stiffness.block(0,0).data() = restrictedStiffness;
 
-        // restrict divergence
-        SHP(DENSEMATRIX) restrictedBT(new DENSEMATRIX(Nu,Np));
+            // restrict divergence
+            SHP(DENSEMATRIX) restrictedBT(new DENSEMATRIX(Nu,Np));
 
-        inew = 0;
-        for (auto i : selectorsU)
-        {
-            unsigned int jnew = 0;
-            for (auto j : selectorsP)
+            inew = 0;
+            for (auto i : selectorsU)
             {
-                (*restrictedBT)(inew,jnew) = (*M_divergence.block(0,1).data())(i,j);
-                jnew++;
+                unsigned int jnew = 0;
+                for (auto j : selectorsP)
+                {
+                    (*restrictedBT)(inew,jnew) = (*M_divergence.block(0,1).data())(i,j);
+                    jnew++;
+                }
+                inew++;
             }
-            inew++;
-        }
 
-        M_divergence.block(0,1).data() = restrictedBT;
+            M_divergence.block(0,1).data() = restrictedBT;
 
-        SHP(DENSEMATRIX) restrictedB(new DENSEMATRIX(Np,Nu));
+            SHP(DENSEMATRIX) restrictedB(new DENSEMATRIX(Np,Nu));
 
-        inew = 0;
-        for (auto i : selectorsP)
-        {
-            unsigned int jnew = 0;
-            for (auto j : selectorsU)
+            inew = 0;
+            for (auto i : selectorsP)
             {
-                (*restrictedB)(inew,jnew) = (*M_divergence.block(1,0).data())(i,j);
-                jnew++;
+                unsigned int jnew = 0;
+                for (auto j : selectorsU)
+                {
+                    (*restrictedB)(inew,jnew) = (*M_divergence.block(1,0).data())(i,j);
+                    jnew++;
+                }
+                inew++;
             }
-            inew++;
-        }
 
-        M_divergence.block(1,0).data() = restrictedB;
+            M_divergence.block(1,0).data() = restrictedB;
+        }
+    }
+    else
+    {
+        printlog(YELLOW, "[StokesAssembler] NOT using MDEIM: assembling and projecting matrices\t", M_data.getVerbose());
+        LifeV::LifeChrono chrono;
+        chrono.start();
+
+        BlockMatrix<MatrixEp> fullMass = assembleReducedMass(nullptr);
+        BlockMatrix<MatrixEp> fullStiffness = assembleReducedStiffness(nullptr);
+        BlockMatrix<MatrixEp> fullDivergence = assembleReducedDivergence(nullptr);
+
+
+        M_mass.block(0,0) = M_bases->matrixProject(fullMass.block(0,0), 0, 0);
+        M_stiffness.block(0,0) = M_bases->matrixProject(fullStiffness.block(0,0), 0, 0);
+        M_divergence.block(0,1) = M_bases->matrixProject(fullDivergence.block(0,1), 0, 1);
+        M_divergence.block(1,0) = M_bases->matrixProject(fullDivergence.block(1,0), 1, 0);
+
+        std::string msg = "done, in ";
+        msg += std::to_string(chrono.diff());
+        msg += " seconds\n";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
     }
 }
 

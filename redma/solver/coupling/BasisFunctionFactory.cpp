@@ -5,7 +5,8 @@ namespace RedMA
 
 SHP(BasisFunctionFunctor)
 BasisFunctionFactory(const GetPot& datafile,
-                     GeometricFace inlet)
+                     GeometricFace inlet,
+                     bool isBoundary)
 {
     SHP(BasisFunctionFunctor) basisFunction;
     std::string type = datafile("coupling/type", "chebyshev");
@@ -22,11 +23,15 @@ BasisFunctionFactory(const GetPot& datafile,
     else if (!std::strcmp(type.c_str(), "zernike"))
     {
         unsigned int nMax = datafile("coupling/nMax", 5);
+        if (isBoundary)
+            nMax = datafile("coupling/nfcts_weak_dirichlet", 1);
         basisFunction.reset(new ZernikeBasisFunction(inlet, nMax));
     }
     else if (!std::strcmp(type.c_str(), "chebyshev"))
     {
         unsigned int nMax = datafile("coupling/nMax", 5);
+        if (isBoundary)
+            nMax = datafile("coupling/nfcts_weak_dirichlet", 1);
         basisFunction.reset(new ChebyshevBasisFunction(inlet, nMax));
     }
     else if (!std::strcmp(type.c_str(), "traces"))

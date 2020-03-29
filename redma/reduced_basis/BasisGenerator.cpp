@@ -114,6 +114,7 @@ void
 BasisGenerator::
 addSupremizers()
 {
+    std::string outdir = M_data("rb/offline/basis/directory", "basis");
     bool addprimalsupremizers = M_data("rb/offline/basis/addprimalsupremizers", true);
     if (addprimalsupremizers)
     {
@@ -133,10 +134,11 @@ addSupremizers()
             // here the matrix must have 0 on the nodes corresponding to dirichlet
             // nodes
             MatrixEp constraintMatrix = meshas.second.first->getConstraintMatrix();
+            constraintMatrix.dump(outdir + "/" + meshas.first + "/primalConstraint");
             auto map = *constraintMatrix.data()->rangeMapPtr();
             auto linearSolver = setupLinearSolver(normMatrix);
 
-            std::vector<SHP(VECTOREPETRA)> basisFunctions = M_bases[meshas.first]->getBasis(limitingfield);
+            std::vector<SHP(VECTOREPETRA)> basisFunctions = M_bases[meshas.first]->getFullBasis(limitingfield);
 
             for (unsigned int i = 0; i < basisFunctions.size(); i++)
             {
@@ -190,7 +192,7 @@ addSupremizers()
                 // we assume that the first block is the one to be coupled
                 // (as in interface assembler)
                 MatrixEp constraintMatrix = constraintMatrixBlock.block(0,0);
-                constraintMatrix.dump("../constraintMatrix");
+                constraintMatrix.dump(outdir + "/" + meshas.first + "/dualConstraint" + std::to_string(face.M_flag));
                 auto map = *constraintMatrix.data()->rangeMapPtr();
                 auto linearSolver = setupLinearSolver(normMatrix);
                 auto lagrangeMap = *constraintMatrix.data()->domainMapPtr();
@@ -246,6 +248,8 @@ performPOD()
                                               pair.second.first->getFEspace(count)->map(),
                                               true);
             pod.initPOD(sn.size(), sn.data(), pair.second.first->getNorm(count).data());
+            pair.second.first->getNorm(count).dump(outdir + "/" + pair.first + "/norm" +
+                               std::to_string(count));
             pod.setSvdFileName(outdir + "/" + pair.first + "/svd" +
                                std::to_string(count) + ".txt");
             pod.generatePODbasisTol(podtol);

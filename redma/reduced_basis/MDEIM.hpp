@@ -71,8 +71,6 @@ public:
 
 private:
 
-    void vectorizeSnapshots();
-
     SHP(VECTOREPETRA) vectorizeMatrix(FEMATRIX matrix);
 
     void performPOD(std::string outdir);
@@ -115,7 +113,7 @@ private:
 
     void dumpProjectedBasis(std::string dir);
 
-    std::vector<FEMATRIX>                       M_snapshots;
+    FEMATRIX                                    M_firstSnapshot;
     std::vector<SHP(VECTOREPETRA)>              M_snapshotsVectorized;
     std::vector<SHP(VECTOREPETRA)>              M_basis;
     std::vector<SHP(DENSEVECTOR)>               M_basisProjected;
