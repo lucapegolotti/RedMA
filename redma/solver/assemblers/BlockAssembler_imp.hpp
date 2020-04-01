@@ -20,6 +20,15 @@ checkStabTerm(const BlockVector<InVectorType>& sol) const
 }
 
 template <class InVectorType, class InMatrixType>
+void
+BlockAssembler<InVectorType, InMatrixType>::
+setExporter()
+{
+    for (auto as: M_primalAssemblers)
+        as.second->setExporter();
+}
+
+template <class InVectorType, class InMatrixType>
 BlockVector<InVectorType>
 BlockAssembler<InVectorType, InMatrixType>::
 getLifting(const double& time) const

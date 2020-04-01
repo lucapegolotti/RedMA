@@ -100,7 +100,7 @@ public:
 
     SHP(MATRIXEPETRA) assembleFlowRateJacobian(const GeometricFace& face);
 
-    void setExporter();
+    void setExporter() override;
 
     virtual inline SHP(FESPACE) getFESpaceBCs() const override
     {

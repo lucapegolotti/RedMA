@@ -67,6 +67,8 @@ public:
 
     virtual void apply0DirichletBCs(BlockVector<InVectorType>& vector) const override;
 
+    virtual void setExporter() override; 
+
     virtual void applyDirichletBCs(const double& time, BlockVector<InVectorType>& vector) const override;
 
     virtual void checkStabTerm(const BlockVector<InVectorType>& sol) const;

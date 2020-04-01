@@ -40,29 +40,46 @@ ProblemFEM::
 solve()
 {
     double t0 = M_data("time_discretization/t0", 0.0);
+    double t0ramp = M_data("time_discretization/t0ramp", 0.0);
     double T = M_data("time_discretization/T", 1.0);
     double dt = M_data("time_discretization/dt", 0.01);
     int saveEvery = M_data("exporter/save_every", 1);
 
-    double t = t0;
+    double t;
 
-    unsigned int count = 1;
+    if (t0 - t0ramp > 1e-15)
+        t = t0ramp;
+    else
+        t = t0;
+
+    unsigned int count = 0;
     while (T - t > dt/2)
     {
-        std::string msg = "[ProblemFEM] solving timestep " + std::to_string(count) +
-                          ", t = " + std::to_string(t) + " -> " + std::to_string(t+dt) + "\n";
-        printlog(MAGENTA, msg, M_data.getVerbose());
+        if (t < t0)
+        {
+            std::string msg = "[ProblemFEM] solving ramp"
+                              ", t = " + std::to_string(t) + " -> " + std::to_string(t+dt) + "\n";
+            printlog(MAGENTA, msg, M_data.getVerbose());
+        }
+        else
+        {
+            std::string msg = "[ProblemFEM] solving timestep " + std::to_string(count) +
+                              ", t = " + std::to_string(t) + " -> " + std::to_string(t+dt) + "\n";
+            printlog(MAGENTA, msg, M_data.getVerbose());
+        }
+
         int status = solveTimestep(t, dt);
         if (status)
             throw new Exception("Error in solver. Status != 0.");
 
         t += dt;
 
-        if (saveEvery > 0 && count % saveEvery == 0)
+        if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
             M_assembler->exportSolution(t, M_solution);
         M_assembler->postProcess(t, M_solution);
         M_TMAlgorithm->shiftSolutions(M_solution);
-        count++;
+        if (t >= t0)
+            count++;
     }
 }
 

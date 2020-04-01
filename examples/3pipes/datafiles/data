@@ -75,7 +75,7 @@
 	inner	   	   = SIMPLE
 	approxshur 	   = SIMPLE
 	innertol   	   = 0.5
-	recomputeevery = 5
+	recomputeevery = 20
 [../]
 
 [newton_method]
@@ -108,6 +108,7 @@
 	algorithm = bdf
 	rhoinf = 0.5
 	order = 1
+	t0ramp = -0.02
 	t0 = 0
 	T = 0.30
 	dt = 0.0025

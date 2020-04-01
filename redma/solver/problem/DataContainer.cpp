@@ -119,7 +119,10 @@ DataContainer::
 finalize()
 {
     if (!M_inflow)
+    {
+        generateRamp();
         generateInflow();
+    }
 }
 
 void
@@ -133,11 +136,30 @@ generateInflow()
 
 void
 DataContainer::
+generateRamp()
+{
+    double t0ramp = (*M_datafile)("time_discretization/t0ramp", 0.0);
+    double t0 = (*M_datafile)("time_discretization/t0", 0.0);
+
+    if (std::abs(t0ramp - t0) > 1e-15)
+    {
+        M_ramp = [t0,t0ramp](double x)
+        {
+            return (1.0 - std::cos((x - t0ramp) * M_PI / (t0 - t0ramp))) / 2.0;
+        };
+    }
+}
+
+void
+DataContainer::
 linearInterpolation(const std::vector<std::pair<double,double>>& values,
                     std::function<double(double)>& funct)
 {
-    funct = [values](double x)
+    funct = [values,this](double x)
     {
+        if (x < values[0].first && M_ramp)
+            return M_ramp(x) * values[0].second;
+
         unsigned int count = 0;
         for (auto curpair : values)
         {

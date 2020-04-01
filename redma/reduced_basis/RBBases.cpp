@@ -489,7 +489,6 @@ getEnrichedBasis(const unsigned int& index)
     std::vector<SHP(VECTOREPETRA)> retVectors = getBasis(index);
     if (M_data("rb/online/basis/useprimalsupremizers", true))
     {
-        std::cout << "loading" << std::endl << std::flush;
         for (unsigned int j = 0; j < M_numFields; j++)
         {
             if (M_onlineTol > 1e-15 && M_primalSupremizers(index,j).size() > 0)
