@@ -16,7 +16,7 @@
 [bc_conditions]
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
-	coefficientinflow = 1.0010362807;
+	coefficientinflow = 1.000552724487405
 	numoutletbcs = 0
 [../]
 
