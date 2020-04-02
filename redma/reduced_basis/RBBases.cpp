@@ -8,7 +8,6 @@ RBBases(const DataContainer& data, EPETRACOMM comm) :
   M_data(data),
   M_comm(comm)
 {
-    M_onlineTol = M_data("rb/online/basis/podtol", 0.0);
 }
 
 void
@@ -22,6 +21,14 @@ setNumberOfFields(const unsigned int& nfields)
     M_fespaces.resize(nfields);
     M_primalSupremizers.resize(nfields,nfields);
     M_dualSupremizers.resize(nfields);
+
+    M_onlineTol = 0;
+    for (unsigned int i = 0; i < nfields; i++)
+    {
+        double tolField = M_data("rb/online/basis/podtol_field" + std::to_string(i), 0.0);
+        M_onlineTols.push_back(tolField);
+        M_onlineTol = M_onlineTol > tolField ? M_onlineTol : tolField;
+    }
 }
 
 void
@@ -75,7 +82,7 @@ computeOnlineNumberBasisFunctions(unsigned int index)
 
     double partialSum = 0;
     unsigned int N = 0;
-    while (M_onlineTol * M_onlineTol < 1.0 - partialSum / totalenergy)
+    while (M_onlineTols[index] * M_onlineTols[index] < 1.0 - partialSum / totalenergy)
     {
         partialSum += M_svs[index][N] * M_svs[index][N];
         N++;
@@ -174,20 +181,34 @@ print()
     printlog(WHITE, "\n[RBBases] printing details\n", M_data.getVerbose());
     std::string msg = "";
     if (M_onlineTol > 1e-15)
-        msg += "POD tolerance = " + std::to_string(M_onlineTol) + "\n";
+    {
+        for (unsigned int i = 0; i < M_numFields; i++)
+            msg += "POD tolerance field " + std::to_string(i) + " = " + std::to_string(M_onlineTols[i]) + "\n";
+    }
     else
         msg += "POD tolerance = all vectors\n";
 
     for (int i = 0; i < M_numFields; i++)
     {
         msg += "Field #" + std::to_string(i) + ":\n";
-        msg += "\tTotal basis size = " + std::to_string(M_bases[i].size()) + "\n";
+        msg += "\tLoaded basis size (w/o supremizers) = " + std::to_string(M_bases[i].size()) + "\n";
         if (M_onlineTol > 1e-15)
             msg += "\tSelected basis size = " + std::to_string(M_NsOnline[i]) + "\n";
         for (int j = 0; j < M_numFields; j++)
             msg += "\tPrimal supremizers wrt field " + std::to_string(j) +
                    " = " + std::to_string(M_primalSupremizers(i,j).size()) + "\n";
         msg += "\tDual supremizers = " + std::to_string(M_dualSupremizers[i].size()) + "\n";
+        if (M_data("rb/online/basis/useprimalsupremizers", true))
+            msg +=  "\tUsing primal supremizers\n";
+        else
+            msg +=  "\tNOT using primal supremizers\n";
+
+        if (M_data("rb/online/basis/usedualsupremizers", false))
+            msg +=  "\tUsing dual supremizers\n";
+        else
+            msg +=  "\tNOT using dual supremizers\n";
+
+        msg +=  "\tBasis size + supremizers = " + std::to_string(getEnrichedBasis(i).size()) + "\n";
     }
     printlog(WHITE, msg, M_data.getVerbose());
 }
@@ -466,25 +487,29 @@ RBBases::
 getEnrichedBasis(const unsigned int& index)
 {
     std::vector<SHP(VECTOREPETRA)> retVectors = getBasis(index);
-    for (unsigned int j = 0; j < M_numFields; j++)
+    if (M_data("rb/online/basis/useprimalsupremizers", true))
     {
-        if (M_onlineTol > 1e-15 && M_primalSupremizers(index,j).size() > 0)
+        for (unsigned int j = 0; j < M_numFields; j++)
         {
-            for (unsigned int i = 0; i < M_NsOnline[j]; i++)
+            if (M_onlineTol > 1e-15 && M_primalSupremizers(index,j).size() > 0)
             {
-                retVectors.push_back(M_primalSupremizers(index,j)[i]);
+                for (unsigned int i = 0; i < M_NsOnline[j]; i++)
+                {
+                    retVectors.push_back(M_primalSupremizers(index,j)[i]);
+                }
+            }
+            else
+            {
+                for (auto primal : M_primalSupremizers(index,j))
+                    retVectors.push_back(primal);
             }
         }
-        else
-        {
-            for (auto primal : M_primalSupremizers(index,j))
-                retVectors.push_back(primal);
-        }
     }
-
-    for (auto dual : M_dualSupremizers[index])
-        retVectors.push_back(dual);
-
+    if (M_data("rb/online/basis/usedualsupremizers", false))
+    {
+        for (auto dual : M_dualSupremizers[index])
+            retVectors.push_back(dual);
+    }
     return retVectors;
 }
 
@@ -525,6 +550,7 @@ reconstructFEFunction(SHP(VECTOREPETRA) feFunction, DenseVector rbSolution, unsi
 
     auto basis = getEnrichedBasis(index);
     for (unsigned int i = 0; i < rbSolution.getNumRows(); i++)
+    // weird. Time step on this line is not constant for every subdomain
         *feFunction += (*basis[i]) * (*rbSolution.data())(i);
 }
 
@@ -568,7 +594,6 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
                 // because they are both unitary. Note that we assume basisV to be
                 // unitary
                 double coeff = project(vector, basisV);
-                std::cout << coeff << std::endl << std::flush;
 
                 if (std::abs(1.0 - std::abs(coeff)) > thrsh)
                 {
@@ -619,16 +644,16 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
     }
 
     // double check
-    for (unsigned int i = 10; i < 11; i++)
-    {
-        for (unsigned int j = 0; j < incrBasis.size(); j++)
-        {
-            double proj = project(incrBasis[i],incrBasis[j]);
-            std::cout << "i = " << i << " j = " << j << " proj = " << proj << std::endl;
-            if (i == j)
-                std::cout << "i = " << i << " j = " << j << " 1 - proj = " << abs(1 - proj) << std::endl;
-        }
-    }
+    // for (unsigned int i = 10; i < 11; i++)
+    // {
+    //     for (unsigned int j = 0; j < incrBasis.size(); j++)
+    //     {
+    //         double proj = project(incrBasis[i],incrBasis[j]);
+    //         std::cout << "i = " << i << " j = " << j << " proj = " << proj << std::endl;
+    //         if (i == j)
+    //             std::cout << "i = " << i << " j = " << j << " 1 - proj = " << abs(1 - proj) << std::endl;
+    //     }
+    // }
 
     // first orthonormalize primal supremizers
     printlog(GREEN, "normalizing primal supremizers\n", M_data.getVerbose());
@@ -658,7 +683,7 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
         unsigned int count = 0;
         for (auto& supr : M_dualSupremizers[index])
         {
-            std::string msg = "orthonormalizing primal supremizer ";
+            std::string msg = "orthonormalizing dual supremizer ";
             msg += std::to_string(count);
             msg += "\n";
             printlog(YELLOW, msg, M_data.getVerbose());

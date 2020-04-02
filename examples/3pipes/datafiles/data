@@ -53,10 +53,14 @@
 		[../]
 	[../]
 	[./online]
+		usemdeim = false
 		monolithicSolve = true
 		[./basis]
 			directory = basis
-			podtol = 1e-4
+			podtol_field0 = 1e-3
+			podtol_field1 = 1e-5
+			useprimalsupremizers = true
+			usedualsupremizers = false
 		[../]
 		[./mdeim]
 			loadfullbasis   = true
@@ -71,7 +75,7 @@
 	inner	   	   = SIMPLE
 	approxshur 	   = SIMPLE
 	innertol   	   = 0.5
-	recomputeevery = 5
+	recomputeevery = 20
 [../]
 
 [newton_method]
@@ -103,7 +107,8 @@
 [time_discretization]
 	algorithm = bdf
 	rhoinf = 0.5
-	order = 1
+	order = 2
+	t0ramp = -0.02
 	t0 = 0
 	T = 0.30
 	dt = 0.0025
@@ -123,7 +128,8 @@
 
 [coupling]
 	type                = chebyshev
-	nMax                = 3
+	nMax                = 6
 	stab_coefficient	= 1e-16
 	check_stabterm		= true
+	nfcts_weak_dirichlet = 6
 [../]

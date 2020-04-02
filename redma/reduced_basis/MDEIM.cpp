@@ -27,7 +27,12 @@ void
 MDEIM::
 addSnapshot(MatrixEp newSnapshot)
 {
-    M_snapshots.push_back(newSnapshot);
+    if (M_isInitialized)
+    {
+        if (M_firstSnapshot.data() == nullptr)
+            M_firstSnapshot = newSnapshot;
+        M_snapshotsVectorized.push_back(vectorizeMatrix(newSnapshot));
+    }
 }
 
 void
@@ -54,7 +59,6 @@ initialize(MatrixEp matrix)
         ms->numMyEntries.resize(ms->numMyRows);
         ms->columnIndices.resize(ms->numMyRows);
         int numEntries;
-
         for (unsigned int iR = 0; iR < ms->numMyRows; iR++)
         {
             ms->numMyEntries[iR] = matrixEpetra->matrixPtr()->NumMyEntries(iR);
@@ -64,7 +68,7 @@ initialize(MatrixEp matrix)
                                                         numEntries, values,
                                                         ms->columnIndices[iR].data());
 
-            for(unsigned int iC; iC < numEntries; iC++)
+            for(unsigned int iC = 0; iC < numEntries; iC++)
             {
                 ms->columnIndices[iR][iC] = matrixEpetra->matrixPtr()->ColMap().
                                                     GID(ms->columnIndices[iR][iC]);
@@ -98,7 +102,6 @@ performMDEIM(std::string outdir)
 {
     if (M_isInitialized)
     {
-        vectorizeSnapshots();
         performPOD(outdir);
     }
 }
@@ -223,7 +226,7 @@ prepareOnline()
     if (M_isInitialized)
     {
         SHP(MDEIMStructure) ms = M_structure;
-        auto matrixEpetra = M_snapshots[0].data();
+        auto matrixEpetra = M_firstSnapshot.data();
 
         buildReducedMesh();
 
@@ -879,8 +882,10 @@ SHP(VECTOREPETRA)
 MDEIM::
 vectorizeMatrix(MatrixEp matrix)
 {
+    std::cout << "vectorizeMatrix" << std::endl << std::flush;
     SHP(VECTOREPETRA) vectorizedMatrix(new VECTOREPETRA(*M_structure->vectorMap,
                                                         LifeV::Unique));
+    std::cout << "1" << std::endl << std::flush;
 
     double* values = nullptr;
     int rowCounter = 0;
@@ -897,14 +902,6 @@ vectorizeMatrix(MatrixEp matrix)
     vectorizedMatrix->globalAssemble();
 
     return vectorizedMatrix;
-}
-
-void
-MDEIM::
-vectorizeSnapshots()
-{
-    for (auto snap : M_snapshots)
-        M_snapshotsVectorized.push_back(vectorizeMatrix(snap));
 }
 
 void
@@ -941,8 +938,16 @@ void
 MDEIM::
 checkOnSnapshots()
 {
-    for (auto snap : M_snapshots)
-        checkOnline(snap, snap);
+    for (auto snap : M_snapshotsVectorized)
+    {
+        std::cout << "checking online" << std::endl << std::flush;
+        FEMATRIX reconstructedSnapshot;
+        reconstructedSnapshot.data().reset(new MATRIXEPETRA(*M_firstSnapshot.data()));
+        reconstructMatrixFromVectorizedForm(*snap, *reconstructedSnapshot.data());
+        std::cout << "checking online1" << std::endl << std::flush;
+        checkOnline(reconstructedSnapshot, reconstructedSnapshot);
+        std::cout << "done" << std::endl << std::flush;
+    }
 }
 
 void

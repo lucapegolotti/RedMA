@@ -74,15 +74,15 @@ public:
 
     BlockMatrix<InMatrixType> assembleStiffness(BlockMDEIMStructure* structure = nullptr);
 
-    BlockMatrix<MatrixEp> assembleReducedStiffness(BlockMDEIMStructure* structure);
+    BlockMatrix<MatrixEp> assembleReducedStiffness(BlockMDEIMStructure* structure = nullptr);
 
     BlockMatrix<InMatrixType> assembleMass(BlockMDEIMStructure* structure = nullptr);
 
-    BlockMatrix<MatrixEp> assembleReducedMass(BlockMDEIMStructure* structure);
+    BlockMatrix<MatrixEp> assembleReducedMass(BlockMDEIMStructure* structure = nullptr);
 
     BlockMatrix<InMatrixType> assembleDivergence(BlockMDEIMStructure* structure = nullptr);
 
-    BlockMatrix<MatrixEp> assembleReducedDivergence(BlockMDEIMStructure* structure);
+    BlockMatrix<MatrixEp> assembleReducedDivergence(BlockMDEIMStructure* structure = nullptr);
 
     BlockVector<FEVECTOR> getFELifting(const double& time) const override;
 
@@ -100,7 +100,7 @@ public:
 
     SHP(MATRIXEPETRA) assembleFlowRateJacobian(const GeometricFace& face);
 
-    void setExporter();
+    void setExporter() override;
 
     virtual inline SHP(FESPACE) getFESpaceBCs() const override
     {

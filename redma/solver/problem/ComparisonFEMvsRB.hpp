@@ -28,19 +28,36 @@ class ComparisonFEMvsRB
 public:
     ComparisonFEMvsRB(const DataContainer& data, EPETRACOMM comm);
 
+    void setProblemFEM(const SHP(ProblemFEM)& problemFEM) {M_problemFEM = problemFEM;}
+
+    void setProblemRB(const SHP(ProblemRB)& problemRB) {M_problemRB = problemRB;}
+
     void runFEM();
 
     void runRB();
 
-    void postProcess();
+    void exportError();
+
+    void dumpFEMSolution(std::string outdir);
+
+    void loadFEMSolution(std::string indir);
+
+    void exportFEM(unsigned int saveEvery);
+
+    void exportRB(unsigned int saveEvery);
+
+    double getTimeFem() {return M_timeFEM;}
+
+    double getTimeRB() {return M_timeRB;}
 
 private:
-    ProblemFEM                  M_problemFEM;
-    ProblemRB                   M_problemRB;
-    double                      M_timeFEM;
-    double                      M_timeRB;
-    DataContainer               M_data;
-    EPETRACOMM                  M_comm;
+    SHP(ProblemFEM)                                     M_problemFEM;
+    SHP(ProblemRB)                                      M_problemRB;
+    std::vector<BlockVector<BlockVector<VectorEp>>>     M_loadedSolutions;
+    double                                              M_timeFEM;
+    double                                              M_timeRB;
+    DataContainer                                       M_data;
+    EPETRACOMM                                          M_comm;
 };
 
 }

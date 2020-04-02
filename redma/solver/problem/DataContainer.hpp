@@ -51,7 +51,7 @@ public:
 
     std::function<double(double)> getDistalPressure(const unsigned int& outletIndex) const;
 
-    std::string operator()(std::string location, const char* defValue) const; 
+    std::string operator()(std::string location, const char* defValue) const;
 
     std::string operator()(std::string location, std::string defValue) const;
 
@@ -74,11 +74,14 @@ protected:
 
     void generateInflow();
 
+    void generateRamp();
+
     void linearInterpolation(const std::vector<std::pair<double,double>>& values,
                              std::function<double(double)>& funct);
 
     SHP(GetPot)                                           M_datafile;
     std::function<double(double)>                         M_inflow;
+    std::function<double(double)>                         M_ramp;
     std::map<unsigned int, std::function<double(double)>> M_distalPressures;
     bool                                                  M_verbose;
 };

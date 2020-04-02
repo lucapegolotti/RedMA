@@ -15,6 +15,8 @@ setup()
     printlog(GREEN, "[BlockAssembler] initializing block assembler ... \n", this->M_data.getVerbose());
     NodesMap nodesMap = M_tree.getNodesMap();
 
+    bool useMdeim = M_data("rb/online/usemdeim", true);
+
     // allocate assemblers
     for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
     {
@@ -26,11 +28,16 @@ setup()
 
     M_basesManager.reset(new RBBasesManager(M_data, M_comm, getIDMeshTypeMap()));
     M_basesManager->load();
-    M_mdeimManager.reset(new MDEIMManager(M_data, M_comm, getIDMeshTypeMap()));
-    M_mdeimManager->load();
+
+    if (useMdeim)
+    {
+        M_mdeimManager.reset(new MDEIMManager(M_data, M_comm, getIDMeshTypeMap()));
+        M_mdeimManager->load();
+    }
     for (auto& primalas : M_primalAssemblers)
     {
-        primalas.second->setMDEIMs(M_mdeimManager);
+        if (useMdeim)
+            primalas.second->setMDEIMs(M_mdeimManager);
         primalas.second->setup();
         // we set the RBBases later because we need the finite element space
         primalas.second->setRBBases(M_basesManager);

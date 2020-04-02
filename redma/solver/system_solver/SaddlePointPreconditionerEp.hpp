@@ -71,7 +71,7 @@ private:
 
     void applyEveryB(const VECTOREPETRA& X, VECTOREPETRA &Y) const;
 
-    void applyEveryBT(const VECTOREPETRA& X, VECTOREPETRA &Y) const;
+    void applyEveryAm1BT(const VECTOREPETRA& X, VECTOREPETRA &Y) const;
 
     DataContainer                                        M_data;
     BM                                                   M_matrix;
@@ -92,7 +92,6 @@ private:
     std::vector<SHP(MAPEPETRA)>                          M_domainMaps;
     unsigned int                                         M_nPrimalBlocks;
     unsigned int                                         M_nDualBlocks;
-
 };
 
 }

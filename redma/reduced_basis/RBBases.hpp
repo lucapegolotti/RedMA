@@ -50,6 +50,8 @@ public:
 
     std::vector<SHP(VECTOREPETRA)> getBasis(const unsigned int& index);
 
+    std::vector<SHP(VECTOREPETRA)> getFullBasis(const unsigned int& index) {return M_bases[index];}
+
     std::vector<SHP(VECTOREPETRA)> getEnrichedBasis(const unsigned int& index);
 
     std::vector<SHP(VECTOREPETRA)> getPrimalSupremizers(const unsigned int& i, const unsigned int& j) {return M_primalSupremizers(i,j);}
@@ -131,7 +133,10 @@ private:
     std::string                                     M_path;
     std::vector<std::vector<double>>                M_svs;
     std::vector<SHP(FESPACE)>                       M_fespaces;
+    // max of tolerance on the individual fields
     double                                          M_onlineTol;
+    // online tolerance on the intividual fields
+    std::vector<double>                             M_onlineTols;
     std::vector<unsigned int>                       M_NsOnline;
 };
 
