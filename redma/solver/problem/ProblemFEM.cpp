@@ -68,30 +68,28 @@ solve()
             printlog(MAGENTA, msg, M_data.getVerbose());
         }
 
-        int status = solveTimestep(t, dt);
+        int status = -1;
+
+        M_solution = M_TMAlgorithm->advance(t, dt, status);
+
         if (status)
             throw new Exception("Error in solver. Status != 0.");
 
         t += dt;
 
+        if (M_storeSolutions && t >= t0)
+        {
+            M_solutions.push_back(M_solution);
+            M_timestepsSolutions.push_back(t);
+        }
         if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
             M_assembler->exportSolution(t, M_solution);
+
         M_assembler->postProcess(t, M_solution);
         M_TMAlgorithm->shiftSolutions(M_solution);
         if (t >= t0)
             count++;
     }
-}
-
-int
-ProblemFEM::
-solveTimestep(const double& t, double& dt)
-{
-    int status = -1;
-    M_solution = M_TMAlgorithm->advance(t, dt, status);
-    if (M_storeSolutions)
-        M_solutions.push_back(M_solution);
-    return status;
 }
 
 }

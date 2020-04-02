@@ -407,7 +407,7 @@ applyEveryB(const VECTOREPETRA& X, VECTOREPETRA &Y) const
 
 void
 SaddlePointPreconditionerEp::
-applyEveryBT(const VECTOREPETRA& X, VECTOREPETRA &Y) const
+applyEveryAm1BT(const VECTOREPETRA& X, VECTOREPETRA &Y) const
 {
     unsigned int offset = 0;
 
@@ -426,11 +426,18 @@ applyEveryBT(const VECTOREPETRA& X, VECTOREPETRA &Y) const
         MAPEPETRA curRange = *M_domainMaps[i];
         VECTOREPETRA subRes(curRange, LifeV::Unique);
         subRes.zero();
-        for (unsigned int j = 2 * M_nPrimalBlocks; j < M_nPrimalBlocks * 2 + M_nDualBlocks; j++)
+        // for (unsigned int j = 2 * M_nPrimalBlocks; j < M_nPrimalBlocks * 2 + M_nDualBlocks; j++)
+        // {
+        //     if (!M_matrixCollapsed.block(i,j).isNull())
+        //     {
+        //         subRes += (*M_matrixCollapsed.block(i,j).data()) * Xs[j-2*M_nPrimalBlocks];
+        //     }
+        // }
+        for (unsigned int j = 0; j < M_nDualBlocks; j++)
         {
-            if (!M_matrixCollapsed.block(i,j).isNull())
+            if (!M_Am1BT.block(i/2,j).block(i%2,0).isNull())
             {
-                subRes += (*M_matrixCollapsed.block(i,j).data()) * Xs[j-2*M_nPrimalBlocks];
+                subRes += (*M_Am1BT.block(i/2,j).block(i%2,0).data()) * Xs[j];
             }
         }
         Y.subset(subRes, curRange, 0, offset);
@@ -468,12 +475,11 @@ ApplyInverse(const super::vector_Type& X, super::vector_Type& Y) const
                                                  Y_dual.epetraVector());
 
 
-        VECTOREPETRA BTy(M_primalMap, LifeV::Unique);
-        applyEveryBT(Y_dual, BTy);
+        VECTOREPETRA Am1BTy(M_primalMap, LifeV::Unique);
+        applyEveryAm1BT(Y_dual, Am1BTy);
 
         // this can be optimized because we already have Am1BTy
-        VECTOREPETRA Am1BTy(M_primalMap, LifeV::Unique);
-        solveEveryPrimalBlock(BTy, Am1BTy);
+        // solveEveryPrimalBlock(BTy, Am1BTy);
 
         Y_primal = Z - Am1BTy;
         Y_vectorEpetra.subset(Y_primal, *M_primalMap, 0, 0);

@@ -45,13 +45,13 @@ public:
 
     virtual void solve();
 
-    int solveTimestep(const double& t, double& dt);
-
     void doStoreSolutions() {M_storeSolutions = true;}
 
     inline TreeStructure& getTree() {return M_tree;}
 
     inline std::vector<BBV> getSolutions() {return M_solutions;}
+
+    inline std::vector<double> getTimesteps() {return M_timestepsSolutions;}
 
     inline SHP(BlockAssembler<BV COMMA BM>) getBlockAssembler() {return M_assembler;}
 
@@ -63,6 +63,7 @@ private:
     GeometryParser                            M_geometryParser;
     bool                                      M_storeSolutions;
     std::vector<BBV>                          M_solutions;
+    std::vector<double>                       M_timestepsSolutions;
 };
 
 }

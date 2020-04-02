@@ -66,12 +66,6 @@ exportError()
     std::string msg = "[ComparisonFEMvsRB] Exporting error solution\n";
     printlog(MAGENTA, msg, true);
 
-    double t0 = M_data("time_discretization/t0", 0.0);
-    double T = M_data("time_discretization/T", 1.0);
-    double dt = M_data("time_discretization/dt", 0.01);
-
-    double t = t0;
-
     unsigned int numPrimalBlocks = M_problemRB->getBlockAssembler()->getAssemblersMap().size();
 
     // we do this to reset the output directory
@@ -84,7 +78,6 @@ exportError()
         nsolutions = M_loadedSolutions.size();
     for (unsigned int i = 0; i < nsolutions; i++)
     {
-        t = t + dt;
         BlockVector<BlockVector<VectorEp>> diff;
         diff.softCopy(M_problemRB->getBlockAssembler()->convertFunctionRBtoFEM(M_problemRB->getSolutions()[i], M_comm));
 
@@ -96,6 +89,8 @@ exportError()
             else
                 diff.block(j) -= M_loadedSolutions[i].block(j);
         }
+
+        double t = M_problemRB->getTimesteps()[i];
         M_problemFEM->getBlockAssembler()->exportSolution(t, diff);
     }
 }
@@ -118,10 +113,10 @@ exportFEM(unsigned int saveEvery)
     unsigned int nsolutions = M_problemFEM->getSolutions().size();
     for (unsigned int i = 0; i < nsolutions; i++)
     {
-        t = t + dt;
-        if ((i + 1) % saveEvery == 0)
+        if (i % saveEvery == 0)
         {
             auto solution = M_problemFEM->getSolutions()[i];
+            double t = M_problemFEM->getTimesteps()[i];
             M_problemFEM->getBlockAssembler()->exportSolution(t, solution);
         }
     }
@@ -179,7 +174,6 @@ loadFEMSolution(std::string indir)
             std::ifstream infile(indir + "/block" + std::to_string(iblock) + "/field" + std::to_string(ifield) + ".txt");
             std::string line;
             unsigned int count = 0;
-            std::cout << "5" << std::endl << std::flush;
             while(std::getline(infile,line))
             {
                 SHP(VECTOREPETRA) newVector(new VECTOREPETRA(assMap[iblock]->getFEspace(ifield)->map()));
@@ -230,22 +224,16 @@ exportRB(unsigned int saveEvery)
     std::string msg = "[ComparisonFEMvsRB] Exporting RB solution\n";
     printlog(MAGENTA, msg, true);
 
-    double t0 = M_data("time_discretization/t0", 0.0);
-    double T = M_data("time_discretization/T", 1.0);
-    double dt = M_data("time_discretization/dt", 0.01);
-
-    double t = t0;
-
     // we do this to reset the output directory
     M_problemRB->getBlockAssembler()->setExporter();
 
     unsigned int nsolutions = M_problemRB->getSolutions().size();
     for (unsigned int i = 0; i < nsolutions; i++)
     {
-        t = t + dt;
-        if ((i + 1) % saveEvery == 0)
+        if (i % saveEvery == 0)
         {
             auto solution = M_problemRB->getSolutions()[i];
+            double t = M_problemRB->getTimesteps()[i];
             M_problemRB->getBlockAssembler()->exportSolution(t, solution);
         }
     }

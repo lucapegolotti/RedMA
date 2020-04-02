@@ -107,7 +107,7 @@
 [time_discretization]
 	algorithm = bdf
 	rhoinf = 0.5
-	order = 1
+	order = 2
 	t0ramp = -0.02
 	t0 = 0
 	T = 0.30
