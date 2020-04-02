@@ -142,8 +142,8 @@ getString(const char& delimiter) const
     VECTOREPETRA redVec(*M_vector, 0);
 
     std::ostringstream streamObj;
-    streamObj << std::scientific;
-    streamObj << std::setprecision(10);
+    // streamObj << std::scientific;
+    streamObj << std::setprecision(16);
     streamObj << "";
 
     if (redVec.epetraVector().Comm().MyPID())
