@@ -26,10 +26,10 @@ generateRBproblems(DataContainer& data, EPETRACOMM comm)
     std::vector<std::pair<std::string, SHP(ProblemRB)>> retVec;
 
     std::vector<double> podtol_field0;
-    podtol_field0.push_back(2e-3);
+    // podtol_field0.push_back(2e-3);
     podtol_field0.push_back(1e-3);
-    podtol_field0.push_back(5e-4);
-    podtol_field0.push_back(1e-4);
+    // podtol_field0.push_back(5e-4);
+    // podtol_field0.push_back(1e-4);
 
     std::vector<double> podtol_field1;
     podtol_field1.push_back(1e-5);

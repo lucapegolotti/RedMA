@@ -19,10 +19,9 @@ addConvectiveMatrixRightHandSide(const BlockVector<DenseVector>& sol,
     using namespace ExpressionAssembly;
 
     SHP(MATRIXEPETRA)  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
-    SHP(VECTOREPETRA)  velocityRepeated(new VECTOREPETRA(M_velocityFESpace->map(),
-                                                         Repeated));
+    SHP(VECTOREPETRA)  velocityRepeated;
 
-    M_bases->reconstructFEFunction(velocityRepeated, sol.block(0), 0);
+    velocityRepeated = M_bases->reconstructFEFunction(sol.block(0), 0);
 
     integrate(elements(M_velocityFESpaceETA->mesh()),
                M_velocityFESpace->qr(),
@@ -68,10 +67,9 @@ addConvectiveTermJacobianRightHandSide(const BlockVector<DenseVector>& sol,
     using namespace ExpressionAssembly;
 
     SHP(MATRIXEPETRA)  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
-    SHP(VECTOREPETRA)  velocityRepeated(new VECTOREPETRA(M_velocityFESpace->map(),
-                                                         Repeated));
+    SHP(VECTOREPETRA)  velocityRepeated;
 
-    M_bases->reconstructFEFunction(velocityRepeated, sol.block(0), 0);
+    velocityRepeated = M_bases->reconstructFEFunction(sol.block(0), 0);
 
     integrate(elements(M_velocityFESpaceETA->mesh()),
                M_velocityFESpace->qr(),
@@ -171,12 +169,12 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
 
     retVec.softCopy(systemMatrix * sol);
 
-    printlog(YELLOW, msg, this->M_data.getVerbose());
+    std::cout << systemMatrix.block(0,0).data()->M() << " " << systemMatrix.block(0,0).data()->N() << std::endl << std::flush;
 
     SHP(VECTOREPETRA)  nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
-    SHP(VECTOREPETRA)  velocityReconstructed(new VECTOREPETRA(M_velocityFESpace->map()));
+    SHP(VECTOREPETRA)  velocityReconstructed;
 
-    M_bases->reconstructFEFunction(velocityReconstructed, sol.block(0), 0);
+    velocityReconstructed = M_bases->reconstructFEFunction(sol.block(0), 0);
 
     if (M_extrapolatedSolution.nRows() == 0)
     {
@@ -191,8 +189,8 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
     }
     else
     {
-        SHP(VECTOREPETRA)  extrapolatedSolution(new VECTOREPETRA(M_velocityFESpace->map()));
-        M_bases->reconstructFEFunction(extrapolatedSolution, M_extrapolatedSolution.block(0), 0);
+        SHP(VECTOREPETRA)  extrapolatedSolution;
+        extrapolatedSolution = M_bases->reconstructFEFunction(M_extrapolatedSolution.block(0), 0);
 
         integrate(elements(M_velocityFESpaceETA->mesh()),
                    M_velocityFESpace->qr(),
@@ -215,8 +213,8 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
             throw new Exception("Stabilization is not supported with extrapolation");
         else
         {
-            SHP(VECTOREPETRA)  pressureReconstructed(new VECTOREPETRA(M_pressureFESpace->map()));
-            M_bases->reconstructFEFunction(pressureReconstructed, sol.block(1), 1);
+            SHP(VECTOREPETRA)  pressureReconstructed;
+            pressureReconstructed = M_bases->reconstructFEFunction(sol.block(1), 1);
 
             BlockVector<VectorEp> zeroVec(2);
             zeroVec.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map()));

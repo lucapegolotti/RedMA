@@ -73,7 +73,7 @@ public:
 
     DenseMatrix rightProject(MatrixEp matrix, unsigned int basisIndex);
 
-    void reconstructFEFunction(SHP(VECTOREPETRA) feFunction, DenseVector rbSolution, unsigned int index);
+    SHP(VECTOREPETRA) reconstructFEFunction(DenseVector rbSolution, unsigned int index);
 
     void addPrimalSupremizer(SHP(VECTOREPETRA) supremizer,
                              const unsigned int& fieldToAugment,
@@ -125,6 +125,8 @@ private:
     DataContainer                                   M_data;
     EPETRACOMM                                      M_comm;
     std::vector<std::vector<SHP(VECTOREPETRA)>>     M_bases;
+    std::vector<MatrixEp>                           M_enrichedBasesMatrices;
+    std::vector<MatrixEp>                           M_enrichedBasesMatricesTransposed;
     // this is a grid because the row indicates the field to be augmented (velocity)
     // and the column indicates the constraining field (pressure)
     GridVectors                                     M_primalSupremizers;

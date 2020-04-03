@@ -169,9 +169,16 @@ loadBases()
     print();
 
     for (unsigned i = 0; i < M_numFields; i++)
-    if (M_bases[i].size() < M_NsOnline[i])
-        throw new Exception("Selected tolerance requires more vectors than the ones stored");
+        if (M_bases[i].size() < M_NsOnline[i])
+            throw new Exception("Selected tolerance requires more vectors than the ones stored");
 
+    for (unsigned int i = 0; i < M_numFields; i++)
+    {
+        auto curBasis = getEnrichedBasis(i);
+        MatrixEp curBasisMatrix(curBasis);
+        M_enrichedBasesMatrices.push_back(curBasisMatrix);
+        M_enrichedBasesMatricesTransposed.push_back(curBasisMatrix.transpose());
+    }
 }
 
 void
@@ -316,25 +323,24 @@ leftProject(MatrixEp matrix, unsigned int basisIndex)
 
     if (matrix.data())
     {
-        std::vector<SHP(VECTOREPETRA)> basis = getEnrichedBasis(basisIndex);
+        // the basis is transposed
+        auto rangeMap = M_enrichedBasesMatrices[basisIndex].data()->domainMapPtr();
+        auto domainMap = matrix.data()->domainMapPtr();
 
-        unsigned int nrows = basis.size();
-        unsigned int ncols = matrix.data()->domainMapPtr()->mapSize();
-        SHP(DENSEMATRIX) innerMatrix(new DENSEMATRIX(nrows, ncols));
+        SHP(MATRIXEPETRA) innerMatrix(new MATRIXEPETRA(*rangeMap));
 
-        VECTOREPETRA result(*matrix.data()->domainMapPtr());
-        for (unsigned int i = 0; i < nrows; i++)
-        {
-            result.zero();
-            matrix.data()->matrixPtr()->Multiply(true, basis[i]->epetraVector(),
-                                                 result.epetraVector());
+        // for some reason it is more efficient to transpose and then multiply
+        M_enrichedBasesMatricesTransposed[basisIndex].data()->multiply(false, *matrix.data(), false,
+                                                             *innerMatrix);
 
-            for (unsigned int j = 0; j < ncols; j++)
-                (*innerMatrix)(i,j) = result[j];
-        }
-        retMat.data() = innerMatrix;
+        innerMatrix->globalAssemble(domainMap, rangeMap);
+
+        MatrixEp retMatEp;
+        retMatEp.data() = innerMatrix;
+
+        return retMatEp.toDenseMatrix();
     }
-    return retMat;
+    return DenseMatrix();
 }
 
 // we assume that the basis for the lagrange multiplier is the identity
@@ -367,23 +373,14 @@ DenseVector
 RBBases::
 leftProject(VectorEp vector, unsigned int basisIndex)
 {
-    DenseVector retVec;
-
     if (vector.data())
     {
-        std::vector<SHP(VECTOREPETRA)> basis = getEnrichedBasis(basisIndex);
+        VectorEp resVector;
+        resVector.softCopy(M_enrichedBasesMatricesTransposed[basisIndex] * vector);
 
-        unsigned int nrows = basis.size();
-        SHP(DENSEVECTOR) innerVector(new DENSEVECTOR(nrows));
-
-        double result = 0;
-        for (unsigned int i = 0; i < nrows; i++)
-        {
-            (*innerVector)(i) = basis[i]->dot(*vector.data());
-        }
-        retVec.data() = innerVector;
+        return resVector.toDenseVector();
     }
-    return retVec;
+    return DenseVector();
 }
 
 BlockMatrix<DenseMatrix>
@@ -407,28 +404,26 @@ RBBases::
 rightProject(MatrixEp matrix, unsigned int basisIndex)
 {
     DenseMatrix retMat;
+
     if (matrix.data())
     {
-        std::vector<SHP(VECTOREPETRA)> basis = getEnrichedBasis(basisIndex);
+        // the basis is transposed
+        auto rangeMap = matrix.data()->rangeMapPtr(); ;
+        auto domainMap = M_enrichedBasesMatrices[basisIndex].data()->domainMapPtr();
 
-        unsigned int nrows = matrix.data()->rangeMapPtr()->mapSize();
-        unsigned int ncols = basis.size();
-        SHP(DENSEMATRIX) innerMatrix(new DENSEMATRIX(nrows, ncols));
+        SHP(MATRIXEPETRA) innerMatrix(new MATRIXEPETRA(*rangeMap));
 
-        VECTOREPETRA result(*matrix.data()->rangeMapPtr());
+        matrix.data()->multiply(false, *M_enrichedBasesMatrices[basisIndex].data(),
+                                false, *innerMatrix);
 
-        for (unsigned int j = 0; j < ncols; j++)
-        {
-            result.zero();
-            matrix.data()->matrixPtr()->Multiply(false, basis[j]->epetraVector(),
-                                                 result.epetraVector());
+        innerMatrix->globalAssemble(domainMap, rangeMap);
 
-            for (unsigned int i = 0; i < nrows; i++)
-                (*innerMatrix)(i,j) = result[i];
-        }
-        retMat.data() = innerMatrix;
+        MatrixEp retMatEp;
+        retMatEp.data() = innerMatrix;
+
+        return retMatEp.toDenseMatrix();
     }
-    return retMat;
+    return DenseMatrix();
 }
 
 
@@ -452,34 +447,39 @@ RBBases::
 matrixProject(MatrixEp matrix, unsigned int basisIndexRow,
                                unsigned int basisIndexCol)
 {
+
     DenseMatrix retMat;
+
     if (matrix.data())
     {
-        std::vector<SHP(VECTOREPETRA)> basisLeft = getEnrichedBasis(basisIndexRow);
-        std::vector<SHP(VECTOREPETRA)> basisRight = getEnrichedBasis(basisIndexCol);
+        // Vrow' A Vcol
 
-        unsigned int Nleft = basisLeft.size();
-        unsigned int Nright = basisRight.size();
+        // compute A Vcol
+        auto rangeMap = matrix.data()->rangeMapPtr();
+        auto domainMap = M_enrichedBasesMatrices[basisIndexCol].data()->domainMapPtr();
 
-        SHP(DENSEMATRIX) newMatrix(new DENSEMATRIX(Nleft, Nright));
+        SHP(MATRIXEPETRA) auxMatrix(new MATRIXEPETRA(*rangeMap));
 
-        SHP(MATRIXEPETRA) matrixEpetra = matrix.data();
+        matrix.data()->multiply(false, *M_enrichedBasesMatrices[basisIndexCol].data(),
+                                false, *auxMatrix);
 
-        for (unsigned int i = 0; i < Nleft; i++)
-        {
-            VECTOREPETRA aux(*basisRight[0]->mapPtr());
-            matrixEpetra->matrixPtr()->Multiply(true,
-                            basisLeft[i]->epetraVector(), aux.epetraVector());
+        auxMatrix->globalAssemble(domainMap, rangeMap);
 
-            for (unsigned int j = 0; j < Nright; j++)
-            {
-                (*newMatrix)(i,j) += aux.dot(*basisRight[j]);
-            }
-        }
+        rangeMap = M_enrichedBasesMatrices[basisIndexRow].data()->domainMapPtr();
 
-        retMat.data() = newMatrix;
+        SHP(MATRIXEPETRA) innerMatrix(new MATRIXEPETRA(*rangeMap));
+
+        M_enrichedBasesMatricesTransposed[basisIndexRow].data()->multiply(false, *auxMatrix,
+                                                                false, *innerMatrix);
+
+        innerMatrix->globalAssemble(domainMap, rangeMap);
+
+        MatrixEp retMatEp;
+        retMatEp.data() = innerMatrix;
+
+        return retMatEp.toDenseMatrix();
     }
-    return retMat;
+    return DenseMatrix();
 }
 
 std::vector<SHP(VECTOREPETRA)>
@@ -542,16 +542,17 @@ getSelectors(unsigned int index)
     return selectors;
 }
 
-void
+SHP(VECTOREPETRA)
 RBBases::
-reconstructFEFunction(SHP(VECTOREPETRA) feFunction, DenseVector rbSolution, unsigned int index)
+reconstructFEFunction(DenseVector rbSolution, unsigned int index)
 {
-    feFunction->zero();
+    VectorEp rbSolutionEp;
+    rbSolutionEp.data() = rbSolution.toVectorEpetra(M_comm);
 
-    auto basis = getEnrichedBasis(index);
-    for (unsigned int i = 0; i < rbSolution.getNumRows(); i++)
-    // weird. Time step on this line is not constant for every subdomain
-        *feFunction += (*basis[i]) * (*rbSolution.data())(i);
+    VectorEp res;
+    res.softCopy(M_enrichedBasesMatrices[index] * rbSolutionEp);
+
+    return res.data();
 }
 
 void
