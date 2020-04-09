@@ -33,11 +33,11 @@ void solveProblem(EPETRACOMM comm, std::string innerprec, std::string approxschu
     data.setInflow(inflow);
     data.setVerbose(comm->MyPID() == 0);
 
-    data.setValue("geometric_structure/maxnumblocks", numblocks);
-    data.setValue("preconditioner/inner", innerprec);
-    data.setValue("preconditioner/approxschur", approxschur);
-    data.setValue("preconditioner/innertol", intol);
-    data.setValue("coupling/nMax", nmax);
+    data.setValueInt("geometric_structure/maxnumblocks", numblocks);
+    data.setValueString("preconditioner/inner", innerprec);
+    data.setValueString("preconditioner/approxschur", approxschur);
+    data.setValueDouble("preconditioner/innertol", intol);
+    data.setValueInt("coupling/nMax", nmax);
     std::string outfile = "statistics";
     outfile += "mnb" + std::to_string(numblocks);
     outfile += "in" + innerprec;
@@ -46,7 +46,7 @@ void solveProblem(EPETRACOMM comm, std::string innerprec, std::string approxschu
     outfile += "nMax" + std::to_string(nmax);
     outfile += ".txt";
     std::cout << "Writing " << outfile << std::endl;
-    data.setValue("time_discretization/solverstatistics", outfile);
+    data.setValueString("time_discretization/solverstatistics", outfile);
 
     ProblemFEM femProblem(data, comm);
 

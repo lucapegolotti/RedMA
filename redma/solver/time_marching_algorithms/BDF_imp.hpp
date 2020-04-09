@@ -7,7 +7,7 @@ BDF(const DataContainer& data) :
   aTimeMarchingAlgorithm<InVectorType, InMatrixType>(data),
   M_order(data("time_discretization/order",2))
 {
-    M_useExtrapolation = this->M_data("time_discretization/use_extrapolation", false);
+    M_useExtrapolation = this->M_data("time_discretization/use_extrapolation", 0);
 
     // if we set this we save the evaluation of the residual at the end of resolution
     // (important for rb method)
@@ -23,7 +23,7 @@ BDF(const DataContainer& data, SHP(FunProvider) funProvider) :
 {
     setup(this->M_funProvider->getZeroVector());
 
-    M_useExtrapolation = this->M_data("time_discretization/use_extrapolation", false);
+    M_useExtrapolation = this->M_data("time_discretization/use_extrapolation", 0);
 
     if (M_useExtrapolation)
         this->M_systemSolver.isLinearProblem();

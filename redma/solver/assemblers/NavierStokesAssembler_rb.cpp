@@ -169,8 +169,6 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
 
     retVec.softCopy(systemMatrix * sol);
 
-    std::cout << systemMatrix.block(0,0).data()->M() << " " << systemMatrix.block(0,0).data()->N() << std::endl << std::flush;
-
     SHP(VECTOREPETRA)  nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
     SHP(VECTOREPETRA)  velocityReconstructed;
 
@@ -233,10 +231,9 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
                                     getFESpaceBCs(),
                                     getComponentBCs());
 
-    BlockVector<DenseVector> nonLinearTermProjected = M_bases->leftProject(nonLinearTermWrap);
+    M_nonLinearTerm.softCopy(M_bases->leftProject(nonLinearTermWrap));
 
-
-    retVec -= nonLinearTermProjected;
+    retVec -= M_nonLinearTerm;
     // this->addNeumannBCs(retVec, time, sol);
 
     msg = "done, in ";

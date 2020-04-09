@@ -205,12 +205,12 @@ print()
             msg += "\tPrimal supremizers wrt field " + std::to_string(j) +
                    " = " + std::to_string(M_primalSupremizers(i,j).size()) + "\n";
         msg += "\tDual supremizers = " + std::to_string(M_dualSupremizers[i].size()) + "\n";
-        if (M_data("rb/online/basis/useprimalsupremizers", true))
+        if (M_data("rb/online/basis/useprimalsupremizers", 1))
             msg +=  "\tUsing primal supremizers\n";
         else
             msg +=  "\tNOT using primal supremizers\n";
 
-        if (M_data("rb/online/basis/usedualsupremizers", false))
+        if (M_data("rb/online/basis/usedualsupremizers", 0))
             msg +=  "\tUsing dual supremizers\n";
         else
             msg +=  "\tNOT using dual supremizers\n";
@@ -487,7 +487,7 @@ RBBases::
 getEnrichedBasis(const unsigned int& index)
 {
     std::vector<SHP(VECTOREPETRA)> retVectors = getBasis(index);
-    if (M_data("rb/online/basis/useprimalsupremizers", true))
+    if (M_data("rb/online/basis/useprimalsupremizers", 1))
     {
         for (unsigned int j = 0; j < M_numFields; j++)
         {
@@ -505,7 +505,7 @@ getEnrichedBasis(const unsigned int& index)
             }
         }
     }
-    if (M_data("rb/online/basis/usedualsupremizers", false))
+    if (M_data("rb/online/basis/usedualsupremizers", 0))
     {
         for (auto dual : M_dualSupremizers[index])
             retVectors.push_back(dual);

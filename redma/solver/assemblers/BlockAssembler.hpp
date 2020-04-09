@@ -67,7 +67,7 @@ public:
 
     virtual void apply0DirichletBCs(BlockVector<InVectorType>& vector) const override;
 
-    virtual void setExporter() override; 
+    virtual void setExporter() override;
 
     virtual void applyDirichletBCs(const double& time, BlockVector<InVectorType>& vector) const override;
 
@@ -84,6 +84,8 @@ public:
     BlockVector<BlockVector<VectorEp>> convertFunctionRBtoFEM(BlockVector<BlockVector<DenseVector>> rbFunction, EPETRACOMM comm) const;
 
     virtual void setExtrapolatedSolution(const BlockVector<InVectorType>& exSol) override;
+
+    virtual BlockVector<InVectorType> getNonLinearTerm() override;
 
 protected:
     GetPot                                                        M_datafile;

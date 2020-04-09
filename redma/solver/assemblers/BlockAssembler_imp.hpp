@@ -190,17 +190,33 @@ convertFunctionRBtoFEM(BlockVector<BlockVector<DenseVector>> rbFunction,
         retVec.block(ind).softCopy(as.second->convertFunctionRBtoFEM(rbFunction.block(ind)));
     }
 
-    for (auto as : M_dualAssemblers)
+    if (rbFunction.nRows() > M_primalAssemblers.size())
     {
-        unsigned int indInterface = as->getInterface().M_ID + M_primalAssemblers.size();
-        retVec.block(indInterface).resize(1);
-        retVec.block(indInterface).block(0).softCopy(
-                VectorEp::convertDenseVector(rbFunction.block(indInterface).block(0),
-                comm));
+        for (auto as : M_dualAssemblers)
+        {
+            unsigned int indInterface = as->getInterface().M_ID + M_primalAssemblers.size();
+            retVec.block(indInterface).resize(1);
+            retVec.block(indInterface).block(0).softCopy(
+                    VectorEp::convertDenseVector(rbFunction.block(indInterface).block(0),
+                    comm));
+        }
     }
+    return retVec;
+}
+
+template <class InVectorType, class InMatrixType>
+BlockVector<InVectorType>
+BlockAssembler<InVectorType, InMatrixType>::
+getNonLinearTerm()
+{
+    BlockVector<InVectorType> retVec(M_primalAssemblers.size());
+
+    for (auto as : M_primalAssemblers)
+        retVec.block(as.first) = as.second->getNonLinearTerm();
 
     return retVec;
 }
+
 
 template <class InVectorType, class InMatrixType>
 BlockMatrix<InMatrixType>

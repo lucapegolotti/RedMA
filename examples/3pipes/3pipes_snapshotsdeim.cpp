@@ -16,9 +16,10 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
-#include <redma/solver/problem/ProblemFEM.hpp>
+#include <redma/reduced_basis/DEIMSnapshotsSampler.hpp>
 
 using namespace RedMA;
+
 
 int main(int argc, char **argv)
 {
@@ -29,26 +30,13 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    LifeV::LifeChrono chrono;
-    chrono.start();
-
-    std::string msg = "Starting chrono\n";
-    printlog(MAGENTA, msg, true);
-
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);
-    std::string outdir = "solution_fem_reference/";
-    data.setValueString("exporter/outdir", outdir);
     data.finalize();
 
-    ProblemFEM femProblem(data, comm);
-    femProblem.solve();
-
-    msg = "Total time =  ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(MAGENTA, msg, true);
+    DEIMSnapshotsSampler sampler(data, comm);
+    sampler.takeDEIMSnapshots();
 
     return 0;
 }

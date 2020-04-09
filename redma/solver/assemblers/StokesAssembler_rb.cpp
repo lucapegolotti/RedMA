@@ -104,8 +104,8 @@ void
 StokesAssembler<DenseVector, DenseMatrix>::
 exportSolution(const double& t, const BlockVector<DenseVector>& sol)
 {
-    M_velocityExporter = M_bases->reconstructFEFunction(sol.block(0), 0);
-    M_pressureExporter = M_bases->reconstructFEFunction(sol.block(1), 1);
+    *M_velocityExporter = *M_bases->reconstructFEFunction(sol.block(0), 0);
+    *M_pressureExporter = *M_bases->reconstructFEFunction(sol.block(1), 1);
 
     // BlockVector<VectorEp> solCopy(2);
     // solCopy.block(0).data() = M_velocityExporter;

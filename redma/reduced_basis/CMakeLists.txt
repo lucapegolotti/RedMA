@@ -10,6 +10,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/MDEIMStructure.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/RBBases.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/RBBasesManager.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DEIMSnapshotsSampler.hpp
     CACHE INTERNAL ""
 )
 
@@ -24,5 +25,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/MDEIMManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/RBBases.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/RBBasesManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DEIMSnapshotsSampler.cpp
     CACHE INTERNAL ""
 )

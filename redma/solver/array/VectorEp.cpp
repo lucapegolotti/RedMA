@@ -138,23 +138,29 @@ std::string
 VectorEp::
 getString(const char& delimiter) const
 {
-    // we reduce the vector to processor 0
-    VECTOREPETRA redVec(*M_vector, 0);
-
     std::ostringstream streamObj;
     // streamObj << std::scientific;
     streamObj << std::setprecision(16);
     streamObj << "";
-
-    if (redVec.epetraVector().Comm().MyPID())
-        return streamObj.str();
-
-    const double* values = redVec.epetraVector()[0];
-    for (unsigned int i = 0; i < redVec.epetraVector().GlobalLength(); ++i)
+    if (M_vector)
     {
-        streamObj << values[i];
-        if (i != redVec.epetraVector().GlobalLength()-1)
-            streamObj << delimiter;
+        // we reduce the vector to processor 0
+        VECTOREPETRA redVec(*M_vector, 0);
+
+        if (redVec.epetraVector().Comm().MyPID())
+            return streamObj.str();
+
+        const double* values = redVec.epetraVector()[0];
+        for (unsigned int i = 0; i < redVec.epetraVector().GlobalLength(); ++i)
+        {
+            if (std::abs(values[i]) > 1e-15)
+                streamObj << values[i];
+            else
+                streamObj << 0.;
+
+            if (i != redVec.epetraVector().GlobalLength()-1)
+                streamObj << delimiter;
+        }
     }
     return streamObj.str();
 }

@@ -623,8 +623,11 @@ convertFunctionRBtoFEM(BlockVector<RBVECTOR> rbSolution) const
 {
     BlockVector<FEVECTOR> retVec(2);
 
-    retVec.block(0).data() = M_bases->reconstructFEFunction(rbSolution.block(0), 0);
-    retVec.block(1).data() = M_bases->reconstructFEFunction(rbSolution.block(1), 1);
+    if (rbSolution.block(0).data())
+        retVec.block(0).data() = M_bases->reconstructFEFunction(rbSolution.block(0), 0);
+
+    if (rbSolution.block(1).data())
+        retVec.block(1).data() = M_bases->reconstructFEFunction(rbSolution.block(1), 1);
 
     return retVec;
 }

@@ -26,26 +26,27 @@ generateRBproblems(DataContainer& data, EPETRACOMM comm)
     std::vector<std::pair<std::string, SHP(ProblemRB)>> retVec;
 
     std::vector<double> podtol_field0;
-    // podtol_field0.push_back(2e-3);
+    podtol_field0.push_back(2e-3);
     podtol_field0.push_back(1e-3);
-    // podtol_field0.push_back(5e-4);
-    // podtol_field0.push_back(1e-4);
+    podtol_field0.push_back(5e-4);
+    podtol_field0.push_back(1e-4);
 
     std::vector<double> podtol_field1;
     podtol_field1.push_back(1e-5);
-    // podtol_field1.push_back(1e-4);
+    podtol_field1.push_back(1e-4);
 
-    std::vector<std::string> usePrimalSupremizers;
-    usePrimalSupremizers.push_back("true");
+    std::vector<int> usePrimalSupremizers;
+    usePrimalSupremizers.push_back(1);
 
-    std::vector<std::string> useDualSupremizers;
-    useDualSupremizers.push_back("true");
+    std::vector<int> useDualSupremizers;
+    useDualSupremizers.push_back(1);
 
     std::vector<int> couplingnMax;
     couplingnMax.push_back(6);
 
-    std::vector<std::string> useExtrapolation;
-    useExtrapolation.push_back("false");
+    std::vector<int> useExtrapolation;
+    useExtrapolation.push_back(1);
+    useExtrapolation.push_back(0);
 
     for (auto nMax : couplingnMax)
     {
@@ -59,12 +60,12 @@ generateRBproblems(DataContainer& data, EPETRACOMM comm)
                     {
                         for (auto pdt0 : podtol_field0)
                         {
-                            data.setValue("rb/online/basis/podtol_field0", pdt0);
-                            data.setValue("rb/online/basis/podtol_field1", pdt1);
-                            data.setValue("rb/online/basis/useprimalsupremizers", prsup);
-                            data.setValue("rb/online/basis/usedualsupremizers", dusup);
-                            data.setValue("coupling/nMax", nMax);
-                            data.setValue("time_discretization/use_extrapolation", extr);
+                            data.setValueDouble("rb/online/basis/podtol_field0", pdt0);
+                            data.setValueDouble("rb/online/basis/podtol_field1", pdt1);
+                            data.setValueInt("rb/online/basis/useprimalsupremizers", prsup);
+                            data.setValueInt("rb/online/basis/usedualsupremizers", dusup);
+                            data.setValueInt("coupling/nMax", nMax);
+                            data.setValueInt("time_discretization/use_extrapolation", extr);
 
                             LifeV::LifeChrono chrono;
                             chrono.start();
@@ -74,10 +75,10 @@ generateRBproblems(DataContainer& data, EPETRACOMM comm)
                             std::string description;
                             description = "podtol_field0," + std::to_string(pdt0) + "\n";
                             description += "podtol_field1," + std::to_string(pdt1) + "\n";
-                            description += "useprimalsupremizers," + std::to_string(prsup == "true") + "\n";
-                            description += "usedualsupremizers," + std::to_string(dusup == "true") + "\n";
+                            description += "useprimalsupremizers," + std::to_string(prsup) + "\n";
+                            description += "usedualsupremizers," + std::to_string(dusup) + "\n";
                             description += "couplingnMax," + std::to_string(nMax) + "\n";
-                            description += "useextrapolation," + std::to_string(extr == "true") + "\n";
+                            description += "useextrapolation," + std::to_string(extr) + "\n";
                             description += "rbSetupTime," + std::to_string(setupTimeRB) + "\n";
                             std::pair<std::string,SHP(ProblemRB)> newPair;
                             newPair.first = description;
@@ -106,7 +107,7 @@ int main(int argc, char **argv)
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);
     std::string inletDirichlet = "strong";
-    data.setValue("bc_conditions/inletdirichlet", inletDirichlet);
+    data.setValueString("bc_conditions/inletdirichlet", inletDirichlet);
     data.finalize();
     LifeV::LifeChrono chrono;
     chrono.start();
@@ -137,7 +138,7 @@ int main(int argc, char **argv)
         comparison.runFEM();
         runTimeFEM = comparison.getTimeFem();
 
-        data.setValue("exporter/outdir", outdir);
+        data.setValueString("exporter/outdir", outdir);
         comparison.exportFEM(1);
 
         comparison.dumpFEMSolution(outdir);
@@ -151,7 +152,7 @@ int main(int argc, char **argv)
 
     // reset weak bcs for reduced basis
     inletDirichlet = "weak";
-    data.setValue("bc_conditions/inletdirichlet", inletDirichlet);
+    data.setValueString("bc_conditions/inletdirichlet", inletDirichlet);
 
     std::vector<std::pair<std::string, SHP(ProblemRB)>> rbProblems = generateRBproblems(data, comm);
 
@@ -170,11 +171,11 @@ int main(int argc, char **argv)
             double runTimeRB = comparison.getTimeRB();
 
             outdir = curDir + "solution/";
-            data.setValue("exporter/outdir", outdir);
+            data.setValueString("exporter/outdir", outdir);
             comparison.exportRB(4);
 
             outdir = curDir + "error/";
-            data.setValue("exporter/outdir", outdir);
+            data.setValueString("exporter/outdir", outdir);
             comparison.exportError();
 
             std::ofstream outfile;

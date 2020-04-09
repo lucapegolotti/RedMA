@@ -45,6 +45,8 @@ public:
     virtual BlockMatrix<InMatrixType> getJacobianRightHandSide(const double& time,
                                       const BlockVector<InVectorType>& sol) override;
 
+    virtual BlockVector<InVectorType> getNonLinearTerm() override {return M_nonLinearTerm;}
+
 protected:
     void addConvectiveMatrixRightHandSide(const BlockVector<InVectorType>& sol,
                                           BlockMatrix<InMatrixType>& mat);
@@ -55,6 +57,7 @@ protected:
 
     bool                                                     M_useStabilization;
     SHP(NavierStokesStabilization)                           M_stabilization;
+    BlockVector<InVectorType>                                M_nonLinearTerm;
 };
 
 }

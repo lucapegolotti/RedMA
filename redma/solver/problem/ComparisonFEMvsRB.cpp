@@ -22,7 +22,7 @@ runFEM()
     printlog(MAGENTA, msg, true);
 
     // deactivate exporter
-    M_data.setValue("exporter/save_every", -1);
+    M_data.setValueInt("exporter/save_every", -1);
 
     M_problemFEM->doStoreSolutions();
     M_problemFEM->solve();
@@ -45,7 +45,7 @@ runRB()
     printlog(MAGENTA, msg, true);
 
     // deactivate exporter
-    M_data.setValue("exporter/save_every", -1);
+    M_data.setValueInt("exporter/save_every", -1);
 
     M_problemRB->doStoreSolutions();
     M_problemRB->solve();

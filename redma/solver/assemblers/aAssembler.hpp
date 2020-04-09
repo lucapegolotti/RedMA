@@ -69,7 +69,7 @@ public:
 
     virtual BlockVector<InVectorType> getZeroVector() const = 0;
 
-    virtual void setExporter() = 0; 
+    virtual void setExporter() = 0;
 
     virtual void apply0DirichletBCsMatrix(BlockMatrix<InMatrixType>& matrix, double diagCoeff) const = 0;
 
@@ -107,6 +107,8 @@ public:
     virtual void setMDEIMs(SHP(MDEIMManager) mdeimManager) {}
 
     virtual void setRBBases(SHP(RBBasesManager) rbManager) {}
+
+    virtual BlockVector<InVectorType> getNonLinearTerm() {};
 
     virtual SHP(RBBases) getRBBases() const {}
 
