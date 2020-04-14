@@ -17,6 +17,7 @@ set(HEADERS_DIRS
     ${TPL_SUITESPARSE_INCLUDE_DIRECTORY}
     ${TPL_OPENBLAS_INCLUDE_DIRECTORY}
     ${TPL_TINYXML2_INCLUDE_DIRECTORY}
+    ${TPL_PYTHON_INCLUDE_DIRECTORY}
     )
 
 set(LIBRARIES_DIRS
@@ -61,7 +62,9 @@ set(TRILINOS_LIBRARIES
     trilinosss
     triutils
     zoltan
-    belosepetra)
+    belosepetra
+    ${TPL_PYTHON_LIBRARY}
+    )
 
 # note: by default, boost is built without additional libraries in the lifev
 # environment. If that version of boost is used, boost must be installed by removing

@@ -30,6 +30,7 @@
 #include <lifev/core/filter/ExporterHDF5.hpp>
 
 #include <boost/filesystem.hpp>
+#include <Python.h>
 
 // class BlockMDEIM;
 
@@ -154,6 +155,8 @@ public:
 
     void setExtrapolatedSolution(const BlockVector<InVectorType>& exSol) override;
 
+    void initializePythonStructures();
+
 protected:
 
     BlockMatrix<InMatrixType>                                       M_mass;
@@ -182,6 +185,8 @@ protected:
     SHP(BlockMDEIM)                                                 M_mdeimStiffness;
     SHP(BlockMDEIM)                                                 M_mdeimDivergence;
     SHP(RBBases)                                                    M_bases;
+    PyObject*                                                       M_pFunc;
+    PyObject*                                                       M_pModule;
 };
 
 }

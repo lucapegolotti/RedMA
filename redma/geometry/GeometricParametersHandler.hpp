@@ -25,6 +25,7 @@
 #include <redma/utils/Exception.hpp>
 
 #include <random>
+#include <chrono>
 
 #include <redma/utils/PrintLog.hpp>
 
@@ -103,6 +104,8 @@ public:
     void randomizeParametersAroundOriginalValue(const double& bounds);
 
     GeometricParameterPtr getParameter(std::string name){return M_parametersMap[name];};
+
+    std::vector<double> getRandomizibleParametersValueAsVector();
 
 private:
     std::map<std::string, GeometricParameterPtr> M_parametersMap;

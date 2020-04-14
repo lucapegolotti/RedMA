@@ -46,9 +46,9 @@
 			[../]
 		[../]
 		[./deim]
-			take_snapshot_every = 1
+			take_snapshot_every = 4
 			dumpbinary_snapshots = true
-			numbersnapshots = 1
+			numbersnapshots = 50
 		[../]
 		[./mdeim]
 			numbersnapshots = 1
@@ -115,9 +115,9 @@
 	order = 2
 	t0ramp = -0.02
 	t0 = 0
-	T = 0.0025
+	T = 0.30
 	dt = 0.0025
-	use_extrapolation = 1
+	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
 [../]
 
@@ -126,7 +126,7 @@
 	type       = hdf5
 	multimesh  = false
 	start      = 0
-	save_every = 1
+	save_every = -1
 	filename   = tube
 	exportnorms = true
 [../]

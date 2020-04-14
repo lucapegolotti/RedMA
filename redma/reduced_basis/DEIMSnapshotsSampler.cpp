@@ -70,9 +70,31 @@ dumpDEIMSnapshots(ProblemRB& problem,
 
         unsigned int nfields = nonLinearTerms[0].block(idmeshtype.first).nRows();
 
+        std::string outfilename = meshtypedir + "/params.csv";
+
+        std::ofstream outfileparams;
+        outfileparams.open(outfilename, omode);
+
+        std::vector<double> params = problem.getBlockAssembler()->getRandomizibleParametersVectors()[idmeshtype.first];
+
+        std::ostringstream streamObj;
+        streamObj << std::setprecision(16);
+        streamObj << "";
+
+        for (unsigned int iparam = 0; iparam < params.size(); iparam++)
+        {
+            streamObj << params[iparam];
+            if (iparam != params.size() - 1)
+                streamObj << ",";
+        }
+
+        streamObj << "\n";
+        outfileparams << streamObj.str();
+        outfileparams.close();
+
         for (unsigned int i = 0; i < nfields; i++)
         {
-            std::string outfilename = meshtypedir + "/deimterm_fem" + std::to_string(i) + ".snap";
+            outfilename = meshtypedir + "/deimterm_fem" + std::to_string(i) + ".snap";
 
             std::ofstream outfiledeimfem;
             outfiledeimfem.open(outfilename, omode);

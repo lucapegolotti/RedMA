@@ -87,6 +87,8 @@ public:
 
     virtual BlockVector<InVectorType> getNonLinearTerm() override;
 
+    std::map<unsigned int,std::vector<double>> getRandomizibleParametersVectors();
+
 protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;

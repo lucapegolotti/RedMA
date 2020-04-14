@@ -76,8 +76,8 @@ GeometricParameter::
 randomSampleAroundOriginalValue(const double& bounds)
 {
     static std::default_random_engine e;
+    e.seed(std::chrono::system_clock::now().time_since_epoch().count());
     static std::uniform_real_distribution<> dis(0, 1);
-
     float randomNumber = dis(e);
 
     double minvalue = M_value - bounds;
@@ -223,6 +223,25 @@ randomizeParametersAroundOriginalValue(const double& bounds)
         if (gp->isRandomizible())
             gp->randomSampleAroundOriginalValue(bounds);
     }
+}
+
+std::vector<double>
+GeometricParametersHandler::
+getRandomizibleParametersValueAsVector()
+{
+    typedef std::map<std::string, GeometricParameterPtr> mapType;
+
+    std::vector<double> retVec;
+
+    for (mapType::iterator it = M_parametersMap.begin();
+         it != M_parametersMap.end(); it++)
+    {
+        GeometricParameterPtr gp = it->second;
+        if (gp->isRandomizible())
+            retVec.push_back(gp->getValue());
+    }
+
+    return retVec;
 }
 
 }  // namespace RedMA

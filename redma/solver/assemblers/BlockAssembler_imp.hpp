@@ -100,6 +100,20 @@ exportSolution(const double& t, const BlockVector<InVectorType>& sol)
 }
 
 template <class InVectorType, class InMatrixType>
+std::map<unsigned int,std::vector<double>>
+BlockAssembler<InVectorType, InMatrixType>::
+getRandomizibleParametersVectors()
+{
+    std::map<unsigned int,std::vector<double>> retMap;
+
+    for (auto as : M_primalAssemblers)
+        retMap[as.first] = as.second->getTreeNode()->M_block->
+                getGeometricParametersHandler().getRandomizibleParametersValueAsVector();
+
+    return retMap;
+}
+
+template <class InVectorType, class InMatrixType>
 void
 BlockAssembler<InVectorType, InMatrixType>::
 setExtrapolatedSolution(const BlockVector<InVectorType>& exSol)
