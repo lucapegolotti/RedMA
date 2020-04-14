@@ -88,28 +88,28 @@ operator()(std::string location, bool defValue) const
 
 void
 DataContainer::
-setValue(std::string location, std::string value)
+setValueString(std::string location, std::string value)
 {
     M_datafile->set(location.c_str(), value.c_str());
 }
 
 void
 DataContainer::
-setValue(std::string location, int value)
+setValueInt(std::string location, int value)
 {
     M_datafile->set(location.c_str(), value);
 }
 
 void
 DataContainer::
-setValue(std::string location, double value)
+setValueDouble(std::string location, double value)
 {
     M_datafile->set(location.c_str(), value);
 }
 
 void
 DataContainer::
-setValue(std::string location, bool value)
+setValueBool(std::string location, bool value)
 {
     M_datafile->set(location.c_str(), value);
 }

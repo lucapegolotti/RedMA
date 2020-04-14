@@ -61,13 +61,14 @@ public:
 
     bool operator()(std::string location, bool defValue) const;
 
-    void setValue(std::string location, std::string defValue);
+    // we differentiate the methods to avoid implicit conversion by mistake
+    void setValueString(std::string location, std::string defValue);
 
-    void setValue(std::string location, int defValue);
+    void setValueInt(std::string location, int defValue);
 
-    void setValue(std::string location, double defValue);
+    void setValueDouble(std::string location, double defValue);
 
-    void setValue(std::string location, bool defValue);
+    void setValueBool(std::string location, bool defValue);
 
 protected:
     std::vector<std::pair<double,double>> parseInflow();

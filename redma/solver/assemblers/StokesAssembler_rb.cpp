@@ -28,9 +28,9 @@ applyDirichletBCs(const double& time, BlockVector<DenseVector>& vector) const
         LifeV::LifeChrono chrono;
         chrono.start();
 
-        SHP(VECTOREPETRA) velocityReconstructed(new VECTOREPETRA(M_velocityFESpace->map()));;
+        SHP(VECTOREPETRA) velocityReconstructed;
 
-        M_bases->reconstructFEFunction(velocityReconstructed, vector.block(0), 0);
+        velocityReconstructed = M_bases->reconstructFEFunction(vector.block(0), 0);
         BlockVector<VectorEp> velocityWrap(2);
 
         velocityWrap.block(0).data() = velocityReconstructed;
@@ -104,8 +104,8 @@ void
 StokesAssembler<DenseVector, DenseMatrix>::
 exportSolution(const double& t, const BlockVector<DenseVector>& sol)
 {
-    M_bases->reconstructFEFunction(M_velocityExporter, sol.block(0), 0);
-    M_bases->reconstructFEFunction(M_pressureExporter, sol.block(1), 1);
+    *M_velocityExporter = *M_bases->reconstructFEFunction(sol.block(0), 0);
+    *M_pressureExporter = *M_bases->reconstructFEFunction(sol.block(1), 1);
 
     // BlockVector<VectorEp> solCopy(2);
     // solCopy.block(0).data() = M_velocityExporter;

@@ -47,9 +47,13 @@ public:
 
     void doStoreSolutions(){M_storeSolutions = true;}
 
+    void doStoreNonLinearTerms(){M_storeNonLinearTerms = true;}
+
     inline TreeStructure& getTree() {return M_tree;}
 
     inline std::vector<BBV> getSolutions() {return M_solutions;}
+
+    inline std::vector<BBV> getNonLinearTerms() {return M_nonLinearTerms;}
 
     inline std::vector<double> getTimesteps() {return M_timestepsSolutions;}
 
@@ -62,7 +66,9 @@ private:
     TreeStructure                             M_tree;
     GeometryParser                            M_geometryParser;
     bool                                      M_storeSolutions;
+    bool                                      M_storeNonLinearTerms;
     std::vector<BBV>                          M_solutions;
+    std::vector<BBV>                          M_nonLinearTerms;
     std::vector<double>                       M_timestepsSolutions;
 };
 

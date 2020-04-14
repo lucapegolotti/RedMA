@@ -17,7 +17,7 @@ BasisGenerator(const DataContainer& data, EPETRACOMM comm) :
         throw new Exception("Basis directory already exists!");
 
     // we want to consider the whole basis when adding supremizers
-    M_data.setValue("rb/online/basis/podtol", 0.0);
+    M_data.setValueDouble("rb/online/basis/podtol", 0.0);
 }
 
 void

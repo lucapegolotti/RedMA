@@ -56,6 +56,53 @@ MatrixEp(const std::vector<VectorEp>& columnVectors)
     M_matrix->globalAssemble(domainMap, rangeMap);
 }
 
+MatrixEp::
+MatrixEp(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors)
+{
+    const double dropTolerance(2.0 * std::numeric_limits<double>::min());
+
+    unsigned int N = columnVectors.size();
+    std::shared_ptr<LifeV::MapEpetra> rangeMap = columnVectors[0]->mapPtr();
+    std::shared_ptr<Epetra_Comm> comm = rangeMap->commPtr();
+
+    unsigned int myel = N / comm->NumProc();
+
+    // the first process takes care of the remainder
+    if (comm->MyPID() == 0)
+    {
+        myel += N % comm->NumProc();
+    }
+
+    std::shared_ptr<LifeV::MapEpetra> domainMap;
+    domainMap.reset(new LifeV::MapEpetra(N, myel, 0, comm));
+
+    M_matrix.reset(new MATRIXEPETRA(*rangeMap, N, false));
+
+    Epetra_Map epetraMap = columnVectors[0]->epetraMap();
+    unsigned int numElements = epetraMap.NumMyElements();
+
+    for (unsigned int i = 0; i < N; i++)
+    {
+        VECTOREPETRA columnVectorUnique(*columnVectors[i], LifeV::Unique);
+        for (unsigned int dof = 0; dof < numElements; dof++)
+        {
+            unsigned int gdof = epetraMap.GID(dof);
+            if (columnVectorUnique.isGlobalIDPresent(gdof))
+            {
+                double value(columnVectorUnique[gdof]);
+                if (std::abs(value) > dropTolerance)
+                {
+                    M_matrix->addToCoefficient(gdof, i, value);
+                }
+            }
+        }
+    }
+
+    comm->Barrier();
+
+    M_matrix->globalAssemble(domainMap, rangeMap);
+}
+
 MatrixEp
 MatrixEp::
 transpose() const
@@ -212,6 +259,42 @@ MatrixEp::
 dump(std::string filename) const
 {
     M_matrix->spy(filename);
+}
+
+DenseMatrix
+MatrixEp::
+toDenseMatrix() const
+{
+    unsigned int M = M_matrix->rangeMapPtr()->mapSize();
+    unsigned int N = M_matrix->domainMapPtr()->mapSize();
+
+    std::shared_ptr<DENSEMATRIX> innerMatrix(new DENSEMATRIX(M,N));
+
+    int maxNumEntries = 0;
+    for (unsigned int i = 0; i < M; i++)
+        maxNumEntries = std::max(maxNumEntries, M_matrix->matrixPtr()->NumMyEntries(i));
+
+    double* values = new double[maxNumEntries];
+    int* indices = new int[maxNumEntries];
+
+    for (unsigned int i = 0; i < M; i++)
+    {
+        int numMyEntries = M_matrix->matrixPtr()->NumMyEntries(i);
+        int numEntries;
+        M_matrix->matrixPtr()->ExtractMyRowCopy(i, numMyEntries,
+                                                numEntries, values, indices);
+
+        for (unsigned int j = 0; j < numEntries; j++)
+            (*innerMatrix)(i,indices[j]) = values[j];
+    }
+
+    delete[] values;
+    delete[] indices;
+
+    DenseMatrix retMat;
+    retMat.data() = innerMatrix;
+
+    return retMat;
 }
 
 }

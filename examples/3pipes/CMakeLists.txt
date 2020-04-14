@@ -26,6 +26,10 @@ add_executable(3pipes_femvsrb 3pipes_femvsrb.cpp)
 target_link_libraries(3pipes_femvsrb ${LINKED_LIBRARIES})
 target_include_directories(3pipes_femvsrb PRIVATE ${HEADERS_DIRS})
 
+add_executable(3pipes_snapshotsdeim 3pipes_snapshotsdeim.cpp)
+target_link_libraries(3pipes_snapshotsdeim ${LINKED_LIBRARIES})
+target_include_directories(3pipes_snapshotsdeim PRIVATE ${HEADERS_DIRS})
+
 add_custom_command(
     TARGET 3pipes_snapshots PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

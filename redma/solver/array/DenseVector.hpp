@@ -21,6 +21,7 @@
 #include <redma/utils/Exception.hpp>
 
 #include <Epetra_SerialDenseVector.h>
+#include <lifev/core/array/VectorEpetra.hpp>
 
 #include <fstream>
 #include <memory>
@@ -62,6 +63,8 @@ public:
     unsigned int getNumRows() const;
 
     void dump(std::string filename) const;
+
+    std::shared_ptr<LifeV::VectorEpetra> toVectorEpetra(std::shared_ptr<Epetra_Comm> comm) const;
 
 private:
     std::shared_ptr<DENSEVECTOR>  M_vector;

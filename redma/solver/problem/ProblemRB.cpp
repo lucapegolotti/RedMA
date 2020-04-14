@@ -84,6 +84,12 @@ solve()
             M_timestepsSolutions.push_back(t);
         }
 
+        if (M_storeNonLinearTerms && t >= t0)
+        {
+            auto nonLinearTerm = M_assembler->getNonLinearTerm();
+            M_nonLinearTerms.push_back(nonLinearTerm);
+        }
+
         if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
             M_assembler->exportSolution(t, M_solution);
         M_assembler->postProcess(t, M_solution);

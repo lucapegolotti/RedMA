@@ -29,6 +29,7 @@
 #include <redma/utils/PrintLog.hpp>
 #include <redma/solver/array/aMatrix.hpp>
 #include <redma/solver/array/VectorEp.hpp>
+#include <redma/solver/array/DenseMatrix.hpp>
 
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
@@ -44,6 +45,8 @@ public:
     MatrixEp();
 
     MatrixEp(const std::vector<VectorEp>& columnVectors);
+
+    MatrixEp(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors);
 
     MatrixEp operator+(const MatrixEp& other);
 
@@ -70,6 +73,8 @@ public:
     std::shared_ptr<MATRIXEPETRA>& data();
 
     std::shared_ptr<MATRIXEPETRA> data() const;
+
+    DenseMatrix toDenseMatrix() const;
 
     void dump(std::string namefile) const;
 

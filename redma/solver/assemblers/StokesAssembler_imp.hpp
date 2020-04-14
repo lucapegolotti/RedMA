@@ -38,10 +38,28 @@ setup()
 
     setExporter();
 
+    initializePythonStructures();
+
     msg = "done, in ";
     msg += std::to_string(chrono.diff());
     msg += " seconds\n";
     printlog(YELLOW, msg, this->M_data.getVerbose());
+}
+
+template <class InVectorType, class InMatrixType>
+void
+StokesAssembler<InVectorType, InMatrixType>::
+initializePythonStructures()
+{
+    setenv("PYTHONPATH",".",1);
+
+    Py_Initialize();
+    PyObject* pName = PyUnicode_DecodeFSDefault("test");
+
+    M_pModule = PyImport_Import(pName);
+    Py_DECREF(pName);
+
+    M_pFunc = PyObject_GetAttrString(M_pModule, "evaluate_model");
 }
 
 template <class InVectorType, class InMatrixType>
@@ -623,10 +641,11 @@ convertFunctionRBtoFEM(BlockVector<RBVECTOR> rbSolution) const
 {
     BlockVector<FEVECTOR> retVec(2);
 
-    retVec.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map()));
-    M_bases->reconstructFEFunction(retVec.block(0).data(), rbSolution.block(0), 0);
-    retVec.block(1).data().reset(new VECTOREPETRA(M_pressureFESpace->map()));
-    M_bases->reconstructFEFunction(retVec.block(1).data(), rbSolution.block(1), 1);
+    if (rbSolution.block(0).data())
+        retVec.block(0).data() = M_bases->reconstructFEFunction(rbSolution.block(0), 0);
+
+    if (rbSolution.block(1).data())
+        retVec.block(1).data() = M_bases->reconstructFEFunction(rbSolution.block(1), 1);
 
     return retVec;
 }
