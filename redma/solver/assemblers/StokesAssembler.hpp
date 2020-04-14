@@ -30,7 +30,7 @@
 #include <lifev/core/filter/ExporterHDF5.hpp>
 
 #include <boost/filesystem.hpp>
-#include <Python.h>
+// #include <Python.h>
 
 // class BlockMDEIM;
 
@@ -185,8 +185,8 @@ protected:
     SHP(BlockMDEIM)                                                 M_mdeimStiffness;
     SHP(BlockMDEIM)                                                 M_mdeimDivergence;
     SHP(RBBases)                                                    M_bases;
-    PyObject*                                                       M_pFunc;
-    PyObject*                                                       M_pModule;
+    // PyObject*                                                       M_pFunc;
+    // PyObject*                                                       M_pModule;
 };
 
 }
