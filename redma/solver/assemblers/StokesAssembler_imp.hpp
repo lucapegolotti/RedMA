@@ -38,7 +38,7 @@ setup()
 
     setExporter();
 
-    initializePythonStructures();
+    // initializePythonStructures();
 
     msg = "done, in ";
     msg += std::to_string(chrono.diff());
