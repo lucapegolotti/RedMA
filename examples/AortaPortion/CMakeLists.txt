@@ -30,6 +30,10 @@ add_executable(AortaPortion_snapshotsdeim AortaPortion_snapshotsdeim.cpp)
 target_link_libraries(AortaPortion_snapshotsdeim ${LINKED_LIBRARIES})
 target_include_directories(AortaPortion_snapshotsdeim PRIVATE ${HEADERS_DIRS})
 
+add_executable(AortaPortion_generatematricesforbasis AortaPortion_generatematricesforbasis.cpp)
+target_link_libraries(AortaPortion_generatematricesforbasis ${LINKED_LIBRARIES})
+target_include_directories(AortaPortion_generatematricesforbasis PRIVATE ${HEADERS_DIRS})
+
 add_custom_command(
     TARGET AortaPortion_snapshots PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
