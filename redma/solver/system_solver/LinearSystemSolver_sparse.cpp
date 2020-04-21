@@ -66,5 +66,15 @@ solve(const BlockMatrix<MatrixEp>& matrix,
                         "should not be used");
 }
 
+template <>
+void
+LinearSystemSolver<VectorEp, MatrixEp>::
+computeSchurComplementDense(const BlockMatrix<MatrixEp>& matrix)
+{
+    throw new Exception("This specialization of LinearSystemSolver::computeSchurComplementDense "
+                        "should not be used");
+}
+
+
 
 }

@@ -13,6 +13,107 @@ buildPreconditioner(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix)
 template <>
 void
 LinearSystemSolver<BlockVector<DenseVector>, BlockMatrix<DenseMatrix>>::
+computeSchurComplementDense(const BM& matrix)
+{
+    // count primal blocks
+    unsigned int nPrimal = 1;
+    unsigned int nBlocks = matrix.nRows();
+
+    while (matrix.block(0,nPrimal).isNull())
+        nPrimal++;
+
+    BM A = matrix.getSubmatrix(0, nPrimal-1, 0, nPrimal-1);
+    BM BT = matrix.getSubmatrix(0, nPrimal-1, nPrimal, nBlocks-1);
+    BM B = matrix.getSubmatrix(nPrimal, nBlocks-1, 0, nPrimal-1);
+    BM C = matrix.getSubmatrix(nPrimal, nBlocks-1, nPrimal, nBlocks-1);
+
+    M_collapsedAs.resize(nPrimal);
+    M_solversAs.resize(nPrimal);
+
+    unsigned int primalIndex = 0;
+    for (unsigned int i = 0; i < nPrimal; i++)
+    {
+        // to do: try to compute factorization and see if it changes anything
+        M_solversAs[i].reset(new Epetra_SerialDenseSolver());
+        M_collapsedAs[i] = A.block(i,i).collapse();
+        M_solversAs[i]->SetMatrix(*M_collapsedAs[i].data());
+        M_solversAs[i]->Factor();
+    }
+
+    // compute Am1BT
+    BM Am1BT;
+    Am1BT.resize(BT.nRows(), BT.nCols());
+
+    for (unsigned int i = 0; i < BT.nRows(); i++)
+    {
+        for (unsigned int j = 0; j < BT.nCols(); j++)
+        {
+            unsigned int nsrows = BT.block(i,j).nRows();
+            unsigned int nscols = BT.block(i,j).nCols();
+            BlockMatrix<DenseMatrix> singleAm1BT;
+            singleAm1BT.resize(nsrows, nscols);
+
+            if (nscols > 1)
+                throw new Exception("Coupling matrix should have one block column");
+
+            std::vector<unsigned int> nrows;
+            for (unsigned int irow = 0; irow < nsrows; irow++)
+                nrows.push_back(BT.block(i,j).block(irow,0).getNumRows());
+
+            if (!BT.block(i,j).isNull())
+            {
+                DenseMatrix BTcollapsed = BT.block(i,j).collapse();
+
+                unsigned int currows = BTcollapsed.getNumRows();
+                unsigned int curcols = BTcollapsed.getNumCols();
+
+                for (unsigned int irow = 0; irow < nsrows; irow++)
+                    singleAm1BT.block(irow,0).data().reset(new DENSEMATRIX(nrows[irow], curcols));
+
+                for (unsigned int jj = 0; jj < curcols; jj++)
+                {
+                    // select colum vector
+                    SHP(DENSEVECTOR) curVector(new DENSEVECTOR(currows));
+                    SHP(DENSEVECTOR) resVector(new DENSEVECTOR(currows));
+
+                    for (unsigned int ii = 0 ; ii < currows; ii++)
+                        (*curVector)(ii) = (*BTcollapsed.data())(ii,jj);
+
+                    // collapsedAs[i] = A.block(i,i).collapse();
+                    // M_solversAs[i]->SetMatrix(*collapsedAs[i].data());
+                    M_solversAs[i]->SetVectors(*resVector, *curVector);
+                    M_solversAs[i]->Solve();
+
+                    unsigned int offset = 0;
+                    // fill singleAm1BT
+                    for (unsigned int irow = 0; irow < nsrows; irow++)
+                    {
+                        for (unsigned int ii = 0; ii < nrows[irow]; ii++)
+                        {
+                            (*singleAm1BT.block(irow,0).data())(ii,jj) = (*resVector)(ii + offset);
+                        }
+                        offset += nrows[irow];
+                    }
+                }
+            }
+            Am1BT.block(i,j) = singleAm1BT;
+        }
+    }
+    Am1BT.finalize();
+
+    BM schurComplement;
+    schurComplement.softCopy(B * Am1BT);
+    schurComplement *= (-1.0);
+    schurComplement += C;
+
+    M_schurComplementColl = schurComplement.collapse().block(0,0);
+
+    M_schurSolver.SetMatrix(*M_schurComplementColl.data());
+}
+
+template <>
+void
+LinearSystemSolver<BlockVector<DenseVector>, BlockMatrix<DenseMatrix>>::
 solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
       const BlockVector<BlockVector<DenseVector>>& rhs,
       BlockVector<BlockVector<DenseVector>>& sol)
@@ -42,6 +143,8 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
     }
     else
     {
+        bool recomputeSchur = M_data("rb/online/recomputeSchur", false);
+
         // count primal blocks
         unsigned int nPrimal = 1;
         unsigned int nBlocks = matrix.nRows();
@@ -57,86 +160,8 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         BV rhsU = rhs.getSubvector(0,nPrimal-1);
         BV rhsL = rhs.getSubvector(nPrimal, nBlocks-1);
 
-        std::vector<DenseMatrix> collapsedAs(nPrimal);
-        std::vector<SHP(Epetra_SerialDenseSolver)> solversAs(nPrimal);
-
-        unsigned int primalIndex = 0;
-        for (unsigned int i = 0; i < nPrimal; i++)
-        {
-            // to do: try to compute factorization and see if it changes anything
-            solversAs[i].reset(new Epetra_SerialDenseSolver());
-            collapsedAs[i] = A.block(i,i).collapse();
-            solversAs[i]->SetMatrix(*collapsedAs[i].data());
-            solversAs[i]->Factor();
-        }
-
-        // compute Am1BT
-        BM Am1BT;
-        Am1BT.resize(BT.nRows(), BT.nCols());
-
-        for (unsigned int i = 0; i < BT.nRows(); i++)
-        {
-            for (unsigned int j = 0; j < BT.nCols(); j++)
-            {
-                unsigned int nsrows = BT.block(i,j).nRows();
-                unsigned int nscols = BT.block(i,j).nCols();
-                BlockMatrix<DenseMatrix> singleAm1BT;
-                singleAm1BT.resize(nsrows, nscols);
-
-                if (nscols > 1)
-                    throw new Exception("Coupling matrix should have one block column");
-
-                std::vector<unsigned int> nrows;
-                for (unsigned int irow = 0; irow < nsrows; irow++)
-                    nrows.push_back(BT.block(i,j).block(irow,0).getNumRows());
-
-                if (!BT.block(i,j).isNull())
-                {
-                    DenseMatrix BTcollapsed = BT.block(i,j).collapse();
-
-                    unsigned int currows = BTcollapsed.getNumRows();
-                    unsigned int curcols = BTcollapsed.getNumCols();
-
-                    for (unsigned int irow = 0; irow < nsrows; irow++)
-                        singleAm1BT.block(irow,0).data().reset(new DENSEMATRIX(nrows[irow], curcols));
-
-                    for (unsigned int jj = 0; jj < curcols; jj++)
-                    {
-                        // select colum vector
-                        SHP(DENSEVECTOR) curVector(new DENSEVECTOR(currows));
-                        SHP(DENSEVECTOR) resVector(new DENSEVECTOR(currows));
-
-                        for (unsigned int ii = 0 ; ii < currows; ii++)
-                            (*curVector)(ii) = (*BTcollapsed.data())(ii,jj);
-
-                        // collapsedAs[i] = A.block(i,i).collapse();
-                        // solversAs[i]->SetMatrix(*collapsedAs[i].data());
-                        solversAs[i]->SetVectors(*resVector, *curVector);
-                        solversAs[i]->Solve();
-
-                        unsigned int offset = 0;
-                        // fill singleAm1BT
-                        for (unsigned int irow = 0; irow < nsrows; irow++)
-                        {
-                            for (unsigned int ii = 0; ii < nrows[irow]; ii++)
-                            {
-                                (*singleAm1BT.block(irow,0).data())(ii,jj) = (*resVector)(ii + offset);
-                            }
-                            offset += nrows[irow];
-                        }
-                    }
-                }
-                Am1BT.block(i,j) = singleAm1BT;
-            }
-        }
-        Am1BT.finalize();
-
-        BM schurComplement;
-        schurComplement.softCopy(B * Am1BT);
-        schurComplement *= (-1.0);
-        schurComplement += C;
-
-        DenseMatrix schurComplementColl = schurComplement.collapse().block(0,0);
+        if (recomputeSchur || M_numSolves == 0)
+            computeSchurComplementDense(matrix);
 
         // compute Am1 ru
         BV Am1ru;
@@ -147,10 +172,8 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
             DenseVector collapsedRui = rhsU.block(i).collapse();
             SHP(DENSEVECTOR) sol(new DENSEVECTOR(collapsedRui.getNumRows()));
 
-            // collapsedAs[i] = A.block(i,i).collapse();
-            // solversAs[i]->SetMatrix(*collapsedAs[i].data());
-            solversAs[i]->SetVectors(*sol, *collapsedRui.data());
-            solversAs[i]->Solve();
+            M_solversAs[i]->SetVectors(*sol, *collapsedRui.data());
+            M_solversAs[i]->Solve();
 
             unsigned int nrows = rhsU.block(i).nRows();
             Am1ru.block(i).resize(nrows);
@@ -176,11 +199,8 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         DenseVector solLCollapsed;
         solLCollapsed.data().reset(new DENSEVECTOR(rhsSchurCollapsed.getNumRows()));
 
-        // invert schur complement
-        Epetra_SerialDenseSolver schurSolver;
-        schurSolver.SetMatrix(*schurComplementColl.data());
-        schurSolver.SetVectors(*solLCollapsed.data(), *rhsSchurCollapsed.data());
-        schurSolver.Solve();
+        M_schurSolver.SetVectors(*solLCollapsed.data(), *rhsSchurCollapsed.data());
+        M_schurSolver.Solve();
 
         BV solL;
         B.convertVectorType(solLCollapsed, solL);
@@ -199,9 +219,9 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
             SHP(DENSEVECTOR) sol(new DENSEVECTOR(collapsedRhsAi.getNumRows()));
 
             // collapsedAs[i] = A.block(i,i).collapse();
-            // solversAs[i]->SetMatrix(*collapsedAs[i].data());
-            solversAs[i]->SetVectors(*sol, *collapsedRhsAi.data());
-            solversAs[i]->Solve();
+            // M_solversAs[i]->SetMatrix(*collapsedAs[i].data());
+            M_solversAs[i]->SetVectors(*sol, *collapsedRhsAi.data());
+            M_solversAs[i]->Solve();
 
             unsigned int nrows = rhsU.block(i).nRows();
             solU.block(i).resize(nrows);
@@ -239,6 +259,8 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
             }
         }
     }
+
+    M_numSolves++;
 
     msg = "done, in ";
     msg += std::to_string(chrono.diff());

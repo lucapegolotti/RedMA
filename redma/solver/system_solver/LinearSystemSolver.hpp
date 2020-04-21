@@ -58,10 +58,22 @@ public:
 
 private:
 
+    // only required for dense computation
+    void computeSchurComplementDense(const BM& matrix);
+
+    // these are relative to dense solver
+    std::vector<SHP(Epetra_SerialDenseSolver)>      M_solversAs;
+    Epetra_SerialDenseSolver                        M_schurSolver;
+    std::vector<DenseMatrix>                        M_collapsedAs;
+    DenseMatrix                                     M_schurComplementColl;
+    //
+
     DataContainer                                   M_data;
     SHP(InverseOperatorEp)                          M_invOper;
     SHP(LinearOperatorEp)                           M_oper;
     SHP(PreconditionerOperatorEp)                   M_prec;
+
+
     SolverStatistics                                M_statistics;
     unsigned                                        M_numSolves;
 };
