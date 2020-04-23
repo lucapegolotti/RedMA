@@ -130,8 +130,14 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
     {
         Epetra_SerialDenseSolver monolithicSolver;
 
-        DenseMatrix matrixCollapsed = matrix.collapse().block(0,0);
         DenseVector rhsCollapsed = rhs.collapse().block(0);
+
+        msg = " size of linear system = ";
+        msg += std::to_string(rhsCollapsed.getNumRows());
+        msg += " ...";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
+
+        DenseMatrix matrixCollapsed = matrix.collapse().block(0,0);
         DenseVector solCollapsed;
         solCollapsed.data().reset(new DENSEVECTOR(rhsCollapsed.getNumRows()));
 
