@@ -242,7 +242,7 @@ void
 InterfaceAssembler<InVectorType, InMatrixType>::
 setup()
 {
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
 
     printlog(YELLOW, "[InterfaceAssembler] initialize interface"

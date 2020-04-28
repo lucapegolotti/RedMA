@@ -17,6 +17,8 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
 #include <redma/solver/problem/ProblemRB.hpp>
+#include <chrono>
+#include <thread>
 
 using namespace RedMA;
 
@@ -29,7 +31,7 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
 
     std::string msg = "Starting chrono\n";

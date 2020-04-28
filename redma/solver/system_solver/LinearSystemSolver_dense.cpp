@@ -118,7 +118,7 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
       const BlockVector<BlockVector<DenseVector>>& rhs,
       BlockVector<BlockVector<DenseVector>>& sol)
 {
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
 
     std::string msg = "[LinearSystemSolver] solving dense linear system ...";

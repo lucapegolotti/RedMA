@@ -48,7 +48,7 @@ setup()
     for (auto& primalas : M_primalAssemblers)
     {
         // restrict RB matrices based on desired pod tolerance (if needed)
-        primalas.second->restrictRBMatrices();
+        primalas.second->RBsetup();
     }
 
     // allocate interface assemblers

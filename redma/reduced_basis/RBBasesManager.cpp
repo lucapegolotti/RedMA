@@ -16,7 +16,7 @@ void
 RBBasesManager::
 load()
 {
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
 
     std::string msg = "[RBBasesManager] loading singular values ...";
@@ -53,7 +53,7 @@ void
 RBBasesManager::
 loadBases()
 {
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
 
     std::string msg = "[RBBasesManager] loading bases ...";

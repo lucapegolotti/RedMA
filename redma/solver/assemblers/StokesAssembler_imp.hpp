@@ -19,7 +19,7 @@ void
 StokesAssembler<InVectorType,InMatrixType>::
 setup()
 {
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
 
     std::string msg = "[";

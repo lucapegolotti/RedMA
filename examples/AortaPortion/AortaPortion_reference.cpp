@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
 
     std::string msg = "Starting chrono\n";

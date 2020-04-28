@@ -31,6 +31,7 @@
 #include <redma/solver/array/DenseVector.hpp>
 #include <redma/solver/array/DenseMatrix.hpp>
 #include <redma/utils/PrintLog.hpp>
+#include <redma/utils/Chrono.hpp>
 
 #include <lifev/core/fem/FESpace.hpp>
 #include <lifev/eta/fem/ETFESpace.hpp>

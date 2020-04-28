@@ -39,7 +39,7 @@ solve(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
 
     M_invOper->setPreconditioner(M_prec);
 
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
     printlog(MAGENTA, "[LinearSystemSolver] solve ...", M_data.getVerbose());
 

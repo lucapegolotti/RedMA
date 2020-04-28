@@ -33,19 +33,18 @@ generateRBproblems(DataContainer& data, EPETRACOMM comm)
 
     std::vector<double> podtol_field1;
     podtol_field1.push_back(1e-5);
-    podtol_field1.push_back(1e-4);
+    // podtol_field1.push_back(1e-4);
 
     std::vector<int> usePrimalSupremizers;
-    usePrimalSupremizers.push_back(1);
+    usePrimalSupremizers.push_back(0);
 
     std::vector<int> useDualSupremizers;
-    useDualSupremizers.push_back(1);
+    useDualSupremizers.push_back(0);
 
     std::vector<int> couplingnMax;
     couplingnMax.push_back(6);
 
     std::vector<int> useExtrapolation;
-    useExtrapolation.push_back(1);
     useExtrapolation.push_back(0);
 
     for (auto nMax : couplingnMax)
@@ -67,7 +66,7 @@ generateRBproblems(DataContainer& data, EPETRACOMM comm)
                             data.setValueInt("coupling/nMax", nMax);
                             data.setValueInt("time_discretization/use_extrapolation", extr);
 
-                            LifeV::LifeChrono chrono;
+                            Chrono chrono;
                             chrono.start();
                             SHP(ProblemRB) newProblemRB(new ProblemRB(data, comm));
                             double setupTimeRB = chrono.diff();
@@ -93,6 +92,88 @@ generateRBproblems(DataContainer& data, EPETRACOMM comm)
 
     return retVec;
 }
+//
+// std::vector<std::pair<std::string, SHP(ProblemRB)>>
+// generateRBproblems(DataContainer& data, EPETRACOMM comm)
+// {
+//     std::vector<std::pair<std::string, SHP(ProblemRB)>> retVec;
+//
+//     std::vector<double> podtol_field0;
+//     podtol_field0.push_back(1e-3);
+//
+//     std::vector<double> podtol_field1;
+//     podtol_field1.push_back(1e-5);
+//
+//     std::vector<int> usePrimalSupremizers;
+//     usePrimalSupremizers.push_back(1);
+//
+//     std::vector<int> useDualSupremizers;
+//     useDualSupremizers.push_back(1);
+//
+//     std::vector<int> couplingnMax;
+//     couplingnMax.push_back(6);
+//
+//     std::vector<int> useExtrapolation;
+//     useExtrapolation.push_back(0);
+//
+//     std::vector<int> nonLinearTerms;
+//     nonLinearTerms.push_back(10);
+//     nonLinearTerms.push_back(20);
+//     nonLinearTerms.push_back(40);
+//     nonLinearTerms.push_back(80);
+//     nonLinearTerms.push_back(120);
+//
+//     for (auto nMax : couplingnMax)
+//     {
+//         for (auto extr : useExtrapolation)
+//         {
+//             for (auto dusup : useDualSupremizers)
+//             {
+//                 for (auto prsup : usePrimalSupremizers)
+//                 {
+//                     for (auto pdt1 : podtol_field1)
+//                     {
+//                         for (auto pdt0 : podtol_field0)
+//                         {
+//                             for (auto nlts : nonLinearTerms)
+//                             {
+//                                 data.setValueDouble("rb/online/basis/podtol_field0", pdt0);
+//                                 data.setValueDouble("rb/online/basis/podtol_field1", pdt1);
+//                                 data.setValueInt("rb/online/basis/useprimalsupremizers", prsup);
+//                                 data.setValueInt("rb/online/basis/usedualsupremizers", dusup);
+//                                 data.setValueInt("coupling/nMax", nMax);
+//                                 data.setValueInt("time_discretization/use_extrapolation", extr);
+//                                 data.setValueInt("rb/online/numbernonlinearterms", nlts);
+//
+//                                 Chrono chrono;
+//                                 chrono.start();
+//                                 SHP(ProblemRB) newProblemRB(new ProblemRB(data, comm));
+//                                 double setupTimeRB = chrono.diff();
+//
+//                                 std::string description;
+//                                 description = "podtol_field0," + std::to_string(pdt0) + "\n";
+//                                 description += "podtol_field1," + std::to_string(pdt1) + "\n";
+//                                 description += "nonLinearTerms," + std::to_string(nlts) + "\n";
+//                                 description += "useprimalsupremizers," + std::to_string(prsup) + "\n";
+//                                 description += "usedualsupremizers," + std::to_string(dusup) + "\n";
+//                                 description += "couplingnMax," + std::to_string(nMax) + "\n";
+//                                 description += "useextrapolation," + std::to_string(extr) + "\n";
+//                                 description += "rbSetupTime," + std::to_string(setupTimeRB) + "\n";
+//                                 std::pair<std::string,SHP(ProblemRB)> newPair;
+//                                 newPair.first = description;
+//                                 newPair.second = newProblemRB;
+//                                 retVec.push_back(newPair);
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//
+//     return retVec;
+// }
+
 //
 // std::vector<std::pair<std::string, SHP(ProblemRB)>>
 // generateRBproblems(DataContainer& data, EPETRACOMM comm)
@@ -136,7 +217,7 @@ generateRBproblems(DataContainer& data, EPETRACOMM comm)
 //                             data.setValueInt("coupling/nMax", nMax);
 //                             data.setValueInt("time_discretization/use_extrapolation", extr);
 //
-//                             LifeV::LifeChrono chrono;
+//                             Chrono chrono;
 //                             chrono.start();
 //                             SHP(ProblemRB) newProblemRB(new ProblemRB(data, comm));
 //                             double setupTimeRB = chrono.diff();
@@ -175,10 +256,10 @@ int main(int argc, char **argv)
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);
-    std::string inletDirichlet = "strong";
+    std::string inletDirichlet = "weak";
     data.setValueString("bc_conditions/inletdirichlet", inletDirichlet);
     data.finalize();
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
     SHP(ProblemFEM) femProblem(new ProblemFEM(data, comm));
     double setupTimeFEM = chrono.diff();

@@ -16,7 +16,7 @@ void
 MDEIMManager::
 load()
 {
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
 
     std::string msg = "[MDEIMManager] loading structures ...";

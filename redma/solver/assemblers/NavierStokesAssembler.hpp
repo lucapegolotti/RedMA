@@ -47,6 +47,8 @@ public:
 
     virtual BlockVector<InVectorType> getNonLinearTerm() override {return M_nonLinearTerm;}
 
+    virtual void RBsetup() override;
+
 protected:
     void addConvectiveMatrixRightHandSide(const BlockVector<InVectorType>& sol,
                                           BlockMatrix<InMatrixType>& mat);
@@ -58,6 +60,9 @@ protected:
     bool                                                     M_useStabilization;
     SHP(NavierStokesStabilization)                           M_stabilization;
     BlockVector<InVectorType>                                M_nonLinearTerm;
+
+    // this is relative to the rb part
+    std::vector<std::vector<BlockVector<DenseVector>>>       M_nonLinearTermsDecomposition;
 };
 
 }

@@ -25,7 +25,7 @@ applyDirichletBCs(const double& time, BlockVector<DenseVector>& vector) const
     if (std::strcmp(M_data("bc_conditions/inletdirichlet","weak").c_str(),"weak"))
     {
         printlog(YELLOW, "[StokesAssembler] applying strong dirichlet bcs \t", M_data.getVerbose());
-        LifeV::LifeChrono chrono;
+        Chrono chrono;
         chrono.start();
 
         SHP(VECTOREPETRA) velocityReconstructed;
@@ -164,11 +164,12 @@ getNorm(const unsigned int& fieldIndex)
 template <>
 void
 StokesAssembler<DenseVector, DenseMatrix>::
-restrictRBMatrices()
+RBsetup()
 {
     if (M_bases == nullptr)
         throw new Exception("RB bases have not been set yet");
 
+    // restrict rb matrices
     if (M_data("rb/online/usemdeim", true))
     {
         std::vector<unsigned int> selectorsU = M_bases->getSelectors(0);
@@ -251,7 +252,7 @@ restrictRBMatrices()
     else
     {
         printlog(YELLOW, "[StokesAssembler] NOT using MDEIM: assembling and projecting matrices\t", M_data.getVerbose());
-        LifeV::LifeChrono chrono;
+        Chrono chrono;
         chrono.start();
 
         BlockMatrix<MatrixEp> fullMass = assembleReducedMass(nullptr);

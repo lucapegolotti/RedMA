@@ -151,7 +151,7 @@ public:
 
     void exportNorms(double t);
 
-    virtual void restrictRBMatrices() override;
+    virtual void RBsetup() override;
 
     void setExtrapolatedSolution(const BlockVector<InVectorType>& exSol) override;
 
