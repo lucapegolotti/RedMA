@@ -273,7 +273,7 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
 
     #else
 
-    bool approximatenonlinearterm = M_data("rb/online/approximatenonlinearterm", true);
+    bool approximatenonlinearterm = M_data("rb/online/approximatenonlinearterm", 1);
 
     if (!approximatenonlinearterm)
     {
@@ -394,7 +394,7 @@ RBsetup()
 
     StokesAssembler::RBsetup();
 
-    if (M_data("rb/online/approximatenonlinearterm",true))
+    if (M_data("rb/online/approximatenonlinearterm",1))
     {
         printlog(YELLOW, "[NavierStokesAssembler] precomputing non linear terms \t", M_data.getVerbose());
         Chrono chrono;

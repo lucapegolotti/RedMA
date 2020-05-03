@@ -31,6 +31,8 @@ public:
 
     virtual void solve() = 0;
 
+    DataContainer& getData() {return M_data;}
+
 protected:
     DataContainer  M_data;
 };
