@@ -8,7 +8,7 @@ SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix) :
   M_data(data),
   M_matrix(matrix)
 {
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
 
     printlog(MAGENTA, "[SaddlePointPreconditionerEp] starting setup ...\n", M_data.getVerbose());
@@ -235,7 +235,7 @@ computeSingleAm1BT(const BlockMatrix<MatrixEp>& A, const BlockMatrix<MatrixEp>& 
 
     if (!BT.isNull())
     {
-        LifeV::LifeChrono chrono;
+        Chrono chrono;
         chrono.start();
         printlog(GREEN, "[SaddlePointPreconditionerEp] single AM1BT ...", M_data.getVerbose());
 

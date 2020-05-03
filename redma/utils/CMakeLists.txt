@@ -2,5 +2,6 @@ set(SOURCES
     ${SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/PrintLog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Chrono.cpp
     CACHE INTERNAL ""
 )

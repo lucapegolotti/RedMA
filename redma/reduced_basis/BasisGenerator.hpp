@@ -28,6 +28,7 @@
 #include <redma/geometry/BuildingBlock.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
 #include <redma/geometry/Tube.hpp>
+#include <redma/geometry/BifurcationSymmetric.hpp>
 
 #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
 #include <redma/reduced_basis/RBBases.hpp>
@@ -55,7 +56,13 @@ public:
 
     void generateBasis();
 
+    // use this method when you want to only dump the matrices in order to compute
+    // for example the basis with matlab
+    void generateMatricesOnly();
+
 private:
+    void createDefaultAssemblers();
+
     void parseFiles();
 
     void performPOD();
@@ -69,6 +76,8 @@ private:
     SHP(TreeNode) generateDefaultTreeNode(const std::string& nameMesh);
 
     SHP(TreeNode) generateDefaultTube(const std::string& nameMesh);
+
+    SHP(TreeNode) generateDefaultSymmetricBifurcation(const std::string& nameMesh);
 
     void parseParameterSnapshots(const std::string& paramDir);
 

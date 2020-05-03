@@ -172,10 +172,10 @@
     <ParameterList name="MonolithicOperator">
         <Parameter name="Linear Solver Type" type="string" value="Belos"/>
         <ParameterList name="Belos">
-            <Parameter name="Solver Type" type="string" value="BlockGmres"/>
+            <Parameter name="Solver Type" type="string" value="PseudoBlockGmres"/>
             <Parameter name="Preconditioner Side" type="string" value="Right"/>
             <ParameterList name="options">
-                <Parameter name="Flexible Gmres" type="bool" value="false"/>
+                <Parameter name="Flexible Gmres" type="bool" value="true"/>
                 <Parameter name="Output Frequency" type="int" value="1"/>
                 <Parameter name="Block Size" type="int" value="2000"/>
                 <Parameter name="Num Blocks" type="int" value="2000"/>

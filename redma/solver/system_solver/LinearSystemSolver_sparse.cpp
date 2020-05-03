@@ -39,7 +39,7 @@ solve(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
 
     M_invOper->setPreconditioner(M_prec);
 
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
     printlog(MAGENTA, "[LinearSystemSolver] solve ...", M_data.getVerbose());
 
@@ -65,6 +65,16 @@ solve(const BlockMatrix<MatrixEp>& matrix,
     throw new Exception("This specialization of LinearSystemSolver::solve "
                         "should not be used");
 }
+
+template <>
+void
+LinearSystemSolver<VectorEp, MatrixEp>::
+computeSchurComplementDense(const BlockMatrix<MatrixEp>& matrix)
+{
+    throw new Exception("This specialization of LinearSystemSolver::computeSchurComplementDense "
+                        "should not be used");
+}
+
 
 
 }

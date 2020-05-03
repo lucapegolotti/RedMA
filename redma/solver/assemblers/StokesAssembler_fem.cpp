@@ -303,9 +303,9 @@ getNorm(const unsigned int& fieldIndex)
 template <>
 void
 StokesAssembler<VectorEp, MatrixEp>::
-restrictRBMatrices()
+RBsetup()
 {
-    throw new Exception("restrictRBMatrices not available for fem assembler");
+    throw new Exception("RBsetup not available for fem assembler");
 }
 
 }

@@ -67,7 +67,7 @@ using namespace RedMA;
 //                             data.setValueInt("coupling/nMax", nMax);
 //                             data.setValueInt("time_discretization/use_extrapolation", extr);
 //
-//                             LifeV::LifeChrono chrono;
+//                             Chrono chrono;
 //                             chrono.start();
 //                             SHP(ProblemRB) newProblemRB(new ProblemRB(data, comm));
 //                             double setupTimeRB = chrono.diff();
@@ -136,7 +136,7 @@ generateRBproblems(DataContainer& data, EPETRACOMM comm)
                             data.setValueInt("coupling/nMax", nMax);
                             data.setValueInt("time_discretization/use_extrapolation", extr);
 
-                            LifeV::LifeChrono chrono;
+                            Chrono chrono;
                             chrono.start();
                             SHP(ProblemRB) newProblemRB(new ProblemRB(data, comm));
                             double setupTimeRB = chrono.diff();
@@ -178,7 +178,7 @@ int main(int argc, char **argv)
     std::string inletDirichlet = "strong";
     data.setValueString("bc_conditions/inletdirichlet", inletDirichlet);
     data.finalize();
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
     SHP(ProblemFEM) femProblem(new ProblemFEM(data, comm));
     double setupTimeFEM = chrono.diff();

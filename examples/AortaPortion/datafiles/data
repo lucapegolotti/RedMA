@@ -59,7 +59,8 @@
 	[../]
 	[./online]
 		usemdeim = false
-		monolithicSolve = true
+		monolithicSolve = false
+		recomputeSchur = false
 		[./basis]
 			directory = basis
 			podtol_field0 = 1e-3

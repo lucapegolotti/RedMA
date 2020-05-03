@@ -14,29 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef aPROBLEM_HPP
-#define aPROBLEM_HPP
+#ifndef CHRONO_HPP
+#define CHRONO_HPP
 
-#include <redma/solver/problem/DataContainer.hpp>
+#include <iostream>
+#include <string>
+#include <sstream>
 
 namespace RedMA
 {
 
-class aProblem
+class Chrono
 {
 public:
-    aProblem(const DataContainer& data);
+    void start();
 
-    virtual void setup() = 0;
+    double diff();
 
-    virtual void solve() = 0;
-
-    DataContainer& getData() {return M_data;}
-
-protected:
-    DataContainer  M_data;
+private:
+    std::chrono::high_resolution_clock::time_point M_initialTime;
 };
 
-}
+}  // namespace RedMA
 
-#endif // BLOCKMATRIX_HPP
+#endif  // CHRONO_HPP

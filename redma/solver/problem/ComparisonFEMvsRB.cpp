@@ -15,7 +15,7 @@ void
 ComparisonFEMvsRB::
 runFEM()
 {
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
 
     std::string msg = "Starting chrono for fem problem\n";
@@ -38,7 +38,7 @@ void
 ComparisonFEMvsRB::
 runRB()
 {
-    LifeV::LifeChrono chrono;
+    Chrono chrono;
     chrono.start();
 
     std::string msg = "Starting chrono for rb problem\n";

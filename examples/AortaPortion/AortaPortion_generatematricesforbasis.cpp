@@ -16,11 +16,10 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
-#include <redma/solver/problem/ProblemRB.hpp>
-#include <chrono>
-#include <thread>
+#include <redma/reduced_basis/BasisGenerator.hpp>
 
 using namespace RedMA;
+
 
 int main(int argc, char **argv)
 {
@@ -31,24 +30,13 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    Chrono chrono;
-    chrono.start();
-
-    std::string msg = "Starting chrono\n";
-    printlog(MAGENTA, msg, true);
-
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);
     data.finalize();
 
-    ProblemRB rbProblem(data, comm);
-    rbProblem.solve();
-
-    msg = "Total time =  ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(MAGENTA, msg, true);
+    BasisGenerator generator(data, comm);
+    generator.generateMatricesOnly();
 
     return 0;
 }

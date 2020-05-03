@@ -191,5 +191,12 @@ getJacobianRightHandSide(const double& time,
     return retMat;
 }
 
+template <>
+void
+NavierStokesAssembler<VectorEp, MatrixEp>::
+RBsetup()
+{
+    throw new Exception("RBsetup not available for fem assembler");
+}
 
 }

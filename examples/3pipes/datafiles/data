@@ -59,7 +59,9 @@
 	[../]
 	[./online]
 		usemdeim = false
-		monolithicSolve = true
+		monolithicSolve = false
+		approximatenonlinearterm = 0
+		numbernonlinearterms = 20
 		[./basis]
 			directory = basis
 			podtol_field0 = 1e-3

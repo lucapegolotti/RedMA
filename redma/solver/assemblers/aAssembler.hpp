@@ -114,7 +114,7 @@ public:
 
     virtual BlockVector<FEVECTOR> convertFunctionRBtoFEM(BlockVector<RBVECTOR> rbSolution) const {};
 
-    virtual void restrictRBMatrices() {};
+    virtual void RBsetup() {};
 
 protected:
     DataContainer                        M_data;

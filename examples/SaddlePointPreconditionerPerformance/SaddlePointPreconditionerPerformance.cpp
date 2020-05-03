@@ -31,7 +31,7 @@ void solveProblem(EPETRACOMM comm, std::string innerprec, std::string approxschu
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setInflow(inflow);
-    data.setVerbose(comm->MyPID() == 0);
+    data.setVerbose(false);
 
     data.setValueInt("geometric_structure/maxnumblocks", numblocks);
     data.setValueString("preconditioner/inner", innerprec);
@@ -62,36 +62,22 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    std::vector<std::string> innerPrec(2); innerPrec[0] = "SIMPLE"; innerPrec[1] = "exact";
-    std::vector<std::string> approxSchur(2); approxSchur[0] = "SIMPLE"; approxSchur[1] = "exact";
     std::vector<double> intol(3); intol[0] = 0.5; intol[1] = 0.1; intol[2] = 0.01;
 
-
-    for (auto inp : innerPrec)
+    for (int numblocks = 1; numblocks < 45; )
     {
-        for (auto aps : approxSchur)
+        for (int nmax = 0; nmax < 5; nmax ++)
+            solveProblem(comm,"SIMPLE","SIMPLE",0.5,numblocks,nmax);
+        numblocks = numblocks + 5;
+    }
+
+    for (auto tol : intol)
+    {
+        for (int numblocks = 1; numblocks < 45; )
         {
-            if (!std::strcmp(inp.c_str(),"exact") || !std::strcmp(aps.c_str(),"exact"))
-            {
-                for (auto tol : intol)
-                {
-                    for (int numblocks = 1; numblocks < 40; )
-                    {
-                        for (int nmax = 0; nmax < 3; nmax++)
-                            solveProblem(comm,inp,aps,tol,numblocks,nmax);
-                        numblocks = numblocks + 3;
-                    }
-                }
-            }
-            else
-            {
-                for (int numblocks = 1; numblocks < 40; )
-                {
-                    for (int nmax = 0; nmax < 3; nmax++)
-                        solveProblem(comm,inp,aps,0.5,numblocks,nmax);
-                    numblocks = numblocks + 3;
-                }
-            }
+            for (int nmax = 0; nmax < 5; nmax ++)
+                solveProblem(comm,"exact","exact",0.5,numblocks,nmax);
+            numblocks = numblocks + 5;
         }
     }
 
