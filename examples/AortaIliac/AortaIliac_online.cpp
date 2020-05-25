@@ -18,6 +18,8 @@
 #include <redma/solver/problem/DataContainer.hpp>
 #include <redma/solver/problem/ProblemRB.hpp>
 
+#include <redma/solver/problem/ComparisonFEMvsRB.hpp>
+
 using namespace RedMA;
 
 int main(int argc, char **argv)
@@ -29,22 +31,48 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    Chrono chrono;
-    chrono.start();
-
-    std::string msg = "Starting chrono\n";
-    printlog(MAGENTA, msg, true);
-
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);
     data.finalize();
 
-    ProblemRB rbProblem(data, comm);
-    rbProblem.solve();
+    // GeometryParser gParser(data.getDatafile() , "geometries/tree.xml", comm, true);
+    // comm->Barrier();
+    //
+    // TreeStructure& tree2 = gParser.getTree();
+    // tree2.readMeshes("../../../meshes/");
+    // tree2.traverseAndDeformGeometries();
+    // tree2.dump("output_read/","../../../meshes/");
+
+    ComparisonFEMvsRB comparison(data, comm);
+
+    std::string msg = "Starting chrono\n";
+    printlog(MAGENTA, msg, true);
+    Chrono chrono;
+    chrono.start();
+
+    SHP(ProblemRB) rbProblem(new ProblemRB(data, comm));
+    double setupTimeRB = chrono.diff();
+
+    comparison.setProblemRB(rbProblem);
+
+    comparison.runRB();
+    double runTimeRB = comparison.getTimeRB();
+    comparison.exportRB(4);
+
 
     msg = "Total time =  ";
     msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(MAGENTA, msg, true);
+
+    msg = "Setup time =  ";
+    msg += std::to_string(setupTimeRB);
+    msg += " seconds\n";
+    printlog(MAGENTA, msg, true);
+
+    msg = "Run time =  ";
+    msg += std::to_string(runTimeRB);
     msg += " seconds\n";
     printlog(MAGENTA, msg, true);
 

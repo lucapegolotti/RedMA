@@ -211,7 +211,12 @@ print()
             msg +=  "\tNOT using primal supremizers\n";
 
         if (M_data("rb/online/basis/usedualsupremizers", 0))
+        {
             msg +=  "\tUsing dual supremizers\n";
+            int nDualSupremizers = M_data("rb/online/basis/numberdualsupremizers", -1);
+            if (nDualSupremizers != -1)
+                msg +=  "\tUsing " + std::to_string(nDualSupremizers) + " dual supremizers\n";
+        }
         else
             msg +=  "\tNOT using dual supremizers\n";
 
@@ -507,8 +512,16 @@ getEnrichedBasis(const unsigned int& index)
     }
     if (M_data("rb/online/basis/usedualsupremizers", 0))
     {
-        for (auto dual : M_dualSupremizers[index])
-            retVectors.push_back(dual);
+        int nDualSupremizers = M_data("rb/online/basis/numberdualsupremizers", -1);
+        if (nDualSupremizers == -1)
+            for (auto dual : M_dualSupremizers[index])
+                retVectors.push_back(dual);
+        else
+            for (unsigned int i = 0; i < nDualSupremizers; i++)
+            {
+                if (i < M_dualSupremizers[index].size())
+                    retVectors.push_back(M_dualSupremizers[index][i]);
+            }
     }
     return retVectors;
 }

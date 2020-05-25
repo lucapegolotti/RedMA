@@ -127,15 +127,15 @@
 	type       = hdf5
 	multimesh  = false
 	start      = 0
-	save_every = 1
+	save_every = -1
 	filename   = tube
 	exportnorms = true
 [../]
 
 [coupling]
 	type                = chebyshev
-	nMax                = 6
+	nMax                = 5
 	stab_coefficient	= 1e-16
 	check_stabterm		= true
-	nfcts_weak_dirichlet = 6
+	nfcts_weak_dirichlet = 5
 [../]

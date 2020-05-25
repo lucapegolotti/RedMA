@@ -26,10 +26,10 @@ generateDatafiles(EPETRACOMM comm)
     std::vector<std::pair<std::string, SHP(DataContainer)>> retVec;
 
     std::vector<double> podtol_field0;
-    //podtol_field0.push_back(2e-3);
+    podtol_field0.push_back(2e-3);
     podtol_field0.push_back(1e-3);
     podtol_field0.push_back(5e-4);
-    podtol_field0.push_back(1e-4);
+    podtol_field0.push_back(1.5e-4);
 
     std::vector<double> podtol_field1;
     podtol_field1.push_back(1e-5);
@@ -61,7 +61,7 @@ generateDatafiles(EPETRACOMM comm)
                         {
                             SHP(DataContainer) data(new DataContainer());
                             data->setDatafile("datafiles/data");
-                            data->setVerbose(comm->MyPID() == 0);
+                            data->setVerbose(false);
                             data->finalize();
 
                             data->setValueDouble("rb/online/basis/podtol_field0", pdt0);
@@ -109,7 +109,7 @@ generateDatafiles(EPETRACOMM comm)
     {
         SHP(DataContainer) data(new DataContainer());
         data->setDatafile("datafiles/data");
-        data->setVerbose(comm->MyPID() == 0);
+        data->setVerbose(false);
         data->finalize();
 
         data->setValueDouble("rb/online/basis/podtol_field0", 1e-3);
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
 
     DataContainer data;
     data.setDatafile("datafiles/data");
-    data.setVerbose(comm->MyPID() == 0);
+    data.setVerbose(false);
     std::string inletDirichlet = "weak";
     data.setValueString("bc_conditions/inletdirichlet", inletDirichlet);
     data.finalize();
@@ -222,11 +222,12 @@ int main(int argc, char **argv)
             double runTimeRB = comparison.getTimeRB();
 
             outdir = curDir + "solution/";
+            rbProblem->getData().setValueString("exporter/outdir", outdir);
             data.setValueString("exporter/outdir", outdir);
             comparison.exportRB(4);
 
             outdir = curDir + "error/";
-            rbProblem->getData().setValueString("exporter/outdir", outdir);
+            femProblem->getData().setValueString("exporter/outdir", outdir);
             comparison.exportError();
 
             std::ofstream outfile;
