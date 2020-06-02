@@ -237,7 +237,7 @@ exportSolution(const double& t, const BlockVector<VectorEp>& sol)
 template <>
 MatrixEp
 StokesAssembler<VectorEp, MatrixEp>::
-getNorm(const unsigned int& fieldIndex)
+getNorm(const unsigned int& fieldIndex, bool bcs)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -245,8 +245,8 @@ getNorm(const unsigned int& fieldIndex)
     MatrixEp retMat;
     if (fieldIndex == 0)
     {
-        if (!M_massVelocity.data())
-        {
+        // if (!M_massVelocity.data())
+        // {
             SHP(MATRIXEPETRA) Nu(new MATRIXEPETRA(M_velocityFESpace->map()));
 
             integrate(elements(M_velocityFESpaceETA->mesh()),
@@ -259,26 +259,30 @@ getNorm(const unsigned int& fieldIndex)
 
             Nu->globalAssemble();
 
-            BlockMatrix<MatrixEp> normWrap;
-            normWrap.resize(1,1);
-            normWrap.block(0,0).data() = Nu;
+            if (bcs)
+            {
+                std::cout << "entering here" << std::endl << std::flush;
+                BlockMatrix<MatrixEp> normWrap;
+                normWrap.resize(1,1);
+                normWrap.block(0,0).data() = Nu;
 
-            // note. Applying bcs does not change the norm if Dirichlet bcs are
-            // homogeneous (=> lifting) or imposed weakly. Here we impose bcs
-            // in order to have the correct conditions in the computation of the
-            // supremizers (we have to solve a linear system..)
-            apply0DirichletBCsMatrix(normWrap, 1.0);
+                // note. Applying bcs does not change the norm if Dirichlet bcs are
+                // homogeneous (=> lifting) or imposed weakly. Here we impose bcs
+                // in order to have the correct conditions in the computation of the
+                // supremizers (we have to solve a linear system..)
+                apply0DirichletBCsMatrix(normWrap, 1.0);
+            }
 
             M_massVelocity.data() = Nu;
             retMat.data() = Nu;
-        }
-        else
-            retMat = M_massVelocity;
+        // }
+        // else
+        //     retMat = M_massVelocity;
     }
     else
     {
-        if (!M_massPressure.data())
-        {
+        // if (!M_massPressure.data())
+        // {
             SHP(MATRIXEPETRA) Np(new MATRIXEPETRA(M_pressureFESpace->map()));
 
             integrate(elements(M_pressureFESpaceETA->mesh()),
@@ -292,9 +296,9 @@ getNorm(const unsigned int& fieldIndex)
 
             M_massPressure.data() = Np;
             retMat.data() = Np;
-        }
-        else
-            retMat = M_massPressure;
+        // }
+        // else
+        //     retMat = M_massPressure;
     }
 
     return retMat;

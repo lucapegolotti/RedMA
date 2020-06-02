@@ -153,7 +153,7 @@ getLifting(const double& time) const
 template <>
 MatrixEp
 StokesAssembler<DenseVector, DenseMatrix>::
-getNorm(const unsigned int& fieldIndex)
+getNorm(const unsigned int& fieldIndex, bool bcs)
 {
     MatrixEp retMat;
     throw new Exception("Norm matrix not implemented for RB!");

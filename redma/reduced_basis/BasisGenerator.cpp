@@ -48,11 +48,16 @@ generateMatricesOnly()
         boost::filesystem::create_directory(outdir + "/" + meshas.first);
 
         unsigned int nComponents = meshas.second.first->getNumComponents();
+
+        bool bcs = true;
         for (unsigned int i = 0; i < nComponents; i++)
-        {
-            meshas.second.first->getNorm(i).dump(outdir + "/" + meshas.first + "/norm" +
+            meshas.second.first->getNorm(i,bcs).dump(outdir + "/" + meshas.first + "/norm" +
                                  std::to_string(i));
-        }
+
+        bcs = false;
+        for (unsigned int i = 0; i < nComponents; i++)
+            meshas.second.first->getNorm(i,bcs).dump(outdir + "/" + meshas.first + "/norm" +
+                                 std::to_string(i) + "_nobcs");
     }
 
     // dump matrices for supremizers

@@ -25,16 +25,25 @@ generateDatafiles(EPETRACOMM comm)
 {
     std::vector<std::pair<std::string, SHP(DataContainer)>> retVec;
 
-    #if 0
+    #if 1
     std::vector<double> podtol_field0;
-    podtol_field0.push_back(2e-3);
+    // podtol_field0.push_back(2e-3);
+    // podtol_field0.push_back(1e-3);
+    // podtol_field0.push_back(5e-4);
+    // podtol_field0.push_back(2.5e-4);
+    // podtol_field0.push_back(4e-3);
+    // podtol_field0.push_back(8e-3);
+    // podtol_field0.push_back(1.6e-2);
+    // podtol_field0.push_back(2e-3);
+    podtol_field0.push_back(1e-4);
+    podtol_field0.push_back(1e-4 * 3.162277660168380);
     podtol_field0.push_back(1e-3);
-    podtol_field0.push_back(5e-4);
-    podtol_field0.push_back(2.5e-4);
+    podtol_field0.push_back(1e-3 * 3.162277660168380);
+    podtol_field0.push_back(1e-2);
 
     std::vector<double> podtol_field1;
     podtol_field1.push_back(1e-5);
-    // podtol_field1.push_back(1e-4);
+    podtol_field1.push_back(1e-4);
 
     std::vector<int> usePrimalSupremizers;
     usePrimalSupremizers.push_back(1);
@@ -103,9 +112,9 @@ generateDatafiles(EPETRACOMM comm)
     std::vector<int> nnterms;
     // nnterms.push_back(10);
     // nnterms.push_back(20);
-    nnterms.push_back(40);
-    nnterms.push_back(80);
-    nnterms.push_back(120);
+    // nnterms.push_back(40);
+    // nnterms.push_back(80);
+    // nnterms.push_back(120);
 
     for (auto nnt : nnterms)
     {

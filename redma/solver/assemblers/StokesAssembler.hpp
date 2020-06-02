@@ -137,7 +137,7 @@ public:
     virtual BlockMatrix<InMatrixType> assembleMatrix(const unsigned int& index,
                                                      BlockMDEIMStructure* structure = nullptr) override;
 
-    virtual MatrixEp getNorm(const unsigned int& fieldIndex) override;
+    virtual MatrixEp getNorm(const unsigned int& fieldIndex, bool bcs = true) override;
 
     virtual InMatrixType getConstraintMatrix() override;
 
