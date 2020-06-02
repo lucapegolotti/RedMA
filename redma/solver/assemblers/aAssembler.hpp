@@ -100,7 +100,7 @@ public:
     virtual BlockMatrix<InMatrixType> assembleMatrix(const unsigned int& index,
                                                      BlockMDEIMStructure* structure = nullptr) {return BlockMatrix<InMatrixType>();}
 
-    virtual MatrixEp getNorm(const unsigned int& fieldIndex) {return MatrixEp();}
+    virtual MatrixEp getNorm(const unsigned int& fieldIndex, bool bcs = true) {return MatrixEp();}
 
     virtual InMatrixType getConstraintMatrix() {return InMatrixType();}
 

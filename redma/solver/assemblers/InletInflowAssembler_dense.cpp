@@ -19,13 +19,13 @@ addContributionRhs(const double& time,
     rhs.block(childID) -= this->M_childBT * sol.block(nPrimalBlocks + interfaceID);
 
     rhs.block(nPrimalBlocks + interfaceID) -= this->M_childB * sol.block(childID);
-    // BlockVector<VectorEp> lifting = assemblerChild->getFELifting(time);
-    // auto fecontribution = this->M_childBEp * lifting;
-    // auto projection = assemblerChild->getRBBases()->projectOnLagrangeSpace(fecontribution);
-    // rhs.block(nPrimalBlocks + interfaceID) += projection;
     BlockVector<VectorEp> lifting = assemblerChild->getFELifting(time);
-    BlockVector<DenseVector> liftingProjected = assemblerChild->getRBBases()->leftProject(lifting);
-    rhs.block(nPrimalBlocks + interfaceID) += this->M_childB * liftingProjected;
+    auto fecontribution = this->M_childBEp * lifting;
+    auto projection = assemblerChild->getRBBases()->projectOnLagrangeSpace(fecontribution);
+    rhs.block(nPrimalBlocks + interfaceID) += projection;
+    // BlockVector<VectorEp> lifting = assemblerChild->getFELifting(time);
+    // BlockVector<DenseVector> liftingProjected = assemblerChild->getRBBases()->leftProject(lifting);
+    // rhs.block(nPrimalBlocks + interfaceID) += this->M_childB * liftingProjected;
 }
 //
 // template <class InVectorType, class InMatrixType>

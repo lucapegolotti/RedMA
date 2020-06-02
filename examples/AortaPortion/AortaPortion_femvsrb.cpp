@@ -20,99 +20,39 @@
 
 using namespace RedMA;
 
-// std::vector<std::pair<std::string, SHP(ProblemRB)>>
-// generateRBproblems(DataContainer& data, EPETRACOMM comm)
-// {
-//     std::vector<std::pair<std::string, SHP(ProblemRB)>> retVec;
-//
-//     std::vector<double> podtol_field0;
-//     podtol_field0.push_back(2e-3);
-//     podtol_field0.push_back(1e-3);
-//     podtol_field0.push_back(5e-4);
-//     podtol_field0.push_back(1e-4);
-//
-//     std::vector<double> podtol_field1;
-//     podtol_field1.push_back(1e-5);
-//     podtol_field1.push_back(1e-4);
-//
-//     std::vector<int> usePrimalSupremizers;
-//     usePrimalSupremizers.push_back(1);
-//
-//     std::vector<int> useDualSupremizers;
-//     useDualSupremizers.push_back(1);
-//
-//     std::vector<int> couplingnMax;
-//     couplingnMax.push_back(6);
-//
-//     std::vector<int> useExtrapolation;
-//     useExtrapolation.push_back(1);
-//     useExtrapolation.push_back(0);
-//
-//     for (auto nMax : couplingnMax)
-//     {
-//         for (auto extr : useExtrapolation)
-//         {
-//             for (auto dusup : useDualSupremizers)
-//             {
-//                 for (auto prsup : usePrimalSupremizers)
-//                 {
-//                     for (auto pdt1 : podtol_field1)
-//                     {
-//                         for (auto pdt0 : podtol_field0)
-//                         {
-//                             data.setValueDouble("rb/online/basis/podtol_field0", pdt0);
-//                             data.setValueDouble("rb/online/basis/podtol_field1", pdt1);
-//                             data.setValueInt("rb/online/basis/useprimalsupremizers", prsup);
-//                             data.setValueInt("rb/online/basis/usedualsupremizers", dusup);
-//                             data.setValueInt("coupling/nMax", nMax);
-//                             data.setValueInt("time_discretization/use_extrapolation", extr);
-//
-//                             Chrono chrono;
-//                             chrono.start();
-//                             SHP(ProblemRB) newProblemRB(new ProblemRB(data, comm));
-//                             double setupTimeRB = chrono.diff();
-//
-//                             std::string description;
-//                             description = "podtol_field0," + std::to_string(pdt0) + "\n";
-//                             description += "podtol_field1," + std::to_string(pdt1) + "\n";
-//                             description += "useprimalsupremizers," + std::to_string(prsup) + "\n";
-//                             description += "usedualsupremizers," + std::to_string(dusup) + "\n";
-//                             description += "couplingnMax," + std::to_string(nMax) + "\n";
-//                             description += "useextrapolation," + std::to_string(extr) + "\n";
-//                             description += "rbSetupTime," + std::to_string(setupTimeRB) + "\n";
-//                             std::pair<std::string,SHP(ProblemRB)> newPair;
-//                             newPair.first = description;
-//                             newPair.second = newProblemRB;
-//                             retVec.push_back(newPair);
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//
-//     return retVec;
-// }
-
-std::vector<std::pair<std::string, SHP(ProblemRB)>>
-generateRBproblems(DataContainer& data, EPETRACOMM comm)
+std::vector<std::pair<std::string, SHP(DataContainer)>>
+generateDatafiles(EPETRACOMM comm)
 {
-    std::vector<std::pair<std::string, SHP(ProblemRB)>> retVec;
+    std::vector<std::pair<std::string, SHP(DataContainer)>> retVec;
 
+    #if 1
     std::vector<double> podtol_field0;
+    // podtol_field0.push_back(2e-3);
+    // podtol_field0.push_back(1e-3);
+    // podtol_field0.push_back(5e-4);
+    // podtol_field0.push_back(2.5e-4);
+    // podtol_field0.push_back(4e-3);
+    // podtol_field0.push_back(8e-3);
+    // podtol_field0.push_back(1.6e-2);
+    // podtol_field0.push_back(2e-3);
+    podtol_field0.push_back(1e-4);
+    podtol_field0.push_back(1e-4 * 3.162277660168380);
     podtol_field0.push_back(1e-3);
+    podtol_field0.push_back(1e-3 * 3.162277660168380);
+    podtol_field0.push_back(1e-2);
 
     std::vector<double> podtol_field1;
     podtol_field1.push_back(1e-5);
+    podtol_field1.push_back(1e-4);
 
     std::vector<int> usePrimalSupremizers;
     usePrimalSupremizers.push_back(1);
 
     std::vector<int> useDualSupremizers;
-    useDualSupremizers.push_back(0);
+    useDualSupremizers.push_back(1);
 
     std::vector<int> couplingnMax;
-    couplingnMax.push_back(6);
+    couplingnMax.push_back(5);
 
     std::vector<int> useExtrapolation;
     useExtrapolation.push_back(0);
@@ -129,17 +69,23 @@ generateRBproblems(DataContainer& data, EPETRACOMM comm)
                     {
                         for (auto pdt0 : podtol_field0)
                         {
-                            data.setValueDouble("rb/online/basis/podtol_field0", pdt0);
-                            data.setValueDouble("rb/online/basis/podtol_field1", pdt1);
-                            data.setValueInt("rb/online/basis/useprimalsupremizers", prsup);
-                            data.setValueInt("rb/online/basis/usedualsupremizers", dusup);
-                            data.setValueInt("coupling/nMax", nMax);
-                            data.setValueInt("time_discretization/use_extrapolation", extr);
+                            SHP(DataContainer) data(new DataContainer());
+                            data->setDatafile("datafiles/data");
+                            data->setVerbose(false);
+                            data->finalize();
 
-                            Chrono chrono;
-                            chrono.start();
-                            SHP(ProblemRB) newProblemRB(new ProblemRB(data, comm));
-                            double setupTimeRB = chrono.diff();
+                            data->setValueDouble("rb/online/basis/podtol_field0", pdt0);
+                            data->setValueDouble("rb/online/basis/podtol_field1", pdt1);
+                            data->setValueInt("rb/online/basis/useprimalsupremizers", prsup);
+                            data->setValueInt("rb/online/basis/usedualsupremizers", dusup);
+                            data->setValueInt("coupling/nMax", nMax);
+                            data->setValueInt("time_discretization/use_extrapolation", extr);
+                            data->setValueInt("rb/online/approximatenonlinearterm", 0);
+
+                            // Chrono chrono;
+                            // chrono.start();
+                            // SHP(ProblemRB) newProblemRB(new ProblemRB(data, comm));
+                            // double setupTimeRB = chrono.diff();
 
                             std::string description;
                             description = "podtol_field0," + std::to_string(pdt0) + "\n";
@@ -148,16 +94,62 @@ generateRBproblems(DataContainer& data, EPETRACOMM comm)
                             description += "usedualsupremizers," + std::to_string(dusup) + "\n";
                             description += "couplingnMax," + std::to_string(nMax) + "\n";
                             description += "useextrapolation," + std::to_string(extr) + "\n";
-                            description += "rbSetupTime," + std::to_string(setupTimeRB) + "\n";
-                            std::pair<std::string,SHP(ProblemRB)> newPair;
+                            description += "approximatenonlinearterm,0\n";
+                            description += "numbernonlinearterms,0\n";
+                            std::pair<std::string,SHP(DataContainer)> newPair;
                             newPair.first = description;
-                            newPair.second = newProblemRB;
+                            newPair.second = data;
                             retVec.push_back(newPair);
                         }
                     }
                 }
             }
         }
+    }
+
+    #endif
+
+    std::vector<int> nnterms;
+    // nnterms.push_back(10);
+    // nnterms.push_back(20);
+    // nnterms.push_back(40);
+    // nnterms.push_back(80);
+    // nnterms.push_back(120);
+
+    for (auto nnt : nnterms)
+    {
+        SHP(DataContainer) data(new DataContainer());
+        data->setDatafile("datafiles/data");
+        data->setVerbose(false);
+        data->finalize();
+
+        data->setValueDouble("rb/online/basis/podtol_field0", 1e-3);
+        data->setValueDouble("rb/online/basis/podtol_field1", 1e-5);
+        data->setValueInt("rb/online/basis/useprimalsupremizers", 1);
+        data->setValueInt("rb/online/basis/usedualsupremizers", 1);
+        data->setValueInt("coupling/nMax", 5);
+        data->setValueInt("time_discretization/use_extrapolation", 0);
+        data->setValueInt("rb/online/approximatenonlinearterm", 1);
+        data->setValueInt("rb/online/numbernonlinearterms", nnt);
+
+        // Chrono chrono;
+        // chrono.start();
+        // SHP(ProblemRB) newProblemRB(new ProblemRB(data, comm));
+        // double setupTimeRB = chrono.diff();
+
+        std::string description;
+        description = "podtol_field0," + std::to_string(1e-3) + "\n";
+        description += "podtol_field1," + std::to_string(1e-5) + "\n";
+        description += "useprimalsupremizers," + std::to_string(1) + "\n";
+        description += "usedualsupremizers," + std::to_string(1) + "\n";
+        description += "couplingnMax," + std::to_string(5) + "\n";
+        description += "useextrapolation," + std::to_string(0) + "\n";
+        description += "approximatenonlinearterm,1\n";
+        description += "numbernonlinearterms," + std::to_string(nnt) + "\n";
+        std::pair<std::string,SHP(DataContainer)> newPair;
+        newPair.first = description;
+        newPair.second = data;
+        retVec.push_back(newPair);
     }
 
     return retVec;
@@ -174,8 +166,8 @@ int main(int argc, char **argv)
 
     DataContainer data;
     data.setDatafile("datafiles/data");
-    data.setVerbose(comm->MyPID() == 0);
-    std::string inletDirichlet = "strong";
+    data.setVerbose(false);
+    std::string inletDirichlet = "weak";
     data.setValueString("bc_conditions/inletdirichlet", inletDirichlet);
     data.finalize();
     Chrono chrono;
@@ -219,38 +211,41 @@ int main(int argc, char **argv)
         outfile.close();
     }
 
-    // reset weak bcs for reduced basis
-    inletDirichlet = "weak";
-    data.setValueString("bc_conditions/inletdirichlet", inletDirichlet);
-
-    std::vector<std::pair<std::string, SHP(ProblemRB)>> rbProblems = generateRBproblems(data, comm);
+    std::vector<std::pair<std::string, SHP(DataContainer)>> datacs = generateDatafiles(comm);
 
     boost::filesystem::create_directory("rb_solutions");
 
     unsigned int index = 0;
-    for (auto rbProblem : rbProblems)
+    for (auto curdata : datacs)
     {
         std::string curDir = "rb_solutions/sol" + std::to_string(index) + "/";
         boost::filesystem::create_directory(curDir);
 
-        comparison.setProblemRB(rbProblem.second);
+        Chrono chrono;
+        chrono.start();
+        SHP(ProblemRB) rbProblem(new ProblemRB(*curdata.second, comm));
+        double setupTimeRB = chrono.diff();
+
+        comparison.setProblemRB(rbProblem);
         try
         {
             comparison.runRB();
             double runTimeRB = comparison.getTimeRB();
 
             outdir = curDir + "solution/";
+            rbProblem->getData().setValueString("exporter/outdir", outdir);
             data.setValueString("exporter/outdir", outdir);
-            comparison.exportRB(4);
+            comparison.exportRB(1);
 
             outdir = curDir + "error/";
-            data.setValueString("exporter/outdir", outdir);
+            femProblem->getData().setValueString("exporter/outdir", outdir);
             comparison.exportError();
 
             std::ofstream outfile;
 
             outfile.open(curDir + "simulationData.txt", std::ios_base::app);
-            outfile << rbProblem.first;
+            outfile << curdata.first;
+            outfile << "rbSetupTime" << setupTimeRB << "\n";
             outfile << "rbRunTime," << runTimeRB << "\n";
             outfile << "femSetupTime," << setupTimeFEM << "\n";
             outfile << "femRunTime," << runTimeFEM << "\n";
