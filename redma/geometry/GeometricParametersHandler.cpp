@@ -75,11 +75,20 @@ void
 GeometricParameter::
 randomSampleAroundOriginalValue(const double& bounds)
 {
-    static std::default_random_engine e;
-    e.seed(std::chrono::system_clock::now().time_since_epoch().count());
-    static std::uniform_real_distribution<> dis(0, 1);
-    float randomNumber = dis(e);
 
+    using namespace std;
+    // static std::default_random_engine e;
+    // static std::uniform_real_distribution<> dis(0, 1);
+    // static std::default_random_engine e;
+    // e.seed(std::chrono::system_clock::now().time_since_epoch().count());
+    // static std::uniform_real_distribution<> dis(0, 1);
+    // float randomNumber = dis(e);
+
+    // float randomNumber = dis(e);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    static std::uniform_real_distribution<> dis(0, 1);
+    float randomNumber = dis(gen);
     double minvalue = M_value - bounds;
     double maxvalue = M_value + bounds;
 

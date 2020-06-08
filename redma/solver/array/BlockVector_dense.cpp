@@ -39,23 +39,27 @@ BlockVector<DenseVector>
 BlockVector<BlockVector<DenseVector>>::
 collapse() const
 {
-
+    std::cout << "collapse()" << std::endl << std::flush;
     std::vector<unsigned int> nrowsout;
     std::vector<unsigned int> nrows;
 
     unsigned int totalrows = 0;
     for (unsigned int i = 0; i < M_nRows; i++)
     {
+        std::cout << "-" << std::endl << std::flush;
         unsigned int totrows = 0;
         for (unsigned int ii = 0; ii < block(i).nRows(); ii++)
         {
+            std::cout << "-." << std::endl << std::flush;
+            std::cout << "block(i).nRows() = " << block(i).nRows() << std::endl << std::flush;
             totrows += block(i).block(ii).getNumRows();
+            std::cout << "-.." << std::endl << std::flush;
             nrows.push_back(block(i).block(ii).getNumRows());
         }
-        nrowsout[i] = totrows;
+        nrowsout.push_back(totrows);
         totalrows += totrows;
     }
-
+    std::cout << "1" << std::endl << std::flush;
     std::shared_ptr<DENSEVECTOR> vector(new DENSEVECTOR(totalrows));
 
     unsigned int offset = 0;
@@ -70,10 +74,10 @@ collapse() const
             offset += block(i).block(ii).getNumRows();
         }
     }
-
+    std::cout << "2" << std::endl << std::flush;
     BlockVector<DenseVector> retVector(1);
     retVector.block(0).data() = vector;
-
+    std::cout << "========" << std::endl << std::flush;
     return retVector;
 }
 

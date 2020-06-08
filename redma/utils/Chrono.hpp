@@ -17,6 +17,7 @@
 #ifndef CHRONO_HPP
 #define CHRONO_HPP
 
+#include <chrono>
 #include <iostream>
 #include <string>
 #include <sstream>

@@ -51,15 +51,15 @@ void
 StokesAssembler<InVectorType, InMatrixType>::
 initializePythonStructures()
 {
-    setenv("PYTHONPATH",".",1);
+    // setenv("PYTHONPATH",".",1);
 
-    Py_Initialize();
-    PyObject* pName = PyUnicode_DecodeFSDefault("test");
+    // Py_Initialize();
+    // PyObject* pName = PyUnicode_DecodeFSDefault("test");
 
-    M_pModule = PyImport_Import(pName);
-    Py_DECREF(pName);
+    // M_pModule = PyImport_Import(pName);
+    // Py_DECREF(pName);
 
-    M_pFunc = PyObject_GetAttrString(M_pModule, "evaluate_model");
+    // M_pFunc = PyObject_GetAttrString(M_pModule, "evaluate_model");
 }
 
 template <class InVectorType, class InMatrixType>
