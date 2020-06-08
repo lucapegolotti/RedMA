@@ -10,7 +10,7 @@ import scipy.sparse as sparse
 from sksparse.cholmod import cholesky
 import sys
 
-mesh_name = 'tube_1x1_h0.08' # sys.argv[1]
+mesh_name = sys.argv[1] # 'tube_1x1_h0.08'
 out_dir = 'basis/';
 matrix_dir = 'matricesForOffline/';
 # generate basis for velocity
@@ -112,16 +112,21 @@ constraint_matrix[dir_indices] = 0
 rhs = constraint_matrix * P
 supr_primal = linalg.spsolve(norm_velocity, rhs)
 
+minnorm = 1e16
 for i in range(supr_primal.shape[1]):
     print('Normalizing primal supremizer '+str(i),flush=True)
-    # normalize
-    for col in U.T:
-        supr_primal[:,i] = supr_primal[:,i] - mydot(supr_primal[:,i], col, norm_velocity_nobcs)/mynorm(col,norm_velocity_nobcs) * col;
+    # # normalize
+    # for col in U.T:
+    #     supr_primal[:,i] = supr_primal[:,i] - mydot(supr_primal[:,i], col, norm_velocity_nobcs)/mynorm(col,norm_velocity_nobcs) * col;
 
     for j in range(i):
         supr_primal[:,i] = supr_primal[:,i] - mydot(supr_primal[:,i],supr_primal[:,j], norm_velocity_nobcs)/mynorm(supr_primal[:,j],norm_velocity_nobcs) * supr_primal[:,j];
 
-    supr_primal[:,i] = supr_primal[:,i] / mynorm(supr_primal[:,i], norm_velocity_nobcs);
+    nnorm = mynorm(supr_primal[:,i], norm_velocity_nobcs)
+    minnorm = min(nnorm, minnorm)
+    print('\tnorm supremizers = ' + str(nnorm))
+    supr_primal[:,i] = supr_primal[:,i] / nnorm
+print('Min norm = ' + str(minnorm))
 
 np.savetxt(out_dir+'/'+mesh_name+'/primal_supremizers_0_1.basis', supr_primal.T, fmt='%.18e', delimiter=',')
 
@@ -142,18 +147,23 @@ global_constraint[dir_indices] = 0
 
 supr_dual = linalg.spsolve(norm_velocity, global_constraint).toarray()
 supr_dual = supr_dual[:,:126];
+minnorm = 1e16
 for i in range(supr_dual.shape[1]):
     print('Normalizing dual supremizer '+str(i),flush=True)
 
-    for col in U.T:
-        supr_dual[:,i] = supr_dual[:,i] - mydot(supr_dual[:,i],col, norm_velocity_nobcs) / mynorm(col,norm_velocity_nobcs) * col;
-
-    for col in supr_primal.T:
-        supr_dual[:,i] = supr_dual[:,i] - mydot(supr_dual[:,i],col, norm_velocity_nobcs)/mynorm(col,norm_velocity_nobcs) * col;
+    # for col in U.T:
+    #     supr_dual[:,i] = supr_dual[:,i] - mydot(supr_dual[:,i],col, norm_velocity_nobcs) / mynorm(col,norm_velocity_nobcs) * col;
+    #
+    # for col in supr_primal.T:
+    #     supr_dual[:,i] = supr_dual[:,i] - mydot(supr_dual[:,i],col, norm_velocity_nobcs)/mynorm(col,norm_velocity_nobcs) * col;
 
     for j in range(i):
         supr_dual[:,i] = supr_dual[:,i] - mydot(supr_dual[:,i],supr_dual[:,j], norm_velocity_nobcs)/mynorm(supr_dual[:,j],norm_velocity_nobcs) * supr_dual[:,j];
 
-    supr_dual[:,i] = supr_dual[:,i] / mynorm(supr_dual[:,i], norm_velocity_nobcs);
+    nnorm = mynorm(supr_dual[:,i], norm_velocity_nobcs)
+    minnorm = min(nnorm, minnorm)
+    print('\tnorm supremizers = ', str(nnorm))
+    supr_dual[:,i] = supr_dual[:,i] / nnorm;
+print('Min norm = ' + str(minnorm))
 
 np.savetxt(out_dir+'/'+mesh_name+'/dual_supremizers0.basis', supr_dual.T, fmt='%.18e', delimiter=',')

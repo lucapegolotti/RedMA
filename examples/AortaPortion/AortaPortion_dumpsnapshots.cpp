@@ -45,15 +45,17 @@ int main(int argc, char **argv)
     // we loop over the folders with the parameters
     while (exists(paramdir + std::to_string(i)))
     {
-        GeometryParser gParser(data.getDatafile(),
-                               paramdir + std::to_string(i) + "/tree.xml", comm, true);
-        comm->Barrier();
+        if (exists(paramdir + std::to_string(i) + "/tree.xml"))
+        {
+            GeometryParser gParser(data.getDatafile(),
+                                   paramdir + std::to_string(i) + "/tree.xml", comm, true);
+            comm->Barrier();
 
-        TreeStructure& tree = gParser.getTree();
-        tree.readMeshes("../../../meshes/");
-        tree.traverseAndDeformGeometries();
-        tree.dump(paramdir + std::to_string(i) + "/","../../../meshes/");
-
+            TreeStructure& tree = gParser.getTree();
+            tree.readMeshes("../../../meshes/");
+            tree.traverseAndDeformGeometries();
+            tree.dump(paramdir + std::to_string(i) + "/","../../../meshes/");
+        }
         i++;
     }
 
