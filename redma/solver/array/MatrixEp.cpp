@@ -80,9 +80,11 @@ MatrixEp(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors)
 
     Epetra_Map epetraMap = columnVectors[0]->epetraMap();
     unsigned int numElements = epetraMap.NumMyElements();
+    std::cout << "===========" << std::endl << std::flush;
 
     for (unsigned int i = 0; i < N; i++)
     {
+        std::cout << "columnVector " << i << " = " << columnVectors[i]->norm2() << std::endl << std::flush;
         VECTOREPETRA columnVectorUnique(*columnVectors[i], LifeV::Unique);
         for (unsigned int dof = 0; dof < numElements; dof++)
         {
