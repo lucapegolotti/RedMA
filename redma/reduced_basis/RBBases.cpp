@@ -108,7 +108,7 @@ setFESpace(SHP(FESPACE) fespace, const unsigned int& indexbasis)
 void
 RBBases::
 addVectorsFromFile(std::string filename, std::vector<SHP(VECTOREPETRA)>& vectors,
-                   const unsigned int& indexField)
+                   const unsigned int& indexField, int Nmax)
 {
     using namespace boost::filesystem;
 
@@ -117,8 +117,9 @@ addVectorsFromFile(std::string filename, std::vector<SHP(VECTOREPETRA)>& vectors
         std::ifstream infile;
         infile.open(filename);
 
+        unsigned int count = 0;
         std::string line;
-        while (std::getline(infile,line))
+        while (std::getline(infile,line) && (Nmax < 0 || count < Nmax))
         {
             SHP(VECTOREPETRA) newVector(new VECTOREPETRA(M_fespaces[indexField]->map()));
 
@@ -134,6 +135,7 @@ addVectorsFromFile(std::string filename, std::vector<SHP(VECTOREPETRA)>& vectors
                 throw new Exception("Stored basis length does not match fespace dimension!");
 
             vectors.push_back(newVector);
+            count++;
         }
         infile.close();
     }
@@ -146,7 +148,7 @@ loadBases()
 
     // load bases
     for (unsigned int i = 0; i < M_numFields; i++)
-        addVectorsFromFile(M_path + "/field" + std::to_string(i) + ".basis", M_bases[i], i);
+        addVectorsFromFile(M_path + "/field" + std::to_string(i) + ".basis", M_bases[i], i, M_NsOnline[i]);
 
     // load primal supremizers
     for (unsigned int i = 0; i < M_numFields; i++)

@@ -119,7 +119,8 @@ public:
 private:
     void addVectorsFromFile(std::string filename,
                             std::vector<SHP(VECTOREPETRA)>& vectors,
-                            const unsigned int& indexField);
+                            const unsigned int& indexField,
+                            int Nmax = -1);
 
     unsigned int                                    M_numFields;
     DataContainer                                   M_data;

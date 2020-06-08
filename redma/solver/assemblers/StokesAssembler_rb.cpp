@@ -265,6 +265,11 @@ RBsetup()
         M_divergence.block(0,1) = M_bases->matrixProject(fullDivergence.block(0,1), 0, 1);
         M_divergence.block(1,0) = M_bases->matrixProject(fullDivergence.block(1,0), 1, 0);
 
+        std::cout << "mass = " << M_mass.block(0,0).data()->NormInf() << std::endl << std::flush;
+        std::cout << "stiffness = " << M_stiffness.block(0,0).data()->NormInf() << std::endl << std::flush;
+        std::cout << "divergence1 = " << M_divergence.block(0,1).data()->NormInf() << std::endl << std::flush;
+        std::cout << "divergence2 = " << M_divergence.block(1,0).data()->NormInf() << std::endl << std::flush;
+
         std::string msg = "done, in ";
         msg += std::to_string(chrono.diff());
         msg += " seconds\n";
