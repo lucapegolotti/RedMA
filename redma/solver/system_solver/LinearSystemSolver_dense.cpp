@@ -87,7 +87,18 @@ computeSchurComplementDense(const BM& matrix)
                     // M_solversAs[i]->SetMatrix(*collapsedAs[i].data());
                     M_solversAs[i]->SetVectors(*resVector, *curVector);
                     M_solversAs[i]->Solve();
+
+                    DenseVector curV;
+                    curV.data() = curVector;
+                    DenseVector resV;
+                    resV.data() = resVector;
+
+                    DenseVector rrrVector;
+                    rrrVector = A.block(i,i).collapse() * resV;
+                    rrrVector -= curV;
+
                     std::cout << "resVector " << jj << " = " << resVector->Norm2() << std::endl << std::flush;
+                    std::cout << "norm res = " << rrrVector.norm2() << std::endl << std::flush;
 
                     unsigned int offset = 0;
                     // fill singleAm1BT
