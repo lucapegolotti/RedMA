@@ -19,11 +19,14 @@
 #include <redma/solver/problem/ProblemRB.hpp>
 #include <chrono>
 #include <thread>
+#include <time.h>       /* time */
 
 using namespace RedMA;
 
 int main(int argc, char **argv)
 {
+    srand (time(NULL));
+
     #ifdef HAVE_MPI
     MPI_Init (nullptr, nullptr);
     EPETRACOMM comm (new Epetra_MpiComm(MPI_COMM_WORLD));
@@ -31,30 +34,31 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
+    unsigned int N = atoi(argv[1]);
+
     Epetra_SerialDenseSolver solver;
-    DENSEMATRIX matrix(2,2);
-    DENSEVECTOR vector(2);
-    DENSEVECTOR res(2);
+    DENSEMATRIX matrix(N,N);
+    DENSEMATRIX matrix2(N,N);
+    DENSEVECTOR vector(N);
+    DENSEVECTOR res(N);
 
-    matrix(0,0) = 2;
-    matrix(0,1) = 1;
-    matrix(1,0) = -0.5;
-    matrix(1,1) = 10;
-
-    DENSEMATRIX matrix2(2,2);
-    matrix2(0,0) = 2;
-    matrix2(0,1) = 1;
-    matrix2(1,0) = -0.5;
-    matrix2(1,1) = 10;
-
-    vector(0) = 0;
-    vector(1) = 0.5;
+    for (unsigned int i = 0; i < N; i++)
+    {
+        int num1 = rand() % 100 - 50;
+        vector(i) = num1;
+        for (unsigned int j = 0; j < N; j++)
+        {
+            int num2 = rand() % 100 - 50;
+            matrix(i,j) = num2;
+            matrix2(i,j) = num2;
+        }
+    }
 
     solver.SetMatrix(matrix);
     solver.SetVectors(res, vector);
     solver.Solve();
 
-    DENSEVECTOR residual(2);
+    DENSEVECTOR residual(N);
     matrix2.Multiply(false, res, residual);
     residual.Scale(-1);
     residual += vector;
