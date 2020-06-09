@@ -36,7 +36,6 @@ computeSchurComplementDense(const BM& matrix)
         // to do: try to compute factorization and see if it changes anything
         M_solversAs[i].reset(new Epetra_SerialDenseSolver());
         M_collapsedAs[i] = A.block(i,i).collapse();
-        M_collapsedAs[i].dump("A" + std::to_string(i));
         M_solversAs[i]->SetMatrix(*M_collapsedAs[i].data());
         M_solversAs[i]->Factor();
     }
@@ -65,7 +64,6 @@ computeSchurComplementDense(const BM& matrix)
             {
                 DenseMatrix BTcollapsed = BT.block(i,j).collapse();
 
-                BTcollapsed.dump("BT_" + std::to_string(i) + "_" + std::to_string(j));
                 unsigned int currows = BTcollapsed.getNumRows();
                 unsigned int curcols = BTcollapsed.getNumCols();
 
@@ -81,10 +79,13 @@ computeSchurComplementDense(const BM& matrix)
                     for (unsigned int ii = 0 ; ii < currows; ii++)
                         (*curVector)(ii) = (*BTcollapsed.data())(ii,jj);
 
+                    std::cout << "curvector " << jj << " = " << curVector->Norm2() << std::endl << std::flush;
+
                     // collapsedAs[i] = A.block(i,i).collapse();
                     // M_solversAs[i]->SetMatrix(*collapsedAs[i].data());
                     M_solversAs[i]->SetVectors(*resVector, *curVector);
                     M_solversAs[i]->Solve();
+                    std::cout << "resVector " << jj << " = " << resVector->Norm2() << std::endl << std::flush;
 
                     unsigned int offset = 0;
                     // fill singleAm1BT
