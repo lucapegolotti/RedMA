@@ -44,11 +44,17 @@ int main(int argc, char **argv)
 
     for (unsigned int i = 0; i < N; i++)
     {
-        int num1 = rand() % 100 - 50;
+        int num1 = i; // rand() % 100 - 50;
         vector(i) = num1;
         for (unsigned int j = 0; j < N; j++)
         {
-            int num2 = rand() % 100 - 50;
+            int num2;
+            if (i == j)
+                num2 = 2;
+            else if (i - j == -1)
+                num2 = -1;
+            else if (j - i == -1)
+                num2 = -1;
             matrix(i,j) = num2;
             matrix2(i,j) = num2;
         }
