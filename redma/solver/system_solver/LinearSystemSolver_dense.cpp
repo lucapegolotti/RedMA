@@ -36,6 +36,7 @@ computeSchurComplementDense(const BM& matrix)
         // to do: try to compute factorization and see if it changes anything
         M_solversAs[i].reset(new Epetra_SerialDenseSolver());
         M_collapsedAs[i] = A.block(i,i).collapse();
+        M_collapsedAs[i].dump('A' + std::to_string(i));
         std::cout << "collapsed As = " << M_collapsedAs[i].data()->NormInf() << std::endl << std::flush;
         M_solversAs[i]->SetMatrix(*M_collapsedAs[i].data());
         M_solversAs[i]->Factor();
