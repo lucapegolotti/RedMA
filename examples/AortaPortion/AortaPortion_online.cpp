@@ -31,24 +31,53 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    Chrono chrono;
-    chrono.start();
+    Epetra_SerialDenseSolver solver;
+    DENSEMATRIX matrix(2,2);
+    DENSEVECTOR vector(2);
+    DENSEVECTOR res(2);
 
-    std::string msg = "Starting chrono\n";
-    printlog(MAGENTA, msg, true);
+    matrix(0,0) = 2;
+    matrix(0,1) = 1;
+    matrix(1,0) = -0.5;
+    matrix(1,1) = 10;
 
-    DataContainer data;
-    data.setDatafile("datafiles/data");
-    data.setVerbose(comm->MyPID() == 0);
-    data.finalize();
+    DENSEMATRIX matrix2(2,2);
+    matrix2(0,0) = 2;
+    matrix2(0,1) = 1;
+    matrix2(1,0) = -0.5;
+    matrix2(1,1) = 10;
 
-    ProblemRB rbProblem(data, comm);
-    rbProblem.solve();
+    vector(0) = 0;
+    vector(1) = 0.5;
 
-    msg = "Total time =  ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(MAGENTA, msg, true);
+    solver.SetMatrix(matrix);
+    solver.SetVectors(res, vector);
+    solver.Solve();
+
+    DENSEVECTOR residual(2);
+    matrix2.Multiply(false, res, residual);
+    residual.Scale(-1);
+    residual += vector;
+    std::cout << "residual = " << residual.Norm2() << std::endl;
+
+    // Chrono chrono;
+    // chrono.start();
+    //
+    // std::string msg = "Starting chrono\n";
+    // printlog(MAGENTA, msg, true);
+    //
+    // DataContainer data;
+    // data.setDatafile("datafiles/data");
+    // data.setVerbose(comm->MyPID() == 0);
+    // data.finalize();
+    //
+    // ProblemRB rbProblem(data, comm);
+    // rbProblem.solve();
+    //
+    // msg = "Total time =  ";
+    // msg += std::to_string(chrono.diff());
+    // msg += " seconds\n";
+    // printlog(MAGENTA, msg, true);
 
     return 0;
 }
