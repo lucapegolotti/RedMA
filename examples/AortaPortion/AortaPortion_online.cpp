@@ -25,7 +25,7 @@ using namespace RedMA;
 
 int main(int argc, char **argv)
 {
-    srand (time(NULL));
+    srand(1234);
 
     #ifdef HAVE_MPI
     MPI_Init (nullptr, nullptr);
@@ -64,7 +64,10 @@ int main(int argc, char **argv)
     residual.Scale(-1);
     residual += vector;
     std::cout << "factored = " << solver.Factored() << std::endl;
+    std::cout << "factored matrix = " << solver.FactoredMatrix()->NormInf() << std::endl;
     std::cout << "residual = " << residual.Norm2() << std::endl;
+    std::cout << "ferr = " << *solver.FERR() << std::endl;
+    std::cout << "berr = " << *solver.BERR() << std::endl;
 
     // Chrono chrono;
     // chrono.start();
