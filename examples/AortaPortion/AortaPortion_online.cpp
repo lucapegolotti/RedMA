@@ -54,6 +54,7 @@ int main(int argc, char **argv)
         }
     }
 
+    solver.SolveToRefinedSolution(true);
     solver.SetMatrix(matrix);
     solver.SetVectors(res, vector);
     solver.Solve();
@@ -62,6 +63,7 @@ int main(int argc, char **argv)
     matrix2.Multiply(false, res, residual);
     residual.Scale(-1);
     residual += vector;
+    std::cout << "factored = " << solver.Factored() << std::endl;
     std::cout << "residual = " << residual.Norm2() << std::endl;
 
     // Chrono chrono;
