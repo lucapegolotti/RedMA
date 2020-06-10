@@ -60,8 +60,9 @@ int main(int argc, char **argv)
         }
     }
 
-    solver.SolveToRefinedSolution(true);
+    // solver.SolveToRefinedSolution(true);
     solver.SetMatrix(matrix);
+    solver.Invert();
     solver.SetVectors(res, vector);
     solver.Solve();
 
@@ -72,8 +73,8 @@ int main(int argc, char **argv)
     std::cout << "factored = " << solver.Factored() << std::endl;
     std::cout << "factored matrix = " << solver.FactoredMatrix()->NormInf() << std::endl;
     std::cout << "residual = " << residual.Norm2() << std::endl;
-    std::cout << "ferr = " << *solver.FERR() << std::endl;
-    std::cout << "berr = " << *solver.BERR() << std::endl;
+    // std::cout << "ferr = " << *solver.FERR() << std::endl;
+    // std::cout << "berr = " << *solver.BERR() << std::endl;
 
     // Chrono chrono;
     // chrono.start();
