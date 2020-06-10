@@ -61,7 +61,7 @@
 		usemdeim = false
 		monolithicSolve = false
 		recomputeSchur = false
-		approximatenonlinearterms = 0
+		approximatenonlinearterm = 0
 		[./basis]
 			directory = basis
 			podtol_field0 = 1e-1

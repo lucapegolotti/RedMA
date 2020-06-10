@@ -264,7 +264,6 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
             for (unsigned int i = 0; i < N; i++)
             {
                 double item = PyFloat_AsDouble(PyList_GetItem(pList, i));
-                std::cout << "true = " << (*M_nonLinearTerm.block(0).data())(i) << " approx = " << item << std::endl << std::flush;
                 // (*nonLinearTerm.block(0).data())(item);
             }
             Py_DECREF(pList);

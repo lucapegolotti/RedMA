@@ -259,21 +259,10 @@ RBsetup()
         BlockMatrix<MatrixEp> fullStiffness = assembleReducedStiffness(nullptr);
         BlockMatrix<MatrixEp> fullDivergence = assembleReducedDivergence(nullptr);
 
-        std::cout << "full mass = " << fullMass.block(0,0).data()->normInf() << std::endl << std::flush;
-        std::cout << "full stiffness = " << fullStiffness.block(0,0).data()->normInf() << std::endl << std::flush;
-        std::cout << "full divergence1 = " << fullDivergence.block(0,1).data()->normInf() << std::endl << std::flush;
-        std::cout << "full divergence2 = " << fullDivergence.block(1,0).data()->normInf() << std::endl << std::flush;
-
-
         M_mass.block(0,0) = M_bases->matrixProject(fullMass.block(0,0), 0, 0);
         M_stiffness.block(0,0) = M_bases->matrixProject(fullStiffness.block(0,0), 0, 0);
         M_divergence.block(0,1) = M_bases->matrixProject(fullDivergence.block(0,1), 0, 1);
         M_divergence.block(1,0) = M_bases->matrixProject(fullDivergence.block(1,0), 1, 0);
-
-        std::cout << "mass = " << M_mass.block(0,0).data()->NormInf() << std::endl << std::flush;
-        std::cout << "stiffness = " << M_stiffness.block(0,0).data()->NormInf() << std::endl << std::flush;
-        std::cout << "divergence1 = " << M_divergence.block(0,1).data()->NormInf() << std::endl << std::flush;
-        std::cout << "divergence2 = " << M_divergence.block(1,0).data()->NormInf() << std::endl << std::flush;
 
         std::string msg = "done, in ";
         msg += std::to_string(chrono.diff());

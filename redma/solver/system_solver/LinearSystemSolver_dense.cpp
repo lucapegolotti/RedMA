@@ -21,7 +21,6 @@ computeSchurComplementDense(const BM& matrix)
 
     while (matrix.block(0,nPrimal).isNull())
         nPrimal++;
-    std::cout << "n primal blocks = " << nPrimal << std::endl << std::flush;
     BM A = matrix.getSubmatrix(0, nPrimal-1, 0, nPrimal-1);
     BM BT = matrix.getSubmatrix(0, nPrimal-1, nPrimal, nBlocks-1);
     BM B = matrix.getSubmatrix(nPrimal, nBlocks-1, 0, nPrimal-1);
@@ -36,8 +35,6 @@ computeSchurComplementDense(const BM& matrix)
         // to do: try to compute factorization and see if it changes anything
         M_solversAs[i].reset(new Epetra_SerialDenseSolver());
         M_collapsedAs[i] = A.block(i,i).collapse();
-        M_collapsedAs[i].dump('A' + std::to_string(i));
-        std::cout << "collapsed As = " << M_collapsedAs[i].data()->NormInf() << std::endl << std::flush;
         M_solversAs[i]->SetMatrix(*M_collapsedAs[i].data());
         M_solversAs[i]->Factor();
     }
@@ -45,8 +42,6 @@ computeSchurComplementDense(const BM& matrix)
     // compute Am1BT
     BM Am1BT;
     Am1BT.resize(BT.nRows(), BT.nCols());
-    std::cout << "BT.nRows() = " << BT.nRows() << std::endl << std::flush;
-    std::cout << "BT.nCols() = " << BT.nCols() << std::endl << std::flush;
     for (unsigned int i = 0; i < BT.nRows(); i++)
     {
         for (unsigned int j = 0; j < BT.nCols(); j++)
@@ -81,8 +76,6 @@ computeSchurComplementDense(const BM& matrix)
                     for (unsigned int ii = 0 ; ii < currows; ii++)
                         (*curVector)(ii) = (*BTcollapsed.data())(ii,jj);
 
-                    std::cout << "curvector " << jj << " = " << curVector->Norm2() << std::endl << std::flush;
-
                     // collapsedAs[i] = A.block(i,i).collapse();
                     // M_solversAs[i]->SetMatrix(*collapsedAs[i].data());
                     M_solversAs[i]->SetVectors(*resVector, *curVector);
@@ -96,9 +89,6 @@ computeSchurComplementDense(const BM& matrix)
                     DenseVector rrrVector;
                     rrrVector = A.block(i,i).collapse() * resV;
                     rrrVector -= curV;
-
-                    std::cout << "resVector " << jj << " = " << resVector->Norm2() << std::endl << std::flush;
-                    std::cout << "norm res = " << rrrVector.norm2() << std::endl << std::flush;
 
                     unsigned int offset = 0;
                     // fill singleAm1BT
@@ -123,11 +113,7 @@ computeSchurComplementDense(const BM& matrix)
     schurComplement += C;
 
     M_schurComplementColl = schurComplement.collapse().block(0,0);
-    M_schurComplementColl.dump("schur");
-    std::cout << "schur rows = " << M_schurComplementColl.data()->M() << std::endl << std::flush;
-    std::cout << "schur cols = " << M_schurComplementColl.data()->N() << std::endl << std::flush
-;
-    std::cout << "schur complement norm = " << M_schurComplementColl.data()->NormInf() << std::endl;
+
     M_schurSolver.SetMatrix(*M_schurComplementColl.data());
 }
 
@@ -170,7 +156,6 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
     else
     {
         bool recomputeSchur = M_data("rb/online/recomputeSchur", false);
-        std::cout << 1 << std::endl << std::flush;
         // count primal blocks
         unsigned int nPrimal = 1;
         unsigned int nBlocks = matrix.nRows();
@@ -182,7 +167,6 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         BM BT = matrix.getSubmatrix(0, nPrimal-1, nPrimal, nBlocks-1);
         BM B = matrix.getSubmatrix(nPrimal, nBlocks-1, 0, nPrimal-1);
         BM C = matrix.getSubmatrix(nPrimal, nBlocks-1, nPrimal, nBlocks-1);
-        std::cout << 2 << std::endl << std::flush;
 
         BV rhsU = rhs.getSubvector(0,nPrimal-1);
         BV rhsL = rhs.getSubvector(nPrimal, nBlocks-1);
@@ -193,13 +177,11 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         // compute Am1 ru
         BV Am1ru;
         Am1ru.resize(nPrimal);
-        std::cout << 3 << std::endl << std::flush;
 
         for (unsigned int i = 0; i < nPrimal; i++)
         {
             DenseVector collapsedRui = rhsU.block(i).collapse();
             SHP(DENSEVECTOR) sol(new DENSEVECTOR(collapsedRui.getNumRows()));
-            std::cout << collapsedRui.data()->Norm2() << std::endl << std::flush;
             M_solversAs[i]->SetVectors(*sol, *collapsedRui.data());
             M_solversAs[i]->Solve();
 
@@ -217,24 +199,17 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
                 offset += rhsU.block(i).block(ii).getNumRows();
             }
         }
-        std::cout << 4 << std::endl << std::flush;
 
         BV rhsSchur;
         rhsSchur.hardCopy(rhsL);
         rhsSchur -= B * Am1ru;
-	std::cout << "-1" << std::endl << std::flush;
         DenseVector rhsSchurCollapsed = rhsSchur.collapse().block(0);
-	std::cout << "-2" << std::endl << std::flush;
         DenseVector solLCollapsed;
         solLCollapsed.data().reset(new DENSEVECTOR(rhsSchurCollapsed.getNumRows()));
-        std::cout << rhsSchurCollapsed.data()->Norm2() << std::endl << std::flush;
         M_schurSolver.SetVectors(*solLCollapsed.data(), *rhsSchurCollapsed.data());
         M_schurSolver.Solve();
-        std::cout << solLCollapsed.data()->Norm2() << std::endl << std::flush;
-	std::cout << "-3" << std::endl << std::flush;
         BV solL;
         B.convertVectorType(solLCollapsed, solL);
-        std::cout << 5 << std::endl << std::flush;
 
         BV rhsA;
         rhsA.hardCopy(rhsU);
@@ -268,7 +243,6 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
                 offset += rhsU.block(i).block(ii).getNumRows();
             }
         }
-        std::cout << 6 << std::endl << std::flush;
 
         // soft copy sol u in solution vector
         sol.resize(rhs.nRows());
@@ -291,7 +265,6 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
             }
         }
     }
-    std::cout << 7 << std::endl << std::flush;
     M_numSolves++;
 
     msg = "done, in ";

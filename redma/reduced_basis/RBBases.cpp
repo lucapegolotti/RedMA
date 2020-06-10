@@ -179,7 +179,6 @@ loadBases()
         auto curBasis = getEnrichedBasis(i);
         MatrixEp curBasisMatrix(curBasis);
         M_enrichedBasesMatrices.push_back(curBasisMatrix);
-        std::cout << "enrichedbases norm = " << curBasisMatrix.data()->normInf() << std::endl;
         M_enrichedBasesMatricesTransposed.push_back(curBasisMatrix.transpose());
     }
 }
