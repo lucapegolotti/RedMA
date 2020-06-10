@@ -3,7 +3,7 @@
 #-------------------------------------------------------------
 
 [geometric_structure]
-	xmlfile = geometries/tree_.xml
+	xmlfile = geometries/tree.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -61,7 +61,7 @@
 		usemdeim = false
 		monolithicSolve = false
 		recomputeSchur = false
-                approximatenonlinearterm = 0
+		approximatenonlinearterms = 0
 		[./basis]
 			directory = basis
 			podtol_field0 = 1e-1

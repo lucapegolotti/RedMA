@@ -34,66 +34,24 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    unsigned int N = atoi(argv[1]);
+    Chrono chrono;
+    chrono.start();
 
-    Epetra_SerialDenseSolver solver;
-    DENSEMATRIX matrix(N,N);
-    DENSEMATRIX matrix2(N,N);
-    DENSEVECTOR vector(N);
-    DENSEVECTOR res(N);
+    std::string msg = "Starting chrono\n";
+    printlog(MAGENTA, msg, true);
 
-    for (unsigned int i = 0; i < N; i++)
-    {
-        int num1 = i; // rand() % 100 - 50;
-        vector(i) = num1;
-        for (unsigned int j = 0; j < N; j++)
-        {
-            int num2;
-            if (i == j)
-                num2 = 2;
-            else if (i - j == -1)
-                num2 = -1;
-            else if (j - i == -1)
-                num2 = -1;
-            matrix(i,j) = num2;
-            matrix2(i,j) = num2;
-        }
-    }
+    DataContainer data;
+    data.setDatafile("datafiles/data");
+    data.setVerbose(comm->MyPID() == 0);
+    data.finalize();
 
-    // solver.SolveToRefinedSolution(true);
-    solver.SetMatrix(matrix);
-    solver.Invert();
-    solver.SetVectors(res, vector);
-    solver.Solve();
+    ProblemRB rbProblem(data, comm);
+    rbProblem.solve();
 
-    DENSEVECTOR residual(N);
-    matrix2.Multiply(false, res, residual);
-    residual.Scale(-1);
-    residual += vector;
-    std::cout << "factored = " << solver.Factored() << std::endl;
-    std::cout << "factored matrix = " << solver.FactoredMatrix()->NormInf() << std::endl;
-    std::cout << "residual = " << residual.Norm2() << std::endl;
-    // std::cout << "ferr = " << *solver.FERR() << std::endl;
-    // std::cout << "berr = " << *solver.BERR() << std::endl;
-
-    // Chrono chrono;
-    // chrono.start();
-    //
-    // std::string msg = "Starting chrono\n";
-    // printlog(MAGENTA, msg, true);
-    //
-    // DataContainer data;
-    // data.setDatafile("datafiles/data");
-    // data.setVerbose(comm->MyPID() == 0);
-    // data.finalize();
-    //
-    // ProblemRB rbProblem(data, comm);
-    // rbProblem.solve();
-    //
-    // msg = "Total time =  ";
-    // msg += std::to_string(chrono.diff());
-    // msg += " seconds\n";
-    // printlog(MAGENTA, msg, true);
+    msg = "Total time =  ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(MAGENTA, msg, true);
 
     return 0;
 }

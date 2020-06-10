@@ -21,6 +21,7 @@ METIS_INCLUDE_DIRECTORY=${LIBRARIES_BASE_DIRECTORY}metis-5.1.0_installRelease/in
 METIS_LIB_DIRECTORY=${LIBRARIES_BASE_DIRECTORY}metis-5.1.0_installRelease/lib/
 SUITESPARSE_INCLUDE_DIRECTORY=${LIBRARIES_BASE_DIRECTORY}suitesparse-4.5.6_installRelease/include/
 SUITESPARSE_LIB_DIRECTORY=${LIBRARIES_BASE_DIRECTORY}suitesparse-4.5.6_installRelease/lib/
+# remember that openblas on helvetios gives some issues, better to use the system library
 OPENBLAS_INCLUDE_DIRECTORY=${LIBRARIES_BASE_DIRECTORY}OpenBLAS-0.2.20_installRelease/include/
 OPENBLAS_LIB_DIRECTORY=${LIBRARIES_BASE_DIRECTORY}OpenBLAS-0.2.20_installRelease/lib/
 PYTHON_INCLUDE_DIRECTORY=/path/to/pythoninclude
