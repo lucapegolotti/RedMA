@@ -170,6 +170,7 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         BM B = matrix.getSubmatrix(nPrimal, nBlocks-1, 0, nPrimal-1);
         BM C = matrix.getSubmatrix(nPrimal, nBlocks-1, nPrimal, nBlocks-1);
 
+        std::cout << "rhs norm = " << rhs.norm2() << std::endl << std::flush;
         BV rhsU = rhs.getSubvector(0,nPrimal-1);
         std::cout << "rhsU norm = " << rhsU.norm2() << std::endl;
         BV rhsL = rhs.getSubvector(nPrimal, nBlocks-1);
