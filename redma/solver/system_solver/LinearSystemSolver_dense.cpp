@@ -218,8 +218,11 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
 
         BV rhsA;
         rhsA.hardCopy(rhsU);
+        std::cout << "norm rhsa1 = " << rhsA.norm2() << std::endl << std::flush;
         rhsA -= BT * solL;
-
+        std::cout << "norm rhsa2 = " << rhsA.norm2() << std::endl << std::flush;
+        std::cout << "solL norm = " << solL.norm2() << std::endl << std::flush;
+        std::cout << "BT norm = " << BT.collapse().collapse().data()->NormInf() << std::endl << std::flush;
         // solve for u
         BV solU;
         solU.resize(nPrimal);
