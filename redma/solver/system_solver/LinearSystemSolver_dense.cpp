@@ -237,8 +237,8 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
             // M_solversAs[i]->SetMatrix(*collapsedAs[i].data());
             M_solversAs[i]->SetVectors(*sol, *collapsedRhsAi.data());
             std::cout << "collapsedRhsAi = " << collapsedRhsAi.norm2() << std::endl << std::flush;
-            std::cout << "sol = " << sol->Norm2() << std::endl << std::flush;
             M_solversAs[i]->Solve();
+            std::cout << "sol = " << sol->Norm2() << std::endl << std::flush;
             DENSEVECTOR a;
 
             A.block(i,i).collapse().data()->Multiply(false, *sol, a);
