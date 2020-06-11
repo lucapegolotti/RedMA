@@ -177,7 +177,9 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         BM C = matrix.getSubmatrix(nPrimal, nBlocks-1, nPrimal, nBlocks-1);
 
         BV rhsU = rhs.getSubvector(0,nPrimal-1);
+        std::cout << "rhsU norm = " << rhsU.norm2() << std::endl;
         BV rhsL = rhs.getSubvector(nPrimal, nBlocks-1);
+        std::cout << "rhsL norm = " << rhsL.norm2() << std::endl;
 
         if (recomputeSchur || M_numSolves == 0)
             computeSchurComplementDense(matrix);
@@ -215,6 +217,7 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         DenseVector solLCollapsed;
         solLCollapsed.data().reset(new DENSEVECTOR(rhsSchurCollapsed.getNumRows()));
         M_schurSolver.SetVectors(*solLCollapsed.data(), *rhsSchurCollapsed.data());
+        std::cout << "solLCollapsed norm = " << solLCollapsed.norm2() << std::endl << std::flush;
         M_schurSolver.Solve();
         BV solL;
         B.convertVectorType(solLCollapsed, solL);
@@ -251,6 +254,8 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
                 offset += rhsU.block(i).block(ii).getNumRows();
             }
         }
+
+        std::cout << "solU norm = " << solU.norm2() << std::endl << std::flush;
 
         // soft copy sol u in solution vector
         sol.resize(rhs.nRows());
