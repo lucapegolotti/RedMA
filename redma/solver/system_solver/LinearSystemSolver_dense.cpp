@@ -212,8 +212,8 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         DenseVector solLCollapsed;
         solLCollapsed.data().reset(new DENSEVECTOR(rhsSchurCollapsed.getNumRows()));
         M_schurSolver.SetVectors(*solLCollapsed.data(), *rhsSchurCollapsed.data());
-        std::cout << "solLCollapsed norm = " << solLCollapsed.norm2() << std::endl << std::flush;
         M_schurSolver.Solve();
+        std::cout << "solLCollapsed norm = " << solLCollapsed.norm2() << std::endl << std::flush;
         BV solL;
         B.convertVectorType(solLCollapsed, solL);
 
@@ -223,7 +223,6 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         rhsA -= BT * solL;
         std::cout << "norm rhsa2 = " << rhsA.norm2() << std::endl << std::flush;
         std::cout << "solL norm = " << solL.norm2() << std::endl << std::flush;
-        std::cout << "BT norm = " << BT.collapse().collapse().data()->NormInf() << std::endl << std::flush;
         // solve for u
         BV solU;
         solU.resize(nPrimal);
