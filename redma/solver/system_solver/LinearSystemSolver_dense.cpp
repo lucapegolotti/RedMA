@@ -35,7 +35,6 @@ computeSchurComplementDense(const BM& matrix)
         // to do: try to compute factorization and see if it changes anything
         M_solversAs[i].reset(new Epetra_SerialDenseSolver());
         M_collapsedAs[i] = A.block(i,i).collapse();
-        std::cout << "M_collapsedAs norm = " << M_collapsedAs[i].data()->NormInf() << std::endl << std::flush;
         M_solversAs[i]->SetMatrix(*M_collapsedAs[i].data());
         M_solversAs[i]->Factor();
     }
@@ -81,14 +80,10 @@ computeSchurComplementDense(const BM& matrix)
                     // M_solversAs[i]->SetMatrix(*collapsedAs[i].data());
                     M_solversAs[i]->SetVectors(*resVector, *curVector);
                     M_solversAs[i]->Solve();
-                    std::cout << "j = " << j << " jj = " << jj << std::endl << std::flush;
-                    std::cout << "resVector = " << resVector->Norm2() << std::endl << std::flush;
-                    std::cout << "curVector = " << curVector->Norm2() << std::endl << std::flush;
                     DENSEVECTOR a;
                     A.block(i,i).collapse().data()->Multiply(false, *resVector, a);
                     a.Scale(-1);
                     a += *curVector;
-                    std::cout << "Ax - b = " << a.Norm2() << std::endl << std::flush;
                     DenseVector curV;
                     curV.data() = curVector;
                     DenseVector resV;
@@ -121,7 +116,6 @@ computeSchurComplementDense(const BM& matrix)
     schurComplement += C;
 
     M_schurComplementColl = schurComplement.collapse().block(0,0);
-    std::cout << "schur norm = " << M_schurComplementColl.data()->NormInf() << std::endl << std::flush;
     M_schurSolver.SetMatrix(*M_schurComplementColl.data());
 }
 
@@ -235,10 +229,20 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
             DenseVector collapsedRhsAi = rhsA.block(i).collapse();
             SHP(DENSEVECTOR) sol(new DENSEVECTOR(collapsedRhsAi.getNumRows()));
 
+            std::cout << "i = " << i << std::endl << std::flush;
             // collapsedAs[i] = A.block(i,i).collapse();
             // M_solversAs[i]->SetMatrix(*collapsedAs[i].data());
             M_solversAs[i]->SetVectors(*sol, *collapsedRhsAi.data());
+            std::cout << "collapsedRhsAi = " << collapsedRhsAi.norm2() << std::endl << std::flush;
+            std::cout << "sol = " << sol->Norm2() << std::endl << std::flush;
             M_solversAs[i]->Solve();
+            DENSEVECTOR a;
+
+            A.block(i,i).collapse().data()->Multiply(false, *sol, a);
+            a.Scale(-1);
+            a += *collapsedRhsAi.data();
+
+            std::cout << "residual = " << a.Norm2() << std::endl << std::flush;
 
             unsigned int nrows = rhsU.block(i).nRows();
             solU.block(i).resize(nrows);
