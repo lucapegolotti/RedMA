@@ -170,11 +170,8 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         BM B = matrix.getSubmatrix(nPrimal, nBlocks-1, 0, nPrimal-1);
         BM C = matrix.getSubmatrix(nPrimal, nBlocks-1, nPrimal, nBlocks-1);
 
-        std::cout << "rhs norm = " << rhs.norm2() << std::endl << std::flush;
         BV rhsU = rhs.getSubvector(0,nPrimal-1);
-        std::cout << "rhsU norm = " << rhsU.norm2() << std::endl;
         BV rhsL = rhs.getSubvector(nPrimal, nBlocks-1);
-        std::cout << "rhsL norm = " << rhsL.norm2() << std::endl;
 
         if (recomputeSchur || M_numSolves == 0)
             computeSchurComplementDense(matrix);
@@ -213,16 +210,12 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         solLCollapsed.data().reset(new DENSEVECTOR(rhsSchurCollapsed.getNumRows()));
         M_schurSolver.SetVectors(*solLCollapsed.data(), *rhsSchurCollapsed.data());
         M_schurSolver.Solve();
-        std::cout << "solLCollapsed norm = " << solLCollapsed.norm2() << std::endl << std::flush;
         BV solL;
         B.convertVectorType(solLCollapsed, solL);
 
         BV rhsA;
         rhsA.hardCopy(rhsU);
-        std::cout << "norm rhsa1 = " << rhsA.norm2() << std::endl << std::flush;
         rhsA -= BT * solL;
-        std::cout << "norm rhsa2 = " << rhsA.norm2() << std::endl << std::flush;
-        std::cout << "solL norm = " << solL.norm2() << std::endl << std::flush;
         // solve for u
         BV solU;
         solU.resize(nPrimal);
@@ -232,20 +225,15 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
             DenseVector collapsedRhsAi = rhsA.block(i).collapse();
             SHP(DENSEVECTOR) sol(new DENSEVECTOR(collapsedRhsAi.getNumRows()));
 
-            std::cout << "i = " << i << std::endl << std::flush;
             // collapsedAs[i] = A.block(i,i).collapse();
             // M_solversAs[i]->SetMatrix(*collapsedAs[i].data());
             M_solversAs[i]->SetVectors(*sol, *collapsedRhsAi.data());
-            std::cout << "collapsedRhsAi = " << collapsedRhsAi.norm2() << std::endl << std::flush;
             M_solversAs[i]->Solve();
-            std::cout << "sol = " << sol->Norm2() << std::endl << std::flush;
             DENSEVECTOR a;
 
             A.block(i,i).collapse().data()->Multiply(false, *sol, a);
             a.Scale(-1);
             a += *collapsedRhsAi.data();
-
-            std::cout << "residual = " << a.Norm2() << std::endl << std::flush;
 
             unsigned int nrows = rhsU.block(i).nRows();
             solU.block(i).resize(nrows);
@@ -261,8 +249,6 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
                 offset += rhsU.block(i).block(ii).getNumRows();
             }
         }
-
-        std::cout << "solU norm = " << solU.norm2() << std::endl << std::flush;
 
         // soft copy sol u in solution vector
         sol.resize(rhs.nRows());
