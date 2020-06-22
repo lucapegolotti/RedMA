@@ -119,21 +119,18 @@ addVectorsFromFile(std::string filename, std::vector<SHP(VECTOREPETRA)>& vectors
 
         unsigned int count = 0;
         std::string line;
-        while (std::getline(infile,line))
+        while (std::getline(infile,line) && (Nmax < 0 || count < Nmax))
         {
             SHP(VECTOREPETRA) newVector(new VECTOREPETRA(M_fespaces[indexField]->map()));
 
             std::stringstream linestream(line);
             std::string value;
             unsigned int index = 0;
-            while (getline(linestream,value,','))
+            while(getline(linestream,value,','))
             {
                 newVector->operator[](index) = std::atof(value.c_str());
                 index++;
             }
-            if (count==825)
-                std::cout << line << std::endl;
-            std::cout << "count = " << count << " linesize = " <<  line.size() << " index = " << index << " glength = " << newVector->epetraVector().GlobalLength() << std::endl << std::flush;
             if (index != newVector->epetraVector().GlobalLength())
                 throw new Exception("Stored basis length does not match fespace dimension!");
 
