@@ -399,9 +399,12 @@ RBsetup()
         Chrono chrono;
         chrono.start();
 
-        auto velocityBasis = M_bases->getFullBasis(0);
+        auto velocityBasis = M_bases->getEnrichedBasis(0);
 
-        unsigned int nterms = M_data("rb/online/numbernonlinearterms", 20);
+        int nterms = M_data("rb/online/numbernonlinearterms", 20);
+
+        if (nterms == -1)
+            nterms = velocityBasis.size();
 
         SHP(MATRIXEPETRA) nonLinearMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
         SHP(VECTOREPETRA) nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));

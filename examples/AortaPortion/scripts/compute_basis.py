@@ -20,6 +20,8 @@ tol_pressure = 1e-5;
 
 nsnapshots = 188;
 
+use_custom_norms = False
+
 def create_dir(name):
     try:
         os.mkdir(name)
@@ -29,7 +31,8 @@ def create_dir(name):
 def generate_basis(index, nsnaps, norm_matrix):
     print("===== COMPUTING BASIS FIELD " + str(index) + " ====",flush=True)
 
-    factor = cholesky(norm_matrix)
+    if use_custom_norms:
+        factor = cholesky(norm_matrix)
 
     snap = False
     count = 0
@@ -49,9 +52,11 @@ def generate_basis(index, nsnaps, norm_matrix):
     print("\n")
     print('Size of snapshots matrix = ' + str(snap.shape),flush=True)
     # snaps =  factor.solve_L(factor.apply_P(snap),use_LDLt_decomposition=False)
-    snap = factor.L().transpose().dot(factor.apply_P(snap))
+    if use_custom_norms:
+        snap = factor.L().transpose().dot(factor.apply_P(snap))
     U, S, V = np.linalg.svd(snap, full_matrices=False)
-    U = factor.apply_Pt(factor.solve_Lt(U,use_LDLt_decomposition=False))
+    if use_custom_norms:
+        U = factor.apply_Pt(factor.solve_Lt(U,use_LDLt_decomposition=False))
 
     total_energy = np.sum(np.square(S));
     print('Total energy = ' + str(total_energy),flush=True)
@@ -86,8 +91,10 @@ def read_matrix(name,matrixtype=csr_matrix,shapem=None):
     return matrixtype((value,(i.astype(int)-1,j.astype(int)-1)),shape=shapem)
 
 def mydot(vec1, vec2, norm_matrix):
-    aux = norm_matrix.dot(vec2)
-    return vec1.dot(aux)
+    if (use_custom_norms):
+        aux = norm_matrix.dot(vec2)
+        return vec1.dot(aux)
+    return vec1.dot(vec2)
 
 def mynorm(vec, norm_matrix):
     return np.sqrt(mydot(vec, vec, norm_matrix))
