@@ -15,12 +15,12 @@ out_dir = 'basis/';
 matrix_dir = 'matricesForOffline/';
 # generate basis for velocity
 use_norm = 0;
-tol_velocity = 1e-5;
+tol_velocity = 1e-4;
 tol_pressure = 1e-5;
 
 nsnapshots = 188;
 
-use_custom_norms = False
+use_custom_norms = True
 
 def create_dir(name):
     try:
@@ -79,8 +79,9 @@ def generate_basis(index, nsnaps, norm_matrix):
     create_dir(out_dir)
     create_dir(out_dir+'/'+mesh_name)
 
-    np.savetxt(out_dir+'/'+mesh_name+'/field'+str(index)+'.basis', U.T, fmt='%.18e', delimiter=',')
-    np.savetxt(out_dir+'/'+mesh_name+'/svd'+str(index)+'.txt', S[:,np.newaxis], fmt='%.18e', delimiter=',')
+    U[np.abs(U) < 1e-15] = 0
+    np.savetxt(out_dir+'/'+mesh_name+'/field'+str(index)+'.basis', U.T, fmt='%.16g', delimiter=',')
+    np.savetxt(out_dir+'/'+mesh_name+'/svd'+str(index)+'.txt', S[:,np.newaxis], fmt='%.16g', delimiter=',')
     print("done\n",flush=True)
 
     return U
@@ -123,8 +124,8 @@ minnorm = 1e16
 for i in range(supr_primal.shape[1]):
     print('Normalizing primal supremizer '+str(i),flush=True)
     # # normalize
-    # for col in U.T:
-    #     supr_primal[:,i] = supr_primal[:,i] - mydot(supr_primal[:,i], col, norm_velocity_nobcs)/mynorm(col,norm_velocity_nobcs) * col;
+    for col in U.T:
+        supr_primal[:,i] = supr_primal[:,i] - mydot(supr_primal[:,i], col, norm_velocity_nobcs)/mynorm(col,norm_velocity_nobcs) * col;
 
     for j in range(i):
         supr_primal[:,i] = supr_primal[:,i] - mydot(supr_primal[:,i],supr_primal[:,j], norm_velocity_nobcs)/mynorm(supr_primal[:,j],norm_velocity_nobcs) * supr_primal[:,j];
@@ -135,7 +136,8 @@ for i in range(supr_primal.shape[1]):
     supr_primal[:,i] = supr_primal[:,i] / nnorm
 print('Min norm = ' + str(minnorm))
 
-np.savetxt(out_dir+'/'+mesh_name+'/primal_supremizers_0_1.basis', supr_primal.T, fmt='%.18e', delimiter=',')
+supr_primal[np.abs(supr_primal) < 1e-15] = 0
+np.savetxt(out_dir+'/'+mesh_name+'/primal_supremizers_0_1.basis', supr_primal.T, fmt='%.16g', delimiter=',')
 
 print("===== COMPUTING DUAL SUPREMIZERS ====",flush=True)
 
@@ -158,11 +160,11 @@ minnorm = 1e16
 for i in range(supr_dual.shape[1]):
     print('Normalizing dual supremizer '+str(i),flush=True)
 
-    # for col in U.T:
-    #     supr_dual[:,i] = supr_dual[:,i] - mydot(supr_dual[:,i],col, norm_velocity_nobcs) / mynorm(col,norm_velocity_nobcs) * col;
-    #
-    # for col in supr_primal.T:
-    #     supr_dual[:,i] = supr_dual[:,i] - mydot(supr_dual[:,i],col, norm_velocity_nobcs)/mynorm(col,norm_velocity_nobcs) * col;
+    for col in U.T:
+        supr_dual[:,i] = supr_dual[:,i] - mydot(supr_dual[:,i],col, norm_velocity_nobcs) / mynorm(col,norm_velocity_nobcs) * col;
+
+    for col in supr_primal.T:
+        supr_dual[:,i] = supr_dual[:,i] - mydot(supr_dual[:,i],col, norm_velocity_nobcs)/mynorm(col,norm_velocity_nobcs) * col;
 
     for j in range(i):
         supr_dual[:,i] = supr_dual[:,i] - mydot(supr_dual[:,i],supr_dual[:,j], norm_velocity_nobcs)/mynorm(supr_dual[:,j],norm_velocity_nobcs) * supr_dual[:,j];
@@ -173,4 +175,5 @@ for i in range(supr_dual.shape[1]):
     supr_dual[:,i] = supr_dual[:,i] / nnorm;
 print('Min norm = ' + str(minnorm))
 
-np.savetxt(out_dir+'/'+mesh_name+'/dual_supremizers0.basis', supr_dual.T, fmt='%.18e', delimiter=',')
+supr_dual[np.abs(supr_dual) < 1e-15] = 0
+np.savetxt(out_dir+'/'+mesh_name+'/dual_supremizers0.basis', supr_dual.T, fmt='%.16g', delimiter=',')

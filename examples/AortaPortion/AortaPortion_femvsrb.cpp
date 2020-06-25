@@ -28,14 +28,14 @@ generateDatafiles(EPETRACOMM comm)
     #if 1
     std::vector<double> podtol_field0;
 
-    podtol_field0.push_back(1e-3);
+    // podtol_field0.push_back(1e-3);
     // podtol_field0.push_back(2e-3);
     // podtol_field0.push_back(4e-3);
     // podtol_field0.push_back(8e-3);
     // podtol_field0.push_back(16e-3);
 
     std::vector<double> podtol_field1;
-    podtol_field1.push_back(1e-5);
+    // podtol_field1.push_back(1e-5);
     // podtol_field1.push_back(1e-4);
 
     std::vector<int> usePrimalSupremizers;
@@ -106,8 +106,8 @@ generateDatafiles(EPETRACOMM comm)
     // nnterms.push_back(10);
     // nnterms.push_back(20);
     // nnterms.push_back(40);
-    nnterms.push_back(80);
-    // nnterms.push_back(120);
+    // nnterms.push_back(80);
+    nnterms.push_back(120);
 
     for (auto nnt : nnterms)
     {
@@ -206,12 +206,13 @@ int main(int argc, char **argv)
 
     std::vector<std::pair<std::string, SHP(DataContainer)>> datacs = generateDatafiles(comm);
 
-    boost::filesystem::create_directory("rb_solutions");
+    std::string dirrb = data("outputdir", "rb_solutions");
+    boost::filesystem::create_directory(dirrb);
 
     unsigned int index = 0;
     for (auto curdata : datacs)
     {
-        std::string curDir = "rb_solutions/sol" + std::to_string(index) + "/";
+        std::string curDir = dirrb + "/sol" + std::to_string(index) + "/";
         boost::filesystem::create_directory(curDir);
 
         Chrono chrono;

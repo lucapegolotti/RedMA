@@ -2,6 +2,8 @@
 #           Data file for NavierStokesExample
 #-------------------------------------------------------------
 
+outputdir = rb_solutions
+
 [geometric_structure]
 	xmlfile = geometries/tree.xml
 	xmldeformer = datafiles/SolverParamList.xml
