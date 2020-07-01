@@ -89,6 +89,8 @@ public:
 
     std::map<unsigned int,std::vector<double>> getRandomizibleParametersVectors();
 
+    virtual void applyPiola(BlockVector<FEVECTOR> solution, bool inverse) override {};
+
 protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;

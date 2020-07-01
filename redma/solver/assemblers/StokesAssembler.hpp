@@ -157,6 +157,8 @@ public:
 
     void initializePythonStructures();
 
+    virtual void applyPiola(BlockVector<FEVECTOR> solution, bool inverse) override;
+
 protected:
 
     BlockMatrix<InMatrixType>                                       M_mass;
@@ -187,6 +189,10 @@ protected:
     SHP(RBBases)                                                    M_bases;
     // PyObject*                                                       M_pFunc;
     // PyObject*                                                       M_pModule;
+
+    SHP(VECTOREPETRA)                                               M_xs;
+    SHP(VECTOREPETRA)                                               M_ys;
+    SHP(VECTOREPETRA)                                               M_zs;
 };
 
 }

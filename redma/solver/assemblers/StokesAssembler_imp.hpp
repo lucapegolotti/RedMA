@@ -677,6 +677,111 @@ setExtrapolatedSolution(const BlockVector<InVectorType>& exSol)
     M_extrapolatedSolution.softCopy(exSol);
 }
 
+template <class InVectorType, class InMatrixType>
+void
+StokesAssembler<InVectorType,InMatrixType>::
+applyPiola(BlockVector<FEVECTOR> solution, bool inverse)
+{
+    auto velocity = solution.block(0).data();
 
+    Epetra_Map epetraMap = velocity->epetraMap();
+    unsigned int numElements = epetraMap.NumMyElements() / 3;
+
+    // find xs ys and zs of mesh
+    if (M_xs == nullptr)
+    {
+        M_xs.reset(new VECTOREPETRA(M_velocityFESpace->map()));
+
+        M_velocityFESpace->interpolate([](const double& t,
+                                          const double& x,
+                                          const double& y,
+                                          const double& z,
+                                          const unsigned int & i) {return x;},
+                                        *M_xs, 0.0);
+    }
+
+    if (M_ys == nullptr)
+    {
+        M_ys.reset(new VECTOREPETRA(M_velocityFESpace->map()));
+
+        M_velocityFESpace->interpolate([](const double& t,
+                                          const double& x,
+                                          const double& y,
+                                          const double& z,
+                                          const unsigned int & i) {return y;},
+                                        *M_ys, 0.0);
+    }
+
+    if (M_zs == nullptr)
+    {
+        M_zs.reset(new VECTOREPETRA(M_velocityFESpace->map()));
+
+        M_velocityFESpace->interpolate([](const double& t,
+                                          const double& x,
+                                          const double& y,
+                                          const double& z,
+                                          const unsigned int & i) {return z;},
+                                        *M_zs, 0.0);
+    }
+
+    LifeV::MatrixSmall<3,3>* transformationMatrix;
+    double determinant;
+    if (inverse)
+        transformationMatrix = new LifeV::MatrixSmall<3,3>();
+
+
+    for (unsigned int dof = 0; dof < numElements; dof++)
+    {
+        double& x = M_xs->operator[](dof);
+        double& y = M_ys->operator[](dof);
+        double& z = M_zs->operator[](dof);
+        auto jacobian = this->M_treeNode->M_block->computeJacobianGlobalTransformation(x, y, z);
+
+        double& a = jacobian(0,0);
+        double& b = jacobian(0,1);
+        double& c = jacobian(0,2);
+        double& d = jacobian(1,0);
+        double& e = jacobian(1,1);
+        double& f = jacobian(1,2);
+        double& g = jacobian(2,0);
+        double& h = jacobian(2,1);
+        double& i = jacobian(2,2);
+
+        if (inverse)
+        {
+            (*transformationMatrix)(0,0) = (e*i - f*h)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+            (*transformationMatrix)(0,1) = -(b*i - c*h)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+            (*transformationMatrix)(0,2) = (b*f - c*e)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+            (*transformationMatrix)(1,0) = -(d*i - f*g)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+            (*transformationMatrix)(1,1) = (a*i - c*g)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+            (*transformationMatrix)(1,2) = -(a*f - c*d)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+            (*transformationMatrix)(2,2) = (d*h - e*g)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+            (*transformationMatrix)(2,1) = -(a*h - b*g)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+            (*transformationMatrix)(2,0) = (a*e - b*d)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+
+            determinant = 1.0/std::abs(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+        }
+        else
+        {
+            transformationMatrix = &jacobian;
+            determinant = std::abs(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+        }
+
+        LifeV::VectorSmall<3> curU;
+        curU(0) = velocity->operator[](dof);
+        curU(0) = velocity->operator[](dof + numElements);
+        curU(2) = velocity->operator[](dof + numElements * 2);
+
+        LifeV::VectorSmall<3> res;
+        res = 1.0 / determinant * (*transformationMatrix) * curU;
+
+        velocity->operator[](i) = res(0);
+        velocity->operator[](i + numElements) = res(1);
+        velocity->operator[](i + numElements * 2) = res(2);
+    }
+
+    if (inverse)
+        delete transformationMatrix;
+}
 
 }
