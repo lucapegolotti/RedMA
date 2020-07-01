@@ -48,6 +48,10 @@ public:
 
     virtual std::string getOptionalParameter(unsigned int index) override;
 
+    virtual Matrix3D computeJacobianNonAffineTransformation(const double& x,
+                                                            const double& y,
+                                                            const double& z) override {return M_identity3D;};
+
 private:
     static double outletMapFunction(const double& t, const double& x,
                                const double& y, const double& z,
@@ -84,6 +88,8 @@ private:
     Vector3D M_center;
 
     Vector3D M_transverse;
+
+    Matrix3D M_identity3D;
 
     double M_inletRadiusRef;
     double M_outlet1RadiusRef;

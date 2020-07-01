@@ -71,6 +71,16 @@ BifurcationSymmetric(commPtr_Type comm, std::string refinement,
     M_parametersHandler.registerParameter("out2_alphaz", 0.0, -maxAngle,
                                           maxAngle, randomizible);
     computeCenter();
+
+    M_identity3D(0,0) = 1;
+    M_identity3D(0,1) = 0;
+    M_identity3D(0,2) = 0;
+    M_identity3D(1,0) = 0;
+    M_identity3D(1,1) = 1;
+    M_identity3D(1,2) = 0;
+    M_identity3D(2,0) = 0;
+    M_identity3D(2,1) = 0;
+    M_identity3D(2,2) = 1;
 }
 
 std::string

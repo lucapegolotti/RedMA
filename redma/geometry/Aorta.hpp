@@ -40,6 +40,10 @@ public:
 
     void resetInletOutlets() override;
 
+    virtual Matrix3D computeJacobianNonAffineTransformation(const double& x,
+                                                            const double& y,
+                                                            const double& z) override {};
+
 private:
 
     Vector3D M_inletCenterRef;

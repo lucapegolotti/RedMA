@@ -211,7 +211,7 @@ traverseSegmentation(std::string ctgrName)
     tinyxml2::XMLElement* fContour = pTimestep->FirstChildElement("contour");
 
     Vector3D prevNormal;
-    unsigned int nContours = 0;
+    bool first = true;
     do
     {
         unsigned int pathIndex = std::atoi(fContour->FirstChildElement("path_point")->
@@ -220,8 +220,11 @@ traverseSegmentation(std::string ctgrName)
         tinyxml2::XMLElement* cPoint = fContour->FirstChildElement("contour_points")->
                                                  FirstChildElement("point");
 
-        if (nContours == 0)
+        if (first)
+        {
             M_indexBegin = pathIndex;
+            first = false;
+        }
 
         // first find center of the face
         Vector3D center;
@@ -263,28 +266,8 @@ traverseSegmentation(std::string ctgrName)
         } while (cPoint);
 
         normal = normal / normal.norm();
-        if (nContours == 1)
-        {
-            // here we check if we should invert the first normal (we needed the
-            // second center)
-            Contour& firstContour = M_contours[0];
-
-            std::cout << "firstContour" << std::endl << std::flush;
-            firstContour.print();
-
-            std::cout << "secondCenter" << std::endl << std::flush;
-            std::cout << center << std::endl << std::flush;
-
-            if ((center-firstContour.M_center).dot(prevNormal) < 0)
-            {
-                firstContour.M_normal *= -1.0;
-                prevNormal *= -1;
-            }
-        }
-
-        if (nContours > 0)
+        if (!first)
             normal = normal.dot(prevNormal) > 0? normal : (-1.0) * normal;
-
         radius = radius / count;
 
         Contour newContour(center, normal, radius, pathIndex);
@@ -293,7 +276,6 @@ traverseSegmentation(std::string ctgrName)
 
         fContour = fContour->NextSiblingElement("contour");
 
-        nContours++;
         prevNormal = normal;
         M_indexEnd = pathIndex;
     } while (fContour);
@@ -314,8 +296,6 @@ createTreeForward(const int& lengthTubes,
         initialContour = *initialContourPtr;
     else
         initialContour = M_contoursComplete[M_indexBegin];
-
-    initialContour.print();
 
     Contour finalContour;
     if (finalContourPtr)

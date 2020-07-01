@@ -196,6 +196,7 @@ print()
     }
     else
         msg += "POD tolerance = all vectors\n";
+    printlog(WHITE, msg, M_data.getVerbose());
 
     for (int i = 0; i < M_numFields; i++)
     {
@@ -207,10 +208,12 @@ print()
             msg += "\tPrimal supremizers wrt field " + std::to_string(j) +
                    " = " + std::to_string(M_primalSupremizers(i,j).size()) + "\n";
         msg += "\tDual supremizers = " + std::to_string(M_dualSupremizers[i].size()) + "\n";
+        printlog(WHITE, msg, M_data.getVerbose());
         if (M_data("rb/online/basis/useprimalsupremizers", 1))
             msg +=  "\tUsing primal supremizers\n";
         else
             msg +=  "\tNOT using primal supremizers\n";
+        printlog(WHITE, msg, M_data.getVerbose());
 
         if (M_data("rb/online/basis/usedualsupremizers", 0))
         {
@@ -221,6 +224,7 @@ print()
         }
         else
             msg +=  "\tNOT using dual supremizers\n";
+        printlog(WHITE, msg, M_data.getVerbose());
 
         msg +=  "\tBasis size + supremizers = " + std::to_string(getEnrichedBasis(i).size()) + "\n";
     }
@@ -494,16 +498,23 @@ RBBases::
 getEnrichedBasis(const unsigned int& index)
 {
     std::vector<SHP(VECTOREPETRA)> retVectors = getBasis(index);
+    std::cout << "adding primal supremizers" << std::endl << std::flush;
     if (M_data("rb/online/basis/useprimalsupremizers", 1))
     {
         for (unsigned int j = 0; j < M_numFields; j++)
         {
+            std::cout << "1" << std::endl << std::flush;
             if (M_onlineTol > 1e-15 && M_primalSupremizers(index,j).size() > 0)
             {
+                std::cout << "2" << std::endl << std::flush;
+                std::cout << M_NsOnline.size() << std::endl << std::flush;
                 for (unsigned int i = 0; i < M_NsOnline[j]; i++)
                 {
+                    std::cout << M_NsOnline[j] << std::endl << std::flush;
+                    std::cout << M_primalSupremizers(index,j).size() << std::endl << std::flush;
                     retVectors.push_back(M_primalSupremizers(index,j)[i]);
                 }
+                std::cout << "3" << std::endl << std::flush;
             }
             else
             {
@@ -512,6 +523,7 @@ getEnrichedBasis(const unsigned int& index)
             }
         }
     }
+    std::cout << "adding dual supremizers" << std::endl << std::flush;
     if (M_data("rb/online/basis/usedualsupremizers", 0))
     {
         int nDualSupremizers = M_data("rb/online/basis/numberdualsupremizers", -1);
@@ -525,6 +537,7 @@ getEnrichedBasis(const unsigned int& index)
                     retVectors.push_back(M_dualSupremizers[index][i]);
             }
     }
+    std::cout << "adding done" << std::endl << std::flush;
     return retVectors;
 }
 
