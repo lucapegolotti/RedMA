@@ -33,7 +33,7 @@ class SnapshotsSampler
 public:
     SnapshotsSampler(const DataContainer& data, EPETRACOMM comm);
 
-    void takeSnapshots();
+    void takeSnapshots(int firstIndex = 0);
 
     void dumpSnapshots(ProblemFEM& problem, std::string outdir);
 

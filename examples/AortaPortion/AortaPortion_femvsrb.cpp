@@ -28,16 +28,18 @@ generateDatafiles(EPETRACOMM comm)
     #if 1
     std::vector<double> podtol_field0;
 
-    // podtol_field0.push_back(1e-3);
-    // podtol_field0.push_back(2e-3);
-    // podtol_field0.push_back(4e-3);
-    // podtol_field0.push_back(8e-3);
-    // podtol_field0.push_back(16e-3);
-
+    /*podtol_field0.push_back(1e-3);
+    podtol_field0.push_back(2e-3);
+    podtol_field0.push_back(4e-3);
+    podtol_field0.push_back(8e-3);
+    podtol_field0.push_back(16e-3);
+    */
     std::vector<double> podtol_field1;
-    // podtol_field1.push_back(1e-5);
-    // podtol_field1.push_back(1e-4);
-
+    /*podtol_field1.push_back(1e-5);
+    podtol_field1.push_back(2e-5);
+    podtol_field1.push_back(4e-5);
+    podtol_field1.push_back(8e-5);
+    */
     std::vector<int> usePrimalSupremizers;
     usePrimalSupremizers.push_back(1);
 
@@ -103,10 +105,10 @@ generateDatafiles(EPETRACOMM comm)
     #endif
 
     std::vector<int> nnterms;
-    // nnterms.push_back(10);
-    // nnterms.push_back(20);
-    // nnterms.push_back(40);
-    // nnterms.push_back(80);
+    nnterms.push_back(10);
+    nnterms.push_back(20);
+    nnterms.push_back(40);
+    nnterms.push_back(80);
     nnterms.push_back(120);
 
     for (auto nnt : nnterms)

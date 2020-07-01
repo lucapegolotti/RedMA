@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     data.finalize();
 
     SnapshotsSampler sampler(data, comm);
-    sampler.takeSnapshots();
+    sampler.takeSnapshots(atoi(argv[1]));
 
     return 0;
 }

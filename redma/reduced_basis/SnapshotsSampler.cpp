@@ -12,7 +12,7 @@ SnapshotsSampler(const DataContainer& data, EPETRACOMM comm) :
 
 void
 SnapshotsSampler::
-takeSnapshots()
+takeSnapshots(int firstIndex)
 {
     using namespace boost::filesystem;
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
@@ -31,7 +31,7 @@ takeSnapshots()
         // the fem problem
         problem.doStoreSolutions();
         
-        unsigned int paramIndex = 0;
+        unsigned int paramIndex = firstIndex;
         while (exists(outdir + "/param" + std::to_string(paramIndex)))
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
