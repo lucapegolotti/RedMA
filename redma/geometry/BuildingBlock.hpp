@@ -151,6 +151,14 @@ public:
 
     inline std::string getMeshName() const {return M_meshName;}
 
+    Matrix3D computeJacobianGlobalTransformation(const double& x,
+                                                 const double& y,
+                                                 const double& z);
+
+    virtual Matrix3D computeJacobianNonAffineTransformation(const double& x,
+                                                            const double& y,
+                                                            const double& z) = 0;
+
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,
@@ -170,6 +178,8 @@ protected:
     std::string M_refinement;
     std::string M_meshName;
     meshPtr_Type M_mesh;
+
+    Matrix3D M_R;
 
     commPtr_Type M_comm;
 

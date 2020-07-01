@@ -32,6 +32,7 @@ takeSnapshots(int firstIndex)
         problem.doStoreSolutions();
         
         unsigned int paramIndex = firstIndex;
+=======
         while (exists(outdir + "/param" + std::to_string(paramIndex)))
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
@@ -81,6 +82,7 @@ dumpSnapshots(ProblemFEM& problem,
             unsigned int count = 0;
             for (auto sol : solutions)
             {
+                problem.getBlockAssembler()->applyGlobalPiola(sol, true);
                 if (count % takeEvery == 0)
                 {
                     std::string str2write = sol.block(idmeshtype.first).block(i).getString(',') + "\n";

@@ -116,6 +116,8 @@ public:
 
     virtual void RBsetup() {};
 
+    virtual void applyPiola(BlockVector<FEVECTOR> solution, bool inverse) = 0;
+
 protected:
     DataContainer                        M_data;
     SHP(TreeNode)                        M_treeNode;

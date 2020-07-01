@@ -285,4 +285,72 @@ bendFunctionAnalytic(double &x, double &y, double &z,
     z = newZ;
 }
 
+BuildingBlock::Matrix3D
+Tube::
+computeJacobianNonAffineTransformation(const double& x,
+                                       const double& y,
+                                       const double& z)
+{
+    double xcopy = x;
+    double ycopy = y;
+    double zcopy = z;
+
+    scalingFunction(xcopy, ycopy, zcopy,
+                    M_parametersHandler["L_ratio"],
+                    M_parametersHandler["Rout_ratio"],
+                    M_outletCenterRef[2]);
+
+    return computeJacobianBend(xcopy, ycopy, zcopy,
+                               M_parametersHandler["bend"],
+                               M_parametersHandler["L_ratio"] * M_outletCenterRef[2]) *
+           computeJacobianNonAffineScaling(x, y, z,
+                                           M_parametersHandler["L_ratio"],
+                                           M_parametersHandler["Rout_ratio"],
+                                           M_outletCenterRef[2]);
+}
+
+BuildingBlock::Matrix3D
+Tube::
+computeJacobianNonAffineScaling(const double& x, const double& y, const double& z,
+                                const double& lengthRatio,
+                                const double& outRadiusRatio,
+                                const double& L)
+{
+    // 15 is the length of the tube
+    double curRatio = 1. - (1. - outRadiusRatio) * z / L;
+
+    M_jacobianScaling(0,0) = curRatio;
+    M_jacobianScaling(0,1) = 0;
+    M_jacobianScaling(0,2) = 0;
+    M_jacobianScaling(1,0) = 0;
+    M_jacobianScaling(1,1) = curRatio;
+    M_jacobianScaling(1,2) = 0;
+    M_jacobianScaling(2,0) = 0;
+    M_jacobianScaling(2,1) = 0;
+    M_jacobianScaling(2,2) = lengthRatio;
+    return M_jacobianScaling;
+}
+
+BuildingBlock::Matrix3D
+Tube::
+computeJacobianBend(const double& x, const double& y, const double& z,
+                    const double& bendAngle, const double& L)
+{
+    double r = L / bendAngle;
+
+    double ratio = z / L;
+    double actualAngle = bendAngle * ratio;
+
+    M_jacobianBending(0,0) = std::cos(actualAngle);
+    M_jacobianBending(0,1) = 0;
+    M_jacobianBending(0,2) = -r * std::sin(actualAngle) * bendAngle / L;
+    M_jacobianBending(1,0) = 0;
+    M_jacobianBending(1,1) = 1.0;
+    M_jacobianBending(1,2) = 0;
+    M_jacobianBending(2,0) = std::sin(actualAngle);
+    M_jacobianBending(2,1) = 0;
+    M_jacobianBending(2,2) = r * std::cos(actualAngle) * bendAngle / L + x * std::cos(actualAngle) * bendAngle / L;
+    return M_jacobianBending;
+}
+
 }

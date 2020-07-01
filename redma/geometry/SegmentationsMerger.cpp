@@ -144,7 +144,7 @@ mergeTwoSegmentations(SegmentationParserPtr segmentationFather,
 
     // forward parent until bifurcation
     Contour inletBifurcation = bifurcation->getInlet();
-    TreeStructure inBranch = segmentationFather->createTreeForward(maxTubeLength, 1.0, 1.0,
+    TreeStructure inBranch = segmentationFather->createTreeForward(2, 1.0, 1.0,
                                                                    nullptr,
                                                             &inletBifurcation);
 

@@ -44,6 +44,19 @@ getLifting(const double& time) const
 template <class InVectorType, class InMatrixType>
 void
 BlockAssembler<InVectorType, InMatrixType>::
+applyGlobalPiola(BlockVector<BlockVector<FEVECTOR>> solution, bool inverse)
+{
+    unsigned int count = 0;
+    for (auto as : M_primalAssemblers)
+    {
+        as.second->applyPiola(solution.block(count), inverse);
+        count = count + 1;
+    }
+}
+
+template <class InVectorType, class InMatrixType>
+void
+BlockAssembler<InVectorType, InMatrixType>::
 apply0DirichletBCsMatrix(BlockMatrix<InMatrixType>& matrix, double diagCoeff) const
 {
     for (auto as : M_primalAssemblers)

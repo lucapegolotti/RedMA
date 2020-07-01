@@ -243,7 +243,6 @@ applyAffineTransformation(bool transformMesh)
     if (transformMesh)
         transformer.reset(new Transformer(*M_mesh));
 
-    Matrix3D R, R1, R2, R3;
     double scale;
     Vector3D scaleVec;
     Vector3D rotation;
@@ -255,7 +254,7 @@ applyAffineTransformation(bool transformMesh)
                      " BuildingBlock] is child: conforming inlet/parent_outlet ...\n",
                      M_verbose);
 
-        R =  computeRotationMatrix(M_inletRotationAxis, M_inletAngle);
+        M_R =  computeRotationMatrix(M_inletRotationAxis, M_inletAngle);
 
         translation = M_inletTranslation;
         scale = M_inletScale;
@@ -264,7 +263,7 @@ applyAffineTransformation(bool transformMesh)
                              std::placeholders::_1,
                              std::placeholders::_2,
                              std::placeholders::_3,
-                             R, translation, scale);
+                             M_R, translation, scale);
 
         std::string axisStr = std::string("(");
         axisStr = axisStr + std::to_string(M_inletRotationAxis[0]) + ",";
@@ -331,13 +330,13 @@ applyAffineTransformation(bool transformMesh)
                " BuildingBlock] translating with vector " + transStr +
                " ...\n", M_verbose);
 
-        R =  computeRotationMatrix(rotation, angle);
+        M_R =  computeRotationMatrix(rotation, angle);
 
         auto foo = std::bind(rotationFunction,
                              std::placeholders::_1,
                              std::placeholders::_2,
                              std::placeholders::_3,
-                             R, translation, scale);
+                             M_R, translation, scale);
 
         if (transformMesh)
             transformer->transformMesh(foo);
@@ -349,11 +348,11 @@ applyAffineTransformation(bool transformMesh)
         printlog(GREEN, "done\n", M_verbose);
     }
 
-    applyAffineTransformationGeometricFace(M_inlet,R,translation,scale);
+    applyAffineTransformationGeometricFace(M_inlet,M_R,translation,scale);
     for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
          it != M_outlets.end(); it++)
     {
-        applyAffineTransformationGeometricFace(*it, R, translation,scale);
+        applyAffineTransformationGeometricFace(*it, M_R, translation,scale);
     }
 
     // Handle rotation along the axis of the inlet
@@ -553,6 +552,17 @@ fZero(const double& t, const double& x, const double& y,
       const double& z, const LifeV::ID& i)
 {
     return 0.0;
+}
+
+BuildingBlock::Matrix3D
+BuildingBlock::
+computeJacobianGlobalTransformation(const double& x,
+                                    const double& y,
+                                    const double& z)
+{
+    Matrix3D nonLinearJacobian = computeJacobianNonAffineTransformation(x,y,z);
+
+    return M_inletScale * M_R * nonLinearJacobian;
 }
 
 }  // namespace BuildingBlock
