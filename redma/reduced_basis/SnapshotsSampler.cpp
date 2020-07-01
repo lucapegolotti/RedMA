@@ -32,7 +32,7 @@ takeSnapshots(int firstIndex)
         problem.doStoreSolutions();
         
         unsigned int paramIndex = firstIndex;
-=======
+        
         while (exists(outdir + "/param" + std::to_string(paramIndex)))
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
