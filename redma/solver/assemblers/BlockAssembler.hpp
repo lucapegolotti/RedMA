@@ -91,6 +91,8 @@ public:
 
     virtual void applyPiola(BlockVector<FEVECTOR> solution, bool inverse) override {};
 
+    void applyGlobalPiola(BlockVector<BlockVector<FEVECTOR>> solution, bool inverse);
+
 protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;

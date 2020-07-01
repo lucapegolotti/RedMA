@@ -30,7 +30,7 @@ takeSnapshots()
         // this is to allow taking the snapshots at the end of the simulation from
         // the fem problem
         problem.doStoreSolutions();
-        
+
         unsigned int paramIndex = 0;
         while (exists(outdir + "/param" + std::to_string(paramIndex)))
             paramIndex++;
@@ -81,6 +81,7 @@ dumpSnapshots(ProblemFEM& problem,
             unsigned int count = 0;
             for (auto sol : solutions)
             {
+                problem.getBlockAssembler()->applyGlobalPiola(sol, true);
                 if (count % takeEvery == 0)
                 {
                     std::string str2write = sol.block(idmeshtype.first).block(i).getString(',') + "\n";

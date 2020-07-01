@@ -682,6 +682,11 @@ void
 StokesAssembler<InVectorType,InMatrixType>::
 applyPiola(BlockVector<FEVECTOR> solution, bool inverse)
 {
+    std::string msg = "[";
+    msg += this->M_name;
+    msg += "] apply Piola\n";
+    printlog(YELLOW, msg, this->M_data.getVerbose());
+
     auto velocity = solution.block(0).data();
 
     Epetra_Map epetraMap = velocity->epetraMap();
