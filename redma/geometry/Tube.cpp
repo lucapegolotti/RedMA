@@ -5,7 +5,7 @@ namespace RedMA
 
 Tube::
 Tube(commPtr_Type comm, std::string refinement, bool verbose,
-     int diameter, int length) :
+     int diameter, int length, bool randomizable) :
   BuildingBlock(comm, refinement, verbose),
   M_length(length),
   M_diameter(diameter)
@@ -47,11 +47,9 @@ Tube(commPtr_Type comm, std::string refinement, bool verbose,
     // the keys will be used in the parser to check the values in the XML file
     // center of inlet
 
-    const bool randomizible = true;
-
-    M_parametersHandler.registerParameter("bend", 0.0, 0, M_PI/2, randomizible, false);
-    M_parametersHandler.registerParameter("L_ratio", 1.0, 0.7, 1.3, randomizible);
-    M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.4, randomizible);
+    M_parametersHandler.registerParameter("bend", 0.0, 0, M_PI/2, randomizable, false);
+    M_parametersHandler.registerParameter("L_ratio", 1.0, 0.7, 1.3, randomizable);
+    M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.4, randomizable);
     M_parametersHandler.registerParameter("use_linear_elasticity", 0.0, 0.0, 1.0);
 }
 
@@ -143,12 +141,12 @@ nonAffineScaling(const double& lengthRatio, const double& radiusRatio,
 void
 Tube::
 scalingFunction(double& x, double& y, double& z,
-                const double& lenghtRatio, const double& outRadiusRatio,
+                const double& lengthRatio, const double& outRadiusRatio,
                 const double& L)
 {
     // 15 is the length of the tube
     double curRatio = 1. - (1. - outRadiusRatio) * z / L;
-    z = z * lenghtRatio;
+    z = z * lengthRatio;
     x = x * curRatio;
     y = y * curRatio;
 }
@@ -315,19 +313,57 @@ computeJacobianNonAffineScaling(const double& x, const double& y, const double& 
                                 const double& lengthRatio,
                                 const double& outRadiusRatio,
                                 const double& L)
-{
-    // 15 is the length of the tube
+{    // 15 is the length of the tube
     double curRatio = 1. - (1. - outRadiusRatio) * z / L;
+    double curRatioDer = - (1. - outRadiusRatio) / L;
+    // M_jacobianScaling(0,0) = curRatio;
+    // M_jacobianScaling(0,1) = 0;
+    // M_jacobianScaling(0,2) = x * curRatioDer;
+    // M_jacobianScaling(1,0) = 0;
+    // M_jacobianScaling(1,1) = curRatio;
+    // M_jacobianScaling(1,2) = y * curRatioDer;
+    // M_jacobianScaling(2,0) = 0;
+    // M_jacobianScaling(2,1) = 0;
+    // M_jacobianScaling(2,2) = lengthRatio;
 
     M_jacobianScaling(0,0) = curRatio;
     M_jacobianScaling(0,1) = 0;
-    M_jacobianScaling(0,2) = 0;
+    M_jacobianScaling(0,2) = x * curRatioDer;
     M_jacobianScaling(1,0) = 0;
     M_jacobianScaling(1,1) = curRatio;
-    M_jacobianScaling(1,2) = 0;
+    M_jacobianScaling(1,2) = y * curRatioDer;
     M_jacobianScaling(2,0) = 0;
     M_jacobianScaling(2,1) = 0;
     M_jacobianScaling(2,2) = lengthRatio;
+
+    // std::cout << M_jacobianScaling << std::endl << std::flush;
+    //
+    // const double h = 1e-8;
+    // Vector3D coor;
+    // coor(0) = x;
+    // coor(1) = y;
+    // coor(2) = z;
+    // scalingFunction(coor(0),coor(1),coor(2),lengthRatio,outRadiusRatio,L);
+    // for (int i = 0; i < 3; i++)
+    // {
+    //     for (int j = 0; j < 3; j++)
+    //     {
+    //         Vector3D coor2;
+    //         coor2(0) = x;
+    //         coor2(1) = y;
+    //         coor2(2) = z;
+    //
+    //         Vector3D inc;
+    //         inc(j) = h;
+    //         coor2 = coor2 + inc;
+    //
+    //         scalingFunction(coor2(0),coor2(1),coor2(2),lengthRatio,outRadiusRatio,L);
+    //         std::cout << (coor2(i) - coor(i))/h << " " << std::flush;
+    //         M_jacobianScaling(i,j) = (coor2(i) - coor(i))/h;
+    //     }
+    //     std::cout << "\n" << std::flush;
+    // }
+
     return M_jacobianScaling;
 }
 
@@ -341,16 +377,72 @@ computeJacobianBend(const double& x, const double& y, const double& z,
     double ratio = z / L;
     double actualAngle = bendAngle * ratio;
 
-    M_jacobianBending(0,0) = std::cos(actualAngle);
-    M_jacobianBending(0,1) = 0;
-    M_jacobianBending(0,2) = -r * std::sin(actualAngle) * bendAngle / L;
-    M_jacobianBending(1,0) = 0;
-    M_jacobianBending(1,1) = 1.0;
-    M_jacobianBending(1,2) = 0;
-    M_jacobianBending(2,0) = std::sin(actualAngle);
-    M_jacobianBending(2,1) = 0;
-    M_jacobianBending(2,2) = r * std::cos(actualAngle) * bendAngle / L + x * std::cos(actualAngle) * bendAngle / L;
+    if (bendAngle > 1e-5)
+    {
+        M_jacobianBending(0,0) = std::cos(actualAngle);
+        M_jacobianBending(0,1) = 0;
+        M_jacobianBending(0,2) = -r * std::sin(actualAngle) * bendAngle / L - x * std::sin(actualAngle) * bendAngle / L;
+        M_jacobianBending(1,0) = 0;
+        M_jacobianBending(1,1) = 1.0;
+        M_jacobianBending(1,2) = 0;
+        M_jacobianBending(2,0) = std::sin(actualAngle);
+        M_jacobianBending(2,1) = 0;
+        M_jacobianBending(2,2) = r * std::cos(actualAngle) * bendAngle / L + x * std::cos(actualAngle) * bendAngle / L;
+    }
+    else
+    {
+        M_jacobianBending(0,0) = 1.0;
+        M_jacobianBending(0,1) = 0;
+        M_jacobianBending(0,2) = 0;
+        M_jacobianBending(1,0) = 0;
+        M_jacobianBending(1,1) = 1.0;
+        M_jacobianBending(1,2) = 0;
+        M_jacobianBending(2,0) = 0;
+        M_jacobianBending(2,1) = 0;
+        M_jacobianBending(2,2) = 1.0;
+    }
+
+    // std::cout << M_jacobianBending << std::endl << std::flush;
+    //
+    // const double h = 1e-8;
+    // Vector3D coor;
+    // coor(0) = x;
+    // coor(1) = y;
+    // coor(2) = z;
+    // bendFunctionAnalytic(coor(0),coor(1),coor(2),M_parametersHandler["bend"],M_parametersHandler["L_ratio"] * M_outletCenterRef[2]);
+    // for (int i = 0; i < 3; i++)
+    // {
+    //     for (int j = 0; j < 3; j++)
+    //     {
+    //         Vector3D coor2;
+    //         coor2(0) = x;
+    //         coor2(1) = y;
+    //         coor2(2) = z;
+    //
+    //         Vector3D inc;
+    //         inc(j) = h;
+    //         coor2 = coor2 + inc;
+    //
+    //         bendFunctionAnalytic(coor2(0),coor2(1),coor2(2),M_parametersHandler["bend"],M_parametersHandler["L_ratio"] * M_outletCenterRef[2]);
+    //         std::cout << (coor2(i) - coor(i))/h << " " << std::flush;
+    //         M_jacobianBending(i,j) = (coor2(i) - coor(i))/h;
+    //     }
+    //     std::cout << "\n" << std::flush;
+    // }
+
+
     return M_jacobianBending;
+}
+
+void
+Tube::
+nonAffineTransf(double& x, double& y, double& z)
+{
+    scalingFunction(x,y,z,M_parametersHandler["L_ratio"],
+                    M_parametersHandler["Rout_ratio"],
+                    M_outletCenterRef[2]);
+    bendFunctionAnalytic(x,y,z,M_parametersHandler["bend"],
+                         M_parametersHandler["L_ratio"] * M_outletCenterRef[2]);
 }
 
 }

@@ -28,6 +28,7 @@
 #include <redma/reduced_basis/RBBasesManager.hpp>
 
 #include <redma/solver/problem/DataContainer.hpp>
+#include <redma/solver/assemblers/DefaultAssemblersLibrary.hpp>
 
 namespace RedMA
 {
@@ -35,6 +36,7 @@ namespace RedMA
 template <class InVectorType, class InMatrixType>
 class aAssembler : public aFunctionProvider<InVectorType, InMatrixType>
 {
+    typedef DefaultAssemblersLibrary<FEVECTOR, FEMATRIX> DefaultAssemblers;
 public:
     aAssembler(const DataContainer& datafile);
 
@@ -118,13 +120,18 @@ public:
 
     virtual void applyPiola(BlockVector<FEVECTOR> solution, bool inverse) = 0;
 
+    virtual void initializeFEspaces() {};
+
+    void setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers) {M_defaultAssemblers = defAssemblers;};
+
 protected:
-    DataContainer                        M_data;
-    SHP(TreeNode)                        M_treeNode;
-    SHP(BCManager)                       M_bcManager;
-    unsigned int                         M_nComponents;
-    EPETRACOMM                           M_comm;
-    std::string                          M_name;
+    DataContainer                           M_data;
+    SHP(TreeNode)                           M_treeNode;
+    SHP(BCManager)                          M_bcManager;
+    unsigned int                            M_nComponents;
+    EPETRACOMM                              M_comm;
+    std::string                             M_name;
+    SHP(DefaultAssemblers)                  M_defaultAssemblers;
 };
 
 }

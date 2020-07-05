@@ -27,7 +27,7 @@ class Tube : public BuildingBlock
 {
 public:
     Tube(commPtr_Type comm, std::string refinement = "coarse",
-         bool verbose = false, int diameter = 1, int length = 1);
+         bool verbose = false, int diameter = 1, int length = 1, bool randomizable = true);
 
     virtual inline unsigned int expectedNumberOfChildren() override
     {
@@ -59,6 +59,8 @@ public:
     virtual Matrix3D computeJacobianNonAffineTransformation(const double& x,
                                                             const double& y,
                                                             const double& z) override;
+
+    virtual void nonAffineTransf(double& x, double& y, double& z) override;
 
 private:
     void nonAffineScaling(const double& lengthRatio,

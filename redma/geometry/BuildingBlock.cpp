@@ -97,6 +97,31 @@ setParameterValue(std::string key, double value)
     return M_parametersHandler.setParameterValue(key, value);
 }
 
+void
+BuildingBlock::
+matrixInverse(Matrix3D& matrix, Matrix3D* inverse)
+{
+    double& a = matrix(0,0);
+    double& b = matrix(0,1);
+    double& c = matrix(0,2);
+    double& d = matrix(1,0);
+    double& e = matrix(1,1);
+    double& f = matrix(1,2);
+    double& g = matrix(2,0);
+    double& h = matrix(2,1);
+    double& i = matrix(2,2);
+
+    (*inverse)(0,0) = (e*i - f*h)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+    (*inverse)(0,1) = -(b*i - c*h)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+    (*inverse)(0,2) = (b*f - c*e)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+    (*inverse)(1,0) = -(d*i - f*g)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+    (*inverse)(1,1) = (a*i - c*g)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+    (*inverse)(1,2) = -(a*f - c*d)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+    (*inverse)(2,0) = (d*h - e*g)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+    (*inverse)(2,1) = -(a*h - b*g)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+    (*inverse)(2,2) = (a*e - b*d)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+}
+
 std::map<std::string,std::shared_ptr<GeometricParameter> >&
 BuildingBlock::
 getParametersMap()
@@ -243,10 +268,7 @@ applyAffineTransformation(bool transformMesh)
     if (transformMesh)
         transformer.reset(new Transformer(*M_mesh));
 
-    double scale;
-    Vector3D scaleVec;
     Vector3D rotation;
-    Vector3D translation;
 
     if (M_isChild)
     {
@@ -256,14 +278,14 @@ applyAffineTransformation(bool transformMesh)
 
         M_R =  computeRotationMatrix(M_inletRotationAxis, M_inletAngle);
 
-        translation = M_inletTranslation;
-        scale = M_inletScale;
+        M_translation = M_inletTranslation;
+        M_scale = M_inletScale;
 
         auto foo = std::bind(rotationFunction,
                              std::placeholders::_1,
                              std::placeholders::_2,
                              std::placeholders::_3,
-                             M_R, translation, scale);
+                             M_R, M_translation, M_scale);
 
         std::string axisStr = std::string("(");
         axisStr = axisStr + std::to_string(M_inletRotationAxis[0]) + ",";
@@ -277,16 +299,16 @@ applyAffineTransformation(bool transformMesh)
 
         std::string transStr = std::string("(");
         transStr  = "(";
-        transStr = transStr + std::to_string(translation[0]) + ",";
-        transStr = transStr + std::to_string(translation[1]) + ",";
-        transStr = transStr + std::to_string(translation[2]) + ")";
+        transStr = transStr + std::to_string(M_translation[0]) + ",";
+        transStr = transStr + std::to_string(M_translation[1]) + ",";
+        transStr = transStr + std::to_string(M_translation[2]) + ")";
 
         printlog(YELLOW, "[" + M_name +
                   " BuildingBlock] translating with vector " + transStr +
                   " ...\n", M_verbose);
 
         printlog(YELLOW, "[" + M_name +
-                " BuildingBlock] applying scaling of " + std::to_string(scale) +
+                " BuildingBlock] applying scaling of " + std::to_string(M_scale) +
                 " ...\n", M_verbose);
 
         if (transformMesh)
@@ -298,7 +320,7 @@ applyAffineTransformation(bool transformMesh)
         printlog(GREEN, "[" + M_name +
                      " BuildingBlock] is root: applying initial affine transformation ...\n",
                      M_verbose);
-        scale = M_parametersHandler["scale"];
+        M_scale = M_parametersHandler["scale"];
 
         rotation[0] = M_parametersHandler["rotation_axis_x"];
         rotation[1] = M_parametersHandler["rotation_axis_y"];
@@ -306,9 +328,9 @@ applyAffineTransformation(bool transformMesh)
 
         double angle = M_parametersHandler["alpha"];
 
-        translation[0] = M_parametersHandler["bx"];
-        translation[1] = M_parametersHandler["by"];
-        translation[2] = M_parametersHandler["bz"];
+        M_translation[0] = M_parametersHandler["bx"];
+        M_translation[1] = M_parametersHandler["by"];
+        M_translation[2] = M_parametersHandler["bz"];
 
         std::string axisStr = std::string("(");
         axisStr = axisStr + std::to_string(rotation[0]) + ",";
@@ -322,9 +344,9 @@ applyAffineTransformation(bool transformMesh)
 
         std::string transStr = std::string("(");
         transStr  = "(";
-        transStr = transStr + std::to_string(translation[0]) + ",";
-        transStr = transStr + std::to_string(translation[1]) + ",";
-        transStr = transStr + std::to_string(translation[2]) + ")";
+        transStr = transStr + std::to_string(M_translation[0]) + ",";
+        transStr = transStr + std::to_string(M_translation[1]) + ",";
+        transStr = transStr + std::to_string(M_translation[2]) + ")";
 
         printlog(YELLOW, "[" + M_name +
                " BuildingBlock] translating with vector " + transStr +
@@ -336,36 +358,36 @@ applyAffineTransformation(bool transformMesh)
                              std::placeholders::_1,
                              std::placeholders::_2,
                              std::placeholders::_3,
-                             M_R, translation, scale);
+                             M_R, M_translation, M_scale);
 
         if (transformMesh)
             transformer->transformMesh(foo);
 
         printlog(YELLOW, "[" + M_name +
-                " BuildingBlock] applying scaling of " + std::to_string(scale) +
+                " BuildingBlock] applying scaling of " + std::to_string(M_scale) +
                 " ...\n", M_verbose);
 
         printlog(GREEN, "done\n", M_verbose);
     }
 
-    applyAffineTransformationGeometricFace(M_inlet,M_R,translation,scale);
+    applyAffineTransformationGeometricFace(M_inlet,M_R,M_translation,M_scale);
     for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
          it != M_outlets.end(); it++)
     {
-        applyAffineTransformationGeometricFace(*it, M_R, translation,scale);
+        applyAffineTransformationGeometricFace(*it, M_R, M_translation,M_scale);
     }
 
     // Handle rotation along the axis of the inlet
     double angle = M_parametersHandler["alpha_axis"];
 
-    Matrix3D Raxis = computeRotationMatrix(M_inlet.M_normal, angle);
-    Vector3D transZero = M_inlet.M_center - Raxis * M_inlet.M_center;
+    M_Raxis = computeRotationMatrix(M_inlet.M_normal, angle);
+    Vector3D transZero = M_inlet.M_center - M_Raxis * M_inlet.M_center;
 
     auto foo = std::bind(rotationFunction,
                          std::placeholders::_1,
                          std::placeholders::_2,
                          std::placeholders::_3,
-                         Raxis, transZero, 1.0);
+                         M_Raxis, transZero, 1.0);
 
     if (transformMesh)
         transformer->transformMesh(foo);
@@ -373,7 +395,7 @@ applyAffineTransformation(bool transformMesh)
     for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
          it != M_outlets.end(); it++)
     {
-        applyAffineTransformationGeometricFace(*it, Raxis, transZero, 1.0);
+        applyAffineTransformationGeometricFace(*it, M_Raxis, transZero, 1.0);
     }
 
     printlog(MAGENTA, "done\n", M_verbose);
@@ -561,8 +583,25 @@ computeJacobianGlobalTransformation(const double& x,
                                     const double& z)
 {
     Matrix3D nonLinearJacobian = computeJacobianNonAffineTransformation(x,y,z);
+    return M_scale * M_Raxis * M_R * nonLinearJacobian;
+}
 
-    return M_inletScale * M_R * nonLinearJacobian;
+void
+BuildingBlock::
+globalTransf(double& x, double& y, double& z)
+{
+    nonAffineTransf(x,y,z);
+    affineTransf(x,y,z);
+}
+
+void
+BuildingBlock::
+affineTransf(double& x, double& y, double& z)
+{
+    Vector3D coor(x,y,z);
+    Vector3D res = M_scale * M_Raxis * M_R * coor + M_translation;
+
+    x = res(0); y = res(1); z = res(2);
 }
 
 }  // namespace BuildingBlock

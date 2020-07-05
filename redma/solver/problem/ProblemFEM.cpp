@@ -9,7 +9,8 @@ ProblemFEM(const DataContainer& data, EPETRACOMM comm, bool doSetup) :
   M_geometryParser(data.getDatafile(),
                    data("geometric_structure/xmlfile","tree.xml"),
                    comm, data.getVerbose()),
-  M_storeSolutions(false)
+  M_storeSolutions(false),
+  M_comm(comm)
 {
     M_tree = M_geometryParser.getTree();
 
@@ -29,8 +30,11 @@ setup()
 
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();
+    M_defaultAssemblers.reset(new DefaultAssemblersLibrary<FEVECTOR COMMA FEMATRIX>
+                                  (M_data, M_tree.getMeshListNames(), M_comm));
 
     M_assembler.reset(new BAssembler(M_data, M_tree));
+    M_assembler->setDefaultAssemblers(M_defaultAssemblers);
     M_TMAlgorithm = TimeMarchingAlgorithmFactory<BV, BM>(M_data, M_assembler);
     printlog(MAGENTA, "done\n", M_data.getVerbose());
 }
@@ -71,6 +75,9 @@ solve()
         int status = -1;
 
         M_solution = M_TMAlgorithm->advance(t, dt, status);
+
+        M_assembler->applyGlobalPiola(M_solution, true);
+        exit(1);
 
         if (status)
             throw new Exception("Error in solver. Status != 0.");

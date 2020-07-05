@@ -5,7 +5,7 @@ namespace RedMA
 
 BifurcationSymmetric::
 BifurcationSymmetric(commPtr_Type comm, std::string refinement,
-                     bool verbose, int angle) :
+                     bool verbose, int angle, bool randomizable) :
   BuildingBlock(comm, refinement, verbose),
   M_angle(angle)
 {
@@ -56,20 +56,19 @@ BifurcationSymmetric(commPtr_Type comm, std::string refinement,
 
     resetInletOutlets();
 
-    const bool randomizible = true;
     const double maxAngle = 0.1;
     M_parametersHandler.registerParameter("out1_alphax", 0.0, -maxAngle,
-                                          maxAngle, randomizible);
+                                          maxAngle, randomizable);
     M_parametersHandler.registerParameter("out1_alphay", 0.0, -maxAngle,
-                                          maxAngle, randomizible);
+                                          maxAngle, randomizable);
     M_parametersHandler.registerParameter("out1_alphaz", 0.0, -maxAngle,
-                                          maxAngle, randomizible);
+                                          maxAngle, randomizable);
     M_parametersHandler.registerParameter("out2_alphax", 0.0, -maxAngle,
-                                          maxAngle, randomizible);
+                                          maxAngle, randomizable);
     M_parametersHandler.registerParameter("out2_alphay", 0.0, -maxAngle,
-                                          maxAngle, randomizible);
+                                          maxAngle, randomizable);
     M_parametersHandler.registerParameter("out2_alphaz", 0.0, -maxAngle,
-                                          maxAngle, randomizible);
+                                          maxAngle, randomizable);
     computeCenter();
 
     M_identity3D(0,0) = 1;
