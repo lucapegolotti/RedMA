@@ -10,6 +10,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/VMSStabilization.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/HFStabilization.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DefaultAssemblersLibrary.hpp
     CACHE INTERNAL ""
 )
 

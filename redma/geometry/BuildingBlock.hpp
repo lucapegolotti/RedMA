@@ -159,6 +159,14 @@ public:
                                                             const double& y,
                                                             const double& z) = 0;
 
+    static void matrixInverse(Matrix3D& matrix, Matrix3D* inverse);
+
+    void globalTransf(double& x, double& y, double& z);
+
+    void affineTransf(double& x, double& y, double& z);
+
+    virtual void nonAffineTransf(double& x, double& y, double& z) {};
+
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,
@@ -180,6 +188,7 @@ protected:
     meshPtr_Type M_mesh;
 
     Matrix3D M_R;
+    Matrix3D M_Raxis;
 
     commPtr_Type M_comm;
 
@@ -193,9 +202,11 @@ protected:
     bool M_isChild;
 
     double M_inletScale;
+    double M_scale;
 
     Vector3D M_inletTranslation;
     Vector3D M_inletRotationAxis;
+    Vector3D M_translation;
     double M_inletAngle;
 
     GetPot M_datafile;

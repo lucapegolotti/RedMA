@@ -75,7 +75,6 @@ void
 GeometricParameter::
 randomSampleAroundOriginalValue(const double& bounds)
 {
-
     using namespace std;
     // static std::default_random_engine e;
     // static std::uniform_real_distribution<> dis(0, 1);
@@ -187,6 +186,7 @@ operator[](std::string name)
                                + name + " does not exist!";
         throw Exception(errorMsg);
     }
+
     return M_parametersMap[name]->getValue();
 }
 

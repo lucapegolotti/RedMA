@@ -27,7 +27,7 @@ class BifurcationSymmetric : public BuildingBlock
 {
 public:
     BifurcationSymmetric(commPtr_Type comm, std::string refinement = "coarse",
-                         bool verbose = false, int angle = 50);
+                         bool verbose = false, int angle = 50, bool randomizable = true);
 
     virtual inline unsigned int expectedNumberOfChildren() override
     {

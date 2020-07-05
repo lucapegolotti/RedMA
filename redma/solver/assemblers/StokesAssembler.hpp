@@ -71,7 +71,7 @@ public:
     void addNeumannBCs(BlockVector<FEVECTOR>& input, const double& time,
                        const BlockVector<InVectorType>& sol);
 
-    void initializeFEspaces();
+    void initializeFEspaces() override;
 
     BlockMatrix<InMatrixType> assembleStiffness(BlockMDEIMStructure* structure = nullptr);
 

@@ -26,6 +26,7 @@
 
 #include <memory>
 #include <map>
+#include <set>
 #include <queue>
 
 #include <ctime>
@@ -77,6 +78,8 @@ public:
     void traverseAndDeformGeometries(bool deformMesh = true);
 
     void resetInletOutlets();
+
+    std::set<std::string> getMeshListNames();
 
     void dump(std::string outdir, std::string meshdir);
 

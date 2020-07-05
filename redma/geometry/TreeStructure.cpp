@@ -286,6 +286,17 @@ readMeshes(std::string meshdir)
     }
 }
 
+std::set<std::string>
+TreeStructure::
+getMeshListNames()
+{
+    std::set<std::string> output;
+    for (auto node : M_nodesMap)
+        output.insert(node.second->M_block->getMeshName());
+
+    return output;
+}
+
 void
 TreeStructure::
 createRandom(unsigned int blocksNumber, std::shared_ptr<Epetra_Comm> comm)

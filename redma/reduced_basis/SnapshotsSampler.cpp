@@ -66,8 +66,15 @@ dumpSnapshots(ProblemFEM& problem,
     if (binary)
         omode = omode | std::ios::binary;
 
+    for (auto sol : solutions)
+        problem.getBlockAssembler()->applyGlobalPiola(sol, true);
+
     for (auto idmeshtype : IDmeshTypeMap)
     {
+        // SHP(TreeNode) defTreeNode = generateDefaultTreeNode(idmeshtype.second);
+        // SHP(AssemblerType) defAssembler = AssemblerFactory<FEVECTOR COMMA FEMATRIX>(M_data, defTreeNode);
+        // defAssembler->setup();
+
         std::string meshtypedir = outdir + "/" + idmeshtype.second;
         boost::filesystem::create_directory(meshtypedir);
 
@@ -82,7 +89,6 @@ dumpSnapshots(ProblemFEM& problem,
             unsigned int count = 0;
             for (auto sol : solutions)
             {
-                problem.getBlockAssembler()->applyGlobalPiola(sol, true);
                 if (count % takeEvery == 0)
                 {
                     std::string str2write = sol.block(idmeshtype.first).block(i).getString(',') + "\n";
