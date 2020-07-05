@@ -14,38 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef SNAPSHOTSSAMPLER_HPP
-#define SNAPSHOTSSAMPLER_HPP
-
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
-#include <redma/solver/problem/ProblemFEM.hpp>
+#include <redma/reduced_basis/SnapshotsSampler.hpp>
 
-#include <redma/geometry/GeometryPrinter.hpp>
+using namespace RedMA;
 
-#include <boost/filesystem.hpp>
 
-namespace RedMA
+int main(int argc, char **argv)
 {
+    #ifdef HAVE_MPI
+    MPI_Init (nullptr, nullptr);
+    EPETRACOMM comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    #else
+    EPETRACOMM comm(new Epetra_SerialComm());
+    #endif
 
-class SnapshotsSampler
-{
-public:
-    SnapshotsSampler(const DataContainer& data, EPETRACOMM comm);
+    DataContainer data;
+    data.setDatafile("datafiles/data");
+    data.setVerbose(comm->MyPID() == 0);
+    data.finalize();
 
-    void takeSnapshots();
+    SnapshotsSampler sampler(data, comm);
+    sampler.transformSnapshotsWithPiola("snapshots_",0,1);
 
-    void dumpSnapshots(ProblemFEM& problem, std::string outdir);
-
-    void transformSnapshotsWithPiola(std::string snapshotsDir,
-                                     unsigned int fieldIndex,
-                                     unsigned int maxSnapshot);
-
-private:
-    DataContainer       M_data;
-    EPETRACOMM          M_comm;
-};
-
-}  // namespace RedMA
-
-#endif  // SNAPSHOTSSAMPLER_HPP
+    return 0;
+}

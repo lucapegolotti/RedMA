@@ -76,9 +76,6 @@ solve()
 
         M_solution = M_TMAlgorithm->advance(t, dt, status);
 
-        M_assembler->applyGlobalPiola(M_solution, true);
-        exit(1);
-
         if (status)
             throw new Exception("Error in solver. Status != 0.");
 
