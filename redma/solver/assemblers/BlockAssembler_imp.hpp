@@ -29,6 +29,15 @@ setExporter()
 }
 
 template <class InVectorType, class InMatrixType>
+void
+BlockAssembler<InVectorType, InMatrixType>::
+initializeFEspaces()
+{
+    for (auto as: M_primalAssemblers)
+        as.second->initializeFEspaces();
+}
+
+template <class InVectorType, class InMatrixType>
 BlockVector<InVectorType>
 BlockAssembler<InVectorType, InMatrixType>::
 getLifting(const double& time) const

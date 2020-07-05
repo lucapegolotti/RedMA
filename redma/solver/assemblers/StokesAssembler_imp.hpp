@@ -708,9 +708,10 @@ applyPiola(BlockVector<FEVECTOR> solution, bool inverse)
     //
     // FEMATRIX Bwrap;
     // Bwrap.data() = B;
-
+    //
     // FEVECTOR res1 = Bwrap * solution.block(0);
     //
+    // std::cout << this->M_treeNode->M_block->getMeshName() << std::endl << std::flush;
     // std::cout << "norm 1 = " << res1.norm2() << std::endl << std::flush;
     //
     // FEVECTOR res2 = refDivergence.block(1,0) * solution.block(0);

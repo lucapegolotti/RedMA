@@ -17,8 +17,8 @@ DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>&
         {
             SHP(TreeNode) defTreeNode = generateDefaultTreeNode(nameMesh);
             SHP(AssemblerType) defAssembler = AssemblerFactory<FEVECTOR COMMA FEMATRIX>(M_data, defTreeNode);
-            // defAssembler->initializeFEspaces();
-            defAssembler->setup();
+            defAssembler->initializeFEspaces();
+            // defAssembler->setup();
 
             M_assemblersMap[mesh]= defAssembler;
         }

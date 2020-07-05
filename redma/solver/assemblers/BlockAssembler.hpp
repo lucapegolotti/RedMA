@@ -93,6 +93,8 @@ public:
 
     void applyGlobalPiola(BlockVector<BlockVector<FEVECTOR>> solution, bool inverse);
 
+    virtual void initializeFEspaces() override;
+
 protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;
