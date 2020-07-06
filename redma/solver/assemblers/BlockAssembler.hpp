@@ -38,7 +38,8 @@ class BlockAssembler : public aAssembler<InVectorType, InMatrixType>
     typedef DefaultAssemblersLibrary<FEVECTOR, FEMATRIX>  DefaultAssemblers;
 
 public:
-    BlockAssembler(const DataContainer& data, const TreeStructure& tree);
+    BlockAssembler(const DataContainer& data, const TreeStructure& tree,
+                   SHP(DefaultAssemblers) defAssemblers = nullptr);
 
     virtual void setup() override;
 

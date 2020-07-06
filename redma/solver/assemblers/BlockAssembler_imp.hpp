@@ -3,10 +3,12 @@ namespace RedMA
 
 template <class InVectorType, class InMatrixType>
 BlockAssembler<InVectorType, InMatrixType>::
-BlockAssembler(const DataContainer& data, const TreeStructure& tree) :
+BlockAssembler(const DataContainer& data, const TreeStructure& tree,
+               SHP(DefaultAssemblers) defAssemblers) :
   aAssembler<InVectorType, InMatrixType>(data),
   M_tree(tree)
 {
+    this->M_defaultAssemblers = defAssemblers;
     setup();
 }
 
