@@ -121,18 +121,19 @@ void
 SnapshotsSampler::
 transformSnapshotsWithPiola(std::string snapshotsDir,
                             unsigned int fieldIndex,
+                            unsigned int minSnapshot,
                             unsigned int maxSnapshot)
 {
     using namespace boost::filesystem;
 
-    std::ios_base::openmode omode = std::ios_base::app;
+    std::ios_base::openmode omode = std::ios_base::out;
 
-    for (unsigned int i = 0; i < maxSnapshot; i++)
+    for (unsigned int indexSnap = minSnapshot; indexSnap < maxSnapshot; indexSnap++)
     {
-        std::string paramfile = snapshotsDir + "/param" + std::to_string(i);
+        std::string paramfile = snapshotsDir + "/param" + std::to_string(indexSnap);
         std::string treefile =  paramfile + "/tree.xml";
         std::cout << "treefile = " << treefile << std::endl << std::flush;
-        if (exists(treefile))
+        if (exists(paramfile + "/tube_1x1_h0.08/"))
         {
             M_data.setValueString("geometric_structure/xmlfile", treefile);
             ProblemFEM problem(M_data, M_comm, false);
@@ -191,13 +192,15 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
                     }
 
                     const bool inverse = true;
+                    std::cout << "Applying piola" << std::endl << std::flush;
                     problem.getBlockAssembler()->applyGlobalPiola(auxVec, inverse);
                 }
 
                 infile.close();
 
                 std::ofstream outfile;
-                outfile.open(snapshotFile, omode);
+                outfile.open(paramfile + "/" + mtn.first +
+                                           "/field" + std::to_string(fieldIndex) + "_piola.snap", omode);
                 unsigned int count = 0;
                 for (auto sol : snapshots)
                 {

@@ -39,6 +39,7 @@ public:
 
     void transformSnapshotsWithPiola(std::string snapshotsDir,
                                      unsigned int fieldIndex,
+                                     unsigned int minSnapshot,
                                      unsigned int maxSnapshot);
 
 private:

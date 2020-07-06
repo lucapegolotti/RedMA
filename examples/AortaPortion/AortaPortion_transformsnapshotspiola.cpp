@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     data.finalize();
 
     SnapshotsSampler sampler(data, comm);
-    sampler.transformSnapshotsWithPiola("snapshots_",0,1);
+    sampler.transformSnapshotsWithPiola("snapshots__",0,atoi(argv[1]),atoi(argv[1])+1);
 
     return 0;
 }
