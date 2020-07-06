@@ -22,6 +22,7 @@ setup()
     {
         SHP(InnerAssembler) newAssembler;
         newAssembler = AssemblerFactory<VInner, MInner> (this->M_data, it->second);
+        newAssembler->setDefaultAssemblers(M_defaultAssemblers);
         M_comm = newAssembler->getComm();
         M_primalAssemblers[it->second->M_ID] = newAssembler;
     }
