@@ -122,7 +122,10 @@ public:
 
     virtual void initializeFEspaces() {};
 
-    void setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers) {M_defaultAssemblers = defAssemblers;};
+    virtual void setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers)
+    {
+        M_defaultAssemblers = defAssemblers;
+    };
 
     unsigned int ID() {return M_treeNode->M_ID;}
 
