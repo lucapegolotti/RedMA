@@ -190,6 +190,7 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
                     }
 
                     const bool inverse = true;
+                    std::cout << "Applying piola" << std::endl << std::flush;
                     problem.getBlockAssembler()->applyGlobalPiola(auxVec, inverse);
                 }
 

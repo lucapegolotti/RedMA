@@ -641,11 +641,13 @@ convertFunctionRBtoFEM(BlockVector<RBVECTOR> rbSolution) const
 {
     BlockVector<FEVECTOR> retVec(2);
 
+    unsigned int id = this->M_treeNode->M_ID;
+
     if (rbSolution.block(0).data())
-        retVec.block(0).data() = M_bases->reconstructFEFunction(rbSolution.block(0), 0);
+        retVec.block(0).data() = M_bases->reconstructFEFunction(rbSolution.block(0), 0, id);
 
     if (rbSolution.block(1).data())
-        retVec.block(1).data() = M_bases->reconstructFEFunction(rbSolution.block(1), 1);
+        retVec.block(1).data() = M_bases->reconstructFEFunction(rbSolution.block(1), 1, id);
 
     return retVec;
 }

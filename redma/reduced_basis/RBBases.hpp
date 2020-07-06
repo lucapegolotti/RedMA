@@ -52,28 +52,29 @@ public:
 
     std::vector<SHP(VECTOREPETRA)> getFullBasis(const unsigned int& index) {return M_bases[index];}
 
-    std::vector<SHP(VECTOREPETRA)> getEnrichedBasis(const unsigned int& index);
+    std::vector<SHP(VECTOREPETRA)> getEnrichedBasis(const unsigned int& index, unsigned int ID);
 
     std::vector<SHP(VECTOREPETRA)> getPrimalSupremizers(const unsigned int& i, const unsigned int& j) {return M_primalSupremizers(i,j);}
 
     DenseMatrix matrixProject(MatrixEp matrix, unsigned int basisIndexRow,
-                                               unsigned int basisIndexCol);
+                              unsigned int basisIndexCol, unsigned int ID);
 
-    BlockMatrix<DenseMatrix> leftProject(BlockMatrix<MatrixEp> matrix);
+    BlockMatrix<DenseMatrix> leftProject(BlockMatrix<MatrixEp> matrix, unsigned int ID);
 
-    DenseMatrix leftProject(MatrixEp matrix, unsigned int basisIndex);
+    DenseMatrix leftProject(MatrixEp matrix, unsigned int basisIndex, unsigned int ID);
 
-    BlockVector<DenseVector> leftProject(BlockVector<VectorEp> vector);
+    BlockVector<DenseVector> leftProject(BlockVector<VectorEp> vector, unsigned int ID);
 
-    DenseVector leftProject(VectorEp vector, unsigned int basisIndex);
+    DenseVector leftProject(VectorEp vector, unsigned int basisIndex, unsigned int ID);
 
     BlockVector<DenseVector> projectOnLagrangeSpace(BlockVector<VectorEp> vector);
 
-    BlockMatrix<DenseMatrix> rightProject(BlockMatrix<MatrixEp> matrix);
+    BlockMatrix<DenseMatrix> rightProject(BlockMatrix<MatrixEp> matrix, unsigned int ID);
 
-    DenseMatrix rightProject(MatrixEp matrix, unsigned int basisIndex);
+    DenseMatrix rightProject(MatrixEp matrix, unsigned int basisIndex, unsigned int ID);
 
-    SHP(VECTOREPETRA) reconstructFEFunction(DenseVector rbSolution, unsigned int index);
+    SHP(VECTOREPETRA) reconstructFEFunction(DenseVector rbSolution, unsigned int index,
+                                            unsigned int ID);
 
     void addPrimalSupremizer(SHP(VECTOREPETRA) supremizer,
                              const unsigned int& fieldToAugment,
@@ -86,7 +87,7 @@ public:
 
     inline unsigned int getFullSizeBasis(const unsigned int& index) {return M_bases[index].size();}
 
-    inline unsigned int getSizeEnrichedBasis(const unsigned int& index) {return getEnrichedBasis(index).size();}
+    inline unsigned int getSizeEnrichedBasis(const unsigned int& index) {return getEnrichedBasis(index,0).size();}
 
     void normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix);
 
@@ -96,6 +97,9 @@ public:
     std::vector<unsigned int> getSelectors(unsigned int index);
 
     void print();
+
+    void scaleBasisWithPiola(unsigned int index, unsigned int ID,
+                             std::function<void(SHP(VECTOREPETRA))> transform);
 
     void setBasisFunctions(std::vector<SHP(VECTOREPETRA)> basisFunctions,
                            unsigned int index) {M_bases[index] = basisFunctions;}
@@ -116,31 +120,40 @@ public:
         return false;
     }
 
+    MatrixEp getEnrichedBasisMatrices(const unsigned int& index, const unsigned int& ID,
+                                      bool transpose);
+
 private:
     void addVectorsFromFile(std::string filename,
                             std::vector<SHP(VECTOREPETRA)>& vectors,
                             const unsigned int& indexField,
                             int Nmax = -1);
 
-    unsigned int                                    M_numFields;
-    DataContainer                                   M_data;
-    EPETRACOMM                                      M_comm;
-    std::vector<std::vector<SHP(VECTOREPETRA)>>     M_bases;
-    std::vector<MatrixEp>                           M_enrichedBasesMatrices;
-    std::vector<MatrixEp>                           M_enrichedBasesMatricesTransposed;
+    unsigned int                                                      M_numFields;
+    DataContainer                                                     M_data;
+    EPETRACOMM                                                        M_comm;
+    std::vector<std::vector<SHP(VECTOREPETRA)>>                       M_bases;
+    std::vector<MatrixEp>                                             M_enrichedBasesMatrices;
+    std::vector<MatrixEp>                                             M_enrichedBasesMatricesTransposed;
     // this is a grid because the row indicates the field to be augmented (velocity)
     // and the column indicates the constraining field (pressure)
-    GridVectors                                     M_primalSupremizers;
-    std::vector<std::vector<SHP(VECTOREPETRA)>>     M_dualSupremizers;
-    std::string                                     M_meshName;
-    std::string                                     M_path;
-    std::vector<std::vector<double>>                M_svs;
-    std::vector<SHP(FESPACE)>                       M_fespaces;
+    GridVectors                                                       M_primalSupremizers;
+    std::vector<std::vector<SHP(VECTOREPETRA)>>                       M_dualSupremizers;
+    std::string                                                       M_meshName;
+    std::string                                                       M_path;
+    std::vector<std::vector<double>>                                  M_svs;
+    std::vector<SHP(FESPACE)>                                         M_fespaces;
     // max of tolerance on the individual fields
-    double                                          M_onlineTol;
-    // online tolerance on the intividual fields
-    std::vector<double>                             M_onlineTols;
-    std::vector<unsigned int>                       M_NsOnline;
+    double                                                            M_onlineTol;
+    // online tolerance on the individual fields
+    std::vector<double>                                               M_onlineTols;
+    std::vector<unsigned int>                                         M_NsOnline;
+    // these are needed only when we use a different basis in every block (e.g.
+    // when we rescale with piola)
+    std::map<unsigned int,std::map<unsigned int,
+                          std::vector<SHP(VECTOREPETRA)>>>            M_enrichedBasesMap;
+    std::map<unsigned int,std::map<unsigned int,MatrixEp>>            M_enrichedBasesMatricesMap;
+    std::map<unsigned int,std::map<unsigned int,MatrixEp>>            M_enrichedBasesMatricesTransposedMap;
 };
 
 }  // namespace RedMA
