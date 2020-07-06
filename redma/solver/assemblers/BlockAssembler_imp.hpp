@@ -53,12 +53,21 @@ getLifting(const double& time) const
 template <class InVectorType, class InMatrixType>
 void
 BlockAssembler<InVectorType, InMatrixType>::
+setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers)
+{
+    this->M_defaultAssemblers = defAssemblers;
+    for (auto as : M_primalAssemblers)
+        as.second->setDefaultAssemblers(this->M_defaultAssemblers);
+}
+
+template <class InVectorType, class InMatrixType>
+void
+BlockAssembler<InVectorType, InMatrixType>::
 applyGlobalPiola(BlockVector<BlockVector<FEVECTOR>> solution, bool inverse)
 {
     unsigned int count = 0;
     for (auto as : M_primalAssemblers)
     {
-        as.second->setDefaultAssemblers(this->M_defaultAssemblers);
         as.second->applyPiola(solution.block(count), inverse);
         count = count + 1;
     }

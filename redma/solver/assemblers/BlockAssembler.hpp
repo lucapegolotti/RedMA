@@ -35,6 +35,7 @@ class BlockAssembler : public aAssembler<InVectorType, InMatrixType>
 {
     typedef typename InVectorType::InnerType              VInner;
     typedef typename InMatrixType::InnerType              MInner;
+    typedef DefaultAssemblersLibrary<FEVECTOR, FEMATRIX>  DefaultAssemblers;
 
 public:
     BlockAssembler(const DataContainer& data, const TreeStructure& tree);
@@ -94,6 +95,8 @@ public:
     void applyGlobalPiola(BlockVector<BlockVector<FEVECTOR>> solution, bool inverse);
 
     virtual void initializeFEspaces() override;
+
+    void setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers) override;
 
 protected:
     GetPot                                                        M_datafile;
