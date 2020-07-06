@@ -30,7 +30,8 @@ applyDirichletBCs(const double& time, BlockVector<DenseVector>& vector) const
 
         SHP(VECTOREPETRA) velocityReconstructed;
 
-        velocityReconstructed = M_bases->reconstructFEFunction(vector.block(0), 0);
+        velocityReconstructed = M_bases->reconstructFEFunction(vector.block(0), 0,
+                                                M_treeNode->M_ID);
         BlockVector<VectorEp> velocityWrap(2);
 
         velocityWrap.block(0).data() = velocityReconstructed;
@@ -38,7 +39,7 @@ applyDirichletBCs(const double& time, BlockVector<DenseVector>& vector) const
         this->M_bcManager->applyDirichletBCs(time, velocityWrap, getFESpaceBCs(),
                                              getComponentBCs());
 
-        vector.block(0) = M_bases->leftProject(velocityWrap.block(0), 0);
+        vector.block(0) = M_bases->leftProject(velocityWrap.block(0), 0, M_treeNode->M_ID);
 
         std::string msg = "done, in ";
         msg += std::to_string(chrono.diff());
@@ -104,8 +105,9 @@ void
 StokesAssembler<DenseVector, DenseMatrix>::
 exportSolution(const double& t, const BlockVector<DenseVector>& sol)
 {
-    *M_velocityExporter = *M_bases->reconstructFEFunction(sol.block(0), 0);
-    *M_pressureExporter = *M_bases->reconstructFEFunction(sol.block(1), 1);
+    unsigned int id = M_treeNode->M_ID;
+    *M_velocityExporter = *M_bases->reconstructFEFunction(sol.block(0), 0, id);
+    *M_pressureExporter = *M_bases->reconstructFEFunction(sol.block(1), 1, id);
 
     // BlockVector<VectorEp> solCopy(2);
     // solCopy.block(0).data() = M_velocityExporter;
@@ -146,7 +148,7 @@ getLifting(const double& time) const
     auto liftingFE = getFELifting(time);
 
     BlockVector<RBVECTOR> lifting;
-    lifting = M_bases->leftProject(liftingFE);
+    lifting = M_bases->leftProject(liftingFE, M_treeNode->M_ID);
     return lifting;
 }
 
@@ -168,6 +170,16 @@ RBsetup()
 {
     if (M_bases == nullptr)
         throw new Exception("RB bases have not been set yet");
+
+    // scale with piola
+    unsigned int indexField = 0;
+    M_bases->scaleBasisWithPiola(0, M_treeNode->M_ID, [=](SHP(VECTOREPETRA) vector)
+    {
+        BlockVector<VectorEp> vectorWrap(2);
+        vectorWrap.block(0).data() = vector;
+
+        applyPiola(vectorWrap, false);
+    });
 
     // restrict rb matrices
     if (M_data("rb/online/usemdeim", true))
@@ -259,10 +271,12 @@ RBsetup()
         BlockMatrix<MatrixEp> fullStiffness = assembleReducedStiffness(nullptr);
         BlockMatrix<MatrixEp> fullDivergence = assembleReducedDivergence(nullptr);
 
-        M_mass.block(0,0) = M_bases->matrixProject(fullMass.block(0,0), 0, 0);
-        M_stiffness.block(0,0) = M_bases->matrixProject(fullStiffness.block(0,0), 0, 0);
-        M_divergence.block(0,1) = M_bases->matrixProject(fullDivergence.block(0,1), 0, 1);
-        M_divergence.block(1,0) = M_bases->matrixProject(fullDivergence.block(1,0), 1, 0);
+        unsigned int id = M_treeNode->M_ID;
+
+        M_mass.block(0,0) = M_bases->matrixProject(fullMass.block(0,0), 0, 0, id);
+        M_stiffness.block(0,0) = M_bases->matrixProject(fullStiffness.block(0,0), 0, 0, id);
+        M_divergence.block(0,1) = M_bases->matrixProject(fullDivergence.block(0,1), 0, 1, id);
+        M_divergence.block(1,0) = M_bases->matrixProject(fullDivergence.block(1,0), 1, 0, id);
 
         std::string msg = "done, in ";
         msg += std::to_string(chrono.diff());

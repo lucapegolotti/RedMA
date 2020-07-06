@@ -71,8 +71,8 @@ buildCouplingMatrices()
         BlockMatrix<MatrixEp> fatherB;
         buildCouplingMatrices(asFather, outlet, fatherBT, fatherB);
 
-        M_fatherBT = asFather->getRBBases()->leftProject(fatherBT);
-        M_fatherB = asFather->getRBBases()->rightProject(fatherB);
+        M_fatherBT = asFather->getRBBases()->leftProject(fatherBT, asFather->ID());
+        M_fatherB = asFather->getRBBases()->rightProject(fatherB, asFather->ID());
     }
 
     auto asChild = M_interface.M_assemblerChild;
@@ -91,8 +91,8 @@ buildCouplingMatrices()
 
         M_childBEp = childB;
 
-        M_childBT = asChild->getRBBases()->leftProject(childBT);
-        M_childB = asChild->getRBBases()->rightProject(childB);
+        M_childBT = asChild->getRBBases()->leftProject(childBT, asChild->ID());
+        M_childB = asChild->getRBBases()->rightProject(childB, asChild->ID());
     }
 }
 

@@ -176,7 +176,7 @@ loadBases()
 
     for (unsigned int i = 0; i < M_numFields; i++)
     {
-        auto curBasis = getEnrichedBasis(i);
+        auto curBasis = getEnrichedBasis(i, -1);
         MatrixEp curBasisMatrix(curBasis);
         M_enrichedBasesMatrices.push_back(curBasisMatrix);
         M_enrichedBasesMatricesTransposed.push_back(curBasisMatrix.transpose());
@@ -226,7 +226,7 @@ print()
             msg +=  "\tNOT using dual supremizers\n";
         printlog(WHITE, msg, M_data.getVerbose());
 
-        msg +=  "\tBasis size + supremizers = " + std::to_string(getEnrichedBasis(i).size()) + "\n";
+        msg +=  "\tBasis size + supremizers = " + std::to_string(getEnrichedBasis(i,-1).size()) + "\n";
     }
     printlog(WHITE, msg, M_data.getVerbose());
 }
@@ -310,9 +310,33 @@ dump()
     }
 }
 
+void
+RBBases::
+scaleBasisWithPiola(unsigned int index, unsigned int ID,
+                    std::function<void(SHP(VECTOREPETRA))> transform)
+{
+    std::vector<SHP(VECTOREPETRA)> newEnrichedBasis;
+    auto refEnrichedBasis = getEnrichedBasis(index,-1);
+
+    for (auto vec : refEnrichedBasis)
+    {
+        SHP(VECTOREPETRA) newVector(new VECTOREPETRA(M_fespaces[index]->map()));
+        *newVector = *vec;
+
+        transform(newVector);
+        newEnrichedBasis.push_back(newVector);
+    }
+
+    M_enrichedBasesMap[index][ID] = newEnrichedBasis;
+
+    MatrixEp basisMatrix(newEnrichedBasis);
+    M_enrichedBasesMatricesMap[index][ID] = basisMatrix;
+    M_enrichedBasesMatricesTransposedMap[index][ID] = basisMatrix.transpose();
+}
+
 BlockMatrix<DenseMatrix>
 RBBases::
-leftProject(BlockMatrix<MatrixEp> matrix)
+leftProject(BlockMatrix<MatrixEp> matrix, unsigned int ID)
 {
     BlockMatrix<DenseMatrix> projectedMatrix(matrix.nRows(), matrix.nCols());
 
@@ -320,7 +344,7 @@ leftProject(BlockMatrix<MatrixEp> matrix)
     {
         for (unsigned int j = 0; j < matrix.nCols(); j++)
         {
-            projectedMatrix.block(i,j) = leftProject(matrix.block(i,j), i);
+            projectedMatrix.block(i,j) = leftProject(matrix.block(i,j), i, ID);
         }
     }
     return projectedMatrix;
@@ -328,21 +352,22 @@ leftProject(BlockMatrix<MatrixEp> matrix)
 
 DenseMatrix
 RBBases::
-leftProject(MatrixEp matrix, unsigned int basisIndex)
+leftProject(MatrixEp matrix, unsigned int basisIndex, unsigned int ID)
 {
     DenseMatrix retMat;
 
     if (matrix.data())
     {
         // the basis is transposed
-        auto rangeMap = M_enrichedBasesMatrices[basisIndex].data()->domainMapPtr();
+
+        auto rangeMap = getEnrichedBasisMatrices(basisIndex, ID, false).data()->domainMapPtr();
         auto domainMap = matrix.data()->domainMapPtr();
 
         SHP(MATRIXEPETRA) innerMatrix(new MATRIXEPETRA(*rangeMap));
 
         // for some reason it is more efficient to transpose and then multiply
-        M_enrichedBasesMatricesTransposed[basisIndex].data()->multiply(false, *matrix.data(), false,
-                                                             *innerMatrix);
+        getEnrichedBasisMatrices(basisIndex, ID, true).data()->multiply(false, *matrix.data(), false,
+                                                                        *innerMatrix);
 
         innerMatrix->globalAssemble(domainMap, rangeMap);
 
@@ -370,24 +395,24 @@ projectOnLagrangeSpace(BlockVector<VectorEp> vector)
 
 BlockVector<DenseVector>
 RBBases::
-leftProject(BlockVector<VectorEp> vector)
+leftProject(BlockVector<VectorEp> vector, unsigned int ID)
 {
     BlockVector<DenseVector> projectedVector(vector.nRows());
 
     for (unsigned int i = 0; i < vector.nRows(); i++)
-        projectedVector.block(i) = leftProject(vector.block(i), i);
+        projectedVector.block(i) = leftProject(vector.block(i), i, ID);
 
     return projectedVector;
 }
 
 DenseVector
 RBBases::
-leftProject(VectorEp vector, unsigned int basisIndex)
+leftProject(VectorEp vector, unsigned int basisIndex, unsigned int ID)
 {
     if (vector.data())
     {
         VectorEp resVector;
-        resVector.softCopy(M_enrichedBasesMatricesTransposed[basisIndex] * vector);
+        resVector.softCopy(getEnrichedBasisMatrices(basisIndex, ID, true) * vector);
 
         return resVector.toDenseVector();
     }
@@ -396,7 +421,7 @@ leftProject(VectorEp vector, unsigned int basisIndex)
 
 BlockMatrix<DenseMatrix>
 RBBases::
-rightProject(BlockMatrix<MatrixEp> matrix)
+rightProject(BlockMatrix<MatrixEp> matrix, unsigned int ID)
 {
     BlockMatrix<DenseMatrix> projectedMatrix(matrix.nRows(), matrix.nCols());
 
@@ -404,7 +429,7 @@ rightProject(BlockMatrix<MatrixEp> matrix)
     {
         for (unsigned int j = 0; j < matrix.nCols(); j++)
         {
-            projectedMatrix.block(i,j) = rightProject(matrix.block(i,j), j);
+            projectedMatrix.block(i,j) = rightProject(matrix.block(i,j), j, ID);
         }
     }
     return projectedMatrix;
@@ -412,7 +437,7 @@ rightProject(BlockMatrix<MatrixEp> matrix)
 
 DenseMatrix
 RBBases::
-rightProject(MatrixEp matrix, unsigned int basisIndex)
+rightProject(MatrixEp matrix, unsigned int basisIndex, unsigned int ID)
 {
     DenseMatrix retMat;
 
@@ -420,11 +445,11 @@ rightProject(MatrixEp matrix, unsigned int basisIndex)
     {
         // the basis is transposed
         auto rangeMap = matrix.data()->rangeMapPtr(); ;
-        auto domainMap = M_enrichedBasesMatrices[basisIndex].data()->domainMapPtr();
+        auto domainMap = getEnrichedBasisMatrices(basisIndex, ID, false).data()->domainMapPtr();
 
         SHP(MATRIXEPETRA) innerMatrix(new MATRIXEPETRA(*rangeMap));
 
-        matrix.data()->multiply(false, *M_enrichedBasesMatrices[basisIndex].data(),
+        matrix.data()->multiply(false, *getEnrichedBasisMatrices(basisIndex, ID, false).data(),
                                 false, *innerMatrix);
 
         innerMatrix->globalAssemble(domainMap, rangeMap);
@@ -456,7 +481,8 @@ getBasis(const unsigned int& index)
 DenseMatrix
 RBBases::
 matrixProject(MatrixEp matrix, unsigned int basisIndexRow,
-                               unsigned int basisIndexCol)
+              unsigned int basisIndexCol,
+              unsigned int ID)
 {
 
     DenseMatrix retMat;
@@ -467,21 +493,21 @@ matrixProject(MatrixEp matrix, unsigned int basisIndexRow,
 
         // compute A Vcol
         auto rangeMap = matrix.data()->rangeMapPtr();
-        auto domainMap = M_enrichedBasesMatrices[basisIndexCol].data()->domainMapPtr();
+        auto domainMap = getEnrichedBasisMatrices(basisIndexCol, ID, false).data()->domainMapPtr();
 
         SHP(MATRIXEPETRA) auxMatrix(new MATRIXEPETRA(*rangeMap));
 
-        matrix.data()->multiply(false, *M_enrichedBasesMatrices[basisIndexCol].data(),
+        matrix.data()->multiply(false, *getEnrichedBasisMatrices(basisIndexCol, ID, false).data(),
                                 false, *auxMatrix);
 
         auxMatrix->globalAssemble(domainMap, rangeMap);
 
-        rangeMap = M_enrichedBasesMatrices[basisIndexRow].data()->domainMapPtr();
+        rangeMap = getEnrichedBasisMatrices(basisIndexRow, ID, false).data()->domainMapPtr();
 
         SHP(MATRIXEPETRA) innerMatrix(new MATRIXEPETRA(*rangeMap));
 
-        M_enrichedBasesMatricesTransposed[basisIndexRow].data()->multiply(false, *auxMatrix,
-                                                                false, *innerMatrix);
+        getEnrichedBasisMatrices(basisIndexRow, ID, true).data()->multiply(false, *auxMatrix,
+                                                                           false, *innerMatrix);
 
         innerMatrix->globalAssemble(domainMap, rangeMap);
 
@@ -495,26 +521,23 @@ matrixProject(MatrixEp matrix, unsigned int basisIndexRow,
 
 std::vector<SHP(VECTOREPETRA)>
 RBBases::
-getEnrichedBasis(const unsigned int& index)
+getEnrichedBasis(const unsigned int& index, unsigned int ID)
 {
+    if (M_enrichedBasesMap[index][ID].size() > 0)
+        return M_enrichedBasesMap[index][ID];
+
     std::vector<SHP(VECTOREPETRA)> retVectors = getBasis(index);
-    std::cout << "adding primal supremizers" << std::endl << std::flush;
     if (M_data("rb/online/basis/useprimalsupremizers", 1))
     {
         for (unsigned int j = 0; j < M_numFields; j++)
         {
-            std::cout << "1" << std::endl << std::flush;
             if (M_onlineTol > 1e-15 && M_primalSupremizers(index,j).size() > 0)
             {
-                std::cout << "2" << std::endl << std::flush;
                 std::cout << M_NsOnline.size() << std::endl << std::flush;
                 for (unsigned int i = 0; i < M_NsOnline[j]; i++)
                 {
-                    std::cout << M_NsOnline[j] << std::endl << std::flush;
-                    std::cout << M_primalSupremizers(index,j).size() << std::endl << std::flush;
                     retVectors.push_back(M_primalSupremizers(index,j)[i]);
                 }
-                std::cout << "3" << std::endl << std::flush;
             }
             else
             {
@@ -523,7 +546,6 @@ getEnrichedBasis(const unsigned int& index)
             }
         }
     }
-    std::cout << "adding dual supremizers" << std::endl << std::flush;
     if (M_data("rb/online/basis/usedualsupremizers", 0))
     {
         int nDualSupremizers = M_data("rb/online/basis/numberdualsupremizers", -1);
@@ -537,7 +559,6 @@ getEnrichedBasis(const unsigned int& index)
                     retVectors.push_back(M_dualSupremizers[index][i]);
             }
     }
-    std::cout << "adding done" << std::endl << std::flush;
     return retVectors;
 }
 
@@ -570,15 +591,37 @@ getSelectors(unsigned int index)
     return selectors;
 }
 
+MatrixEp
+RBBases::
+getEnrichedBasisMatrices(const unsigned int& index, const unsigned int& ID,
+                         bool transpose)
+{
+    if (!transpose)
+    {
+        if (~M_enrichedBasesMatricesMap[index][ID].isNull())
+            return M_enrichedBasesMatricesMap[index][ID];
+
+        return M_enrichedBasesMatrices[index];
+    }
+    else
+    {
+        if (~M_enrichedBasesMatricesTransposedMap[index][ID].isNull())
+            return M_enrichedBasesMatricesTransposedMap[index][ID];
+
+        return M_enrichedBasesMatricesTransposed[index];
+    }
+}
+
 SHP(VECTOREPETRA)
 RBBases::
-reconstructFEFunction(DenseVector rbSolution, unsigned int index)
+reconstructFEFunction(DenseVector rbSolution, unsigned int index,
+                      unsigned int ID)
 {
     VectorEp rbSolutionEp;
     rbSolutionEp.data() = rbSolution.toVectorEpetra(M_comm);
 
     VectorEp res;
-    res.softCopy(M_enrichedBasesMatrices[index] * rbSolutionEp);
+    res.softCopy(getEnrichedBasisMatrices(index, ID, false) * rbSolutionEp);
 
     return res.data();
 }

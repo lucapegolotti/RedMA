@@ -124,6 +124,8 @@ public:
 
     void setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers) {M_defaultAssemblers = defAssemblers;};
 
+    unsigned int ID() {return M_treeNode->M_ID;}
+
 protected:
     DataContainer                           M_data;
     SHP(TreeNode)                           M_treeNode;

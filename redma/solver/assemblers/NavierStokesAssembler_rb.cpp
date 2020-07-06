@@ -21,7 +21,7 @@ addConvectiveMatrixRightHandSide(const BlockVector<DenseVector>& sol,
     SHP(MATRIXEPETRA)  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
     SHP(VECTOREPETRA)  velocityRepeated;
 
-    velocityRepeated = M_bases->reconstructFEFunction(sol.block(0), 0);
+    velocityRepeated = M_bases->reconstructFEFunction(sol.block(0), 0, M_treeNode->M_ID);
 
     integrate(elements(M_velocityFESpaceETA->mesh()),
                M_velocityFESpace->qr(),
@@ -40,7 +40,7 @@ addConvectiveMatrixRightHandSide(const BlockVector<DenseVector>& sol,
                                              this->getComponentBCs(), 0.0);
 
     DenseMatrix convectiveMatrixProjected = M_bases->matrixProject(convectiveMatrixWrap.block(0,0),
-                                                                   0, 0);
+                                                                   0, 0, M_treeNode->M_ID);
 
     mat.block(0,0) -= convectiveMatrixProjected;
 
@@ -69,7 +69,7 @@ addConvectiveTermJacobianRightHandSide(const BlockVector<DenseVector>& sol,
     SHP(MATRIXEPETRA)  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
     SHP(VECTOREPETRA)  velocityRepeated;
 
-    velocityRepeated = M_bases->reconstructFEFunction(sol.block(0), 0);
+    velocityRepeated = M_bases->reconstructFEFunction(sol.block(0), 0, M_treeNode->M_ID);
 
     integrate(elements(M_velocityFESpaceETA->mesh()),
                M_velocityFESpace->qr(),
@@ -92,7 +92,7 @@ addConvectiveTermJacobianRightHandSide(const BlockVector<DenseVector>& sol,
     this->M_bcManager->apply0DirichletMatrix(convectiveMatrixWrap, this->getFESpaceBCs(),
                                              this->getComponentBCs(), 0.0);
 
-    DenseMatrix convectiveMatrixProjected = M_bases->matrixProject(convectiveMatrixWrap.block(0,0), 0, 0);
+    DenseMatrix convectiveMatrixProjected = M_bases->matrixProject(convectiveMatrixWrap.block(0,0), 0, 0, M_treeNode->M_ID);
 
     mat.block(0,0) -= convectiveMatrixProjected;
 
@@ -279,7 +279,7 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
         SHP(VECTOREPETRA)  nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
         SHP(VECTOREPETRA)  velocityReconstructed;
 
-        velocityReconstructed = M_bases->reconstructFEFunction(sol.block(0), 0);
+        velocityReconstructed = M_bases->reconstructFEFunction(sol.block(0), 0, M_treeNode->M_ID);
 
         if (M_extrapolatedSolution.nRows() == 0)
         {
@@ -295,7 +295,7 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
         else
         {
             SHP(VECTOREPETRA)  extrapolatedSolution;
-            extrapolatedSolution = M_bases->reconstructFEFunction(M_extrapolatedSolution.block(0), 0);
+            extrapolatedSolution = M_bases->reconstructFEFunction(M_extrapolatedSolution.block(0), 0, M_treeNode->M_ID);
 
             integrate(elements(M_velocityFESpaceETA->mesh()),
                        M_velocityFESpace->qr(),
@@ -319,7 +319,7 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
             else
             {
                 SHP(VECTOREPETRA)  pressureReconstructed;
-                pressureReconstructed = M_bases->reconstructFEFunction(sol.block(1), 1);
+                pressureReconstructed = M_bases->reconstructFEFunction(sol.block(1), 1, M_treeNode->M_ID);
 
                 BlockVector<VectorEp> zeroVec(2);
                 zeroVec.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map()));
@@ -338,7 +338,7 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
                                         getFESpaceBCs(),
                                         getComponentBCs());
 
-        M_nonLinearTerm.softCopy(M_bases->leftProject(nonLinearTermWrap));
+        M_nonLinearTerm.softCopy(M_bases->leftProject(nonLinearTermWrap, ID()));
     }
     else
     {
@@ -399,7 +399,7 @@ RBsetup()
         Chrono chrono;
         chrono.start();
 
-        auto velocityBasis = M_bases->getEnrichedBasis(0);
+        auto velocityBasis = M_bases->getEnrichedBasis(0, M_treeNode->M_ID);
 
         int nterms = M_data("rb/online/numbernonlinearterms", 20);
 
@@ -436,7 +436,7 @@ RBsetup()
                 M_bcManager->apply0DirichletBCs(nonLinearTermWrap,
                                                 getFESpaceBCs(),
                                                 getComponentBCs());
-                M_nonLinearTermsDecomposition[i][j].softCopy(M_bases->leftProject(nonLinearTermWrap));
+                M_nonLinearTermsDecomposition[i][j].softCopy(M_bases->leftProject(nonLinearTermWrap, ID()));
             }
         }
 
