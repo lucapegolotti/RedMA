@@ -42,6 +42,10 @@ add_executable(AortaPortion_transformsnapshotspiola AortaPortion_transformsnapsh
 target_link_libraries(AortaPortion_transformsnapshotspiola ${LINKED_LIBRARIES})
 target_include_directories(AortaPortion_transformsnapshotspiola PRIVATE ${HEADERS_DIRS})
 
+add_executable(AortaPortion_exportbasisfunctions AortaPortion_exportbasisfunctions.cpp)
+target_link_libraries(AortaPortion_exportbasisfunctions ${LINKED_LIBRARIES})
+target_include_directories(AortaPortion_exportbasisfunctions PRIVATE ${HEADERS_DIRS})
+
 add_custom_command(
     TARGET AortaPortion_snapshots PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

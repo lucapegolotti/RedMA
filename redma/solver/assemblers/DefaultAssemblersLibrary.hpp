@@ -18,6 +18,7 @@
 #define DEFAULTASSEMBLERSLIBRARY_HPP
 
 #include <redma/RedMA.hpp>
+#include <redma/solver/problem/DataContainer.hpp>
 
 #include <redma/geometry/TreeStructure.hpp>
 
@@ -48,6 +49,7 @@ private:
     DataContainer                                   M_data;
     std::map<std::string, SHP(AssemblerType)>       M_assemblersMap;
     EPETRACOMM                                      M_comm;
+    unsigned int                                    M_count;
 };
 
 }
