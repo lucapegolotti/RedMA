@@ -37,12 +37,15 @@ int main(int argc, char **argv)
     data.finalize();
     std::string indir = "basis";
     std::string outdir = "basisFunctions";
+    std::string format = "basis";
     if (argc == 1)
         indir = "basis";
     else if (argc == 2)
         indir = argv[1];
-    else
+    else if (argc == 3)
         outdir = argv[2];
+    else if (argc == 4)
+        format = argv[3];
 
     data.setValueString("exporter/outdir", outdir);
 
@@ -66,7 +69,7 @@ int main(int argc, char **argv)
         {
             std::vector<SHP(VECTOREPETRA)> functions;
 
-            std::ifstream infile(indir + "/" + m + "/field" + std::to_string(fieldIndex) + ".basis");
+            std::ifstream infile(indir + "/" + m + "/field" + std::to_string(fieldIndex) + "." + format);
             std::string line;
             auto fespace = defAssembler->getFEspace(fieldIndex);
             unsigned int count = 0;
