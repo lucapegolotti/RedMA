@@ -5,7 +5,8 @@ template <class InVectorType, class InMatrixType>
 DefaultAssemblersLibrary<InVectorType, InMatrixType>::
 DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>& meshes, EPETRACOMM comm) :
   M_data(data),
-  M_comm(comm)
+  M_comm(comm),
+  M_count(0)
 {
     for (auto mesh : meshes)
     {
@@ -21,6 +22,7 @@ DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>&
             // defAssembler->setup();
 
             M_assemblersMap[mesh]= defAssembler;
+            M_count++;
         }
     }
 }
@@ -54,7 +56,7 @@ generateDefaultTube(const std::string& nameMesh)
     SHP(Tube) defaultTube(new Tube(M_comm, refinement, false, diameter, length, false));
     defaultTube->readMesh();
 
-    SHP(TreeNode) treeNode(new TreeNode(defaultTube, 1234));
+    SHP(TreeNode) treeNode(new TreeNode(defaultTube, 1234 + M_count));
 
     return treeNode;
 }
@@ -71,7 +73,7 @@ generateDefaultSymmetricBifurcation(const std::string& nameMesh)
                                                  refinement, false, alpha, false));
     defaultBifurcation->readMesh();
 
-    SHP(TreeNode) treeNode(new TreeNode(defaultBifurcation, 1234));
+    SHP(TreeNode) treeNode(new TreeNode(defaultBifurcation, 1234 + M_count));
 
     return treeNode;
 }
