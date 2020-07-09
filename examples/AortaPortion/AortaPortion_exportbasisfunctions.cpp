@@ -38,6 +38,7 @@ int main(int argc, char **argv)
     std::string indir = "basis";
     std::string outdir = "basisFunctions";
     std::string format = "basis";
+    unsigned int nmodes = 4;
     if (argc == 1)
         indir = "basis";
     else if (argc == 2)
@@ -46,10 +47,11 @@ int main(int argc, char **argv)
         outdir = argv[2];
     else if (argc == 4)
         format = argv[3];
+    else if (argc == 5)
+        nmodes = argv[4];
 
     data.setValueString("exporter/outdir", outdir);
 
-    unsigned int nmodes = 4;
 
     std::set<std::string> meshTypes;
     meshTypes.insert("tube_1x1_h0.08");
