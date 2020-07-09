@@ -35,7 +35,16 @@ int main(int argc, char **argv)
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);
     data.finalize();
-    data.setValueString("exporter/outdir", "basisFunctions/");
+    std::string indir = "basis";
+    std::string outdir = "basisFunctions";
+    if (argc == 1)
+        indir = "basis";
+    else if (argc == 2)
+        indir = argv[1];
+    else
+        outdir = argv[2];
+
+    data.setValueString("exporter/outdir", outdir);
 
     unsigned int nmodes = 4;
 
@@ -57,7 +66,7 @@ int main(int argc, char **argv)
         {
             std::vector<SHP(VECTOREPETRA)> functions;
 
-            std::ifstream infile("basis/" + m + "/field" + std::to_string(fieldIndex) + ".basis");
+            std::ifstream infile(indir + "/" + m + "/field" + std::to_string(fieldIndex) + ".basis");
             std::string line;
             auto fespace = defAssembler->getFEspace(fieldIndex);
             unsigned int count = 0;
