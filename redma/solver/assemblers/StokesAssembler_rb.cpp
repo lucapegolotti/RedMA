@@ -272,12 +272,10 @@ RBsetup()
         BlockMatrix<MatrixEp> fullDivergence = assembleReducedDivergence(nullptr);
 
         unsigned int id = M_treeNode->M_ID;
-
         M_mass.block(0,0) = M_bases->matrixProject(fullMass.block(0,0), 0, 0, id);
         M_stiffness.block(0,0) = M_bases->matrixProject(fullStiffness.block(0,0), 0, 0, id);
         M_divergence.block(0,1) = M_bases->matrixProject(fullDivergence.block(0,1), 0, 1, id);
         M_divergence.block(1,0) = M_bases->matrixProject(fullDivergence.block(1,0), 1, 0, id);
-
         std::string msg = "done, in ";
         msg += std::to_string(chrono.diff());
         msg += " seconds\n";

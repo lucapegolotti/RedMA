@@ -41,16 +41,16 @@ int main(int argc, char **argv)
     unsigned int nmodes = 4;
     if (argc == 1)
         indir = "basis";
-    else if (argc == 2)
+    if (argc >= 2)
         indir = argv[1];
-    else if (argc == 3)
+    if (argc >= 3)
         outdir = argv[2];
-    else if (argc == 4)
+    if (argc >= 4)
         format = argv[3];
-    else if (argc == 5)
-        nmodes = argv[4];
+    if (argc >= 5)
+        nmodes = atoi(argv[4]);
 
-    data.setValueString("exporter/outdir", outdir);
+    data.setValueString("exporter/outdir", outdir + "/");
 
 
     std::set<std::string> meshTypes;
@@ -70,8 +70,10 @@ int main(int argc, char **argv)
         for (int fieldIndex = 0; fieldIndex < 2; fieldIndex++)
         {
             std::vector<SHP(VECTOREPETRA)> functions;
-
-            std::ifstream infile(indir + "/" + m + "/field" + std::to_string(fieldIndex) + "." + format);
+            std::string filename = indir + "/" + m + "/field" + std::to_string(fieldIndex) + "_piola." + format;
+            if (!boost::filesystem::exists(filename))
+                filename = indir + "/" + m + "/field" + std::to_string(fieldIndex) + "." + format;
+            std::ifstream infile(filename);
             std::string line;
             auto fespace = defAssembler->getFEspace(fieldIndex);
             unsigned int count = 0;

@@ -684,14 +684,8 @@ void
 StokesAssembler<InVectorType,InMatrixType>::
 applyPiola(BlockVector<FEVECTOR> solution, bool inverse)
 {
-    std::string msg = "[";
-    msg += this->M_name;
-    msg += "] apply Piola\n";
-    printlog(YELLOW, msg, this->M_data.getVerbose());
-
     using namespace LifeV;
     using namespace ExpressionAssembly;
-
     auto defAssembler = this->M_defaultAssemblers->
                         getDefaultAssembler(this->M_treeNode->M_block->getMeshName());
 
@@ -719,14 +713,10 @@ applyPiola(BlockVector<FEVECTOR> solution, bool inverse)
     // FEVECTOR res2 = refDivergence.block(1,0) * solution.block(0);
     //
     // std::cout << "norm 2 = " << res2.norm2() << std::endl << std::flush;
-
     auto defVelocityFESpace = defAssembler->getFEspace(0);
-
     auto velocity = solution.block(0).data();
-
     Epetra_Map epetraMap = velocity->epetraMap();
     unsigned int numElements = epetraMap.NumMyElements() / 3;
-
     // find xs ys and zs of mesh
     if (M_xs == nullptr)
     {

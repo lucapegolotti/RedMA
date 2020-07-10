@@ -167,7 +167,6 @@ loadBases()
                            M_dualSupremizers[i], i);
 
     }
-
     print();
 
     for (unsigned i = 0; i < M_numFields; i++)
@@ -196,7 +195,6 @@ print()
     }
     else
         msg += "POD tolerance = all vectors\n";
-    printlog(WHITE, msg, M_data.getVerbose());
 
     for (int i = 0; i < M_numFields; i++)
     {
@@ -208,12 +206,10 @@ print()
             msg += "\tPrimal supremizers wrt field " + std::to_string(j) +
                    " = " + std::to_string(M_primalSupremizers(i,j).size()) + "\n";
         msg += "\tDual supremizers = " + std::to_string(M_dualSupremizers[i].size()) + "\n";
-        printlog(WHITE, msg, M_data.getVerbose());
         if (M_data("rb/online/basis/useprimalsupremizers", 1))
             msg +=  "\tUsing primal supremizers\n";
         else
             msg +=  "\tNOT using primal supremizers\n";
-        printlog(WHITE, msg, M_data.getVerbose());
 
         if (M_data("rb/online/basis/usedualsupremizers", 0))
         {
@@ -224,7 +220,6 @@ print()
         }
         else
             msg +=  "\tNOT using dual supremizers\n";
-        printlog(WHITE, msg, M_data.getVerbose());
 
         msg +=  "\tBasis size + supremizers = " + std::to_string(getEnrichedBasis(i,-1).size()) + "\n";
     }
@@ -315,6 +310,7 @@ RBBases::
 scaleBasisWithPiola(unsigned int index, unsigned int ID,
                     std::function<void(SHP(VECTOREPETRA))> transform)
 {
+    printlog(MAGENTA, "\n[RBBases] scaling basis with piola transformation ...\n", M_data.getVerbose());
     std::vector<SHP(VECTOREPETRA)> newEnrichedBasis;
     auto refEnrichedBasis = getEnrichedBasis(index,-1);
 
@@ -490,7 +486,6 @@ matrixProject(MatrixEp matrix, unsigned int basisIndexRow,
     if (matrix.data())
     {
         // Vrow' A Vcol
-
         // compute A Vcol
         auto rangeMap = matrix.data()->rangeMapPtr();
         auto domainMap = getEnrichedBasisMatrices(basisIndexCol, ID, false).data()->domainMapPtr();
@@ -501,19 +496,16 @@ matrixProject(MatrixEp matrix, unsigned int basisIndexRow,
                                 false, *auxMatrix);
 
         auxMatrix->globalAssemble(domainMap, rangeMap);
-
         rangeMap = getEnrichedBasisMatrices(basisIndexRow, ID, false).data()->domainMapPtr();
 
         SHP(MATRIXEPETRA) innerMatrix(new MATRIXEPETRA(*rangeMap));
 
         getEnrichedBasisMatrices(basisIndexRow, ID, true).data()->multiply(false, *auxMatrix,
                                                                            false, *innerMatrix);
-
         innerMatrix->globalAssemble(domainMap, rangeMap);
 
         MatrixEp retMatEp;
         retMatEp.data() = innerMatrix;
-
         return retMatEp.toDenseMatrix();
     }
     return DenseMatrix();
@@ -533,7 +525,6 @@ getEnrichedBasis(const unsigned int& index, unsigned int ID)
         {
             if (M_onlineTol > 1e-15 && M_primalSupremizers(index,j).size() > 0)
             {
-                std::cout << M_NsOnline.size() << std::endl << std::flush;
                 for (unsigned int i = 0; i < M_NsOnline[j]; i++)
                 {
                     retVectors.push_back(M_primalSupremizers(index,j)[i]);
@@ -598,14 +589,13 @@ getEnrichedBasisMatrices(const unsigned int& index, const unsigned int& ID,
 {
     if (!transpose)
     {
-        if (~M_enrichedBasesMatricesMap[index][ID].isNull())
+        if (M_enrichedBasesMatricesMap[index].find(ID) != M_enrichedBasesMatricesMap[index].end())
             return M_enrichedBasesMatricesMap[index][ID];
-
         return M_enrichedBasesMatrices[index];
     }
     else
     {
-        if (~M_enrichedBasesMatricesTransposedMap[index][ID].isNull())
+        if (M_enrichedBasesMatricesTransposedMap[index].find(ID) != M_enrichedBasesMatricesTransposedMap[index].end())
             return M_enrichedBasesMatricesTransposedMap[index][ID];
 
         return M_enrichedBasesMatricesTransposed[index];

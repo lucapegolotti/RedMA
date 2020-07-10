@@ -28,14 +28,15 @@ generateDatafiles(EPETRACOMM comm)
     #if 1
     std::vector<double> podtol_field0;
 
-    /*podtol_field0.push_back(1e-3);
+    /* podtol_field0.push_back(1e-3);
     podtol_field0.push_back(2e-3);
     podtol_field0.push_back(4e-3);
     podtol_field0.push_back(8e-3);
-    podtol_field0.push_back(16e-3);
-    */
+    podtol_field0.push_back(16e-3); */
+    
     std::vector<double> podtol_field1;
-    /*podtol_field1.push_back(1e-5);
+    /*
+    podtol_field1.push_back(1e-5);
     podtol_field1.push_back(2e-5);
     podtol_field1.push_back(4e-5);
     podtol_field1.push_back(8e-5);
@@ -66,7 +67,7 @@ generateDatafiles(EPETRACOMM comm)
                         {
                             SHP(DataContainer) data(new DataContainer());
                             data->setDatafile("datafiles/data");
-                            data->setVerbose(false);
+                            data->setVerbose(true);
                             data->finalize();
 
                             data->setValueDouble("rb/online/basis/podtol_field0", pdt0);
@@ -118,8 +119,8 @@ generateDatafiles(EPETRACOMM comm)
         data->setVerbose(false);
         data->finalize();
 
-        data->setValueDouble("rb/online/basis/podtol_field0", 1e-3);
-        data->setValueDouble("rb/online/basis/podtol_field1", 1e-5);
+        data->setValueDouble("rb/online/basis/podtol_field0", 4e-3);
+        data->setValueDouble("rb/online/basis/podtol_field1", 8e-5);
         data->setValueInt("rb/online/basis/useprimalsupremizers", 1);
         data->setValueInt("rb/online/basis/usedualsupremizers", 1);
         data->setValueInt("coupling/nMax", 5);
@@ -133,8 +134,8 @@ generateDatafiles(EPETRACOMM comm)
         // double setupTimeRB = chrono.diff();
 
         std::string description;
-        description = "podtol_field0," + std::to_string(1e-3) + "\n";
-        description += "podtol_field1," + std::to_string(1e-5) + "\n";
+        description = "podtol_field0," + std::to_string(4e-3) + "\n";
+        description += "podtol_field1," + std::to_string(8e-5) + "\n";
         description += "useprimalsupremizers," + std::to_string(1) + "\n";
         description += "usedualsupremizers," + std::to_string(1) + "\n";
         description += "couplingnMax," + std::to_string(5) + "\n";
