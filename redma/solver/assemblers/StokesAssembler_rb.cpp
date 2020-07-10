@@ -105,6 +105,10 @@ void
 StokesAssembler<DenseVector, DenseMatrix>::
 exportSolution(const double& t, const BlockVector<DenseVector>& sol)
 {
+    std::ofstream outfile("rbcoefs/block" + std::to_string(M_treeNode->M_ID) + "t" + std::to_string(t) + ".txt");
+    std::string str2write = sol.block(0).getString(',') + "\n";
+    outfile.write(str2write.c_str(), str2write.size());
+    outfile.close();
     unsigned int id = M_treeNode->M_ID;
     *M_velocityExporter = *M_bases->reconstructFEFunction(sol.block(0), 0, id);
     *M_pressureExporter = *M_bases->reconstructFEFunction(sol.block(1), 1, id);
