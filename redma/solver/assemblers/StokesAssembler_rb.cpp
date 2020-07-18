@@ -113,6 +113,10 @@ exportSolution(const double& t, const BlockVector<DenseVector>& sol)
     *M_velocityExporter = *M_bases->reconstructFEFunction(sol.block(0), 0, id);
     *M_pressureExporter = *M_bases->reconstructFEFunction(sol.block(1), 1, id);
 
+    bool exportWSS = this->M_data("exporter/export_wss", 1);
+    if (exportWSS)
+        computeWallShearStress(M_velocityExporter);
+
     // BlockVector<VectorEp> solCopy(2);
     // solCopy.block(0).data() = M_velocityExporter;
     // computeFlowRates(solCopy, true);

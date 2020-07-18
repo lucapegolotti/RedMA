@@ -222,6 +222,10 @@ exportSolution(const double& t, const BlockVector<VectorEp>& sol)
     *M_velocityExporter = *sol.block(0).data();
     *M_pressureExporter = *sol.block(1).data();
 
+    bool exportWSS = this->M_data("exporter/export_wss", 1);
+    if (exportWSS)
+        computeWallShearStress(M_velocityExporter);
+
     BlockVector<VectorEp> solCopy(2);
     solCopy.block(0).data() = M_velocityExporter;
     computeFlowRates(solCopy, true);

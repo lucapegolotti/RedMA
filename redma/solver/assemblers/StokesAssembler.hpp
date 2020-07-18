@@ -159,6 +159,8 @@ public:
 
     virtual void applyPiola(BlockVector<FEVECTOR> solution, bool inverse) override;
 
+    void computeWallShearStress(SHP(VECTOREPETRA) velocity);
+
 protected:
 
     BlockMatrix<InMatrixType>                                       M_mass;
@@ -171,8 +173,9 @@ protected:
     double                                                          M_density;
     double                                                          M_viscosity;
     SHP(VECTOREPETRA)                                               M_velocityExporter;
-    SHP(VECTOREPETRA)                                               M_pressureExporter;
     SHP(VECTOREPETRA)                                               M_WSSExporter;
+    SHP(VECTOREPETRA)                                               M_pressureExporter;
+    SHP(MATRIXEPETRA)                                               M_massWall;
     MatrixEp                                                        M_massVelocity;
     MatrixEp                                                        M_massPressure;
     SHP(LifeV::Exporter<MESH>)                                      M_exporter;
