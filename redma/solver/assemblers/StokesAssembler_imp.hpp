@@ -287,7 +287,7 @@ computeWallShearStress(SHP(VECTOREPETRA) velocity)
 
     SHP(VECTOREPETRA) velocityRepeated(new VECTOREPETRA(*velocity,
                                                          Repeated));
-    SHP(VECTOREPETRA) weakWSS(new VECTOREPETRA(M_velocityFESpace->map()));
+    SHP(VECTOREPETRA) weakWSSRepeated(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
 
     integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
               myBDQR,
@@ -310,8 +310,10 @@ computeWallShearStress(SHP(VECTOREPETRA) velocity)
              Nface
              ) * Nface,
              phi_i)
-             ) >> weakWSS;
+             ) >> weakWSSRepeated;
 
+    weakWSSRepeated->globalAssemble();
+    SHP(VECTOREPETRA) weakWSSUnique(new VECTOREPETRA(*weakWSSRepeated, Unique));
 
     M_WSSExporter->zero();
 
@@ -334,7 +336,7 @@ computeWallShearStress(SHP(VECTOREPETRA) velocity)
     precPtr.reset(precRawPtr);
 
     linearSolver.setPreconditioner(precPtr);
-    linearSolver.setRightHandSide(weakWSS);
+    linearSolver.setRightHandSide(weakWSSUnique);
     linearSolver.solve(M_WSSExporter);
 }
 
