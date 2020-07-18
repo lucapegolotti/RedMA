@@ -260,6 +260,85 @@ addNeumannBCs(BlockVector<FEVECTOR>& input, const double& time,
 }
 
 template <class InVectorType, class InMatrixType>
+void
+StokesAssembler<InVectorType, InMatrixType>::
+computeWallShearStress(SHP(VECTOREPETRA) velocity)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
+
+    unsigned int wallFlag = 10;
+    if (M_massWall == nullptr)
+    {
+        M_massWall.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
+
+        integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
+                  myBDQR,
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  dot(phi_i, phi_j)
+              ) >> M_massWall;
+        M_massWall->globalAssemble();
+    }
+
+    M_WSSExporter->zero();
+
+    SHP(VECTOREPETRA) velocityRepeated(new VECTOREPETRA(*velocity,
+                                                         Repeated));
+    SHP(VECTOREPETRA) weakWSS(new VECTOREPETRA(M_velocityFESpace->map()));
+
+    integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
+              myBDQR,
+              M_velocityFESpaceETA,
+              value(M_viscosity) *
+              dot(
+             //  (dot(grad(M_velocityFESpaceETA, *velocityRepeated) +
+             //  transpose(grad(M_velocityFESpaceETA, *velocityRepeated)),Nface)
+             // //  -
+             // // dot(dot(grad(M_velocityFESpaceETA, *velocityRepeated) +
+             // //  transpose(grad(M_velocityFESpaceETA, *velocityRepeated))
+             // //  ,Nface),Nface) * Nface
+             // )
+             (grad(M_velocityFESpaceETA, *velocityRepeated) +
+             transpose(grad(M_velocityFESpaceETA, *velocityRepeated))) * Nface
+             -
+             dot(
+             (grad(M_velocityFESpaceETA, *velocityRepeated) +
+             transpose(grad(M_velocityFESpaceETA, *velocityRepeated))) * Nface,
+             Nface
+             ) * Nface,
+             phi_i)
+             ) >> weakWSS;
+
+
+    M_WSSExporter->zero();
+
+    LinearSolver linearSolver(this->M_comm);
+    linearSolver.setOperator(M_massWall);
+
+    Teuchos::RCP<Teuchos::ParameterList> aztecList =
+                                    Teuchos::rcp(new Teuchos::ParameterList);
+    aztecList = Teuchos::getParametersFromXmlFile("datafiles/SolverParamList.xml");
+    linearSolver.setParameters(*aztecList);
+
+    typedef LifeV::PreconditionerML         precML_type;
+    typedef std::shared_ptr<precML_type>    precMLPtr_type;
+    precML_type * precRawPtr;
+    precRawPtr = new precML_type;
+
+    GetPot dummyDatafile;
+    precRawPtr->setDataFromGetPot(dummyDatafile, "precMLL");
+    std::shared_ptr<LifeV::Preconditioner> precPtr;
+    precPtr.reset(precRawPtr);
+
+    linearSolver.setPreconditioner(precPtr);
+    linearSolver.setRightHandSide(weakWSS);
+    linearSolver.solve(M_WSSExporter);
+}
+
+template <class InVectorType, class InMatrixType>
 BlockMatrix<InMatrixType>
 StokesAssembler<InVectorType, InMatrixType>::
 getJacobianRightHandSide(const double& time, const BlockVector<InVectorType>& sol)
@@ -327,6 +406,16 @@ setExporter()
 
     M_exporter->addVariable(LifeV::ExporterData<MESH>::ScalarField,
                          "pressure", M_pressureFESpace, M_pressureExporter, 0.0);
+
+    bool exportWSS = this->M_data("exporter/export_wss", 1);
+    if (exportWSS)
+    {
+        M_WSSExporter.reset(new VECTOREPETRA(M_velocityFESpace->map(),
+                                             M_exporter->mapType()));
+
+        M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
+                                "WSS", M_velocityFESpace, M_WSSExporter, 0.0);
+    }
 
     M_exporter->setPostDir(outdir);
 }
