@@ -467,7 +467,6 @@ ApplyInverse(const super::vector_Type& X, super::vector_Type& Y) const
         VECTOREPETRA Z(M_primalMap, LifeV::Unique);
         solveEveryPrimalBlock(X_primal, Z);
 
-
         VECTOREPETRA Bz(M_dualMap, LifeV::Unique);
         applyEveryB(Z, Bz);
 

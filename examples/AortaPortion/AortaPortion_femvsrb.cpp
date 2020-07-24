@@ -28,6 +28,7 @@ generateDatafiles(EPETRACOMM comm)
     #if 1
     std::vector<double> podtol_field0;
 
+    podtol_field0.push_back(4e-3);
     /* podtol_field0.push_back(1e-3);
     podtol_field0.push_back(2e-3);
     podtol_field0.push_back(4e-3);
@@ -35,6 +36,7 @@ generateDatafiles(EPETRACOMM comm)
     podtol_field0.push_back(16e-3); */
     
     std::vector<double> podtol_field1;
+    podtol_field1.push_back(8e-5);
     /*
     podtol_field1.push_back(1e-5);
     podtol_field1.push_back(2e-5);
@@ -67,7 +69,7 @@ generateDatafiles(EPETRACOMM comm)
                         {
                             SHP(DataContainer) data(new DataContainer());
                             data->setDatafile("datafiles/data");
-                            data->setVerbose(true);
+                            data->setVerbose(false);
                             data->finalize();
 
                             data->setValueDouble("rb/online/basis/podtol_field0", pdt0);
@@ -106,11 +108,11 @@ generateDatafiles(EPETRACOMM comm)
     #endif
 
     std::vector<int> nnterms;
-    nnterms.push_back(10);
-    nnterms.push_back(20);
-    nnterms.push_back(40);
-    nnterms.push_back(80);
-    nnterms.push_back(120);
+    // nnterms.push_back(10);
+    // nnterms.push_back(20);
+    // nnterms.push_back(40);
+    // nnterms.push_back(80);
+    // nnterms.push_back(120);
 
     for (auto nnt : nnterms)
     {

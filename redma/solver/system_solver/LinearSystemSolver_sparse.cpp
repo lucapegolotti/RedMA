@@ -42,7 +42,6 @@ solve(const BlockMatrix<BlockMatrix<MatrixEp>>& matrix,
     Chrono chrono;
     chrono.start();
     printlog(MAGENTA, "[LinearSystemSolver] solve ...", M_data.getVerbose());
-
     M_statistics.M_numIterations = M_invOper->invert(rhs, sol);
 
     M_statistics.M_solveTime = chrono.diff();

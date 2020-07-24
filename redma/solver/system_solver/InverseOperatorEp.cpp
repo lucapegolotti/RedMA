@@ -52,7 +52,6 @@ invert(const BlockVector<BlockVector<VectorEp>>& rhs,
 {
     SHP(VECTOREPETRA) rhsEpetra = getEpetraVector(rhs, *M_maps);
     SHP(VECTOREPETRA) solEpetra = getEpetraVector(sol, *M_maps);
-
     M_invOper->ApplyInverse(rhsEpetra->epetraVector(), solEpetra->epetraVector());
 
     sol = getBlockVector(solEpetra, *M_maps);
