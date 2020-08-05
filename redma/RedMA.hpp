@@ -26,8 +26,8 @@
 
 #include <memory>
 
-#include <redma/solver/array/MatrixEp.hpp>
-#include <redma/solver/array/VectorEp.hpp>
+#include <redma/solver/array/SparseMatrix.hpp>
+#include <redma/solver/array/DistributedVector.hpp>
 #include <redma/solver/array/DenseVector.hpp>
 #include <redma/solver/array/DenseMatrix.hpp>
 #include <redma/utils/PrintLog.hpp>
@@ -57,8 +57,8 @@ namespace RedMA
 
 #define EPETRACOMM          SHP(Epetra_Comm)
 
-#define FEVECTOR            RedMA::VectorEp
-#define FEMATRIX            RedMA::MatrixEp
+#define FEVECTOR            RedMA::DistributedVector
+#define FEMATRIX            RedMA::SparseMatrix
 #define RBVECTOR            RedMA::DenseVector
 #define RBMATRIX            RedMA::DenseMatrix
 #define DENSESOLVER         Epetra_SerialDenseSolver

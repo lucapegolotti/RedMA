@@ -14,58 +14,53 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef aMATRIX_HPP
-#define aMATRIX_HPP
+#ifndef aVECTOR_HPP
+#define aVECTOR_HPP
 
-#include <redma/solver/array/aVector.hpp>
 #include <redma/utils/Exception.hpp>
 
 #include <memory>
 
+#define ZEROTHRESHOLD   1e-15
+
 namespace RedMA
 {
 
-class aMatrix
+enum Datatype{DENSE, SPARSE, DISTRIBUTED, BLOCK};
+
+class aVector
 {
 public:
-
-    aMatrix(Datatype type) :
+    aVector(Datatype type) :
       M_nRows(0),
-      M_nCols(0),
       M_type(type),
       M_normInf(0.0)
     {
     }
 
-    virtual ~aMatrix();
+    virtual ~aVector();
 
-    // for every operation, the priority is to do it in place (on *this) if possible.
-    // The copy of *this is left to the user if necessary
-    virtual void add(std::shared_ptr<aMatrix> other) = 0;
+    virtual void add(std::shared_ptr<aVector> other) = 0;
 
     virtual void multiplyByScalar(const double& coeff) = 0;
 
-    virtual std::shared_ptr<aVector> multiplyByVector(std::shared_ptr<aVector> vector) = 0;
-
-    virtual std::shared_ptr<aMatrix> multiplyByMatrix(std::shared_ptr<aMatrix> other) = 0;
-
-    virtual std::shared_ptr<aMatrix> transpose() const = 0;
-
     virtual void dump(std::string namefile) const = 0;
 
-    virtual void softCopy(std::shared_ptr<aMatrix> other) = 0;
+    virtual void softCopy(std::shared_ptr<aVector> other) = 0;
 
-    virtual void hardCopy(std::shared_ptr<aMatrix> other) = 0;
+    virtual void hardCopy(std::shared_ptr<aVector> other) = 0;
 
-    virtual aMatrix* clone() const = 0;
+    virtual aVector* clone() const = 0;
 
     virtual bool isZero() const = 0;
+
+    virtual std::string getString(const char& delimiter) const = 0;
+
+    virtual double norm2() const = 0;
 
     inline double normInf() const {return M_normInf;}
 
     inline unsigned int nRows() const {return M_nRows;}
-
-    inline unsigned int nCols() const {return M_nCols;}
 
     inline Datatype type() {return M_type;}
 
@@ -78,13 +73,10 @@ protected:
     }
 
     unsigned int        M_nRows;
-    unsigned int        M_nCols;
     Datatype            M_type;
     double              M_normInf;
 };
 
 }
 
-#include "aMatrix_imp.hpp"
-
-#endif // aMATRIX_HPP
+#endif // aVECTOR_HPP

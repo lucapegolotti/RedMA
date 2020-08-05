@@ -27,62 +27,73 @@
 namespace RedMA
 {
 
-template <class InVectorType>
-class BlockVector
+class BlockVector : public aVector
 {
-    typedef boost::numeric::ublas::matrix<InVectorType>       Grid;
+    typedef boost::numeric::ublas::matrix<std::shared_ptr<aVector>>        Grid;
 
 public:
-    typedef InVectorType                                      InnerType;
 
     BlockVector();
 
     BlockVector(const BlockVector& other);
 
-    BlockVector(BlockVector& other);
-
     BlockVector(const unsigned int& nRows);
 
-    BlockVector operator*(const double& coeff) const;
+    virtual void add(std::shared_ptr<aVector> other) override;
 
-    BlockVector& operator*=(const double& coeff);
+    virtual void multiplyByScalar(const double& coeff) override;
 
-    BlockVector& operator+=(const BlockVector<InVectorType>& other);
+    virtual void dump(std::string namefile) const override;
 
-    BlockVector& operator-=(const BlockVector<InVectorType>& other);
+    virtual void softCopy(std::shared_ptr<aVector> other) override;
 
-    BlockVector operator+(const BlockVector<InVectorType>& other) const;
+    virtual void hardCopy(std::shared_ptr<aVector> other) override;
 
-    BlockVector operator-(const BlockVector<InVectorType>& other) const;
+    virtual aVector* clone() const override;
 
-    InVectorType& block(const unsigned int& iblock);
+    virtual bool isZero() const override;
 
-    InVectorType block(const unsigned int& iblock) const;
+    std::string getString(const char& delimiter) const override;
 
-    BlockVector getSubvector(const unsigned int& ibegin, const unsigned int& iend) const;
+    double norm2() const override;
 
-    double norm2() const;
+    void setBlock(const unsigned int& iblock, std::shared_ptr<aVector> vector);
+
+    // BlockVector operator*(const double& coeff) const;
+    //
+    // BlockVector& operator*=(const double& coeff);
+    //
+    // BlockVector& operator+=(const BlockVector& other);
+    //
+    // BlockVector& operator-=(const BlockVector& other);
+    //
+    // BlockVector operator+(const BlockVector& other) const;
+    //
+    // BlockVector operator-(const BlockVector& other) const;
+
+    std::shared_ptr<aVector> block(const unsigned int& iblock) const;
+
+    std::shared_ptr<BlockVector> getSubvector(const unsigned int& ibegin, const unsigned int& iend) const;
 
     void resize(const unsigned int& nRows);
 
-    void hardCopy(const BlockVector<InVectorType>& other);
+    void updateNormInf();
 
-    void softCopy(const BlockVector<InVectorType>& other);
+    inline void close() {M_isOpen = false;}
 
-    inline unsigned int nRows() const {return M_nRows;}
+    inline void open() {M_isOpen = true;}
 
-    void zero();
+    inline bool isOpen() const {return M_isOpen;}
 
-    InVectorType collapse() const;
+    inline void checkOpen() const {if (!isOpen()) throw new Exception("BlockMatrix must be open for this operation!");}
+
+    inline void checkClosed() const {if (isOpen()) throw new Exception("BlockMatrix must be closed for this operation!");}
 
 protected:
-
     Grid            M_vectorGrid;
-    unsigned int    M_nRows;
+    bool            M_isOpen;
 };
 
 }
-
-#include "BlockVector_imp.hpp"
 
 #endif // BLOCKVECTOR_HPP

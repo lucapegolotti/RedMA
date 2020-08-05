@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef DENSEMATRIX_HPP
-#define DENSEMATRIX_HPP
+#ifndef SPARSEMATRIX_HPP
+#define SPARSEMATRIX_HPP
 
 #include <Epetra_ConfigDefs.h>
 #ifdef EPETRA_MPI
@@ -27,25 +27,29 @@
 
 #include <redma/utils/PrintLog.hpp>
 #include <redma/solver/array/aMatrix.hpp>
-#include <redma/solver/array/DenseVector.hpp>
+#include <redma/solver/array/DistributedVector.hpp>
+#include <redma/solver/array/DenseMatrix.hpp>
 
-#include <Epetra_SerialDenseMatrix.h>
+#include <lifev/core/array/MatrixEpetra.hpp>
+#include <lifev/core/array/MapEpetra.hpp>
 
-#include <fstream>
-
-#define DENSEMATRIX         Epetra_SerialDenseMatrix
+#define MATRIXEPETRA        LifeV::MatrixEpetra<double>
 
 namespace RedMA
 {
 
-class DenseMatrix : public aMatrix
+class SparseMatrix : public aMatrix
 {
 public:
-    DenseMatrix();
+    SparseMatrix();
 
-    virtual ~DenseMatrix();
+    ~SparseMatrix() {};
 
-    // DenseMatrix(const std::vector<int>& columnVectors);
+    SparseMatrix(const SparseMatrix& other);
+
+    SparseMatrix(const std::vector<DistributedVector>& columnVectors);
+
+    SparseMatrix(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors);
 
     virtual void add(std::shared_ptr<aMatrix> other) override;
 
@@ -63,18 +67,24 @@ public:
 
     virtual bool isZero() const override;
 
-    std::shared_ptr<DENSEMATRIX> data() const;
+    virtual SparseMatrix* clone() const override;
 
-    virtual void dump(std::string filename) const override;
+    void setMatrix(std::shared_ptr<MATRIXEPETRA> matrix);
 
-    virtual DenseMatrix* clone() const override;
+    // void getRowProperty(std::shared_ptr<LifeV::MapEpetra>& outMap);
+    //
+    // void getColProperty(std::shared_ptr<LifeV::MapEpetra>& outMap);
 
-    void setMatrix(std::shared_ptr<DENSEMATRIX> matrix);
+    std::shared_ptr<MATRIXEPETRA> data() const;
+
+    DenseMatrix toDenseMatrix() const;
+
+    virtual void dump(std::string namefile) const override;
 
 private:
-    std::shared_ptr<DENSEMATRIX>        M_matrix;
+    std::shared_ptr<MATRIXEPETRA>           M_matrix;
 };
 
 }
 
-#endif // DENSEMATRIX_HPP
+#endif // SPARSEMATRIX_HPP

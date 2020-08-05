@@ -5,194 +5,122 @@ namespace RedMA
 
 DenseMatrix::
 DenseMatrix() :
-  M_matrix(nullptr),
-  M_nRows(0),
-  M_nCols(0)
+  aMatrix(DENSE)
 {
 }
 
-// DenseMatrix::
-// DenseMatrix(const std::vector<int>& columnVectors)
-// {
-//     auto vecs = columnVectors;
-//     // unsigned int ncols = columnVectors[0].data()->Length();
-//     //
-//     // M_matrix->Reshape(nrows,ncols);
-//     //
-//     // for (unsigned int i = 0; i < nrows; i++)
-//     // {
-//     //     for (unsigned int j = 0; j < ncols; j++)
-//     //     {
-//     //         (*matrix)(i,j) = columnVectors[i][j];
-//     //     }
-//     // }
-// }
+void
+DenseMatrix::
+add(std::shared_ptr<aMatrix> other)
+{
+    checkType(other, DENSE);
 
-DenseMatrix
+    if (isZero())
+    {
+       hardCopy(other);
+       return;
+    }
+
+    if (!other->isZero())
+    {
+        DenseMatrix* otherMatrix = dynamic_cast<DenseMatrix*>(other.get());
+        (*M_matrix) += (*otherMatrix->data());
+        M_normInf = M_matrix->NormInf();
+    }
+}
+
+void
+DenseMatrix::
+multiplyByScalar(const double& coeff)
+{
+    if (!isZero())
+    {
+        M_matrix->Scale(coeff);
+        M_normInf = M_matrix->NormInf();
+    }
+}
+
+std::shared_ptr<aMatrix>
 DenseMatrix::
 transpose() const
 {
-    DenseMatrix retMatrix;
+    std::shared_ptr<DenseMatrix> retMatrix(new DenseMatrix());
 
     if (M_matrix)
     {
-        unsigned int nrows = M_matrix->N();
-        unsigned int ncols = M_matrix->M();
+        unsigned int nrows = M_nCols;
+        unsigned int ncols = M_nRows;
 
-        retMatrix.data()->Reshape(nrows,ncols);
+        std::shared_ptr<DENSEMATRIX> inMatrix(new DENSEMATRIX());
+
+        inMatrix->Reshape(nrows,ncols);
 
         for (unsigned int i = 0; i < nrows; i++)
         {
             for (unsigned int j = 0; j < ncols; j++)
             {
-                (*retMatrix.M_matrix)(i,j) = (*M_matrix)(j,i);
+                (*inMatrix)(i,j) = (*M_matrix)(j,i);
             }
         }
+
+        retMatrix->setMatrix(inMatrix);
     }
 
     return retMatrix;
 }
 
-DenseMatrix
-DenseMatrix::
-operator*(const DenseMatrix& other)
-{
-    DenseMatrix mat;
-
-    if (M_matrix && other.data())
-    {
-        mat.data().reset(new DENSEMATRIX(M_matrix->M(), other.M_matrix->N()));
-        mat.M_matrix->Multiply('N', 'N', 1.0, *M_matrix, *other.M_matrix, 0.0);
-    }
-
-    return mat;
-}
-
-DenseMatrix
-DenseMatrix::
-operator+(const DenseMatrix& other)
-{
-    DenseMatrix retMatrix;
-
-    if (!M_matrix)
-    {
-        hardCopy(other);
-        return other;
-    }
-
-    retMatrix.data().reset(new DENSEMATRIX(*M_matrix));
-
-    (*retMatrix.data()) += (*other.data());
-    return retMatrix;
-}
-
-DenseMatrix&
-DenseMatrix::
-operator+=(const DenseMatrix& other)
-{
-    if (!M_matrix)
-    {
-        hardCopy(other);
-        return *this;
-    }
-
-    if (other.data())
-        (*M_matrix) += (*other.data());
-    return *this;
-}
-
-DenseMatrix&
-DenseMatrix::
-operator-=(const DenseMatrix& other)
-{
-    if (!M_matrix)
-    {
-        hardCopy(other);
-        *this *= (-1.0);
-        return *this;
-    }
-
-    if (other.data())
-    {
-        DENSEMATRIX otherCopy(*other.data());
-        otherCopy.Scale(-1.0);
-        M_matrix->operator+=(otherCopy);
-    }
-    return *this;
-}
-
-DenseMatrix&
-DenseMatrix::
-operator*=(const double& coeff)
-{
-    if (M_matrix)
-        M_matrix->Scale(coeff);
-
-    return *this;
-}
-
 void
 DenseMatrix::
-hardCopy(const DenseMatrix& other)
+setMatrix(std::shared_ptr<DENSEMATRIX> matrix)
 {
-    M_nRows = other.M_nRows;
-    M_nCols = other.M_nCols;
-
-    if (other.data())
-        M_matrix.reset(new DENSEMATRIX(*other.data()));
-}
-
-void
-DenseMatrix::
-softCopy(const DenseMatrix& other)
-{
-    M_nRows = other.M_nRows;
-    M_nCols = other.M_nCols;
-    M_matrix = other.M_matrix;
-}
-
-DenseVector
-DenseMatrix::
-operator*(const DenseVector& vector)
-{
-    DenseVector vec;
-    if (M_matrix && vector.data())
+    if (matrix)
     {
-        std::shared_ptr<DENSEVECTOR> res;
-        res.reset(new DENSEVECTOR(M_matrix->N()));
-        M_matrix->Multiply(false, *vector.data(), *res);
-        vec.data() = res;
+        M_matrix = matrix;
+        this->M_nRows = M_matrix->M();
+        this->M_nCols = M_matrix->N();
+        this->M_normInf = M_matrix->NormInf();
+    }
+}
+
+std::shared_ptr<aMatrix>
+DenseMatrix::
+multiplyByMatrix(std::shared_ptr<aMatrix> other)
+{
+    checkType(other, DENSE);
+
+    std::shared_ptr<DENSEMATRIX> otherMatrix =
+        dynamic_cast<DenseMatrix*>(other.get())->data();
+
+    std::shared_ptr<DenseMatrix> retMat(new DenseMatrix());
+
+    if (!isZero() && !other->isZero())
+    {
+        std::shared_ptr<DENSEMATRIX> mat;
+        mat.reset(new DENSEMATRIX(nRows(), other->nCols()));
+        mat->Multiply('N', 'N', 1.0, *M_matrix, *otherMatrix, 0.0);
+        setMatrix(mat);
+    }
+}
+
+std::shared_ptr<aVector>
+DenseMatrix::
+multiplyByVector(std::shared_ptr<aVector> vector)
+{
+    checkType(vector, DENSE);
+
+    std::shared_ptr<DENSEVECTOR> otherVector =
+        dynamic_cast<DenseVector*>(vector.get())->data();
+
+    std::shared_ptr<DenseVector> retVec;
+    if (!isZero() && !vector->isZero())
+    {
+       std::shared_ptr<DENSEVECTOR> res;
+       res.reset(new DENSEVECTOR(M_nRows));
+       M_matrix->Multiply(false, *otherVector, *res);
+       retVec->setVector(res);
     }
 
-    return vec;
-}
-
-// void
-// DenseMatrix::
-// getRowProperty(std::shared_ptr<LifeV::MapEpetra>& outMap)
-// {
-//     outMap.reset(new LifeV::MapEpetra(M_matrix->domainMap()));
-// }
-//
-// void
-// DenseMatrix::
-// getColProperty(std::shared_ptr<LifeV::MapEpetra>& outMap)
-// {
-//     outMap.reset(new LifeV::MapEpetra(M_matrix->rangeMap()));
-// }
-
-std::shared_ptr<DENSEMATRIX>&
-DenseMatrix::
-data()
-{
-    return M_matrix;
-}
-
-std::shared_ptr<DENSEMATRIX>
-DenseMatrix::
-data() const
-{
-    return M_matrix;
+    return retVec;
 }
 
 void
@@ -222,42 +150,47 @@ dump(std::string filename) const
     outfile.close();
 }
 
-unsigned int
+bool
 DenseMatrix::
-getNumRows() const
+isZero() const
 {
-    if (M_matrix != nullptr)
-        return M_matrix->M();
-    return M_nRows;
-}
+    if (!M_matrix)
+        return true;
 
-unsigned int
-DenseMatrix::
-getNumCols() const
-{
-    if (M_matrix != nullptr)
-        return M_matrix->N();
-    return M_nCols;
+    return normInf() < ZEROTHRESHOLD;
 }
 
 void
 DenseMatrix::
-setNumRows(unsigned int numRows)
+softCopy(std::shared_ptr<aMatrix> other)
 {
-    if (M_matrix)
-        throw new Exception("setNumRows should be called when M_matrix == nullptr");
-
-    M_nRows = numRows;
+    if (other)
+    {
+        checkType(other, DENSE);
+        auto otherMatrix = dynamic_cast<DenseMatrix*>(other.get());
+        setMatrix(otherMatrix->data());
+    }
 }
 
 void
 DenseMatrix::
-setNumCols(unsigned int numCols)
+hardCopy(std::shared_ptr<aMatrix> other)
 {
-    if (M_matrix)
-        throw new Exception("setNumCols should be called when M_matrix == nullptr");
+    if (other)
+    {
+        checkType(other, DENSE);
+        auto otherMatrix = dynamic_cast<DenseMatrix*>(other.get());
+        std::shared_ptr<DENSEMATRIX> newMatrix
+            (new DENSEMATRIX(*otherMatrix->data()));
+        setMatrix(newMatrix);
+    }
+}
 
-    M_nCols = numCols;
+DenseMatrix*
+DenseMatrix::
+clone() const
+{
+    return new DenseMatrix(*this);
 }
 
 }

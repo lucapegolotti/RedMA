@@ -3,39 +3,39 @@
 namespace RedMA
 {
 
-template <>
-template <>
-void
-BlockMatrix<DenseMatrix>::
-getRowProperty(std::shared_ptr<LifeV::MapEpetra>& outMap,
-               const unsigned int& rowIndex) const
-{
-}
-
-template <>
-template <>
-void
-BlockMatrix<DenseMatrix>::
-getColProperty(std::shared_ptr<LifeV::MapEpetra>& outMap,
-               const unsigned int& colIndex) const
-{
-}
-
-template <>
-template <>
-void
-BlockMatrix<DenseMatrix>::
-getRowsProperty(std::shared_ptr<LifeV::MapEpetra>& outMap) const
-{
-}
-
-template <>
-template <>
-void
-BlockMatrix<DenseMatrix>::
-getColsProperty(std::shared_ptr<LifeV::MapEpetra>& outMap) const
-{
-}
+// template <>
+// template <>
+// void
+// BlockMatrix<DenseMatrix>::
+// getRowProperty(std::shared_ptr<LifeV::MapEpetra>& outMap,
+//                const unsigned int& rowIndex) const
+// {
+// }
+//
+// template <>
+// template <>
+// void
+// BlockMatrix<DenseMatrix>::
+// getColProperty(std::shared_ptr<LifeV::MapEpetra>& outMap,
+//                const unsigned int& colIndex) const
+// {
+// }
+//
+// template <>
+// template <>
+// void
+// BlockMatrix<DenseMatrix>::
+// getRowsProperty(std::shared_ptr<LifeV::MapEpetra>& outMap) const
+// {
+// }
+//
+// template <>
+// template <>
+// void
+// BlockMatrix<DenseMatrix>::
+// getColsProperty(std::shared_ptr<LifeV::MapEpetra>& outMap) const
+// {
+// }
 
 template <>
 template <>

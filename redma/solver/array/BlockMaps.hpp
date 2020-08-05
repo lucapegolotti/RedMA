@@ -20,7 +20,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/utils/Exception.hpp>
 #include <redma/solver/array/BlockMatrix.hpp>
-#include <redma/solver/array/MatrixEp.hpp>
+#include <redma/solver/array/SparseMatrix.hpp>
 
 #include <lifev/core/array/MatrixEpetraStructured.hpp>
 #include <lifev/core/array/VectorEpetraStructured.hpp>
@@ -29,11 +29,10 @@
 namespace RedMA
 {
 
-template <class InMatrixType>
 class BlockMaps
 {
 public:
-    BlockMaps(const BlockMatrix<InMatrixType>& matrix);
+    BlockMaps(const BlockMatrix& matrix) {};
 
     inline std::vector<SHP(Epetra_Map)> getRangeMaps() const {return M_rangeMaps;}
 
@@ -47,14 +46,14 @@ public:
 
     inline std::vector<unsigned int> getInnerCols() const {return M_nInnerCols;}
 
-    SHP(MAPEPETRA) getMonolithicRangeMapEpetra() const;
+    SHP(MAPEPETRA) getMonolithicRangeMapEpetra() const {};
 
-    SHP(MAPEPETRA) getMonolithicDomainMapEpetra() const;
+    SHP(MAPEPETRA) getMonolithicDomainMapEpetra() const {};
 
 private:
-    void generateMaps();
+    void generateMaps() {};
 
-    BlockMatrix<InMatrixType>    M_matrix;
+    BlockMatrix                  M_matrix;
     std::vector<SHP(Epetra_Map)> M_rangeMaps;
     std::vector<SHP(Epetra_Map)> M_domainMaps;
     std::vector<SHP(MAPEPETRA)>  M_rangeMapsEpetra;
@@ -64,15 +63,14 @@ private:
     std::vector<unsigned int>    M_nInnerCols;
 };
 
-template <class InMatrixType>
-InMatrixType collapseBlocks(const BlockMatrix<InMatrixType>& matrix,
-                            const BlockMaps<InMatrixType>& maps);
-
-SHP(VECTOREPETRA) getEpetraVector(const BlockVector<BlockVector<VectorEp>>& vector,
-                                  const BlockMaps<BlockMatrix<MatrixEp>>& maps);
-
-BlockVector<BlockVector<VectorEp>> getBlockVector(const SHP(VECTOREPETRA)& vector,
-                                                  const BlockMaps<BlockMatrix<MatrixEp>>& maps);
+// std::shared_ptr<aMatrix> collapseBlocks(const BlockMatrix& matrix,
+//                                         const BlockMaps& maps);
+//
+// SHP(VECTOREPETRA) getEpetraVector(const BlockVector<BlockVector<VectorEp>>& vector,
+//                                   const BlockMaps<BlockMatrix<MatrixEp>>& maps);
+//
+// BlockVector<BlockVector<VectorEp>> getBlockVector(const SHP(VECTOREPETRA)& vector,
+//                                                   const BlockMaps<BlockMatrix<MatrixEp>>& maps);
 
 }
 

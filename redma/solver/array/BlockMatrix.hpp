@@ -20,8 +20,8 @@
 #include <redma/utils/Exception.hpp>
 #include <redma/solver/array/aMatrix.hpp>
 #include <redma/solver/array/BlockVector.hpp>
-#include <redma/solver/array/VectorEp.hpp>
-#include <redma/solver/array/MatrixEp.hpp>
+#include <redma/solver/array/DistributedVector.hpp>
+#include <redma/solver/array/SparseMatrix.hpp>
 #include <redma/solver/array/DenseMatrix.hpp>
 #include <redma/solver/array/Double.hpp>
 
@@ -33,13 +33,10 @@
 namespace RedMA
 {
 
-template <class InMatrixType>
 class BlockMatrix : public aMatrix
 {
-    typedef boost::numeric::ublas::matrix<InMatrixType>       Grid;
+    typedef boost::numeric::ublas::matrix<std::shared_ptr<aMatrix>>       Grid;
 public:
-
-    typedef InMatrixType                                      InnerType;
 
     BlockMatrix();
 
@@ -47,88 +44,65 @@ public:
 
     BlockMatrix(const unsigned int& nRows, const unsigned int& nCols);
 
-    virtual BlockMatrix<InMatrixType> operator+(const BlockMatrix<InMatrixType>& other) const;
+    virtual void add(std::shared_ptr<aMatrix> other) override;
 
-    virtual BlockMatrix<InMatrixType>& operator+=(const BlockMatrix<InMatrixType>& other);
+    virtual void multiplyByScalar(const double& coeff) override;
 
-    virtual BlockMatrix<InMatrixType>& operator-=(const BlockMatrix<InMatrixType>& other);
+    virtual std::shared_ptr<aMatrix> multiplyByMatrix(std::shared_ptr<aMatrix> other) override;
 
-    virtual BlockMatrix<InMatrixType>& operator*=(const double& coeff);
+    virtual std::shared_ptr<aMatrix> transpose() const override;
 
-    virtual BlockMatrix<InMatrixType> operator*(const double& coeff) const;
+    virtual std::shared_ptr<aVector> multiplyByVector(std::shared_ptr<aVector> vector) override;
 
-    virtual BlockMatrix<InMatrixType> operator*(const BlockMatrix<InMatrixType>& matrix) const;
+    virtual void softCopy(std::shared_ptr<aMatrix> other) override;
 
-    // hard copy!
-    virtual BlockMatrix<InMatrixType>& operator=(const BlockMatrix<InMatrixType>& other);
+    virtual void hardCopy(std::shared_ptr<aMatrix> other) override;
 
-    template <class InVectorType>
-    BlockVector<InVectorType> operator*(const BlockVector<InVectorType>& vector) const;
+    virtual bool isZero() const override;
+
+    virtual void dump(std::string filename) const override;
+
+    virtual BlockMatrix* clone() const override;
 
     void resize(const unsigned int& nRows, const unsigned int& nCols);
 
-    void hardCopy(const BlockMatrix<InMatrixType>& other);
+    std::shared_ptr<aMatrix> block(const unsigned int& iblock, const unsigned int& jblock) const;
 
-    void softCopy(const BlockMatrix<InMatrixType>& other);
+    std::shared_ptr<BlockMatrix> getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
+                                 const unsigned int& jbegin, const unsigned int& jend) const;
 
-    InMatrixType& block(const unsigned int& iblock, const unsigned int& jblock);
+    void setBlock(const unsigned int& iblock, const unsigned int& jblock,
+                  std::shared_ptr<aMatrix> matrix);
 
-    InMatrixType block(const unsigned int& iblock, const unsigned int& jblock) const;
-
-    BlockMatrix getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
-                             const unsigned int& jbegin, const unsigned int& jend) const;
-
-    template <class InputVectorType, class OutputVectorType>
-    void convertVectorType(const InputVectorType& inputVector,
-                           OutputVectorType& output) const;
-
-    // if InMatrix is epetra this returns global range map, otherwise number
-    // of rows
-    template <class OutputType>
-    void getRowsProperty(OutputType& output) const;
-
-    template <class OutputType>
-    void getColsProperty(OutputType& output) const;
-
-    template <class OutputType>
-    void getRowProperty(OutputType& output, const unsigned int& indexrow) const;
-
-    template <class OutputType>
-    void getColProperty(OutputType& output, const unsigned int& indexcol) const;
-
-    inline unsigned int nRows() const {return M_nRows;}
-
-    inline unsigned int nCols() const {return M_nCols;}
-
-    bool isNull() const;
-
-    inline bool isFinalized() const {return M_isFinalized;}
+    // inline bool isFinalized() const {return M_isFinalized;}
 
     void printPattern() const;
 
-    void finalize(BlockMatrix<BlockMatrix<InMatrixType>>* father = nullptr,
-                  unsigned int* myRow = nullptr,
-                  unsigned int* myCol = nullptr);
+    inline void close() {M_isOpen = false;}
 
-    InMatrixType collapse() const;
+    inline void open() {M_isOpen = true;}
+
+    inline bool isOpen() const {return M_isOpen;}
+
+    inline void checkOpen() const {if (!isOpen()) throw new Exception("BlockMatrix must be open for this operation!");}
+
+    inline void checkClosed() const {if (isOpen()) throw new Exception("BlockMatrix must be closed for this operation!");}
+
+    // void finalize() {};
+    //
+    // std::shared_ptr<aMatrix> collapse() const {};
 
 protected:
+    void updateNormInf();
     // I introduce this only because on mac the operator+= behaves weirdly
-    void sumMatrix(const BlockMatrix<InMatrixType>& other);
-
-    void subtractMatrix(const BlockMatrix<InMatrixType>& other);
-
-    void multiplyCoeff(const double& coeff);
+    // void sumMatrix(const BlockMatrix& other) {};
+    //
+    // void multiplyCoeff(const double& coeff) {};
 
     Grid            M_matrixGrid;
-    unsigned int    M_nRows;
-    unsigned int    M_nCols;
-    bool            M_isFinalized;
-    bool            M_isNull;
+    bool            M_isOpen;
 };
 
 }
-
-#include "BlockMatrix_imp.hpp"
 
 #endif // BLOCKMATRIX_HPP

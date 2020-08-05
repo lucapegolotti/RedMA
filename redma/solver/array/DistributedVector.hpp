@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef VECTOREP_HPP
-#define VECTOREP_HPP
+#ifndef DISTRIBUTEDVECTOR_HPP
+#define DISTRIBUTEDVECTOR_HPP
 
-#include <redma/solver/array/aMatrix.hpp>
+#include <redma/solver/array/aVector.hpp>
 #include <redma/utils/Exception.hpp>
 #include <redma/solver/array/DenseVector.hpp>
 
@@ -28,41 +28,39 @@
 namespace RedMA
 {
 
-class VectorEp : public aMatrix
+class DistributedVector : public aVector
 {
 public:
-    VectorEp();
+    DistributedVector();
 
-    VectorEp operator+(const VectorEp& other);
+    virtual void add(std::shared_ptr<aVector> other) override;
 
-    VectorEp operator-(const VectorEp& other);
+    virtual void multiplyByScalar(const double& coeff) override;
 
-    VectorEp& operator+=(const VectorEp& other);
+    virtual void dump(std::string namefile) const override;
 
-    VectorEp& operator-=(const VectorEp& other);
+    virtual void softCopy(std::shared_ptr<aVector> other) override;
 
-    VectorEp& operator*=(const double& coeff);
+    virtual void hardCopy(std::shared_ptr<aVector> other) override;
 
-    VectorEp& operator=(const std::shared_ptr<VECTOREPETRA>& other);
+    virtual aVector* clone() const override;
 
-    void hardCopy(const VectorEp& other);
+    virtual bool isZero() const override;
 
-    void softCopy(const VectorEp& other);
+    std::string getString(const char& delimiter) const override;
 
-    double norm2() const;
-
-    std::shared_ptr<VECTOREPETRA>& data();
+    double norm2() const override;
 
     std::shared_ptr<VECTOREPETRA> data() const;
-
-    std::string getString(const char& delimiter) const;
 
     double maxMagnitude3D() const;
 
     DenseVector toDenseVector() const;
 
-    static VectorEp convertDenseVector(DenseVector denseVector,
+    static DistributedVector convertDenseVector(DenseVector denseVector,
                                        std::shared_ptr<Epetra_Comm> comm);
+
+    void setVector(std::shared_ptr<VECTOREPETRA> vector);
 
 private:
     std::shared_ptr<VECTOREPETRA>  M_vector;
@@ -70,4 +68,4 @@ private:
 
 }
 
-#endif // VECTOREP_HPP
+#endif // DISTRIBUTEDVECTOR_HPP

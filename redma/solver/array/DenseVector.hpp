@@ -17,7 +17,7 @@
 #ifndef DENSEVECTOR_HPP
 #define DENSEVECTOR_HPP
 
-#include <redma/solver/array/aMatrix.hpp>
+#include <redma/solver/array/aVector.hpp>
 #include <redma/utils/Exception.hpp>
 
 #include <Epetra_SerialDenseVector.h>
@@ -31,38 +31,32 @@
 namespace RedMA
 {
 
-class DenseVector : public aMatrix
+class DenseVector : public aVector
 {
 public:
     DenseVector();
 
-    DenseVector operator+(const DenseVector& other);
+    virtual void add(std::shared_ptr<aVector> other) override;
 
-    DenseVector operator-(const DenseVector& other);
+    virtual void multiplyByScalar(const double& coeff) override;
 
-    DenseVector& operator+=(const DenseVector& other);
+    virtual void dump(std::string namefile) const override;
 
-    DenseVector& operator-=(const DenseVector& other);
+    virtual void softCopy(std::shared_ptr<aVector> other) override;
 
-    DenseVector& operator*=(const double& coeff);
+    virtual void hardCopy(std::shared_ptr<aVector> other) override;
 
-    DenseVector& operator=(const std::shared_ptr<DENSEVECTOR>& other);
+    virtual aVector* clone() const override;
 
-    void hardCopy(const DenseVector& other);
+    virtual bool isZero() const override;
 
-    void softCopy(const DenseVector& other);
+    double norm2() const override;
 
-    double norm2() const;
-
-    std::shared_ptr<DENSEVECTOR>& data();
+    std::string getString(const char& delimiter) const override;
 
     std::shared_ptr<DENSEVECTOR> data() const;
 
-    std::string getString(const char& delimiter) const;
-
-    unsigned int getNumRows() const;
-
-    void dump(std::string filename) const;
+    void setVector(std::shared_ptr<DENSEVECTOR> vector);
 
     std::shared_ptr<LifeV::VectorEpetra> toVectorEpetra(std::shared_ptr<Epetra_Comm> comm) const;
 

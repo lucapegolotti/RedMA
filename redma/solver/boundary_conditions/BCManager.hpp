@@ -21,8 +21,8 @@
 #include <redma/geometry/TreeStructure.hpp>
 #include <redma/solver/array/BlockVector.hpp>
 #include <redma/solver/array/BlockMatrix.hpp>
-#include <redma/solver/array/VectorEp.hpp>
-#include <redma/solver/array/MatrixEp.hpp>
+#include <redma/solver/array/DistributedVector.hpp>
+#include <redma/solver/array/SparseMatrix.hpp>
 #include <redma/solver/problem/DataContainer.hpp>
 #include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
 #include <redma/solver/boundary_conditions/WindkesselModel.hpp>

@@ -1,116 +1,94 @@
-#include "VectorEp.hpp"
+#include "DistributedVector.hpp"
 
 namespace RedMA
 {
 
-VectorEp::
-VectorEp() :
+DistributedVector::
+DistributedVector() :
+  aVector(DISTRIBUTED),
   M_vector(nullptr)
 {
 
 }
 
-VectorEp
-VectorEp::
-operator+(const VectorEp& other)
+void
+DistributedVector::
+add(std::shared_ptr<aVector> other)
 {
-    VectorEp vec;
+    checkType(other, DISTRIBUTED);
 
-    if (!M_vector)
+    if (isZero())
     {
         hardCopy(other);
-        return other;
+        return;
     }
 
-    vec.hardCopy(*this);
-    vec += other;
-    return vec;
-}
-
-VectorEp
-VectorEp::
-operator-(const VectorEp& other)
-{
-    VectorEp vec;
-
-    if (!M_vector)
+    if (!other->isZero())
     {
-        hardCopy(other);
-        *this *= -1.0;
-        return other;
+        DistributedVector* otherVector = dynamic_cast<DistributedVector*>(other.get());
+        (*M_vector) += (*otherVector->data());
     }
-
-    vec.hardCopy(*this);
-    vec -= other;
-    return vec;
-}
-
-VectorEp&
-VectorEp::
-operator+=(const VectorEp& other)
-{
-    if (!M_vector)
-    {
-        hardCopy(other);
-        return *this;
-    }
-
-    if (other.data())
-        *M_vector += *other.data();
-    return *this;
-}
-
-VectorEp&
-VectorEp::
-operator-=(const VectorEp& other)
-{
-    if (!M_vector)
-    {
-        hardCopy(other);
-        *M_vector *= (-1.0);
-        return *this;
-    }
-
-    if (other.data())
-        *M_vector -= *other.data();
-    return *this;
-}
-
-VectorEp&
-VectorEp::
-operator=(const std::shared_ptr<VECTOREPETRA>& other)
-{
-    M_vector = other;
-    return *this;
-}
-
-VectorEp&
-VectorEp::
-operator*=(const double& coeff)
-{
-    if (M_vector)
-        *M_vector *= coeff;
-
-    return *this;
 }
 
 void
-VectorEp::
-hardCopy(const VectorEp& other)
+DistributedVector::
+multiplyByScalar(const double& coeff)
 {
-    if (other.data())
-        M_vector.reset(new VECTOREPETRA(*other.data()));
+    if (!isZero())
+        (*M_vector) *= coeff;
 }
 
 void
-VectorEp::
-softCopy(const VectorEp& other)
+DistributedVector::
+dump(std::string namefile) const
 {
-    M_vector = other.data();
+    throw new Exception("Dump not implemented for DistributedVector");
+}
+
+void
+DistributedVector::
+softCopy(std::shared_ptr<aVector> other)
+{
+    if (other)
+    {
+        checkType(other, DISTRIBUTED);
+        auto otherMatrix = dynamic_cast<DistributedVector*>(other.get());
+        setVector(otherMatrix->data());
+    }
+}
+
+void
+DistributedVector::
+hardCopy(std::shared_ptr<aVector> other)
+{
+    if (other)
+    {
+        checkType(other, DISTRIBUTED);
+        auto otherVector = dynamic_cast<DistributedVector*>(other.get());
+        std::shared_ptr<VECTOREPETRA> newVector
+            (new VECTOREPETRA(*otherVector->data()));
+        setVector(newVector);
+    }
+}
+
+aVector*
+DistributedVector::
+clone() const
+{
+    return new DistributedVector(*this);
+}
+
+bool
+DistributedVector::
+isZero() const
+{
+    if (!M_vector)
+        return true;
+    return M_normInf < ZEROTHRESHOLD;
 }
 
 double
-VectorEp::
+DistributedVector::
 norm2() const
 {
     double mynorm = 0;
@@ -120,22 +98,15 @@ norm2() const
     return mynorm;
 }
 
-std::shared_ptr<VECTOREPETRA>&
-VectorEp::
-data()
-{
-    return M_vector;
-}
-
 std::shared_ptr<VECTOREPETRA>
-VectorEp::
+DistributedVector::
 data() const
 {
     return M_vector;
 }
 
 std::string
-VectorEp::
+DistributedVector::
 getString(const char& delimiter) const
 {
     std::ostringstream streamObj;
@@ -153,7 +124,7 @@ getString(const char& delimiter) const
         const double* values = redVec.epetraVector()[0];
         for (unsigned int i = 0; i < redVec.epetraVector().GlobalLength(); ++i)
         {
-            if (std::abs(values[i]) > 1e-15)
+            if (std::abs(values[i]) > ZEROTHRESHOLD)
                 streamObj << values[i];
             else
                 streamObj << 0.;
@@ -167,7 +138,7 @@ getString(const char& delimiter) const
 
 // here we assume that the vector is stacked 1st component, 2nd component ecc
 double
-VectorEp::
+DistributedVector::
 maxMagnitude3D() const
 {
     double retval = -1;
@@ -198,7 +169,7 @@ maxMagnitude3D() const
 }
 
 DenseVector
-VectorEp::
+DistributedVector::
 toDenseVector() const
 {
     DenseVector retVec;
@@ -217,17 +188,17 @@ toDenseVector() const
     return retVec;
 }
 
-VectorEp
-VectorEp::
+DistributedVector
+DistributedVector::
 convertDenseVector(DenseVector denseVector, std::shared_ptr<Epetra_Comm> comm)
 {
     using namespace LifeV;
-    VectorEp retVec;
+    DistributedVector retVec;
 
     if (comm->MyPID() != 0)
         throw new Exception("convertDenseVector does not support more than one proc");
 
-    unsigned int length = denseVector.getNumRows();
+    unsigned int length = denseVector.nRows();
 
     std::shared_ptr<MapEpetra> map(new MapEpetra(length, length, 0, comm));
 
@@ -239,5 +210,18 @@ convertDenseVector(DenseVector denseVector, std::shared_ptr<Epetra_Comm> comm)
     return retVec;
 }
 
+void
+DistributedVector::
+setVector(std::shared_ptr<VECTOREPETRA> vector)
+{
+    if (vector)
+    {
+        auto mapPtr = vector->mapPtr();
+
+        M_vector = vector;
+        this->M_nRows = mapPtr->mapSize();
+        this->M_normInf = M_vector->normInf();
+    }
+}
 
 };

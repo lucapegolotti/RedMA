@@ -5,110 +5,79 @@ namespace RedMA
 
 DenseVector::
 DenseVector() :
+  aVector(DENSE),
   M_vector(nullptr)
 {
 
 }
 
-DenseVector
+void
 DenseVector::
-operator+(const DenseVector& other)
+add(std::shared_ptr<aVector> other)
 {
-    DenseVector vec;
+    checkType(other, DENSE);
 
-    if (!M_vector)
+    if (isZero())
     {
         hardCopy(other);
-        return other;
+        return;
     }
 
-    vec.hardCopy(*this);
-    vec += other;
-    return vec;
-}
-
-DenseVector
-DenseVector::
-operator-(const DenseVector& other)
-{
-    DenseVector vec;
-
-    if (!M_vector)
+    if (!other->isZero())
     {
-        hardCopy(other);
-        *this *= -1.0;
-        return other;
+        DenseVector* otherVector = dynamic_cast<DenseVector*>(other.get());
+        (*M_vector) += (*otherVector->data());
     }
-
-    vec.hardCopy(*this);
-    vec -= other;
-    return vec;
 }
 
-DenseVector&
+void
 DenseVector::
-operator+=(const DenseVector& other)
+multiplyByScalar(const double& coeff)
 {
-    if (!M_vector)
-    {
-        hardCopy(other);
-        return *this;
-    }
-
-    if (other.data())
-        *M_vector += *other.data();
-    return *this;
-}
-
-DenseVector&
-DenseVector::
-operator-=(const DenseVector& other)
-{
-    if (!M_vector)
-    {
-        hardCopy(other);
-        M_vector->Scale(-1.0);
-        return *this;
-    }
-
-    if (other.data())
-    {
-        for (unsigned int i = 0; i < M_vector->Length(); i++)
-            (*M_vector)[i] -= (*other.data())[i];
-    }
-    return *this;
-}
-
-DenseVector&
-DenseVector::
-operator=(const std::shared_ptr<DENSEVECTOR>& other)
-{
-    M_vector = other;
-}
-
-DenseVector&
-DenseVector::
-operator*=(const double& coeff)
-{
-    if (M_vector)
+    if (!isZero())
         M_vector->Scale(coeff);
-
-    return *this;
 }
 
 void
 DenseVector::
-hardCopy(const DenseVector& other)
+softCopy(std::shared_ptr<aVector> other)
 {
-    if (other.data())
-        M_vector.reset(new DENSEVECTOR(*other.data()));
+    if (other)
+    {
+        checkType(other, DENSE);
+        auto otherMatrix = dynamic_cast<DenseVector*>(other.get());
+        setVector(otherMatrix->data());
+    }
 }
 
 void
 DenseVector::
-softCopy(const DenseVector& other)
+hardCopy(std::shared_ptr<aVector> other)
 {
-    M_vector = other.data();
+    if (other)
+    {
+        checkType(other, DENSE);
+        auto otherVector = dynamic_cast<DenseVector*>(other.get());
+        std::shared_ptr<DENSEVECTOR> newVector
+            (new DENSEVECTOR(*otherVector->data()));
+        setVector(newVector);
+    }
+}
+
+aVector*
+DenseVector::
+clone() const
+{
+    return new DenseVector(*this);
+}
+
+bool
+DenseVector::
+isZero() const
+{
+    if (!M_vector)
+        return true;
+    return M_normInf < ZEROTHRESHOLD;
 }
 
 double
@@ -120,13 +89,6 @@ norm2() const
         mynorm += M_vector->Norm2();
 
     return mynorm;
-}
-
-std::shared_ptr<DENSEVECTOR>&
-DenseVector::
-data()
-{
-    return M_vector;
 }
 
 std::shared_ptr<DENSEVECTOR>
@@ -149,7 +111,7 @@ getString(const char& delimiter) const
     {
         for (unsigned int i = 0; i < M_vector->Length(); ++i)
         {
-            if (std::abs((*M_vector)[i]) > 1e-15)
+            if (std::abs((*M_vector)[i]) > ZEROTHRESHOLD)
                 streamObj << (*M_vector)[i];
             else
                 streamObj << 0.0;
@@ -158,16 +120,6 @@ getString(const char& delimiter) const
         }
     }
     return streamObj.str();
-}
-
-unsigned int
-DenseVector::
-getNumRows() const
-{
-    if (!M_vector)
-        throw new Exception("DenseVector::getNumRows() inner vector not set");
-
-    return M_vector->Length();
 }
 
 void
@@ -207,6 +159,18 @@ toVectorEpetra(std::shared_ptr<Epetra_Comm> comm) const
         (*retVec)[i] = (*M_vector)(i);
 
     return retVec;
+}
+
+void
+DenseVector::
+setVector(std::shared_ptr<DENSEVECTOR> vector)
+{
+    if (vector)
+    {
+        M_vector = vector;
+        this->M_nRows = M_vector->Length();
+        this->M_normInf = M_vector->NormInf();
+    }
 }
 
 
