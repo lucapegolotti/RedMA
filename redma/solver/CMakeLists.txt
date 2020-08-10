@@ -1,10 +1,5 @@
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/array)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/assemblers)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/boundary_conditions)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/coupling)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/system_solver)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/time_marching_algorithms)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/problem)
 
 set(HEADERS_DIRS
     ${HEADERS_DIRS}

@@ -14,8 +14,6 @@ set(HEADERS
 
 set(SOURCES
     ${SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/LinearSystemSolver_dense.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/LinearSystemSolver_sparse.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/LinearOperatorEp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InverseOperatorEp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PreconditionerOperatorEp.cpp

@@ -18,8 +18,8 @@
 #define MDEIMGENERATOR_HPP
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/problem/DataContainer.hpp>
-#include <redma/solver/problem/ProblemFEM.hpp>
+#include <redma/problem/DataContainer.hpp>
+#include <redma/problem/ProblemFEM.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
 
 #include <redma/reduced_basis/BlockMDEIM.hpp>

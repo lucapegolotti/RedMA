@@ -18,7 +18,7 @@
 #define FUNCTIONFUNCTOR_HPP
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/array/BlockVector.hpp>
+#include <redma/array/BlockVector.hpp>
 
 #include <functional>
 

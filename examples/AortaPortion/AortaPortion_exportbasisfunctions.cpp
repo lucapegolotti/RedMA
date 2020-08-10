@@ -15,9 +15,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/assemblers/aAssembler.hpp>
-#include <redma/solver/assemblers/DefaultAssemblersLibrary.hpp>
-#include <redma/solver/problem/DataContainer.hpp>
+#include <redma/assemblers/abstract/aAssembler.hpp>
+#include <redma/assemblers/DefaultAssemblersLibrary.hpp>
+#include <redma/problem/DataContainer.hpp>
 
 using namespace RedMA;
 using namespace boost::filesystem;

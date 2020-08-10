@@ -18,9 +18,9 @@
 #define PRECONDITIONEROPERATOREP
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/array/BlockVector.hpp>
-#include <redma/solver/array/BlockMatrix.hpp>
-#include <redma/solver/array/BlockMaps.hpp>
+#include <redma/array/BlockVector.hpp>
+#include <redma/array/BlockMatrix.hpp>
+#include <redma/array/BlockMaps.hpp>
 
 #include <lifev/core/filter/GetPot.hpp>
 #include <lifev/core/linear_algebra/LinearOperatorAlgebra.hpp>
@@ -34,8 +34,8 @@ namespace RedMA
 class PreconditionerOperatorEp : public LifeV::Operators::LinearOperatorAlgebra
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
-    typedef BlockVector<BlockVector<VectorEp>>                       BV;
-    typedef BlockMatrix<BlockMatrix<MatrixEp>>                       BM;
+    typedef BlockVector                                              BV;
+    typedef BlockMatrix                                              BM;
 
 public:
     PreconditionerOperatorEp();

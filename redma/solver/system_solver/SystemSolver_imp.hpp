@@ -2,8 +2,7 @@
 namespace RedMA
 {
 
-template<class InVectorType, class InMatrixType>
-SystemSolver<InVectorType, InMatrixType>::
+SystemSolver::
 SystemSolver(const DataContainer& data) :
   M_data(data),
   M_linearSystemSolver(data),
@@ -11,9 +10,8 @@ SystemSolver(const DataContainer& data) :
 {
 }
 
-template<class InVectorType, class InMatrixType>
-typename SystemSolver<InVectorType, InMatrixType>::BV
-SystemSolver<InVectorType, InMatrixType>::
+SystemSolver::BV
+SystemSolver::
 solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
       BV initialGuess, int& status)
 {
@@ -21,7 +19,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
     if (M_isLinearProblem)
     {
-        BV incr(initialGuess.nRows());
+        SHP(BV) incr(new BV(initialGuess.nRows()));
         BV curFun = fun(sol);
 
         double err = curFun.norm2();
@@ -33,13 +31,14 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
         msg += " residual = " + streamOb.str() + "\n";
         printlog(GREEN, msg, M_data.getVerbose());
 
-        incr.zero();
+        incr->multiplyByScalar(0.0);
         BM curJac = jac(sol);
-        curJac.finalize();
+        curJac.close();
 
-        M_linearSystemSolver.solve(curJac, curFun, incr);
+        M_linearSystemSolver.solve(curJac, curFun, *incr);
 
-        sol -= incr;
+        incr->multiplyByScalar(-1.0);
+        sol.add(incr);
 
         status = 0;
     }
@@ -47,7 +46,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
     {
         M_solverStatistics.resize(0);
 
-        BV incr(initialGuess.nRows());
+        SHP(BV) incr(new BV(initialGuess.nRows()));
         BV curFun;
         BV sol = initialGuess;
 
@@ -82,13 +81,14 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
             if (err / initialError > tol)
             {
-                incr.zero();
+                incr->multiplyByScalar(0.0);
                 BM curJac = jac(sol);
-                curJac.finalize();
-                M_linearSystemSolver.solve(curJac, curFun, incr);
+                curJac.close();
+                M_linearSystemSolver.solve(curJac, curFun, *incr);
                 M_solverStatistics.push_back(M_linearSystemSolver.getSolverStatistics());
             }
-            sol -= incr;
+            incr->multiplyByScalar(-1.0);
+            sol.add(incr);
             count++;
 
             curFun = fun(sol);

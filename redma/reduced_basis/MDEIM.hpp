@@ -18,7 +18,7 @@
 #define MDEIM_HPP
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/problem/DataContainer.hpp>
+#include <redma/problem/DataContainer.hpp>
 
 #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
 #include <rb/reduced_basis/util/EpetraArrayUtils.hpp>

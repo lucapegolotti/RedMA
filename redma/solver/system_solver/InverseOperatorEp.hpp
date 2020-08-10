@@ -18,7 +18,7 @@
 #define INVERSEOPERATOREP_HPP
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/problem/DataContainer.hpp>
+#include <redma/problem/DataContainer.hpp>
 #include <redma/solver/system_solver/LinearOperatorEp.hpp>
 #include <redma/solver/system_solver/PreconditionerOperatorEp.hpp>
 
@@ -44,15 +44,14 @@ public:
 
     void setSolverOptions();
 
-    int invert(const BlockVector<BlockVector<VectorEp>>& rhs,
-               BlockVector<BlockVector<VectorEp>>& sol);
+    int invert(const BlockVector& rhs, BlockVector& sol);
 
 private:
     DataContainer                                   M_data;
     SHP(InvertibleOperatorType)                     M_invOper;
     SHP(Teuchos::ParameterList)                     M_pListLinSolver;
     Teuchos::RCP<Teuchos::ParameterList>            M_solversOptions;
-    SHP(BlockMaps<BlockMatrix<MatrixEp>>)           M_maps;
+    SHP(BlockMaps)                                  M_maps;
 };
 
 }

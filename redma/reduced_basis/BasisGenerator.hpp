@@ -19,10 +19,10 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/utils/PrintLog.hpp>
-#include <redma/solver/problem/DataContainer.hpp>
-#include <redma/solver/problem/ProblemFEM.hpp>
-#include <redma/solver/assemblers/AssemblerFactory.hpp>
-#include <redma/solver/assemblers/InterfaceAssembler.hpp>
+#include <redma/problem/DataContainer.hpp>
+#include <redma/problem/ProblemFEM.hpp>
+#include <redma/assemblers/AssemblerFactory.hpp>
+#include <redma/assemblers/coupling/InterfaceAssembler.hpp>
 
 #include <redma/geometry/TreeStructure.hpp>
 #include <redma/geometry/BuildingBlock.hpp>
@@ -48,7 +48,7 @@ namespace RedMA
 
 class BasisGenerator
 {
-    typedef aAssembler<FEVECTOR COMMA FEMATRIX>             AssemblerType;
+    typedef aAssembler                                      AssemblerType;
     typedef std::vector<std::vector<SHP(VECTOREPETRA)>>     VectorFunctions;
     typedef std::pair<SHP(AssemblerType), VectorFunctions>  AssemblerSnapshotPair;
 public:
@@ -85,7 +85,7 @@ private:
                               std::vector<SHP(VECTOREPETRA)>& snapshots,
                               SHP(FESPACE) fespace);
 
-    LifeV::LinearSolver setupLinearSolver(MatrixEp matrix);
+    LifeV::LinearSolver setupLinearSolver(SparseMatrix matrix);
 
     DataContainer                                       M_data;
     EPETRACOMM                                          M_comm;

@@ -18,9 +18,9 @@
 #define LINEAROPERATOREP_HPP
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/array/BlockVector.hpp>
-#include <redma/solver/array/BlockMatrix.hpp>
-#include <redma/solver/array/BlockMaps.hpp>
+#include <redma/array/BlockVector.hpp>
+#include <redma/array/BlockMatrix.hpp>
+#include <redma/array/BlockMaps.hpp>
 
 #include <lifev/core/filter/GetPot.hpp>
 #include <lifev/core/linear_algebra/LinearOperatorAlgebra.hpp>
@@ -33,9 +33,9 @@ namespace RedMA
 
 class LinearOperatorEp : public LifeV::Operators::LinearOperatorAlgebra
 {
-    typedef LifeV::Operators::LinearOperatorAlgebra                  super;
-    typedef BlockVector<BlockVector<VectorEp>>                       BV;
-    typedef BlockMatrix<BlockMatrix<MatrixEp>>                       BM;
+    typedef LifeV::Operators::LinearOperatorAlgebra         super;
+    typedef BlockVector                                     BV;
+    typedef BlockMatrix                                     BM;
 
 public:
     LinearOperatorEp(const BM& matrix);
@@ -63,16 +63,16 @@ public:
 
     virtual const super::map_Type& OperatorRangeMap() const override {}
 
-    inline SHP(BlockMaps<BlockMatrix<MatrixEp>>) getBlockMaps() const {return M_maps;}
+    inline SHP(BlockMaps) getBlockMaps() const {return M_maps;}
 
 private:
     GetPot                                M_datafile;
     EPETRACOMM                            M_comm;
     BM                                    M_matrix;
-    BlockMatrix<MatrixEp>                 M_collapsedMatrix;
+    BM                                    M_collapsedMatrix;
     SHP(LifeV::BlockEpetra_Map)           M_domainMap;
     SHP(LifeV::BlockEpetra_Map)           M_rangeMap;
-    SHP(BlockMaps<BlockMatrix<MatrixEp>>) M_maps;
+    SHP(BlockMaps) M_maps;
 };
 
 }

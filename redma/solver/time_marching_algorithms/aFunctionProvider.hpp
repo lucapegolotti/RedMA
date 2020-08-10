@@ -19,40 +19,35 @@
 
 #include <redma/RedMA.hpp>
 
-#include <redma/solver/array/BlockVector.hpp>
-#include <redma/solver/array/BlockMatrix.hpp>
+#include <redma/array/BlockVector.hpp>
+#include <redma/array/BlockMatrix.hpp>
 
 #include <fstream>
 
 namespace RedMA
 {
 
-template <class InVectorType, class InMatrixType>
 class aFunctionProvider
 {
 public:
 
     aFunctionProvider() {};
 
-    virtual BlockVector<InVectorType> getZeroVector() const = 0;
+    virtual BlockVector getZeroVector() const = 0;
 
-    virtual BlockMatrix<InMatrixType> getMass(const double& time,
-                                      const BlockVector<InVectorType>& sol) = 0;
+    virtual BlockMatrix getMass(const double& time, const BlockVector& sol) = 0;
 
-    virtual BlockMatrix<InMatrixType> getMassJacobian(const double& time,
-                                      const BlockVector<InVectorType>& sol) = 0;
+    virtual BlockMatrix getMassJacobian(const double& time, const BlockVector& sol) = 0;
 
-    virtual BlockVector<InVectorType> getRightHandSide(const double& time,
-                                      const BlockVector<InVectorType>& sol) = 0;
+    virtual BlockVector getRightHandSide(const double& time, const BlockVector& sol) = 0;
 
-    virtual BlockMatrix<InMatrixType> getJacobianRightHandSide(const double& time,
-                                      const BlockVector<InVectorType>& sol) = 0;
+    virtual BlockMatrix getJacobianRightHandSide(const double& time, const BlockVector& sol) = 0;
 
-    virtual void apply0DirichletBCs(BlockVector<InVectorType>& vector) const = 0;
+    virtual void apply0DirichletBCs(BlockVector& vector) const = 0;
 
-    virtual void applyDirichletBCs(const double& time, BlockVector<InVectorType>& vector) const = 0;
+    virtual void applyDirichletBCs(const double& time, BlockVector& vector) const = 0;
 
-    virtual void setExtrapolatedSolution(const BlockVector<InVectorType>& exSol) = 0;
+    virtual void setExtrapolatedSolution(const BlockVector& exSol) = 0;
 };
 
 }

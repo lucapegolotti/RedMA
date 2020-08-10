@@ -19,8 +19,8 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/system_solver/FunctionFunctor.hpp>
-#include <redma/solver/array/BlockVector.hpp>
-#include <redma/solver/array/BlockMatrix.hpp>
+#include <redma/array/BlockVector.hpp>
+#include <redma/array/BlockMatrix.hpp>
 #include <redma/solver/system_solver/LinearSystemSolver.hpp>
 
 #include <sstream>
@@ -29,11 +29,10 @@
 namespace RedMA
 {
 
-template<class InVectorType, class InMatrixType>
 class SystemSolver
 {
-    typedef BlockVector<InVectorType>               BV;
-    typedef BlockMatrix<InMatrixType>               BM;
+    typedef BlockVector               BV;
+    typedef BlockMatrix               BM;
 
 public:
     SystemSolver(const DataContainer& data);
@@ -47,7 +46,7 @@ public:
 
 private:
     DataContainer                                       M_data;
-    LinearSystemSolver<InVectorType, InMatrixType>      M_linearSystemSolver;
+    LinearSystemSolver                                  M_linearSystemSolver;
     std::vector<SolverStatistics>                       M_solverStatistics;
     bool                                                M_isLinearProblem;
 };

@@ -18,10 +18,10 @@
 #define BLOCKMDEIM_HPP
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/problem/DataContainer.hpp>
+#include <redma/problem/DataContainer.hpp>
 #include <redma/reduced_basis/RBBases.hpp>
-#include <redma/solver/array/BlockMatrix.hpp>
-#include <redma/solver/array/BlockVector.hpp>
+#include <redma/array/BlockMatrix.hpp>
+#include <redma/array/BlockVector.hpp>
 
 #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
 #include <rb/reduced_basis/util/EpetraArrayUtils.hpp>
@@ -43,13 +43,13 @@ public:
 
     void setComm(EPETRACOMM comm);
 
-    void addSnapshot(BlockMatrix<MatrixEp> newSnapshot);
+    void addSnapshot(BlockMatrix newSnapshot);
 
     void performMDEIM(std::string outdir);
 
-    void initialize(BlockMatrix<FEMATRIX> reducedMatrix);
+    void initialize(BlockMatrix reducedMatrix);
 
-    void checkOnline(BlockMatrix<FEMATRIX> completeMat, BlockMatrix<FEMATRIX> reducedMat);
+    void checkOnline(BlockMatrix completeMat, BlockMatrix reducedMat);
 
     void checkOnSnapshots();
 
@@ -65,9 +65,9 @@ public:
 
     void resize(unsigned int rows, unsigned int cols);
 
-    BlockMatrix<FEMATRIX> assembleMatrix(BlockMatrix<FEMATRIX> reducedMatrix);
+    BlockMatrix assembleMatrix(BlockMatrix reducedMatrix);
 
-    BlockMatrix<RBMATRIX> assembleProjectedMatrix(BlockMatrix<FEMATRIX> reducedMatrix);
+    BlockMatrix assembleProjectedMatrix(BlockMatrix reducedMatrix);
 
     void prepareOnline();
 

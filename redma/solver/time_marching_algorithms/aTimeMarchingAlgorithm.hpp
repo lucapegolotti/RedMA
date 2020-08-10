@@ -19,20 +19,19 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/time_marching_algorithms/aFunctionProvider.hpp>
-#include <redma/solver/array/BlockVector.hpp>
+#include <redma/array/BlockVector.hpp>
 #include <redma/solver/system_solver/SystemSolver.hpp>
 
-#include <redma/solver/problem/DataContainer.hpp>
+#include <redma/problem/DataContainer.hpp>
 
 #include <fstream>
 
 namespace RedMA
 {
 
-template <class InVectorType, class InMatrixType>
 class aTimeMarchingAlgorithm
 {
-    typedef aFunctionProvider<InVectorType COMMA InMatrixType>  FunProvider;
+    typedef aFunctionProvider         FunProvider;
 public:
 
     aTimeMarchingAlgorithm(const DataContainer& datafile);
@@ -40,16 +39,16 @@ public:
     aTimeMarchingAlgorithm(const DataContainer& datafile,
                            SHP(FunProvider) funProvider);
 
-    virtual void setup(const BlockVector<InVectorType>& zeroVector) = 0;
+    virtual void setup(const BlockVector& zeroVector) = 0;
 
-    virtual BlockVector<InVectorType> advance(const double& time, double& dt,
-                                              int& status) = 0;
+    virtual BlockVector advance(const double& time, double& dt,
+                                int& status) = 0;
 
     // compute derivative of u at tn+1 given its value
-    virtual BlockVector<InVectorType> computeDerivative(const BlockVector<InVectorType>& solnp1,
-                                                        double& dt) = 0;
+    virtual BlockVector computeDerivative(const BlockVector& solnp1,
+                                          double& dt) = 0;
 
-    virtual void shiftSolutions(const BlockVector<InVectorType>& sol) = 0;
+    virtual void shiftSolutions(const BlockVector& sol) = 0;
 
     void dumpSolverStatistics(std::vector<SolverStatistics> statistics,
                               const double& t) const;
@@ -58,13 +57,11 @@ protected:
     void initializeStatisticsFile();
 
     DataContainer                                       M_data;
-    SystemSolver<InVectorType, InMatrixType>            M_systemSolver;
+    SystemSolver                                        M_systemSolver;
     SHP(FunProvider)                                    M_funProvider;
     std::string                                         M_statisticsFile;
 };
 
 }
-
-#include "aTimeMarchingAlgorithm_imp.hpp"
 
 #endif // aTIMEMARCHINGALGORITHM_HPP

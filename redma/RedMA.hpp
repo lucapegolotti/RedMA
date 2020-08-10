@@ -26,10 +26,10 @@
 
 #include <memory>
 
-#include <redma/solver/array/SparseMatrix.hpp>
-#include <redma/solver/array/DistributedVector.hpp>
-#include <redma/solver/array/DenseVector.hpp>
-#include <redma/solver/array/DenseMatrix.hpp>
+#include <redma/array/SparseMatrix.hpp>
+#include <redma/array/DistributedVector.hpp>
+#include <redma/array/DenseVector.hpp>
+#include <redma/array/DenseMatrix.hpp>
 #include <redma/utils/PrintLog.hpp>
 #include <redma/utils/Chrono.hpp>
 

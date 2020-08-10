@@ -1,0 +1,9 @@
+set(HEADERS
+    ${HEADERS}
+    CACHE INTERNAL ""
+)
+
+set(SOURCES
+    ${SOURCES}
+    CACHE INTERNAL ""
+)

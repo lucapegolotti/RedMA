@@ -18,9 +18,9 @@
 #define RBBASES_HPP
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/problem/DataContainer.hpp>
+#include <redma/problem/DataContainer.hpp>
 
-#include <redma/solver/array/BlockMatrix.hpp>
+#include <redma/array/BlockMatrix.hpp>
 
 #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
 
@@ -56,22 +56,22 @@ public:
 
     std::vector<SHP(VECTOREPETRA)> getPrimalSupremizers(const unsigned int& i, const unsigned int& j) {return M_primalSupremizers(i,j);}
 
-    DenseMatrix matrixProject(MatrixEp matrix, unsigned int basisIndexRow,
+    DenseMatrix matrixProject(SparseMatrix matrix, unsigned int basisIndexRow,
                               unsigned int basisIndexCol, unsigned int ID);
 
-    BlockMatrix<DenseMatrix> leftProject(BlockMatrix<MatrixEp> matrix, unsigned int ID);
+    BlockMatrix leftProject(BlockMatrix matrix, unsigned int ID);
 
-    DenseMatrix leftProject(MatrixEp matrix, unsigned int basisIndex, unsigned int ID);
+    DenseMatrix leftProject(SparseMatrix matrix, unsigned int basisIndex, unsigned int ID);
 
-    BlockVector<DenseVector> leftProject(BlockVector<VectorEp> vector, unsigned int ID);
+    BlockVector leftProject(BlockVector vector, unsigned int ID);
 
-    DenseVector leftProject(VectorEp vector, unsigned int basisIndex, unsigned int ID);
+    DenseVector leftProject(DistributedVector vector, unsigned int basisIndex, unsigned int ID);
 
-    BlockVector<DenseVector> projectOnLagrangeSpace(BlockVector<VectorEp> vector);
+    BlockVector projectOnLagrangeSpace(BlockVector vector);
 
-    BlockMatrix<DenseMatrix> rightProject(BlockMatrix<MatrixEp> matrix, unsigned int ID);
+    BlockMatrix rightProject(BlockMatrix matrix, unsigned int ID);
 
-    DenseMatrix rightProject(MatrixEp matrix, unsigned int basisIndex, unsigned int ID);
+    DenseMatrix rightProject(SparseMatrix matrix, unsigned int basisIndex, unsigned int ID);
 
     SHP(VECTOREPETRA) reconstructFEFunction(DenseVector rbSolution, unsigned int index,
                                             unsigned int ID);
@@ -120,7 +120,7 @@ public:
         return false;
     }
 
-    MatrixEp getEnrichedBasisMatrices(const unsigned int& index, const unsigned int& ID,
+    SparseMatrix getEnrichedBasisMatrices(const unsigned int& index, const unsigned int& ID,
                                       bool transpose);
 
 private:
@@ -133,8 +133,8 @@ private:
     DataContainer                                                     M_data;
     EPETRACOMM                                                        M_comm;
     std::vector<std::vector<SHP(VECTOREPETRA)>>                       M_bases;
-    std::vector<MatrixEp>                                             M_enrichedBasesMatrices;
-    std::vector<MatrixEp>                                             M_enrichedBasesMatricesTransposed;
+    std::vector<SparseMatrix>                                             M_enrichedBasesMatrices;
+    std::vector<SparseMatrix>                                             M_enrichedBasesMatricesTransposed;
     // this is a grid because the row indicates the field to be augmented (velocity)
     // and the column indicates the constraining field (pressure)
     GridVectors                                                       M_primalSupremizers;
@@ -152,8 +152,8 @@ private:
     // when we rescale with piola)
     std::map<unsigned int,std::map<unsigned int,
                           std::vector<SHP(VECTOREPETRA)>>>            M_enrichedBasesMap;
-    std::map<unsigned int,std::map<unsigned int,MatrixEp>>            M_enrichedBasesMatricesMap;
-    std::map<unsigned int,std::map<unsigned int,MatrixEp>>            M_enrichedBasesMatricesTransposedMap;
+    std::map<unsigned int,std::map<unsigned int,SparseMatrix>>            M_enrichedBasesMatricesMap;
+    std::map<unsigned int,std::map<unsigned int,SparseMatrix>>            M_enrichedBasesMatricesTransposedMap;
 };
 
 }  // namespace RedMA

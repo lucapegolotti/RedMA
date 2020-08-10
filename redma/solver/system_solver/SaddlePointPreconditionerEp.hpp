@@ -18,7 +18,7 @@
 #define SADDLEPOINTPRECONDITIONEREP_HPP
 
 #include <redma/solver/system_solver/PreconditionerOperatorEp.hpp>
-#include <redma/solver/problem/DataContainer.hpp>
+#include <redma/problem/DataContainer.hpp>
 #include <redma/utils/Exception.hpp>
 #include <redma/utils/PrintLog.hpp>
 
@@ -37,8 +37,8 @@ namespace RedMA
 class SaddlePointPreconditionerEp : public PreconditionerOperatorEp
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
-    typedef BlockVector<BlockVector<VectorEp>>                       BV;
-    typedef BlockMatrix<BlockMatrix<MatrixEp>>                       BM;
+    typedef BlockVector                                              BV;
+    typedef BlockMatrix                                              BM;
     typedef LifeV::Operators::NavierStokesPreconditionerOperator     NSPrec;
     typedef LifeV::Operators::NavierStokesOperator                   NSOp;
     typedef LifeV::Operators::InvertibleOperator                     InvOp;
@@ -63,9 +63,9 @@ public:
 private:
     void computeAm1BT(const BM& A, const BM& BT);
 
-    BlockMatrix<MatrixEp> computeSingleAm1BT(const BlockMatrix<MatrixEp>& A,
-                                             const BlockMatrix<MatrixEp>& BT,
-                                             const unsigned int& index);
+    BlockMatrix computeSingleAm1BT(const BlockMatrix& A,
+                                   const BlockMatrix& BT,
+                                   const unsigned int& index);
 
     void solveEveryPrimalBlock(const VECTOREPETRA& X, VECTOREPETRA &Y) const;
 
@@ -75,13 +75,13 @@ private:
 
     DataContainer                                        M_data;
     BM                                                   M_matrix;
-    BlockMatrix<MatrixEp>                                M_matrixCollapsed;
+    BM                                                   M_matrixCollapsed;
     BM                                                   M_S;
     std::vector<SHP(NSPrec)>                             M_innerPreconditioners;
     std::vector<SHP(InvOp)>                              M_invOperators;
     SHP(Teuchos::ParameterList)                          M_pListLinSolver;
     Teuchos::RCP<Teuchos::ParameterList>                 M_solversOptionsInner;
-    BlockMatrix<BlockMatrix<MatrixEp>>                   M_Am1BT;
+    BM                                                   M_Am1BT;
     std::string                                          M_innerPrecType;
     std::string                                          M_approxSchurType;
     SHP(ApproxInv)                                       M_approximatedSchurInverse;

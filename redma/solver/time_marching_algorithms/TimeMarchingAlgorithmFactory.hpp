@@ -24,25 +24,21 @@
 #include <redma/solver/time_marching_algorithms/GeneralizedAlphaMethod.hpp>
 // #include <redma/solver/time_marching_algorithms/GeneralizedAlphaMethod1stOrderPressure.hpp>
 #include <redma/utils/Exception.hpp>
-#include <redma/solver/problem/DataContainer.hpp>
+#include <redma/problem/DataContainer.hpp>
 
 #include <memory>
 
 namespace RedMA
 {
 
-template <class InVectorType, class InMatrixType>
-SHP(aTimeMarchingAlgorithm<InVectorType COMMA InMatrixType>)
+SHP(aTimeMarchingAlgorithm)
 TimeMarchingAlgorithmFactory(const DataContainer& data);
 
 
-template <class InVectorType, class InMatrixType>
-SHP(aTimeMarchingAlgorithm<InVectorType COMMA InMatrixType>)
+SHP(aTimeMarchingAlgorithm)
 TimeMarchingAlgorithmFactory(const DataContainer& data,
-                             SHP(aFunctionProvider<InVectorType COMMA InMatrixType>) funProvider);
+                             SHP(aFunctionProvider) funProvider);
 
 }
-
-#include "TimeMarchingAlgorithmFactory_imp.hpp"
 
 #endif // TIMEMARCHINGALGORITHMFACTORY_HPP

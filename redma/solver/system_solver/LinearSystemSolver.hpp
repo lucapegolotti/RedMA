@@ -18,13 +18,13 @@
 #define LINEARSYSTEMSOLVER_HPP
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/array/BlockVector.hpp>
-#include <redma/solver/array/BlockMatrix.hpp>
+#include <redma/array/BlockVector.hpp>
+#include <redma/array/BlockMatrix.hpp>
 #include <redma/solver/system_solver/LinearOperatorEp.hpp>
 #include <redma/solver/system_solver/InverseOperatorEp.hpp>
 #include <redma/solver/system_solver/SaddlePointPreconditionerEp.hpp>
 
-#include <redma/solver/problem/DataContainer.hpp>
+#include <redma/problem/DataContainer.hpp>
 
 #include <memory>
 
@@ -38,28 +38,26 @@ struct SolverStatistics
     double M_solveTime;
 };
 
-
-template<class InVectorType, class InMatrixType>
 class LinearSystemSolver
 {
-    typedef BlockVector<InVectorType>               BV;
-    typedef BlockMatrix<InMatrixType>               BM;
+    typedef BlockVector               BV;
+    typedef BlockMatrix               BM;
 
 public:
     LinearSystemSolver(const DataContainer& datafile);
 
     // I don't provide  a generic implementation of this method but only
     // (template) specializations in the cpp
-    void solve(const BM& matrix, const BV& rhs, BV& sol);
+    void solve(const BM& matrix, const BV& rhs, BV& sol) {};
 
-    void buildPreconditioner(const BM& matrix);
+    void buildPreconditioner(const BM& matrix) {};
 
     SolverStatistics getSolverStatistics() const {return M_statistics;}
 
 private:
 
     // only required for dense computation
-    void computeSchurComplementDense(const BM& matrix);
+    void computeSchurComplementDense(const BM& matrix) {};
 
     // these are relative to dense solver
     std::vector<SHP(Epetra_SerialDenseSolver)>      M_solversAs;

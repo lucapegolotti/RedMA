@@ -15,7 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <redma/RedMA.hpp>
-#include <redma/solver/problem/DataContainer.hpp>
+#include <redma/problem/DataContainer.hpp>
 #include <redma/solver/problem/ProblemFEM.hpp>
 
 using namespace RedMA;

@@ -16,7 +16,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/solver/problem/ProblemFEM.hpp>
-#include <redma/solver/problem/DataContainer.hpp>
+#include <redma/problem/DataContainer.hpp>
 
 using namespace RedMA;
 

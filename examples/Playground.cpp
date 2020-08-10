@@ -18,8 +18,8 @@
 #include <redma/RedMA.hpp>
 
 #include <memory>
-#include <redma/solver/array/BlockMatrix.hpp>
-#include <redma/solver/array/MatrixEp.hpp>
+#include <redma/array/BlockMatrix.hpp>
+#include <redma/array/SparseMatrix.hpp>
 
 using namespace RedMA;
 

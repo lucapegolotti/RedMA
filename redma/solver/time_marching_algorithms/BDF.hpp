@@ -20,20 +20,19 @@
 #include <redma/RedMA.hpp>
 #include <redma/solver/time_marching_algorithms/aTimeMarchingAlgorithm.hpp>
 #include <redma/utils/Exception.hpp>
-#include <redma/solver/array/BlockVector.hpp>
+#include <redma/array/BlockVector.hpp>
 #include <redma/solver/system_solver/FunctionFunctor.hpp>
 #include <redma/solver/system_solver/SystemSolver.hpp>
-#include <redma/solver/array/Double.hpp>
+#include <redma/array/Double.hpp>
 
 #include <memory>
 
 namespace RedMA
 {
 
-template <class InVectorType, class InMatrixType>
-class BDF : public aTimeMarchingAlgorithm<InVectorType, InMatrixType>
+class BDF : public aTimeMarchingAlgorithm
 {
-    typedef aFunctionProvider<InVectorType COMMA InMatrixType>  FunProvider;
+    typedef aFunctionProvider      FunProvider;
 
 public:
 
@@ -41,20 +40,20 @@ public:
 
     BDF(const DataContainer& data, SHP(FunProvider) funProvider);
 
-    virtual void setup(const BlockVector<InVectorType>& zeroVector) override;
+    virtual void setup(const BlockVector& zeroVector) override;
 
-    virtual BlockVector<InVectorType> advance(const double& time, double& dt,
+    virtual BlockVector advance(const double& time, double& dt,
                                               int& status) override;
 
-    virtual void shiftSolutions(const BlockVector<InVectorType>& sol) override;
+    virtual void shiftSolutions(const BlockVector& sol) override;
 
-    virtual BlockVector<InVectorType> computeDerivative(const BlockVector<InVectorType>& solnp1,
+    virtual BlockVector computeDerivative(const BlockVector& solnp1,
                                                         double& dt) override;
 
-    BlockVector<InVectorType> computeExtrapolatedSolution();
+    BlockVector computeExtrapolatedSolution();
 
 protected:
-    std::vector<BlockVector<InVectorType>>   M_prevSolutions;
+    std::vector<BlockVector>                 M_prevSolutions;
     std::vector<double>                      M_coefficients;
     unsigned int                             M_order;
     double                                   M_rhsCoeff;
@@ -62,7 +61,5 @@ protected:
 };
 
 }
-
-#include "BDF_imp.hpp"
 
 #endif // BDF_HPP
