@@ -36,6 +36,8 @@ class DenseVector : public aVector
 public:
     DenseVector();
 
+    virtual ~DenseVector() {};
+
     virtual void add(std::shared_ptr<aVector> other) override;
 
     virtual void multiplyByScalar(const double& coeff) override;

@@ -78,6 +78,4 @@ private:
 
 }
 
-#include "LinearSystemSolver_imp.hpp"
-
 #endif // LINEARSYSTEMSOLVER_HPP

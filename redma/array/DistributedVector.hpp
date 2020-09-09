@@ -33,6 +33,8 @@ class DistributedVector : public aVector
 public:
     DistributedVector();
 
+    virtual ~DistributedVector() {}
+
     virtual void add(std::shared_ptr<aVector> other) override;
 
     virtual void multiplyByScalar(const double& coeff) override;

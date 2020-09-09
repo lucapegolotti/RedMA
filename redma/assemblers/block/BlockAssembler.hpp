@@ -35,44 +35,48 @@ class BlockAssembler : public aAssembler
     typedef DefaultAssemblersLibrary  DefaultAssemblers;
 
 public:
-    BlockAssembler(const DataContainer& data, const TreeStructure& tree,
-                   SHP(DefaultAssemblers) defAssemblers = nullptr);
+    BlockAssembler() {}
 
-    virtual void setup() override;
+    BlockAssembler(const DataContainer& data, const TreeStructure& tree,
+                   SHP(DefaultAssemblers) defAssemblers = nullptr) {}
+
+    virtual ~BlockAssembler() {}
+
+    virtual void setup() override {}
 
     virtual void exportSolution(const double& t,
-                                const BlockVector& sol) override;
+                                const BlockVector& sol) override {}
 
     virtual void postProcess(const double& t,
-                             const BlockVector& sol) override;
+                             const BlockVector& sol) override {}
 
     virtual BlockMatrix getMass(const double& time,
-                                const BlockVector& sol) override;
+                                const BlockVector& sol) override {}
 
     virtual BlockMatrix getMassJacobian(const double& time,
-                                        const BlockVector& sol) override;
+                                        const BlockVector& sol) override {}
 
     virtual BlockVector getRightHandSide(const double& time,
-                                         const BlockVector& sol) override;
+                                         const BlockVector& sol) override {}
 
     virtual BlockMatrix getJacobianRightHandSide(const double& time,
-                                                 const BlockVector& sol) override;
+                                                 const BlockVector& sol) override {}
 
-    virtual BlockVector getLifting(const double& time) const override;
+    virtual BlockVector getLifting(const double& time) const override {}
 
-    virtual BlockVector getZeroVector() const override;
+    virtual BlockVector getZeroVector() const override {}
 
-    virtual void apply0DirichletBCsMatrix(BlockMatrix& matrix, double diagCoeff) const override;
+    virtual void apply0DirichletBCsMatrix(BlockMatrix& matrix, double diagCoeff) const override {}
 
-    virtual void apply0DirichletBCs(BlockVector& vector) const override;
+    virtual void apply0DirichletBCs(BlockVector& vector) const override {}
 
-    virtual void setExporter() override;
+    virtual void setExporter() override {}
 
-    virtual void applyDirichletBCs(const double& time, BlockVector& vector) const override;
+    virtual void applyDirichletBCs(const double& time, BlockVector& vector) const override {}
 
-    virtual void checkStabTerm(const BlockVector& sol) const;
+    virtual void checkStabTerm(const BlockVector& sol) const {}
 
-    std::map<unsigned int, std::string> getIDMeshTypeMap() const;
+    std::map<unsigned int, std::string> getIDMeshTypeMap() const {}
 
     inline SHP(aAssembler) block(const unsigned int& index) {return M_primalAssemblers[index];}
 
@@ -80,21 +84,21 @@ public:
 
     std::vector<SHP(InterfaceAssembler)> getDualAssemblers() const {return M_dualAssemblers;}
 
-    BlockVector convertFunctionRBtoFEM(BlockVector rbFunction, EPETRACOMM comm) const;
+    BlockVector convertFunctionRBtoFEM(BlockVector rbFunction, EPETRACOMM comm) const {}
 
-    virtual void setExtrapolatedSolution(const BlockVector& exSol) override;
+    virtual void setExtrapolatedSolution(const BlockVector& exSol) override {}
 
-    virtual BlockVector getNonLinearTerm() override;
+    virtual BlockVector getNonLinearTerm() override {}
 
-    std::map<unsigned int,std::vector<double>> getRandomizibleParametersVectors();
+    std::map<unsigned int,std::vector<double>> getRandomizibleParametersVectors() {}
 
-    virtual void applyPiola(BlockVector solution, bool inverse) override {};
+    virtual void applyPiola(BlockVector solution, bool inverse) override {}
 
-    void applyGlobalPiola(BlockVector solution, bool inverse);
+    void applyGlobalPiola(BlockVector solution, bool inverse) {}
 
-    virtual void initializeFEspaces() override;
+    virtual void initializeFEspaces() override {}
 
-    void setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers) override;
+    void setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers) override {}
 
 protected:
     GetPot                                                        M_datafile;

@@ -37,7 +37,7 @@ public:
     {
     }
 
-    virtual ~aMatrix();
+    virtual ~aMatrix() {};
 
     // for every operation, the priority is to do it in place (on *this) if possible.
     // The copy of *this is left to the user if necessary
@@ -60,6 +60,11 @@ public:
     virtual aMatrix* clone() const = 0;
 
     virtual bool isZero() const = 0;
+
+    virtual std::shared_ptr<aMatrix> block(const unsigned int& i,
+                                           const unsigned int& j) const {throw new Exception("Method block(uint,uint) not overloaded");}
+
+    virtual std::shared_ptr<void> data() const {throw new Exception("Method data() not overloaded");}
 
     inline double normInf() const {return M_normInf;}
 

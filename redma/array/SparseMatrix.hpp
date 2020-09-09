@@ -75,7 +75,7 @@ public:
     //
     // void getColProperty(std::shared_ptr<LifeV::MapEpetra>& outMap);
 
-    std::shared_ptr<MATRIXEPETRA> data() const;
+    std::shared_ptr<void> data() const override;
 
     DenseMatrix toDenseMatrix() const;
 

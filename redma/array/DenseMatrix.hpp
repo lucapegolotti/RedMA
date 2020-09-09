@@ -43,7 +43,7 @@ class DenseMatrix : public aMatrix
 public:
     DenseMatrix();
 
-    virtual ~DenseMatrix();
+    virtual ~DenseMatrix() {};
 
     // DenseMatrix(const std::vector<int>& columnVectors);
 
@@ -63,7 +63,7 @@ public:
 
     virtual bool isZero() const override;
 
-    std::shared_ptr<DENSEMATRIX> data() const;
+    std::shared_ptr<void> data() const override {};
 
     virtual void dump(std::string filename) const override;
 

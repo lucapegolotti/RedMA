@@ -136,7 +136,7 @@ add(std::shared_ptr<aMatrix> other)
     if (!other->isZero())
     {
         SparseMatrix* otherMatrix = dynamic_cast<SparseMatrix*>(other.get());
-        (*M_matrix) += (*otherMatrix->data());
+        (*M_matrix) += *otherMatrix->M_matrix;
     }
 }
 
@@ -174,8 +174,8 @@ multiplyByMatrix(std::shared_ptr<aMatrix> other)
 {
     checkType(other, SPARSE);
 
-    std::shared_ptr<MATRIXEPETRA> otherMatrix =
-        dynamic_cast<SparseMatrix*>(other.get())->data();
+    std::shared_ptr<MATRIXEPETRA> otherMatrix
+    (static_cast<MATRIXEPETRA*>(dynamic_cast<SparseMatrix*>(other.get())->data().get()));
 
     std::shared_ptr<SparseMatrix> retMat(new SparseMatrix());
     if (!isZero() && other->isZero())
@@ -239,7 +239,7 @@ softCopy(std::shared_ptr<aMatrix> other)
     {
         checkType(other, SPARSE);
         auto otherMatrix = dynamic_cast<SparseMatrix*>(other.get());
-        setMatrix(otherMatrix->data());
+        setMatrix(otherMatrix->M_matrix);
     }
 }
 
@@ -252,7 +252,7 @@ hardCopy(std::shared_ptr<aMatrix> other)
         checkType(other, SPARSE);
         auto otherMatrix = dynamic_cast<SparseMatrix*>(other.get());
         std::shared_ptr<MATRIXEPETRA> newMatrix
-            (new MATRIXEPETRA(*otherMatrix->data()));
+            (new MATRIXEPETRA(*otherMatrix->M_matrix));
         setMatrix(newMatrix);
     }
 }

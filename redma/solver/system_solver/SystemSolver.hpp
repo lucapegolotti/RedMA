@@ -53,6 +53,4 @@ private:
 
 }
 
-#include "SystemSolver_imp.hpp"
-
 #endif // SYSTEMSOLVER_HPP

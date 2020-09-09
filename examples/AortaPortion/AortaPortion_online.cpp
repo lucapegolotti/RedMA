@@ -16,7 +16,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
-#include <redma/solver/problem/ProblemRB.hpp>
+#include <redma/problem/ProblemRB.hpp>
 #include <chrono>
 #include <thread>
 #include <time.h>       /* time */

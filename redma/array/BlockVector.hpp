@@ -35,6 +35,8 @@ public:
 
     BlockVector();
 
+    virtual ~BlockVector() {};
+
     BlockVector(const BlockVector& other);
 
     BlockVector(const unsigned int& nRows);

@@ -5,13 +5,13 @@ namespace RedMA
 
 LinearOperatorEp::
 LinearOperatorEp(const BM& matrix) :
-  M_matrix(matrix),
-  M_maps(new BlockMaps<BlockMatrix<MatrixEp>>(matrix))
+  M_matrix(matrix)
+  // M_maps(new BlockMaps<BlockMatrix<MatrixEp>>(matrix))
 {
-    M_rangeMap.reset(new LifeV::BlockEpetra_Map(M_maps->getRangeMaps()));
-    M_domainMap.reset(new LifeV::BlockEpetra_Map(M_maps->getDomainMaps()));
+    // M_rangeMap.reset(new LifeV::BlockEpetra_Map(M_maps->getRangeMaps()));
+    // M_domainMap.reset(new LifeV::BlockEpetra_Map(M_maps->getDomainMaps()));
 
-    M_collapsedMatrix = collapseBlocks(M_matrix, *M_maps);
+    // M_collapsedMatrix = collapseBlocks(M_matrix, *M_maps);
 }
 
 int
@@ -30,8 +30,8 @@ Apply(const super::vector_Type& X, super::vector_Type& Y) const
         for (unsigned int j = 0; j < M_collapsedMatrix.nCols(); j++)
         {
             // EPETRA_CHK_ERR(M_collapsedMatrix.block(i,j).data()->matrixPtr()->SetUseTranspose(true));
-            EPETRA_CHK_ERR(M_collapsedMatrix.block(i,j).data()->matrixPtr()->Apply(Xview->block(j), tmpY.block(i)));
-            EPETRA_CHK_ERR(Yview->block(i).Update(1.0, tmpY.block(i), 1.0));
+            // EPETRA_CHK_ERR(M_collapsedMatrix.block(i,j).data()->matrixPtr()->Apply(Xview->block(j), tmpY.block(i)));
+            // EPETRA_CHK_ERR(Yview->block(i).Update(1.0, tmpY.block(i), 1.0));
             // EPETRA_CHK_ERR(M_collapsedMatrix.block(i,j).data()->matrixPtr()->SetUseTranspose(false));
         }
     }

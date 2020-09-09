@@ -63,17 +63,15 @@ private:
     std::vector<unsigned int>    M_nInnerCols;
 };
 
-// std::shared_ptr<aMatrix> collapseBlocks(const BlockMatrix& matrix,
-//                                         const BlockMaps& maps);
-//
-// SHP(VECTOREPETRA) getEpetraVector(const BlockVector<BlockVector<VectorEp>>& vector,
-//                                   const BlockMaps<BlockMatrix<MatrixEp>>& maps);
-//
-// BlockVector<BlockVector<VectorEp>> getBlockVector(const SHP(VECTOREPETRA)& vector,
-//                                                   const BlockMaps<BlockMatrix<MatrixEp>>& maps);
+SHP(aMatrix) collapseBlocks(const SHP(BlockMatrix)& matrix,
+                            const BlockMaps& maps);
+
+SHP(VECTOREPETRA) getEpetraVector(const BlockVector& vector,
+                                  const BlockMaps& maps);
+
+BlockVector getBlockVector(const SHP(VECTOREPETRA)& vector,
+                           const BlockMaps& maps);
 
 }
-
-#include "BlockMaps_imp.hpp"
 
 #endif // BLOCKMAPS_HPP

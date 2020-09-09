@@ -37,6 +37,8 @@ class aAssembler : public aFunctionProvider
 {
     typedef DefaultAssemblersLibrary DefaultAssemblers;
 public:
+    aAssembler() {}
+
     aAssembler(const DataContainer& datafile);
 
     aAssembler(const DataContainer& datafile, SHP(TreeNode) node);

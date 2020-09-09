@@ -5,7 +5,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/aVector.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockMatrix.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockVector.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/BlockMaps_imp.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockMaps.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SparseMatrix.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DistributedVector.hpp

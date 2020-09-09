@@ -20,7 +20,7 @@ void
 InverseOperatorEp::
 setOperator(SHP(LinearOperatorEp) oper)
 {
-    M_maps = oper->getBlockMaps();
+    // M_maps = oper->getBlockMaps();
     M_invOper->setOperator(oper);
 }
 
@@ -47,8 +47,8 @@ setSolverOptions()
 
 int
 InverseOperatorEp::
-invert(const BlockVector<BlockVector<VectorEp>>& rhs,
-       BlockVector<BlockVector<VectorEp>>& sol)
+invert(const BlockVector& rhs,
+       BlockVector& sol)
 {
     SHP(VECTOREPETRA) rhsEpetra = getEpetraVector(rhs, *M_maps);
     SHP(VECTOREPETRA) solEpetra = getEpetraVector(sol, *M_maps);

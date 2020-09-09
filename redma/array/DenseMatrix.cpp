@@ -24,7 +24,7 @@ add(std::shared_ptr<aMatrix> other)
     if (!other->isZero())
     {
         DenseMatrix* otherMatrix = dynamic_cast<DenseMatrix*>(other.get());
-        (*M_matrix) += (*otherMatrix->data());
+        (*M_matrix) += *static_cast<DENSEMATRIX*>(otherMatrix->data().get());
         M_normInf = M_matrix->NormInf();
     }
 }
@@ -88,8 +88,8 @@ multiplyByMatrix(std::shared_ptr<aMatrix> other)
 {
     checkType(other, DENSE);
 
-    std::shared_ptr<DENSEMATRIX> otherMatrix =
-        dynamic_cast<DenseMatrix*>(other.get())->data();
+    std::shared_ptr<DENSEMATRIX> otherMatrix
+    (static_cast<DENSEMATRIX*>(dynamic_cast<DenseMatrix*>(other.get())->data().get()));
 
     std::shared_ptr<DenseMatrix> retMat(new DenseMatrix());
 
@@ -168,7 +168,9 @@ softCopy(std::shared_ptr<aMatrix> other)
     {
         checkType(other, DENSE);
         auto otherMatrix = dynamic_cast<DenseMatrix*>(other.get());
-        setMatrix(otherMatrix->data());
+        std::shared_ptr<DENSEMATRIX> otherMatrixPtr
+            (static_cast<DENSEMATRIX*>(otherMatrix->data().get()));
+        setMatrix(otherMatrixPtr);
     }
 }
 
@@ -180,8 +182,10 @@ hardCopy(std::shared_ptr<aMatrix> other)
     {
         checkType(other, DENSE);
         auto otherMatrix = dynamic_cast<DenseMatrix*>(other.get());
+        std::shared_ptr<DENSEMATRIX> otherMatrixPtr
+            (static_cast<DENSEMATRIX*>(otherMatrix->data().get()));
         std::shared_ptr<DENSEMATRIX> newMatrix
-            (new DENSEMATRIX(*otherMatrix->data()));
+            (new DENSEMATRIX(*otherMatrixPtr));
         setMatrix(newMatrix);
     }
 }

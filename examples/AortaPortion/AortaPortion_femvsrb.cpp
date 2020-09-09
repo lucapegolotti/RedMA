@@ -16,7 +16,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
-#include <redma/solver/problem/ComparisonFEMvsRB.hpp>
+#include <redma/problem/ComparisonFEMvsRB.hpp>
 
 using namespace RedMA;
 

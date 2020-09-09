@@ -32,7 +32,5 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    BlockMatrix<MatrixEp> mat(1,2);
-
     return 0;
 }

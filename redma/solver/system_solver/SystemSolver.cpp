@@ -1,4 +1,5 @@
 #include "SystemSolver.hpp"
+
 namespace RedMA
 {
 

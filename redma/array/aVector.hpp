@@ -38,7 +38,7 @@ public:
     {
     }
 
-    virtual ~aVector();
+    virtual ~aVector() {};
 
     virtual void add(std::shared_ptr<aVector> other) = 0;
 

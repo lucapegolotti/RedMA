@@ -40,6 +40,8 @@ public:
 
     BlockMatrix();
 
+    virtual ~BlockMatrix() {};
+
     BlockMatrix(const BlockMatrix& other);
 
     BlockMatrix(const unsigned int& nRows, const unsigned int& nCols);
@@ -66,7 +68,7 @@ public:
 
     void resize(const unsigned int& nRows, const unsigned int& nCols);
 
-    std::shared_ptr<aMatrix> block(const unsigned int& iblock, const unsigned int& jblock) const;
+    std::shared_ptr<aMatrix> block(const unsigned int& iblock, const unsigned int& jblock) const override;
 
     std::shared_ptr<BlockMatrix> getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
                                  const unsigned int& jbegin, const unsigned int& jend) const;

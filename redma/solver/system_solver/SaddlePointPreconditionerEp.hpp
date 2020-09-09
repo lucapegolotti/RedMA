@@ -37,8 +37,8 @@ namespace RedMA
 class SaddlePointPreconditionerEp : public PreconditionerOperatorEp
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
-    typedef BlockVector                                              BV;
-    typedef BlockMatrix                                              BM;
+    typedef SHP(BlockVector)                                         BV;
+    typedef SHP(BlockMatrix)                                         BM;
     typedef LifeV::Operators::NavierStokesPreconditionerOperator     NSPrec;
     typedef LifeV::Operators::NavierStokesOperator                   NSOp;
     typedef LifeV::Operators::InvertibleOperator                     InvOp;
@@ -63,9 +63,9 @@ public:
 private:
     void computeAm1BT(const BM& A, const BM& BT);
 
-    BlockMatrix computeSingleAm1BT(const BlockMatrix& A,
-                                   const BlockMatrix& BT,
-                                   const unsigned int& index);
+    SHP(aMatrix) computeSingleAm1BT(const BM& A,
+                                    const BM& BT,
+                                    const unsigned int& index);
 
     void solveEveryPrimalBlock(const VECTOREPETRA& X, VECTOREPETRA &Y) const;
 
