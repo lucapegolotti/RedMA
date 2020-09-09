@@ -26,7 +26,7 @@ add(std::shared_ptr<aVector> other)
     if (!other->isZero())
     {
         DistributedVector* otherVector = dynamic_cast<DistributedVector*>(other.get());
-        (*M_vector) += (*otherVector->data());
+        (*M_vector) += (*static_cast<VECTOREPETRA*>(otherVector->data().get()));
     }
 }
 
@@ -52,8 +52,8 @@ softCopy(std::shared_ptr<aVector> other)
     if (other)
     {
         checkType(other, DISTRIBUTED);
-        auto otherMatrix = dynamic_cast<DistributedVector*>(other.get());
-        setVector(otherMatrix->data());
+        auto otherVector = dynamic_cast<DistributedVector*>(other.get());
+        setVector(otherVector->M_vector);
     }
 }
 
@@ -66,7 +66,7 @@ hardCopy(std::shared_ptr<aVector> other)
         checkType(other, DISTRIBUTED);
         auto otherVector = dynamic_cast<DistributedVector*>(other.get());
         std::shared_ptr<VECTOREPETRA> newVector
-            (new VECTOREPETRA(*otherVector->data()));
+            (new VECTOREPETRA(*otherVector->M_vector));
         setVector(newVector);
     }
 }
@@ -98,7 +98,7 @@ norm2() const
     return mynorm;
 }
 
-std::shared_ptr<VECTOREPETRA>
+std::shared_ptr<void>
 DistributedVector::
 data() const
 {
@@ -205,7 +205,10 @@ convertDenseVector(DenseVector denseVector, std::shared_ptr<Epetra_Comm> comm)
     retVec.data().reset(new VECTOREPETRA(*map));
 
     for (unsigned int i = 0; i < length; i++)
-        retVec.data()->operator[](i) = (*denseVector.data())(i);
+    {
+        static_cast<VECTOREPETRA*>(retVec.data().get())->operator[](i) =
+        static_cast<VECTOREPETRA*>(denseVector.data().get())->operator()(i);
+    }
 
     return retVec;
 }

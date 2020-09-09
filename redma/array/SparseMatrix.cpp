@@ -28,7 +28,7 @@ SparseMatrix(const std::vector<DistributedVector>& columnVectors) :
     const double dropTolerance(2.0 * std::numeric_limits<double>::min());
 
     unsigned int N = columnVectors.size();
-    std::shared_ptr<LifeV::MapEpetra> rangeMap = columnVectors[0].data()->mapPtr();
+    std::shared_ptr<LifeV::MapEpetra> rangeMap = static_cast<VECTOREPETRA*>(columnVectors[0].data().get())->mapPtr();
     std::shared_ptr<Epetra_Comm> comm = rangeMap->commPtr();
 
     unsigned int myel = N / comm->NumProc();
@@ -45,12 +45,13 @@ SparseMatrix(const std::vector<DistributedVector>& columnVectors) :
     std::shared_ptr<MATRIXEPETRA> matrix;
     matrix.reset(new MATRIXEPETRA(*rangeMap, N, false));
 
-    Epetra_Map epetraMap = columnVectors[0].data()->epetraMap();
+    Epetra_Map epetraMap = static_cast<VECTOREPETRA*>(columnVectors[0].data().get())->epetraMap();
     unsigned int numElements = epetraMap.NumMyElements();
 
     for (unsigned int i = 0; i < N; i++)
     {
-        VECTOREPETRA columnVectorUnique(*columnVectors[i].data(), LifeV::Unique);
+        std::shared_ptr<VECTOREPETRA> clmPtr(static_cast<VECTOREPETRA*>(columnVectors[i].data().get()));
+        VECTOREPETRA columnVectorUnique(*clmPtr, LifeV::Unique);
         for (unsigned int dof = 0; dof < numElements; dof++)
         {
             unsigned int gdof = epetraMap.GID(dof);
@@ -196,8 +197,8 @@ multiplyByVector(std::shared_ptr<aVector> vector)
     checkType(vector, DISTRIBUTED);
 
     std::shared_ptr<DistributedVector> vec(new DistributedVector());
-    std::shared_ptr<VECTOREPETRA> otherVector = dynamic_cast<DistributedVector*>
-        (vector.get())->data();
+    std::shared_ptr<VECTOREPETRA> otherVector(
+    static_cast<VECTOREPETRA*>(dynamic_cast<DistributedVector*>(vector.get())->data().get()));
     if (isZero() && !vector->isZero())
     {
         std::shared_ptr<VECTOREPETRA> res;
@@ -257,20 +258,6 @@ hardCopy(std::shared_ptr<aMatrix> other)
     }
 }
 
-// void
-// SparseMatrix::
-// getRowProperty(std::shared_ptr<LifeV::MapEpetra>& outMap)
-// {
-//     outMap.reset(new LifeV::MapEpetra(M_matrix->domainMap()));
-// }
-//
-// void
-// SparseMatrix::
-// getColProperty(std::shared_ptr<LifeV::MapEpetra>& outMap)
-// {
-//     outMap.reset(new LifeV::MapEpetra(M_matrix->rangeMap()));
-// }
-
 void
 SparseMatrix::
 dump(std::string filename) const
@@ -320,6 +307,13 @@ SparseMatrix::
 clone() const
 {
     return new SparseMatrix(*this);
+}
+
+std::shared_ptr<void>
+SparseMatrix::
+data() const
+{
+    return M_matrix;
 }
 
 }

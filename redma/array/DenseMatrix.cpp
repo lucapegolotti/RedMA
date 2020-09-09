@@ -108,8 +108,8 @@ multiplyByVector(std::shared_ptr<aVector> vector)
 {
     checkType(vector, DENSE);
 
-    std::shared_ptr<DENSEVECTOR> otherVector =
-        dynamic_cast<DenseVector*>(vector.get())->data();
+    std::shared_ptr<DENSEVECTOR> otherVector(
+    static_cast<DENSEVECTOR*>(dynamic_cast<DenseVector*>(vector.get())->data().get()));
 
     std::shared_ptr<DenseVector> retVec;
     if (!isZero() && !vector->isZero())
@@ -195,6 +195,13 @@ DenseMatrix::
 clone() const
 {
     return new DenseMatrix(*this);
+}
+
+std::shared_ptr<void>
+DenseMatrix::
+data() const
+{
+    return M_matrix;
 }
 
 }

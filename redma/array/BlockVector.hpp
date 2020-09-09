@@ -73,7 +73,7 @@ public:
     //
     // BlockVector operator-(const BlockVector& other) const;
 
-    std::shared_ptr<aVector> block(const unsigned int& iblock) const;
+    std::shared_ptr<aVector> block(const unsigned int& iblock) const override;
 
     std::shared_ptr<BlockVector> getSubvector(const unsigned int& ibegin, const unsigned int& iend) const;
 

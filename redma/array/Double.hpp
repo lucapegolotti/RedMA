@@ -22,7 +22,6 @@
 namespace RedMA
 {
 
-// this clas is only to be used as template argument of block structures
 class Double
 {
 public:

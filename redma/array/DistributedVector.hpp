@@ -53,7 +53,7 @@ public:
 
     double norm2() const override;
 
-    std::shared_ptr<VECTOREPETRA> data() const;
+    std::shared_ptr<void> data() const override;
 
     double maxMagnitude3D() const;
 

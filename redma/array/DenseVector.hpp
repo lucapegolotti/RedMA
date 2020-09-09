@@ -56,7 +56,7 @@ public:
 
     std::string getString(const char& delimiter) const override;
 
-    std::shared_ptr<DENSEVECTOR> data() const;
+    std::shared_ptr<void> data() const override;
 
     void setVector(std::shared_ptr<DENSEVECTOR> vector);
 

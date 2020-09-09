@@ -26,7 +26,7 @@ add(std::shared_ptr<aVector> other)
     if (!other->isZero())
     {
         DenseVector* otherVector = dynamic_cast<DenseVector*>(other.get());
-        (*M_vector) += (*otherVector->data());
+        (*M_vector) += (*static_cast<DENSEVECTOR*>(otherVector->data().get()));
     }
 }
 
@@ -46,7 +46,7 @@ softCopy(std::shared_ptr<aVector> other)
     {
         checkType(other, DENSE);
         auto otherMatrix = dynamic_cast<DenseVector*>(other.get());
-        setVector(otherMatrix->data());
+        setVector(otherMatrix->M_vector);
     }
 }
 
@@ -59,7 +59,7 @@ hardCopy(std::shared_ptr<aVector> other)
         checkType(other, DENSE);
         auto otherVector = dynamic_cast<DenseVector*>(other.get());
         std::shared_ptr<DENSEVECTOR> newVector
-            (new DENSEVECTOR(*otherVector->data()));
+            (new DENSEVECTOR(*otherVector->M_vector));
         setVector(newVector);
     }
 }
@@ -91,7 +91,7 @@ norm2() const
     return mynorm;
 }
 
-std::shared_ptr<DENSEVECTOR>
+std::shared_ptr<void>
 DenseVector::
 data() const
 {

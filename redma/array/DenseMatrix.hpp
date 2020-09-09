@@ -63,7 +63,7 @@ public:
 
     virtual bool isZero() const override;
 
-    std::shared_ptr<void> data() const override {};
+    std::shared_ptr<void> data() const override;
 
     virtual void dump(std::string filename) const override;
 
