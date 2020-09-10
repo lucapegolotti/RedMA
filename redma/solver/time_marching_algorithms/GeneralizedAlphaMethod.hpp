@@ -43,24 +43,24 @@ public:
 
     GeneralizedAlphaMethod(const DataContainer& data, SHP(FunProvider) funProvider);
 
-    virtual void setup(const BlockVector& zeroVector) override;
+    virtual void setup(const SHP(BlockVector)& zeroVector) override;
 
-    virtual BlockVector advance(const double& time, double& dt, int& status) override;
+    virtual SHP(BlockVector) advance(const double& time, double& dt, int& status) override;
 
-    virtual BlockVector computeDerivative(const BlockVector& solnp1, double& dt) override;
+    virtual SHP(BlockVector) computeDerivative(const SHP(BlockVector)& solnp1, double& dt) override;
 
-    virtual void shiftSolutions(const BlockVector& sol) override;
+    virtual void shiftSolutions(const SHP(BlockVector)& sol) override;
 
 protected:
-    BlockVector computesolnp1(BlockVector dersol, const double& dt);
+    SHP(BlockVector) computesolnp1(SHP(BlockVector) dersol, const double& dt);
 
-    BlockVector computesolnpalphaf(BlockVector solnp1);
+    SHP(BlockVector) computesolnpalphaf(SHP(BlockVector) solnp1);
 
-    BlockVector computedersolnpalpham(BlockVector dersol);
+    SHP(BlockVector) computedersolnpalpham(SHP(BlockVector) dersol);
 
 
-    BlockVector                            M_prevSolution;
-    BlockVector                            M_prevDerivative;
+    SHP(BlockVector)                            M_prevSolution;
+    SHP(BlockVector)                            M_prevDerivative;
     unsigned int                           M_order;
     double                                 M_alpham;
     double                                 M_alphaf;

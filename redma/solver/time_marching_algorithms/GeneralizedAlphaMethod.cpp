@@ -21,7 +21,7 @@ GeneralizedAlphaMethod(const DataContainer& data, SHP(FunProvider) funProvider) 
 
 void
 GeneralizedAlphaMethod::
-setup(const BlockVector& zeroVector)
+setup(const SHP(BlockVector)& zeroVector)
 {
     // M_prevSolution.hardCopy(zeroVector);
     // M_prevDerivative.hardCopy(zeroVector);
@@ -33,7 +33,7 @@ setup(const BlockVector& zeroVector)
     // M_gamma = 0.5 + M_alpham - M_alphaf;
 }
 
-BlockVector
+SHP(BlockVector)
 GeneralizedAlphaMethod::
 advance(const double& time, double& dt, int& status)
 {
@@ -100,9 +100,9 @@ advance(const double& time, double& dt, int& status)
     // return sol;
 }
 
-BlockVector
+SHP(BlockVector)
 GeneralizedAlphaMethod::
-computesolnp1(BlockVector dersol, const double& dt)
+computesolnp1(SHP(BlockVector) dersol, const double& dt)
 {
     // BlockVector solnp1;
     // solnp1.hardCopy(M_prevSolution);
@@ -112,9 +112,9 @@ computesolnp1(BlockVector dersol, const double& dt)
     // return solnp1;
 }
 
-BlockVector
+SHP(BlockVector)
 GeneralizedAlphaMethod::
-computesolnpalphaf(BlockVector solnp1)
+computesolnpalphaf(SHP(BlockVector) solnp1)
 {
     // BlockVector solnpalphaf;
     // solnpalphaf.hardCopy(M_prevSolution);
@@ -123,9 +123,9 @@ computesolnpalphaf(BlockVector solnp1)
     // return solnpalphaf;
 }
 
-BlockVector
+SHP(BlockVector)
 GeneralizedAlphaMethod::
-computedersolnpalpham(BlockVector dersol)
+computedersolnpalpham(SHP(BlockVector) dersol)
 {
     // BlockVector dersolnpalpham;
     // dersolnpalpham.hardCopy(M_prevDerivative);
@@ -134,9 +134,9 @@ computedersolnpalpham(BlockVector dersol)
     // return dersolnpalpham;
 }
 
-BlockVector
+SHP(BlockVector)
 GeneralizedAlphaMethod::
-computeDerivative(const BlockVector& solnp1, double& dt)
+computeDerivative(const SHP(BlockVector)& solnp1, double& dt)
 {
     // BlockVector dersolnpalpham;
     // dersolnpalpham.hardCopy(M_prevDerivative);
@@ -146,7 +146,7 @@ computeDerivative(const BlockVector& solnp1, double& dt)
 
 void
 GeneralizedAlphaMethod::
-shiftSolutions(const BlockVector& sol)
+shiftSolutions(const SHP(BlockVector)& sol)
 {
     // double dt = this->M_data("time_discretization/dt", 0.01);
     // M_prevDerivative = computeDerivative(sol, dt);

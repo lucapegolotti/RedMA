@@ -1,5 +1,6 @@
 set(HEADERS
     ${HEADERS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/StokesAssemblerFE.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/HFStabilization.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesStabilization.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.hpp
@@ -9,6 +10,7 @@ set(HEADERS
 
 set(SOURCES
     ${SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/StokesAssemblerFE.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/HFStabilization.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesStabilization.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.cpp

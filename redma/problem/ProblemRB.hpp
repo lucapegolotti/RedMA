@@ -34,10 +34,10 @@ namespace RedMA
 
 class ProblemRB : public aProblem
 {
-    typedef BlockVector                   BV;
-    typedef BlockVector                   BBV;
-    typedef BlockMatrix                   BM;
-    typedef BlockMatrix                   BBM;
+    typedef SHP(BlockVector)                   BV;
+    typedef SHP(BlockVector)                   BBV;
+    typedef SHP(BlockMatrix)                   BM;
+    typedef SHP(BlockMatrix)                   BBM;
 public:
     ProblemRB(const DataContainer& data, EPETRACOMM comm, bool doSetup = true);
 

@@ -5,7 +5,7 @@ namespace RedMA
 
 StokesAssembler::
 StokesAssembler(const DataContainer& data, SHP(TreeNode) treeNode) :
-  M_data(data),
+  M_dataContainer(data),
   M_treeNode(treeNode)
 {
     M_density = data("fluid/density", 1.0);
@@ -14,7 +14,7 @@ StokesAssembler(const DataContainer& data, SHP(TreeNode) treeNode) :
 }
 
 
-BlockVector
+SHP(BlockVector)
 StokesAssembler::
 buildZeroVector() const
 {
@@ -27,14 +27,14 @@ buildZeroVector() const
 
     pComp->zero();
 
-    BlockVector retVec;
-    retVec.resize(2);
-    retVec.block(0)->setData(uComp);
-    retVec.block(1)->setData(pComp);
+    SHP(BlockVector) retVec;
+    retVec->resize(2);
+    retVec->block(0)->setData(uComp);
+    retVec->block(1)->setData(pComp);
     return retVec;
 }
 
-BlockVector
+SHP(BlockVector)
 StokesAssembler::
 getForcingTerm(const double& time) const
 {
@@ -44,8 +44,8 @@ getForcingTerm(const double& time) const
 
 void
 StokesAssembler::
-addNeumannBCs(BlockVector& input, const double& time,
-              const BlockVector& sol)
+addNeumannBCs(SHP(BlockVector)& input, const double& time,
+              const SHP(BlockVector)& sol)
 {
     // // if (this->M_treeNode->isOutletNode())
     //     // //     this->M_bcManager->applyNeumannBc(time, input, M_velocityFESpace, 0, flowRates);
@@ -68,7 +68,7 @@ addNeumannBCs(BlockVector& input, const double& time,
     //     // }
 }
 
-BlockMatrix
+SHP(BlockMatrix)
 StokesAssembler::
 assembleReducedStiffness(SHP(BCManager) bcManager,
                          BlockMDEIMStructure* structure)
@@ -76,10 +76,10 @@ assembleReducedStiffness(SHP(BCManager) bcManager,
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    BlockMatrix stiffness;
+    SHP(BlockMatrix) stiffness(new BlockMatrix());
 
-    stiffness.resize(2, 2);
-    bool useFullStrain = M_data("fluid/use_strain", true);
+    stiffness->resize(2, 2);
+    bool useFullStrain = M_dataContainer("fluid/use_strain", true);
 
     SHP(MATRIXEPETRA) A(new MATRIXEPETRA(M_velocityFESpace->map()));
 
@@ -136,14 +136,14 @@ assembleReducedStiffness(SHP(BCManager) bcManager,
     }
     A->globalAssemble();
 
-    stiffness.block(0,0)->setData(A);
+    stiffness->block(0,0)->setData(A);
 
-    bcManager->apply0DirichletMatrix(stiffness, M_velocityFESpace, 0, 0.0);
+    bcManager->apply0DirichletMatrix(*stiffness, M_velocityFESpace, 0, 0.0);
 
     return stiffness;
 }
 
-BlockMatrix
+SHP(BlockMatrix)
 StokesAssembler::
 assembleReducedMass(SHP(BCManager) bcManager,
                     BlockMDEIMStructure* structure)
@@ -151,9 +151,9 @@ assembleReducedMass(SHP(BCManager) bcManager,
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    BlockMatrix mass;
+    SHP(BlockMatrix) mass(new BlockMatrix());
 
-    mass.resize(2, 2);
+    mass->resize(2, 2);
 
     SHP(MATRIXEPETRA) M(new MATRIXEPETRA(M_velocityFESpace->map()));
 
@@ -179,14 +179,14 @@ assembleReducedMass(SHP(BCManager) bcManager,
               ) >> M;
     }
     M->globalAssemble();
-    mass.block(0,0)->setData(M);
+    mass->block(0,0)->setData(M);
 
-    bcManager->apply0DirichletMatrix(mass, M_velocityFESpace, 0, 1.0);
+    bcManager->apply0DirichletMatrix(*mass, M_velocityFESpace, 0, 1.0);
 
     return mass;
 }
 
-BlockMatrix
+SHP(BlockMatrix)
 StokesAssembler::
 assembleReducedDivergence(SHP(BCManager) bcManager,
                           BlockMDEIMStructure* structure)
@@ -194,9 +194,9 @@ assembleReducedDivergence(SHP(BCManager) bcManager,
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    BlockMatrix divergence;
+    SHP(BlockMatrix) divergence(new BlockMatrix());
 
-    divergence.resize(2, 2);
+    divergence->resize(2, 2);
 
     SHP(MATRIXEPETRA) BT(new MATRIXEPETRA(this->M_velocityFESpace->map()));
 
@@ -249,10 +249,10 @@ assembleReducedDivergence(SHP(BCManager) bcManager,
     B->globalAssemble(M_velocityFESpace->mapPtr(),
                       M_pressureFESpace->mapPtr());
 
-    divergence.block(0,1)->setData(BT);
-    divergence.block(1,0)->setData(B);
+    divergence->block(0,1)->setData(BT);
+    divergence->block(1,0)->setData(B);
 
-    bcManager->apply0DirichletMatrix(divergence, M_velocityFESpace, 0, 0.0);
+    bcManager->apply0DirichletMatrix(*divergence, M_velocityFESpace, 0, 0.0);
 
     return divergence;
 }
@@ -287,8 +287,8 @@ assembleFlowRateJacobians(SHP(BCManager) bcManager)
     if (M_treeNode->isInletNode())
     {
         auto face = M_treeNode->M_block->getInlet();
-        M_flowRateJacobians[face.M_flag].resize(2,2);
-        M_flowRateJacobians[face.M_flag].block(0,0)->setData(assembleFlowRateJacobian(face));
+        M_flowRateJacobians[face.M_flag]->resize(2,2);
+        M_flowRateJacobians[face.M_flag]->block(0,0)->setData(assembleFlowRateJacobian(face));
 
         apply0DirichletBCsMatrix(bcManager,M_flowRateJacobians[face.M_flag], 0.0);
     }
@@ -299,8 +299,8 @@ assembleFlowRateJacobians(SHP(BCManager) bcManager)
 
         for (auto face : faces)
         {
-            M_flowRateJacobians[face.M_flag].resize(2,2);
-            M_flowRateJacobians[face.M_flag].block(0,0)->setData(assembleFlowRateJacobian(face));
+            M_flowRateJacobians[face.M_flag]->resize(2,2);
+            M_flowRateJacobians[face.M_flag]->block(0,0)->setData(assembleFlowRateJacobian(face));
 
             apply0DirichletBCsMatrix(bcManager,M_flowRateJacobians[face.M_flag], 0.0);
         }
@@ -310,15 +310,15 @@ assembleFlowRateJacobians(SHP(BCManager) bcManager)
 void
 StokesAssembler::
 apply0DirichletBCsMatrix(SHP(BCManager) bcManager,
-                         BlockMatrix& matrix, double diagCoeff)
+                         SHP(BlockMatrix)& matrix, double diagCoeff)
 {
-    bcManager->apply0DirichletMatrix(matrix, M_velocityFESpace,
+    bcManager->apply0DirichletMatrix(*matrix, M_velocityFESpace,
                                      0, diagCoeff);
 }
 
 std::map<unsigned int, double>
 StokesAssembler::
-computeFlowRates(const BlockVector& sol, bool verbose)
+computeFlowRates(SHP(BlockVector) sol, bool verbose)
 {
     std::string msg;
     std::map<unsigned int, double> flowRates;
@@ -326,7 +326,7 @@ computeFlowRates(const BlockVector& sol, bool verbose)
     {
         auto face = M_treeNode->M_block->getInlet();
 
-        flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(sol.block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
+        flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(sol->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
         std::string msg = "[";
         msg += this->M_name;
         msg += "]  inflow rate = ";
@@ -341,7 +341,7 @@ computeFlowRates(const BlockVector& sol, bool verbose)
 
         for (auto face : faces)
         {
-            flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(sol.block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
+            flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(sol->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
             std::string msg = "[";
             msg += this->M_name;
             msg += "]  outflow rate = ";
@@ -382,8 +382,8 @@ assembleFlowRateVector(const GeometricFace& face)
 
 void
 StokesAssembler::
-addBackFlowStabilization(BlockVector input,
-                         const BlockVector& sol,
+addBackFlowStabilization(SHP(BlockVector)& input,
+                         SHP(BlockVector) sol,
                          const unsigned int& faceFlag)
 {
     // using namespace LifeV;
@@ -423,19 +423,19 @@ addBackFlowStabilization(BlockVector input,
 
 void
 StokesAssembler::
-exportNorms(double t)
+exportNorms(double t, SHP(VECTOREPETRA) velocity, SHP(VECTOREPETRA) pressure)
 {
-    bool exportNorms = M_data("exporter/exportnorms", true);
+    bool exportNorms = M_dataContainer("exporter/exportnorms", true);
 
     if (exportNorms)
     {
-        std::string outputName = M_data("exporter/outdir", "solutions/") + "block";
+        std::string outputName = M_dataContainer("exporter/outdir", "solutions/") + "block";
         outputName += std::to_string(this->M_treeNode->M_ID);
         outputName += "_norm.txt";
         std::ofstream filename(outputName, std::ios_base::app);
         filename << t << ",";
-        filename << M_velocityFESpace->h1Norm(*M_velocityExporter) << ",";
-        filename << M_pressureFESpace->l2Norm(*M_pressureExporter) << "\n";
+        filename << M_velocityFESpace->h1Norm(*velocity) << ",";
+        filename << M_pressureFESpace->l2Norm(*pressure) << "\n";
     }
 }
 
@@ -533,6 +533,33 @@ computeWallShearStress(SHP(VECTOREPETRA) velocity, SHP(VECTOREPETRA) WSS,
     linearSolver.solve(WSS);
 }
 
+void
+StokesAssembler::
+initializeVelocityFESpace(EPETRACOMM comm)
+{
+    // initialize fespace velocity
+    std::string orderVelocity = M_dataContainer("fluid/velocity_order", "P2");
+    M_velocityFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
+                                       orderVelocity, 3, comm));
 
+    M_velocityFESpaceETA.reset(new ETFESPACE3(M_velocityFESpace->mesh(),
+                                           &(M_velocityFESpace->refFE()),
+                                             comm));
+}
+
+
+void
+StokesAssembler::
+initializePressureFESpace(EPETRACOMM comm)
+{
+    // initialize fespace pressure
+    std::string orderPressure = M_dataContainer("fluid/pressure_order", "P1");
+
+    M_pressureFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
+                                       orderPressure, 1, comm));
+    M_pressureFESpaceETA.reset(new ETFESPACE1(M_pressureFESpace->mesh(),
+                                           &(M_pressureFESpace->refFE()),
+                                             comm));
+}
 
 }

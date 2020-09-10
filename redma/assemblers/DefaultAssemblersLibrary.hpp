@@ -32,23 +32,23 @@ AssemblerFactory(const DataContainer& data, SHP(TreeNode) treeNode);
 
 class DefaultAssemblersLibrary
 {
-//     typedef aAssembler   AssemblerType;
-// public:
-//     DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>& meshes, EPETRACOMM comm);
-//
-//     SHP(TreeNode) generateDefaultTreeNode(const std::string& nameMesh);
-//
-//     SHP(TreeNode) generateDefaultTube(const std::string& nameMesh);
-//
-//     SHP(TreeNode) generateDefaultSymmetricBifurcation(const std::string& nameMesh);
-//
-//     SHP(AssemblerType) getDefaultAssembler(const std::string& namemesh);
-//
-// private:
-//     DataContainer                                   M_data;
-//     std::map<std::string, SHP(AssemblerType)>       M_assemblersMap;
-//     EPETRACOMM                                      M_comm;
-//     unsigned int                                    M_count;
+    typedef aAssembler   AssemblerType;
+public:
+    DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>& meshes, EPETRACOMM comm);
+
+    SHP(TreeNode) generateDefaultTreeNode(const std::string& nameMesh);
+
+    SHP(TreeNode) generateDefaultTube(const std::string& nameMesh);
+
+    SHP(TreeNode) generateDefaultSymmetricBifurcation(const std::string& nameMesh);
+
+    SHP(AssemblerType) getDefaultAssembler(const std::string& namemesh);
+
+private:
+    DataContainer                                   M_data;
+    std::map<std::string, SHP(AssemblerType)>       M_assemblersMap;
+    EPETRACOMM                                      M_comm;
+    unsigned int                                    M_count;
 };
 
 }

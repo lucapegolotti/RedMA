@@ -25,9 +25,11 @@ namespace RedMA
 class aAssemblerFE : public aAssembler
 {
 public:
-    virtual SparseMatrix getNorm(const unsigned int& fieldIndex, bool bcs = true) {return SparseMatrix();}
+    virtual SHP(SparseMatrix) getNorm(const unsigned int& fieldIndex, bool bcs = true) {return SHP(SparseMatrix)();}
 
-    virtual SparseMatrix getConstraintMatrix() {return SparseMatrix();}
+    virtual SHP(SparseMatrix) getConstraintMatrix() {return SHP(SparseMatrix)();}
+
+    virtual SHP(BlockVector) getFELifting(const double& time) const;
 
 };
 

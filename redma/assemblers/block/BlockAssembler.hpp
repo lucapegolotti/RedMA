@@ -45,36 +45,36 @@ public:
     virtual void setup() override {}
 
     virtual void exportSolution(const double& t,
-                                const BlockVector& sol) override {}
+                                const SHP(BlockVector)& sol) override {}
 
     virtual void postProcess(const double& t,
-                             const BlockVector& sol) override {}
+                             const SHP(BlockVector)& sol) override {}
 
-    virtual BlockMatrix getMass(const double& time,
-                                const BlockVector& sol) override {}
+    virtual SHP(BlockMatrix) getMass(const double& time,
+                                const SHP(BlockVector)& sol) override {}
 
-    virtual BlockMatrix getMassJacobian(const double& time,
-                                        const BlockVector& sol) override {}
+    virtual SHP(BlockMatrix) getMassJacobian(const double& time,
+                                        const SHP(BlockVector)& sol) override {}
 
-    virtual BlockVector getRightHandSide(const double& time,
-                                         const BlockVector& sol) override {}
+    virtual SHP(BlockVector) getRightHandSide(const double& time,
+                                         const SHP(BlockVector)& sol) override {}
 
-    virtual BlockMatrix getJacobianRightHandSide(const double& time,
-                                                 const BlockVector& sol) override {}
+    virtual SHP(BlockMatrix) getJacobianRightHandSide(const double& time,
+                                                 const SHP(BlockVector)& sol) override {}
 
-    virtual BlockVector getLifting(const double& time) const override {}
+    virtual SHP(BlockVector) getLifting(const double& time) const override {}
 
-    virtual BlockVector getZeroVector() const override {}
+    virtual SHP(BlockVector) getZeroVector() const override {}
 
-    virtual void apply0DirichletBCsMatrix(BlockMatrix& matrix, double diagCoeff) const override {}
+    virtual void apply0DirichletBCsMatrix(SHP(BlockMatrix)& matrix, double diagCoeff) const override {}
 
-    virtual void apply0DirichletBCs(BlockVector& vector) const override {}
+    virtual void apply0DirichletBCs(SHP(BlockVector)& vector) const override {}
 
     virtual void setExporter() override {}
 
-    virtual void applyDirichletBCs(const double& time, BlockVector& vector) const override {}
+    virtual void applyDirichletBCs(const double& time, SHP(BlockVector)& vector) const override {}
 
-    virtual void checkStabTerm(const BlockVector& sol) const {}
+    virtual void checkStabTerm(const SHP(BlockVector)& sol) const {}
 
     std::map<unsigned int, std::string> getIDMeshTypeMap() const {}
 
@@ -84,17 +84,17 @@ public:
 
     std::vector<SHP(InterfaceAssembler)> getDualAssemblers() const {return M_dualAssemblers;}
 
-    BlockVector convertFunctionRBtoFEM(BlockVector rbFunction, EPETRACOMM comm) const {}
+    SHP(BlockVector) convertFunctionRBtoFEM(SHP(BlockVector) rbFunction, EPETRACOMM comm) const {}
 
-    virtual void setExtrapolatedSolution(const BlockVector& exSol) override {}
+    virtual void setExtrapolatedSolution(const SHP(BlockVector)& exSol) override {}
 
-    virtual BlockVector getNonLinearTerm() override {}
+    virtual SHP(BlockVector) getNonLinearTerm() override {}
 
     std::map<unsigned int,std::vector<double>> getRandomizibleParametersVectors() {}
 
-    virtual void applyPiola(BlockVector solution, bool inverse) override {}
+    virtual void applyPiola(SHP(BlockVector) solution, bool inverse) override {}
 
-    void applyGlobalPiola(BlockVector solution, bool inverse) {}
+    void applyGlobalPiola(SHP(BlockVector) solution, bool inverse) {}
 
     virtual void initializeFEspaces() override {}
 

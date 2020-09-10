@@ -25,7 +25,7 @@ namespace RedMA
 class aAssemblerRB : public aAssembler
 {
 public:
-    virtual BlockVector convertFunctionRBtoFEM(BlockVector rbSolution) const {};
+    virtual SHP(BlockVector) convertFunctionRBtoFEM(SHP(BlockVector) rbSolution) const {};
 
     virtual SHP(RBBases) getRBBases() const {}
 

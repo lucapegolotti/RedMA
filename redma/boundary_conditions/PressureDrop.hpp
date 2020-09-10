@@ -36,27 +36,27 @@ public:
 
     PressureDrop(const double& C, const double& Rp, const double& Rd);
 
-    virtual BlockVector getZeroVector() const override;
+    virtual SHP(BlockVector) getZeroVector() const override;
 
-    virtual BlockMatrix getMass(const double& time,
-                                const BlockVector& sol) override;
+    virtual SHP(BlockMatrix) getMass(const double& time,
+                                const SHP(BlockVector)& sol) override;
 
-    virtual BlockMatrix getMassJacobian(const double& time,
-                                        const BlockVector& sol) override;
+    virtual SHP(BlockMatrix) getMassJacobian(const double& time,
+                                        const SHP(BlockVector)& sol) override;
 
-    virtual BlockVector getRightHandSide(const double& time,
-                                         const BlockVector& sol) override;
+    virtual SHP(BlockVector) getRightHandSide(const double& time,
+                                         const SHP(BlockVector)& sol) override;
 
-    virtual BlockMatrix getJacobianRightHandSide(const double& time,
-                                                 const BlockVector& sol) override;
+    virtual SHP(BlockMatrix) getJacobianRightHandSide(const double& time,
+                                                 const SHP(BlockVector)& sol) override;
 
     inline void setFlowRate(const double& Q) {M_Q = Q;}
 
-    virtual void apply0DirichletBCs(BlockVector& vector) const override {}
+    virtual void apply0DirichletBCs(SHP(BlockVector)& vector) const override {}
 
-    virtual void applyDirichletBCs(const double& time, BlockVector& vector) const override {}
+    virtual void applyDirichletBCs(const double& time, SHP(BlockVector)& vector) const override {}
 
-    void setExtrapolatedSolution(const BlockVector& exSol) override {throw new Exception("function must still be implemented PressureDrop");}
+    void setExtrapolatedSolution(const SHP(BlockVector)& exSol) override {throw new Exception("function must still be implemented PressureDrop");}
 
 private:
     double                      M_C;  // compliance

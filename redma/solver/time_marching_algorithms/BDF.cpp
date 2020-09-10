@@ -31,7 +31,7 @@ BDF(const DataContainer& data, SHP(FunProvider) funProvider) :
 
 void
 BDF::
-setup(const BlockVector& zeroVector)
+setup(const SHP(BlockVector)& zeroVector)
 {
     // M_coefficients.reserve(M_order);
     //
@@ -66,7 +66,7 @@ setup(const BlockVector& zeroVector)
     // }
 }
 
-BlockVector
+SHP(BlockVector)
 BDF::
 computeExtrapolatedSolution()
 {
@@ -94,7 +94,7 @@ computeExtrapolatedSolution()
     // return extrapolatedSolution;
 }
 
-BlockVector
+SHP(BlockVector)
 BDF::
 advance(const double& time, double& dt, int& status)
 {
@@ -169,9 +169,9 @@ advance(const double& time, double& dt, int& status)
     // return sol;
 }
 
-BlockVector
+SHP(BlockVector)
 BDF::
-computeDerivative(const BlockVector& solnp1, double& dt)
+computeDerivative(const SHP(BlockVector)& solnp1, double& dt)
 {
     // typedef BlockVector               BV;
     //
@@ -191,7 +191,7 @@ computeDerivative(const BlockVector& solnp1, double& dt)
 
 void
 BDF::
-shiftSolutions(const BlockVector& sol)
+shiftSolutions(const SHP(BlockVector)& sol)
 {
     // // shift solutions
     // std::vector<BlockVector> newPrevSolutions(M_order);
