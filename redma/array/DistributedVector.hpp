@@ -53,7 +53,9 @@ public:
 
     double norm2() const override;
 
-    std::shared_ptr<void> data() const override;
+    virtual std::shared_ptr<void> data() const override;
+
+    virtual void setData(std::shared_ptr<void> data) override;
 
     double maxMagnitude3D() const;
 

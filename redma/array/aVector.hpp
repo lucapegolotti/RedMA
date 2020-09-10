@@ -60,6 +60,8 @@ public:
 
     virtual std::shared_ptr<void> data() const {throw new Exception("Method data() not overloaded");}
 
+    virtual void setData(std::shared_ptr<void> data) {throw new Exception("Method setData() not overloaded");}
+
     virtual std::shared_ptr<aVector> block(const unsigned int& i) const {throw new Exception("Method block(uint) not overloaded");}
 
     inline double normInf() const {return M_normInf;}

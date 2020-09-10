@@ -91,6 +91,13 @@ norm2() const
     return mynorm;
 }
 
+void
+DenseVector::
+setData(std::shared_ptr<void> data)
+{
+    M_vector.reset(static_cast<DENSEVECTOR*>(data.get()));
+}
+
 std::shared_ptr<void>
 DenseVector::
 data() const

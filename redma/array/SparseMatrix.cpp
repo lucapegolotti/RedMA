@@ -309,6 +309,13 @@ clone() const
     return new SparseMatrix(*this);
 }
 
+void
+SparseMatrix::
+setData(std::shared_ptr<void> data)
+{
+    M_matrix.reset(static_cast<MATRIXEPETRA*>(data.get()));
+}
+
 std::shared_ptr<void>
 SparseMatrix::
 data() const

@@ -204,4 +204,11 @@ data() const
     return M_matrix;
 }
 
+void
+DenseMatrix::
+setData(std::shared_ptr<void> data)
+{
+    M_matrix.reset(static_cast<DENSEMATRIX*>(data.get()));
+}
+
 }

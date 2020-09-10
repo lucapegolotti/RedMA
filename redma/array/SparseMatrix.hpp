@@ -71,7 +71,9 @@ public:
 
     void setMatrix(std::shared_ptr<MATRIXEPETRA> matrix);
 
-    std::shared_ptr<void> data() const override;
+    virtual std::shared_ptr<void> data() const override;
+
+    virtual void setData(std::shared_ptr<void> data) override;
 
     DenseMatrix toDenseMatrix() const;
 

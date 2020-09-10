@@ -138,6 +138,21 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
         printlog(YELLOW, warningMsg, M_verbose);
     }
 
+    std::string discrMethod = "fem";
+    if (element->Attribute("method"))
+    {
+        ref = element->Attribute("method");
+    }
+
+    std::string assembler = "navierstokes";
+    if (element->Attribute("assembler"))
+    {
+        ref = element->Attribute("assembler");
+    }
+
+    returnBlock->setDiscretizationMethod(discrMethod);
+    returnBlock->setAssemblerType(assembler);
+
     typedef std::shared_ptr<GeometricParameter> GeometricParameterPtr;
     std::map<std::string,GeometricParameterPtr>& parametersMap =
                                   returnBlock->getParametersMap();

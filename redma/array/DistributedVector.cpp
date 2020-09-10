@@ -105,6 +105,13 @@ data() const
     return M_vector;
 }
 
+void
+DistributedVector::
+setData(std::shared_ptr<void> data)
+{
+    M_vector.reset(static_cast<VECTOREPETRA*>(data.get()));
+}
+
 std::string
 DistributedVector::
 getString(const char& delimiter) const

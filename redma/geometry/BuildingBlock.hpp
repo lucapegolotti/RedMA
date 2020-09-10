@@ -151,6 +151,14 @@ public:
 
     inline std::string getMeshName() const {return M_meshName;}
 
+    inline std::string getDiscretizationMethod() const {return M_discrMethod;}
+
+    inline std::string getAssemblerType() const {return M_assemblerType;}
+
+    inline void setDiscretizationMethod(std::string method) {M_discrMethod = method;}
+
+    inline void setAssemblerType(std::string assembler) {M_assemblerType = assembler;}
+
     Matrix3D computeJacobianGlobalTransformation(const double& x,
                                                  const double& y,
                                                  const double& z);
@@ -210,6 +218,9 @@ protected:
     double M_inletAngle;
 
     GetPot M_datafile;
+
+    std::string M_discrMethod;
+    std::string M_assemblerType;
 };
 
 }  // namespace RedMA

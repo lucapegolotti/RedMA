@@ -17,20 +17,20 @@
 #ifndef ASSEMBLERFACTORY_HPP
 #define ASSEMBLERFACTORY_HPP
 
-#include <redma/RedMA.hpp>
-#include <redma/assemblers/abstract/aAssembler.hpp>
-#include <redma/assemblers/StokesAssembler.hpp>
-#include <redma/assemblers/NavierStokesAssembler.hpp>
-#include <redma/utils/Exception.hpp>
-#include <redma/geometry/BuildingBlock.hpp>
-#include <redma/problem/DataContainer.hpp>
+// #include <redma/RedMA.hpp>
+// #include <redma/assemblers/abstract/aAssembler.hpp>
+// #include <redma/assemblers/finite_element/StokesAssemblerFEM.hpp>
+// #include <redma/assemblers/NavierStokesAssembler.hpp>
+// #include <redma/utils/Exception.hpp>
+// #include <redma/geometry/BuildingBlock.hpp>
+// #include <redma/problem/DataContainer.hpp>
 
-namespace RedMA
-{
-
-SHP(aAssembler)
-AssemblerFactory(const DataContainer& data, SHP(TreeNode) treeNode);
-
-}
+// namespace RedMA
+// {
+//
+// // SHP(aAssembler)
+// // AssemblerFactory(const DataContainer& data, SHP(TreeNode) treeNode);
+//
+// }
 
 #endif // ASSEMBLERFACTORY_HPP
