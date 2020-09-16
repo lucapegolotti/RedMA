@@ -50,7 +50,7 @@ private:
     double                                              M_dt;
     SHP(PressureDrop)                                   M_pressureDrop;
     SHP(BDF)                                            M_bdf;
-    BlockVector                                         M_pressureDropSolution;
+    SHP(BlockVector)                                    M_pressureDropSolution;
 };
 
 }

@@ -144,7 +144,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
         ref = element->Attribute("method");
     }
 
-    std::string assembler = "navierstokes";
+    std::string assembler = "stokes";
     if (element->Attribute("assembler"))
     {
         ref = element->Attribute("assembler");

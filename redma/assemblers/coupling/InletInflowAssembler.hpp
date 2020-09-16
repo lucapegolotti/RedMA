@@ -22,7 +22,7 @@
 namespace RedMA
 {
 
-class InletInflowAssembler : public InterfaceAssembler
+class InletInflowAssembler  : public InterfaceAssembler
 {
     typedef aAssembler         AssemblerType;
 
@@ -31,14 +31,14 @@ public:
                          const Interface& interface);
 
     virtual void addContributionRhs(const double& time,
-                                    BlockVector& rhs,
-                                    const BlockVector& sol,
-                                    const unsigned int& nPrimalBlocks);
+                                    SHP(BlockVector) rhs,
+                                    SHP(BlockVector) sol,
+                                    const unsigned int& nPrimalBlocks) override;
 
     virtual void addContributionJacobianRhs(const double& time,
-                                            BlockMatrix& jac,
-                                            const BlockVector& sol,
-                                            const unsigned int& nPrimalBlocks);
+                                            SHP(BlockMatrix) jac,
+                                            SHP(BlockVector) sol,
+                                            const unsigned int& nPrimalBlocks) override;
 
 };
 

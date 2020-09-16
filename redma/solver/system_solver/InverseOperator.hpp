@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef INVERSEOPERATOREP_HPP
-#define INVERSEOPERATOREP_HPP
+#ifndef INVERSEOPERATOR_HPP
+#define INVERSEOPERATOR_HPP
 
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
-#include <redma/solver/system_solver/LinearOperatorEp.hpp>
-#include <redma/solver/system_solver/PreconditionerOperatorEp.hpp>
+#include <redma/solver/system_solver/LinearOperator.hpp>
+#include <redma/solver/system_solver/PreconditionerOperator.hpp>
 
 #include <lifev/core/algorithm/SolverAztecOO.hpp>
 #include <lifev/core/linear_algebra/InvertibleOperator.hpp>
@@ -31,20 +31,20 @@
 namespace RedMA
 {
 
-class InverseOperatorEp
+class InverseOperator
 {
     typedef LifeV::Operators::InvertibleOperator        InvertibleOperatorType;
 
 public:
-    InverseOperatorEp(const DataContainer& data);
+    InverseOperator(const DataContainer& data);
 
-    void setOperator(SHP(LinearOperatorEp) oper);
+    void setOperator(SHP(LinearOperator) oper);
 
-    void setPreconditioner(SHP(PreconditionerOperatorEp) prec);
+    void setPreconditioner(SHP(PreconditionerOperator) prec);
 
     void setSolverOptions();
 
-    int invert(const BlockVector& rhs, BlockVector& sol);
+    int invert(const SHP(aVector)& rhs, SHP(aVector)& sol);
 
 private:
     DataContainer                                   M_data;
@@ -56,4 +56,4 @@ private:
 
 }
 
-#endif // INVERSEOPERATOREP_HPP
+#endif // INVERSEOPERATOR_HPP

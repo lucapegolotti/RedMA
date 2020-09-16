@@ -33,8 +33,6 @@ class BlockVector : public aVector
 
 public:
 
-    BlockVector();
-
     virtual ~BlockVector() {};
 
     BlockVector(const BlockVector& other);
@@ -59,7 +57,7 @@ public:
 
     double norm2() const override;
 
-    void setBlock(const unsigned int& iblock, std::shared_ptr<aVector> vector);
+    void setBlock(const unsigned int& iblock, std::shared_ptr<aVector> vector) override;
 
     // BlockVector operator*(const double& coeff) const;
     //
@@ -81,19 +79,21 @@ public:
 
     void updateNormInf();
 
-    inline void close() {M_isOpen = false;}
-
-    inline void open() {M_isOpen = true;}
-
-    inline bool isOpen() const {return M_isOpen;}
-
-    inline void checkOpen() const {if (!isOpen()) throw new Exception("BlockMatrix must be open for this operation!");}
-
-    inline void checkClosed() const {if (isOpen()) throw new Exception("BlockMatrix must be closed for this operation!");}
+    // inline void close() {M_isOpen = false;}
+    //
+    // inline void open() {M_isOpen = true;}
+    //
+    // inline bool isOpen() const {return M_isOpen;}
+    //
+    // inline void checkOpen() const {if (!isOpen()) throw new Exception("BlockVector must be open for this operation!");}
+    //
+    // inline void checkClosed() const {if (isOpen()) throw new Exception("BlockVector must be closed for this operation!");}
 
 protected:
+    BlockVector();
+
     Grid            M_vectorGrid;
-    bool            M_isOpen;
+    // bool            M_isOpen;
 };
 
 }

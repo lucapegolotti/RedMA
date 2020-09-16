@@ -39,16 +39,16 @@ public:
     aTimeMarchingAlgorithm(const DataContainer& datafile,
                            SHP(FunProvider) funProvider);
 
-    virtual void setup(const SHP(BlockVector)& zeroVector) = 0;
+    virtual void setup(const SHP(aVector)& zeroVector) = 0;
 
-    virtual SHP(BlockVector) advance(const double& time, double& dt,
+    virtual SHP(aVector) advance(const double& time, double& dt,
                                 int& status) = 0;
 
     // compute derivative of u at tn+1 given its value
-    virtual SHP(BlockVector) computeDerivative(const SHP(BlockVector)& solnp1,
+    virtual SHP(aVector) computeDerivative(const SHP(aVector)& solnp1,
                                           double& dt) = 0;
 
-    virtual void shiftSolutions(const SHP(BlockVector)& sol) = 0;
+    virtual void shiftSolutions(const SHP(aVector)& sol) = 0;
 
     void dumpSolverStatistics(std::vector<SolverStatistics> statistics,
                               const double& t) const;

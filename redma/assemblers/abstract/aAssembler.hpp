@@ -48,38 +48,38 @@ public:
     virtual void setup() = 0;
 
     virtual void exportSolution(const double& t,
-                                const SHP(BlockVector)& sol) = 0;
+                                const SHP(aVector)& sol) = 0;
 
     virtual void postProcess(const double& t,
-                             const SHP(BlockVector)& sol) = 0;
+                             const SHP(aVector)& sol) = 0;
 
-    virtual SHP(BlockMatrix) getMass(const double& time,
-                                const SHP(BlockVector)& sol) = 0;
+    virtual SHP(aMatrix) getMass(const double& time,
+                                const SHP(aVector)& sol) = 0;
 
-    virtual SHP(BlockMatrix) getMassJacobian(const double& time,
-                                             const SHP(BlockVector)& sol) = 0;
+    virtual SHP(aMatrix) getMassJacobian(const double& time,
+                                         const SHP(aVector)& sol) = 0;
 
-    virtual SHP(BlockVector) getRightHandSide(const double& time,
-                                              const SHP(BlockVector)& sol) = 0;
+    virtual SHP(aVector) getRightHandSide(const double& time,
+                                          const SHP(aVector)& sol) = 0;
 
-    virtual SHP(BlockMatrix) getJacobianRightHandSide(const double& time,
-                                                      const SHP(BlockVector)& sol) = 0;
+    virtual SHP(aMatrix) getJacobianRightHandSide(const double& time,
+                                                      const SHP(aVector)& sol) = 0;
 
-    virtual SHP(BlockVector) getLifting(const double& time) const = 0;
+    virtual SHP(aVector) getLifting(const double& time) const = 0;
 
-    virtual SHP(BlockVector) getZeroVector() const = 0;
+    virtual SHP(aVector) getZeroVector() const = 0;
 
     virtual void setExporter() = 0;
 
-    virtual void apply0DirichletBCsMatrix(SHP(BlockMatrix)& matrix, double diagCoeff) const = 0;
+    virtual void apply0DirichletBCsMatrix(SHP(aMatrix) matrix, double diagCoeff) const = 0;
 
-    virtual void apply0DirichletBCs(SHP(BlockVector)& vector) const = 0;
+    virtual void apply0DirichletBCs(SHP(aVector) vector) const = 0;
 
-    virtual void applyDirichletBCs(const double& time, SHP(BlockVector)& vector) const = 0;
+    virtual void applyDirichletBCs(const double& time, SHP(aVector) vector) const = 0;
 
     virtual inline SHP(FESPACE) getFEspace(unsigned int index) const {return nullptr;}
 
-    virtual void applyPiola(SHP(BlockVector) solution, bool inverse) = 0;
+    virtual void applyPiola(SHP(aVector) solution, bool inverse) = 0;
 
     // this must be implemented by the inner assemblers
     virtual inline SHP(FESPACE) getFESpaceBCs() const {return nullptr;}
@@ -96,14 +96,14 @@ public:
 
     virtual inline SHP(ETFESPACE1) getETFESpaceSecondary() const {return nullptr;}
 
-    virtual std::vector<SHP(BlockMatrix)> getMatrices() const {return std::vector<SHP(BlockMatrix)>();}
+    virtual std::vector<SHP(aMatrix)> getMatrices() const {return std::vector<SHP(aMatrix)>();}
 
-    virtual SHP(BlockMatrix) assembleMatrix(const unsigned int& index,
-                                       BlockMDEIMStructure* structure = nullptr) {return SHP(BlockMatrix)();}
+    virtual SHP(aMatrix) assembleMatrix(const unsigned int& index,
+                                       BlockMDEIMStructure* structure = nullptr) {return SHP(aMatrix)();}
 
     virtual void setMDEIMs(SHP(MDEIMManager) mdeimManager) {}
 
-    virtual SHP(BlockVector) getNonLinearTerm() {};
+    virtual SHP(aVector) getNonLinearTerm() {};
 
     virtual void initializeFEspaces() {};
 

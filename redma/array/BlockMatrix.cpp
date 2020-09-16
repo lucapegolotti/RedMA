@@ -16,7 +16,7 @@ BlockMatrix(const BlockMatrix& other) :
   aMatrix(BLOCK),
   M_isOpen(true)
 {
-    other.checkClosed();
+    // other.checkClosed();
 
     resize(other.nRows(), other.nCols());
 
@@ -27,7 +27,7 @@ BlockMatrix(const BlockMatrix& other) :
             setBlock(i,j,other.block(i,j));
         }
     }
-    close();
+    // close();
 }
 
 BlockMatrix::
@@ -42,10 +42,13 @@ void
 BlockMatrix::
 add(std::shared_ptr<aMatrix> other)
 {
-    BlockMatrix* otherMatrix = dynamic_cast<BlockMatrix*>(other.get());
+    std::shared_ptr<BlockMatrix> otherMatrix = std::static_pointer_cast<BlockMatrix>(other);
 
-    checkClosed();
-    otherMatrix->checkClosed();
+    if (other->isZero())
+        return;
+
+    // checkClosed();
+    // otherMatrix->checkClosed();
 
     if (nRows() != other->nRows() || nCols() != other->nCols())
         throw new Exception("BlockMatrix: inconsistent dimensions in add!");
@@ -54,7 +57,13 @@ add(std::shared_ptr<aMatrix> other)
     {
         for (unsigned int j = 0; j < nCols(); j++)
         {
-            block(i,j)->add(otherMatrix->block(i,j));
+            if (!block(i,j)->isZero())
+                block(i,j)->add(otherMatrix->block(i,j));
+            else
+            {
+                if (other->block(i,j))
+                    setBlock(i,j,std::shared_ptr<aMatrix>(other->block(i,j)->clone()));
+            }
         }
     }
     updateNormInf();
@@ -64,13 +73,17 @@ void
 BlockMatrix::
 multiplyByScalar(const double& coeff)
 {
-    checkClosed();
+    // checkClosed();
+
+    if (isZero())
+        return;
 
     for (int i = 0; i < nRows(); i++)
     {
         for (int j = 0; j < nCols(); j++)
         {
-            block(i,j)->multiplyByScalar(coeff);
+            if (block(i,j))
+                block(i,j)->multiplyByScalar(coeff);
         }
     }
     updateNormInf();
@@ -81,15 +94,13 @@ BlockMatrix::
 multiplyByMatrix(std::shared_ptr<aMatrix> other)
 {
     BlockMatrix* otherMatrix = dynamic_cast<BlockMatrix*>(other.get());
-    checkClosed();
-    otherMatrix->checkClosed();
+    // checkClosed();
+    // otherMatrix->checkClosed();
 
-    std::shared_ptr<BlockMatrix> retMatrix(new BlockMatrix());
+    std::shared_ptr<BlockMatrix> retMatrix(new BlockMatrix(nRows(), other->nCols()));
 
     if (isZero() || other->isZero())
         return retMatrix;
-
-    retMatrix->resize(nRows(), other->nCols());
 
     for (unsigned int i = 0; i < nRows(); i++)
     {
@@ -97,7 +108,10 @@ multiplyByMatrix(std::shared_ptr<aMatrix> other)
         {
             std::shared_ptr<aMatrix> curMatrix = retMatrix->block(i,j);
             for (unsigned int k = 0; k < nCols(); k++)
-                curMatrix->add(block(i,k)->multiplyByMatrix(otherMatrix->block(k,j)));
+            {
+                if (block(i,k))
+                    curMatrix->add(block(i,k)->multiplyByMatrix(otherMatrix->block(k,j)));
+            }
         }
     }
     retMatrix->close();
@@ -110,14 +124,12 @@ std::shared_ptr<aMatrix>
 BlockMatrix::
 transpose() const
 {
-    checkClosed();
+    // checkClosed();
 
-    std::shared_ptr<BlockMatrix> retMatrix(new BlockMatrix());
+    std::shared_ptr<BlockMatrix> retMatrix(new BlockMatrix(nCols(), nRows()));
 
     if (!isZero())
     {
-        retMatrix->resize(nCols(), nRows());
-
         for (unsigned int i = 0; i < nRows(); i++)
         {
             for (unsigned int j = 0; j < nCols(); j++)
@@ -138,24 +150,23 @@ multiplyByVector(std::shared_ptr<aVector> vector)
     checkType(vector, BLOCK);
 
     BlockVector* otherVector = dynamic_cast<BlockVector*>(vector.get());
-    checkClosed();
-    otherVector->checkClosed();
+    // checkClosed();
+    // otherVector->checkClosed();
 
-    std::shared_ptr<BlockVector> retVector(new BlockVector());
+    std::shared_ptr<BlockVector> retVector(new BlockVector(nRows()));
 
-    if (!isZero() && !vector->isZero())
+    for (unsigned int i = 0; i < nRows(); i++)
     {
-        retVector->resize(nRows());
-
-        for (unsigned int i = 0; i < nRows(); i++)
+        for (unsigned int j = 0; j < nCols(); j++)
         {
-            for (unsigned int j = 0; j < nCols(); j++)
-            {
-                retVector->block(i)->add(block(i,j)->multiplyByVector(otherVector->block(j)));
-            }
+            std::shared_ptr<aVector> tempRes = block(i,j)->multiplyByVector(otherVector->block(j));
+            if (retVector->block(i)->isZero())
+                retVector->setBlock(i,tempRes);
+            else
+                retVector->block(i)->add(tempRes);
         }
     }
-    retVector->close();
+    // retVector->close();
 
     return retVector;
 }
@@ -199,7 +210,10 @@ hardCopy(std::shared_ptr<aMatrix> other)
         {
             for (unsigned int j = 0; j < nCols(); j++)
             {
-                M_matrixGrid(i,j)->hardCopy(otherMatrix->block(i,j));
+                if (M_matrixGrid(i,j)->isZero())
+                    M_matrixGrid(i,j).reset(otherMatrix->block(i,j)->clone());
+                else
+                    M_matrixGrid(i,j)->hardCopy(otherMatrix->block(i,j));
             }
         }
 
@@ -234,7 +248,15 @@ BlockMatrix*
 BlockMatrix::
 clone() const
 {
-    return new BlockMatrix(*this);
+    BlockMatrix* retMatrix = new BlockMatrix(nRows(),nCols());
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        for (unsigned int j = 0; j < nCols(); j++)
+        {
+            retMatrix->setBlock(i,j,std::shared_ptr<aMatrix>(M_matrixGrid(i,j)->clone()));
+        }
+    }
+    return retMatrix;
 }
 
 void
@@ -244,6 +266,14 @@ resize(const unsigned int& nRows, const unsigned int& nCols)
     M_nRows = nRows;
     M_nCols = nCols;
     M_matrixGrid.resize(nRows,nCols);
+    for (unsigned int i = 0; i < nRows; i++)
+    {
+        for (unsigned int j = 0; j < nCols; j++)
+        {
+            // we use dense matrices as placeholders for zero matrices
+            M_matrixGrid(i,j).reset(new DenseMatrix());
+        }
+    }
 }
 
 std::shared_ptr<aMatrix>
@@ -258,7 +288,7 @@ BlockMatrix::
 getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
              const unsigned int& jbegin, const unsigned int& jend) const
 {
-    checkClosed();
+    // checkClosed();
 
     std::shared_ptr<BlockMatrix> retMatrix(new BlockMatrix());
 
@@ -611,5 +641,21 @@ updateNormInf()
 //     hardCopy(other);
 //     return *this;
 // }
+
+void
+BlockMatrix::
+close()
+{
+    M_isOpen = false;
+
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        for (unsigned int j = 0; j < nCols(); j++)
+        {
+            if (block(i,j) == nullptr)
+                block(i,j).reset(new DenseMatrix());
+        }
+    }
+}
 
 }

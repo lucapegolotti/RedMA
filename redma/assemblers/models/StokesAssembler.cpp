@@ -27,14 +27,15 @@ buildZeroVector() const
 
     pComp->zero();
 
-    SHP(BlockVector) retVec;
-    retVec->resize(2);
-    retVec->block(0)->setData(uComp);
-    retVec->block(1)->setData(pComp);
+    SHP(BlockVector) retVec(new BlockVector(2));
+
+    retVec->setBlock(0,epetraToDistributed(uComp));
+    retVec->setBlock(1,epetraToDistributed(pComp));
+
     return retVec;
 }
 
-SHP(BlockVector)
+SHP(aVector)
 StokesAssembler::
 getForcingTerm(const double& time) const
 {
@@ -44,8 +45,8 @@ getForcingTerm(const double& time) const
 
 void
 StokesAssembler::
-addNeumannBCs(SHP(BlockVector)& input, const double& time,
-              const SHP(BlockVector)& sol)
+addNeumannBCs(SHP(aVector)& input, const double& time,
+              const SHP(aVector)& sol)
 {
     // // if (this->M_treeNode->isOutletNode())
     //     // //     this->M_bcManager->applyNeumannBc(time, input, M_velocityFESpace, 0, flowRates);
@@ -68,7 +69,7 @@ addNeumannBCs(SHP(BlockVector)& input, const double& time,
     //     // }
 }
 
-SHP(BlockMatrix)
+SHP(aMatrix)
 StokesAssembler::
 assembleReducedStiffness(SHP(BCManager) bcManager,
                          BlockMDEIMStructure* structure)
@@ -76,9 +77,8 @@ assembleReducedStiffness(SHP(BCManager) bcManager,
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(BlockMatrix) stiffness(new BlockMatrix());
+    SHP(BlockMatrix) stiffness(new BlockMatrix(2,2));
 
-    stiffness->resize(2, 2);
     bool useFullStrain = M_dataContainer("fluid/use_strain", true);
 
     SHP(MATRIXEPETRA) A(new MATRIXEPETRA(M_velocityFESpace->map()));
@@ -136,14 +136,15 @@ assembleReducedStiffness(SHP(BCManager) bcManager,
     }
     A->globalAssemble();
 
-    stiffness->block(0,0)->setData(A);
+    SHP(SparseMatrix) Awrapper(new SparseMatrix);
+    Awrapper->setData(A);
+    stiffness->setBlock(0,0,Awrapper);
 
     bcManager->apply0DirichletMatrix(*stiffness, M_velocityFESpace, 0, 0.0);
-
     return stiffness;
 }
 
-SHP(BlockMatrix)
+SHP(aMatrix)
 StokesAssembler::
 assembleReducedMass(SHP(BCManager) bcManager,
                     BlockMDEIMStructure* structure)
@@ -151,10 +152,7 @@ assembleReducedMass(SHP(BCManager) bcManager,
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(BlockMatrix) mass(new BlockMatrix());
-
-    mass->resize(2, 2);
-
+    SHP(BlockMatrix) mass(new BlockMatrix(2,2));
     SHP(MATRIXEPETRA) M(new MATRIXEPETRA(M_velocityFESpace->map()));
 
     if (structure)
@@ -179,14 +177,15 @@ assembleReducedMass(SHP(BCManager) bcManager,
               ) >> M;
     }
     M->globalAssemble();
-    mass->block(0,0)->setData(M);
-
+    SHP(SparseMatrix) Mwrapper(new SparseMatrix);
+    Mwrapper->setData(M);
+    mass->setBlock(0,0,Mwrapper);
     bcManager->apply0DirichletMatrix(*mass, M_velocityFESpace, 0, 1.0);
-
+    mass->close();
     return mass;
 }
 
-SHP(BlockMatrix)
+SHP(aMatrix)
 StokesAssembler::
 assembleReducedDivergence(SHP(BCManager) bcManager,
                           BlockMDEIMStructure* structure)
@@ -194,9 +193,7 @@ assembleReducedDivergence(SHP(BCManager) bcManager,
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(BlockMatrix) divergence(new BlockMatrix());
-
-    divergence->resize(2, 2);
+    SHP(BlockMatrix) divergence(new BlockMatrix(2,2));
 
     SHP(MATRIXEPETRA) BT(new MATRIXEPETRA(this->M_velocityFESpace->map()));
 
@@ -249,8 +246,14 @@ assembleReducedDivergence(SHP(BCManager) bcManager,
     B->globalAssemble(M_velocityFESpace->mapPtr(),
                       M_pressureFESpace->mapPtr());
 
-    divergence->block(0,1)->setData(BT);
-    divergence->block(1,0)->setData(B);
+    SHP(SparseMatrix) BTwrapper(new SparseMatrix);
+    BTwrapper->setData(BT);
+
+    SHP(SparseMatrix) Bwrapper(new SparseMatrix);
+    Bwrapper->setData(B);
+
+    divergence->setBlock(0,1,BTwrapper);
+    divergence->setBlock(1,0,Bwrapper);
 
     bcManager->apply0DirichletMatrix(*divergence, M_velocityFESpace, 0, 0.0);
 
@@ -310,15 +313,16 @@ assembleFlowRateJacobians(SHP(BCManager) bcManager)
 void
 StokesAssembler::
 apply0DirichletBCsMatrix(SHP(BCManager) bcManager,
-                         SHP(BlockMatrix)& matrix, double diagCoeff)
+                         SHP(aMatrix) matrix, double diagCoeff)
 {
-    bcManager->apply0DirichletMatrix(*matrix, M_velocityFESpace,
+    auto matrixConverted = std::static_pointer_cast<BlockMatrix>(matrix);
+    bcManager->apply0DirichletMatrix(*matrixConverted, M_velocityFESpace,
                                      0, diagCoeff);
 }
 
 std::map<unsigned int, double>
 StokesAssembler::
-computeFlowRates(SHP(BlockVector) sol, bool verbose)
+computeFlowRates(SHP(aVector) sol, bool verbose)
 {
     std::string msg;
     std::map<unsigned int, double> flowRates;
@@ -380,10 +384,67 @@ assembleFlowRateVector(const GeometricFace& face)
     return flowRateVector;
 }
 
+SHP(MATRIXEPETRA)
+StokesAssembler::
+assembleFlowRateJacobian(const GeometricFace& face)
+{
+    // using namespace LifeV;
+    // using namespace ExpressionAssembly;
+    //
+    // const double dropTolerance(2.0 * std::numeric_limits<double>::min());
+    //
+    // SHP(MAPEPETRA) rangeMap = M_flowRateVectors[face.M_flag]->mapPtr();
+    // EPETRACOMM comm = rangeMap->commPtr();
+    //
+    //
+    // Epetra_Map epetraMap = M_flowRateVectors[face.M_flag]->epetraMap();
+    // unsigned int numElements = epetraMap.NumMyElements();
+    // unsigned int numGlobalElements = epetraMap.NumGlobalElements();
+    //
+    // // this should be optimized
+    // SHP(MATRIXEPETRA) flowRateJacobian;
+    // flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map(), numGlobalElements, false));
+    //
+    // // compute outer product of flowrate vector with itself
+    // for (unsigned int j = 0; j < numGlobalElements; j++)
+    // {
+    //     double myvaluecol = 0;
+    //
+    //     if (M_flowRateVectors[face.M_flag]->isGlobalIDPresent(j))
+    //         myvaluecol = M_flowRateVectors[face.M_flag]->operator[](j);
+    //
+    //     double valuecol = 0;
+    //     comm->SumAll(&myvaluecol, &valuecol, 1);
+    //
+    //     if (std::abs(valuecol) > dropTolerance)
+    //     {
+    //         for (unsigned int i = 0; i < numElements; i++)
+    //         {
+    //             unsigned int gdof = epetraMap.GID(i);
+    //             if (M_flowRateVectors[face.M_flag]->isGlobalIDPresent(gdof))
+    //             {
+    //                 double valuerow = M_flowRateVectors[face.M_flag]->operator[](gdof);
+    //                 if (std::abs(valuerow * valuecol) > dropTolerance)
+    //                 {
+    //                     flowRateJacobian->addToCoefficient(gdof, j, valuerow * valuecol);
+    //                 }
+    //             }
+    //         }
+    //     }
+    //
+    // }
+    //
+    // comm->Barrier();
+    //
+    // flowRateJacobian->globalAssemble();
+    //
+    // return flowRateJacobian;
+}
+
 void
 StokesAssembler::
-addBackFlowStabilization(SHP(BlockVector)& input,
-                         SHP(BlockVector) sol,
+addBackFlowStabilization(SHP(aVector)& input,
+                         SHP(aVector) sol,
                          const unsigned int& faceFlag)
 {
     // using namespace LifeV;

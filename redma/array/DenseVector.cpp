@@ -11,6 +11,13 @@ DenseVector() :
 
 }
 
+DenseVector::
+DenseVector(const DenseVector& vector) :
+  aVector(DENSE)
+{
+    M_vector.reset(new DENSEVECTOR(*vector.M_vector));
+}
+
 void
 DenseVector::
 add(std::shared_ptr<aVector> other)
@@ -68,7 +75,14 @@ aVector*
 DenseVector::
 clone() const
 {
-    return new DenseVector(*this);
+    DenseVector* retVector = new DenseVector();
+    if (M_vector)
+    {
+        std::shared_ptr<DENSEVECTOR> newVector
+            (new DENSEVECTOR(*M_vector));
+        retVector->setVector(newVector);
+    }
+    return retVector;
 }
 
 bool
@@ -95,7 +109,7 @@ void
 DenseVector::
 setData(std::shared_ptr<void> data)
 {
-    M_vector.reset(static_cast<DENSEVECTOR*>(data.get()));
+    M_vector = std::static_pointer_cast<DENSEVECTOR>(data);
 }
 
 std::shared_ptr<void>

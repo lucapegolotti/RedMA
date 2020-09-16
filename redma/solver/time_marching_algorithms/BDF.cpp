@@ -31,176 +31,195 @@ BDF(const DataContainer& data, SHP(FunProvider) funProvider) :
 
 void
 BDF::
-setup(const SHP(BlockVector)& zeroVector)
+setup(const SHP(aVector)& zeroVector)
 {
-    // M_coefficients.reserve(M_order);
-    //
-    // for (unsigned int i = 0; i < M_order; i++)
-    // {
-    //     BlockVector zeroVectorCopy;
-    //     zeroVectorCopy.hardCopy(zeroVector);
-    //     M_prevSolutions.push_back(zeroVectorCopy);
-    // }
-    //
-    // if (M_order == 1)
-    // {
-    //     M_coefficients[0] = -1.0;
-    //     M_rhsCoeff = 1.0;
-    // }
-    // else if (M_order == 2)
-    // {
-    //     M_coefficients[0] = -4.0/3.0;
-    //     M_coefficients[1] = 1.0/3.0;
-    //     M_rhsCoeff = 2.0/3.0;
-    // }
-    // else if (M_order == 3)
-    // {
-    //     M_coefficients[0] = -18.0/11.0;
-    //     M_coefficients[1] = 9.0/11.0;
-    //     M_coefficients[2] = -2.0/11.0;
-    //     M_rhsCoeff = 6.0/11.0;
-    // }
-    // else
-    // {
-    //     throw new Exception("BDF scheme of requested order not implemented");
-    // }
+    M_coefficients.reserve(M_order);
+
+    for (unsigned int i = 0; i < M_order; i++)
+    {
+        SHP(BlockVector) zeroVectorCopy(new BlockVector(0));
+        zeroVectorCopy->hardCopy(zeroVector);
+        M_prevSolutions.push_back(zeroVectorCopy);
+    }
+
+    if (M_order == 1)
+    {
+        M_coefficients[0] = -1.0;
+        M_rhsCoeff = 1.0;
+    }
+    else if (M_order == 2)
+    {
+        M_coefficients[0] = -4.0/3.0;
+        M_coefficients[1] = 1.0/3.0;
+        M_rhsCoeff = 2.0/3.0;
+    }
+    else if (M_order == 3)
+    {
+        M_coefficients[0] = -18.0/11.0;
+        M_coefficients[1] = 9.0/11.0;
+        M_coefficients[2] = -2.0/11.0;
+        M_rhsCoeff = 6.0/11.0;
+    }
+    else
+    {
+        throw new Exception("BDF scheme of requested order not implemented");
+    }
 }
 
-SHP(BlockVector)
+SHP(aVector)
 BDF::
 computeExtrapolatedSolution()
 {
-    // BlockVector extrapolatedSolution;
-    // extrapolatedSolution.hardCopy(M_prevSolutions[0]);
-    //
-    // if (M_order == 1)
-    // {
-    //
-    // }
-    // else if (M_order == 2)
-    // {
-    //     extrapolatedSolution *= 2;
-    //     extrapolatedSolution -= M_prevSolutions[1];
-    // }
-    // else if (M_order == 3)
-    // {
-    //     extrapolatedSolution *= 3;
-    //     extrapolatedSolution -= M_prevSolutions[1] * 3;
-    //     extrapolatedSolution += M_prevSolutions[2];
-    // }
-    // else
-    //     throw new Exception("BDF scheme of requested order not implemented");
-    //
-    // return extrapolatedSolution;
+    SHP(BlockVector) extrapolatedSolution(new BlockVector(0));
+    extrapolatedSolution->hardCopy(M_prevSolutions[0]);
+    // std::cout << "extrapolatedSolution open?" << extrapolatedSolution->isOpen() << std::endl << std::flush;
+    // std::cout << "extrapolatedSolution open?" << extrapolatedSolution->isOpen() << std::endl << std::flush;
+    if (M_order == 1)
+    {
+
+    }
+    else if (M_order == 2)
+    {
+        // std::cout << "extrapolatedSolution open?" << extrapolatedSolution->isOpen() << std::endl << std::flush;
+        extrapolatedSolution->multiplyByScalar(2);
+        M_prevSolutions[1]->multiplyByScalar(-1);
+        extrapolatedSolution->add(M_prevSolutions[1]);
+        M_prevSolutions[1]->multiplyByScalar(-1);
+    }
+    else if (M_order == 3)
+    {
+        extrapolatedSolution->multiplyByScalar(3);
+        // M_prevSolutions[1]->close();
+        M_prevSolutions[1]->multiplyByScalar(-3);
+        extrapolatedSolution->add(M_prevSolutions[1]);
+        M_prevSolutions[1]->multiplyByScalar(-1.0/3.0);
+        // M_prevSolutions[2]->close();
+        extrapolatedSolution->add(M_prevSolutions[2]);
+    }
+    else
+        throw new Exception("BDF scheme of requested order not implemented");
+
+    return extrapolatedSolution;
 }
 
-SHP(BlockVector)
+SHP(aVector)
 BDF::
 advance(const double& time, double& dt, int& status)
 {
-    // typedef BlockVector               BV;
-    // typedef BlockMatrix               BM;
-    //
-    // // we set the initial guess equal to the last solution
-    // // keep in mind that this MUST be a hard copy
-    // BV initialGuess = computeExtrapolatedSolution();
-    // // initialGuess.hardCopy(M_prevSolutions[0]);
-    //
-    // this->M_funProvider->applyDirichletBCs(time+dt, initialGuess);
-    // FunctionFunctor<BV,BV> fct(
-    //     [this,time,dt](BV sol)
-    // {
-    //     BM mass(this->M_funProvider->getMass(time+dt, sol));
-    //     if (M_useExtrapolation)
-    //         this->M_funProvider->setExtrapolatedSolution(computeExtrapolatedSolution());
-    //     BV f(this->M_funProvider->getRightHandSide(time+dt, sol));
-    //     BV prevContribution;
-    //
-    //     unsigned int count = 0;
-    //     for (BV vec : M_prevSolutions)
-    //     {
-    //         prevContribution += vec * M_coefficients[count];
-    //         count++;
-    //     }
-    //     BV retVec;
-    //     retVec.softCopy(mass * (sol + prevContribution));
-    //     f *= (-1. * M_rhsCoeff * dt);
-    //     retVec += f;
-    //     // the previous solution satisfies the boundary conditions so we search
-    //     // for an increment with 0bcs
-    //     this->M_funProvider->apply0DirichletBCs(retVec);
-    //
-    //     return retVec;
-    // });
-    //
-    // FunctionFunctor<BV,BM> jac(
-    //     [this,time,dt](BV sol)
-    // {
-    //     // here the choice of hard copies is compulsory
-    //     BM retMat;
-    //
-    //     if (M_useExtrapolation)
-    //         this->M_funProvider->setExtrapolatedSolution(computeExtrapolatedSolution());
-    //
-    //     retMat.hardCopy(this->M_funProvider->getJacobianRightHandSide(time+dt, sol));
-    //     retMat *= (-1. * M_rhsCoeff * dt);
-    //     retMat += this->M_funProvider->getMass(time+dt, sol);
-    //     retMat += this->M_funProvider->getMassJacobian(time+dt, sol);
-    //
-    //     // this is the part relative to the previous steps
-    //     unsigned int count = 0;
-    //     for (BV vec : M_prevSolutions)
-    //     {
-    //         retMat += this->M_funProvider->getMassJacobian(time+dt, vec) * M_coefficients[count];
-    //         count++;
-    //     }
-    //
-    //     return retMat;
-    // });
-    //
-    // BV sol = this->M_systemSolver.solve(fct, jac, initialGuess, status);
-    //
-    // if (status != 0)
-    //     throw new Exception("Solver has not converged!");
-    //
-    // std::vector<SolverStatistics> statistics = this->M_systemSolver.getSolverStatistics();
-    // this->dumpSolverStatistics(statistics, time+dt);
-    //
-    // return sol;
+    typedef SHP(aVector)               BV;
+    typedef SHP(aMatrix)               BM;
+
+    // we set the initial guess equal to the last solution
+    // keep in mind that this MUST be a hard copy
+    BV initialGuess = computeExtrapolatedSolution();
+
+    this->M_funProvider->applyDirichletBCs(time+dt, initialGuess);
+
+    FunctionFunctor<BV,BV> fct(
+        [this,time,dt](BV sol)
+    {
+        BM mass(this->M_funProvider->getMass(time+dt, sol));
+        if (M_useExtrapolation)
+            this->M_funProvider->setExtrapolatedSolution(computeExtrapolatedSolution());
+
+        BV f(this->M_funProvider->getRightHandSide(time+dt, sol));
+        BV prevContribution(new BlockVector(0));
+        unsigned int count = 0;
+        for (BV vec : M_prevSolutions)
+        {
+            BV vecCopy(new BlockVector(0));
+            vecCopy->hardCopy(M_prevSolutions[count]);
+            vecCopy->multiplyByScalar(M_coefficients[count]);
+            prevContribution->add(vecCopy);
+            count++;
+        }
+        prevContribution->add(sol);
+
+        BV retVec(new BlockVector(0));
+        retVec->hardCopy(mass->multiplyByVector(prevContribution));
+
+        f->multiplyByScalar(-1. * M_rhsCoeff * dt);
+        retVec->add(f);
+        // the previous solution satisfies the boundary conditions so we search
+        // for an increment with 0bcs
+        this->M_funProvider->apply0DirichletBCs(retVec);
+
+        return retVec;
+    });
+
+    FunctionFunctor<BV,BM> jac(
+        [this,time,dt](BV sol)
+    {
+        // here the choice of hard copies is compulsory
+        BM retMat(new BlockMatrix(1,1));
+
+        if (M_useExtrapolation)
+            this->M_funProvider->setExtrapolatedSolution(computeExtrapolatedSolution());
+
+        retMat->hardCopy(this->M_funProvider->getJacobianRightHandSide(time+dt, sol));
+        retMat->multiplyByScalar(-1. * M_rhsCoeff * dt);
+        retMat->add(this->M_funProvider->getMass(time+dt, sol));
+        retMat->add(this->M_funProvider->getMassJacobian(time+dt, sol));
+
+        // this is the part relative to the previous steps
+        unsigned int count = 0;
+        for (BV vec : M_prevSolutions)
+        {
+            auto massjac = this->M_funProvider->getMassJacobian(time+dt, vec);
+            massjac->multiplyByScalar(M_coefficients[count]);
+            retMat->add(massjac);
+            count++;
+        }
+
+        return retMat;
+    });
+
+    BV sol = this->M_systemSolver.solve(fct, jac, initialGuess, status);
+
+    if (status != 0)
+        throw new Exception("Solver has not converged!");
+
+    std::vector<SolverStatistics> statistics = this->M_systemSolver.getSolverStatistics();
+    this->dumpSolverStatistics(statistics, time+dt);
+
+    return sol;
 }
 
-SHP(BlockVector)
+SHP(aVector)
 BDF::
-computeDerivative(const SHP(BlockVector)& solnp1, double& dt)
+computeDerivative(const SHP(aVector)& solnp1, double& dt)
 {
-    // typedef BlockVector               BV;
-    //
-    // BlockVector retVec;
-    // retVec.hardCopy(solnp1);
-    //
-    // unsigned int count = 0;
-    // for (BV vec : M_prevSolutions)
-    // {
-    //     retVec += vec * M_coefficients[count];
-    //     count++;
-    // }
-    //
-    // retVec *= (1.0/(dt * M_rhsCoeff));
-    // return retVec;
+    typedef SHP(BlockVector)               BV;
+
+    BV retVec(new BlockVector(0));
+    retVec->hardCopy(solnp1);
+
+    unsigned int count = 0;
+    for (BV vec : M_prevSolutions)
+    {
+        BV vecCopy(new BlockVector(0));
+        vecCopy->hardCopy(vec);
+        vecCopy->multiplyByScalar(M_coefficients[count]);
+        retVec->add(vecCopy);
+        count++;
+    }
+
+    retVec->multiplyByScalar(1.0/(dt * M_rhsCoeff));
+    return retVec;
 }
 
 void
 BDF::
-shiftSolutions(const SHP(BlockVector)& sol)
+shiftSolutions(const SHP(aVector)& sol)
 {
-    // // shift solutions
-    // std::vector<BlockVector> newPrevSolutions(M_order);
-    // newPrevSolutions[0].hardCopy(sol);
-    //
-    // for (unsigned int i = 0; i < M_order-1; i++)
-    //     newPrevSolutions[i+1].softCopy(M_prevSolutions[i]);
-    //
-    // M_prevSolutions = newPrevSolutions;
+    // shift solutions
+    std::vector<SHP(BlockVector)> newPrevSolutions(M_order);
+    newPrevSolutions[0]->hardCopy(sol);
+
+    for (unsigned int i = 0; i < M_order-1; i++)
+        newPrevSolutions[i+1]->softCopy(M_prevSolutions[i]);
+
+    M_prevSolutions = newPrevSolutions;
 }
 
 }

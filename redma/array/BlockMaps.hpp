@@ -53,7 +53,7 @@ public:
 private:
     void generateMaps() {};
 
-    BlockMatrix                  M_matrix;
+    SHP(BlockMatrix)             M_matrix;
     std::vector<SHP(Epetra_Map)> M_rangeMaps;
     std::vector<SHP(Epetra_Map)> M_domainMaps;
     std::vector<SHP(MAPEPETRA)>  M_rangeMapsEpetra;
@@ -63,14 +63,14 @@ private:
     std::vector<unsigned int>    M_nInnerCols;
 };
 
-SHP(aMatrix) collapseBlocks(const SHP(BlockMatrix)& matrix,
+SHP(aMatrix) collapseBlocks(const SHP(aMatrix)& matrix,
                             const BlockMaps& maps);
 
-SHP(VECTOREPETRA) getEpetraVector(const BlockVector& vector,
+SHP(VECTOREPETRA) getEpetraVector(const SHP(aVector)& vector,
                                   const BlockMaps& maps);
 
-BlockVector getBlockVector(const SHP(VECTOREPETRA)& vector,
-                           const BlockMaps& maps);
+SHP(aVector) getBlockVector(const SHP(VECTOREPETRA)& vector,
+                                const BlockMaps& maps);
 
 }
 

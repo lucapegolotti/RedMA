@@ -81,9 +81,9 @@ protected:
     SHP(FESPACE)                    M_pressureFESpace;
     SHP(ETFESPACE3)                 M_velocityFESpaceETA;
     SHP(ETFESPACE1)                 M_pressureFESpaceETA;
-    BlockMatrix                     M_jac;
-    BlockMatrix                     M_massJac;
-    BlockMatrix                     M_mass;
+    SHP(BlockMatrix)                M_jac;
+    SHP(BlockMatrix)                M_massJac;
+    SHP(BlockMatrix)                M_mass;
     double                          M_dt;
     double                          M_C_I;
 };

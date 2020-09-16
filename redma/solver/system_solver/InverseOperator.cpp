@@ -1,10 +1,10 @@
-#include "InverseOperatorEp.hpp"
+#include "InverseOperator.hpp"
 
 namespace RedMA
 {
 
-InverseOperatorEp::
-InverseOperatorEp(const DataContainer& data) :
+InverseOperator::
+InverseOperator(const DataContainer& data) :
   M_data(data)
 {
     using namespace LifeV::Operators;
@@ -17,22 +17,22 @@ InverseOperatorEp(const DataContainer& data) :
 
 
 void
-InverseOperatorEp::
-setOperator(SHP(LinearOperatorEp) oper)
+InverseOperator::
+setOperator(SHP(LinearOperator) oper)
 {
     // M_maps = oper->getBlockMaps();
     M_invOper->setOperator(oper);
 }
 
 void
-InverseOperatorEp::
-setPreconditioner(SHP(PreconditionerOperatorEp) prec)
+InverseOperator::
+setPreconditioner(SHP(PreconditionerOperator) prec)
 {
     M_invOper->setPreconditioner(prec);
 }
 
 void
-InverseOperatorEp::
+InverseOperator::
 setSolverOptions()
 {
     std::string optionsPrec = M_data("preconditioner/options",
@@ -46,9 +46,8 @@ setSolverOptions()
 }
 
 int
-InverseOperatorEp::
-invert(const BlockVector& rhs,
-       BlockVector& sol)
+InverseOperator::
+invert(const SHP(aVector)& rhs, SHP(aVector)& sol)
 {
     SHP(VECTOREPETRA) rhsEpetra = getEpetraVector(rhs, *M_maps);
     SHP(VECTOREPETRA) solEpetra = getEpetraVector(sol, *M_maps);

@@ -43,24 +43,24 @@ public:
 
     GeneralizedAlphaMethod(const DataContainer& data, SHP(FunProvider) funProvider);
 
-    virtual void setup(const SHP(BlockVector)& zeroVector) override;
+    virtual void setup(const SHP(aVector)& zeroVector) override;
 
-    virtual SHP(BlockVector) advance(const double& time, double& dt, int& status) override;
+    virtual SHP(aVector) advance(const double& time, double& dt, int& status) override;
 
-    virtual SHP(BlockVector) computeDerivative(const SHP(BlockVector)& solnp1, double& dt) override;
+    virtual SHP(aVector) computeDerivative(const SHP(aVector)& solnp1, double& dt) override;
 
-    virtual void shiftSolutions(const SHP(BlockVector)& sol) override;
+    virtual void shiftSolutions(const SHP(aVector)& sol) override;
 
 protected:
-    SHP(BlockVector) computesolnp1(SHP(BlockVector) dersol, const double& dt);
+    SHP(aVector) computesolnp1(SHP(aVector) dersol, const double& dt);
 
-    SHP(BlockVector) computesolnpalphaf(SHP(BlockVector) solnp1);
+    SHP(aVector) computesolnpalphaf(SHP(aVector) solnp1);
 
-    SHP(BlockVector) computedersolnpalpham(SHP(BlockVector) dersol);
+    SHP(aVector) computedersolnpalpham(SHP(aVector) dersol);
 
 
-    SHP(BlockVector)                            M_prevSolution;
-    SHP(BlockVector)                            M_prevDerivative;
+    SHP(aVector)                            M_prevSolution;
+    SHP(aVector)                            M_prevDerivative;
     unsigned int                           M_order;
     double                                 M_alpham;
     double                                 M_alphaf;

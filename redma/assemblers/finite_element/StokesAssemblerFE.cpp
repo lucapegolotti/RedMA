@@ -5,10 +5,12 @@ namespace RedMA
 
 StokesAssemblerFE::
 StokesAssemblerFE(const DataContainer& data, SHP(TreeNode) treeNode) :
+  aAssemblerFE(data, treeNode),
   StokesAssembler(data, treeNode)
 {
     this->M_bcManager.reset(new BCManager(data, treeNode));
     M_name = "StokesAssemblerFE";
+    M_nComponents = 2;
 }
 
 void
@@ -22,12 +24,10 @@ setup()
     msg += this->M_name;
     msg += "] initializing ...";
     printlog(YELLOW, msg, this->M_data.getVerbose());
-
     initializeFEspaces();
-
-    M_mass = assembleReducedMass(M_bcManager); // #1
-    M_stiffness = assembleReducedStiffness(M_bcManager); // #2
-    M_divergence = assembleReducedDivergence(M_bcManager); // #3
+    M_mass = std::static_pointer_cast<BlockMatrix>(assembleReducedMass(M_bcManager)); // #1
+    M_stiffness = std::static_pointer_cast<BlockMatrix>(assembleReducedStiffness(M_bcManager)); // #2
+    M_divergence = std::static_pointer_cast<BlockMatrix>(assembleReducedDivergence(M_bcManager)); // #3
 
     assembleFlowRateVectors();
     // assembleFlowRateJacobians();
@@ -44,7 +44,7 @@ setup()
 
 void
 StokesAssemblerFE::
-postProcess(const double& t, const SHP(BlockVector)& sol)
+postProcess(const double& t, const SHP(aVector)& sol)
 {
     // shift solutions in multistep method embedded in windkessels
     M_bcManager->postProcess();
@@ -52,7 +52,7 @@ postProcess(const double& t, const SHP(BlockVector)& sol)
 
 void
 StokesAssemblerFE::
-exportSolution(const double& t, const SHP(BlockVector)& sol)
+exportSolution(const double& t, const SHP(aVector)& sol)
 {
     *M_velocityExporter = *static_cast<VECTOREPETRA*>(sol->block(0)->data().get());
     *M_pressureExporter = *static_cast<VECTOREPETRA*>(sol->block(1)->data().get());
@@ -73,47 +73,44 @@ exportSolution(const double& t, const SHP(BlockVector)& sol)
     printlog(CYAN, ct.restore());
 }
 
-SHP(BlockMatrix)
+SHP(aMatrix)
 StokesAssemblerFE::
-getMass(const double& time, const SHP(BlockVector)& sol)
+getMass(const double& time, const SHP(aVector)& sol)
 {
     return M_mass;
 }
 
-SHP(BlockMatrix)
+SHP(aMatrix)
 StokesAssemblerFE::
-getMassJacobian(const double& time, const SHP(BlockVector)& sol)
+getMassJacobian(const double& time, const SHP(aVector)& sol)
 {
-    SHP(BlockMatrix) retMat(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+    SHP(aMatrix) retMat(new BlockMatrix(this->M_nComponents, this->M_nComponents));
     return retMat;
 }
 
-SHP(BlockVector)
+SHP(aVector)
 StokesAssemblerFE::
 getRightHandSide(const double& time,
-                 const SHP(BlockVector)& sol)
+                 const SHP(aVector)& sol)
 {
-    SHP(BlockMatrix) systemMatrix(new BlockMatrix());
+    SHP(BlockMatrix) systemMatrix(new BlockMatrix(this->M_nComponents,
+                                                  this->M_nComponents));
 
-    systemMatrix->resize(this->M_nComponents, this->M_nComponents);
     systemMatrix->add(M_stiffness);
     systemMatrix->add(M_divergence);
     systemMatrix->multiplyByScalar(-1.0);
 
-    SHP(BlockVector) retVec;
-    retVec.reset(static_cast<BlockVector*>(systemMatrix->multiplyByVector(sol).get()));
-
+    SHP(aVector) retVec = systemMatrix->multiplyByVector(sol);
     // addNeumannBCs(retVec, time, sol);
 
     return retVec;
 }
 
-SHP(BlockMatrix)
+SHP(aMatrix)
 StokesAssemblerFE::
-getJacobianRightHandSide(const double& time, const SHP(BlockVector)& sol)
+getJacobianRightHandSide(const double& time, const SHP(aVector)& sol)
 {
-    SHP(BlockMatrix) retMat(new BlockMatrix());
-    retMat->resize(this->M_nComponents, this->M_nComponents);
+    SHP(BlockMatrix) retMat(new BlockMatrix(this->M_nComponents, this->M_nComponents));
 
     retMat->add(M_stiffness);
     retMat->add(M_divergence);
@@ -143,14 +140,14 @@ getJacobianRightHandSide(const double& time, const SHP(BlockVector)& sol)
     return retMat;
 }
 
-SHP(BlockVector)
+SHP(aVector)
 StokesAssemblerFE::
 getZeroVector() const
 {
     return buildZeroVector();
 }
 
-SHP(BlockVector)
+SHP(aVector)
 StokesAssemblerFE::
 getFELifting(const double& time) const
 {
@@ -169,7 +166,7 @@ getFELifting(const double& time) const
     // return lifting;
 }
 
-SHP(BlockVector)
+SHP(aVector)
 StokesAssemblerFE::
 getLifting(const double& time) const
 {
@@ -230,24 +227,28 @@ setExporter()
 
 void
 StokesAssemblerFE::
-apply0DirichletBCsMatrix(SHP(BlockMatrix)& matrix, double diagCoeff) const
+apply0DirichletBCsMatrix(SHP(aMatrix) matrix, double diagCoeff) const
 {
-    this->M_bcManager->apply0DirichletMatrix(*matrix, getFESpaceBCs(),
+    auto matrixConverted = std::static_pointer_cast<BlockMatrix>(matrix);
+    this->M_bcManager->apply0DirichletMatrix(*matrixConverted, getFESpaceBCs(),
                                              getComponentBCs(), diagCoeff);
 }
 
 void
 StokesAssemblerFE::
-apply0DirichletBCs(SHP(BlockVector)& vector) const
+apply0DirichletBCs(SHP(aVector) vector) const
 {
-    this->M_bcManager->apply0DirichletBCs(*vector, getFESpaceBCs(), getComponentBCs());
+    auto vectorConverted = std::static_pointer_cast<BlockVector>(vector);
+    this->M_bcManager->apply0DirichletBCs(*vectorConverted, getFESpaceBCs(),
+                                          getComponentBCs());
 }
 
 void
 StokesAssemblerFE::
-applyDirichletBCs(const double& time, SHP(BlockVector)& vector) const
+applyDirichletBCs(const double& time, SHP(aVector) vector) const
 {
-    this->M_bcManager->applyDirichletBCs(time, *vector, getFESpaceBCs(),
+    auto vectorConverted = std::static_pointer_cast<BlockVector>(vector);
+    this->M_bcManager->applyDirichletBCs(time, *vectorConverted, getFESpaceBCs(),
                                          getComponentBCs());
 }
 
@@ -263,11 +264,11 @@ getFEspace(unsigned int index) const
     return nullptr;
 }
 
-std::vector<SHP(BlockMatrix)>
+std::vector<SHP(aMatrix)>
 StokesAssemblerFE::
 getMatrices() const
 {
-    std::vector<SHP(BlockMatrix)> retVec;
+    std::vector<SHP(aMatrix)> retVec;
 
     retVec.push_back(M_mass);
     retVec.push_back(M_stiffness);
@@ -276,7 +277,7 @@ getMatrices() const
     return retVec;
 }
 
-SHP(BlockMatrix)
+SHP(aMatrix)
 StokesAssemblerFE::
 assembleMatrix(const unsigned int& index,
                BlockMDEIMStructure* structure)
@@ -295,14 +296,14 @@ assembleMatrix(const unsigned int& index,
     }
 }
 
-SHP(SparseMatrix)
+SHP(aMatrix)
 StokesAssemblerFE::
 getNorm(const unsigned int& fieldIndex, bool bcs)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(SparseMatrix) retMat;
+    SHP(SparseMatrix) retMat(new SparseMatrix);
     if (fieldIndex == 0)
     {
         // if (!M_massVelocity.data())
@@ -321,8 +322,7 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
 
             if (bcs)
             {
-                SHP(BlockMatrix) normWrap(new BlockMatrix());
-                normWrap->resize(1,1);
+                SHP(BlockMatrix) normWrap(new BlockMatrix(1,1));
                 normWrap->block(0,0)->data() = Nu;
 
                 // note. Applying bcs does not change the norm if Dirichlet bcs are
@@ -363,11 +363,11 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
     return retMat;
 }
 
-SHP(SparseMatrix)
+SHP(aMatrix)
 StokesAssemblerFE::
 getConstraintMatrix()
 {
-    return std::static_pointer_cast<SparseMatrix>(M_divergence->block(0,1));
+    return M_divergence->block(0,1);
 }
 
 void
@@ -390,14 +390,14 @@ setMDEIMs(SHP(MDEIMManager) mdeimManager)
 
 void
 StokesAssemblerFE::
-setExtrapolatedSolution(const SHP(BlockVector)& exSol)
+setExtrapolatedSolution(const SHP(aVector)& exSol)
 {
     M_extrapolatedSolution->softCopy(exSol);
 }
 
 void
 StokesAssemblerFE::
-applyPiola(SHP(BlockVector) solution, bool inverse)
+applyPiola(SHP(aVector) solution, bool inverse)
 {
     std::string msg = "[";
     msg += this->M_name;

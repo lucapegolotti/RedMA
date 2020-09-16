@@ -42,21 +42,21 @@ class StokesAssembler
 public:
     StokesAssembler(const DataContainer& data, SHP(TreeNode) treeNode);
 
-    SHP(BlockVector) getForcingTerm(const double& time) const;
+    SHP(aVector) getForcingTerm(const double& time) const;
 
-    void addNeumannBCs(SHP(BlockVector)& input, const double& time,
-                       const SHP(BlockVector)& sol);
+    void addNeumannBCs(SHP(aVector)& input, const double& time,
+                       const SHP(aVector)& sol);
 
-    SHP(BlockMatrix) assembleReducedStiffness(SHP(BCManager) bcManager,
+    SHP(aMatrix) assembleReducedStiffness(SHP(BCManager) bcManager,
                                          BlockMDEIMStructure* structure = nullptr);
 
-    SHP(BlockMatrix) assembleReducedMass(SHP(BCManager) bcManager,
+    SHP(aMatrix) assembleReducedMass(SHP(BCManager) bcManager,
                                     BlockMDEIMStructure* structure = nullptr);
 
-    SHP(BlockMatrix) assembleReducedDivergence(SHP(BCManager) bcManager,
+    SHP(aMatrix) assembleReducedDivergence(SHP(BCManager) bcManager,
                                           BlockMDEIMStructure* structure = nullptr);
 
-    std::map<unsigned int, double> computeFlowRates(SHP(BlockVector) sol,
+    std::map<unsigned int, double> computeFlowRates(SHP(aVector) sol,
                                                     bool verbose = false);
 
     // these are int_{Gamma_N} phi_i * n inlets (just to check that it is preserved)
@@ -70,8 +70,8 @@ public:
 
     SHP(MATRIXEPETRA) assembleFlowRateJacobian(const GeometricFace& face);
 
-    void addBackFlowStabilization(SHP(BlockVector)& input,
-                                  SHP(BlockVector) sol,
+    void addBackFlowStabilization(SHP(aVector)& input,
+                                  SHP(aVector) sol,
                                   const unsigned int& faceFlag);
 
     void exportNorms(double t, SHP(VECTOREPETRA) velocity, SHP(VECTOREPETRA) pressure);
@@ -83,7 +83,7 @@ public:
                                 EPETRACOMM comm);
 
     void apply0DirichletBCsMatrix(SHP(BCManager) bcManager,
-                                  SHP(BlockMatrix)& matrix, double diagCoeff);
+                                  SHP(aMatrix) matrix, double diagCoeff);
 
     void initializeVelocityFESpace(EPETRACOMM comm);
 

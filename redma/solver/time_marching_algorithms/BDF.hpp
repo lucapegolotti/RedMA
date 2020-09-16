@@ -40,20 +40,20 @@ public:
 
     BDF(const DataContainer& data, SHP(FunProvider) funProvider);
 
-    virtual void setup(const SHP(BlockVector)& zeroVector) override;
+    virtual void setup(const SHP(aVector)& zeroVector) override;
 
-    virtual SHP(BlockVector) advance(const double& time, double& dt,
+    virtual SHP(aVector) advance(const double& time, double& dt,
                                               int& status) override;
 
-    virtual void shiftSolutions(const SHP(BlockVector)& sol) override;
+    virtual void shiftSolutions(const SHP(aVector)& sol) override;
 
-    virtual SHP(BlockVector) computeDerivative(const SHP(BlockVector)& solnp1,
+    virtual SHP(aVector) computeDerivative(const SHP(aVector)& solnp1,
                                                         double& dt) override;
 
-    SHP(BlockVector) computeExtrapolatedSolution();
+    SHP(aVector) computeExtrapolatedSolution();
 
 protected:
-    std::vector<SHP(BlockVector)>                 M_prevSolutions;
+    std::vector<SHP(BlockVector)>            M_prevSolutions;
     std::vector<double>                      M_coefficients;
     unsigned int                             M_order;
     double                                   M_rhsCoeff;

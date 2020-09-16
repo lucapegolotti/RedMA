@@ -19,8 +19,8 @@
 
 #include <redma/RedMA.hpp>
 
-#include <redma/array/BlockVector.hpp>
-#include <redma/array/BlockMatrix.hpp>
+#include <redma/array/aVector.hpp>
+#include <redma/array/aMatrix.hpp>
 
 #include <fstream>
 
@@ -33,21 +33,21 @@ public:
 
     aFunctionProvider() {};
 
-    virtual SHP(BlockVector) getZeroVector() const = 0;
+    virtual SHP(aVector) getZeroVector() const = 0;
 
-    virtual SHP(BlockMatrix) getMass(const double& time, const SHP(BlockVector)& sol) = 0;
+    virtual SHP(aMatrix) getMass(const double& time, const SHP(aVector)& sol) = 0;
 
-    virtual SHP(BlockMatrix) getMassJacobian(const double& time, const SHP(BlockVector)& sol) = 0;
+    virtual SHP(aMatrix) getMassJacobian(const double& time, const SHP(aVector)& sol) = 0;
 
-    virtual SHP(BlockVector) getRightHandSide(const double& time, const SHP(BlockVector)& sol) = 0;
+    virtual SHP(aVector) getRightHandSide(const double& time, const SHP(aVector)& sol) = 0;
 
-    virtual SHP(BlockMatrix) getJacobianRightHandSide(const double& time, const SHP(BlockVector)& sol) = 0;
+    virtual SHP(aMatrix) getJacobianRightHandSide(const double& time, const SHP(aVector)& sol) = 0;
 
-    virtual void apply0DirichletBCs(SHP(BlockVector)& vector) const = 0;
+    virtual void apply0DirichletBCs(SHP(aVector) vector) const = 0;
 
-    virtual void applyDirichletBCs(const double& time, SHP(BlockVector)& vector) const = 0;
+    virtual void applyDirichletBCs(const double& time, SHP(aVector) vector) const = 0;
 
-    virtual void setExtrapolatedSolution(const SHP(BlockVector)& exSol) = 0;
+    virtual void setExtrapolatedSolution(const SHP(aVector)& exSol) = 0;
 };
 
 }

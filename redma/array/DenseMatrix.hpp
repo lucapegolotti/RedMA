@@ -43,8 +43,6 @@ class DenseMatrix : public aMatrix
 public:
     DenseMatrix();
 
-    virtual ~DenseMatrix() {};
-
     // DenseMatrix(const std::vector<int>& columnVectors);
 
     virtual void add(std::shared_ptr<aMatrix> other) override;

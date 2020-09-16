@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef SADDLEPOINTPRECONDITIONEREP_HPP
-#define SADDLEPOINTPRECONDITIONEREP_HPP
+#ifndef SADDLEPOINTPRECONDITIONER_HPP
+#define SADDLEPOINTPRECONDITIONER_HPP
 
-#include <redma/solver/system_solver/PreconditionerOperatorEp.hpp>
+#include <redma/solver/system_solver/PreconditionerOperator.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/utils/Exception.hpp>
 #include <redma/utils/PrintLog.hpp>
@@ -34,18 +34,18 @@
 namespace RedMA
 {
 
-class SaddlePointPreconditionerEp : public PreconditionerOperatorEp
+class SaddlePointPreconditioner : public PreconditionerOperator
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
-    typedef SHP(BlockVector)                                         BV;
-    typedef SHP(BlockMatrix)                                         BM;
+    typedef SHP(aVector)                                             BV;
+    typedef SHP(aMatrix)                                             BM;
     typedef LifeV::Operators::NavierStokesPreconditionerOperator     NSPrec;
     typedef LifeV::Operators::NavierStokesOperator                   NSOp;
     typedef LifeV::Operators::InvertibleOperator                     InvOp;
     typedef LifeV::Operators::ApproximatedInvertibleRowMatrix        ApproxInv;
 
 public:
-    SaddlePointPreconditionerEp(const DataContainer& data, const BM& matrix);
+    SaddlePointPreconditioner(const DataContainer& data, const BM& matrix);
 
     virtual int ApplyInverse(const super::vector_Type& X,
                              super::vector_Type& Y) const override;
@@ -96,4 +96,4 @@ private:
 
 }
 
-#endif // SADDLEPOINTPRECONDITIONEREP_HPP
+#endif // SADDLEPOINTPRECONDITIONER_HPP

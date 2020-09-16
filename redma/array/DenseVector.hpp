@@ -36,7 +36,7 @@ class DenseVector : public aVector
 public:
     DenseVector();
 
-    virtual ~DenseVector() {};
+    DenseVector(const DenseVector& vector);
 
     virtual void add(std::shared_ptr<aVector> other) override;
 

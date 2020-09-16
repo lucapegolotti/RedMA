@@ -31,27 +31,27 @@ public:
     virtual void setup() override;
 
     virtual void exportSolution(const double& t,
-                                const SHP(BlockVector)& sol) override;
+                                const SHP(aVector)& sol) override;
 
-    virtual void postProcess(const double& t, const SHP(BlockVector)& sol) override;
+    virtual void postProcess(const double& t, const SHP(aVector)& sol) override;
 
-    virtual SHP(BlockMatrix) getMass(const double& time,
-                                     const SHP(BlockVector)& sol) override;
+    virtual SHP(aMatrix) getMass(const double& time,
+                                     const SHP(aVector)& sol) override;
 
-    virtual SHP(BlockMatrix) getMassJacobian(const double& time,
-                                             const SHP(BlockVector)& sol) override;
+    virtual SHP(aMatrix) getMassJacobian(const double& time,
+                                             const SHP(aVector)& sol) override;
 
-    virtual SHP(BlockVector) getRightHandSide(const double& time,
-                                              const SHP(BlockVector)& sol) override;
+    virtual SHP(aVector) getRightHandSide(const double& time,
+                                              const SHP(aVector)& sol) override;
 
-    virtual SHP(BlockMatrix) getJacobianRightHandSide(const double& time,
-                                                      const SHP(BlockVector)& sol) override;
+    virtual SHP(aMatrix) getJacobianRightHandSide(const double& time,
+                                                      const SHP(aVector)& sol) override;
 
-    virtual SHP(BlockVector) getZeroVector() const override;
+    virtual SHP(aVector) getZeroVector() const override;
 
-    virtual SHP(BlockVector) getLifting(const double& time) const override;
+    virtual SHP(aVector) getLifting(const double& time) const override;
 
-    virtual SHP(BlockVector) getFELifting(const double& time) const override;
+    virtual SHP(aVector) getFELifting(const double& time) const override;
 
     void initializeFEspaces() override;
 
@@ -74,28 +74,28 @@ public:
         return this->M_pressureFESpaceETA;
     }
 
-    void apply0DirichletBCsMatrix(SHP(BlockMatrix)& matrix, double diagCoeff) const override;
+    void apply0DirichletBCsMatrix(SHP(aMatrix) matrix, double diagCoeff) const override;
 
-    void apply0DirichletBCs(SHP(BlockVector)& vector) const override;
+    void apply0DirichletBCs(SHP(aVector) vector) const override;
 
-    void applyDirichletBCs(const double& time, SHP(BlockVector)& vector) const override;
+    void applyDirichletBCs(const double& time, SHP(aVector) vector) const override;
 
     virtual inline SHP(FESPACE) getFEspace(unsigned int index) const override;
 
-    virtual std::vector<SHP(BlockMatrix)> getMatrices() const override;
+    virtual std::vector<SHP(aMatrix)> getMatrices() const override;
 
-    virtual SHP(BlockMatrix) assembleMatrix(const unsigned int& index,
+    virtual SHP(aMatrix) assembleMatrix(const unsigned int& index,
                                             BlockMDEIMStructure* structure = nullptr) override;
 
-    virtual SHP(SparseMatrix) getNorm(const unsigned int& fieldIndex, bool bcs = true) override;
+    virtual SHP(aMatrix) getNorm(const unsigned int& fieldIndex, bool bcs = true) override;
 
-    virtual SHP(SparseMatrix) getConstraintMatrix() override;
+    virtual SHP(aMatrix) getConstraintMatrix() override;
 
     virtual void setMDEIMs(SHP(MDEIMManager) mdeimManager) override;
 
-    void setExtrapolatedSolution(const SHP(BlockVector)& exSol) override;
+    void setExtrapolatedSolution(const SHP(aVector)& exSol) override;
 
-    virtual void applyPiola(SHP(BlockVector) solution, bool inverse) override;
+    virtual void applyPiola(SHP(aVector) solution, bool inverse) override;
 
 protected:
     SHP(LifeV::Exporter<MESH>)                        M_exporter;

@@ -13,7 +13,7 @@ PressureDrop(const double& C, const double& Rp, const double& Rd) :
 }
 
 
-SHP(BlockVector)
+SHP(aVector)
 PressureDrop::
 getZeroVector() const
 {
@@ -22,26 +22,26 @@ getZeroVector() const
     // return retVec;
 }
 
-SHP(BlockMatrix)
+SHP(aMatrix)
 PressureDrop::
-getMass(const double& time, const SHP(BlockVector)& sol)
+getMass(const double& time, const SHP(aVector)& sol)
 {
     // BlockMatrix<Double> mass(1,1);
     // mass.block(0,0) = 1.0;
     // return mass;
 }
 
-SHP(BlockMatrix)
+SHP(aMatrix)
 PressureDrop::
-getMassJacobian(const double& time, const SHP(BlockVector)& sol)
+getMassJacobian(const double& time, const SHP(aVector)& sol)
 {
     // BlockMatrix<Double> massJac(1,1);
     // return massJac;
 }
 
-SHP(BlockVector)
+SHP(aVector)
 PressureDrop::
-getRightHandSide(const double& time, const SHP(BlockVector)& sol)
+getRightHandSide(const double& time, const SHP(aVector)& sol)
 {
     // SHP(BlockVector) retVec;
     // retVec.hardCopy(sol);
@@ -50,9 +50,9 @@ getRightHandSide(const double& time, const SHP(BlockVector)& sol)
     // return retVec;
 }
 
-SHP(BlockMatrix)
+SHP(aMatrix)
 PressureDrop::
-getJacobianRightHandSide(const double& time, const SHP(BlockVector)& sol)
+getJacobianRightHandSide(const double& time, const SHP(aVector)& sol)
 {
     // BlockMatrix retMat(1,1);
     // retMat.block(0,0).data() = -1.0 / (M_C * M_Rd);

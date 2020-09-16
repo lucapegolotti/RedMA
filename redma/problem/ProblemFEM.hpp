@@ -35,10 +35,8 @@ namespace RedMA
 
 class ProblemFEM : public aProblem
 {
-    typedef BlockVector                   BV;
-    typedef BlockVector                   BBV;
-    typedef BlockMatrix                   BM;
-    typedef BlockMatrix                   BBM;
+    typedef SHP(BlockVector)                   BV;
+    typedef SHP(BlockMatrix)                   BM;
 public:
     ProblemFEM(const DataContainer& data, EPETRACOMM comm, bool doSetup = true);
 
@@ -50,7 +48,7 @@ public:
 
     inline TreeStructure& getTree() {return M_tree;}
 
-    inline std::vector<BBV> getSolutions() {return M_solutions;}
+    inline std::vector<BV> getSolutions() {return M_solutions;}
 
     inline std::vector<double> getTimesteps() {return M_timestepsSolutions;}
 
@@ -59,11 +57,11 @@ public:
 private:
     SHP(aTimeMarchingAlgorithm)                M_TMAlgorithm;
     SHP(BlockAssembler)                        M_assembler;
-    BBV                                        M_solution;
+    BV                                         M_solution;
     TreeStructure                              M_tree;
     GeometryParser                             M_geometryParser;
     bool                                       M_storeSolutions;
-    std::vector<BBV>                           M_solutions;
+    std::vector<BV>                            M_solutions;
     std::vector<double>                        M_timestepsSolutions;
     SHP(DefaultAssemblersLibrary)              M_defaultAssemblers;
     EPETRACOMM                                 M_comm;

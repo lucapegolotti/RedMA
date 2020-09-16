@@ -31,8 +31,8 @@ namespace RedMA
 
 class SystemSolver
 {
-    typedef BlockVector               BV;
-    typedef BlockMatrix               BM;
+    typedef SHP(aVector)               BV;
+    typedef SHP(aMatrix)               BM;
 
 public:
     SystemSolver(const DataContainer& data);

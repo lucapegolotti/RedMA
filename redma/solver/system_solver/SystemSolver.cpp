@@ -20,10 +20,10 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
     if (M_isLinearProblem)
     {
-        SHP(BV) incr(new BV(initialGuess.nRows()));
+        BV incr(new BlockVector(initialGuess->nRows()));
         BV curFun = fun(sol);
 
-        double err = curFun.norm2();
+        double err = curFun->norm2();
 
         std::ostringstream streamOb;
         streamOb << err;
@@ -34,12 +34,12 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
         incr->multiplyByScalar(0.0);
         BM curJac = jac(sol);
-        curJac.close();
+        curJac->close();
 
-        M_linearSystemSolver.solve(curJac, curFun, *incr);
+        M_linearSystemSolver.solve(curJac, curFun, incr);
 
         incr->multiplyByScalar(-1.0);
-        sol.add(incr);
+        sol->add(incr);
 
         status = 0;
     }
@@ -47,7 +47,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
     {
         M_solverStatistics.resize(0);
 
-        SHP(BV) incr(new BV(initialGuess.nRows()));
+        BV incr(new BlockVector(initialGuess->nRows()));
         BV curFun;
         BV sol = initialGuess;
 
@@ -64,7 +64,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
             if (count == 0)
             {
                 curFun = fun(sol);
-                err = curFun.norm2();
+                err = curFun->norm2();
                 initialError = err;
             }
 
@@ -84,16 +84,16 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
             {
                 incr->multiplyByScalar(0.0);
                 BM curJac = jac(sol);
-                curJac.close();
-                M_linearSystemSolver.solve(curJac, curFun, *incr);
+                curJac->close();
+                M_linearSystemSolver.solve(curJac, curFun, incr);
                 M_solverStatistics.push_back(M_linearSystemSolver.getSolverStatistics());
             }
             incr->multiplyByScalar(-1.0);
-            sol.add(incr);
+            sol->add(incr);
             count++;
 
             curFun = fun(sol);
-            err = curFun.norm2();
+            err = curFun->norm2();
         }
 
         // newton method has failed

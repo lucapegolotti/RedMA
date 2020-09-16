@@ -255,4 +255,16 @@ namespace RedMA
 //     return retVec;
 // }
 
+SHP(aVector)
+getBlockVector(const SHP(VECTOREPETRA)& vector, const BlockMaps& maps)
+{
+
+}
+
+SHP(VECTOREPETRA)
+getEpetraVector(const SHP(aVector)& vector, const BlockMaps& maps)
+{
+
+}
+
 }

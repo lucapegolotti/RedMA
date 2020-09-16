@@ -71,7 +71,7 @@ solve()
 
         int status = -1;
 
-        M_solution = M_TMAlgorithm->advance(t, dt, status);
+        M_solution = std::static_pointer_cast<BlockVector>(M_TMAlgorithm->advance(t, dt, status));
 
         if (status)
             throw new Exception("Error in solver. Status != 0.");
@@ -86,7 +86,7 @@ solve()
 
         if (M_storeNonLinearTerms && t >= t0)
         {
-            auto nonLinearTerm = M_assembler->getNonLinearTerm();
+            BBV nonLinearTerm = std::static_pointer_cast<BlockVector>(M_assembler->getNonLinearTerm());
             M_nonLinearTerms.push_back(nonLinearTerm);
         }
 

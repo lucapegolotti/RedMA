@@ -59,10 +59,13 @@ class InterfaceAssembler
     typedef aAssembler         AssemblerType;
 
 public:
+
     InterfaceAssembler(const DataContainer& data);
 
     InterfaceAssembler(const DataContainer& data,
                        const Interface& interface);
+
+    virtual ~InterfaceAssembler() {}
 
     void setup();
 
@@ -70,71 +73,71 @@ public:
 
     void buildCouplingMatrices(SHP(AssemblerType) assembler,
                                const GeometricFace& face,
-                               BlockMatrix& matrixT,
-                               BlockMatrix& matrix);
+                               SHP(BlockMatrix) matrixT,
+                               SHP(BlockMatrix) matrix);
 
     void buildStabilizationMatrix(SHP(AssemblerType) assembler,
                                   const GeometricFace& face,
-                                  BlockMatrix& matrix);
+                                  SHP(BlockMatrix) matrix);
 
     void buildMapLagrange(SHP(BasisFunctionFunctor) bfs);
 
     virtual void addContributionRhs(const double& time,
-                                    BlockVector& rhs,
-                                    const BlockVector& sol,
+                                    SHP(BlockVector) rhs,
+                                    SHP(BlockVector) sol,
                                     const unsigned int& nPrimalBlocks);
 
     virtual void addContributionJacobianRhs(const double& time,
-                                            BlockMatrix& jac,
-                                            const BlockVector& sol,
+                                            SHP(BlockMatrix) jac,
+                                            SHP(BlockVector) sol,
                                             const unsigned int& nPrimalBlocks);
 
     inline Interface getInterface() const {return M_interface;};
 
-    BlockVector getZeroVector() const;
+    SHP(BlockVector) getZeroVector() const;
 
-    double checkStabilizationTerm(const BlockVector& sol,
+    double checkStabilizationTerm(const SHP(BlockVector)& sol,
                                   const unsigned int& nPrimalBlocks);
 
-    inline BlockMatrix getFatherBT() const {return M_fatherBT;}
+    inline SHP(BlockMatrix) getFatherBT() const {return M_fatherBT;}
 
-    inline BlockMatrix getFatherB() const {return M_fatherB;}
+    inline SHP(BlockMatrix) getFatherB() const {return M_fatherB;}
 
-    inline BlockMatrix getChildBT() const {return M_childBT;}
+    inline SHP(BlockMatrix) getChildBT() const {return M_childBT;}
 
-    inline BlockMatrix getChildB() const {return M_childB;}
+    inline SHP(BlockMatrix) getChildB() const {return M_childB;}
 
 protected:
     SHP(LifeV::QuadratureRule) generateQuadratureRule(std::string tag) const;
 
-    std::vector<SHP(aVector)> buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
-                                                   const GeometricFace& face,
-                                                   SHP(aAssembler) assembler) const;
+    std::vector<SHP(DistributedVector)> buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
+                                                             const GeometricFace& face,
+                                                             SHP(aAssembler) assembler) const;
 
-    std::vector<SHP(aVector)> buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
-                                                                const GeometricFace& face,
-                                                                SHP(aAssembler) assembler) const;
+    std::vector<SHP(DistributedVector)> buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
+                                                                          const GeometricFace& face,
+                                                                          SHP(aAssembler) assembler) const;
 
-    std::vector<SHP(aVector)> buildStabilizationVectorsPressure(SHP(BasisFunctionFunctor) bfs,
-                                                                const GeometricFace& face,
-                                                                SHP(aAssembler) assembler) const;
+    std::vector<SHP(DistributedVector)> buildStabilizationVectorsPressure(SHP(BasisFunctionFunctor) bfs,
+                                                                          const GeometricFace& face,
+                                                                          SHP(aAssembler) assembler) const;
 
-    std::vector<SHP(aVector)> buildStabilizationVectorsLagrange() const;
+    std::vector<SHP(DistributedVector)> buildStabilizationVectorsLagrange() const;
 
-    Interface                         M_interface;
-    BlockMatrix                       M_identity;
-    BlockMatrix                       M_fatherBT;
-    BlockMatrix                       M_fatherB;
-    BlockMatrix                       M_childBT;
-    BlockMatrix                       M_childB;
+    Interface                              M_interface;
+    SHP(BlockMatrix)                       M_identity;
+    SHP(BlockMatrix)                       M_fatherBT;
+    SHP(BlockMatrix)                       M_fatherB;
+    SHP(BlockMatrix)                       M_childBT;
+    SHP(BlockMatrix)                       M_childB;
     // this is required in the RB setting to impose weakly dirichlet conditions
-    BlockMatrix                       M_childBEp;
-    BlockMatrix                       M_stabChild;
-    BlockMatrix                       M_stabFather;
-    DataContainer                     M_data;
-    SHP(LifeV::MapEpetra)             M_mapLagrange;
-    double                            M_stabilizationCoupling;
-    bool                              M_isInlet;
+    SHP(BlockMatrix)                       M_childBEp;
+    SHP(BlockMatrix)                       M_stabChild;
+    SHP(BlockMatrix)                       M_stabFather;
+    DataContainer                          M_data;
+    SHP(LifeV::MapEpetra)                  M_mapLagrange;
+    double                                 M_stabilizationCoupling;
+    bool                                   M_isInlet;
 };
 
 }

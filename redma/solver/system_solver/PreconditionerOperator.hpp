@@ -31,14 +31,14 @@
 namespace RedMA
 {
 
-class PreconditionerOperatorEp : public LifeV::Operators::LinearOperatorAlgebra
+class PreconditionerOperator : public LifeV::Operators::LinearOperatorAlgebra
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
     typedef BlockVector                                              BV;
     typedef BlockMatrix                                              BM;
 
 public:
-    PreconditionerOperatorEp();
+    PreconditionerOperator();
 
     // I provide null implementation of virtual methods
     // only to be able to instantiate class

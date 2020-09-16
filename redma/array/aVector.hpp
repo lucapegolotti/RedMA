@@ -64,6 +64,8 @@ public:
 
     virtual std::shared_ptr<aVector> block(const unsigned int& i) const {throw new Exception("Method block(uint) not overloaded");}
 
+    virtual void setBlock(const unsigned int& i, std::shared_ptr<aVector> vector) {throw new Exception("Method block(uint) not overloaded");}
+
     inline double normInf() const {return M_normInf;}
 
     inline unsigned int nRows() const {return M_nRows;}
@@ -75,7 +77,7 @@ protected:
     void checkType(std::shared_ptr<Type> other, Datatype type)
     {
         if (other->type() != type)
-            throw new Exception("Unexpected datatype!");
+            throw new Exception("Unexpected datatype of vector!");
     }
 
     unsigned int        M_nRows;

@@ -43,13 +43,11 @@ class SparseMatrix : public aMatrix
 public:
     SparseMatrix();
 
-    ~SparseMatrix() {};
-
     SparseMatrix(const SparseMatrix& other);
 
-    SparseMatrix(const std::vector<DistributedVector>& columnVectors);
+    SparseMatrix(std::vector<std::shared_ptr<DistributedVector>> columnVectors);
 
-    SparseMatrix(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors);
+    // SparseMatrix(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors);
 
     virtual void add(std::shared_ptr<aMatrix> other) override;
 

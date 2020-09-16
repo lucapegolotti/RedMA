@@ -19,6 +19,8 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/assemblers/abstract/aAssembler.hpp>
+#include <redma/assemblers/abstract/aAssemblerFE.hpp>
+#include <redma/assemblers/abstract/aAssemblerRB.hpp>
 #include <redma/assemblers/AssemblerFactory.hpp>
 #include <redma/assemblers/coupling/InterfaceAssembler.hpp>
 #include <redma/assemblers/coupling/InletInflowAssembler.hpp>
@@ -38,45 +40,45 @@ public:
     BlockAssembler() {}
 
     BlockAssembler(const DataContainer& data, const TreeStructure& tree,
-                   SHP(DefaultAssemblers) defAssemblers = nullptr) {}
+                   SHP(DefaultAssemblers) defAssemblers = nullptr);
 
-    virtual ~BlockAssembler() {}
+    // virtual ~BlockAssembler() {}
 
-    virtual void setup() override {}
+    virtual void setup() override;
 
     virtual void exportSolution(const double& t,
-                                const SHP(BlockVector)& sol) override {}
+                                const SHP(aVector)& sol) override;
 
     virtual void postProcess(const double& t,
-                             const SHP(BlockVector)& sol) override {}
+                             const SHP(aVector)& sol) override;
 
-    virtual SHP(BlockMatrix) getMass(const double& time,
-                                const SHP(BlockVector)& sol) override {}
+    virtual SHP(aMatrix) getMass(const double& time,
+                                const SHP(aVector)& sol) override;
 
-    virtual SHP(BlockMatrix) getMassJacobian(const double& time,
-                                        const SHP(BlockVector)& sol) override {}
+    virtual SHP(aMatrix) getMassJacobian(const double& time,
+                                        const SHP(aVector)& sol) override;
 
-    virtual SHP(BlockVector) getRightHandSide(const double& time,
-                                         const SHP(BlockVector)& sol) override {}
+    virtual SHP(aVector) getRightHandSide(const double& time,
+                                         const SHP(aVector)& sol) override;
 
-    virtual SHP(BlockMatrix) getJacobianRightHandSide(const double& time,
-                                                 const SHP(BlockVector)& sol) override {}
+    virtual SHP(aMatrix) getJacobianRightHandSide(const double& time,
+                                                 const SHP(aVector)& sol) override;
 
-    virtual SHP(BlockVector) getLifting(const double& time) const override {}
+    virtual SHP(aVector) getLifting(const double& time) const override;
 
-    virtual SHP(BlockVector) getZeroVector() const override {}
+    virtual SHP(aVector) getZeroVector() const override;
 
-    virtual void apply0DirichletBCsMatrix(SHP(BlockMatrix)& matrix, double diagCoeff) const override {}
+    virtual void apply0DirichletBCsMatrix(SHP(aMatrix) matrix, double diagCoeff) const override;
 
-    virtual void apply0DirichletBCs(SHP(BlockVector)& vector) const override {}
+    virtual void apply0DirichletBCs(SHP(aVector) vector) const override;
 
-    virtual void setExporter() override {}
+    virtual void setExporter() override;
 
-    virtual void applyDirichletBCs(const double& time, SHP(BlockVector)& vector) const override {}
+    virtual void applyDirichletBCs(const double& time, SHP(aVector) vector) const override;
 
-    virtual void checkStabTerm(const SHP(BlockVector)& sol) const {}
+    virtual void checkStabTerm(const SHP(aVector)& sol) const;
 
-    std::map<unsigned int, std::string> getIDMeshTypeMap() const {}
+    std::map<unsigned int, std::string> getIDMeshTypeMap() const;
 
     inline SHP(aAssembler) block(const unsigned int& index) {return M_primalAssemblers[index];}
 
@@ -84,21 +86,21 @@ public:
 
     std::vector<SHP(InterfaceAssembler)> getDualAssemblers() const {return M_dualAssemblers;}
 
-    SHP(BlockVector) convertFunctionRBtoFEM(SHP(BlockVector) rbFunction, EPETRACOMM comm) const {}
+    SHP(aVector) convertFunctionRBtoFEM(SHP(aVector) rbFunction, EPETRACOMM comm) const;
 
-    virtual void setExtrapolatedSolution(const SHP(BlockVector)& exSol) override {}
+    virtual void setExtrapolatedSolution(const SHP(aVector)& exSol) override;
 
-    virtual SHP(BlockVector) getNonLinearTerm() override {}
+    virtual SHP(aVector) getNonLinearTerm() override;
 
-    std::map<unsigned int,std::vector<double>> getRandomizibleParametersVectors() {}
+    std::map<unsigned int,std::vector<double>> getRandomizibleParametersVectors();
 
-    virtual void applyPiola(SHP(BlockVector) solution, bool inverse) override {}
+    virtual void applyPiola(SHP(aVector) solution, bool inverse) override {}
 
-    void applyGlobalPiola(SHP(BlockVector) solution, bool inverse) {}
+    void applyGlobalPiola(SHP(aVector) solution, bool inverse);
 
-    virtual void initializeFEspaces() override {}
+    virtual void initializeFEspaces() override;
 
-    void setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers) override {}
+    void setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers) override;
 
 protected:
     GetPot                                                        M_datafile;

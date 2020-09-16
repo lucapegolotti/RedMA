@@ -61,6 +61,10 @@ public:
 
     virtual bool isZero() const = 0;
 
+    virtual void setBlock(const unsigned int& i,
+                          const unsigned int& j,
+                          std::shared_ptr<aMatrix> matrix) {throw new Exception("Method setBlock(uint,uint,SHP(aMatrix)) not overloaded");}
+
     virtual std::shared_ptr<aMatrix> block(const unsigned int& i,
                                            const unsigned int& j) const {throw new Exception("Method block(uint,uint) not overloaded");}
 
@@ -76,12 +80,16 @@ public:
 
     inline Datatype type() {return M_type;}
 
+    virtual void close() {}
+
+    virtual void open() {}
+
 protected:
     template <class Type>
     void checkType(std::shared_ptr<Type> other, Datatype type)
     {
         if (other->type() != type)
-            throw new Exception("Unexpected datatype!");
+            throw new Exception("Unexpected datatype of matrix!");
     }
 
     unsigned int        M_nRows;

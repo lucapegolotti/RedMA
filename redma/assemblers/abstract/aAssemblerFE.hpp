@@ -25,11 +25,19 @@ namespace RedMA
 class aAssemblerFE : public aAssembler
 {
 public:
-    virtual SHP(SparseMatrix) getNorm(const unsigned int& fieldIndex, bool bcs = true) {return SHP(SparseMatrix)();}
+    aAssemblerFE(const DataContainer& datafile) :
+      aAssembler(datafile)
+    {}
 
-    virtual SHP(SparseMatrix) getConstraintMatrix() {return SHP(SparseMatrix)();}
+    aAssemblerFE(const DataContainer& datafile, SHP(TreeNode) node) :
+      aAssembler(datafile, node)
+    {}
 
-    virtual SHP(BlockVector) getFELifting(const double& time) const;
+    virtual SHP(aMatrix) getNorm(const unsigned int& fieldIndex, bool bcs = true) {return SHP(SparseMatrix)();}
+
+    virtual SHP(aMatrix) getConstraintMatrix() {return SHP(SparseMatrix)();}
+
+    virtual SHP(aVector) getFELifting(const double& time) const = 0;
 
 };
 

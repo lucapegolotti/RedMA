@@ -33,7 +33,7 @@ class DistributedVector : public aVector
 public:
     DistributedVector();
 
-    virtual ~DistributedVector() {}
+    DistributedVector(const DistributedVector& vector);
 
     virtual void add(std::shared_ptr<aVector> other) override;
 
@@ -61,14 +61,17 @@ public:
 
     DenseVector toDenseVector() const;
 
-    static DistributedVector convertDenseVector(DenseVector denseVector,
-                                       std::shared_ptr<Epetra_Comm> comm);
+    static std::shared_ptr<DistributedVector> convertDenseVector(
+        std::shared_ptr<DenseVector> denseVector,
+        std::shared_ptr<Epetra_Comm> comm);
 
     void setVector(std::shared_ptr<VECTOREPETRA> vector);
 
 private:
     std::shared_ptr<VECTOREPETRA>  M_vector;
 };
+
+std::shared_ptr<DistributedVector> epetraToDistributed(std::shared_ptr<VECTOREPETRA> vector);
 
 }
 

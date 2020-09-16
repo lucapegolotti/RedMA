@@ -106,6 +106,11 @@ std::shared_ptr<aVector>
 DenseMatrix::
 multiplyByVector(std::shared_ptr<aVector> vector)
 {
+    if (isZero())
+    {
+        // place holder for zero vector
+        return std::shared_ptr<DenseVector>(new DenseVector());
+    }
     checkType(vector, DENSE);
 
     std::shared_ptr<DENSEVECTOR> otherVector(
@@ -114,10 +119,12 @@ multiplyByVector(std::shared_ptr<aVector> vector)
     std::shared_ptr<DenseVector> retVec;
     if (!isZero() && !vector->isZero())
     {
-       std::shared_ptr<DENSEVECTOR> res;
-       res.reset(new DENSEVECTOR(M_nRows));
-       M_matrix->Multiply(false, *otherVector, *res);
-       retVec->setVector(res);
+        std::cout << "multiplyByVector is probably to fix in DenseMatrix" << std::endl << std::flush;
+        exit(1);
+        std::shared_ptr<DENSEVECTOR> res;
+        res.reset(new DENSEVECTOR(M_nRows));
+        M_matrix->Multiply(false, *otherVector, *res);
+        retVec->setVector(res);
     }
 
     return retVec;
@@ -194,7 +201,14 @@ DenseMatrix*
 DenseMatrix::
 clone() const
 {
-    return new DenseMatrix(*this);
+    DenseMatrix* retMatrix = new DenseMatrix();
+    if (M_matrix)
+    {
+        std::shared_ptr<DENSEMATRIX> newMatrix
+            (new DENSEMATRIX(*M_matrix));
+        retMatrix->setMatrix(newMatrix);
+    }
+    return retMatrix;
 }
 
 std::shared_ptr<void>
@@ -208,7 +222,7 @@ void
 DenseMatrix::
 setData(std::shared_ptr<void> data)
 {
-    M_matrix.reset(static_cast<DENSEMATRIX*>(data.get()));
+    setData(std::static_pointer_cast<DENSEMATRIX>(data));
 }
 
 }

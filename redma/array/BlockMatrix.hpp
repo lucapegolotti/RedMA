@@ -38,8 +38,6 @@ class BlockMatrix : public aMatrix
     typedef boost::numeric::ublas::matrix<std::shared_ptr<aMatrix>>       Grid;
 public:
 
-    BlockMatrix();
-
     virtual ~BlockMatrix() {};
 
     BlockMatrix(const BlockMatrix& other);
@@ -74,15 +72,15 @@ public:
                                  const unsigned int& jbegin, const unsigned int& jend) const;
 
     void setBlock(const unsigned int& iblock, const unsigned int& jblock,
-                  std::shared_ptr<aMatrix> matrix);
+                  std::shared_ptr<aMatrix> matrix) override;
 
     // inline bool isFinalized() const {return M_isFinalized;}
 
     void printPattern() const;
 
-    inline void close() {M_isOpen = false;}
+    void close() override;
 
-    inline void open() {M_isOpen = true;}
+    void open() override {M_isOpen = true;}
 
     inline bool isOpen() const {return M_isOpen;}
 
@@ -95,6 +93,8 @@ public:
     // std::shared_ptr<aMatrix> collapse() const {};
 
 protected:
+    BlockMatrix();
+
     void updateNormInf();
     // I introduce this only because on mac the operator+= behaves weirdly
     // void sumMatrix(const BlockMatrix& other) {};

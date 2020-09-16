@@ -66,7 +66,7 @@ applyDirichletBCs(const double& time, BlockVector& input,
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
-    SHP(VECTOREPETRA) curVec(static_cast<VECTOREPETRA*>(input.block(index)->data().get()));
+    SHP(VECTOREPETRA) curVec(std::static_pointer_cast<VECTOREPETRA>(input.block(index)->data()));
 
     if (curVec)
         bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
@@ -98,9 +98,9 @@ apply0DirichletMatrix(BlockMatrix& input,
 
     for (unsigned int j = 0; j < nCols; j++)
     {
-        SHP(MATRIXEPETRA) curMatrix(static_cast<MATRIXEPETRA*>(input.block(index, j)->data().get()));
-        if (curMatrix)
+        if (!input.block(index, j)->isZero())
         {
+            SHP(MATRIXEPETRA) curMatrix = std::static_pointer_cast<MATRIXEPETRA>(input.block(index, j)->data());
             auto domainMap = curMatrix->domainMapPtr();
             auto rangeMap = curMatrix->rangeMapPtr();
             bcManageMatrix(*curMatrix, *fespace->mesh(),
@@ -123,7 +123,7 @@ apply0DirichletBCs(BlockVector& input, SHP(FESPACE) fespace,
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
-    SHP(VECTOREPETRA) curVec(static_cast<VECTOREPETRA*>(input.block(index)->data().get()));
+    SHP(VECTOREPETRA) curVec(std::static_pointer_cast<VECTOREPETRA>(input.block(index)->data()));
     if (curVec)
         bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
                     *bcs, fespace->feBd(), 0.0, 0.0);

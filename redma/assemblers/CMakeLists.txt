@@ -8,11 +8,13 @@ add_subdirectory(models)
 set(HEADERS
     ${HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/AssemblerFactory.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DefaultAssemblersLibrary.hpp
     CACHE INTERNAL ""
 )
 
 set(SOURCES
     ${SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/AssemblerFactory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DefaultAssemblersLibrary.cpp
     CACHE INTERNAL ""
 )

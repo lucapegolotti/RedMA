@@ -5,32 +5,30 @@ namespace RedMA
 
 BlockVector::
 BlockVector() :
-  aVector(BLOCK),
-  M_isOpen(true)
+  aVector(BLOCK)
+  // M_isOpen(true)
 {
 }
 
 BlockVector::
 BlockVector(const BlockVector& other) :
-  aVector(BLOCK),
-  M_isOpen(true)
+  aVector(BLOCK)
+  // M_isOpen(other.M_isOpen)
 {
-    other.checkClosed();
-
+    // other.checkClosed();
     resize(other.nRows());
 
     for (unsigned int i = 0; i < other.nRows(); i++)
     {
         setBlock(i, other.block(i));
     }
-    close();
 }
 
 
 BlockVector::
 BlockVector(const unsigned int& nRows) :
-  aVector(BLOCK),
-  M_isOpen(true)
+  aVector(BLOCK)
+  // M_isOpen(true)
 {
     resize(nRows);
 }
@@ -41,22 +39,41 @@ resize(const unsigned int& nRows)
 {
     M_nRows = nRows;
     M_vectorGrid.resize(nRows,1);
+
+    for (unsigned int i = 0; i < nRows; i++)
+        M_vectorGrid(i,0).reset(new DenseVector());
 }
 
 void
 BlockVector::
 add(std::shared_ptr<aVector> other)
 {
-    BlockVector* otherVector = dynamic_cast<BlockVector*>(other.get());
+    if (other->nRows() == 0)
+        return;
 
-    checkClosed();
-    otherVector->checkClosed();
+    if (nRows() == 0)
+    {
+        hardCopy(other);
+        return;
+    }
+    std::shared_ptr<BlockVector> otherVector = std::static_pointer_cast<BlockVector>(other);
 
     if (nRows() != other->nRows())
         throw new Exception("BlockVector: inconsistent dimensions in add!");
 
     for (unsigned int i = 0; i < nRows(); i++)
-        block(i)->add(otherVector->block(i));
+    {
+        if (!block(i)->isZero())
+        {
+            if (otherVector && !otherVector->block(i)->isZero())
+            {
+                block(i)->add(otherVector->block(i));
+            }
+        }
+        else
+            if (otherVector->block(i))
+                setBlock(i,std::shared_ptr<aVector>(otherVector->block(i)->clone()));
+    }
 
     updateNormInf();
 }
@@ -65,9 +82,8 @@ void
 BlockVector::
 multiplyByScalar(const double& coeff)
 {
-    checkClosed();
-
     for (unsigned int i = 0; i < nRows(); i++)
+    if (block(i))
         block(i)->multiplyByScalar(coeff);
 
     updateNormInf();
@@ -94,7 +110,7 @@ softCopy(std::shared_ptr<aVector> other)
         for (unsigned int i = 0; i < nRows(); i++)
             M_vectorGrid(i,0)->softCopy(otherVector->block(i));
 
-        M_isOpen = otherVector->isOpen();
+        // M_isOpen = otherVector->isOpen();
         M_normInf = otherVector->normInf();
     }
 }
@@ -106,14 +122,17 @@ hardCopy(std::shared_ptr<aVector> other)
     if (other)
     {
         checkType(other, BLOCK);
-        auto otherVector = dynamic_cast<BlockVector*>(other.get());
+        std::shared_ptr<BlockVector> otherVector = std::static_pointer_cast<BlockVector>(other);
 
         resize(other->nRows());
 
         for (unsigned int i = 0; i < nRows(); i++)
-            M_vectorGrid(i,0)->hardCopy(otherVector->block(i));
+        {
+            if (otherVector->block(i))
+                M_vectorGrid(i,0).reset(otherVector->block(i)->clone());
+        }
 
-        M_isOpen = otherVector->isOpen();
+        // M_isOpen = otherVector->isOpen();
         M_normInf = otherVector->normInf();
     }
 }
@@ -122,7 +141,10 @@ aVector*
 BlockVector::
 clone() const
 {
-    return new BlockVector(*this);
+    BlockVector* retVector = new BlockVector(nRows());
+    for (unsigned int i = 0; i < nRows(); i++)
+        retVector->setBlock(i,std::shared_ptr<aVector>(block(i)->clone()));
+    return retVector;
 }
 
 bool
@@ -148,7 +170,7 @@ std::shared_ptr<aVector>
 BlockVector::
 block(const unsigned int& iblock) const
 {
-    return M_vectorGrid(iblock,1);
+    return M_vectorGrid(iblock,0);
 }
 
 std::shared_ptr<BlockVector>
@@ -170,7 +192,6 @@ void
 BlockVector::
 setBlock(const unsigned int& iblock, std::shared_ptr<aVector> vector)
 {
-    checkOpen();
     M_vectorGrid(iblock,0) = vector;
     updateNormInf();
 }

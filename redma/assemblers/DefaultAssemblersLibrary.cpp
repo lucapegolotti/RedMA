@@ -1,4 +1,5 @@
 #include "DefaultAssemblersLibrary.hpp"
+#include <redma/assemblers/abstract/aAssembler.hpp>
 
 namespace RedMA
 {
@@ -18,7 +19,11 @@ DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>&
         if (M_assemblersMap.find(mesh) == M_assemblersMap.end())
         {
             SHP(TreeNode) defTreeNode = generateDefaultTreeNode(nameMesh);
-            SHP(AssemblerType) defAssembler = AssemblerFactory<FEVECTOR COMMA FEMATRIX>(M_data, defTreeNode);
+            // we set these to stokes and fem because we are only interested in
+            // the finite element spaces
+            defTreeNode->M_block->setAssemblerType("stokes");
+            defTreeNode->M_block->setDiscretizationMethod("fem");
+            SHP(AssemblerType) defAssembler = AssemblerFactory(M_data, defTreeNode);
             defAssembler->initializeFEspaces();
             // defAssembler->setup();
 

@@ -21,7 +21,7 @@ GeneralizedAlphaMethod(const DataContainer& data, SHP(FunProvider) funProvider) 
 
 void
 GeneralizedAlphaMethod::
-setup(const SHP(BlockVector)& zeroVector)
+setup(const SHP(aVector)& zeroVector)
 {
     // M_prevSolution.hardCopy(zeroVector);
     // M_prevDerivative.hardCopy(zeroVector);
@@ -33,7 +33,7 @@ setup(const SHP(BlockVector)& zeroVector)
     // M_gamma = 0.5 + M_alpham - M_alphaf;
 }
 
-SHP(BlockVector)
+SHP(aVector)
 GeneralizedAlphaMethod::
 advance(const double& time, double& dt, int& status)
 {
@@ -100,9 +100,9 @@ advance(const double& time, double& dt, int& status)
     // return sol;
 }
 
-SHP(BlockVector)
+SHP(aVector)
 GeneralizedAlphaMethod::
-computesolnp1(SHP(BlockVector) dersol, const double& dt)
+computesolnp1(SHP(aVector) dersol, const double& dt)
 {
     // BlockVector solnp1;
     // solnp1.hardCopy(M_prevSolution);
@@ -112,9 +112,9 @@ computesolnp1(SHP(BlockVector) dersol, const double& dt)
     // return solnp1;
 }
 
-SHP(BlockVector)
+SHP(aVector)
 GeneralizedAlphaMethod::
-computesolnpalphaf(SHP(BlockVector) solnp1)
+computesolnpalphaf(SHP(aVector) solnp1)
 {
     // BlockVector solnpalphaf;
     // solnpalphaf.hardCopy(M_prevSolution);
@@ -123,9 +123,9 @@ computesolnpalphaf(SHP(BlockVector) solnp1)
     // return solnpalphaf;
 }
 
-SHP(BlockVector)
+SHP(aVector)
 GeneralizedAlphaMethod::
-computedersolnpalpham(SHP(BlockVector) dersol)
+computedersolnpalpham(SHP(aVector) dersol)
 {
     // BlockVector dersolnpalpham;
     // dersolnpalpham.hardCopy(M_prevDerivative);
@@ -134,9 +134,9 @@ computedersolnpalpham(SHP(BlockVector) dersol)
     // return dersolnpalpham;
 }
 
-SHP(BlockVector)
+SHP(aVector)
 GeneralizedAlphaMethod::
-computeDerivative(const SHP(BlockVector)& solnp1, double& dt)
+computeDerivative(const SHP(aVector)& solnp1, double& dt)
 {
     // BlockVector dersolnpalpham;
     // dersolnpalpham.hardCopy(M_prevDerivative);
@@ -146,7 +146,7 @@ computeDerivative(const SHP(BlockVector)& solnp1, double& dt)
 
 void
 GeneralizedAlphaMethod::
-shiftSolutions(const SHP(BlockVector)& sol)
+shiftSolutions(const SHP(aVector)& sol)
 {
     // double dt = this->M_data("time_discretization/dt", 0.01);
     // M_prevDerivative = computeDerivative(sol, dt);

@@ -20,9 +20,9 @@
 #include <redma/RedMA.hpp>
 #include <redma/array/BlockVector.hpp>
 #include <redma/array/BlockMatrix.hpp>
-#include <redma/solver/system_solver/LinearOperatorEp.hpp>
-#include <redma/solver/system_solver/InverseOperatorEp.hpp>
-#include <redma/solver/system_solver/SaddlePointPreconditionerEp.hpp>
+#include <redma/solver/system_solver/LinearOperator.hpp>
+#include <redma/solver/system_solver/InverseOperator.hpp>
+#include <redma/solver/system_solver/SaddlePointPreconditioner.hpp>
 
 #include <redma/problem/DataContainer.hpp>
 
@@ -40,17 +40,17 @@ struct SolverStatistics
 
 class LinearSystemSolver
 {
-    typedef BlockVector               BV;
-    typedef BlockMatrix               BM;
+    typedef SHP(aVector)               BV;
+    typedef SHP(aMatrix)               BM;
 
 public:
     LinearSystemSolver(const DataContainer& datafile);
 
     // I don't provide  a generic implementation of this method but only
     // (template) specializations in the cpp
-    void solve(const BM& matrix, const BV& rhs, BV& sol) {};
+    void solve(const BM& matrix, const BV& rhs, BV& sol);
 
-    void buildPreconditioner(const BM& matrix) {};
+    void buildPreconditioner(const BM& matrix);
 
     SolverStatistics getSolverStatistics() const {return M_statistics;}
 
@@ -67,9 +67,9 @@ private:
     //
 
     DataContainer                                   M_data;
-    SHP(InverseOperatorEp)                          M_invOper;
-    SHP(LinearOperatorEp)                           M_oper;
-    SHP(PreconditionerOperatorEp)                   M_prec;
+    SHP(InverseOperator)                            M_invOper;
+    SHP(LinearOperator)                             M_oper;
+    SHP(PreconditionerOperator)                     M_prec;
 
 
     SolverStatistics                                M_statistics;

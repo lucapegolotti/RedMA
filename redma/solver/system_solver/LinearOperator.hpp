@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef LINEAROPERATOREP_HPP
-#define LINEAROPERATOREP_HPP
+#ifndef LINEAROPERATOR_HPP
+#define LINEAROPERATOR_HPP
 
 #include <redma/RedMA.hpp>
 #include <redma/array/BlockVector.hpp>
@@ -31,14 +31,14 @@
 namespace RedMA
 {
 
-class LinearOperatorEp : public LifeV::Operators::LinearOperatorAlgebra
+class LinearOperator : public LifeV::Operators::LinearOperatorAlgebra
 {
     typedef LifeV::Operators::LinearOperatorAlgebra         super;
-    typedef BlockVector                                     BV;
-    typedef BlockMatrix                                     BM;
+    typedef SHP(aVector)                                BV;
+    typedef SHP(aMatrix)                                BM;
 
 public:
-    LinearOperatorEp(const BM& matrix);
+    LinearOperator(const BM& matrix);
 
     // I provide null implementation of virtual methods
     // only to be able to instantiate class
@@ -77,4 +77,4 @@ private:
 
 }
 
-#endif // LINEAROPERATOREP_HPP
+#endif // LINEAROPERATOR_HPP
