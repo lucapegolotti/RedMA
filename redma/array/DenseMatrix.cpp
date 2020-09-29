@@ -86,12 +86,14 @@ std::shared_ptr<aMatrix>
 DenseMatrix::
 multiplyByMatrix(std::shared_ptr<aMatrix> other)
 {
+    std::shared_ptr<DenseMatrix> retMat(new DenseMatrix());
+
+    if (isZero() || other->isZero())
+        return retMat;
+
     checkType(other, DENSE);
 
-    std::shared_ptr<DENSEMATRIX> otherMatrix
-    (static_cast<DENSEMATRIX*>(dynamic_cast<DenseMatrix*>(other.get())->data().get()));
-
-    std::shared_ptr<DenseMatrix> retMat(new DenseMatrix());
+    std::shared_ptr<DENSEMATRIX> otherMatrix = std::static_pointer_cast<DENSEMATRIX>(other->data());
 
     if (!isZero() && !other->isZero())
     {
@@ -159,10 +161,13 @@ dump(std::string filename) const
 
 bool
 DenseMatrix::
-isZero() const
+isZero()
 {
     if (!M_matrix)
         return true;
+
+    if (normInf() < ZEROTHRESHOLD)
+        this->M_normInf = M_matrix->NormInf();
 
     return normInf() < ZEROTHRESHOLD;
 }

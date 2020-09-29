@@ -14,10 +14,14 @@ void
 LinearSystemSolver::
 solve(const BM& matrix, const BV& rhs, BV& sol)
 {
-    M_oper.reset(new LinearOperator(matrix));
+    if (!M_maps)
+        M_maps.reset(new BlockMaps(std::static_pointer_cast<BlockMatrix>(matrix)));
+
+    M_oper.reset(new LinearOperator(matrix,M_maps));
 
     M_invOper.reset(new InverseOperator(M_data));
     M_invOper->setOperator(M_oper);
+    M_invOper->setBlockMaps(M_maps);
 
     buildPreconditioner(matrix);
 
@@ -48,7 +52,7 @@ buildPreconditioner(const BM& matrix)
     {
         unsigned int recomputeevery = M_data("preconditioner/recomputeevery", 1);
         if (M_prec == nullptr || (M_numSolves % recomputeevery) == 0)
-            M_prec.reset(new SaddlePointPreconditioner(M_data, matrix));
+            M_prec.reset(new SaddlePointPreconditioner(M_data, std::static_pointer_cast<BlockMatrix>(matrix)));
     }
     else
     {

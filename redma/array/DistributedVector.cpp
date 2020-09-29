@@ -101,10 +101,13 @@ clone() const
 
 bool
 DistributedVector::
-isZero() const
+isZero()
 {
     if (!M_vector)
         return true;
+    // we recompute it, because we might have forgotten to update it
+    if (M_normInf < ZEROTHRESHOLD)
+        this->M_normInf = M_vector->normInf();
     return M_normInf < ZEROTHRESHOLD;
 }
 

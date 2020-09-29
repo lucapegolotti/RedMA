@@ -38,7 +38,7 @@ class LinearOperator : public LifeV::Operators::LinearOperatorAlgebra
     typedef SHP(aMatrix)                                BM;
 
 public:
-    LinearOperator(const BM& matrix);
+    LinearOperator(const BM& matrix, SHP(BlockMaps) maps);
 
     // I provide null implementation of virtual methods
     // only to be able to instantiate class
@@ -63,7 +63,7 @@ public:
 
     virtual const super::map_Type& OperatorRangeMap() const override {}
 
-    inline SHP(BlockMaps) getBlockMaps() const {return M_maps;}
+    // inline SHP(BlockDimension) getBlockDimension() const {return M_dimensions;}
 
 private:
     GetPot                                M_datafile;
@@ -72,7 +72,8 @@ private:
     BM                                    M_collapsedMatrix;
     SHP(LifeV::BlockEpetra_Map)           M_domainMap;
     SHP(LifeV::BlockEpetra_Map)           M_rangeMap;
-    SHP(BlockMaps) M_maps;
+    SHP(BlockMaps)                        M_maps;
+    // SHP(BlockDimension)                   M_dimensions;
 };
 
 }

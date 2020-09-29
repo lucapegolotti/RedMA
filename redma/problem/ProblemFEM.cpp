@@ -75,7 +75,6 @@ solve()
         int status = -1;
 
         M_solution = std::static_pointer_cast<BlockVector>(M_TMAlgorithm->advance(t, dt, status));
-
         if (status)
             throw new Exception("Error in solver. Status != 0.");
 
@@ -87,7 +86,9 @@ solve()
             M_timestepsSolutions.push_back(t);
         }
         if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
+        {
             M_assembler->exportSolution(t, M_solution);
+        }
 
         M_assembler->postProcess(t, M_solution);
         M_TMAlgorithm->shiftSolutions(M_solution);

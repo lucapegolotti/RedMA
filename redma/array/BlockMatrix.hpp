@@ -58,7 +58,7 @@ public:
 
     virtual void hardCopy(std::shared_ptr<aMatrix> other) override;
 
-    virtual bool isZero() const override;
+    virtual bool isZero() override;
 
     virtual void dump(std::string filename) const override;
 
@@ -74,6 +74,8 @@ public:
     void setBlock(const unsigned int& iblock, const unsigned int& jblock,
                   std::shared_ptr<aMatrix> matrix) override;
 
+    unsigned int level();
+
     // inline bool isFinalized() const {return M_isFinalized;}
 
     void printPattern() const;
@@ -88,6 +90,11 @@ public:
 
     inline void checkClosed() const {if (isOpen()) throw new Exception("BlockMatrix must be closed for this operation!");}
 
+    // inline SHP(BlockDimension) getDimensionsRows() {return M_dimensionsRows;}
+    //
+    // inline SHP(BlockDimension) getDimensionsCols() {return M_dimensionsCols;}
+
+
     // void finalize() {};
     //
     // std::shared_ptr<aMatrix> collapse() const {};
@@ -101,8 +108,10 @@ protected:
     //
     // void multiplyCoeff(const double& coeff) {};
 
-    Grid            M_matrixGrid;
-    bool            M_isOpen;
+    Grid                        M_matrixGrid;
+    bool                        M_isOpen;
+    // SHP(BlockDimension)         M_dimensionsRows;
+    // SHP(BlockDimension)         M_dimensionsCols;
 };
 
 }

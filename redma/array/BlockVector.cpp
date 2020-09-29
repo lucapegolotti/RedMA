@@ -149,7 +149,7 @@ clone() const
 
 bool
 BlockVector::
-isZero() const
+isZero()
 {
     for (unsigned int i = 0; i < nRows(); i++)
     {

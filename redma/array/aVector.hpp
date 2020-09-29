@@ -52,7 +52,7 @@ public:
 
     virtual aVector* clone() const = 0;
 
-    virtual bool isZero() const = 0;
+    virtual bool isZero() = 0;
 
     virtual std::string getString(const char& delimiter) const = 0;
 

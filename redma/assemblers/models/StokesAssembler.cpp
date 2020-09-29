@@ -21,11 +21,12 @@ buildZeroVector() const
     SHP(VECTOREPETRA) uComp(new VECTOREPETRA(M_velocityFESpace->map(),
                                              LifeV::Unique));
     uComp->zero();
-
+    // *uComp += 1.0;
     SHP(VECTOREPETRA) pComp(new VECTOREPETRA(M_pressureFESpace->map(),
                                              LifeV::Unique));
 
     pComp->zero();
+    // *pComp += 1.0;
 
     SHP(BlockVector) retVec(new BlockVector(2));
 

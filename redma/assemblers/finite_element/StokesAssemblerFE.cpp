@@ -95,14 +95,11 @@ getRightHandSide(const double& time,
 {
     SHP(BlockMatrix) systemMatrix(new BlockMatrix(this->M_nComponents,
                                                   this->M_nComponents));
-
     systemMatrix->add(M_stiffness);
     systemMatrix->add(M_divergence);
     systemMatrix->multiplyByScalar(-1.0);
 
     SHP(aVector) retVec = systemMatrix->multiplyByVector(sol);
-    // addNeumannBCs(retVec, time, sol);
-
     return retVec;
 }
 
@@ -115,27 +112,6 @@ getJacobianRightHandSide(const double& time, const SHP(aVector)& sol)
     retMat->add(M_stiffness);
     retMat->add(M_divergence);
     retMat->multiplyByScalar(-1.0);
-
-    // ATTENTION: here I should add the part relative to Neumann conditions
-    // if they depend on the solution (as with 0D coupling)
-
-    // if (this->M_treeNode->isOutletNode())
-    // {
-    //     auto flowRates = computeFlowRates(sol);
-    //
-    //     for (auto rate : flowRates)
-    //     {
-    //         double dhdQ = this->M_bcManager->getNeumannJacobian(time, rate.first, rate.second);
-    //         BlockMatrix<InMatrixType> curjac;
-    //         curjac.hardCopy(M_flowRateJacobians[rate.first]);
-    //         curjac *= dhdQ;
-    //
-    //         retMat += curjac;
-    //     }
-    // }
-
-    // this->M_bcManager->apply0DirichletMatrix(retMat, getFESpaceBCs(),
-    //                                    getComponentBCs(), 0.0);
 
     return retMat;
 }
@@ -151,19 +127,23 @@ SHP(aVector)
 StokesAssemblerFE::
 getFELifting(const double& time) const
 {
-    // BlockVector<FEVECTOR> lifting;
-    // lifting.resize(2);
-    // lifting.block(0).data().reset(new VECTOREPETRA(M_velocityFESpace->map(),
-    //                                                LifeV::Unique));
-    // lifting.block(0).data()->zero();
-    // lifting.block(1).data().reset(new VECTOREPETRA(M_pressureFESpace->map(),
-    //                                                LifeV::Unique));
-    // lifting.block(1).data()->zero();
-    //
-    // this->M_bcManager->applyDirichletBCs(time, lifting, this->getFESpaceBCs(),
-    //                                      this->getComponentBCs());
-    //
-    // return lifting;
+    SHP(BlockVector) lifting(new BlockVector(2));
+    // velocity
+    SHP(DistributedVector) ucomp(new DistributedVector());
+    ucomp->setData(SHP(VECTOREPETRA)(new VECTOREPETRA(M_velocityFESpace->map(),LifeV::Unique)));
+    ucomp->multiplyByScalar(0);
+
+    SHP(DistributedVector) pcomp(new DistributedVector());
+    pcomp->setData(SHP(VECTOREPETRA)(new VECTOREPETRA(M_pressureFESpace->map(),LifeV::Unique)));
+    pcomp->multiplyByScalar(0);
+
+    lifting->setBlock(0,ucomp);
+    lifting->setBlock(1,pcomp);
+
+    this->M_bcManager->applyDirichletBCs(time, *lifting, this->getFESpaceBCs(),
+                                         this->getComponentBCs());
+
+    return lifting;
 }
 
 SHP(aVector)

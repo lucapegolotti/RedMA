@@ -437,10 +437,14 @@ addContributionJacobianRhs(const double& time, SHP(BlockMatrix) jac,
 
     // hard copy, otherwise we flip the sign of the matrices every time this
     // function is called
-    jac->block(fatherID, nPrimalBlocks + interfaceID)->hardCopy(M_fatherBT);
-    jac->block(childID,  nPrimalBlocks + interfaceID)->hardCopy(M_childBT);
-    jac->block(nPrimalBlocks + interfaceID, fatherID)->hardCopy(M_fatherB);
-    jac->block(nPrimalBlocks + interfaceID,  childID)->hardCopy(M_childB);
+    jac->setBlock(fatherID, nPrimalBlocks + interfaceID, SHP(BlockMatrix)(M_fatherBT->clone()));
+    jac->setBlock(childID, nPrimalBlocks + interfaceID, SHP(BlockMatrix)(M_childBT->clone()));
+    jac->setBlock(nPrimalBlocks + interfaceID, fatherID, SHP(BlockMatrix)(M_fatherB->clone()));
+    jac->setBlock(nPrimalBlocks + interfaceID, childID, SHP(BlockMatrix)(M_childB->clone()));
+    // jac->block(fatherID, nPrimalBlocks + interfaceID)->hardCopy(M_fatherBT);
+    //jac->block(childID,  nPrimalBlocks + interfaceID)->hardCopy(M_childBT);
+    // jac->block(nPrimalBlocks + interfaceID, fatherID)->hardCopy(M_fatherB);
+    // jac->block(nPrimalBlocks + interfaceID,  childID)->hardCopy(M_childB);
 
     jac->block(fatherID, nPrimalBlocks + interfaceID)->multiplyByScalar(-1);
     jac->block(childID,  nPrimalBlocks + interfaceID)->multiplyByScalar(-1);
@@ -470,6 +474,7 @@ getZeroVector() const
 
     SHP(VECTOREPETRA) zeroVec(new VECTOREPETRA(*lagrangeMap, LifeV::Unique));
     zeroVec->zero();
+    // *zeroVec += 1;
 
     retVector->setBlock(0,epetraToDistributed(zeroVec));
     return retVector;

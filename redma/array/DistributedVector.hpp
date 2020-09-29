@@ -47,7 +47,7 @@ public:
 
     virtual aVector* clone() const override;
 
-    virtual bool isZero() const override;
+    virtual bool isZero() override;
 
     std::string getString(const char& delimiter) const override;
 

@@ -59,7 +59,7 @@ public:
 
     virtual aMatrix* clone() const = 0;
 
-    virtual bool isZero() const = 0;
+    virtual bool isZero() = 0;
 
     virtual void setBlock(const unsigned int& i,
                           const unsigned int& j,

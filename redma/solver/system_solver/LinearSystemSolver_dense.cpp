@@ -32,7 +32,6 @@ computeSchurComplementDense(const BM& matrix)
     unsigned int primalIndex = 0;
     for (unsigned int i = 0; i < nPrimal; i++)
     {
-        // to do: try to compute factorization and see if it changes anything
         M_solversAs[i].reset(new Epetra_SerialDenseSolver());
         M_collapsedAs[i] = A.block(i,i).collapse();
         M_solversAs[i]->SetMatrix(*M_collapsedAs[i].data());

@@ -37,8 +37,8 @@ namespace RedMA
 class SaddlePointPreconditioner : public PreconditionerOperator
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
-    typedef SHP(aVector)                                             BV;
-    typedef SHP(aMatrix)                                             BM;
+    typedef SHP(BlockVector)                                         BV;
+    typedef SHP(BlockMatrix)                                         BM;
     typedef LifeV::Operators::NavierStokesPreconditionerOperator     NSPrec;
     typedef LifeV::Operators::NavierStokesOperator                   NSOp;
     typedef LifeV::Operators::InvertibleOperator                     InvOp;
@@ -77,6 +77,7 @@ private:
     BM                                                   M_matrix;
     BM                                                   M_matrixCollapsed;
     BM                                                   M_S;
+    SHP(BlockMaps)                                       M_maps;
     std::vector<SHP(NSPrec)>                             M_innerPreconditioners;
     std::vector<SHP(InvOp)>                              M_invOperators;
     SHP(Teuchos::ParameterList)                          M_pListLinSolver;
@@ -92,6 +93,7 @@ private:
     std::vector<SHP(MAPEPETRA)>                          M_domainMaps;
     unsigned int                                         M_nPrimalBlocks;
     unsigned int                                         M_nDualBlocks;
+    std::vector<SHP(Epetra_SerialDenseSolver)>           M_solversAsDense;
 };
 
 }

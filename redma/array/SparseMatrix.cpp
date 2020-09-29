@@ -155,7 +155,7 @@ transpose() const
 {
     std::shared_ptr<SparseMatrix> retMatrix(new SparseMatrix());
 
-    if (!isZero())
+    if (M_matrix)
     {
         auto domainMap = M_matrix->domainMapPtr();
         auto rangeMap = M_matrix->rangeMapPtr();
@@ -173,13 +173,15 @@ std::shared_ptr<aMatrix>
 SparseMatrix::
 multiplyByMatrix(std::shared_ptr<aMatrix> other)
 {
+    std::shared_ptr<SparseMatrix> retMat(new SparseMatrix());
+    if (isZero() || other->isZero())
+        return retMat;
+
     checkType(other, SPARSE);
 
-    std::shared_ptr<MATRIXEPETRA> otherMatrix
-    (static_cast<MATRIXEPETRA*>(dynamic_cast<SparseMatrix*>(other.get())->data().get()));
+    std::shared_ptr<MATRIXEPETRA> otherMatrix = std::static_pointer_cast<MATRIXEPETRA>(other->data());
 
-    std::shared_ptr<SparseMatrix> retMat(new SparseMatrix());
-    if (!isZero() && other->isZero())
+    if (!isZero() && !other->isZero())
     {
         std::shared_ptr<MATRIXEPETRA> mat(new MATRIXEPETRA(*M_matrix->rangeMapPtr()));
         M_matrix->multiply(false, *otherMatrix, false, *mat, false);
@@ -221,10 +223,13 @@ setMatrix(std::shared_ptr<MATRIXEPETRA> matrix)
 
 bool
 SparseMatrix::
-isZero() const
+isZero()
 {
     if (!M_matrix)
         return true;
+
+    if (normInf() < ZEROTHRESHOLD)
+        M_normInf = M_matrix->matrixPtr()->NormInf();
 
     return normInf() < ZEROTHRESHOLD;
 }

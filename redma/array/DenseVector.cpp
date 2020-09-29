@@ -87,10 +87,13 @@ clone() const
 
 bool
 DenseVector::
-isZero() const
+isZero()
 {
     if (!M_vector)
         return true;
+    // we recompute just to make sure
+    if (M_normInf < ZEROTHRESHOLD)
+        M_normInf = M_vector->NormInf();
     return M_normInf < ZEROTHRESHOLD;
 }
 

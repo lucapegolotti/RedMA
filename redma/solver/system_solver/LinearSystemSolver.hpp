@@ -70,7 +70,7 @@ private:
     SHP(InverseOperator)                            M_invOper;
     SHP(LinearOperator)                             M_oper;
     SHP(PreconditionerOperator)                     M_prec;
-
+    SHP(BlockMaps)                                  M_maps;
 
     SolverStatistics                                M_statistics;
     unsigned                                        M_numSolves;

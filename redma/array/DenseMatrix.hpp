@@ -59,7 +59,7 @@ public:
 
     virtual void hardCopy(std::shared_ptr<aMatrix> other) override;
 
-    virtual bool isZero() const override;
+    virtual bool isZero() override;
 
     virtual std::shared_ptr<void> data() const override;
 

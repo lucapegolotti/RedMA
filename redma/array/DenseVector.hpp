@@ -50,7 +50,7 @@ public:
 
     virtual aVector* clone() const override;
 
-    virtual bool isZero() const override;
+    virtual bool isZero() override;
 
     double norm2() const override;
 
