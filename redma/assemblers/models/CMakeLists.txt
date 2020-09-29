@@ -1,11 +1,11 @@
 set(HEADERS
     ${HEADERS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/StokesAssembler.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StokesModel.hpp
     CACHE INTERNAL ""
 )
 
 set(SOURCES
     ${SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/StokesAssembler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StokesModel.cpp
     CACHE INTERNAL ""
 )

@@ -1,21 +1,21 @@
-#include "StokesAssembler.hpp"
+#include "StokesModel.hpp"
 
 namespace RedMA
 {
 
-StokesAssembler::
-StokesAssembler(const DataContainer& data, SHP(TreeNode) treeNode) :
+StokesModel::
+StokesModel(const DataContainer& data, SHP(TreeNode) treeNode) :
   M_dataContainer(data),
   M_treeNode(treeNode)
 {
     M_density = data("fluid/density", 1.0);
     M_viscosity = data("fluid/viscosity", 0.035);
-    M_name = "StokesAssembler";
+    M_name = "StokesModel";
 }
 
 
 SHP(BlockVector)
-StokesAssembler::
+StokesModel::
 buildZeroVector() const
 {
     SHP(VECTOREPETRA) uComp(new VECTOREPETRA(M_velocityFESpace->map(),
@@ -37,7 +37,7 @@ buildZeroVector() const
 }
 
 SHP(aVector)
-StokesAssembler::
+StokesModel::
 getForcingTerm(const double& time) const
 {
     // we don't consider forcing terms for the moment
@@ -45,7 +45,7 @@ getForcingTerm(const double& time) const
 }
 
 void
-StokesAssembler::
+StokesModel::
 addNeumannBCs(SHP(aVector)& input, const double& time,
               const SHP(aVector)& sol)
 {
@@ -71,7 +71,7 @@ addNeumannBCs(SHP(aVector)& input, const double& time,
 }
 
 SHP(aMatrix)
-StokesAssembler::
+StokesModel::
 assembleReducedStiffness(SHP(BCManager) bcManager,
                          BlockMDEIMStructure* structure)
 {
@@ -146,7 +146,7 @@ assembleReducedStiffness(SHP(BCManager) bcManager,
 }
 
 SHP(aMatrix)
-StokesAssembler::
+StokesModel::
 assembleReducedMass(SHP(BCManager) bcManager,
                     BlockMDEIMStructure* structure)
 {
@@ -187,7 +187,7 @@ assembleReducedMass(SHP(BCManager) bcManager,
 }
 
 SHP(aMatrix)
-StokesAssembler::
+StokesModel::
 assembleReducedDivergence(SHP(BCManager) bcManager,
                           BlockMDEIMStructure* structure)
 {
@@ -262,7 +262,7 @@ assembleReducedDivergence(SHP(BCManager) bcManager,
 }
 
 void
-StokesAssembler::
+StokesModel::
 assembleFlowRateVectors()
 {
     // assemble inflow flow rate vector
@@ -284,7 +284,7 @@ assembleFlowRateVectors()
 }
 
 void
-StokesAssembler::
+StokesModel::
 assembleFlowRateJacobians(SHP(BCManager) bcManager)
 {
     // assemble inflow flow rate vector
@@ -312,7 +312,7 @@ assembleFlowRateJacobians(SHP(BCManager) bcManager)
 }
 
 void
-StokesAssembler::
+StokesModel::
 apply0DirichletBCsMatrix(SHP(BCManager) bcManager,
                          SHP(aMatrix) matrix, double diagCoeff)
 {
@@ -322,7 +322,7 @@ apply0DirichletBCsMatrix(SHP(BCManager) bcManager,
 }
 
 std::map<unsigned int, double>
-StokesAssembler::
+StokesModel::
 computeFlowRates(SHP(aVector) sol, bool verbose)
 {
     std::string msg;
@@ -360,7 +360,7 @@ computeFlowRates(SHP(aVector) sol, bool verbose)
 }
 
 SHP(VECTOREPETRA)
-StokesAssembler::
+StokesModel::
 assembleFlowRateVector(const GeometricFace& face)
 {
     using namespace LifeV;
@@ -386,7 +386,7 @@ assembleFlowRateVector(const GeometricFace& face)
 }
 
 SHP(MATRIXEPETRA)
-StokesAssembler::
+StokesModel::
 assembleFlowRateJacobian(const GeometricFace& face)
 {
     // using namespace LifeV;
@@ -443,7 +443,7 @@ assembleFlowRateJacobian(const GeometricFace& face)
 }
 
 void
-StokesAssembler::
+StokesModel::
 addBackFlowStabilization(SHP(aVector)& input,
                          SHP(aVector) sol,
                          const unsigned int& faceFlag)
@@ -484,7 +484,7 @@ addBackFlowStabilization(SHP(aVector)& input,
 }
 
 void
-StokesAssembler::
+StokesModel::
 exportNorms(double t, SHP(VECTOREPETRA) velocity, SHP(VECTOREPETRA) pressure)
 {
     bool exportNorms = M_dataContainer("exporter/exportnorms", true);
@@ -502,7 +502,7 @@ exportNorms(double t, SHP(VECTOREPETRA) velocity, SHP(VECTOREPETRA) pressure)
 }
 
 void
-StokesAssembler::
+StokesModel::
 initializePythonStructures()
 {
     // setenv("PYTHONPATH",".",1);
@@ -517,7 +517,7 @@ initializePythonStructures()
 }
 
 void
-StokesAssembler::
+StokesModel::
 computeWallShearStress(SHP(VECTOREPETRA) velocity, SHP(VECTOREPETRA) WSS,
                        EPETRACOMM comm)
 {
@@ -596,7 +596,7 @@ computeWallShearStress(SHP(VECTOREPETRA) velocity, SHP(VECTOREPETRA) WSS,
 }
 
 void
-StokesAssembler::
+StokesModel::
 initializeVelocityFESpace(EPETRACOMM comm)
 {
     // initialize fespace velocity
@@ -611,7 +611,7 @@ initializeVelocityFESpace(EPETRACOMM comm)
 
 
 void
-StokesAssembler::
+StokesModel::
 initializePressureFESpace(EPETRACOMM comm)
 {
     // initialize fespace pressure

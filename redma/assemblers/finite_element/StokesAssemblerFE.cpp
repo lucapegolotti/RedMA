@@ -6,7 +6,7 @@ namespace RedMA
 StokesAssemblerFE::
 StokesAssemblerFE(const DataContainer& data, SHP(TreeNode) treeNode) :
   aAssemblerFE(data, treeNode),
-  StokesAssembler(data, treeNode)
+  StokesModel(data, treeNode)
 {
     this->M_bcManager.reset(new BCManager(data, treeNode));
     M_name = "StokesAssemblerFE";
@@ -65,7 +65,7 @@ exportSolution(const double& t, const SHP(aVector)& sol)
     solCopy->block(0)->setData(M_velocityExporter);
     StokesAssemblerFE::computeFlowRates(solCopy, true);
 
-    StokesAssembler::exportNorms(t, M_velocityExporter, M_pressureExporter);
+    StokesModel::exportNorms(t, M_velocityExporter, M_pressureExporter);
 
     CoutRedirecter ct;
     ct.redirect();

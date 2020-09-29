@@ -18,12 +18,12 @@
 #define STOKESASSEMBLERFE_HPP
 
 #include <redma/assemblers/abstract/aAssemblerFE.hpp>
-#include <redma/assemblers/models/StokesAssembler.hpp>
+#include <redma/assemblers/models/StokesModel.hpp>
 
 namespace RedMA
 {
 
-class StokesAssemblerFE : public aAssemblerFE, public StokesAssembler
+class StokesAssemblerFE : public aAssemblerFE, public StokesModel
 {
 public:
     StokesAssemblerFE(const DataContainer& data, SHP(TreeNode) treeNode);

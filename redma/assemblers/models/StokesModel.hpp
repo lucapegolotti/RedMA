@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef STOKESASSEMBLER_HPP
-#define STOKESASSEMBLER_HPP
+#ifndef STOKESMODEL_HPP
+#define STOKESMODEL_HPP
 
 #include <redma/assemblers/abstract/aAssembler.hpp>
 #include <redma/array/DistributedVector.hpp>
@@ -37,10 +37,10 @@
 namespace RedMA
 {
 
-class StokesAssembler
+class StokesModel
 {
 public:
-    StokesAssembler(const DataContainer& data, SHP(TreeNode) treeNode);
+    StokesModel(const DataContainer& data, SHP(TreeNode) treeNode);
 
     SHP(aVector) getForcingTerm(const double& time) const;
 
@@ -127,4 +127,4 @@ protected:
 
 }
 
-#endif // STOKESASSEMBLER_HPP
+#endif // STOKESMODEL_HPP
