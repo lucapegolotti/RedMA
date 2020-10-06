@@ -16,9 +16,9 @@ HFStabilization(const DataContainer& data,
 {
 }
 
-BlockMatrix
+SHP(BlockMatrix)
 HFStabilization::
-getMass(const BlockVector& sol, const BlockVector& rhs)
+getMass(SHP(BlockVector) sol, SHP(BlockVector) rhs)
 {
     // using namespace LifeV;
     // using namespace LifeV::ExpressionAssembly;
@@ -73,9 +73,9 @@ getMass(const BlockVector& sol, const BlockVector& rhs)
     // return M_mass;
 }
 
-BlockMatrix
+SHP(BlockMatrix)
 HFStabilization::
-getMassJac(const BlockVector& sol, const BlockVector& rhs)
+getMassJac(SHP(BlockVector) sol, SHP(BlockVector) rhs)
 {
     // using namespace LifeV;
     // using namespace LifeV::ExpressionAssembly;
@@ -123,9 +123,9 @@ getMassJac(const BlockVector& sol, const BlockVector& rhs)
     // return M_massJac;
 }
 
-BlockMatrix
+SHP(BlockMatrix)
 HFStabilization::
-getJac(const BlockVector& sol, const BlockVector& rhs)
+getJac(SHP(BlockVector) sol, SHP(BlockVector) rhs)
 {
     // using namespace LifeV;
     // using namespace LifeV::ExpressionAssembly;
@@ -196,10 +196,10 @@ getJac(const BlockVector& sol, const BlockVector& rhs)
     // return M_jac;
 }
 
-BlockVector
+SHP(BlockVector)
 HFStabilization::
-getResidual(const BlockVector& sol,
-            const BlockVector& rhs)
+getResidual(SHP(BlockVector) sol,
+            SHP(BlockVector) rhs)
 {
     // using namespace LifeV;
     // using namespace LifeV::ExpressionAssembly;

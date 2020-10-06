@@ -16,6 +16,8 @@ solve(const BM& matrix, const BV& rhs, BV& sol)
 {
     if (!M_maps)
         M_maps.reset(new BlockMaps(std::static_pointer_cast<BlockMatrix>(matrix)));
+    else
+        M_maps->updateCollapsedMatrix(std::static_pointer_cast<BlockMatrix>(matrix));
 
     M_oper.reset(new LinearOperator(matrix,M_maps));
 

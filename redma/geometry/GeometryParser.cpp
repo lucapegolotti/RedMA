@@ -141,13 +141,13 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
     std::string discrMethod = "fem";
     if (element->Attribute("method"))
     {
-        ref = element->Attribute("method");
+        discrMethod = element->Attribute("method");
     }
 
     std::string assembler = "stokes";
     if (element->Attribute("assembler"))
     {
-        ref = element->Attribute("assembler");
+        assembler = element->Attribute("assembler");
     }
 
     returnBlock->setDiscretizationMethod(discrMethod);

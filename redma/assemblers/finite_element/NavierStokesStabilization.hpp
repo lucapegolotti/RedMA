@@ -60,32 +60,32 @@ public:
 
     void setDensityAndViscosity(const double& density, const double& viscosity);
 
-    virtual BlockMatrix getMass(const BlockVector& sol,
-                                const BlockVector& rhs) = 0;
+    virtual SHP(BlockMatrix) getMass(SHP(BlockVector) sol,
+                                     SHP(BlockVector) rhs) = 0;
 
-    virtual BlockMatrix getMassJac(const BlockVector& sol,
-                                   const BlockVector& rhs) = 0;
+    virtual SHP(BlockMatrix) getMassJac(SHP(BlockVector) sol,
+                                        SHP(BlockVector) rhs) = 0;
 
-    virtual BlockMatrix getJac(const BlockVector& sol,
-                                         const BlockVector& rhs) = 0;
+    virtual SHP(BlockMatrix) getJac(SHP(BlockVector) sol,
+                                    SHP(BlockVector) rhs) = 0;
 
-    virtual BlockVector getResidual(const BlockVector& sol,
-                                              const BlockVector& rhs) = 0;
+    virtual SHP(BlockVector) getResidual(SHP(BlockVector) sol,
+                                         SHP(BlockVector) rhs) = 0;
 
 protected:
-    double                          M_density;
-    double                          M_viscosity;
-    unsigned int                    M_timeOrder;
-    unsigned int                    M_velocityOrder;
-    SHP(FESPACE)                    M_velocityFESpace;
-    SHP(FESPACE)                    M_pressureFESpace;
-    SHP(ETFESPACE3)                 M_velocityFESpaceETA;
-    SHP(ETFESPACE1)                 M_pressureFESpaceETA;
-    SHP(BlockMatrix)                M_jac;
-    SHP(BlockMatrix)                M_massJac;
-    SHP(BlockMatrix)                M_mass;
-    double                          M_dt;
-    double                          M_C_I;
+    double                              M_density;
+    double                              M_viscosity;
+    unsigned int                        M_timeOrder;
+    unsigned int                        M_velocityOrder;
+    SHP(FESPACE)                        M_velocityFESpace;
+    SHP(FESPACE)                        M_pressureFESpace;
+    SHP(ETFESPACE3)                     M_velocityFESpaceETA;
+    SHP(ETFESPACE1)                     M_pressureFESpaceETA;
+    SHP(BlockMatrix)                    M_jac;
+    SHP(BlockMatrix)                    M_massJac;
+    SHP(BlockMatrix)                    M_mass;
+    double                              M_dt;
+    double                              M_C_I;
 };
 
 }  // namespace RedMA

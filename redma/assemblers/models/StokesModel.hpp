@@ -89,6 +89,10 @@ public:
 
     void initializePressureFESpace(EPETRACOMM comm);
 
+    void setVelocityOrder(std::string velocityOrder) {M_velocityOrder = velocityOrder;}
+
+    void setPressureOrder(std::string pressureOrder) {M_pressureOrder = pressureOrder;}
+
 protected:
 
     SHP(BlockVector) buildZeroVector() const;
@@ -111,6 +115,9 @@ protected:
     // first index is face flag
     std::map<unsigned int, SHP(VECTOREPETRA)>         M_flowRateVectors;
     std::map<unsigned int, SHP(BlockMatrix)>          M_flowRateJacobians;
+
+    std::string                                       M_velocityOrder;
+    std::string                                       M_pressureOrder;
 
     // rb structures
     SHP(BlockMDEIM)                                   M_mdeimMass;

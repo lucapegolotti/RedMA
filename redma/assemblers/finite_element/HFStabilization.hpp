@@ -34,17 +34,17 @@ public:
                     SHP(ETFESPACE3) etfespaceVelocity,
                     SHP(ETFESPACE1) etfespacePressure);
 
-    virtual BlockMatrix getMass(const BlockVector& sol,
-                                const BlockVector& rhs) override;
+    virtual SHP(BlockMatrix) getMass(SHP(BlockVector) sol,
+                                     SHP(BlockVector) rhs) override;
 
-    virtual BlockMatrix getMassJac(const BlockVector& sol,
-                                   const BlockVector& rhs) override;
+    virtual SHP(BlockMatrix) getMassJac(SHP(BlockVector) sol,
+                                        SHP(BlockVector) rhs) override;
 
-    virtual BlockMatrix getJac(const BlockVector& sol,
-                               const BlockVector& rhs) override;
+    virtual SHP(BlockMatrix) getJac(SHP(BlockVector) sol,
+                                    SHP(BlockVector) rhs) override;
 
-    virtual BlockVector getResidual(const BlockVector& sol,
-                                    const BlockVector& rhs) override;
+    virtual SHP(BlockVector) getResidual(SHP(BlockVector) sol,
+                                         SHP(BlockVector) rhs) override;
 
 };
 

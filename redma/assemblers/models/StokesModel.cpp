@@ -10,6 +10,8 @@ StokesModel(const DataContainer& data, SHP(TreeNode) treeNode) :
 {
     M_density = data("fluid/density", 1.0);
     M_viscosity = data("fluid/viscosity", 0.035);
+    M_velocityOrder = data("fluid/velocity_order", "P2");
+    M_pressureOrder = data("fluid/pressure_order", "P1");
     M_name = "StokesModel";
 }
 
@@ -21,12 +23,10 @@ buildZeroVector() const
     SHP(VECTOREPETRA) uComp(new VECTOREPETRA(M_velocityFESpace->map(),
                                              LifeV::Unique));
     uComp->zero();
-    // *uComp += 1.0;
     SHP(VECTOREPETRA) pComp(new VECTOREPETRA(M_pressureFESpace->map(),
                                              LifeV::Unique));
 
     pComp->zero();
-    // *pComp += 1.0;
 
     SHP(BlockVector) retVec(new BlockVector(2));
 
@@ -600,9 +600,8 @@ StokesModel::
 initializeVelocityFESpace(EPETRACOMM comm)
 {
     // initialize fespace velocity
-    std::string orderVelocity = M_dataContainer("fluid/velocity_order", "P2");
     M_velocityFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
-                                       orderVelocity, 3, comm));
+                            M_velocityOrder, 3, comm));
 
     M_velocityFESpaceETA.reset(new ETFESPACE3(M_velocityFESpace->mesh(),
                                            &(M_velocityFESpace->refFE()),
@@ -615,10 +614,8 @@ StokesModel::
 initializePressureFESpace(EPETRACOMM comm)
 {
     // initialize fespace pressure
-    std::string orderPressure = M_dataContainer("fluid/pressure_order", "P1");
-
     M_pressureFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
-                                       orderPressure, 1, comm));
+                                       M_pressureOrder, 1, comm));
     M_pressureFESpaceETA.reset(new ETFESPACE1(M_pressureFESpace->mesh(),
                                            &(M_pressureFESpace->refFE()),
                                              comm));

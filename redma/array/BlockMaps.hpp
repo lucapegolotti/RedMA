@@ -74,6 +74,8 @@ public:
 
     void createFromBlockMatrix(SHP(BlockMatrix) matrix);
 
+    void updateCollapsedMatrix(SHP(BlockMatrix) matrix);
+
     SHP(BlockMatrix)                 M_collapsedMatrix;
     std::vector<SHP(MAPEPETRA)>      M_rangeMaps;
     std::vector<SHP(MAPEPETRA)>      M_domainMaps;

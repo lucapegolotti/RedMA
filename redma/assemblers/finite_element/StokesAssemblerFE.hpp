@@ -36,10 +36,10 @@ public:
     virtual void postProcess(const double& t, const SHP(aVector)& sol) override;
 
     virtual SHP(aMatrix) getMass(const double& time,
-                                     const SHP(aVector)& sol) override;
+                                 const SHP(aVector)& sol) override;
 
     virtual SHP(aMatrix) getMassJacobian(const double& time,
-                                             const SHP(aVector)& sol) override;
+                                         const SHP(aVector)& sol) override;
 
     virtual SHP(aVector) getRightHandSide(const double& time,
                                               const SHP(aVector)& sol) override;
@@ -85,7 +85,7 @@ public:
     virtual std::vector<SHP(aMatrix)> getMatrices() const override;
 
     virtual SHP(aMatrix) assembleMatrix(const unsigned int& index,
-                                            BlockMDEIMStructure* structure = nullptr) override;
+                                        BlockMDEIMStructure* structure = nullptr) override;
 
     virtual SHP(aMatrix) getNorm(const unsigned int& fieldIndex, bool bcs = true) override;
 

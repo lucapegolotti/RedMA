@@ -257,10 +257,17 @@ namespace RedMA
 
 void
 BlockMaps::
+updateCollapsedMatrix(SHP(BlockMatrix) matrix)
+{
+    M_collapsedMatrix = collapseBlocks(matrix, M_dimensionsRowsBlock, M_dimensionsColsBlock);
+}
+
+void
+BlockMaps::
 createFromBlockMatrix(SHP(BlockMatrix) matrix)
 {
     if (matrix->level() >= 2)
-        M_collapsedMatrix = collapseBlocks(matrix, M_dimensionsRowsBlock, M_dimensionsColsBlock);
+        updateCollapsedMatrix(matrix);
     matrix = M_collapsedMatrix;
 
     M_rangeEpetraMaps.resize(matrix->nRows(),nullptr);
