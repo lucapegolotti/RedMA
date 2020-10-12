@@ -56,24 +56,24 @@ public:
 
     std::vector<SHP(VECTOREPETRA)> getPrimalSupremizers(const unsigned int& i, const unsigned int& j) {return M_primalSupremizers(i,j);}
 
-    DenseMatrix matrixProject(SparseMatrix matrix, unsigned int basisIndexRow,
-                              unsigned int basisIndexCol, unsigned int ID);
+    SHP(aMatrix) matrixProject(SHP(aMatrix) matrix, unsigned int basisIndexRow,
+                               unsigned int basisIndexCol, unsigned int ID);
 
-    BlockMatrix leftProject(BlockMatrix matrix, unsigned int ID);
+    SHP(BlockMatrix) leftProject(SHP(BlockMatrix) matrix, unsigned int ID);
 
-    DenseMatrix leftProject(SparseMatrix matrix, unsigned int basisIndex, unsigned int ID);
+    SHP(DenseMatrix) leftProject(SHP(SparseMatrix) matrix, unsigned int basisIndex, unsigned int ID);
 
-    BlockVector leftProject(BlockVector vector, unsigned int ID);
+    SHP(BlockVector) leftProject(SHP(BlockVector) vector, unsigned int ID);
 
-    DenseVector leftProject(DistributedVector vector, unsigned int basisIndex, unsigned int ID);
+    SHP(DenseVector) leftProject(SHP(DistributedVector) vector, unsigned int basisIndex, unsigned int ID);
 
-    BlockVector projectOnLagrangeSpace(BlockVector vector);
+    SHP(BlockVector) projectOnLagrangeSpace(SHP(BlockVector) vector);
 
-    BlockMatrix rightProject(BlockMatrix matrix, unsigned int ID);
+    SHP(BlockMatrix) rightProject(SHP(BlockMatrix) matrix, unsigned int ID);
 
-    DenseMatrix rightProject(SparseMatrix matrix, unsigned int basisIndex, unsigned int ID);
+    SHP(DenseMatrix) rightProject(SHP(SparseMatrix) matrix, unsigned int basisIndex, unsigned int ID);
 
-    SHP(VECTOREPETRA) reconstructFEFunction(DenseVector rbSolution, unsigned int index,
+    SHP(VECTOREPETRA) reconstructFEFunction(SHP(aVector) rbSolution, unsigned int index,
                                             unsigned int ID);
 
     void addPrimalSupremizer(SHP(VECTOREPETRA) supremizer,
@@ -120,8 +120,8 @@ public:
         return false;
     }
 
-    SparseMatrix getEnrichedBasisMatrices(const unsigned int& index, const unsigned int& ID,
-                                      bool transpose);
+    SHP(SparseMatrix) getEnrichedBasisMatrices(const unsigned int& index, const unsigned int& ID,
+                                               bool transpose);
 
 private:
     void addVectorsFromFile(std::string filename,
@@ -133,8 +133,8 @@ private:
     DataContainer                                                     M_data;
     EPETRACOMM                                                        M_comm;
     std::vector<std::vector<SHP(VECTOREPETRA)>>                       M_bases;
-    std::vector<SparseMatrix>                                             M_enrichedBasesMatrices;
-    std::vector<SparseMatrix>                                             M_enrichedBasesMatricesTransposed;
+    std::vector<SHP(SparseMatrix)>                                             M_enrichedBasesMatrices;
+    std::vector<SHP(SparseMatrix)>                                             M_enrichedBasesMatricesTransposed;
     // this is a grid because the row indicates the field to be augmented (velocity)
     // and the column indicates the constraining field (pressure)
     GridVectors                                                       M_primalSupremizers;
@@ -143,6 +143,7 @@ private:
     std::string                                                       M_path;
     std::vector<std::vector<double>>                                  M_svs;
     std::vector<SHP(FESPACE)>                                         M_fespaces;
+    bool                                                              M_fespacesAreSet;
     // max of tolerance on the individual fields
     double                                                            M_onlineTol;
     // online tolerance on the individual fields
@@ -152,8 +153,8 @@ private:
     // when we rescale with piola)
     std::map<unsigned int,std::map<unsigned int,
                           std::vector<SHP(VECTOREPETRA)>>>            M_enrichedBasesMap;
-    std::map<unsigned int,std::map<unsigned int,SparseMatrix>>            M_enrichedBasesMatricesMap;
-    std::map<unsigned int,std::map<unsigned int,SparseMatrix>>            M_enrichedBasesMatricesTransposedMap;
+    std::map<unsigned int,std::map<unsigned int,SHP(SparseMatrix)>>            M_enrichedBasesMatricesMap;
+    std::map<unsigned int,std::map<unsigned int,SHP(SparseMatrix)>>            M_enrichedBasesMatricesTransposedMap;
 };
 
 }  // namespace RedMA

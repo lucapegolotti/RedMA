@@ -21,7 +21,7 @@
 
 #include <memory>
 
-#define ZEROTHRESHOLD   1e-15
+#define ZEROTHRESHOLD   1e-100
 
 namespace RedMA
 {

@@ -297,7 +297,7 @@ createFromBlockMatrix(SHP(BlockMatrix) matrix)
     for (unsigned int i = 0; i < matrix->nRows(); i++)
     {
         if (M_rangeMaps[i] == nullptr)
-            throw new Exception("Error in blockMatrixToDenseMatrix!");
+            throw new Exception("Error in createFromBlockMatrix!");
 
         *M_monolithicRangeMap += *M_rangeMaps[i];
         M_dimensionsRows.push_back(M_rangeMaps[i]->mapSize());
@@ -307,7 +307,7 @@ createFromBlockMatrix(SHP(BlockMatrix) matrix)
     for (unsigned int j = 0; j < matrix->nCols(); j++)
     {
         if (M_domainMaps[j] == nullptr)
-            throw new Exception("Error in blockMatrixToDenseMatrix!");
+            throw new Exception("Error in createFromBlockMatrix!");
 
         *M_monolithicDomainMap += *M_domainMaps[j];
         M_dimensionsCols.push_back(M_domainMaps[j]->mapSize());
@@ -545,7 +545,7 @@ getEpetraVector(const SHP(aVector)& vector, const BlockMaps& maps)
         auto curblock = vector->block(iouter);
         unsigned int currows = vector->block(iouter)->nRows();
 
-        if (curblock->nRows() == 0)
+        if (curblock->nRows() == 0 || curblock->isZero())
         {
             for (unsigned int iinner = 0; iinner < rows[iouter]; iinner++)
             {
@@ -559,7 +559,15 @@ getEpetraVector(const SHP(aVector)& vector, const BlockMaps& maps)
             {
                 if (curblock->block(iinner)->data())
                 {
-                    auto localVector = std::static_pointer_cast<VECTOREPETRA>(curblock->block(iinner)->data());
+                    SHP(VECTOREPETRA) localVector;
+                    if (curblock->block(iinner)->type() == DENSE)
+                    {
+                        localVector = std::static_pointer_cast<DenseVector>(curblock->block(iinner))->toVectorEpetraPtr(rangeMaps[count]->commPtr());
+                    }
+                    else
+                    {
+                        localVector = std::static_pointer_cast<VECTOREPETRA>(curblock->block(iinner)->data());
+                    }
                     retVec->subset(*localVector,
                                    *rangeMaps[count], 0, offset);
                 }
@@ -567,12 +575,78 @@ getEpetraVector(const SHP(aVector)& vector, const BlockMaps& maps)
                 offset += rangeMaps[count]->mapSize();
                 count++;
             }
-
         }
-
     }
     return retVec;
 }
+
+// SHP(VECTOREPETRA)
+// getEpetraVector(const SHP(aVector)& vector, const BlockMaps& maps)
+// {
+//     std::cout << "getEpetraVector" << std::endl << std::flush;
+//     SHP(VECTOREPETRA) retVec(new VECTOREPETRA(maps.M_monolithicRangeMap,
+//                                               LifeV::Unique));
+//     auto rangeMaps = maps.M_rangeMaps;
+//     auto rows = maps.M_dimensionsRowsBlock;
+//
+//     std::cout << "1" << std::endl << std::flush;
+//     unsigned int count = 0;
+//     unsigned int offset = 0;
+//     // this part is tricky because we don't know a priori if all the
+//     // blocks in the input vector are filled
+//     for (unsigned int iouter = 0; iouter < vector->nRows(); iouter++)
+//     {
+//         std::cout << "2" << std::endl << std::flush;
+//         auto curblock = vector->block(iouter);
+//         unsigned int currows = vector->block(iouter)->nRows();
+//
+//         if (curblock->nRows() == 0 || curblock->isZero())
+//         {
+//             for (unsigned int iinner = 0; iinner < rows[iouter]; iinner++)
+//             {
+//                 offset += rangeMaps[count]->mapSize();
+//                 count++;
+//             }
+//         }
+//         else
+//         {
+//             std::cout << "3" << std::endl << std::flush;
+//             for (unsigned int iinner = 0; iinner < curblock->nRows(); iinner++)
+//             {
+//                 std::cout << "4" << std::endl << std::flush;
+//                 if (curblock->block(iinner)->data())
+//                 {
+//                     std::cout << "4_" << std::endl << std::flush;
+//                     SHP(VECTOREPETRA) localVector;
+//                     if (curblock->block(iinner)->type() == DENSE)
+//                     {
+//                         std::cout << "4_1" << std::endl << std::flush;
+//                         localVector = std::static_pointer_cast<DenseVector>(curblock->block(iinner))->toVectorEpetraPtr(rangeMaps[count]->commPtr());
+//                     }
+//                     else
+//                     {
+//                         std::cout << "4_2" << std::endl << std::flush;
+//                         localVector = std::static_pointer_cast<VECTOREPETRA>(curblock->block(iinner)->data());
+//                     }
+//                     std::cout << "4_3" << std::endl << std::flush;
+//                     std::cout << localVector->mapPtr()->mapSize() << std::endl << std::flush;
+//                     std::cout << rangeMaps[count]->mapSize() << std::endl << std::flush;
+//                     retVec->subset(*localVector,
+//                                    *rangeMaps[count], 0, offset);
+//                     std::cout << "4_4" << std::endl << std::flush;
+//                 }
+//                 std::cout << "5" << std::endl << std::flush;
+//
+//                 offset += rangeMaps[count]->mapSize();
+//                 count++;
+//                 std::cout << "6" << std::endl << std::flush;
+//             }
+//         }
+//         std::cout << "7" << std::endl << std::flush;
+//
+//     }
+//     return retVec;
+// }
 
 // SHP(DenseMatrix)
 // blockMatrixToDenseMatrix(SHP(BlockMatrix) matrix)

@@ -12,7 +12,6 @@ StokesModel(const DataContainer& data, SHP(TreeNode) treeNode) :
     M_viscosity = data("fluid/viscosity", 0.035);
     M_velocityOrder = data("fluid/velocity_order", "P2");
     M_pressureOrder = data("fluid/pressure_order", "P1");
-    M_name = "StokesModel";
 }
 
 
@@ -333,7 +332,7 @@ computeFlowRates(SHP(aVector) sol, bool verbose)
 
         flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(sol->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
         std::string msg = "[";
-        msg += this->M_name;
+        msg += "StokesModel";
         msg += "]  inflow rate = ";
         msg += std::to_string(flowRates[face.M_flag]);
         msg += "\n";
@@ -348,7 +347,7 @@ computeFlowRates(SHP(aVector) sol, bool verbose)
         {
             flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(sol->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
             std::string msg = "[";
-            msg += this->M_name;
+            msg += "StokesModel";
             msg += "]  outflow rate = ";
             msg += std::to_string(flowRates[face.M_flag]);
             msg += "\n";

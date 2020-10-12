@@ -62,7 +62,7 @@ public:
 
     void setVector(std::shared_ptr<DENSEVECTOR> vector);
 
-    std::shared_ptr<LifeV::VectorEpetra> toVectorEpetra(std::shared_ptr<Epetra_Comm> comm) const;
+    std::shared_ptr<LifeV::VectorEpetra> toVectorEpetraPtr(std::shared_ptr<Epetra_Comm> comm) const;
 
 private:
     std::shared_ptr<DENSEVECTOR>  M_vector;

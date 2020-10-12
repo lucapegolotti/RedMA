@@ -115,14 +115,11 @@ multiplyByVector(std::shared_ptr<aVector> vector)
     }
     checkType(vector, DENSE);
 
-    std::shared_ptr<DENSEVECTOR> otherVector(
-    static_cast<DENSEVECTOR*>(dynamic_cast<DenseVector*>(vector.get())->data().get()));
+    std::shared_ptr<DENSEVECTOR> otherVector = std::static_pointer_cast<DENSEVECTOR>(vector->data());
 
-    std::shared_ptr<DenseVector> retVec;
+    std::shared_ptr<DenseVector> retVec(new DenseVector());
     if (!isZero() && !vector->isZero())
     {
-        std::cout << "multiplyByVector is probably to fix in DenseMatrix" << std::endl << std::flush;
-        exit(1);
         std::shared_ptr<DENSEVECTOR> res;
         res.reset(new DENSEVECTOR(M_nRows));
         M_matrix->Multiply(false, *otherVector, *res);

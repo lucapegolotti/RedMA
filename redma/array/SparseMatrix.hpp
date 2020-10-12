@@ -47,7 +47,7 @@ public:
 
     SparseMatrix(std::vector<std::shared_ptr<DistributedVector>> columnVectors);
 
-    // SparseMatrix(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors);
+    SparseMatrix(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors);
 
     virtual void add(std::shared_ptr<aMatrix> other) override;
 
@@ -75,7 +75,15 @@ public:
 
     DenseMatrix toDenseMatrix() const;
 
+    std::shared_ptr<DenseMatrix> toDenseMatrixPtr() const;
+
     virtual void dump(std::string namefile) const override;
+
+    std::shared_ptr<Epetra_Comm> commPtr() {return M_matrix->rangeMapPtr()->commPtr();}
+
+    static std::shared_ptr<SparseMatrix> convertDenseMatrix(
+        std::shared_ptr<DenseMatrix> denseVector,
+        std::shared_ptr<Epetra_Comm> comm);
 
 private:
     std::shared_ptr<MATRIXEPETRA>           M_matrix;

@@ -33,9 +33,10 @@ setup()
     M_defaultAssemblers.reset(new DefaultAssemblersLibrary
                                   (M_data, M_tree.getMeshListNames(), M_comm));
 
-    M_assembler.reset(new BAssembler(M_data, M_tree));
-    M_assembler->setDefaultAssemblers(M_defaultAssemblers);
+    M_assembler.reset(new BAssembler(M_data, M_tree, M_defaultAssemblers));
+    // M_assembler->setDefaultAssemblers(M_defaultAssemblers);
     M_TMAlgorithm = TimeMarchingAlgorithmFactory(M_data, M_assembler);
+    M_TMAlgorithm->setComm(M_comm);
     printlog(MAGENTA, "done\n", M_data.getVerbose());
 }
 

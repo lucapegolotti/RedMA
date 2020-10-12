@@ -19,6 +19,7 @@
 
 #include <redma/utils/Exception.hpp>
 #include <redma/array/DenseVector.hpp>
+#include <redma/array/DistributedVector.hpp>
 
 #include <boost/numeric/ublas/matrix.hpp>
 
@@ -59,6 +60,10 @@ public:
 
     void setBlock(const unsigned int& iblock, std::shared_ptr<aVector> vector) override;
 
+    bool globalTypeIs(Datatype type);
+
+    std::shared_ptr<BlockVector> convertInnerTo(Datatype type, std::shared_ptr<Epetra_Comm> comm = nullptr);
+
     // BlockVector operator*(const double& coeff) const;
     //
     // BlockVector& operator*=(const double& coeff);
@@ -79,6 +84,12 @@ public:
 
     void updateNormInf();
 
+    void findComm();
+
+    std::shared_ptr<Epetra_Comm> commPtr() {findComm(); return M_comm;}
+
+    void copyPattern(std::shared_ptr<BlockVector> other, bool verbose = true);
+
     // inline void close() {M_isOpen = false;}
     //
     // inline void open() {M_isOpen = true;}
@@ -91,8 +102,8 @@ public:
 
 protected:
     BlockVector();
-
-    Grid            M_vectorGrid;
+    std::shared_ptr<Epetra_Comm>  M_comm;
+    Grid                          M_vectorGrid;
     // bool            M_isOpen;
 };
 

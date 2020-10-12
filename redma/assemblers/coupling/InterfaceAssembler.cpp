@@ -348,8 +348,10 @@ addContributionRhs(const double& time, SHP(BlockVector) rhs,
     SHP(aAssembler) assemblerFather = M_interface.M_assemblerFather;
     SHP(aAssembler) assemblerChild = M_interface.M_assemblerChild;
 
+    SHP(aVector) tempResFather;
+
     // we have (-1) because we are solving H un+1 = F(.) and coupling is in F
-    auto tempResFather = M_fatherBT->multiplyByVector(sol->block(nPrimalBlocks + interfaceID));
+    tempResFather = M_fatherBT->multiplyByVector(sol->block(nPrimalBlocks + interfaceID));
     tempResFather->multiplyByScalar(-1.0);
     rhs->block(fatherID)->add(tempResFather);
 
@@ -466,13 +468,7 @@ getZeroVector() const
 {
     SHP(BlockVector) retVector(new BlockVector(1));
 
-    SHP(MAPEPETRA) lagrangeMap;
-    if (M_fatherBT->nRows() > 0)
-        lagrangeMap.reset(new MAPEPETRA(*std::static_pointer_cast<MATRIXEPETRA>(M_fatherBT->block(0,0)->data())->domainMapPtr()));
-    else
-        lagrangeMap.reset(new MAPEPETRA(*std::static_pointer_cast<MATRIXEPETRA>(M_childBT->block(0,0)->data())->domainMapPtr()));
-
-    SHP(VECTOREPETRA) zeroVec(new VECTOREPETRA(*lagrangeMap, LifeV::Unique));
+    SHP(VECTOREPETRA) zeroVec(new VECTOREPETRA(*M_mapLagrange, LifeV::Unique));
     zeroVec->zero();
     // *zeroVec += 1;
 
@@ -501,7 +497,13 @@ buildCouplingMatrices()
             // M_stabFather *= 0.5;
         }
 
+        M_mapLagrange = std::static_pointer_cast<MATRIXEPETRA>(M_fatherBT->block(0,0)->data())->domainMapPtr();
 
+        if (!std::strcmp(asFather->getTreeNode()->M_block->getDiscretizationMethod().c_str(),"rb"))
+        {
+            M_fatherBT = asFather->getRBBases()->leftProject(M_fatherBT, asFather->ID());
+            M_fatherB = asFather->getRBBases()->rightProject(M_fatherB, asFather->ID());
+        }
     }
 
     auto asChild = M_interface.M_assemblerChild;
@@ -522,6 +524,14 @@ buildCouplingMatrices()
         }
         M_childBT->multiplyByScalar(-1.);
         M_childB->multiplyByScalar(-1.);
+
+        M_mapLagrange = std::static_pointer_cast<MATRIXEPETRA>(M_childBT->block(0,0)->data())->domainMapPtr();
+
+        if (!std::strcmp(asChild->getTreeNode()->M_block->getDiscretizationMethod().c_str(),"rb"))
+        {
+            M_childBT = asChild->getRBBases()->leftProject(M_childBT, asChild->ID());
+            M_childB = asChild->getRBBases()->rightProject(M_childB, asChild->ID());
+        }
     }
 }
 

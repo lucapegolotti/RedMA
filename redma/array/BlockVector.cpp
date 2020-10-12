@@ -35,6 +35,110 @@ BlockVector(const unsigned int& nRows) :
 
 void
 BlockVector::
+findComm()
+{
+    M_comm = nullptr;
+
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        if (block(i) && M_comm == nullptr)
+        {
+            if (block(i)->type() == BLOCK)
+                M_comm = std::static_pointer_cast<BlockVector>(block(i))->commPtr();
+            else if (block(i)->type() == DISTRIBUTED)
+            {
+                M_comm = std::static_pointer_cast<DistributedVector>(block(i))->commPtr();
+            }
+        }
+    }
+}
+
+bool
+BlockVector::
+globalTypeIs(Datatype type)
+{
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        if (block(i))
+        {
+            if (!block(i)->isZero() && block(i)->type() == BLOCK)
+            {
+                if (!std::static_pointer_cast<BlockVector>(block(i))->globalTypeIs(type))
+                    return false;
+            }
+            else if (!block(i)->isZero() && block(i)->type() != type)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void
+BlockVector::
+copyPattern(std::shared_ptr<BlockVector> other, bool verbose)
+{
+    throw new Exception("This function does not work");
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        if (block(i)->type() == BLOCK)
+        {
+            std::static_pointer_cast<BlockVector>(block(i))->copyPattern(std::static_pointer_cast<BlockVector>(other->block(i)),false);
+        }
+        else if (block(i)->type() != other->block(i)->type())
+        {
+            if (other->block(i)->type() == DENSE && block(i)->type() == DISTRIBUTED)
+            {
+                setBlock(i,std::static_pointer_cast<DistributedVector>(block(i))->toDenseVectorPtr());
+            }
+            else
+                throw new Exception("copyPattern: case not implemented");
+        }
+    }
+}
+
+std::shared_ptr<BlockVector>
+BlockVector::
+convertInnerTo(Datatype type, std::shared_ptr<Epetra_Comm> comm)
+{
+    if (type != DISTRIBUTED)
+        throw new Exception("convertInnerTo implemented only for distributed output");
+
+    if (comm == nullptr)
+    {
+        findComm();
+        comm = M_comm;
+    }
+
+    if (comm == nullptr)
+        throw new Exception("No communicator in block vector!");
+
+    std::shared_ptr<BlockVector> retVec(new BlockVector(nRows()));
+
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        retVec->setBlock(i,block(i));
+        if (block(i))
+        {
+            if (!block(i)->isZero() && block(i)->type() == BLOCK)
+            {
+                retVec->setBlock(i,std::static_pointer_cast<BlockVector>(block(i))->convertInnerTo(type,comm));
+            }
+            else if (!block(i)->isZero() && block(i)->type() != type)
+            {
+                if (block(i)->type() != DENSE)
+                    throw new Exception("All inner vectors which are not sparse must be dense!");
+                retVec->setBlock(i,DistributedVector::convertDenseVector(std::static_pointer_cast<DenseVector>(block(i)),comm));
+            }
+        }
+    }
+
+    return retVec;
+}
+
+void
+BlockVector::
 resize(const unsigned int& nRows)
 {
     M_nRows = nRows;

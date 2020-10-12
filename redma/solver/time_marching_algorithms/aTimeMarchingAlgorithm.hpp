@@ -53,6 +53,8 @@ public:
     void dumpSolverStatistics(std::vector<SolverStatistics> statistics,
                               const double& t) const;
 
+    void setComm(EPETRACOMM comm) {M_comm = comm; M_systemSolver.setComm(comm);}
+
 protected:
     void initializeStatisticsFile();
 
@@ -60,6 +62,7 @@ protected:
     SystemSolver                                        M_systemSolver;
     SHP(FunProvider)                                    M_funProvider;
     std::string                                         M_statisticsFile;
+    EPETRACOMM                                          M_comm;
 };
 
 }

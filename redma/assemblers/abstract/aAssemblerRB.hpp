@@ -25,14 +25,15 @@ namespace RedMA
 class aAssemblerRB : public aAssembler
 {
 public:
-    virtual SHP(aVector) convertFunctionRBtoFEM(SHP(aVector) rbSolution) const {};
+    aAssemblerRB(const DataContainer& datafile) :
+      aAssembler(datafile)
+    {}
 
-    virtual SHP(RBBases) getRBBases() const {}
+    aAssemblerRB(const DataContainer& datafile, SHP(TreeNode) node) :
+      aAssembler(datafile, node)
+    {}
 
-    virtual void RBsetup() {}
-
-    virtual void setRBBases(SHP(RBBasesManager) rbManager) {}
-
+    virtual SHP(aVector) convertFunctionRBtoFEM(SHP(aVector) rbSolution) const = 0;
 };
 
 }

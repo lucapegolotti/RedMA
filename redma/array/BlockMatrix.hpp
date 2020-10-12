@@ -21,6 +21,7 @@
 #include <redma/array/aMatrix.hpp>
 #include <redma/array/BlockVector.hpp>
 #include <redma/array/DistributedVector.hpp>
+#include <redma/array/DenseVector.hpp>
 #include <redma/array/SparseMatrix.hpp>
 #include <redma/array/DenseMatrix.hpp>
 #include <redma/array/Double.hpp>
@@ -76,11 +77,19 @@ public:
 
     unsigned int level();
 
+    bool globalTypeIs(Datatype type);
+
+    std::shared_ptr<BlockMatrix> convertInnerTo(Datatype type, std::shared_ptr<Epetra_Comm> comm = nullptr);
+
     // inline bool isFinalized() const {return M_isFinalized;}
 
     void printPattern() const;
 
     void close() override;
+
+    void findComm();
+
+    std::shared_ptr<Epetra_Comm> commPtr() {findComm(); return M_comm;}
 
     void open() override {M_isOpen = true;}
 
@@ -108,8 +117,9 @@ protected:
     //
     // void multiplyCoeff(const double& coeff) {};
 
-    Grid                        M_matrixGrid;
-    bool                        M_isOpen;
+    std::shared_ptr<Epetra_Comm>  M_comm;
+    Grid                          M_matrixGrid;
+    bool                          M_isOpen;
     // SHP(BlockDimension)         M_dimensionsRows;
     // SHP(BlockDimension)         M_dimensionsCols;
 };

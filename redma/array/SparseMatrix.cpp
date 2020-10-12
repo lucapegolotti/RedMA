@@ -71,57 +71,56 @@ SparseMatrix(std::vector<std::shared_ptr<DistributedVector>> columnVectors) :
     matrix->globalAssemble(domainMap, rangeMap);
     setMatrix(matrix);
 }
-//
-// SparseMatrix::
-// SparseMatrix(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors) :
-//   aMatrix(SPARSE)
-// {
-//     throw new Exception("This version of SparseMatrix() is not implemented");
-//     // const double dropTolerance(2.0 * std::numeric_limits<double>::min());
-//     //
-//     // unsigned int N = columnVectors.size();
-//     // std::shared_ptr<LifeV::MapEpetra> rangeMap = columnVectors[0]->mapPtr();
-//     // std::shared_ptr<Epetra_Comm> comm = rangeMap->commPtr();
-//     //
-//     // unsigned int myel = N / comm->NumProc();
-//     //
-//     // // the first process takes care of the remainder
-//     // if (comm->MyPID() == 0)
-//     // {
-//     //     myel += N % comm->NumProc();
-//     // }
-//     //
-//     // std::shared_ptr<LifeV::MapEpetra> domainMap;
-//     // domainMap.reset(new LifeV::MapEpetra(N, myel, 0, comm));
-//     //
-//     // std::shared_ptr<MATRIXEPETRA> matrix;
-//     // matrix.reset(new MATRIXEPETRA(*rangeMap, N, false));
-//     //
-//     // Epetra_Map epetraMap = columnVectors[0]->epetraMap();
-//     // unsigned int numElements = epetraMap.NumMyElements();
-//     //
-//     // for (unsigned int i = 0; i < N; i++)
-//     // {
-//     //     VECTOREPETRA columnVectorUnique(*columnVectors[i], LifeV::Unique);
-//     //     for (unsigned int dof = 0; dof < numElements; dof++)
-//     //     {
-//     //         unsigned int gdof = epetraMap.GID(dof);
-//     //         if (columnVectorUnique.isGlobalIDPresent(gdof))
-//     //         {
-//     //             double value(columnVectorUnique[gdof]);
-//     //             if (std::abs(value) > dropTolerance)
-//     //             {
-//     //                 matrix->addToCoefficient(gdof, i, value);
-//     //             }
-//     //         }
-//     //     }
-//     // }
-//     //
-//     // comm->Barrier();
-//     //
-//     // matrix->globalAssemble(domainMap, rangeMap);
-//     // setMatrix(matrix);
-// }
+
+SparseMatrix::
+SparseMatrix(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors) :
+  aMatrix(SPARSE)
+{
+    const double dropTolerance(2.0 * std::numeric_limits<double>::min());
+
+    unsigned int N = columnVectors.size();
+    std::shared_ptr<LifeV::MapEpetra> rangeMap = columnVectors[0]->mapPtr();
+    std::shared_ptr<Epetra_Comm> comm = rangeMap->commPtr();
+
+    unsigned int myel = N / comm->NumProc();
+
+    // the first process takes care of the remainder
+    if (comm->MyPID() == 0)
+    {
+        myel += N % comm->NumProc();
+    }
+
+    std::shared_ptr<LifeV::MapEpetra> domainMap;
+    domainMap.reset(new LifeV::MapEpetra(N, myel, 0, comm));
+
+    std::shared_ptr<MATRIXEPETRA> matrix;
+    matrix.reset(new MATRIXEPETRA(*rangeMap, N, false));
+
+    Epetra_Map epetraMap = columnVectors[0]->epetraMap();
+    unsigned int numElements = epetraMap.NumMyElements();
+
+    for (unsigned int i = 0; i < N; i++)
+    {
+        VECTOREPETRA columnVectorUnique(*columnVectors[i], LifeV::Unique);
+        for (unsigned int dof = 0; dof < numElements; dof++)
+        {
+            unsigned int gdof = epetraMap.GID(dof);
+            if (columnVectorUnique.isGlobalIDPresent(gdof))
+            {
+                double value(columnVectorUnique[gdof]);
+                if (std::abs(value) > dropTolerance)
+                {
+                    matrix->addToCoefficient(gdof, i, value);
+                }
+            }
+        }
+    }
+
+    comm->Barrier();
+
+    matrix->globalAssemble(domainMap, rangeMap);
+    setMatrix(matrix);
+}
 
 void
 SparseMatrix::
@@ -267,9 +266,9 @@ dump(std::string filename) const
     M_matrix->spy(filename);
 }
 
-DenseMatrix
+std::shared_ptr<DenseMatrix>
 SparseMatrix::
-toDenseMatrix() const
+toDenseMatrixPtr() const
 {
     unsigned int M = M_matrix->rangeMapPtr()->mapSize();
     unsigned int N = M_matrix->domainMapPtr()->mapSize();
@@ -297,10 +296,17 @@ toDenseMatrix() const
     delete[] values;
     delete[] indices;
 
-    DenseMatrix retMat;
-    retMat.data() = innerMatrix;
+    std::shared_ptr<DenseMatrix> retMat(new DenseMatrix());
+    retMat->setMatrix(innerMatrix);
 
     return retMat;
+}
+
+DenseMatrix
+SparseMatrix::
+toDenseMatrix() const
+{
+    return *toDenseMatrixPtr();
 }
 
 
@@ -330,6 +336,37 @@ SparseMatrix::
 data() const
 {
     return M_matrix;
+}
+
+std::shared_ptr<SparseMatrix>
+SparseMatrix::
+convertDenseMatrix(std::shared_ptr<DenseMatrix> denseMatrix,
+                   std::shared_ptr<Epetra_Comm> comm)
+{
+    using namespace LifeV;
+    std::shared_ptr<SparseMatrix> retMat(new SparseMatrix());
+
+    if (comm->MyPID() != 0)
+        throw new Exception("convertDenseVector does not support more than one proc");
+    unsigned int rows = denseMatrix->nRows();
+    unsigned int cols = denseMatrix->nCols();
+
+    std::shared_ptr<MapEpetra> rangeMap(new MapEpetra(rows, rows, 0, comm));
+    std::shared_ptr<MapEpetra> domainMap(new MapEpetra(cols, cols, 0, comm));
+
+    std::shared_ptr<MATRIXEPETRA> matrix(new MATRIXEPETRA(*rangeMap,rows,false));
+
+    for (unsigned int i = 0; i < rows; i++)
+    {
+        for (unsigned int j = 0; j < cols; j++)
+        {
+            double value = std::static_pointer_cast<DENSEMATRIX>(denseMatrix->data())->operator()(i,j);
+            matrix->addToCoefficient(i, j, value);
+        }
+    }
+    matrix->globalAssemble(domainMap, rangeMap);
+    retMat->setMatrix(matrix);
+    return retMat;
 }
 
 }

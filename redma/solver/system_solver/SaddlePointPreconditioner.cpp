@@ -16,7 +16,6 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
     printlog(MAGENTA, "[SaddlePointPreconditioner] starting setup ...\n", M_data.getVerbose());
     // split matrices
     unsigned int nBlocks = matrix->nRows();
-
     // read options
     setSolverOptions();
 
@@ -31,7 +30,7 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
     // solution method to approximate BAm1BT in schur
     M_approxSchurType = M_data("preconditioner/approxshur", "SIMPLE");
 
-    if (nBlocks > 1)
+    if (1)
     {
         unsigned int nPrimal = 1;
         // if nBlocks == 2, then we are imposing weak boundary conditions and
@@ -81,11 +80,11 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
         //
         allocateInnerPreconditioners(A);
 
-        if (!std::strcmp(M_innerPrecType.c_str(), "exact") ||
-            !std::strcmp(M_approxSchurType.c_str(), "exact"))
-        {
+        // if (!std::strcmp(M_innerPrecType.c_str(), "exact") ||
+        //     !std::strcmp(M_approxSchurType.c_str(), "exact"))
+        // {
             allocateInverseSolvers(A);
-        }
+        // }
 
         // printlog(MAGENTA, msg, M_data.getVerbose());
         computeSchurComplement(A, BT, B, C);
@@ -126,6 +125,7 @@ computeSchurComplement(const BM& A, const BM& BT, const BM& B, const BM& C)
     globalSchurOptions.reset(new
         Teuchos::ParameterList(M_solversOptionsInner->sublist("GlobalSchurOperator")));
 
+    // std::static_pointer_cast<MATRIXEPETRA>(Scoll->data())->spy("schur");
     M_approximatedSchurInverse->SetRowMatrix(std::static_pointer_cast<MATRIXEPETRA>(Scoll->data())->matrixPtr());
     M_approximatedSchurInverse->SetParameterList(*globalSchurOptions);
     M_approximatedSchurInverse->Compute();
@@ -242,6 +242,11 @@ computeAm1BT(const BM& A, const BM& BT)
             BM Abm = std::static_pointer_cast<BlockMatrix>(A->block(i,i));
             BM BTbm = std::static_pointer_cast<BlockMatrix>(BT->block(i,j));
             auto temp = computeSingleAm1BT(Abm, BTbm,i);
+            // if (i != 1 && j != 1)
+            // {
+            //     std::static_pointer_cast<MATRIXEPETRA>(temp->block(0,0)->data())->spy("am1b_" + std::to_string(i) + "_" + std::to_string(j));
+            //     std::static_pointer_cast<MATRIXEPETRA>(temp->block(1,0)->data())->spy("2am1b_" + std::to_string(i) + "_" + std::to_string(j));
+            // }
             M_Am1BT->setBlock(i,j,temp);
         }
     }

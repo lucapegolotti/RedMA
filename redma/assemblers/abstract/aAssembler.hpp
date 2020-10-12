@@ -114,6 +114,12 @@ public:
 
     inline unsigned int ID() {return M_treeNode->M_ID;}
 
+    virtual void RBsetup() {}
+
+    virtual SHP(RBBases) getRBBases() const {}
+
+    virtual void setRBBases(SHP(RBBasesManager) rbManager) {}
+
 protected:
     DataContainer                           M_data;
     SHP(TreeNode)                           M_treeNode;

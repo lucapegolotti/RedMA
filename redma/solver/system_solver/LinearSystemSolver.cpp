@@ -14,18 +14,28 @@ void
 LinearSystemSolver::
 solve(const BM& matrix, const BV& rhs, BV& sol)
 {
-    if (!M_maps)
-        M_maps.reset(new BlockMaps(std::static_pointer_cast<BlockMatrix>(matrix)));
-    else
-        M_maps->updateCollapsedMatrix(std::static_pointer_cast<BlockMatrix>(matrix));
+    BM matrixSparse = matrix;
+    BV rhsSparse = rhs;
+    if (!std::static_pointer_cast<BlockMatrix>(matrixSparse)->globalTypeIs(SPARSE))
+        matrixSparse = std::static_pointer_cast<BlockMatrix>(matrixSparse)->convertInnerTo(SPARSE,M_comm);
 
-    M_oper.reset(new LinearOperator(matrix,M_maps));
+    // std::cout << "here" << std::endl << std::flush;
+    // if (!std::static_pointer_cast<BlockVector>(rhsSparse)->globalTypeIs(DISTRIBUTED))
+    //     rhsSparse = std::static_pointer_cast<BlockVector>(rhsSparse)->convertInnerTo(DISTRIBUTED,std::static_pointer_cast<BlockMatrix>(matrixSparse)->commPtr());
+    // std::cout << "there" << std::endl << std::flush;
+
+    if (!M_maps)
+        M_maps.reset(new BlockMaps(std::static_pointer_cast<BlockMatrix>(matrixSparse)));
+    else
+        M_maps->updateCollapsedMatrix(std::static_pointer_cast<BlockMatrix>(matrixSparse));
+
+    M_oper.reset(new LinearOperator(matrixSparse,M_maps));
 
     M_invOper.reset(new InverseOperator(M_data));
     M_invOper->setOperator(M_oper);
     M_invOper->setBlockMaps(M_maps);
 
-    buildPreconditioner(matrix);
+    buildPreconditioner(matrixSparse);
 
     M_invOper->setPreconditioner(M_prec);
 

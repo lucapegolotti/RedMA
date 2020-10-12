@@ -9,7 +9,6 @@ BDF(const DataContainer& data) :
   M_order(data("time_discretization/order",2))
 {
     M_useExtrapolation = this->M_data("time_discretization/use_extrapolation", 0);
-
     // if we set this we save the evaluation of the residual at the end of resolution
     // (important for rb method)
     if (M_useExtrapolation)

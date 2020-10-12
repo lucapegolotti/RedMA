@@ -44,11 +44,14 @@ public:
 
     void isLinearProblem() {M_isLinearProblem = true;}
 
+    void setComm(EPETRACOMM comm) {M_comm = comm;}
+
 private:
     DataContainer                                       M_data;
     LinearSystemSolver                                  M_linearSystemSolver;
     std::vector<SolverStatistics>                       M_solverStatistics;
     bool                                                M_isLinearProblem;
+    EPETRACOMM                                          M_comm;
 };
 
 }

@@ -163,7 +163,17 @@ multiplyByVector(std::shared_ptr<aVector> vector)
     {
         for (unsigned int j = 0; j < nCols(); j++)
         {
-            std::shared_ptr<aVector> tempRes = block(i,j)->multiplyByVector(otherVector->block(j));
+            // check if we need to the conversion distributed->dense
+            std::shared_ptr<aVector> tempRes;
+            if (block(i,j)->type() == DENSE && otherVector->block(j)->type() == DISTRIBUTED)
+            {
+                printlog(YELLOW, "[BlockMatrix::multiplyByVector] explicit dense->distributed conversion\n", true);
+                std::shared_ptr<DistributedVector> asDistributed = std::static_pointer_cast<DistributedVector>(otherVector->block(j));
+                std::shared_ptr<DenseVector> asDense = asDistributed->toDenseVectorPtr();
+                tempRes = DistributedVector::convertDenseVector(std::static_pointer_cast<DenseVector>(block(i,j)->multiplyByVector(asDense)),asDistributed->commPtr());
+            }
+            else
+                tempRes = block(i,j)->multiplyByVector(otherVector->block(j));
             if (retVector->block(i)->isZero())
                 retVector->setBlock(i,tempRes);
             else
@@ -173,6 +183,95 @@ multiplyByVector(std::shared_ptr<aVector> vector)
     // retVector->close();
 
     return retVector;
+}
+
+bool
+BlockMatrix::
+globalTypeIs(Datatype type)
+{
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        for (unsigned int j = 0; j < nCols(); j++)
+        {
+            if (block(i,j))
+            {
+                if (!block(i,j)->isZero() && block(i,j)->type() == BLOCK)
+                {
+                    if (!std::static_pointer_cast<BlockMatrix>(block(i,j))->globalTypeIs(type))
+                        return false;
+                }
+                else if (!block(i,j)->isZero() && block(i,j)->type() != type)
+                {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+void
+BlockMatrix::
+findComm()
+{
+    M_comm = nullptr;
+
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        for (unsigned int j = 0; j < nCols(); j++)
+        {
+            if (block(i,j) && M_comm == nullptr)
+            {
+                if (!block(i,j)->isZero() && block(i,j)->type() == BLOCK)
+                    M_comm = std::static_pointer_cast<BlockMatrix>(block(i,j))->commPtr();
+                else if (!block(i,j)->isZero() && block(i,j)->type() == SPARSE)
+                    M_comm = std::static_pointer_cast<SparseMatrix>(block(i,j))->commPtr();
+            }
+        }
+    }
+}
+
+std::shared_ptr<BlockMatrix>
+BlockMatrix::
+convertInnerTo(Datatype type, std::shared_ptr<Epetra_Comm> comm)
+{
+    if (type != SPARSE)
+        throw new Exception("convertInnerTo implemented only for sparse output");
+
+    if (comm == nullptr)
+    {
+        findComm();
+        comm = M_comm;
+    }
+
+    if (comm == nullptr)
+        throw new Exception("No communicator in block matrix!");
+
+    std::shared_ptr<BlockMatrix> retMat(new BlockMatrix(nRows(),nCols()));
+
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        for (unsigned int j = 0; j < nCols(); j++)
+        {
+            retMat->setBlock(i,j,block(i,j));
+            if (block(i,j))
+            {
+                if (!block(i,j)->isZero() && block(i,j)->type() == BLOCK)
+                {
+                    retMat->setBlock(i,j,std::static_pointer_cast<BlockMatrix>(block(i,j))->convertInnerTo(type,comm));
+                }
+                else if (!block(i,j)->isZero() && block(i,j)->type() != type)
+                {
+                    if (block(i,j)->type() != DENSE)
+                        throw new Exception("All inner matrices which are not sparse must be dense!");
+                    retMat->setBlock(i,j,SparseMatrix::convertDenseMatrix(std::static_pointer_cast<DenseMatrix>(block(i,j)),comm));
+                }
+            }
+        }
+    }
+    retMat->close();
+
+    return retMat;
 }
 
 void

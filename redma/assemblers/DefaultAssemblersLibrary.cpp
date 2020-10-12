@@ -26,7 +26,6 @@ DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>&
             SHP(AssemblerType) defAssembler = AssemblerFactory(M_data, defTreeNode);
             defAssembler->initializeFEspaces();
             // defAssembler->setup();
-
             M_assemblersMap[mesh]= defAssembler;
             M_count++;
         }

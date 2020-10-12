@@ -54,6 +54,8 @@ public:
 
     SolverStatistics getSolverStatistics() const {return M_statistics;}
 
+    void setComm(EPETRACOMM comm) {M_comm = comm;}
+
 private:
 
     // only required for dense computation
@@ -74,6 +76,8 @@ private:
 
     SolverStatistics                                M_statistics;
     unsigned                                        M_numSolves;
+
+    EPETRACOMM                                      M_comm;
 };
 
 }

@@ -168,7 +168,7 @@ dump(std::string filename) const
 
 std::shared_ptr<LifeV::VectorEpetra>
 DenseVector::
-toVectorEpetra(std::shared_ptr<Epetra_Comm> comm) const
+toVectorEpetraPtr(std::shared_ptr<Epetra_Comm> comm) const
 {
     // note: we dont care about parallelism because we are assume that we are serial
     using namespace LifeV;

@@ -32,6 +32,7 @@ Apply(const super::vector_Type& X, super::vector_Type& Y) const
             {
                 auto curBlock = std::static_pointer_cast<MATRIXEPETRA>(M_collapsedMatrix->block(i,j)->data());
                 // EPETRA_CHK_ERR(curBlock->matrixPtr()->SetUseTranspose(true));
+                // curBlock->spy("block" + std::to_string(i) + "_" + std::to_string(j));
                 // std::cout << M_domainMap[j]->mapSize() << std::endl << std::flush;
                 EPETRA_CHK_ERR(curBlock->matrixPtr()->Apply(Xview->block(j), tmpY.block(i)));
                 EPETRA_CHK_ERR(Yview->block(i).Update(1.0, tmpY.block(i), 1.0));
@@ -39,7 +40,6 @@ Apply(const super::vector_Type& X, super::vector_Type& Y) const
             }
         }
     }
-
     return 0;
 }
 

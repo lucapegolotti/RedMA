@@ -61,6 +61,10 @@ public:
 
     DenseVector toDenseVector() const;
 
+    std::shared_ptr<Epetra_Comm> commPtr() {return M_vector->mapPtr()->commPtr();}
+
+    std::shared_ptr<DenseVector> toDenseVectorPtr() const;
+
     static std::shared_ptr<DistributedVector> convertDenseVector(
         std::shared_ptr<DenseVector> denseVector,
         std::shared_ptr<Epetra_Comm> comm);
