@@ -6,7 +6,8 @@ namespace RedMA
 SaddlePointPreconditioner::
 SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
   M_data(data),
-  M_matrix(matrix)
+  M_matrix(matrix),
+  M_tresholdSizeExactSolve(-1)
 {
     Chrono chrono;
     chrono.start();
@@ -26,7 +27,7 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
 
     // preconditioner used to approximate Am1 in iterations
     M_innerPrecType = M_data("preconditioner/inner", "SIMPLE");
-
+    M_tresholdSizeExactSolve = M_data("preconditioner/thresholdsize", -1);
     // solution method to approximate BAm1BT in schur
     M_approxSchurType = M_data("preconditioner/approxshur", "SIMPLE");
 
@@ -80,11 +81,12 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
         //
         allocateInnerPreconditioners(A);
 
-        // if (!std::strcmp(M_innerPrecType.c_str(), "exact") ||
-        //     !std::strcmp(M_approxSchurType.c_str(), "exact"))
-        // {
+        if (M_tresholdSizeExactSolve > 0 ||
+            (!std::strcmp(M_innerPrecType.c_str(), "exact") ||
+            !std::strcmp(M_approxSchurType.c_str(), "exact")))
+        {
             allocateInverseSolvers(A);
-        // }
+        }
 
         // printlog(MAGENTA, msg, M_data.getVerbose());
         computeSchurComplement(A, BT, B, C);
@@ -149,29 +151,35 @@ allocateInverseSolvers(const BM& primalMatrix)
         if (!primalMatrix->block(i,i)->block(1,1)->isZero())
             matrixGrid(1,1) = std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(1,1)->data())->matrixPtr();
 
-        oper->setUp(matrixGrid,
-        std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,0)->data())->rangeMap().commPtr());
+        unsigned int size1 = std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,0)->data())->rangeMapPtr()->mapSize();
+        unsigned int size2 = std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(1,0)->data())->rangeMapPtr()->mapSize();
 
-        SHP(Teuchos::ParameterList) options;
+        if ((M_tresholdSizeExactSolve == -1) || (size1 + size2 < M_tresholdSizeExactSolve))
+        {
+            oper->setUp(matrixGrid,
+            std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,0)->data())->rangeMap().commPtr());
 
-        options.reset(new Teuchos::ParameterList(M_solversOptionsInner->sublist("InnerBlockOperator")));
+            SHP(Teuchos::ParameterList) options;
 
-        double innertol = M_data("preconditioner/innertol", 1e-3);
+            options.reset(new Teuchos::ParameterList(M_solversOptionsInner->sublist("InnerBlockOperator")));
 
-        std::string solverType(options->get<std::string>("Linear Solver Type"));
-        if (!std::strcmp(solverType.c_str(),"AztecOO"))
-            options->sublist(solverType).sublist("options")
-                                        .get<double>("tol") = innertol;
-        else if (!std::strcmp(solverType.c_str(),"Belos"))
-            options->sublist(solverType).sublist("options")
-                                        .get<double>("Convergence Tolerance") = innertol;
+            double innertol = M_data("preconditioner/innertol", 1e-3);
 
-        invOper.reset(LifeV::Operators::InvertibleOperatorFactory::instance().createObject(solverType));
+            std::string solverType(options->get<std::string>("Linear Solver Type"));
+            if (!std::strcmp(solverType.c_str(),"AztecOO"))
+                options->sublist(solverType).sublist("options")
+                                            .get<double>("tol") = innertol;
+            else if (!std::strcmp(solverType.c_str(),"Belos"))
+                options->sublist(solverType).sublist("options")
+                                            .get<double>("Convergence Tolerance") = innertol;
 
-        invOper->setParameterList(options->sublist(solverType));
-        invOper->setOperator(oper);
-        invOper->setPreconditioner(M_innerPreconditioners[i]);
-        M_invOperators[i] = invOper;
+            invOper.reset(LifeV::Operators::InvertibleOperatorFactory::instance().createObject(solverType));
+
+            invOper->setParameterList(options->sublist(solverType));
+            invOper->setOperator(oper);
+            invOper->setPreconditioner(M_innerPreconditioners[i]);
+            M_invOperators[i] = invOper;
+        }
     }
 }
 
@@ -271,6 +279,14 @@ computeSingleAm1BT(const BM& A, const BM& BT,
         MAPEPETRA rangeMapP = static_cast<MATRIXEPETRA*>(A->block(1,0)->data().get())->rangeMap();
         MAPEPETRA domainMap = static_cast<MATRIXEPETRA*>(BT->block(0,0)->data().get())->domainMap();
 
+        unsigned int size1 = std::static_pointer_cast<MATRIXEPETRA>(A->block(0,0)->data())->rangeMapPtr()->mapSize();
+        unsigned int size2 = std::static_pointer_cast<MATRIXEPETRA>(A->block(1,0)->data())->rangeMapPtr()->mapSize();
+
+        bool exactSolve = false;
+
+        if (!std::strcmp(M_approxSchurType.c_str(),"exact")) exactSolve = true;
+        if (M_tresholdSizeExactSolve > 0 && size1 + size2 < M_tresholdSizeExactSolve) exactSolve = true;
+
         VECTOREPETRA selector(domainMap);
         VECTOREPETRA colU(rangeMapU);
         VECTOREPETRA colP(rangeMapP);
@@ -295,7 +311,7 @@ computeSingleAm1BT(const BM& A, const BM& BT,
             ressP[i].reset(new DistributedVector());
             ressP[i]->setData(SHP(VECTOREPETRA)(new VECTOREPETRA(rangeMapP)));
 
-            if (!std::strcmp(M_approxSchurType.c_str(),"exact"))
+            if (exactSolve)
             {
                 auto monolithicMap = rangeMapU;
                 monolithicMap += rangeMapP;
@@ -314,7 +330,7 @@ computeSingleAm1BT(const BM& A, const BM& BT,
                 std::static_pointer_cast<VECTOREPETRA>(ressU[i]->data())->subset(Y, rangeMapU, 0, 0);
                 std::static_pointer_cast<VECTOREPETRA>(ressP[i]->data())->subset(Y, rangeMapP, rangeMapU.mapSize(), 0);
             }
-            else if (!std::strcmp(M_approxSchurType.c_str(),"SIMPLE"))
+            else
             {
                 M_innerPreconditioners[index]->ApplyInverse(colU, colP,
                                                             *std::static_pointer_cast<VECTOREPETRA>(ressU[i]->data()),
@@ -360,7 +376,15 @@ solveEveryPrimalBlock(const VECTOREPETRA& X, VECTOREPETRA &Y) const
         MAPEPETRA rangeVelocity = *M_rangeMaps[count];
         MAPEPETRA rangePressure = *M_rangeMaps[count+1];
 
-        if (!std::strcmp(M_innerPrecType.c_str(), "exact"))
+        unsigned int size1 = rangeVelocity.mapSize();
+        unsigned int size2 = rangePressure.mapSize();
+
+        bool exactSolve = false;
+
+        if (!std::strcmp(M_innerPrecType.c_str(),"exact")) exactSolve = true;
+        if (M_tresholdSizeExactSolve > 0 && size1 + size2 < M_tresholdSizeExactSolve) exactSolve = true;
+
+        if (exactSolve)
         {
             auto monolithicMap = rangeVelocity;
             monolithicMap += rangePressure;
@@ -380,7 +404,7 @@ solveEveryPrimalBlock(const VECTOREPETRA& X, VECTOREPETRA &Y) const
 
             Y.subset(subY, monolithicMap, 0, offset);
         }
-        else if (!std::strcmp(M_innerPrecType.c_str(), "SIMPLE"))
+        else
         {
             VECTOREPETRA subVelocity(rangeVelocity);
             VECTOREPETRA subPressure(rangePressure);

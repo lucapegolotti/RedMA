@@ -85,6 +85,7 @@ outputdir = rb_solutions
 	approxshur 	   = SIMPLE
 	innertol   	   = 0.5
 	recomputeevery = 20
+	thresholdsize  = 5000
 [../]
 
 [newton_method]
