@@ -90,6 +90,8 @@ public:
 
     void copyPattern(std::shared_ptr<BlockVector> other, bool verbose = true);
 
+    virtual double operator()(unsigned int index) override {throw new Exception("operator() undefined for BlockVector");}
+
     // inline void close() {M_isOpen = false;}
     //
     // inline void open() {M_isOpen = true;}

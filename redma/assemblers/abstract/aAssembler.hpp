@@ -77,7 +77,7 @@ public:
 
     virtual void applyDirichletBCs(const double& time, SHP(aVector) vector) const = 0;
 
-    virtual inline SHP(FESPACE) getFEspace(unsigned int index) const {return nullptr;}
+    virtual SHP(FESPACE) getFEspace(unsigned int index) const {return nullptr;}
 
     virtual void applyPiola(SHP(aVector) solution, bool inverse) = 0;
 

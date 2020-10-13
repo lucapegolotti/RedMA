@@ -64,6 +64,8 @@ public:
 
     std::shared_ptr<LifeV::VectorEpetra> toVectorEpetraPtr(std::shared_ptr<Epetra_Comm> comm) const;
 
+    virtual double operator()(unsigned int index) override {return M_vector->operator()(index);}
+
 private:
     std::shared_ptr<DENSEVECTOR>  M_vector;
 };

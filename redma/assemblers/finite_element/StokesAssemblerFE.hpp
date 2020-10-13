@@ -80,7 +80,7 @@ public:
 
     void applyDirichletBCs(const double& time, SHP(aVector) vector) const override;
 
-    virtual inline SHP(FESPACE) getFEspace(unsigned int index) const override;
+    virtual SHP(FESPACE) getFEspace(unsigned int index) const override;
 
     virtual std::vector<SHP(aMatrix)> getMatrices() const override;
 

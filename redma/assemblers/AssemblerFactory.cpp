@@ -38,6 +38,7 @@ AssemblerFactory(const DataContainer& data, SHP(TreeNode) treeNode)
         }
         else if (!std::strcmp(method.c_str(),"rb"))
         {
+            ret.reset(new NavierStokesAssemblerRB(data, treeNode));
         }
     }
     else if (!std::strcmp(assemblerType.c_str(),"navierstokessupg"))

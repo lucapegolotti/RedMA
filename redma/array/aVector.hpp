@@ -72,6 +72,8 @@ public:
 
     inline Datatype type() {return M_type;}
 
+    virtual double operator()(unsigned int index) = 0;
+
 protected:
     template <class Type>
     void checkType(std::shared_ptr<Type> other, Datatype type)

@@ -71,6 +71,8 @@ public:
 
     void setVector(std::shared_ptr<VECTOREPETRA> vector);
 
+    virtual double operator()(unsigned int index) override {return M_vector->operator[](index);}
+
 private:
     std::shared_ptr<VECTOREPETRA>  M_vector;
 };

@@ -14,23 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef NAVIERSTOKESASSEMBLERFE_HPP
-#define NAVIERSTOKESASSEMBLERFE_HPP
+#ifndef NAVIERSTOKESASSEMBLERRB_HPP
+#define NAVIERSTOKESASSEMBLERRB_HPP
 
-#include <redma/assemblers/finite_element/StokesAssemblerFE.hpp>
+#include <redma/assemblers/abstract/aAssemblerFE.hpp>
+#include <redma/assemblers/reduced_basis/StokesAssemblerRB.hpp>
 #include <redma/assemblers/models/NavierStokesModel.hpp>
-#include <redma/assemblers/finite_element/SUPGStabilization.hpp>
+#include <redma/assemblers/abstract/aAssemblerRB.hpp>
+#include <redma/reduced_basis/RBBases.hpp>
 
 namespace RedMA
 {
 
-class NavierStokesAssemblerFE : public StokesAssemblerFE, public NavierStokesModel
+class NavierStokesAssemblerRB : public StokesAssemblerRB, public NavierStokesModel
 {
 public:
-    NavierStokesAssemblerFE(const DataContainer& data, SHP(TreeNode) treeNode,
-                            std::string stabilizationName = "");
-
-    void setup() override;
+    NavierStokesAssemblerRB(const DataContainer& data, SHP(TreeNode) treeNode);
 
     void addConvectiveMatrixRightHandSide(SHP(aVector) sol,
                                           SHP(aMatrix) mat) override;
@@ -39,24 +38,19 @@ public:
                                                 SHP(aVector) lifting,
                                                 SHP(aMatrix) mat) override;
 
-    SHP(aMatrix) getMass(const double& time,
-                         const SHP(aVector)& sol) override;
-
-    SHP(aMatrix) getMassJacobian(const double& time,
-                                 const SHP(aVector)& sol) override;
-
     SHP(aVector) getRightHandSide(const double& time,
                                   const SHP(aVector)& sol) override;
 
     SHP(aMatrix) getJacobianRightHandSide(const double& time,
                                           const SHP(aVector)& sol) override;
 
+    virtual void RBsetup() override;
 
 protected:
-    SHP(NavierStokesStabilization)                    M_stabilization;
-    std::string                                       M_stabilizationName;
+    std::vector<std::vector<SHP(BlockVector)>>       M_nonLinearTermsDecomposition;
+    SHP(BlockVector)                                 M_nonLinearTerm;
 };
 
 }
 
-#endif // NAVIERSTOKESASSEMBLERFE_HPP
+#endif // NAVIERSTOKESASSEMBLERRB_HPP
