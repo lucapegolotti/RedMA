@@ -525,7 +525,7 @@ computeWallShearStress(SHP(VECTOREPETRA) velocity, SHP(VECTOREPETRA) WSS,
 
     QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
 
-    unsigned int wallFlag = 10;
+    unsigned int wallFlag = M_treeNode->M_block->wallFlag();
     if (M_massWall == nullptr)
     {
         M_massWall.reset(new MATRIXEPETRA(M_velocityFESpace->map()));

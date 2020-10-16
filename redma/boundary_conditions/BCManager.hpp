@@ -88,10 +88,10 @@ private:
     std::function<double(double)>                    M_inflowDt;
     bool                                             M_strongDirichlet;
 
-    const unsigned int                               inletFlag = 1;
-    const unsigned int                               wallFlag = 10;
-    const unsigned int                               inletRing = 30;
-    const unsigned int                               outletRing = 31;
+    unsigned int                                     M_inletFlag;
+    unsigned int                                     M_wallFlag;
+    unsigned int                                     M_inletRing;
+    unsigned int                                     M_outletRing;
 
     // key is the outlet index (more than one for bifurcations)
     std::map<unsigned int,SHP(WindkesselModel)>      M_models;

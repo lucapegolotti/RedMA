@@ -66,7 +66,8 @@ BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
   M_verbose(verbose),
   M_isChild(false),
   M_discrMethod("none"),
-  M_assemblerType("none")
+  M_assemblerType("none"),
+  M_wallFlag(10)
 {
     if (M_comm->MyPID() != 0)
         M_verbose = false;

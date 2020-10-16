@@ -12,6 +12,10 @@ BCManager(const DataContainer& data, SHP(TreeNode) treeNode) :
     M_strongDirichlet = std::strcmp(data("bc_conditions/inletdirichlet", "weak").c_str(),"strong") == 0;
     M_coefficientInflow = data("bc_conditions/coefficientinflow", 1.0);
     parseNeumannData();
+    M_inletFlag = treeNode->M_block->getInlet().M_flag;
+    M_wallFlag = treeNode->M_block->wallFlag();
+    M_inletRing = 30;
+    M_outletRing = 31;
 }
 
 void
@@ -50,7 +54,7 @@ addInletBC(SHP(LifeV::BCHandler) bcs, std::function<double(double)> law) const
                              M_coefficientInflow);
 
         LifeV::BCFunctionBase inflowFunction(foo);
-        bcs->addBC("Inlet", inletFlag, LifeV::Essential, LifeV::Full,
+        bcs->addBC("Inlet", M_inletFlag, LifeV::Essential, LifeV::Full,
                    inflowFunction, 3);
     }
 }
@@ -138,11 +142,11 @@ createBCHandler0Dirichlet() const
     SHP(LifeV::BCHandler) bcs;
     bcs.reset(new LifeV::BCHandler);
 
-    bcs->addBC("Wall", wallFlag, LifeV::Essential,
+    bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
                LifeV::Full, zeroFunction, 3);
-    bcs->addBC("InletRing", inletRing, LifeV::EssentialEdges,
+    bcs->addBC("InletRing", M_inletRing, LifeV::EssentialEdges,
                LifeV::Full, zeroFunction, 3);
-    bcs->addBC("OutletRing", outletRing, LifeV::EssentialEdges,
+    bcs->addBC("OutletRing", M_outletRing, LifeV::EssentialEdges,
                LifeV::Full, zeroFunction, 3);
 
     return bcs;

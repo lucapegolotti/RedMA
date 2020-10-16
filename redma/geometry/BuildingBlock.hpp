@@ -175,6 +175,8 @@ public:
 
     virtual void nonAffineTransf(double& x, double& y, double& z) {};
 
+    unsigned int wallFlag() {return M_wallFlag;}
+
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,
@@ -221,6 +223,8 @@ protected:
 
     std::string M_discrMethod;
     std::string M_assemblerType;
+
+    unsigned int M_wallFlag;
 };
 
 }  // namespace RedMA
