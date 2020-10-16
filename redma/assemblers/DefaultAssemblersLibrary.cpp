@@ -19,15 +19,18 @@ DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>&
         if (M_assemblersMap.find(mesh) == M_assemblersMap.end())
         {
             SHP(TreeNode) defTreeNode = generateDefaultTreeNode(nameMesh);
-            // we set these to stokes and fem because we are only interested in
-            // the finite element spaces
-            defTreeNode->M_block->setAssemblerType("stokes");
-            defTreeNode->M_block->setDiscretizationMethod("fem");
-            SHP(AssemblerType) defAssembler = AssemblerFactory(M_data, defTreeNode);
-            defAssembler->initializeFEspaces();
-            // defAssembler->setup();
-            M_assemblersMap[mesh]= defAssembler;
-            M_count++;
+            if (defTreeNode)
+            {
+                // we set these to stokes and fem because we are only interested in
+                // the finite element spaces
+                defTreeNode->M_block->setAssemblerType("stokes");
+                defTreeNode->M_block->setDiscretizationMethod("fem");
+                SHP(AssemblerType) defAssembler = AssemblerFactory(M_data, defTreeNode);
+                defAssembler->initializeFEspaces();
+                // defAssembler->setup();
+                M_assemblersMap[mesh]= defAssembler;
+                M_count++;
+            }
         }
     }
 }
@@ -36,14 +39,16 @@ SHP(TreeNode)
 DefaultAssemblersLibrary::
 generateDefaultTreeNode(const std::string& nameMesh)
 {
+    std::cout << "nameMesh " << nameMesh << std::endl << std::flush;
     if (nameMesh.find("tube") != std::string::npos)
         return generateDefaultTube(nameMesh);
-    else if (nameMesh.find("bifurcation_symmetric"))
+    else if (nameMesh.find("bifurcation_symmetric")  != std::string::npos )
         return generateDefaultSymmetricBifurcation(nameMesh);
     else
     {
-        throw new Exception("BasisGenerator: this branch must still be implemented");
+        printlog(YELLOW, "[DefaultAssemblersLibrary] default mesh is not implemented", true);
     }
+    std::cout << "here " << nameMesh << std::endl << std::flush;
 
     return nullptr;
 }

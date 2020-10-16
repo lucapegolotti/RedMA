@@ -43,6 +43,8 @@ addInletBC(SHP(LifeV::BCHandler) bcs, std::function<double(double)> law) const
 {
     if (M_treeNode->isInletNode())
     {
+        LifeV::BCFunctionBase zeroFunction(fZero);
+
         auto foo = std::bind(poiseuille,
                              std::placeholders::_1,
                              std::placeholders::_2,
@@ -52,10 +54,12 @@ addInletBC(SHP(LifeV::BCHandler) bcs, std::function<double(double)> law) const
                              M_treeNode->M_block->getInlet(),
                              law,
                              M_coefficientInflow);
-
+        std::cout << "inlet flag" << M_inletFlag << std::endl << std::flush;
         LifeV::BCFunctionBase inflowFunction(foo);
         bcs->addBC("Inlet", M_inletFlag, LifeV::Essential, LifeV::Full,
                    inflowFunction, 3);
+        bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
+                   LifeV::Full, zeroFunction, 3);
     }
 }
 
@@ -142,12 +146,13 @@ createBCHandler0Dirichlet() const
     SHP(LifeV::BCHandler) bcs;
     bcs.reset(new LifeV::BCHandler);
 
+    std::cout << "wall flag" << M_wallFlag << std::endl << std::flush;
     bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
                LifeV::Full, zeroFunction, 3);
-    bcs->addBC("InletRing", M_inletRing, LifeV::EssentialEdges,
-               LifeV::Full, zeroFunction, 3);
-    bcs->addBC("OutletRing", M_outletRing, LifeV::EssentialEdges,
-               LifeV::Full, zeroFunction, 3);
+    // bcs->addBC("InletRing", M_wallFlag, LifeV::EssentialEdges,
+    //            LifeV::Full, zeroFunction, 3);
+    // bcs->addBC("OutletRing", M_wallFlag, LifeV::EssentialEdges,
+    //            LifeV::Full, zeroFunction, 3);
 
     return bcs;
 }

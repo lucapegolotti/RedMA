@@ -22,12 +22,31 @@
 #include <Epetra_SerialComm.h>
 #endif
 
-#include <redma/geometry/SegmentationsMerger.hpp>
-#include <redma/geometry/GeometryPrinter.hpp>
-
-#include <lifev/core/filter/GetPot.hpp>
+#include <redma/RedMA.hpp>
+#include <redma/problem/ProblemFEM.hpp>
+#include <redma/problem/DataContainer.hpp>
 
 using namespace RedMA;
+
+double distalPressure0(double t)
+{
+    return 0;
+}
+
+double distalPressure1(double t)
+{
+    return 0;
+}
+
+double distalPressure2(double t)
+{
+    return 0;
+}
+
+double distalPressure3(double t)
+{
+    return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -38,31 +57,18 @@ int main(int argc, char **argv)
     std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    GetPot datafile("datafiles/data");
+    DataContainer data;
+    data.setDatafile("datafiles/data");
+    data.setVerbose(comm->MyPID() == 0);
+    data.setDistalPressure(distalPressure0, 0);
+    data.setDistalPressure(distalPressure1, 1);
+    data.setDistalPressure(distalPressure2, 1);
+    data.setDistalPressure(distalPressure3, 1);
+    data.finalize();
 
-    SegmentationsMerger merger(datafile,comm,true);
+    ProblemFEM femProblem(data, comm);
 
-    std::shared_ptr<SegmentationParser> sp1(new SegmentationParser(datafile, comm,
-                "datafiles/aorta.pth", "datafiles/aorta_segs_final.ctgr", "linear", true));
-
-    // std::shared_ptr<SegmentationParser> sp2(new SegmentationParser(datafile, comm,
-    //             "datafiles/right_iliac.pth", "datafiles/right_iliac.ctgr", "linear", true));
-
-    // std::vector<std::shared_ptr<SegmentationParser> > parsers;
-    // parsers.push_back(sp1);
-    // parsers.push_back(sp2);
-
-    double constCenters = datafile("segmentation_parser/const_centers", 2.0);
-    double constNormal = datafile("segmentation_parser/const_normals", 1.0);
-
-    TreeStructure tree = sp1->createTreeForward(1, constCenters, constNormal,
-                                                nullptr, nullptr);
-
-    GeometryPrinter printer;
-    printer.saveToFile(tree, "tree.xml", comm);
-    tree.readMeshes("../../../meshes/");
-    tree.traverseAndDeformGeometries();
-    tree.dump("output/","../../../meshes/");
+    femProblem.solve();
 
     return 0;
 }

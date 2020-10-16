@@ -61,6 +61,9 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
         for (unsigned int i = 0; i < nDual; i++)
             *M_dualMap += *M_maps->M_rangeMaps[i+nPrimal*2];
 
+        printlog(YELLOW,"[SaddlePointPreconditioner] primal map size = " + std::to_string(M_primalMap->mapSize()) + "\n", M_data.getVerbose());
+        printlog(YELLOW,"[SaddlePointPreconditioner] dual map size = " + std::to_string(M_dualMap->mapSize()) + "\n", M_data.getVerbose());
+
         // BlockMaps bmaps(*BT);
         // M_primalMap = bmaps.getMonolithicRangeMapEpetra();
         // M_dualMap = bmaps.getMonolithicDomainMapEpetra();

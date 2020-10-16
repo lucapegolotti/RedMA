@@ -297,6 +297,9 @@ createTreeForward(const int& lengthTubes,
     else
         initialContour = M_contoursComplete[M_indexBegin];
 
+    std::cout << "initial contour" << std::endl << std::flush;
+    initialContour.print();
+
     Contour finalContour;
     if (finalContourPtr)
         finalContour = *finalContourPtr;

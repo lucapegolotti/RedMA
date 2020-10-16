@@ -27,7 +27,6 @@ setup()
 
     std::string geometriesDir = M_data("geometric_structure/geometries_dir",
                                        "../../../meshes/");
-
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();
     M_defaultAssemblers.reset(new DefaultAssemblersLibrary
