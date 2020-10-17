@@ -46,14 +46,14 @@ int main(int argc, char **argv)
 
     GetPot dummydata;
 
-    TreeStructure tree(true);
-    tree.createRandom(nSub, comm);
-    tree.readMeshes("../../../meshes/");
-    tree.traverseAndDeformGeometries();
-    tree.dump("output_original/","../../../meshes/");
-
-    GeometryPrinter printer;
-    printer.saveToFile(tree, "tree.xml", comm);
+    // TreeStructure tree(true);
+    // tree.createRandom(nSub, comm);
+    // tree.readMeshes("../../../meshes/");
+    // tree.traverseAndDeformGeometries();
+    // tree.dump("output_original/","../../../meshes/");
+    //
+    // GeometryPrinter printer;
+    // printer.saveToFile(tree, "tree.xml", comm);
 
     GeometryParser gParser(dummydata, "tree.xml", comm, true);
     comm->Barrier();

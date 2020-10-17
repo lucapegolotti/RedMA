@@ -113,7 +113,7 @@ advance(const double& time, double& dt, int& status)
     BV initialGuess = computeExtrapolatedSolution();
 
     this->M_funProvider->applyDirichletBCs(time+dt, initialGuess);
-    std::cout << "initial guess norm = " << initialGuess->norm2() << std::endl << std::flush;
+
     FunctionFunctor<BV,BV> fct(
         [this,time,dt](BV sol)
     {

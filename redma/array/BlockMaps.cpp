@@ -454,13 +454,14 @@ blockMatrixToSparseMatrix(SHP(BlockMatrix) matrix)
             blockStructure.setBlockStructure(rows, cols);
 
             SHP(LifeV::MatrixEpetraStructuredView<double>) blockLocalView;
-            blockLocalView = createBlockView(std::static_pointer_cast<MATRIXEPETRA>(matrix->block(i,j)->data()),
-                                             blockStructure, 0, 0);
-
-            copyBlock(blockLocalView, globalView);
+            if (!matrix->block(i,j)->isZero())
+            {
+                blockLocalView = createBlockView(std::static_pointer_cast<MATRIXEPETRA>(matrix->block(i,j)->data()),
+                                                 blockStructure, 0, 0);
+                copyBlock(blockLocalView, globalView);
+            }
         }
     }
-
     ptrMatrix->globalAssemble(maps.M_monolithicDomainMap, maps.M_monolithicRangeMap);
 
     SHP(SparseMatrix) retMatrix(new SparseMatrix());

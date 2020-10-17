@@ -45,24 +45,30 @@ int main(int argc, char **argv)
     std::shared_ptr<SegmentationParser> sp1(new SegmentationParser(datafile, comm,
                 "datafiles/aorta.pth", "datafiles/aorta_segs_final.ctgr", "linear", true));
 
-    // std::shared_ptr<SegmentationParser> sp2(new SegmentationParser(datafile, comm,
-    //             "datafiles/right_iliac.pth", "datafiles/right_iliac.ctgr", "linear", true));
-
-    // std::vector<std::shared_ptr<SegmentationParser> > parsers;
-    // parsers.push_back(sp1);
-    // parsers.push_back(sp2);
-
     double constCenters = datafile("segmentation_parser/const_centers", 2.0);
     double constNormal = datafile("segmentation_parser/const_normals", 1.0);
 
-    TreeStructure tree = sp1->createTreeForward(1, constCenters, constNormal,
-                                                nullptr, nullptr);
+    auto contours = sp1->getContours();
+
+    std::cout << "contours = " << contours.size() << std::endl << std::flush;
+
+    GeometricFace final;
+
+    contours[std::atoi(argv[1])].print();
+
+
+    TreeStructure tree1 = sp1->createTreeForward(1, constCenters, constNormal,
+                                                nullptr, &contours[80]);
 
     GeometryPrinter printer;
-    printer.saveToFile(tree, "tree.xml", comm);
-    tree.readMeshes("../../../meshes/");
-    tree.traverseAndDeformGeometries();
-    tree.dump("output/","../../../meshes/");
+    printer.saveToFile(tree1, "tree_1.xml", comm);
+
+    TreeStructure tree2 = sp1->createTreeForward(3, constCenters, constNormal,
+                                                &contours[111], nullptr);
+    printer.saveToFile(tree2, "tree_2.xml", comm);
+    tree2.readMeshes("../../../meshes/");
+    tree2.traverseAndDeformGeometries();
+    tree2.dump("output/","../../../meshes/");
 
     return 0;
 }

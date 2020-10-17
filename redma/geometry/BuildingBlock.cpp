@@ -529,7 +529,7 @@ mapChildInletToParentOutlet(GeometricFace parentOutlet)
 
     M_inletRotationAxis = iNormal.cross(oNormal);
     // in this case we don't have to rotate
-    if (M_inletRotationAxis.norm() < 1e-15)
+    if (M_inletRotationAxis.norm() < 1e-5)
     {
         M_inletRotationAxis = oNormal;
         M_inletAngle = 0;

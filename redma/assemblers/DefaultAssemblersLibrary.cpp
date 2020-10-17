@@ -39,16 +39,14 @@ SHP(TreeNode)
 DefaultAssemblersLibrary::
 generateDefaultTreeNode(const std::string& nameMesh)
 {
-    std::cout << "nameMesh " << nameMesh << std::endl << std::flush;
     if (nameMesh.find("tube") != std::string::npos)
         return generateDefaultTube(nameMesh);
     else if (nameMesh.find("bifurcation_symmetric")  != std::string::npos )
         return generateDefaultSymmetricBifurcation(nameMesh);
     else
     {
-        printlog(YELLOW, "[DefaultAssemblersLibrary] default mesh is not implemented", true);
+        printlog(YELLOW, "[DefaultAssemblersLibrary] default mesh is not implemented\n", true);
     }
-    std::cout << "here " << nameMesh << std::endl << std::flush;
 
     return nullptr;
 }

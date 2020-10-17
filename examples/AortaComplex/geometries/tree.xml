@@ -1,16 +1,45 @@
-
-<buildingblock type="aortabif0" assembler="navierstokessupg" method="fem" refinement="normal">
+<buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.25" d="1" L="1">
     <L_ratio>1</L_ratio>
-    <Rout_ratio>1</Rout_ratio>
-    <alpha>0</alpha>
-    <alpha_axis>0</alpha_axis>
-    <bend>0</bend>
-    <bx>0</bx>
-    <by>0</by>
-    <bz>0</bz>
-    <rotation_axis_x>1</rotation_axis_x>
-    <rotation_axis_y>0</rotation_axis_y>
+    <Rout_ratio>0.83669846727531383</Rout_ratio>
+    <alpha>0.30133570229418971</alpha>
+    <alpha_axis>4.483593244062293</alpha_axis>
+    <bend>0.68547710465537759</bend>
+    <bx>-1.4587823507462689</bx>
+    <by>6.0229430597014915</by>
+    <bz>8.2076191044776152</bz>
+    <rotation_axis_x>0.38720533259793505</rotation_axis_x>
+    <rotation_axis_y>0.92199350887504761</rotation_axis_y>
     <rotation_axis_z>0</rotation_axis_z>
-    <scale>1</scale>
+    <scale>2.8671109744921632</scale>
     <use_linear_elasticity>0</use_linear_elasticity>
+    <buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.25" d="1" L="1" outlet="1">
+        <L_ratio>0.87794032189267546</L_ratio>
+        <Rout_ratio>0.90925736985945271</Rout_ratio>
+        <alpha>0.89041037803636958</alpha>
+        <alpha_axis>4.8790113318295054</alpha_axis>
+        <bend>0.65371179538545177</bend>
+        <bx>-0.54295619850203902</bx>
+        <by>4.8081509717818438</by>
+        <bz>10.571723083733186</bz>
+        <rotation_axis_x>0.89927451482928511</rotation_axis_x>
+        <rotation_axis_y>0.43738466705927598</rotation_axis_y>
+        <rotation_axis_z>0</rotation_axis_z>
+        <scale>2.3989073578658244</scale>
+        <use_linear_elasticity>0</use_linear_elasticity>
+        <buildingblock type="aortabif0" assembler="navierstokessupg" method="fem" refinement="normal" outlet="1">
+            <L_ratio>1</L_ratio>
+            <Rout_ratio>1</Rout_ratio>
+            <alpha>0</alpha>
+            <alpha_axis>0</alpha_axis>
+            <bend>0</bend>
+            <bx>0</bx>
+            <by>0</by>
+            <bz>0</bz>
+            <rotation_axis_x>0</rotation_axis_x>
+            <rotation_axis_y>0</rotation_axis_y>
+            <rotation_axis_z>0</rotation_axis_z>
+            <scale>1</scale>
+            <use_linear_elasticity>0</use_linear_elasticity>
+        </buildingblock>
+    </buildingblock>
 </buildingblock>

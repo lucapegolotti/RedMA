@@ -9,6 +9,7 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
   M_matrix(matrix),
   M_tresholdSizeExactSolve(-1)
 {
+    std::cout << 1 << std::endl << std::flush;
     Chrono chrono;
     chrono.start();
 
@@ -19,6 +20,14 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
     unsigned int nBlocks = matrix->nRows();
     // read options
     setSolverOptions();
+    {
+    M_setupTime = chrono.diff();
+
+    std::string msg = "done, in ";
+    msg += std::to_string(M_setupTime);
+    msg += " seconds\n";
+    printlog(MAGENTA, msg, M_data.getVerbose());
+    }
 
     M_maps.reset(new BlockMaps(matrix));
     M_rangeMaps = M_maps->M_rangeMaps;
@@ -30,6 +39,14 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
     M_tresholdSizeExactSolve = M_data("preconditioner/thresholdsize", -1);
     // solution method to approximate BAm1BT in schur
     M_approxSchurType = M_data("preconditioner/approxshur", "SIMPLE");
+    {
+    M_setupTime = chrono.diff();
+
+    std::string msg = "done, in ";
+    msg += std::to_string(M_setupTime);
+    msg += " seconds\n";
+    printlog(MAGENTA, msg, M_data.getVerbose());
+    }
 
     if (1)
     {
@@ -47,11 +64,27 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
         unsigned int nDual = nBlocks - nPrimal;
         M_nPrimalBlocks = nPrimal;
         M_nDualBlocks = nDual;
+        {
+        M_setupTime = chrono.diff();
+
+        std::string msg = "done, in ";
+        msg += std::to_string(M_setupTime);
+        msg += " seconds\n";
+        printlog(MAGENTA, msg, M_data.getVerbose());
+        }
 
         BM A = matrix->getSubmatrix(0, nPrimal-1, 0, nPrimal-1);
         BM BT = matrix->getSubmatrix(0, nPrimal-1, nPrimal, nBlocks-1);
         BM B = matrix->getSubmatrix(nPrimal, nBlocks-1, 0, nPrimal-1);
         BM C = matrix->getSubmatrix(nPrimal, nBlocks-1, nPrimal, nBlocks-1);
+        {
+        M_setupTime = chrono.diff();
+
+        std::string msg = "done, in ";
+        msg += std::to_string(M_setupTime);
+        msg += " seconds\n";
+        printlog(MAGENTA, msg, M_data.getVerbose());
+        }
 
         M_primalMap.reset(new MAPEPETRA());
         for (unsigned int i = 0; i < 2*nPrimal; i++)
@@ -60,6 +93,14 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
         M_dualMap.reset(new MAPEPETRA());
         for (unsigned int i = 0; i < nDual; i++)
             *M_dualMap += *M_maps->M_rangeMaps[i+nPrimal*2];
+        {
+        M_setupTime = chrono.diff();
+
+        std::string msg = "done, in ";
+        msg += std::to_string(M_setupTime);
+        msg += " seconds\n";
+        printlog(MAGENTA, msg, M_data.getVerbose());
+        }
 
         printlog(YELLOW,"[SaddlePointPreconditioner] primal map size = " + std::to_string(M_primalMap->mapSize()) + "\n", M_data.getVerbose());
         printlog(YELLOW,"[SaddlePointPreconditioner] dual map size = " + std::to_string(M_dualMap->mapSize()) + "\n", M_data.getVerbose());
@@ -83,6 +124,14 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
         // M_matrixCollapsed->softCopy(collapseBlocks(matrix, allmaps));
         //
         allocateInnerPreconditioners(A);
+        {
+        M_setupTime = chrono.diff();
+
+        std::string msg = "done, in ";
+        msg += std::to_string(M_setupTime);
+        msg += " seconds\n";
+        printlog(MAGENTA, msg, M_data.getVerbose());
+        }
 
         if (M_tresholdSizeExactSolve > 0 ||
             (!std::strcmp(M_innerPrecType.c_str(), "exact") ||
@@ -90,9 +139,25 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
         {
             allocateInverseSolvers(A);
         }
+        {
+        M_setupTime = chrono.diff();
+
+        std::string msg = "done, in ";
+        msg += std::to_string(M_setupTime);
+        msg += " seconds\n";
+        printlog(MAGENTA, msg, M_data.getVerbose());
+        }
 
         // printlog(MAGENTA, msg, M_data.getVerbose());
         computeSchurComplement(A, BT, B, C);
+        {
+        M_setupTime = chrono.diff();
+
+        std::string msg = "done, in ";
+        msg += std::to_string(M_setupTime);
+        msg += " seconds\n";
+        printlog(MAGENTA, msg, M_data.getVerbose());
+        }
 
         // printlog(MAGENTA, msg, M_data.getVerbose());
     }
@@ -103,12 +168,14 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
         allocateInnerPreconditioners(matrix);
     }
 
+    {
     M_setupTime = chrono.diff();
 
     std::string msg = "done, in ";
     msg += std::to_string(M_setupTime);
     msg += " seconds\n";
     printlog(MAGENTA, msg, M_data.getVerbose());
+    }
 }
 
 void
@@ -201,7 +268,19 @@ allocateInnerPreconditioners(const BM& primalMatrix)
             SHP(NSPrec) newPrec;
             newPrec.reset(LifeV::Operators::NSPreconditionerFactory::
                           instance().createObject("SIMPLE"));
-            newPrec->setOptions(*M_solversOptionsInner);
+            Teuchos::RCP<Teuchos::ParameterList> curList(M_solversOptionsInner);
+            unsigned int size = std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,0)->data())->rangeMapPtr()->mapSize();
+            // this obviously needs to be fixed..
+            if (size < 10000)
+            {
+                curList->sublist("MomentumOperator").get<std::string>("preconditioner type") = "Ifpack";
+            }
+            else
+            {
+                curList->sublist("MomentumOperator").get<std::string>("preconditioner type") = "ML";
+            }
+
+            newPrec->setOptions(*curList);
 
             if (!primalMatrix->block(i,i)->block(1,1)->isZero())
             {

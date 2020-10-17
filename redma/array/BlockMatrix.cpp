@@ -100,7 +100,7 @@ multiplyByMatrix(std::shared_ptr<aMatrix> other)
 
     if (isZero() || other->isZero())
     {
-        retMatrix->close();
+        retMatrix.reset(new BlockMatrix(0, 0));
         return retMatrix;
     }
 

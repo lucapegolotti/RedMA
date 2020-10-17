@@ -265,7 +265,7 @@ traverseSegmentation(std::string ctgrName)
             cPoint = cPoint->NextSiblingElement("point");
         } while (cPoint);
 
-        normal = normal / normal.norm();
+        normal = M_tangents[pathIndex];// normal / normal.norm();
         if (!first)
             normal = normal.dot(prevNormal) > 0? normal : (-1.0) * normal;
         radius = radius / count;
@@ -296,9 +296,6 @@ createTreeForward(const int& lengthTubes,
         initialContour = *initialContourPtr;
     else
         initialContour = M_contoursComplete[M_indexBegin];
-
-    std::cout << "initial contour" << std::endl << std::flush;
-    initialContour.print();
 
     Contour finalContour;
     if (finalContourPtr)
