@@ -548,6 +548,7 @@ applyGlobalTransformation(bool transformMesh)
 {
     applyNonAffineTransformation(transformMesh);
     applyAffineTransformation(transformMesh);
+    M_outlets[0].print();
 }
 
 void

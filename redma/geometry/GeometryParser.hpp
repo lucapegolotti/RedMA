@@ -27,6 +27,7 @@
 #include <redma/geometry/BifurcationSymmetric.hpp>
 #include <redma/geometry/Aorta.hpp>
 #include <redma/geometry/AortaBifurcation0.hpp>
+#include <redma/geometry/AortaBifurcation1.hpp>
 #include <redma/geometry/TreeStructure.hpp>
 
 #include <Epetra_SerialComm.h>

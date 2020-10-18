@@ -12,6 +12,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/SegmentationParser.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SegmentationsMerger.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/AortaBifurcation0.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AortaBifurcation1.hpp
     CACHE INTERNAL ""
 )
 
@@ -21,6 +22,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Tube.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Aorta.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/AortaBifurcation0.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AortaBifurcation1.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BifurcationSymmetric.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TreeStructure.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/GeometryParser.cpp

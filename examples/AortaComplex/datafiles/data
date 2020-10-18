@@ -66,10 +66,10 @@ outputdir = rb_solutions
 		approximatenonlinearterm = 0
 		[./basis]
 			directory = basis
-			podtol_field0 = 1e-1
+			podtol_field0 = 1e-2
 			podtol_field1 = 1e-5
 			useprimalsupremizers = 1
-			usedualsupremizers = 0
+			usedualsupremizers = 1
 		[../]
 		[./mdeim]
 			loadfullbasis   = true
@@ -83,7 +83,7 @@ outputdir = rb_solutions
 	outer      	   = saddlepoint
 	inner	   	   = SIMPLE
 	approxshur 	   = SIMPLE
-	innertol   	   = 0.5
+	innertol   	   = 1e-6
 	recomputeevery = 20
 	thresholdsize  = 5000
 [../]
@@ -120,7 +120,7 @@ outputdir = rb_solutions
 	order = 2
 	t0ramp = -0.02
 	t0 = 0
-	T = 0.30
+	T = 0.01
 	dt = 0.0025
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
@@ -131,7 +131,7 @@ outputdir = rb_solutions
 	type       = hdf5
 	multimesh  = false
 	start      = 0
-	save_every = -1
+	save_every = 1
 	filename   = tube
 	exportnorms = true
 [../]

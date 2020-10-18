@@ -138,6 +138,15 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
 
         returnBlock.reset(new AortaBifurcation0(M_comm, "aortabif0", M_verbose));
     }
+    else if (!std::strcmp(element->Attribute("type"),
+                          "aortabif1"))
+    {
+        std::string msg = std::string("[GeometryParser] parsing") +
+                  " building block of type aortabif0\n";
+        printlog(GREEN, msg, M_verbose);
+
+        returnBlock.reset(new AortaBifurcation1(M_comm, "aortabif1", M_verbose));
+    }
     else
     {
         std::string warningMsg = "[GeometryParser] building block "
