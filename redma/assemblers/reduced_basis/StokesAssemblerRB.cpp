@@ -255,8 +255,8 @@ getLifting(const double& time) const
     this->M_bcManager->applyDirichletBCs(time, *liftingFE, this->getFESpaceBCs(),
                                          this->getComponentBCs());
 
-    SHP(aVector) lifting = M_bases->leftProject(liftingFE, StokesModel::M_treeNode->M_ID);
-    return lifting;
+    // SHP(aVector) lifting = M_bases->leftProject(liftingFE, StokesModel::M_treeNode->M_ID);
+    return liftingFE;
 }
 
 void

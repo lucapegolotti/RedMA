@@ -427,7 +427,6 @@ blockMatrixToSparseMatrix(SHP(BlockMatrix) matrix)
 
     matrix = maps.M_collapsedMatrix;
 
-    matrix->printPattern();
     SHP(MATRIXEPETRA) ptrMatrix(new MATRIXEPETRA(*maps.M_monolithicRangeMap));
     //
     // std::vector<unsigned int> dimensionsRows;

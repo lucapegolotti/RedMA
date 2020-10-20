@@ -130,10 +130,10 @@ protected:
     SHP(BlockMatrix)                       M_fatherB;
     SHP(BlockMatrix)                       M_childBT;
     SHP(BlockMatrix)                       M_childB;
-    SHP(BlockMatrix)                       M_fatherBTreduced;
-    SHP(BlockMatrix)                       M_fatherBreduced;
-    SHP(BlockMatrix)                       M_childBTreduced;
-    SHP(BlockMatrix)                       M_childBreduced;
+    // SHP(BlockMatrix)                       M_fatherBTreduced;
+    // SHP(BlockMatrix)                       M_fatherBreduced;
+    SHP(BlockMatrix)                       M_childBTfe;
+    SHP(BlockMatrix)                       M_childBfe;
     // this is required in the RB setting to impose weakly dirichlet conditions
     SHP(BlockMatrix)                       M_childBEp;
     SHP(BlockMatrix)                       M_stabChild;

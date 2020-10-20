@@ -116,7 +116,7 @@ public:
 
     virtual void RBsetup() {}
 
-    virtual SHP(RBBases) getRBBases() const {}
+    virtual SHP(RBBases) getRBBases() const {return nullptr;}
 
     virtual void setRBBases(SHP(RBBasesManager) rbManager) {}
 

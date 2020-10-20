@@ -525,6 +525,8 @@ buildCouplingMatrices()
         M_childBT->multiplyByScalar(-1.);
         M_childB->multiplyByScalar(-1.);
 
+        M_childBTfe = M_childBT;
+        M_childBfe = M_childB;
         M_mapLagrange = std::static_pointer_cast<MATRIXEPETRA>(M_childBT->block(0,0)->data())->domainMapPtr();
 
         if (!std::strcmp(asChild->getTreeNode()->M_block->getDiscretizationMethod().c_str(),"rb"))
