@@ -54,6 +54,8 @@ public:
 
     void allocateInverseSolvers(const BM& primalMatrix);
 
+    void allocateApproximatedInverses(const BM& primalMatrix);
+
     void setSolverOptions();
 
 
@@ -73,6 +75,8 @@ private:
 
     void applyEveryAm1BT(const VECTOREPETRA& X, VECTOREPETRA &Y) const;
 
+    void findSmallBlocks(const BM& primalMatrix);
+
     DataContainer                                        M_data;
     BM                                                   M_matrix;
     BM                                                   M_matrixCollapsed;
@@ -86,6 +90,7 @@ private:
     std::string                                          M_innerPrecType;
     std::string                                          M_approxSchurType;
     SHP(ApproxInv)                                       M_approximatedSchurInverse;
+    std::vector<SHP(ApproxInv)>                          M_approximatedInverses;
     SHP(MAPEPETRA)                                       M_primalMap;
     SHP(MAPEPETRA)                                       M_dualMap;
     SHP(MAPEPETRA)                                       M_monolithicMap;
@@ -95,6 +100,7 @@ private:
     unsigned int                                         M_nDualBlocks;
     std::vector<SHP(Epetra_SerialDenseSolver)>           M_solversAsDense;
     int                                                  M_tresholdSizeExactSolve;
+    std::vector<bool>                                    M_isSmallBlock;
 };
 
 }

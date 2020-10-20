@@ -268,6 +268,8 @@ createFromBlockMatrix(SHP(BlockMatrix) matrix)
 {
     if (matrix->level() >= 2)
         updateCollapsedMatrix(matrix);
+    else if (matrix->level() == 1)
+        M_collapsedMatrix = matrix;
     matrix = M_collapsedMatrix;
 
     M_rangeEpetraMaps.resize(matrix->nRows(),nullptr);
@@ -425,6 +427,7 @@ blockMatrixToSparseMatrix(SHP(BlockMatrix) matrix)
 
     matrix = maps.M_collapsedMatrix;
 
+    matrix->printPattern();
     SHP(MATRIXEPETRA) ptrMatrix(new MATRIXEPETRA(*maps.M_monolithicRangeMap));
     //
     // std::vector<unsigned int> dimensionsRows;

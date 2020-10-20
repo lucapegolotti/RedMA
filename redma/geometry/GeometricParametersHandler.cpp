@@ -180,12 +180,12 @@ double
 GeometricParametersHandler::
 operator[](std::string name)
 {
-    if (!exists(name))
-    {
-        std::string errorMsg = std::string("Parameter with name ")
-                               + name + " does not exist!";
-        throw Exception(errorMsg);
-    }
+    // if (!exists(name))
+    // {
+    //     std::string errorMsg = std::string("Parameter with name ")
+    //                            + name + " does not exist!";
+    //     throw Exception(errorMsg);
+    // }
 
     return M_parametersMap[name]->getValue();
 }
