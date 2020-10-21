@@ -56,7 +56,7 @@ BifurcationSymmetric(commPtr_Type comm, std::string refinement,
 
     resetInletOutlets();
 
-    const double maxAngle = 0.1;
+    const double maxAngle = 0.4;
     M_parametersHandler.registerParameter("out1_alphax", 0.0, -maxAngle,
                                           maxAngle, randomizable);
     M_parametersHandler.registerParameter("out1_alphay", 0.0, -maxAngle,

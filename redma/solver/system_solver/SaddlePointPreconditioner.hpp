@@ -62,6 +62,8 @@ public:
     void computeSchurComplement(const BM& A, const BM& BT,
                                 const BM& B, const BM& C);
 
+    void setup(const BM& matrix, bool doComputeSchurComplement = true);
+
 private:
     void computeAm1BT(const BM& A, const BM& BT);
 

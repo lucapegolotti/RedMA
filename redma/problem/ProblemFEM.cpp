@@ -29,6 +29,8 @@ setup()
                                        "../../../meshes/");
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();
+    M_tree.dump("solutions/","../../../meshes/");
+
     M_defaultAssemblers.reset(new DefaultAssemblersLibrary
                                   (M_data, M_tree.getMeshListNames(), M_comm));
 
@@ -85,7 +87,8 @@ solve()
             M_solutions.push_back(M_solution);
             M_timestepsSolutions.push_back(t);
         }
-        if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
+        // if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
+        if (saveEvery > 0 && count % saveEvery == 0)
         {
             M_assembler->exportSolution(t, M_solution);
         }

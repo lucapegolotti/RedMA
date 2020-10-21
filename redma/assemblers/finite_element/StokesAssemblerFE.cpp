@@ -390,134 +390,136 @@ applyPiola(SHP(aVector) solution, bool inverse)
     auto defAssembler = this->M_defaultAssemblers->
                         getDefaultAssembler(aAssembler::M_treeNode->M_block->getMeshName());
 
-    // auto refDivergence = defAssembler->assembleMatrix(2);
-    // SHP(MatrixEpetra<double>) B(new MatrixEpetra<double>(M_pressureFESpace->map()));
-    //
-    // integrate(elements(M_velocityFESpaceETA->mesh()),
-    //          M_pressureFESpace->qr(),
-    //          M_pressureFESpaceETA,
-    //          M_velocityFESpaceETA,
-    //          phi_i * div(phi_j)
-    //      ) >> B;
-    //
-    // B->globalAssemble(M_velocityFESpace->mapPtr(),
-    //                   M_pressureFESpace->mapPtr());
-    //
-    // FEMATRIX Bwrap;
-    // Bwrap.data() = B;
-    //
-    // FEVECTOR res1 = Bwrap * solution.block(0);
-    //
-    // std::cout << this->M_treeNode->M_block->getMeshName() << std::endl << std::flush;
-    // std::cout << "norm 1 = " << res1.norm2() << std::endl << std::flush;
-    //
-    // FEVECTOR res2 = refDivergence.block(1,0) * solution.block(0);
-    //
-    // std::cout << "norm 2 = " << res2.norm2() << std::endl << std::flush;
-
-    auto defVelocityFESpace = defAssembler->getFEspace(0);
-
-    auto velocity = std::static_pointer_cast<VECTOREPETRA>(solution->block(0)->data());
-
-    Epetra_Map epetraMap = velocity->epetraMap();
-    unsigned int numElements = epetraMap.NumMyElements() / 3;
-
-    // find xs ys and zs of mesh
-    if (M_xs == nullptr)
+    if (defAssembler)
     {
-        M_xs.reset(new VECTOREPETRA(defVelocityFESpace->map()));
+        // auto refDivergence = defAssembler->assembleMatrix(2);
+        // SHP(MatrixEpetra<double>) B(new MatrixEpetra<double>(M_pressureFESpace->map()));
+        //
+        // integrate(elements(M_velocityFESpaceETA->mesh()),
+        //          M_pressureFESpace->qr(),
+        //          M_pressureFESpaceETA,
+        //          M_velocityFESpaceETA,
+        //          phi_i * div(phi_j)
+        //      ) >> B;
+        //
+        // B->globalAssemble(M_velocityFESpace->mapPtr(),
+        //                   M_pressureFESpace->mapPtr());
+        //
+        // FEMATRIX Bwrap;
+        // Bwrap.data() = B;
+        //
+        // FEVECTOR res1 = Bwrap * solution.block(0);
+        //
+        // std::cout << this->M_treeNode->M_block->getMeshName() << std::endl << std::flush;
+        // std::cout << "norm 1 = " << res1.norm2() << std::endl << std::flush;
+        //
+        // FEVECTOR res2 = refDivergence.block(1,0) * solution.block(0);
+        //
+        // std::cout << "norm 2 = " << res2.norm2() << std::endl << std::flush;
 
-        defVelocityFESpace->interpolate([](const double& t,
-                                           const double& x,
-                                           const double& y,
-                                           const double& z,
-                                           const unsigned int & i) {return x;},
-                                           *M_xs, 0.0);
-    }
+        auto defVelocityFESpace = defAssembler->getFEspace(0);
 
-    if (M_ys == nullptr)
-    {
-        M_ys.reset(new VECTOREPETRA(defVelocityFESpace->map()));
+        auto velocity = std::static_pointer_cast<VECTOREPETRA>(solution->block(0)->data());
 
-        defVelocityFESpace->interpolate([](const double& t,
-                                           const double& x,
-                                           const double& y,
-                                           const double& z,
-                                           const unsigned int & i) {return y;},
-                                           *M_ys, 0.0);
-    }
+        Epetra_Map epetraMap = velocity->epetraMap();
+        unsigned int numElements = epetraMap.NumMyElements() / 3;
 
-    if (M_zs == nullptr)
-    {
-        M_zs.reset(new VECTOREPETRA(defVelocityFESpace->map()));
+        // find xs ys and zs of mesh
+        if (M_xs == nullptr)
+        {
+            M_xs.reset(new VECTOREPETRA(defVelocityFESpace->map()));
 
-        defVelocityFESpace->interpolate([](const double& t,
-                                           const double& x,
-                                           const double& y,
-                                           const double& z,
-                                           const unsigned int & i) {return z;},
-                                           *M_zs, 0.0);
-    }
+            defVelocityFESpace->interpolate([](const double& t,
+                                               const double& x,
+                                               const double& y,
+                                               const double& z,
+                                               const unsigned int & i) {return x;},
+                                               *M_xs, 0.0);
+        }
 
-    LifeV::MatrixSmall<3,3>* transformationMatrix;
-    double determinant;
-    if (inverse)
-        transformationMatrix = new LifeV::MatrixSmall<3,3>();
+        if (M_ys == nullptr)
+        {
+            M_ys.reset(new VECTOREPETRA(defVelocityFESpace->map()));
+
+            defVelocityFESpace->interpolate([](const double& t,
+                                               const double& x,
+                                               const double& y,
+                                               const double& z,
+                                               const unsigned int & i) {return y;},
+                                               *M_ys, 0.0);
+        }
+
+        if (M_zs == nullptr)
+        {
+            M_zs.reset(new VECTOREPETRA(defVelocityFESpace->map()));
+
+            defVelocityFESpace->interpolate([](const double& t,
+                                               const double& x,
+                                               const double& y,
+                                               const double& z,
+                                               const unsigned int & i) {return z;},
+                                               *M_zs, 0.0);
+        }
+
+        LifeV::MatrixSmall<3,3>* transformationMatrix;
+        double determinant;
+        if (inverse)
+            transformationMatrix = new LifeV::MatrixSmall<3,3>();
 
 
-    for (unsigned int dof = 0; dof < numElements; dof++)
-    {
-        double& x = M_xs->operator[](dof);
-        double& y = M_ys->operator[](dof);
-        double& z = M_zs->operator[](dof);
+        for (unsigned int dof = 0; dof < numElements; dof++)
+        {
+            double& x = M_xs->operator[](dof);
+            double& y = M_ys->operator[](dof);
+            double& z = M_zs->operator[](dof);
 
-        auto jacobian = aAssembler::M_treeNode->M_block->computeJacobianGlobalTransformation(x, y, z);
+            auto jacobian = aAssembler::M_treeNode->M_block->computeJacobianGlobalTransformation(x, y, z);
 
-        double xx = x, yy = y, zz = z;
+            double xx = x, yy = y, zz = z;
 
-        aAssembler::M_treeNode->M_block->globalTransf(xx, yy, zz);
+            aAssembler::M_treeNode->M_block->globalTransf(xx, yy, zz);
 
-        double& a = jacobian(0,0);
-        double& b = jacobian(0,1);
-        double& c = jacobian(0,2);
-        double& d = jacobian(1,0);
-        double& e = jacobian(1,1);
-        double& f = jacobian(1,2);
-        double& g = jacobian(2,0);
-        double& h = jacobian(2,1);
-        double& i = jacobian(2,2);
+            double& a = jacobian(0,0);
+            double& b = jacobian(0,1);
+            double& c = jacobian(0,2);
+            double& d = jacobian(1,0);
+            double& e = jacobian(1,1);
+            double& f = jacobian(1,2);
+            double& g = jacobian(2,0);
+            double& h = jacobian(2,1);
+            double& i = jacobian(2,2);
 
-        determinant = std::abs(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+            determinant = std::abs(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
+
+            if (inverse)
+            {
+                aAssembler::M_treeNode->M_block->matrixInverse(jacobian, transformationMatrix);
+                determinant = 1.0/determinant;
+            }
+            else
+                transformationMatrix = &jacobian;
+
+            LifeV::VectorSmall<3> curU;
+            curU(0) = velocity->operator[](dof);
+            curU(1) = velocity->operator[](dof + numElements);
+            curU(2) = velocity->operator[](dof + numElements * 2);
+
+            LifeV::VectorSmall<3> res;
+            res = 1./determinant * (*transformationMatrix) * curU;
+
+            velocity->operator[](dof) = res(0);
+            velocity->operator[](dof + numElements) = res(1);
+            velocity->operator[](dof + numElements * 2) = res(2);
+        }
+
+        // res1 = Bwrap * solution.block(0);
+        // std::cout << "norm 1 = " << res1.norm2() << std::endl << std::flush;
+        // res2 = refDivergence.block(1,0) * solution.block(0);
+        // std::cout << "norm 2 = " << res2.norm2() << std::endl << std::flush;
 
         if (inverse)
-        {
-            aAssembler::M_treeNode->M_block->matrixInverse(jacobian, transformationMatrix);
-            determinant = 1.0/determinant;
-        }
-        else
-            transformationMatrix = &jacobian;
-
-        LifeV::VectorSmall<3> curU;
-        curU(0) = velocity->operator[](dof);
-        curU(1) = velocity->operator[](dof + numElements);
-        curU(2) = velocity->operator[](dof + numElements * 2);
-
-        LifeV::VectorSmall<3> res;
-        res = 1./determinant * (*transformationMatrix) * curU;
-
-        velocity->operator[](dof) = res(0);
-        velocity->operator[](dof + numElements) = res(1);
-        velocity->operator[](dof + numElements * 2) = res(2);
+            delete transformationMatrix;
     }
-
-    // res1 = Bwrap * solution.block(0);
-    // std::cout << "norm 1 = " << res1.norm2() << std::endl << std::flush;
-    // res2 = refDivergence.block(1,0) * solution.block(0);
-    // std::cout << "norm 2 = " << res2.norm2() << std::endl << std::flush;
-
-    if (inverse)
-        delete transformationMatrix;
-
     // defAssembler->exportSolution(0.0, solution);
 }
 

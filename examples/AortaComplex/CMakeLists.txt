@@ -2,6 +2,10 @@ add_executable(AortaComplex AortaComplex.cpp)
 target_link_libraries(AortaComplex ${LINKED_LIBRARIES})
 target_include_directories(AortaComplex PRIVATE ${HEADERS_DIRS})
 
+add_executable(AortaComplex_snapshots AortaComplex_snapshots.cpp)
+target_link_libraries(AortaComplex_snapshots ${LINKED_LIBRARIES})
+target_include_directories(AortaComplex_snapshots PRIVATE ${HEADERS_DIRS})
+
 add_custom_command(
         TARGET AortaComplex POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy

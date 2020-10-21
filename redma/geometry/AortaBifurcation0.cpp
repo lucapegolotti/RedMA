@@ -4,12 +4,13 @@ namespace RedMA
 {
 
 AortaBifurcation0::
-AortaBifurcation0(commPtr_Type comm, std::string name, bool verbose) :
+AortaBifurcation0(commPtr_Type comm, std::string refinement,
+                  std::string name, bool verbose) :
   BuildingBlock(comm, "normal", verbose)
 {
     M_name = name;
     M_datafileName = "data_mesh";
-    M_meshName = "others/aortabif0_fine.mesh";
+    M_meshName = "others/aortabif0_" + refinement + ".mesh";
 
     // center of inlet (reference configuration)
     M_inletCenterRef[0] = -0.074727;

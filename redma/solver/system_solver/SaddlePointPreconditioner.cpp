@@ -9,6 +9,14 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
   M_matrix(matrix),
   M_tresholdSizeExactSolve(-1)
 {
+    setup(matrix, true);
+}
+
+void
+SaddlePointPreconditioner::
+setup(const BM& matrix, bool doComputeSchurComplement)
+{
+
     Chrono chrono;
     chrono.start();
 
@@ -94,7 +102,8 @@ SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
         }
 
         // printlog(MAGENTA, msg, M_data.getVerbose());
-        computeSchurComplement(A, BT, B, C);
+        if (doComputeSchurComplement)
+            computeSchurComplement(A, BT, B, C);
 
         // printlog(MAGENTA, msg, M_data.getVerbose());
     }

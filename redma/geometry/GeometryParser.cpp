@@ -136,7 +136,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
                   " building block of type aortabif0\n";
         printlog(GREEN, msg, M_verbose);
 
-        returnBlock.reset(new AortaBifurcation0(M_comm, "aortabif0", M_verbose));
+        returnBlock.reset(new AortaBifurcation0(M_comm, ref, "aortabif0", M_verbose));
     }
     else if (!std::strcmp(element->Attribute("type"),
                           "aortabif1"))
@@ -145,7 +145,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
                   " building block of type aortabif0\n";
         printlog(GREEN, msg, M_verbose);
 
-        returnBlock.reset(new AortaBifurcation1(M_comm, "aortabif1", M_verbose));
+        returnBlock.reset(new AortaBifurcation1(M_comm, ref, "aortabif1", M_verbose));
     }
     else
     {

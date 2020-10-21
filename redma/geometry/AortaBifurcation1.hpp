@@ -26,8 +26,9 @@ namespace RedMA
 class AortaBifurcation1 : public BuildingBlock
 {
 public:
-    AortaBifurcation1(commPtr_Type comm, std::string name = "aortabif1",
-         bool verbose = false);
+    AortaBifurcation1(commPtr_Type comm, std::string refinement,
+                      std::string name = "aortabif1",
+                      bool verbose = false);
 
     virtual inline unsigned int expectedNumberOfChildren() override
     {

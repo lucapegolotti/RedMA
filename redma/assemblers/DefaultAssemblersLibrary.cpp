@@ -87,6 +87,8 @@ SHP(aAssembler)
 DefaultAssemblersLibrary::
 getDefaultAssembler(const std::string& namemesh)
 {
+    if (M_assemblersMap.find(namemesh) == M_assemblersMap.end())
+        return nullptr;
     return M_assemblersMap[namemesh];
 }
 

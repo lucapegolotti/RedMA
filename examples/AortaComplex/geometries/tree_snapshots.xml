@@ -1,0 +1,30 @@
+<buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="1" outlet="1">
+    <L_ratio>0.87794032189267546</L_ratio>
+    <Rout_ratio>0.90925736985945271</Rout_ratio>
+    <alpha>0.89041037803636958</alpha>
+    <alpha_axis>4.8790113318295054</alpha_axis>
+    <bend>0.65371179538545177</bend>
+    <bx>-0.54295619850203902</bx>
+    <by>4.8081509717818438</by>
+    <bz>10.571723083733186</bz>
+    <rotation_axis_x>0.89927451482928511</rotation_axis_x>
+    <rotation_axis_y>0.43738466705927598</rotation_axis_y>
+    <rotation_axis_z>0</rotation_axis_z>
+    <scale>2.3989073578658244</scale>
+    <use_linear_elasticity>0</use_linear_elasticity>
+    <buildingblock type="aortabif0" assembler="navierstokessupg" method="fem" refinement="normal" outlet="1">
+        <L_ratio>1</L_ratio>
+        <Rout_ratio>1</Rout_ratio>
+        <alpha>0</alpha>
+        <alpha_axis>0</alpha_axis>
+        <bend>0</bend>
+        <bx>0</bx>
+        <by>0</by>
+        <bz>0</bz>
+        <rotation_axis_x>0</rotation_axis_x>
+        <rotation_axis_y>0</rotation_axis_y>
+        <rotation_axis_z>0</rotation_axis_z>
+        <scale>1</scale>
+        <use_linear_elasticity>0</use_linear_elasticity>
+    </buildingblock>
+</buildingblock>
