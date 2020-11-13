@@ -19,6 +19,7 @@
 
 #include <redma/assemblers/abstract/aAssemblerFE.hpp>
 #include <redma/assemblers/models/StokesModel.hpp>
+#include <filesystem>
 
 namespace RedMA
 {
@@ -96,6 +97,8 @@ public:
     void setExtrapolatedSolution(const SHP(aVector)& exSol) override;
 
     virtual void applyPiola(SHP(aVector) solution, bool inverse) override;
+
+    void addNeumannBCs(double time, SHP(aVector) sol, SHP(aVector) rhs);
 
 protected:
     SHP(LifeV::Exporter<MESH>)                        M_exporter;

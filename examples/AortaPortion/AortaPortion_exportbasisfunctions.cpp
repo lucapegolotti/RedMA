@@ -20,7 +20,7 @@
 #include <redma/problem/DataContainer.hpp>
 
 using namespace RedMA;
-using namespace boost::filesystem;
+// using namespace boost::filesystem;
 
 int main(int argc, char **argv)
 {
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
     //     {
     //         std::vector<SHP(VECTOREPETRA)> functions;
     //         std::string filename = indir + "/" + m + "/field" + std::to_string(fieldIndex) + "_piola." + format;
-    //         if (!boost::filesystem::exists(filename))
+    //         if (!std::filesystem::esists(filename))
     //             filename = indir + "/" + m + "/field" + std::to_string(fieldIndex) + "." + format;
     //         std::ifstream infile(filename);
     //         std::string line;

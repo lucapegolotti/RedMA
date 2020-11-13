@@ -48,6 +48,11 @@ double distalPressure3(double t)
     return 0;
 }
 
+double distalPressure4(double t)
+{
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     #ifdef HAVE_MPI
@@ -62,8 +67,9 @@ int main(int argc, char **argv)
     data.setVerbose(comm->MyPID() == 0);
     data.setDistalPressure(distalPressure0, 0);
     data.setDistalPressure(distalPressure1, 1);
-    data.setDistalPressure(distalPressure2, 1);
-    data.setDistalPressure(distalPressure3, 1);
+    data.setDistalPressure(distalPressure2, 2);
+    data.setDistalPressure(distalPressure3, 3);
+    data.setDistalPressure(distalPressure4, 4);
     data.finalize();
 
     ProblemFEM femProblem(data, comm);

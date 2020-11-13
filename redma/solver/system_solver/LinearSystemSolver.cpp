@@ -14,6 +14,15 @@ void
 LinearSystemSolver::
 solve(const BM& matrix, const BV& rhs, BV& sol)
 {
+    if (matrix->type() == BLOCK && matrix->block(0,0)->type() == DOUBLE)
+    {
+        double matValue = std::static_pointer_cast<Double>(matrix->block(0,0))->getValue();
+        double rhsValue = std::static_pointer_cast<Double>(rhs->block(0))->getValue();
+        sol->hardCopy(rhs);
+        std::static_pointer_cast<Double>(sol->block(0))->setValue(rhsValue/matValue);
+        return;
+    }
+
     BM matrixSparse = matrix;
     BV rhsSparse = rhs;
     if (!std::static_pointer_cast<BlockMatrix>(matrixSparse)->globalTypeIs(SPARSE))

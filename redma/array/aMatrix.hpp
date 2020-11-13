@@ -49,7 +49,7 @@ public:
 
     virtual std::shared_ptr<aMatrix> multiplyByMatrix(std::shared_ptr<aMatrix> other) = 0;
 
-    virtual std::shared_ptr<aMatrix> transpose() const = 0;
+    virtual std::shared_ptr<aMatrix> transpose() const {};
 
     virtual void dump(std::string namefile) const = 0;
 
@@ -57,7 +57,7 @@ public:
 
     virtual void hardCopy(std::shared_ptr<aMatrix> other) = 0;
 
-    virtual aMatrix* clone() const = 0;
+    virtual aMatrix* clone() const {};
 
     virtual bool isZero() = 0;
 

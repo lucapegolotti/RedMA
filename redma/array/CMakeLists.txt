@@ -6,6 +6,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockMatrix.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockVector.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockMaps.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Double.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SparseMatrix.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DistributedVector.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DenseVector.hpp

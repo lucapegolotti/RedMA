@@ -18,40 +18,55 @@
 #define DOUBLE_HPP
 
 #include <iostream>
+#include <redma/array/aVector.hpp>
+#include <redma/array/aMatrix.hpp>
+
 
 namespace RedMA
 {
 
-class Double
+class Double : public aVector, public aMatrix
 {
 public:
     Double();
 
-    Double operator+(const Double& other);
+    virtual void add(std::shared_ptr<aMatrix> other) override;
 
-    Double& operator+=(const Double& other);
+    virtual void multiplyByScalar(const double& coeff) override;
 
-    Double& operator-=(const Double& other);
+    virtual std::shared_ptr<aVector> multiplyByVector(std::shared_ptr<aVector> vector) override;
 
-    Double& operator*=(const double& coeff);
+    virtual std::shared_ptr<aMatrix> multiplyByMatrix(std::shared_ptr<aMatrix> other) override;
 
-    Double operator*(const Double& other);
+    virtual void dump(std::string namefile) const override;
 
-    Double& operator=(const double& other);
+    virtual void softCopy(std::shared_ptr<aMatrix> other) override;
 
-    void hardCopy(const Double& other);
+    virtual void hardCopy(std::shared_ptr<aMatrix> other) override;
 
-    void softCopy(const Double& other);
+    virtual bool isZero() override;
 
-    double norm2() const;
+    virtual aVector* cloneVector() const override;
 
-    double& data();
+    virtual aMatrix* clone() const override;
 
-    double data() const;
+    std::shared_ptr<void> data() const override;
 
-    void dump(std::string filename) const {}
+    virtual double operator()(unsigned int index) override;
 
-    Double block(unsigned int i, unsigned int j) {return *this;}
+    virtual void add(std::shared_ptr<aVector> other) override;
+
+    virtual void softCopy(std::shared_ptr<aVector> other) override;
+
+    virtual void hardCopy(std::shared_ptr<aVector> other) override;
+
+    virtual std::string getString(const char& delimiter) const override;
+
+    virtual double norm2() const override;
+
+    void setValue(double data) {M_double = data;}
+
+    double getValue() {return M_double;}
 
 private:
     double  M_double;

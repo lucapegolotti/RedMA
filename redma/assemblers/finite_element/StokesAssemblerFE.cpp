@@ -30,7 +30,7 @@ setup()
     M_divergence = std::static_pointer_cast<BlockMatrix>(assembleReducedDivergence(M_bcManager)); // #3
 
     assembleFlowRateVectors();
-    // assembleFlowRateJacobians();
+    assembleFlowRateJacobians(this->M_bcManager);
 
     setExporter();
 
@@ -100,7 +100,34 @@ getRightHandSide(const double& time,
     systemMatrix->multiplyByScalar(-1.0);
 
     SHP(aVector) retVec = systemMatrix->multiplyByVector(sol);
+    addNeumannBCs(time, sol, retVec);
+
+    this->M_bcManager->apply0DirichletBCs(*std::static_pointer_cast<BlockVector>(retVec), this->getFESpaceBCs(),
+                                         this->getComponentBCs());
+
     return retVec;
+}
+
+void
+StokesAssemblerFE::
+addNeumannBCs(double time, SHP(aVector) sol, SHP(aVector) rhs)
+{
+
+    if (aAssembler::M_treeNode->isOutletNode())
+    {
+        auto flowRates = computeFlowRates(sol, true);
+
+        for (auto rate : flowRates)
+        {
+            double P = this->M_bcManager->getNeumannBc(time, rate.first, rate.second);
+
+            SHP(VECTOREPETRA) flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
+            *flowRateCopy *= P;
+
+            *std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()) += *flowRateCopy;
+            // addBackFlowStabilization(input, sol, rate.first);
+        }
+    }
 }
 
 SHP(aMatrix)
@@ -112,6 +139,25 @@ getJacobianRightHandSide(const double& time, const SHP(aVector)& sol)
     retMat->add(M_stiffness);
     retMat->add(M_divergence);
     retMat->multiplyByScalar(-1.0);
+
+
+    if (aAssembler::M_treeNode->isOutletNode())
+    {
+        auto flowRates = computeFlowRates(sol);
+
+        for (auto rate : flowRates)
+        {
+            double dhdQ = this->M_bcManager->getNeumannJacobian(time, rate.first, rate.second);
+            SHP(BlockMatrix) curjac(new BlockMatrix(2,2));
+            curjac->hardCopy(M_flowRateJacobians[rate.first]);
+            curjac->multiplyByScalar(dhdQ);
+
+            retMat->add(curjac);
+        }
+    }
+
+    this->M_bcManager->apply0DirichletMatrix(*retMat, getFESpaceBCs(),
+                                   getComponentBCs(), 0.0);
 
     return retMat;
 }
@@ -169,7 +215,7 @@ setExporter()
     outputName += std::to_string(aAssembler::M_treeNode->M_ID);
 
     std::string outdir = this->M_data("exporter/outdir", "solutions/");
-    boost::filesystem::create_directory(outdir);
+    std::filesystem::create_directory(outdir);
 
     std::string format = this->M_data("exporter/type", "hdf5");
     if (!std::strcmp(format.c_str(), "hdf5"))

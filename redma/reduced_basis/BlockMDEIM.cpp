@@ -108,7 +108,7 @@ void
 BlockMDEIM::
 performMDEIM(std::string dir)
 {
-    // using namespace boost::filesystem;
+    // // using namespace boost::filesystem;
     //
     // std::string outdir = dir + "/blockmdeim" + std::to_string(M_matIndex);
     // create_directory(outdir);
@@ -232,7 +232,7 @@ void
 BlockMDEIM::
 dumpMDEIMs(std::string dir, std::string prefix)
 {
-    // using namespace boost::filesystem;
+    // // using namespace boost::filesystem;
     //
     // std::string outdir = dir + "/" + prefix + std::to_string(M_matIndex);
     // create_directory(outdir);
@@ -267,7 +267,7 @@ void
 BlockMDEIM::
 loadMDEIM(std::string dir)
 {
-    // using namespace boost::filesystem;
+    // // using namespace boost::filesystem;
     //
     // for (unsigned int i = 0; i < M_nRows; i++)
     // {

@@ -13,7 +13,7 @@ BasisGenerator(const DataContainer& data, EPETRACOMM comm) :
     //
     // std::string outdir = M_data("rb/offline/basis/directory", "basis");
     //
-    // if (boost::filesystem::exists(outdir))
+    // if (std::filesystem::esists(outdir))
     //     printlog(YELLOW,"[BasisGenerator] basis directory already exists!\n", data.getVerbose());
     //
     // // we want to consider the whole basis when adding supremizers
@@ -40,12 +40,12 @@ generateMatricesOnly()
     //
     // std::string outdir = "matricesForOffline";
     //
-    // boost::filesystem::create_directory(outdir);
+    // std::filesystem::create_directory(outdir);
     //
     // // dump norms
     // for (auto& meshas : M_meshASPairMap)
     // {
-    //     boost::filesystem::create_directory(outdir + "/" + meshas.first);
+    //     std::filesystem::create_directory(outdir + "/" + meshas.first);
     //
     //     unsigned int nComponents = meshas.second.first->getNumComponents();
     //
@@ -102,7 +102,7 @@ void
 BasisGenerator::
 createDefaultAssemblers()
 {
-    // using namespace boost::filesystem;
+    // // using namespace boost::filesystem;
     //
     // std::string snapshotsdir = M_data("rb/offline/snapshots/directory", "snapshots");
     //
@@ -112,7 +112,7 @@ createDefaultAssemblers()
     // std::string paramdir = snapshotsdir + "/param";
     // unsigned int i = 0;
     // // we loop over the folders with the parameters
-    // while (exists(paramdir + std::to_string(i)))
+    // while (std::filesystem::exists(paramdir + std::to_string(i)))
     // {
     //     directory_iterator end_it;
     //     for (directory_iterator it(paramdir + std::to_string(i)); it != end_it; it++)
@@ -175,7 +175,7 @@ parseFiles()
 {
     // printlog(MAGENTA, "[BasisGenerator] parsing files ... \n", M_data.getVerbose());
     //
-    // using namespace boost::filesystem;
+    // // using namespace boost::filesystem;
     //
     // std::string snapshotsdir = M_data("rb/offline/snapshots/directory", "snapshots");
     //
@@ -185,7 +185,7 @@ parseFiles()
     // std::string paramdir = snapshotsdir + "/param";
     // unsigned int i = 0;
     // // we loop over the folders with the parameters
-    // while (exists(paramdir + std::to_string(i)))
+    // while (std::filesystem::exists(paramdir + std::to_string(i)))
     // {
     //     directory_iterator end_it;
     //     for (directory_iterator it(paramdir + std::to_string(i)); it != end_it; it++)
@@ -353,14 +353,14 @@ performPOD()
     // double podtol = M_data("rb/offline/basis/podtol", 1e-5);
     //
     // std::string outdir = M_data("rb/offline/basis/directory", "basis");
-    // boost::filesystem::create_directory(outdir);
+    // std::filesystem::create_directory(outdir);
     //
     // printlog(MAGENTA, "[BasisGenerator] performing POD ... \n", M_data.getVerbose());
     // for (auto pair : M_meshASPairMap)
     // {
     //     unsigned int count = 0;
     //     VectorFunctions newBasisFunctions(pair.second.second.size());
-    //     boost::filesystem::create_directory(outdir + "/" + pair.first);
+    //     std::filesystem::create_directory(outdir + "/" + pair.first);
     //
     //     for (auto sn : pair.second.second)
     //     {
@@ -437,7 +437,7 @@ void
 BasisGenerator::
 parseParameterSnapshots(const std::string& paramDir)
 {
-    // using namespace boost::filesystem;
+    // // using namespace boost::filesystem;
     //
     // unsigned int dashpos = paramDir.find_last_of("/");
     // std::string nameMesh = paramDir.substr(dashpos + 1);
@@ -491,7 +491,7 @@ void
 BasisGenerator::
 dumpBasis()
 {
-    // using namespace boost::filesystem;
+    // // using namespace boost::filesystem;
     //
     // std::string outdir = M_data("rb/offline/basis/directory", "basis");
     // bool binary = M_data("rb/offline/basis/dumpbinary", true);

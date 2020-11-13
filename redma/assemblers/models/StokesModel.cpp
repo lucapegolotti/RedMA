@@ -287,14 +287,14 @@ StokesModel::
 assembleFlowRateJacobians(SHP(BCManager) bcManager)
 {
     // assemble inflow flow rate vector
-    if (M_treeNode->isInletNode())
-    {
-        auto face = M_treeNode->M_block->getInlet();
-        M_flowRateJacobians[face.M_flag]->resize(2,2);
-        M_flowRateJacobians[face.M_flag]->block(0,0)->setData(assembleFlowRateJacobian(face));
-
-        apply0DirichletBCsMatrix(bcManager,M_flowRateJacobians[face.M_flag], 0.0);
-    }
+    // if (M_treeNode->isInletNode())
+    // {
+    //     auto face = M_treeNode->M_block->getInlet();
+    //     M_flowRateJacobians[face.M_flag]->resize(2,2);
+    //     M_flowRateJacobians[face.M_flag]->block(0,0)->setData(assembleFlowRateJacobian(face));
+    //
+    //     apply0DirichletBCsMatrix(bcManager,M_flowRateJacobians[face.M_flag], 0.0);
+    // }
 
     if (M_treeNode->isOutletNode())
     {
@@ -302,10 +302,16 @@ assembleFlowRateJacobians(SHP(BCManager) bcManager)
 
         for (auto face : faces)
         {
-            M_flowRateJacobians[face.M_flag]->resize(2,2);
-            M_flowRateJacobians[face.M_flag]->block(0,0)->setData(assembleFlowRateJacobian(face));
+            SHP(BlockMatrix) newJacobian(new BlockMatrix(2,2));
+            SHP(SparseMatrix) jacWrapper(new SparseMatrix());
+            jacWrapper->setMatrix(assembleFlowRateJacobian(face));
 
-            apply0DirichletBCsMatrix(bcManager,M_flowRateJacobians[face.M_flag], 0.0);
+            newJacobian->setBlock(0,0,jacWrapper);
+
+            apply0DirichletBCsMatrix(bcManager,newJacobian, 0.0);
+
+            M_flowRateJacobians[face.M_flag] = newJacobian;
+
         }
     }
 }
@@ -388,57 +394,57 @@ SHP(MATRIXEPETRA)
 StokesModel::
 assembleFlowRateJacobian(const GeometricFace& face)
 {
-    // using namespace LifeV;
-    // using namespace ExpressionAssembly;
-    //
-    // const double dropTolerance(2.0 * std::numeric_limits<double>::min());
-    //
-    // SHP(MAPEPETRA) rangeMap = M_flowRateVectors[face.M_flag]->mapPtr();
-    // EPETRACOMM comm = rangeMap->commPtr();
-    //
-    //
-    // Epetra_Map epetraMap = M_flowRateVectors[face.M_flag]->epetraMap();
-    // unsigned int numElements = epetraMap.NumMyElements();
-    // unsigned int numGlobalElements = epetraMap.NumGlobalElements();
-    //
-    // // this should be optimized
-    // SHP(MATRIXEPETRA) flowRateJacobian;
-    // flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map(), numGlobalElements, false));
-    //
-    // // compute outer product of flowrate vector with itself
-    // for (unsigned int j = 0; j < numGlobalElements; j++)
-    // {
-    //     double myvaluecol = 0;
-    //
-    //     if (M_flowRateVectors[face.M_flag]->isGlobalIDPresent(j))
-    //         myvaluecol = M_flowRateVectors[face.M_flag]->operator[](j);
-    //
-    //     double valuecol = 0;
-    //     comm->SumAll(&myvaluecol, &valuecol, 1);
-    //
-    //     if (std::abs(valuecol) > dropTolerance)
-    //     {
-    //         for (unsigned int i = 0; i < numElements; i++)
-    //         {
-    //             unsigned int gdof = epetraMap.GID(i);
-    //             if (M_flowRateVectors[face.M_flag]->isGlobalIDPresent(gdof))
-    //             {
-    //                 double valuerow = M_flowRateVectors[face.M_flag]->operator[](gdof);
-    //                 if (std::abs(valuerow * valuecol) > dropTolerance)
-    //                 {
-    //                     flowRateJacobian->addToCoefficient(gdof, j, valuerow * valuecol);
-    //                 }
-    //             }
-    //         }
-    //     }
-    //
-    // }
-    //
-    // comm->Barrier();
-    //
-    // flowRateJacobian->globalAssemble();
-    //
-    // return flowRateJacobian;
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    const double dropTolerance(2.0 * std::numeric_limits<double>::min());
+
+    SHP(MAPEPETRA) rangeMap = M_flowRateVectors[face.M_flag]->mapPtr();
+    EPETRACOMM comm = rangeMap->commPtr();
+
+
+    Epetra_Map epetraMap = M_flowRateVectors[face.M_flag]->epetraMap();
+    unsigned int numElements = epetraMap.NumMyElements();
+    unsigned int numGlobalElements = epetraMap.NumGlobalElements();
+
+    // this should be optimized
+    SHP(MATRIXEPETRA) flowRateJacobian;
+    flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map(), numGlobalElements, false));
+
+    // compute outer product of flowrate vector with itself
+    for (unsigned int j = 0; j < numGlobalElements; j++)
+    {
+        double myvaluecol = 0;
+
+        if (M_flowRateVectors[face.M_flag]->isGlobalIDPresent(j))
+            myvaluecol = M_flowRateVectors[face.M_flag]->operator[](j);
+
+        double valuecol = 0;
+        comm->SumAll(&myvaluecol, &valuecol, 1);
+
+        if (std::abs(valuecol) > dropTolerance)
+        {
+            for (unsigned int i = 0; i < numElements; i++)
+            {
+                unsigned int gdof = epetraMap.GID(i);
+                if (M_flowRateVectors[face.M_flag]->isGlobalIDPresent(gdof))
+                {
+                    double valuerow = M_flowRateVectors[face.M_flag]->operator[](gdof);
+                    if (std::abs(valuerow * valuecol) > dropTolerance)
+                    {
+                        flowRateJacobian->addToCoefficient(gdof, j, valuerow * valuecol);
+                    }
+                }
+            }
+        }
+
+    }
+
+    comm->Barrier();
+
+    flowRateJacobian->globalAssemble();
+
+    return flowRateJacobian;
 }
 
 void

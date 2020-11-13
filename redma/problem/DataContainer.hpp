@@ -70,6 +70,8 @@ public:
 
     void setValueBool(std::string location, bool defValue);
 
+    double evaluateRamp(double time);
+
 protected:
     std::vector<std::pair<double,double>> parseInflow();
 

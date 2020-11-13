@@ -17,6 +17,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/problem/ComparisonFEMvsRB.hpp>
+#include <filesystem>
 
 using namespace RedMA;
 
@@ -146,105 +147,105 @@ generateDatafiles(EPETRACOMM comm)
 
 int main(int argc, char **argv)
 {
-    #ifdef HAVE_MPI
-    MPI_Init (nullptr, nullptr);
-    EPETRACOMM comm (new Epetra_MpiComm(MPI_COMM_WORLD));
-    #else
-    EPETRACOMM comm(new Epetra_SerialComm());
-    #endif
-
-    DataContainer data;
-    data.setDatafile("datafiles/data");
-    data.setVerbose(false);
-    std::string inletDirichlet = "weak";
-    data.setValueString("bc_conditions/inletdirichlet", inletDirichlet);
-    data.finalize();
-    Chrono chrono;
-    chrono.start();
-    SHP(ProblemFEM) femProblem(new ProblemFEM(data, comm));
-    double setupTimeFEM = chrono.diff();
-
-    ComparisonFEMvsRB comparison(data, comm);
-    comparison.setProblemFEM(femProblem);
-    double runTimeFEM;
-
-    std::string outdir = "solution_fem_reference/";
-    if (boost::filesystem::exists(outdir))
-    {
-        std::ifstream infile;
-
-        comparison.loadFEMSolution(outdir);
-
-        infile.open(outdir + "femRunTime.txt");
-
-        std::string line;
-        std::getline(infile,line);
-
-        runTimeFEM = std::atof(line.c_str());
-        infile.close();
-    }
-    else
-    {
-        comparison.runFEM();
-        runTimeFEM = comparison.getTimeFem();
-
-        data.setValueString("exporter/outdir", outdir);
-        comparison.exportFEM(1);
-
-        comparison.dumpFEMSolution(outdir);
-
-        std::ofstream outfile;
-
-        outfile.open(outdir + "femRunTime.txt", std::ios_base::app);
-        outfile << runTimeFEM << "\n";
-        outfile.close();
-    }
-
-    std::vector<std::pair<std::string, SHP(DataContainer)>> datacs = generateDatafiles(comm);
-
-    boost::filesystem::create_directory("rb_solutions");
-
-    unsigned int index = 0;
-    for (auto curdata : datacs)
-    {
-        std::string curDir = "rb_solutions/sol" + std::to_string(index) + "/";
-        boost::filesystem::create_directory(curDir);
-
-        Chrono chrono;
-        chrono.start();
-        SHP(ProblemRB) rbProblem(new ProblemRB(*curdata.second, comm));
-        double setupTimeRB = chrono.diff();
-
-        comparison.setProblemRB(rbProblem);
-        try
-        {
-            comparison.runRB();
-            double runTimeRB = comparison.getTimeRB();
-
-            outdir = curDir + "solution/";
-            rbProblem->getData().setValueString("exporter/outdir", outdir);
-            data.setValueString("exporter/outdir", outdir);
-            comparison.exportRB(4);
-
-            outdir = curDir + "error/";
-            femProblem->getData().setValueString("exporter/outdir", outdir);
-            comparison.exportError();
-
-            std::ofstream outfile;
-
-            outfile.open(curDir + "simulationData.txt", std::ios_base::app);
-            outfile << curdata.first;
-            outfile << "rbSetupTime" << setupTimeRB << "\n";
-            outfile << "rbRunTime," << runTimeRB << "\n";
-            outfile << "femSetupTime," << setupTimeFEM << "\n";
-            outfile << "femRunTime," << runTimeFEM << "\n";
-            outfile.close();
-        } catch (Exception e)
-        {
-            std::cout << "Exception: probably solver has not converged" << std::endl << std::flush;
-        }
-        index++;
-    }
+    // #ifdef HAVE_MPI
+    // MPI_Init (nullptr, nullptr);
+    // EPETRACOMM comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    // #else
+    // EPETRACOMM comm(new Epetra_SerialComm());
+    // #endif
+    //
+    // DataContainer data;
+    // data.setDatafile("datafiles/data");
+    // data.setVerbose(false);
+    // std::string inletDirichlet = "weak";
+    // data.setValueString("bc_conditions/inletdirichlet", inletDirichlet);
+    // data.finalize();
+    // Chrono chrono;
+    // chrono.start();
+    // SHP(ProblemFEM) femProblem(new ProblemFEM(data, comm));
+    // double setupTimeFEM = chrono.diff();
+    //
+    // ComparisonFEMvsRB comparison(data, comm);
+    // comparison.setProblemFEM(femProblem);
+    // double runTimeFEM;
+    //
+    // std::string outdir = "solution_fem_reference/";
+    // if (std::filesystem::esists(outdir))
+    // {
+    //     std::ifstream infile;
+    //
+    //     comparison.loadFEMSolution(outdir);
+    //
+    //     infile.open(outdir + "femRunTime.txt");
+    //
+    //     std::string line;
+    //     std::getline(infile,line);
+    //
+    //     runTimeFEM = std::atof(line.c_str());
+    //     infile.close();
+    // }
+    // else
+    // {
+    //     comparison.runFEM();
+    //     runTimeFEM = comparison.getTimeFem();
+    //
+    //     data.setValueString("exporter/outdir", outdir);
+    //     comparison.exportFEM(1);
+    //
+    //     comparison.dumpFEMSolution(outdir);
+    //
+    //     std::ofstream outfile;
+    //
+    //     outfile.open(outdir + "femRunTime.txt", std::ios_base::app);
+    //     outfile << runTimeFEM << "\n";
+    //     outfile.close();
+    // }
+    //
+    // std::vector<std::pair<std::string, SHP(DataContainer)>> datacs = generateDatafiles(comm);
+    //
+    // std::filesystem::create_directory("rb_solutions");
+    //
+    // unsigned int index = 0;
+    // for (auto curdata : datacs)
+    // {
+    //     std::string curDir = "rb_solutions/sol" + std::to_string(index) + "/";
+    //     std::filesystem::create_directory(curDir);
+    //
+    //     Chrono chrono;
+    //     chrono.start();
+    //     SHP(ProblemRB) rbProblem(new ProblemRB(*curdata.second, comm));
+    //     double setupTimeRB = chrono.diff();
+    //
+    //     comparison.setProblemRB(rbProblem);
+    //     try
+    //     {
+    //         comparison.runRB();
+    //         double runTimeRB = comparison.getTimeRB();
+    //
+    //         outdir = curDir + "solution/";
+    //         rbProblem->getData().setValueString("exporter/outdir", outdir);
+    //         data.setValueString("exporter/outdir", outdir);
+    //         comparison.exportRB(4);
+    //
+    //         outdir = curDir + "error/";
+    //         femProblem->getData().setValueString("exporter/outdir", outdir);
+    //         comparison.exportError();
+    //
+    //         std::ofstream outfile;
+    //
+    //         outfile.open(curDir + "simulationData.txt", std::ios_base::app);
+    //         outfile << curdata.first;
+    //         outfile << "rbSetupTime" << setupTimeRB << "\n";
+    //         outfile << "rbRunTime," << runTimeRB << "\n";
+    //         outfile << "femSetupTime," << setupTimeFEM << "\n";
+    //         outfile << "femRunTime," << runTimeFEM << "\n";
+    //         outfile.close();
+    //     } catch (Exception e)
+    //     {
+    //         std::cout << "Exception: probably solver has not converged" << std::endl << std::flush;
+    //     }
+    //     index++;
+    // }
 
     return 0;
 }

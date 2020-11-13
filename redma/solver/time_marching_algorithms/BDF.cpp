@@ -139,12 +139,10 @@ advance(const double& time, double& dt, int& status)
         retVec->hardCopy(mass->multiplyByVector(prevContribution));
 
         f->multiplyByScalar(-1. * M_rhsCoeff * dt);
-
         retVec->add(f);
         // the previous solution satisfies the boundary conditions so we search
         // for an increment with 0bcs
         this->M_funProvider->apply0DirichletBCs(retVec);
-
         return retVec;
     });
 
@@ -173,7 +171,6 @@ advance(const double& time, double& dt, int& status)
         }
         return retMat;
     });
-
     BV sol = this->M_systemSolver.solve(fct, jac, initialGuess, status);
 
     if (status != 0)
@@ -214,7 +211,7 @@ shiftSolutions(const SHP(aVector)& sol)
 {
     // shift solutions
     std::vector<SHP(BlockVector)> newPrevSolutions(M_order);
-    newPrevSolutions[0].reset(static_cast<BlockVector*>(sol->clone()));
+    newPrevSolutions[0].reset(static_cast<BlockVector*>(sol->cloneVector()));
 
     for (unsigned int i = 0; i < M_order-1; i++)
         newPrevSolutions[i+1].reset(new BlockVector(*M_prevSolutions[i]));

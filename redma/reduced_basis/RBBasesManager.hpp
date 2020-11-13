@@ -19,7 +19,7 @@
 
 #include <redma/reduced_basis/RBBases.hpp>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace RedMA
 {

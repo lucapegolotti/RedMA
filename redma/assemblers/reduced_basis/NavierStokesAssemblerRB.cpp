@@ -10,6 +10,7 @@ NavierStokesAssemblerRB(const DataContainer& data, SHP(TreeNode) treeNode) :
   NavierStokesModel(data,treeNode)
 {
     M_name = "NavierStokesAssemblerRB";
+    M_exactJacobian = M_data("rb/online/exactjacobian",0);
 }
 
 void
@@ -24,7 +25,55 @@ NavierStokesAssemblerRB::
 addConvectiveTermJacobianRightHandSide(SHP(aVector) sol, SHP(aVector) lifting,
                                        SHP(aMatrix) mat)
 {
-    // note: the jacobian is not consistent but we do this for efficiency
+    Chrono chrono;
+    chrono.start();
+
+    std::string msg = "[NavierStokesAssemblerRB] computing Jacobian rhs ...";
+    printlog(YELLOW, msg, this->M_data.getVerbose());
+
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    SHP(VECTOREPETRA)  velocityHandler;
+    velocityHandler = M_bases->reconstructFEFunction(sol->block(0), 0, StokesModel::M_treeNode->M_ID);
+
+    // SHP(VECTOREPETRA)  liftingHandler;
+    // liftingHandler = M_bases->reconstructFEFunction(lifting->block(0), 0, StokesModel::M_treeNode->M_ID);
+
+    SHP(MATRIXEPETRA)  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
+    SHP(VECTOREPETRA)  velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
+    // SHP(VECTOREPETRA)  liftingRepeated(new VECTOREPETRA(*liftingHandler, Repeated));
+
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+               M_velocityFESpace->qr(),
+               M_velocityFESpaceETA,
+               M_velocityFESpaceETA,
+               value(this->M_density) *
+               dot(
+               (
+               value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j) +
+               phi_j * grad(M_velocityFESpaceETA , *velocityRepeated)
+               // +
+               // value(M_velocityFESpaceETA , *liftingRepeated) * grad(phi_j)
+               ),
+               phi_i)
+             ) >> convectiveMatrix;
+
+    convectiveMatrix->globalAssemble();
+
+    SHP(SparseMatrix) matrixWrap(new SparseMatrix());
+    matrixWrap->setMatrix(convectiveMatrix);
+
+    unsigned int id = StokesModel::M_treeNode->M_ID;
+    auto projectedMat = M_bases->matrixProject(matrixWrap, 0, 0, id);
+
+    projectedMat->multiplyByScalar(-1);
+    mat->block(0,0)->add(projectedMat);
+
+    msg = "done, in ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(YELLOW, msg, this->M_data.getVerbose());
 }
 
 SHP(aVector)
@@ -37,7 +86,7 @@ getRightHandSide(const double& time, const SHP(aVector)& sol)
     Chrono chrono;
     chrono.start();
 
-    std::string msg = "[NavierStokesAssembler] computing rhs ...";
+    std::string msg = "[NavierStokesAssemblerRB] computing rhs ...";
     printlog(YELLOW, msg, this->M_data.getVerbose());
 
     SHP(aVector) retVec = StokesAssemblerRB::getRightHandSide(time,sol);
@@ -110,7 +159,12 @@ NavierStokesAssemblerRB::
 getJacobianRightHandSide(const double& time,
                          const SHP(aVector)& sol)
 {
-    return StokesAssemblerRB::getJacobianRightHandSide(time,sol);
+    SHP(aMatrix) jac = StokesAssemblerRB::getJacobianRightHandSide(time,sol);
+
+    if (M_exactJacobian)
+        addConvectiveTermJacobianRightHandSide(sol, nullptr, jac);
+
+    return jac;
 }
 
 void

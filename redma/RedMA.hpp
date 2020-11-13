@@ -25,6 +25,7 @@
 #endif
 
 #include <memory>
+#include <filesystem>
 
 #include <redma/array/SparseMatrix.hpp>
 #include <redma/array/DistributedVector.hpp>

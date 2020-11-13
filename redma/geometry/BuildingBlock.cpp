@@ -463,7 +463,7 @@ dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
         std::string msg = "Mesh has not been read yet!\n";
         throw Exception(msg);
     }
-    boost::filesystem::create_directory(outdir);
+    std::filesystem::create_directory(outdir);
 
     GetPot exporterDatafile(meshdir + M_datafileName);
     LifeV::ExporterVTK<mesh_Type> exporter(exporterDatafile, outputName);

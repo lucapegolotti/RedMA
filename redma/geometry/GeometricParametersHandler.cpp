@@ -156,7 +156,7 @@ int
 GeometricParametersHandler::
 setParameterValue(std::string name, const double& value)
 {
-    if (exists(name))
+    if (std::filesystem::exists(name))
     {
         return *M_parametersMap[name] = value;
     }

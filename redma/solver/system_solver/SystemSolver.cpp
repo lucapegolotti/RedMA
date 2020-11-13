@@ -80,6 +80,9 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
             msg += ", iteration = " + std::to_string(count+1) + "\n";
             printlog(GREEN, msg, M_data.getVerbose());
 
+            if (err < 1e-15)
+                break;
+
             if (err / initialError > tol)
             {
                 incr->multiplyByScalar(0.0);

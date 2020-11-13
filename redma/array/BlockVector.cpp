@@ -176,7 +176,7 @@ add(std::shared_ptr<aVector> other)
         }
         else
             if (otherVector->block(i))
-                setBlock(i,std::shared_ptr<aVector>(otherVector->block(i)->clone()));
+                setBlock(i,std::shared_ptr<aVector>(otherVector->block(i)->cloneVector()));
     }
 
     updateNormInf();
@@ -233,7 +233,7 @@ hardCopy(std::shared_ptr<aVector> other)
         for (unsigned int i = 0; i < nRows(); i++)
         {
             if (otherVector->block(i))
-                M_vectorGrid(i,0).reset(otherVector->block(i)->clone());
+                M_vectorGrid(i,0).reset(otherVector->block(i)->cloneVector());
         }
 
         // M_isOpen = otherVector->isOpen();
@@ -243,11 +243,11 @@ hardCopy(std::shared_ptr<aVector> other)
 
 aVector*
 BlockVector::
-clone() const
+cloneVector() const
 {
     BlockVector* retVector = new BlockVector(nRows());
     for (unsigned int i = 0; i < nRows(); i++)
-        retVector->setBlock(i,std::shared_ptr<aVector>(block(i)->clone()));
+        retVector->setBlock(i,std::shared_ptr<aVector>(block(i)->cloneVector()));
     return retVector;
 }
 

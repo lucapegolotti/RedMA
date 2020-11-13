@@ -73,7 +73,7 @@ hardCopy(std::shared_ptr<aVector> other)
 
 aVector*
 DenseVector::
-clone() const
+cloneVector() const
 {
     DenseVector* retVector = new DenseVector();
     if (M_vector)

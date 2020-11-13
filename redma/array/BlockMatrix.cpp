@@ -169,7 +169,7 @@ multiplyByVector(std::shared_ptr<aVector> vector)
             {
                 if (block(i,j)->type() == DENSE && otherVector->block(j)->type() == DISTRIBUTED)
                 {
-                    printlog(YELLOW, "[BlockMatrix::multiplyByVector] explicit dense->distributed conversion\n", true);
+                    // printlog(YELLOW, "[BlockMatrix::multiplyByVector] explicit dense->distributed conversion\n", true);
                     std::shared_ptr<DistributedVector> asDistributed = std::static_pointer_cast<DistributedVector>(otherVector->block(j));
                     std::shared_ptr<DenseVector> asDense = asDistributed->toDenseVectorPtr();
                     tempRes = DistributedVector::convertDenseVector(std::static_pointer_cast<DenseVector>(block(i,j)->multiplyByVector(asDense)),asDistributed->commPtr());

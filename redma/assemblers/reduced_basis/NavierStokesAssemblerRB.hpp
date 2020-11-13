@@ -49,6 +49,7 @@ public:
 protected:
     std::vector<std::vector<SHP(BlockVector)>>       M_nonLinearTermsDecomposition;
     SHP(BlockVector)                                 M_nonLinearTerm;
+    bool                                             M_exactJacobian;
 };
 
 }

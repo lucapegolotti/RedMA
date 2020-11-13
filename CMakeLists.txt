@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
 project(RedMA VERSION 1.0.0 DESCRIPTION "Reduced Modeling of Arteries")
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 message(STATUS ${TPL_LifeV_INCLUDE_DIRS})
 set(HEADERS_DIRS
@@ -70,14 +70,12 @@ set(TRILINOS_LIBRARIES
 # environment. If that version of boost is used, boost must be installed by removing
 # the -without-system and -without-filesystem flags in the bootstrap command of lifev
 set(LINKED_LIBRARIES
-    boost_system
-    boost_filesystem
     tinyxml2
     mpi
     lifevcore
     lifeveta
     lifevnavierstokesblocks
-    lifevreducedbasis
+    #  lifevreducedbasis
     ${TRILINOS_LIBRARIES}
     hdf5
     parmetis
@@ -93,7 +91,7 @@ endif()
 
 # we disable warnings of wrong return type because these are already present
 # at the level of LifeV
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wno-return-type")
+set(CMAKE_CXX_FLAGS "-std=c++17 -Wno-return-type -Wno-unknown-pragmas")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
@@ -104,7 +102,7 @@ include_directories(${HEADERS_DIRS})
 # set(CMAKE_SKIP_BUILD_PATH FALSE)
 # set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 # set(CMAKE_INSTALL_RPATH ${LIBRARIES_DIRS})
-# set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
 add_subdirectory(redma)
 

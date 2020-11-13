@@ -22,7 +22,7 @@ load()
     std::string msg = "[RBBasesManager] loading singular values ...";
     printlog(YELLOW, msg, this->M_data.getVerbose());
 
-    using namespace boost::filesystem;
+    // using namespace boost::filesystem;
 
     std::string basisdir = M_data("rb/online/basis/directory", "basis");
 
@@ -33,7 +33,7 @@ load()
         // count number of fields
 
         unsigned int numFields = 0;
-        while (exists(curdir + "/svd" + std::to_string(numFields) + ".txt"))
+        while (std::filesystem::exists(curdir + "/svd" + std::to_string(numFields) + ".txt"))
             numFields++;
 
         SHP(RBBases) newBases(new RBBases(M_data, M_comm));

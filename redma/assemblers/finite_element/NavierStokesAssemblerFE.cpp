@@ -93,11 +93,11 @@ addConvectiveTermJacobianRightHandSide(SHP(aVector) sol, SHP(aVector) lifting,
     using namespace ExpressionAssembly;
 
     SHP(VECTOREPETRA) velocityHandler = std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data());
-    SHP(VECTOREPETRA) liftingHandler = std::static_pointer_cast<VECTOREPETRA>(lifting->block(0)->data());
+    // SHP(VECTOREPETRA) liftingHandler = std::static_pointer_cast<VECTOREPETRA>(lifting->block(0)->data());
 
     SHP(MATRIXEPETRA)  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
     SHP(VECTOREPETRA)  velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
-    SHP(VECTOREPETRA)  liftingRepeated(new VECTOREPETRA(*liftingHandler, Repeated));
+    // SHP(VECTOREPETRA)  liftingRepeated(new VECTOREPETRA(*liftingHandler, Repeated));
 
     // if the extrapolation is null (e.g. first step), the matrix is singular.
     // Hence we solve the non linear problem for the first step
@@ -126,8 +126,9 @@ addConvectiveTermJacobianRightHandSide(SHP(aVector) sol, SHP(aVector) lifting,
                    dot(
                    (
                    value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j) +
-                   phi_j * grad(M_velocityFESpaceETA , *velocityRepeated) +
-                   value(M_velocityFESpaceETA , *liftingRepeated) * grad(phi_j)
+                   phi_j * grad(M_velocityFESpaceETA , *velocityRepeated)
+                   // +
+                   // value(M_velocityFESpaceETA , *liftingRepeated) * grad(phi_j)
                    ),
                    phi_i)
                  ) >> convectiveMatrix;
@@ -197,7 +198,10 @@ getRightHandSide(const double& time, const SHP(aVector)& sol)
     // int a;
     // std::cin >> a;
 
-    // this->addNeumannBCs(retVec, time, sol);
+    addNeumannBCs(time, sol, retVec);
+
+    this->M_bcManager->apply0DirichletBCs(*std::static_pointer_cast<BlockVector>(retVec), this->getFESpaceBCs(),
+                                         this->getComponentBCs());
 
     if (M_stabilization)
     {

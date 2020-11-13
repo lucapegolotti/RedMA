@@ -26,7 +26,7 @@
 namespace RedMA
 {
 
-enum Datatype{DENSE, SPARSE, DISTRIBUTED, BLOCK};
+enum Datatype{DENSE, SPARSE, DISTRIBUTED, BLOCK, DOUBLE};
 
 class aVector
 {
@@ -50,7 +50,7 @@ public:
 
     virtual void hardCopy(std::shared_ptr<aVector> other) = 0;
 
-    virtual aVector* clone() const = 0;
+    virtual aVector* cloneVector() const {};
 
     virtual bool isZero() = 0;
 

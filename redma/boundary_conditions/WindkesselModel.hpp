@@ -51,6 +51,7 @@ private:
     SHP(PressureDrop)                                   M_pressureDrop;
     SHP(BDF)                                            M_bdf;
     SHP(BlockVector)                                    M_pressureDropSolution;
+    DataContainer                                       M_data;
 };
 
 }

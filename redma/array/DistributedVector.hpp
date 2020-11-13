@@ -45,7 +45,7 @@ public:
 
     virtual void hardCopy(std::shared_ptr<aVector> other) override;
 
-    virtual aVector* clone() const override;
+    virtual aVector* cloneVector() const override;
 
     virtual bool isZero() override;
 

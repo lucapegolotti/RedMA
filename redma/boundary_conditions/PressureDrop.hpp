@@ -21,6 +21,8 @@
 
 #include <redma/solver/time_marching_algorithms/aFunctionProvider.hpp>
 #include <redma/array/Double.hpp>
+#include <redma/array/BlockVector.hpp>
+#include <redma/array/BlockMatrix.hpp>
 
 #include <fstream>
 

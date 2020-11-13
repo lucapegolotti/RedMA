@@ -89,7 +89,7 @@ hardCopy(std::shared_ptr<aVector> other)
 
 aVector*
 DistributedVector::
-clone() const
+cloneVector() const
 {
     DistributedVector* retVector = new DistributedVector();
     if (M_vector)

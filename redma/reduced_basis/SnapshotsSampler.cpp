@@ -14,11 +14,11 @@ void
 SnapshotsSampler::
 takeSnapshots()
 {
-    using namespace boost::filesystem;
+    // using namespace boost::filesystem;
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
-    // if (exists(outdir))
+    // if (std::filesystem::exists(outdir))
     //    throw new Exception("Snapshots directory already exists!");
-    create_directory(outdir);
+    std::filesystem::create_directory(outdir);
     GeometryPrinter printer;
 
     unsigned int nSnapshots = M_data("rb/offline/snapshots/number", 10);
@@ -32,10 +32,10 @@ takeSnapshots()
         problem.doStoreSolutions();
 
         unsigned int paramIndex = 0;
-        while (exists(outdir + "/param" + std::to_string(paramIndex)))
+        while (std::filesystem::exists(outdir + "/param" + std::to_string(paramIndex)))
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
-        create_directory(curdir);
+        std::filesystem::create_directory(curdir);
         problem.getTree().randomSampleAroundOriginalValue(bound);
         problem.setup();
 
@@ -71,7 +71,7 @@ dumpSnapshots(ProblemFEM& problem,
     for (auto idmeshtype : IDmeshTypeMap)
     {
         std::string meshtypedir = outdir + "/" + idmeshtype.second;
-        boost::filesystem::create_directory(meshtypedir);
+        std::filesystem::create_directory(meshtypedir);
 
         unsigned int nfields = solutions[0]->block(idmeshtype.first)->nRows();
 
@@ -122,7 +122,7 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
                             unsigned int fieldIndex,
                             unsigned int maxSnapshot)
 {
-    using namespace boost::filesystem;
+    // using namespace boost::filesystem;
 
     std::ios_base::openmode omode = std::ios_base::app;
 
@@ -130,8 +130,7 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
     {
         std::string paramfile = snapshotsDir + "/param" + std::to_string(i);
         std::string treefile =  paramfile + "/tree.xml";
-        std::cout << "treefile = " << treefile << std::endl << std::flush;
-        if (exists(treefile))
+        if (std::filesystem::exists(treefile))
         {
             M_data.setValueString("geometric_structure/xmlfile", treefile);
             ProblemFEM problem(M_data, M_comm, false);

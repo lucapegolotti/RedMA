@@ -17,9 +17,10 @@
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/reduced_basis/SnapshotsSampler.hpp>
+#include <filesystem>
 
 using namespace RedMA;
-using namespace boost::filesystem;
+// using namespace boost::filesystem;
 
 int main(int argc, char **argv)
 {
@@ -37,15 +38,15 @@ int main(int argc, char **argv)
 
     std::string snapshotsdir = data("rb/offline/snapshots/directory", "snapshots");
 
-    if (!exists(snapshotsdir))
+    if (!std::filesystem::exists(snapshotsdir))
         throw new Exception("Snapshots directory has not been generated yet!");
 
     std::string paramdir = snapshotsdir + "/param";
     unsigned int i = 0;
     // we loop over the folders with the parameters
-    while (exists(paramdir + std::to_string(i)))
+    while (std::filesystem::exists(paramdir + std::to_string(i)))
     {
-        if (exists(paramdir + std::to_string(i) + "/tree.xml"))
+        if (std::filesystem::exists(paramdir + std::to_string(i) + "/tree.xml"))
         {
             GeometryParser gParser(data.getDatafile(),
                                    paramdir + std::to_string(i) + "/tree.xml", comm, true);

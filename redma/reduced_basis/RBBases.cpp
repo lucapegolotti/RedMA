@@ -112,9 +112,9 @@ RBBases::
 addVectorsFromFile(std::string filename, std::vector<SHP(VECTOREPETRA)>& vectors,
                    const unsigned int& indexField, int Nmax)
 {
-    using namespace boost::filesystem;
+    // using namespace boost::filesystem;
 
-    if (exists(filename))
+    if (std::filesystem::exists(filename))
     {
         std::ifstream infile;
         infile.open(filename);
@@ -239,7 +239,7 @@ void
 RBBases::
 dump()
 {
-    using namespace boost::filesystem;
+    // using namespace boost::filesystem;
 
     bool binary = M_data("rb/basis/dumpbinary", true);
 

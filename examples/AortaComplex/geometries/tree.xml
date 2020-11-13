@@ -1,4 +1,4 @@
-<buildingblock type="tube" assembler="navierstokes" method="rb" refinement="h0.12" d="1" L="1">
+<buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="1">
     <L_ratio>1</L_ratio>
     <Rout_ratio>0.83669846727531383</Rout_ratio>
     <alpha>0.30133570229418971</alpha>
@@ -12,7 +12,7 @@
     <rotation_axis_z>0</rotation_axis_z>
     <scale>2.8671109744921632</scale>
     <use_linear_elasticity>0</use_linear_elasticity>
-    <buildingblock type="tube" assembler="navierstokes" method="rb" refinement="h0.12" d="1" L="1" outlet="1">
+    <buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="1" outlet="1">
         <L_ratio>0.87794032189267546</L_ratio>
         <Rout_ratio>0.90925736985945271</Rout_ratio>
         <alpha>0.89041037803636958</alpha>
@@ -40,7 +40,7 @@
             <rotation_axis_z>0</rotation_axis_z>
             <scale>1</scale>
             <use_linear_elasticity>0</use_linear_elasticity>
-            <buildingblock type="tube" assembler="navierstokes" method="rb" refinement="h0.12" d="1" L="3" outlet="1">
+            <buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="3" outlet="1">
                 <L_ratio>1</L_ratio>
                 <Rout_ratio>0.97574382728093845</Rout_ratio>
                 <alpha>2.1581990000752023</alpha>
@@ -54,7 +54,7 @@
                 <rotation_axis_z>0</rotation_axis_z>
                 <scale>1.521372777301286</scale>
                 <use_linear_elasticity>0</use_linear_elasticity>
-                <buildingblock type="tube" assembler="navierstokes" method="rb" refinement="h0.12" d="1" L="3" outlet="1">
+                <buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="3" outlet="1">
                     <L_ratio>1</L_ratio>
                     <Rout_ratio>0.88163596390941312</Rout_ratio>
                     <alpha>2.920025089373786</alpha>
@@ -68,7 +68,7 @@
                     <rotation_axis_z>0</rotation_axis_z>
                     <scale>1.4844700964449875</scale>
                     <use_linear_elasticity>0</use_linear_elasticity>
-                    <buildingblock type="tube" assembler="navierstokes" method="rb" refinement="h0.12" d="1" L="3" outlet="1">
+                    <buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="3" outlet="1">
                         <L_ratio>1</L_ratio>
                         <Rout_ratio>0.93094024900111283</Rout_ratio>
                         <alpha>2.8940330341436757</alpha>
@@ -82,7 +82,7 @@
                         <rotation_axis_z>0</rotation_axis_z>
                         <scale>1.308762224373976</scale>
                         <use_linear_elasticity>0</use_linear_elasticity>
-                        <buildingblock type="tube" assembler="navierstokes" method="rb" refinement="h0.12" d="1" L="3" outlet="1">
+                        <buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="3" outlet="1">
                             <L_ratio>1.0486844816073582</L_ratio>
                             <Rout_ratio>0.9331677939439188</Rout_ratio>
                             <alpha>3.0220248547161859</alpha>
@@ -100,7 +100,7 @@
                     </buildingblock>
                 </buildingblock>
             </buildingblock>
-            <buildingblock type="tube" assembler="navierstokes" method="rb" refinement="h0.12" d="1" L="2" outlet="2">
+            <buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="2" outlet="2">
                 <L_ratio>1</L_ratio>
                 <Rout_ratio>0.75310620582986976</Rout_ratio>
                 <alpha>0.53198001259841077</alpha>
@@ -114,7 +114,7 @@
                 <rotation_axis_z>0</rotation_axis_z>
                 <scale>0.743456873937272</scale>
                 <use_linear_elasticity>0</use_linear_elasticity>
-                <buildingblock type="tube" assembler="navierstokes" method="rb" refinement="h0.12" d="1" L="2" outlet="1">
+                <buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="2" outlet="1">
                     <L_ratio>1</L_ratio>
                     <Rout_ratio>0.96855019885072691</Rout_ratio>
                     <alpha>0.41953640361966271</alpha>
@@ -128,7 +128,7 @@
                     <rotation_axis_z>-0</rotation_axis_z>
                     <scale>0.5599019855290347</scale>
                     <use_linear_elasticity>0</use_linear_elasticity>
-                    <buildingblock type="tube" assembler="navierstokes" method="rb" refinement="h0.12" d="1" L="2" outlet="1">
+                    <buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="2" outlet="1">
                         <L_ratio>1.0930622171050164</L_ratio>
                         <Rout_ratio>0.95979582396996188</Rout_ratio>
                         <alpha>0.54002981688843166</alpha>
@@ -145,7 +145,7 @@
                     </buildingblock>
                 </buildingblock>
             </buildingblock>
-            <buildingblock type="tube" assembler="navierstokes" method="rb" refinement="h0.12" d="1" L="2" outlet="3">
+            <buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="2" outlet="3">
                 <L_ratio>1</L_ratio>
                 <Rout_ratio>0.86580406353993888</Rout_ratio>
                 <alpha>0.47668955106452326</alpha>
@@ -159,7 +159,7 @@
                 <rotation_axis_z>0</rotation_axis_z>
                 <scale>0.77346226919869765</scale>
                 <use_linear_elasticity>0</use_linear_elasticity>
-                <buildingblock type="tube" assembler="navierstokes" method="rb" refinement="h0.12" d="1" L="2" outlet="1">
+                <buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="2" outlet="1">
                     <L_ratio>1.1459067799645482</L_ratio>
                     <Rout_ratio>0.95825809622645874</Rout_ratio>
                     <alpha>0.32093003738031955</alpha>
@@ -175,7 +175,7 @@
                     <use_linear_elasticity>0</use_linear_elasticity>
                 </buildingblock>
             </buildingblock>
-            <buildingblock type="tube" assembler="navierstokes" method="rb" refinement="h0.12" d="1" L="1" outlet="4">
+            <buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="1" outlet="4">
                 <L_ratio>1.2031997540130617</L_ratio>
                 <Rout_ratio>0.7140248151742008</Rout_ratio>
                 <alpha>0.67935828173690926</alpha>
@@ -203,7 +203,7 @@
                     <rotation_axis_z>0</rotation_axis_z>
                     <scale>1</scale>
                     <use_linear_elasticity>0</use_linear_elasticity>
-                    <buildingblock type="tube" assembler="navierstokes" method="rb" refinement="h0.12" d="1" L="2" outlet="1">
+                    <buildingblock type="tube" assembler="navierstokes" method="fem" refinement="h0.20" d="1" L="2" outlet="1">
                         <L_ratio>1.1481967920514062</L_ratio>
                         <Rout_ratio>0.96266631597291596</Rout_ratio>
                         <alpha>0.073745524238620686</alpha>

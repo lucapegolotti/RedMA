@@ -14,7 +14,7 @@ void
 DEIMSnapshotsSampler::
 takeDEIMSnapshots()
 {
-    // using namespace boost::filesystem;
+    // // using namespace boost::filesystem;
     //
     // std::string outdir = M_data("rb/offline/deim/directory", "deimsnapshots");
     // create_directory(outdir);
@@ -31,7 +31,7 @@ takeDEIMSnapshots()
     //     problem.doStoreSolutions();
     //
     //     unsigned int paramIndex = 0;
-    //     while (exists(outdir + "/param" + std::to_string(paramIndex)))
+    //     while (std::filesystem::exists(outdir + "/param" + std::to_string(paramIndex)))
     //         paramIndex++;
     //     std::string curdir = outdir + "/param" + std::to_string(paramIndex);
     //     create_directory(curdir);
@@ -66,7 +66,7 @@ dumpDEIMSnapshots(ProblemRB& problem,
     // for (auto idmeshtype : IDmeshTypeMap)
     // {
     //     std::string meshtypedir = outdir + "/" + idmeshtype.second;
-    //     boost::filesystem::create_directory(meshtypedir);
+    //     std::filesystem::create_directory(meshtypedir);
     //
     //     unsigned int nfields = nonLinearTerms[0].block(idmeshtype.first).nRows();
     //

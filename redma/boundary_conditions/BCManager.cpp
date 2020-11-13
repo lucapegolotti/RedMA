@@ -22,6 +22,7 @@ void
 BCManager::
 parseNeumannData()
 {
+    std::cout << "parseNeumannData()" << std::endl << std::flush;
     unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
 
     for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
@@ -35,6 +36,7 @@ parseNeumannData()
             M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
         }
     }
+    std::cout << "parseNeumannData() end" << std::endl << std::flush;
 }
 
 void

@@ -30,7 +30,7 @@ void
 MDEIMGenerator::
 dumpMDEIMstructures()
 {
-    // using namespace boost::filesystem;
+    // // using namespace boost::filesystem;
     //
     // std::string outdir = M_data("rb/offline/mdeim/directory", "mdeims");
     //
@@ -66,14 +66,14 @@ void
 MDEIMGenerator::
 takeMatricesSnapshots()
 {
-    // using namespace boost::filesystem;
+    // // using namespace boost::filesystem;
     //
     // unsigned int nSnapshots = M_data("rb/offline/mdeim/numbersnapshots", 50);
     // double bound = M_data("rb/offline/mdeim/bound", 0.2);
     //
     // std::string outdir = M_data("rb/offline/mdeim/directory", "mdeims");
     //
-    // if (exists(outdir))
+    // if (std::filesystem::exists(outdir))
     //     throw new Exception("Mdeims directory already exists!");
     //
     // for (unsigned int isnapshot = 0; isnapshot < nSnapshots; isnapshot++)
@@ -129,7 +129,7 @@ void
 MDEIMGenerator::
 performMDEIM()
 {
-    // using namespace boost::filesystem;
+    // // using namespace boost::filesystem;
     //
     // std::string outdir = M_data("rb/offline/mdeim/directory", "mdeims");
     // create_directory(outdir);
@@ -149,11 +149,11 @@ void
 MDEIMGenerator::
 projectMDEIM()
 {
-    // using namespace boost::filesystem;
+    // // using namespace boost::filesystem;
     //
     // std::string basisdir = M_data("rb/offline/basis/directory", "basis");
     //
-    // if (exists(basisdir))
+    // if (std::filesystem::exists(basisdir))
     // {
     //     for (auto& mdeims : M_primalBlockMDEIMsMap)
     //     {

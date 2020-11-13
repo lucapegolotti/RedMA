@@ -217,4 +217,16 @@ parseInflow()
     return flowValues;
 }
 
+double
+DataContainer::
+evaluateRamp(double time)
+{
+    double t0 = (*M_datafile)("time_discretization/t0", 0.0);
+
+    if (time < t0 && M_ramp)
+        return M_ramp(time);
+    else
+        return 1;
+}
+
 }

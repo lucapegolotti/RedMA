@@ -19,7 +19,38 @@ outputdir = rb_solutions
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 	coefficientinflow =  1.026077096
-	numoutletbcs = 0
+	numoutletbcs = 5
+	[./outlet0] #subclavian
+		blockindex = 9
+		C = 0.00013804700000000003
+		Rp = 2988.37335
+		Rd =  18131.50665
+	[../]
+	[./outlet1] # lt-carotid
+		blockindex = 11
+		C = 0.000199402
+		Rp = 2068.7915900000003
+		Rd =  12515.50841
+	[../]
+	[./outlet2] #rt-carotid
+		blockindex = 14
+		C = 0.000189175
+		Rp = 2180.46723
+		Rd =  13055.322769999999
+	[../]
+	[./outlet3] #btrunk
+		blockindex = 13
+		boundaryflag = 3
+		C = 0.00020621900000000003
+		Rp = 2000.43091
+		Rd =  12101.789089999998
+	[../]
+	[./outlet4] #aorta
+		blockindex = 6
+		C = 0.0009714420000000001
+		Rp = 424.63747
+		Rd = 2557.5625299999997
+	[../]
 [../]
 
 [rb]

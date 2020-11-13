@@ -22,7 +22,7 @@ load()
     std::string msg = "[MDEIMManager] loading structures ...";
     printlog(YELLOW, msg, this->M_data.getVerbose());
 
-    using namespace boost::filesystem;
+    // using namespace boost::filesystem;
 
     std::string mdeimdir = M_data("rb/online/mdeim/directory", "mdeims");
 
@@ -32,16 +32,16 @@ load()
         std::vector<SHP(BlockMDEIM)> mdeimvec;
 
         unsigned int matrixIndex = 0;
-        while (exists(curdir + "/blockmdeim" + std::to_string(matrixIndex)))
+        while (std::filesystem::exists(curdir + "/blockmdeim" + std::to_string(matrixIndex)))
         {
             std::string blockmdeimdir = curdir + "/blockmdeim" + std::to_string(matrixIndex);
 
             unsigned int countrow = 0;
-            while (exists(blockmdeimdir + "/mdeim_" + std::to_string(countrow) + "_0"))
+            while (std::filesystem::exists(blockmdeimdir + "/mdeim_" + std::to_string(countrow) + "_0"))
                 countrow++;
 
             unsigned int countcol = 0;
-            while (exists(blockmdeimdir + "/mdeim_0_" + std::to_string(countcol)))
+            while (std::filesystem::exists(blockmdeimdir + "/mdeim_0_" + std::to_string(countcol)))
                 countcol++;
 
             SHP(BlockMDEIM) newMdeim(new BlockMDEIM());

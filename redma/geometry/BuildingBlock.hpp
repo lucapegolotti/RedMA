@@ -43,7 +43,7 @@
 #include <lifev/core/filter/ExporterVTK.hpp>
 #include <lifev/core/fem/FESpace.hpp>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace RedMA
 {
