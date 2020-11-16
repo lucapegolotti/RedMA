@@ -64,18 +64,6 @@ public:
 
     std::shared_ptr<BlockVector> convertInnerTo(Datatype type, std::shared_ptr<Epetra_Comm> comm = nullptr);
 
-    // BlockVector operator*(const double& coeff) const;
-    //
-    // BlockVector& operator*=(const double& coeff);
-    //
-    // BlockVector& operator+=(const BlockVector& other);
-    //
-    // BlockVector& operator-=(const BlockVector& other);
-    //
-    // BlockVector operator+(const BlockVector& other) const;
-    //
-    // BlockVector operator-(const BlockVector& other) const;
-
     std::shared_ptr<aVector> block(const unsigned int& iblock) const override;
 
     std::shared_ptr<BlockVector> getSubvector(const unsigned int& ibegin, const unsigned int& iend) const;
@@ -92,21 +80,10 @@ public:
 
     virtual double operator()(unsigned int index) override {throw new Exception("operator() undefined for BlockVector");}
 
-    // inline void close() {M_isOpen = false;}
-    //
-    // inline void open() {M_isOpen = true;}
-    //
-    // inline bool isOpen() const {return M_isOpen;}
-    //
-    // inline void checkOpen() const {if (!isOpen()) throw new Exception("BlockVector must be open for this operation!");}
-    //
-    // inline void checkClosed() const {if (isOpen()) throw new Exception("BlockVector must be closed for this operation!");}
-
 protected:
     BlockVector();
     std::shared_ptr<Epetra_Comm>  M_comm;
     Grid                          M_vectorGrid;
-    // bool            M_isOpen;
 };
 
 }

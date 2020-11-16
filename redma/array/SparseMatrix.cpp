@@ -14,11 +14,7 @@ SparseMatrix(const SparseMatrix& other) :
   aMatrix(SPARSE)
 {
     if (other.M_matrix)
-    {
-        // std::shared_ptr<MATRIXEPETRA> newMatrix
-        //     (new MATRIXEPETRA(*other.data()));
         setMatrix(other.M_matrix);
-    }
 }
 
 SparseMatrix::

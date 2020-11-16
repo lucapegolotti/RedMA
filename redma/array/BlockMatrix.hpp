@@ -99,29 +99,14 @@ public:
 
     inline void checkClosed() const {if (isOpen()) throw new Exception("BlockMatrix must be closed for this operation!");}
 
-    // inline SHP(BlockDimension) getDimensionsRows() {return M_dimensionsRows;}
-    //
-    // inline SHP(BlockDimension) getDimensionsCols() {return M_dimensionsCols;}
-
-
-    // void finalize() {};
-    //
-    // std::shared_ptr<aMatrix> collapse() const {};
-
 protected:
     BlockMatrix();
 
     void updateNormInf();
-    // I introduce this only because on mac the operator+= behaves weirdly
-    // void sumMatrix(const BlockMatrix& other) {};
-    //
-    // void multiplyCoeff(const double& coeff) {};
 
     std::shared_ptr<Epetra_Comm>  M_comm;
     Grid                          M_matrixGrid;
     bool                          M_isOpen;
-    // SHP(BlockDimension)         M_dimensionsRows;
-    // SHP(BlockDimension)         M_dimensionsCols;
 };
 
 }

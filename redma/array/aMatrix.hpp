@@ -100,6 +100,4 @@ protected:
 
 }
 
-#include "aMatrix_imp.hpp"
-
 #endif // aMATRIX_HPP

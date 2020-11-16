@@ -1,7 +1,6 @@
 set(HEADERS
     ${HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/aMatrix.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/aMatrix_imp.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/aVector.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockMatrix.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockVector.hpp

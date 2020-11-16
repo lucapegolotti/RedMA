@@ -6,16 +6,13 @@ namespace RedMA
 BlockVector::
 BlockVector() :
   aVector(BLOCK)
-  // M_isOpen(true)
 {
 }
 
 BlockVector::
 BlockVector(const BlockVector& other) :
   aVector(BLOCK)
-  // M_isOpen(other.M_isOpen)
 {
-    // other.checkClosed();
     resize(other.nRows());
 
     for (unsigned int i = 0; i < other.nRows(); i++)
@@ -28,7 +25,6 @@ BlockVector(const BlockVector& other) :
 BlockVector::
 BlockVector(const unsigned int& nRows) :
   aVector(BLOCK)
-  // M_isOpen(true)
 {
     resize(nRows);
 }
@@ -300,18 +296,6 @@ setBlock(const unsigned int& iblock, std::shared_ptr<aVector> vector)
     updateNormInf();
 }
 
-// BlockVector
-// BlockVector::
-// operator*(const double& coeff) const
-// {
-//     BlockVector ret;
-//     ret.hardCopy(*this);
-//
-//     ret *= coeff;
-//
-//     return ret;
-// }
-
 double
 BlockVector::
 norm2() const
@@ -340,143 +324,5 @@ updateNormInf()
             M_normInf = M_normInf < block(i)->normInf() ? block(i)->normInf() : M_normInf;
     }
 }
-
-// BlockVector&
-// BlockVector::
-// operator*=(const double& coeff)
-// {
-//     for (unsigned int i = 0; i < M_nRows; i++)
-//         block(i) *= coeff;
-//
-//     return *this;
-// }
-//
-// BlockVector
-// BlockVector::
-// operator+(const BlockVector<InVectorType>& other) const
-// {
-//     BlockVector<InVectorType> ret;
-//
-//     if (M_nRows == 0)
-//     {
-//         ret.hardCopy(other);
-//         return ret;
-//     }
-//
-//     if (other.nRows() == 0)
-//     {
-//         ret.hardCopy(*this);
-//         return ret;
-//     }
-//
-//     if (M_nRows != other.M_nRows)
-//     {
-//         throw new Exception("Dimension of vectors being added is not consistent!");
-//     }
-//
-//     ret.hardCopy(*this);
-//
-//     ret += other;
-//     return ret;
-// }
-//
-// BlockVector
-// BlockVector::
-// operator-(const BlockVector<InVectorType>& other) const
-// {
-//     BlockVector<InVectorType> ret;
-//
-//     if (M_nRows == 0)
-//     {
-//         ret.hardCopy(other);
-//         return ret;
-//     }
-//
-//     if (other.nRows() == 0)
-//     {
-//         ret.hardCopy(*this);
-//         return ret;
-//     }
-//
-//     if (M_nRows != other.M_nRows)
-//     {
-//         throw new Exception("Dimension of vectors being subtracted is not consistent!");
-//     }
-//
-//     ret.hardCopy(*this);
-//
-//     ret -= other;
-//     return ret;
-// }
-//
-// BlockVector&
-// BlockVector::
-// operator+=(const BlockVector<InVectorType>& other)
-// {
-//     if (M_nRows == 0)
-//     {
-//         hardCopy(other);
-//         return *this;
-//     }
-//
-//     if (other.nRows() == 0)
-//         return *this;
-//
-//     if (M_nRows != other.M_nRows)
-//     {
-//         throw new Exception("Dimension of vectors being added is not consistent!");
-//     }
-//
-//     for (unsigned int i = 0; i < M_nRows; i++)
-//         block(i) += other.block(i);
-//
-//     return *this;
-// }
-//
-// BlockVector&
-// BlockVector::
-// operator-=(const BlockVector<InVectorType>& other)
-// {
-//     if (M_nRows == 0)
-//     {
-//         hardCopy(other);
-//         (*this) *= (-1);
-//         return *this;
-//     }
-//
-//     if (other.nRows() == 0)
-//         return *this;
-//
-//     if (M_nRows != other.M_nRows)
-//     {
-//         throw new Exception("Dimension of vectors being subtracted is not consistent!");
-//     }
-//
-//     for (unsigned int i = 0; i < M_nRows; i++)
-//         block(i) -= other.block(i);
-//
-//     return *this;
-// }
-
-// void
-// BlockVector::
-// hardCopy(const BlockVector& other)
-// {
-//     // resize(other.M_nRows);
-//     //
-//     // for (unsigned int i = 0; i < M_nRows; i++)
-//     //     block(i).hardCopy(other.block(i));
-// }
-//
-// void
-// BlockVector::
-// softCopy(const BlockVector& other)
-// {
-//     // resize(other.M_nRows);
-//     // for (unsigned int i = 0; i < M_nRows; i++)
-//     // {
-//     //     block(i).softCopy(other.block(i));
-//     // }
-// }
 
 }
