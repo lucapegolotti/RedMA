@@ -28,7 +28,7 @@ namespace RedMA
 class NavierStokesModel
 {
 public:
-    NavierStokesModel(const DataContainer& data, SHP(TreeNode) treeNode);
+    NavierStokesModel(const DataContainer& data, shp<TreeNode> treeNode);
 
     // virtual void setup() override;
 
@@ -48,16 +48,16 @@ public:
     //
     // virtual void RBsetup() override;
 
-    virtual void addConvectiveMatrixRightHandSide(SHP(aVector) sol,
-                                                  SHP(aMatrix) mat) = 0;
+    virtual void addConvectiveMatrixRightHandSide(shp<aVector> sol,
+                                                  shp<aMatrix> mat) = 0;
 
-    virtual void addConvectiveTermJacobianRightHandSide(SHP(aVector) sol,
-                                                        SHP(aVector) lifting,
-                                                        SHP(aMatrix) mat) = 0;
+    virtual void addConvectiveTermJacobianRightHandSide(shp<aVector> sol,
+                                                        shp<aVector> lifting,
+                                                        shp<aMatrix> mat) = 0;
 
 protected:
 
-    // SHP(BlockVector)                            M_nonLinearTerm;
+    // shp<BlockVector)                            M_nonLinearTerm;
     //
     // // this is relative to the rb part
     // std::vector<std::vector<BlockVector>>       M_nonLinearTermsDecomposition;

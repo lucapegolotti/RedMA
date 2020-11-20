@@ -37,8 +37,8 @@ namespace RedMA
 class SaddlePointPreconditioner : public PreconditionerOperator
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
-    typedef SHP(BlockVector)                                         BV;
-    typedef SHP(BlockMatrix)                                         BM;
+    typedef shp<BlockVector>                                         BV;
+    typedef shp<BlockMatrix>                                         BM;
     typedef LifeV::Operators::NavierStokesPreconditionerOperator     NSPrec;
     typedef LifeV::Operators::NavierStokesOperator                   NSOp;
     typedef LifeV::Operators::InvertibleOperator                     InvOp;
@@ -67,7 +67,7 @@ public:
 private:
     void computeAm1BT(const BM& A, const BM& BT);
 
-    SHP(aMatrix) computeSingleAm1BT(const BM& A,
+    shp<aMatrix> computeSingleAm1BT(const BM& A,
                                     const BM& BT,
                                     const unsigned int& index);
 
@@ -83,24 +83,24 @@ private:
     BM                                                   M_matrix;
     BM                                                   M_matrixCollapsed;
     BM                                                   M_S;
-    SHP(BlockMaps)                                       M_maps;
-    std::vector<SHP(NSPrec)>                             M_innerPreconditioners;
-    std::vector<SHP(InvOp)>                              M_invOperators;
-    SHP(Teuchos::ParameterList)                          M_pListLinSolver;
+    shp<BlockMaps>                                       M_maps;
+    std::vector<shp<NSPrec>>                             M_innerPreconditioners;
+    std::vector<shp<InvOp>>                              M_invOperators;
+    shp<Teuchos::ParameterList>                          M_pListLinSolver;
     Teuchos::RCP<Teuchos::ParameterList>                 M_solversOptionsInner;
     BM                                                   M_Am1BT;
     std::string                                          M_innerPrecType;
     std::string                                          M_approxSchurType;
-    SHP(ApproxInv)                                       M_approximatedSchurInverse;
-    std::vector<SHP(ApproxInv)>                          M_approximatedInverses;
-    SHP(MAPEPETRA)                                       M_primalMap;
-    SHP(MAPEPETRA)                                       M_dualMap;
-    SHP(MAPEPETRA)                                       M_monolithicMap;
-    std::vector<SHP(MAPEPETRA)>                          M_rangeMaps;
-    std::vector<SHP(MAPEPETRA)>                          M_domainMaps;
+    shp<ApproxInv>                                       M_approximatedSchurInverse;
+    std::vector<shp<ApproxInv>>                          M_approximatedInverses;
+    shp<MAPEPETRA>                                       M_primalMap;
+    shp<MAPEPETRA>                                       M_dualMap;
+    shp<MAPEPETRA>                                       M_monolithicMap;
+    std::vector<shp<MAPEPETRA>>                          M_rangeMaps;
+    std::vector<shp<MAPEPETRA>>                          M_domainMaps;
     unsigned int                                         M_nPrimalBlocks;
     unsigned int                                         M_nDualBlocks;
-    std::vector<SHP(Epetra_SerialDenseSolver)>           M_solversAsDense;
+    std::vector<shp<Epetra_SerialDenseSolver>>           M_solversAsDense;
     int                                                  M_tresholdSizeExactSolve;
     std::vector<bool>                                    M_isSmallBlock;
 };

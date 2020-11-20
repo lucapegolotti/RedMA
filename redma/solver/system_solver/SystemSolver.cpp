@@ -34,7 +34,6 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
         incr->multiplyByScalar(0.0);
         BM curJac = jac(sol);
-        curJac->close();
 
         M_linearSystemSolver.solve(curJac, curFun, incr);
 
@@ -87,7 +86,6 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
             {
                 incr->multiplyByScalar(0.0);
                 BM curJac = jac(sol);
-                curJac->close();
                 M_linearSystemSolver.setComm(M_comm);
                 M_linearSystemSolver.solve(curJac, curFun, incr);
                 M_solverStatistics.push_back(M_linearSystemSolver.getSolverStatistics());

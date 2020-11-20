@@ -34,7 +34,7 @@
 namespace RedMA
 {
 
-SHP(BasisFunctionFunctor)
+shp<BasisFunctionFunctor>
 BasisFunctionFactory(const GetPot& datafile, GeometricFace inlet, bool isBoundary = false);
 
 }  // namespace RedMA

@@ -34,7 +34,7 @@ namespace RedMA
 
 class BlockMDEIM
 {
-    typedef boost::numeric::ublas::matrix<SHP(MDEIM)> GridMDEIM;
+    typedef boost::numeric::ublas::matrix<shp<MDEIM>> GridMDEIM;
 
 public:
     BlockMDEIM();
@@ -59,7 +59,7 @@ public:
 
     void loadMDEIM(std::string dir);
 
-    void setRBBases(SHP(RBBases) bases);
+    void setRBBases(shp<RBBases> bases);
 
     inline void setMatrixIndex(const unsigned int& index) {M_matIndex = index;}
 
@@ -71,17 +71,17 @@ public:
 
     void prepareOnline();
 
-    void setFESpace(SHP(FESPACE) fespace, const unsigned int& index);
+    void setFESpace(shp<FESPACE> fespace, const unsigned int& index);
 
-    void setRangeMap(SHP(MAPEPETRA) map, const unsigned int& index);
+    void setRangeMap(shp<MAPEPETRA> map, const unsigned int& index);
 
-    void setDomainMap(SHP(MAPEPETRA) map, const unsigned int& index);
+    void setDomainMap(shp<MAPEPETRA> map, const unsigned int& index);
 
-    inline SHP(FESPACE) getFESpace(const unsigned int& index) {return M_fespaces[index];}
+    inline shp<FESPACE> getFESpace(const unsigned int& index) {return M_fespaces[index];}
 
-    inline SHP(MAPEPETRA) getRangeMap(const unsigned int& index) {return M_rangeMaps[index];}
+    inline shp<MAPEPETRA> getRangeMap(const unsigned int& index) {return M_rangeMaps[index];}
 
-    inline SHP(MAPEPETRA) getDomainMap(const unsigned int& index) {return M_domainMaps[index];}
+    inline shp<MAPEPETRA> getDomainMap(const unsigned int& index) {return M_domainMaps[index];}
 
     inline unsigned int getNumRows() const {return M_nRows;}
 
@@ -100,10 +100,10 @@ private:
     unsigned int                                M_nRows;
     unsigned int                                M_nCols;
     BlockMDEIMStructure                         M_structures;
-    SHP(RBBases)                                M_bases;
-    std::vector<SHP(FESPACE)>                   M_fespaces;
-    std::vector<SHP(MAPEPETRA)>                 M_rangeMaps;
-    std::vector<SHP(MAPEPETRA)>                 M_domainMaps;
+    shp<RBBases>                                M_bases;
+    std::vector<shp<FESPACE>>                   M_fespaces;
+    std::vector<shp<MAPEPETRA>>                 M_rangeMaps;
+    std::vector<shp<MAPEPETRA>>                 M_domainMaps;
 };
 
 }  // namespace RedMA

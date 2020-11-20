@@ -30,9 +30,11 @@ namespace RedMA
 
 class BlockVector : public aVector
 {
-    typedef boost::numeric::ublas::matrix<std::shared_ptr<aVector>>        Grid;
+    typedef boost::numeric::ublas::matrix<shp<aVector>>        Grid;
 
 public:
+
+    BlockVector();
 
     virtual ~BlockVector() {};
 
@@ -40,49 +42,52 @@ public:
 
     BlockVector(const unsigned int& nRows);
 
-    virtual void add(std::shared_ptr<aVector> other) override;
+    virtual void add(shp<aVector> other) override;
 
     virtual void multiplyByScalar(const double& coeff) override;
 
     virtual void dump(std::string namefile) const override;
 
-    virtual void softCopy(std::shared_ptr<aVector> other) override;
+    virtual void shallowCopy(shp<aDataWrapper> other) override;
 
-    virtual void hardCopy(std::shared_ptr<aVector> other) override;
+    virtual void deepCopy(shp<aDataWrapper> other) override;
 
-    virtual aVector* cloneVector() const override;
+    virtual BlockVector* clone() const override;
 
-    virtual bool isZero() override;
+    virtual bool isZero() const override;
 
     std::string getString(const char& delimiter) const override;
 
     double norm2() const override;
 
-    void setBlock(const unsigned int& iblock, std::shared_ptr<aVector> vector) override;
+    void setBlock(const unsigned int& iblock, shp<aVector> vector);
 
     bool globalTypeIs(Datatype type);
 
-    std::shared_ptr<BlockVector> convertInnerTo(Datatype type, std::shared_ptr<Epetra_Comm> comm = nullptr);
+    shp<BlockVector> convertInnerTo(Datatype type, shp<Epetra_Comm> comm = nullptr);
 
-    std::shared_ptr<aVector> block(const unsigned int& iblock) const override;
+    shp<aVector> block(const unsigned int& iblock) const;
 
-    std::shared_ptr<BlockVector> getSubvector(const unsigned int& ibegin, const unsigned int& iend) const;
+    shp<BlockVector> getSubvector(const unsigned int& ibegin, const unsigned int& iend) const;
 
     void resize(const unsigned int& nRows);
 
-    void updateNormInf();
-
     void findComm();
 
-    std::shared_ptr<Epetra_Comm> commPtr() {findComm(); return M_comm;}
+    shp<Epetra_Comm> commPtr() {findComm(); return M_comm;}
 
-    void copyPattern(std::shared_ptr<BlockVector> other, bool verbose = true);
+    void copyPattern(shp<BlockVector> other, bool verbose = true);
 
     virtual double operator()(unsigned int index) override {throw new Exception("operator() undefined for BlockVector");}
 
+    virtual shp<void> data() const override {return nullptr;};
+
+    virtual void setData(shp<void>) override {};
+
+    virtual Datatype type() const override {return BLOCK;}
+
 protected:
-    BlockVector();
-    std::shared_ptr<Epetra_Comm>  M_comm;
+    shp<Epetra_Comm>              M_comm;
     Grid                          M_vectorGrid;
 };
 

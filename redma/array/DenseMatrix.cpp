@@ -4,8 +4,7 @@ namespace RedMA
 {
 
 DenseMatrix::
-DenseMatrix() :
-  aMatrix(DENSE)
+DenseMatrix()
 {
 }
 
@@ -13,19 +12,16 @@ void
 DenseMatrix::
 add(std::shared_ptr<aMatrix> other)
 {
-    checkType(other, DENSE);
-
     if (isZero())
     {
-       hardCopy(other);
+       deepCopy(other);
        return;
     }
 
     if (!other->isZero())
     {
-        DenseMatrix* otherMatrix = dynamic_cast<DenseMatrix*>(other.get());
+        shp<DenseMatrix> otherMatrix = convert<DenseMatrix>(other);
         (*M_matrix) += *static_cast<DENSEMATRIX*>(otherMatrix->data().get());
-        M_normInf = M_matrix->NormInf();
     }
 }
 
@@ -34,10 +30,7 @@ DenseMatrix::
 multiplyByScalar(const double& coeff)
 {
     if (!isZero())
-    {
         M_matrix->Scale(coeff);
-        M_normInf = M_matrix->NormInf();
-    }
 }
 
 std::shared_ptr<aMatrix>
@@ -78,7 +71,6 @@ setMatrix(std::shared_ptr<DENSEMATRIX> matrix)
         M_matrix = matrix;
         this->M_nRows = M_matrix->M();
         this->M_nCols = M_matrix->N();
-        this->M_normInf = M_matrix->NormInf();
     }
 }
 
@@ -90,8 +82,6 @@ multiplyByMatrix(std::shared_ptr<aMatrix> other)
 
     if (isZero() || other->isZero())
         return retMat;
-
-    checkType(other, DENSE);
 
     std::shared_ptr<DENSEMATRIX> otherMatrix = std::static_pointer_cast<DENSEMATRIX>(other->data());
 
@@ -113,7 +103,6 @@ multiplyByVector(std::shared_ptr<aVector> vector)
         // place holder for zero vector
         return std::shared_ptr<DenseVector>(new DenseVector());
     }
-    checkType(vector, DENSE);
 
     std::shared_ptr<DENSEVECTOR> otherVector = std::static_pointer_cast<DENSEVECTOR>(vector->data());
 
@@ -158,25 +147,18 @@ dump(std::string filename) const
 
 bool
 DenseMatrix::
-isZero()
+isZero() const
 {
-    if (!M_matrix)
-        return true;
-
-    if (normInf() < ZEROTHRESHOLD)
-        this->M_normInf = M_matrix->NormInf();
-
-    return normInf() < ZEROTHRESHOLD;
+    return M_matrix == nullptr;
 }
 
 void
 DenseMatrix::
-softCopy(std::shared_ptr<aMatrix> other)
+shallowCopy(std::shared_ptr<aDataWrapper> other)
 {
     if (other)
     {
-        checkType(other, DENSE);
-        auto otherMatrix = dynamic_cast<DenseMatrix*>(other.get());
+        auto otherMatrix = convert<DenseMatrix>(other);
         std::shared_ptr<DENSEMATRIX> otherMatrixPtr
             (static_cast<DENSEMATRIX*>(otherMatrix->data().get()));
         setMatrix(otherMatrixPtr);
@@ -185,12 +167,11 @@ softCopy(std::shared_ptr<aMatrix> other)
 
 void
 DenseMatrix::
-hardCopy(std::shared_ptr<aMatrix> other)
+deepCopy(std::shared_ptr<aDataWrapper> other)
 {
     if (other)
     {
-        checkType(other, DENSE);
-        auto otherMatrix = dynamic_cast<DenseMatrix*>(other.get());
+        auto otherMatrix = convert<DenseMatrix>(other);
         std::shared_ptr<DENSEMATRIX> otherMatrixPtr
             (static_cast<DENSEMATRIX*>(otherMatrix->data().get()));
         std::shared_ptr<DENSEMATRIX> newMatrix

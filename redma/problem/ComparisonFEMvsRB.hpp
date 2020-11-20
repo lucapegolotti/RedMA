@@ -28,9 +28,9 @@ class ComparisonFEMvsRB
 public:
     ComparisonFEMvsRB(const DataContainer& data, EPETRACOMM comm);
 
-    void setProblemFEM(const SHP(ProblemFEM)& problemFEM) {M_problemFEM = problemFEM;}
+    void setProblemFEM(const shp<ProblemFEM>& problemFEM) {M_problemFEM = problemFEM;}
 
-    void setProblemRB(const SHP(ProblemRB)& problemRB) {M_problemRB = problemRB;}
+    void setProblemRB(const shp<ProblemRB>& problemRB) {M_problemRB = problemRB;}
 
     void runFEM();
 
@@ -51,8 +51,8 @@ public:
     double getTimeRB() {return M_timeRB;}
 
 private:
-    SHP(ProblemFEM)                                     M_problemFEM;
-    SHP(ProblemRB)                                      M_problemRB;
+    shp<ProblemFEM>                                     M_problemFEM;
+    shp<ProblemRB>                                      M_problemRB;
     std::vector<BlockVector>                            M_loadedSolutions;
     double                                              M_timeFEM;
     double                                              M_timeRB;

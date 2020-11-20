@@ -79,7 +79,7 @@ exportError()
     // for (unsigned int i = 0; i < nsolutions; i++)
     // {
     //     BlockVector<BlockVector<VectorEp>> diff;
-    //     diff.softCopy(M_problemRB->getBlockAssembler()->convertFunctionRBtoFEM(M_problemRB->getSolutions()[i], M_comm));
+    //     diff.shallowCopy(M_problemRB->getBlockAssembler()->convertFunctionRBtoFEM(M_problemRB->getSolutions()[i], M_comm));
     //
     //     // we do this so that we don't have problems with different number of lagrange multipliers
     //     for (unsigned int j = 0; j < numPrimalBlocks; j++)
@@ -163,20 +163,20 @@ loadFEMSolution(std::string indir)
     //
     // int numSolutions = -1;
     //
-    // std::vector<std::vector<std::vector<SHP(VECTOREPETRA)>>> allSols;
+    // std::vector<std::vector<std::vector<shp<VECTOREPETRA>>>> allSols;
     //
     // for (unsigned int iblock = 0; iblock < numPrimalBlocks; iblock++)
     // {
-    //     std::vector<std::vector<SHP(VECTOREPETRA)>> stackSol;
+    //     std::vector<std::vector<shp<VECTOREPETRA>>> stackSol;
     //     for (unsigned int ifield = 0; ifield < numFields; ifield++)
     //     {
-    //         std::vector<SHP(VECTOREPETRA)> curSols;
+    //         std::vector<shp<VECTOREPETRA>> curSols;
     //         std::ifstream infile(indir + "/block" + std::to_string(iblock) + "/field" + std::to_string(ifield) + ".txt");
     //         std::string line;
     //         unsigned int count = 0;
     //         while(std::getline(infile,line))
     //         {
-    //             SHP(VECTOREPETRA) newVector(new VECTOREPETRA(assMap[iblock]->getFEspace(ifield)->map()));
+    //             shp<VECTOREPETRA> newVector(new VECTOREPETRA(assMap[iblock]->getFEspace(ifield)->map()));
     //
     //             std::stringstream linestream(line);
     //             std::string value;

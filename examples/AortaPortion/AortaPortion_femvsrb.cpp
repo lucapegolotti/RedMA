@@ -21,10 +21,10 @@
 
 using namespace RedMA;
 
-std::vector<std::pair<std::string, SHP(DataContainer)>>
+std::vector<std::pair<std::string, shp<DataContainer>>>
 generateDatafiles(EPETRACOMM comm)
 {
-    std::vector<std::pair<std::string, SHP(DataContainer)>> retVec;
+    std::vector<std::pair<std::string, shp<DataContainer>>> retVec;
 
     #if 1
     std::vector<double> podtol_field0;
@@ -63,7 +63,7 @@ generateDatafiles(EPETRACOMM comm)
                     {
                         for (auto pdt0 : podtol_field0)
                         {
-                            SHP(DataContainer) data(new DataContainer());
+                            shp<DataContainer> data(new DataContainer());
                             data->setDatafile("datafiles/data");
                             data->setVerbose(false);
                             data->finalize();
@@ -78,7 +78,7 @@ generateDatafiles(EPETRACOMM comm)
 
                             // Chrono chrono;
                             // chrono.start();
-                            // SHP(ProblemRB) newProblemRB(new ProblemRB(data, comm));
+                            // shp<ProblemRB> newProblemRB(new ProblemRB(data, comm));
                             // double setupTimeRB = chrono.diff();
 
                             std::string description;
@@ -90,7 +90,7 @@ generateDatafiles(EPETRACOMM comm)
                             description += "useextrapolation," + std::to_string(extr) + "\n";
                             description += "approximatenonlinearterm,0\n";
                             description += "numbernonlinearterms,0\n";
-                            std::pair<std::string,SHP(DataContainer)> newPair;
+                            std::pair<std::string,shp<DataContainer>> newPair;
                             newPair.first = description;
                             newPair.second = data;
                             retVec.push_back(newPair);
@@ -112,7 +112,7 @@ generateDatafiles(EPETRACOMM comm)
 
     for (auto nnt : nnterms)
     {
-        SHP(DataContainer) data(new DataContainer());
+        shp<DataContainer> data(new DataContainer());
         data->setDatafile("datafiles/data");
         data->setVerbose(false);
         data->finalize();
@@ -128,7 +128,7 @@ generateDatafiles(EPETRACOMM comm)
 
         // Chrono chrono;
         // chrono.start();
-        // SHP(ProblemRB) newProblemRB(new ProblemRB(data, comm));
+        // shp<ProblemRB> newProblemRB(new ProblemRB(data, comm));
         // double setupTimeRB = chrono.diff();
 
         std::string description;
@@ -140,7 +140,7 @@ generateDatafiles(EPETRACOMM comm)
         description += "useextrapolation," + std::to_string(0) + "\n";
         description += "approximatenonlinearterm,1\n";
         description += "numbernonlinearterms," + std::to_string(nnt) + "\n";
-        std::pair<std::string,SHP(DataContainer)> newPair;
+        std::pair<std::string,shp<DataContainer>> newPair;
         newPair.first = description;
         newPair.second = data;
         retVec.push_back(newPair);
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
     data.finalize();
     Chrono chrono;
     chrono.start();
-    SHP(ProblemFEM) femProblem(new ProblemFEM(data, comm));
+    shp<ProblemFEM> femProblem(new ProblemFEM(data, comm));
     double setupTimeFEM = chrono.diff();
 
     ComparisonFEMvsRB comparison(data, comm);
@@ -205,7 +205,7 @@ int main(int argc, char **argv)
         outfile.close();
     }
 
-    std::vector<std::pair<std::string, SHP(DataContainer)>> datacs = generateDatafiles(comm);
+    std::vector<std::pair<std::string, shp<DataContainer>>> datacs = generateDatafiles(comm);
 
     std::string dirrb = data("outputdir", "rb_solutions");
     std::filesystem::create_directory(dirrb);
@@ -218,7 +218,7 @@ int main(int argc, char **argv)
 
         Chrono chrono;
         chrono.start();
-        SHP(ProblemRB) rbProblem(new ProblemRB(*curdata.second, comm));
+        shp<ProblemRB> rbProblem(new ProblemRB(*curdata.second, comm));
         double setupTimeRB = chrono.diff();
 
         comparison.setProblemRB(rbProblem);

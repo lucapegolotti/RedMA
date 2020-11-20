@@ -56,11 +56,11 @@ addBackFlowStabilization(BlockVector input,
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(VECTOREPETRA) vn(new VECTOREPETRA(*sol.block(0).data()));
+    shp<VECTOREPETRA> vn(new VECTOREPETRA(*sol.block(0).data()));
 
     *vn *= *M_flowRateVectors[faceFlag];
 
-    SHP(VECTOREPETRA) absvn(new VECTOREPETRA(*vn));
+    shp<VECTOREPETRA> absvn(new VECTOREPETRA(*vn));
     absvn->abs();
 
     *vn -= *absvn;
@@ -68,8 +68,8 @@ addBackFlowStabilization(BlockVector input,
 
     *vn *= *sol.block(0).data();
 
-    SHP(VECTOREPETRA) vnRepeated(new VECTOREPETRA(*vn, Repeated));
-    SHP(VECTOREPETRA) backflowStabRepeated(new VECTOREPETRA(vn->mapPtr(), Repeated));
+    shp<VECTOREPETRA> vnRepeated(new VECTOREPETRA(*vn, Repeated));
+    shp<VECTOREPETRA> backflowStabRepeated(new VECTOREPETRA(vn->mapPtr(), Repeated));
 
     QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
 
@@ -83,7 +83,7 @@ addBackFlowStabilization(BlockVector input,
 
     *backflowStabRepeated *= 0.2 * M_density;
 
-    SHP(VECTOREPETRA) backflowStab(new VECTOREPETRA(*backflowStabRepeated, Unique));
+    shp<VECTOREPETRA> backflowStab(new VECTOREPETRA(*backflowStabRepeated, Unique));
 
     *input.block(0).data() += *backflowStab;
 }
@@ -92,12 +92,12 @@ BlockVector
 StokesAssembler<VectorEp,MatrixEp>::
 getZeroVector() const
 {
-    SHP(VECTOREPETRA) uComp(new VECTOREPETRA(M_velocityFESpace->map(),
+    shp<VECTOREPETRA> uComp(new VECTOREPETRA(M_velocityFESpace->map(),
                                              LifeV::Unique));
 
     uComp->zero();
 
-    SHP(VECTOREPETRA) pComp(new VECTOREPETRA(M_pressureFESpace->map(),
+    shp<VECTOREPETRA> pComp(new VECTOREPETRA(M_pressureFESpace->map(),
                                              LifeV::Unique));
 
     pComp->zero();
@@ -109,7 +109,7 @@ getZeroVector() const
     return retVec;
 }
 
-SHP(MATRIXEPETRA)
+shp<MATRIXEPETRA>
 StokesAssembler<VectorEp, MatrixEp>::
 assembleFlowRateJacobian(const GeometricFace& face)
 {
@@ -118,7 +118,7 @@ assembleFlowRateJacobian(const GeometricFace& face)
 
     const double dropTolerance(2.0 * std::numeric_limits<double>::min());
 
-    SHP(MAPEPETRA) rangeMap = M_flowRateVectors[face.M_flag]->mapPtr();
+    shp<MAPEPETRA> rangeMap = M_flowRateVectors[face.M_flag]->mapPtr();
     EPETRACOMM comm = rangeMap->commPtr();
 
 
@@ -127,7 +127,7 @@ assembleFlowRateJacobian(const GeometricFace& face)
     unsigned int numGlobalElements = epetraMap.NumGlobalElements();
 
     // this should be optimized
-    SHP(MATRIXEPETRA) flowRateJacobian;
+    shp<MATRIXEPETRA> flowRateJacobian;
     flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map(), numGlobalElements, false));
 
     // compute outer product of flowrate vector with itself
@@ -238,7 +238,7 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
     {
         // if (!M_massVelocity.data())
         // {
-            SHP(MATRIXEPETRA) Nu(new MATRIXEPETRA(M_velocityFESpace->map()));
+            shp<MATRIXEPETRA> Nu(new MATRIXEPETRA(M_velocityFESpace->map()));
 
             integrate(elements(M_velocityFESpaceETA->mesh()),
                       M_velocityFESpace->qr(),
@@ -274,7 +274,7 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
     {
         // if (!M_massPressure.data())
         // {
-            SHP(MATRIXEPETRA) Np(new MATRIXEPETRA(M_pressureFESpace->map()));
+            shp<MATRIXEPETRA> Np(new MATRIXEPETRA(M_pressureFESpace->map()));
 
             integrate(elements(M_pressureFESpaceETA->mesh()),
                       M_pressureFESpace->qr(),

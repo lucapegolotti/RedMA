@@ -53,37 +53,37 @@ class NavierStokesStabilization
 {
 public:
     NavierStokesStabilization(const DataContainer& data,
-                              SHP(FESPACE) fespaceVelocity,
-                              SHP(FESPACE) fespacePressure,
-                              SHP(ETFESPACE3) etfespaceVelocity,
-                              SHP(ETFESPACE1) etfespacePressure);
+                              shp<FESPACE> fespaceVelocity,
+                              shp<FESPACE> fespacePressure,
+                              shp<ETFESPACE3> etfespaceVelocity,
+                              shp<ETFESPACE1> etfespacePressure);
 
     void setDensityAndViscosity(const double& density, const double& viscosity);
 
-    virtual SHP(BlockMatrix) getMass(SHP(BlockVector) sol,
-                                     SHP(BlockVector) rhs) = 0;
+    virtual shp<BlockMatrix> getMass(shp<BlockVector> sol,
+                                     shp<BlockVector> rhs) = 0;
 
-    virtual SHP(BlockMatrix) getMassJac(SHP(BlockVector) sol,
-                                        SHP(BlockVector) rhs) = 0;
+    virtual shp<BlockMatrix> getMassJac(shp<BlockVector> sol,
+                                        shp<BlockVector> rhs) = 0;
 
-    virtual SHP(BlockMatrix) getJac(SHP(BlockVector) sol,
-                                    SHP(BlockVector) rhs) = 0;
+    virtual shp<BlockMatrix> getJac(shp<BlockVector> sol,
+                                    shp<BlockVector> rhs) = 0;
 
-    virtual SHP(BlockVector) getResidual(SHP(BlockVector) sol,
-                                         SHP(BlockVector) rhs) = 0;
+    virtual shp<BlockVector> getResidual(shp<BlockVector> sol,
+                                         shp<BlockVector> rhs) = 0;
 
 protected:
     double                              M_density;
     double                              M_viscosity;
     unsigned int                        M_timeOrder;
     unsigned int                        M_velocityOrder;
-    SHP(FESPACE)                        M_velocityFESpace;
-    SHP(FESPACE)                        M_pressureFESpace;
-    SHP(ETFESPACE3)                     M_velocityFESpaceETA;
-    SHP(ETFESPACE1)                     M_pressureFESpaceETA;
-    SHP(BlockMatrix)                    M_jac;
-    SHP(BlockMatrix)                    M_massJac;
-    SHP(BlockMatrix)                    M_mass;
+    shp<FESPACE>                        M_velocityFESpace;
+    shp<FESPACE>                        M_pressureFESpace;
+    shp<ETFESPACE3>                     M_velocityFESpaceETA;
+    shp<ETFESPACE1>                     M_pressureFESpaceETA;
+    shp<BlockMatrix>                    M_jac;
+    shp<BlockMatrix>                    M_massJac;
+    shp<BlockMatrix>                    M_mass;
     double                              M_dt;
     double                              M_C_I;
 };

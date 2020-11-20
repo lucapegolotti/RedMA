@@ -4,28 +4,25 @@ namespace RedMA
 {
 
 SparseMatrix::
-SparseMatrix() :
-  aMatrix(SPARSE)
+SparseMatrix()
 {
 }
 
 SparseMatrix::
-SparseMatrix(const SparseMatrix& other) :
-  aMatrix(SPARSE)
+SparseMatrix(const SparseMatrix& other)
 {
     if (other.M_matrix)
         setMatrix(other.M_matrix);
 }
 
 SparseMatrix::
-SparseMatrix(std::vector<std::shared_ptr<DistributedVector>> columnVectors) :
-  aMatrix(SPARSE)
+SparseMatrix(std::vector<shp<DistributedVector>> columnVectors)
 {
     const double dropTolerance(2.0 * std::numeric_limits<double>::min());
 
     unsigned int N = columnVectors.size();
-    std::shared_ptr<LifeV::MapEpetra> rangeMap = std::static_pointer_cast<VECTOREPETRA>(columnVectors[0]->data())->mapPtr();
-    std::shared_ptr<Epetra_Comm> comm = rangeMap->commPtr();
+    shp<LifeV::MapEpetra> rangeMap = std::static_pointer_cast<VECTOREPETRA>(columnVectors[0]->data())->mapPtr();
+    shp<Epetra_Comm> comm = rangeMap->commPtr();
 
     unsigned int myel = N / comm->NumProc();
 
@@ -35,10 +32,10 @@ SparseMatrix(std::vector<std::shared_ptr<DistributedVector>> columnVectors) :
         myel += N % comm->NumProc();
     }
 
-    std::shared_ptr<LifeV::MapEpetra> domainMap;
+    shp<LifeV::MapEpetra> domainMap;
     domainMap.reset(new LifeV::MapEpetra(N, myel, 0, comm));
 
-    std::shared_ptr<MATRIXEPETRA> matrix;
+    shp<MATRIXEPETRA> matrix;
     matrix.reset(new MATRIXEPETRA(*rangeMap, N, false));
 
     Epetra_Map epetraMap = static_cast<VECTOREPETRA*>(columnVectors[0]->data().get())->epetraMap();
@@ -46,7 +43,7 @@ SparseMatrix(std::vector<std::shared_ptr<DistributedVector>> columnVectors) :
 
     for (unsigned int i = 0; i < N; i++)
     {
-        std::shared_ptr<VECTOREPETRA> clmPtr = std::static_pointer_cast<VECTOREPETRA>(columnVectors[i]->data());
+        shp<VECTOREPETRA> clmPtr = std::static_pointer_cast<VECTOREPETRA>(columnVectors[i]->data());
         VECTOREPETRA columnVectorUnique(*clmPtr, LifeV::Unique);
         for (unsigned int dof = 0; dof < numElements; dof++)
         {
@@ -69,14 +66,13 @@ SparseMatrix(std::vector<std::shared_ptr<DistributedVector>> columnVectors) :
 }
 
 SparseMatrix::
-SparseMatrix(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors) :
-  aMatrix(SPARSE)
+SparseMatrix(const std::vector<shp<VECTOREPETRA>>& columnVectors)
 {
     const double dropTolerance(2.0 * std::numeric_limits<double>::min());
 
     unsigned int N = columnVectors.size();
-    std::shared_ptr<LifeV::MapEpetra> rangeMap = columnVectors[0]->mapPtr();
-    std::shared_ptr<Epetra_Comm> comm = rangeMap->commPtr();
+    shp<LifeV::MapEpetra> rangeMap = columnVectors[0]->mapPtr();
+    shp<Epetra_Comm> comm = rangeMap->commPtr();
 
     unsigned int myel = N / comm->NumProc();
 
@@ -86,10 +82,10 @@ SparseMatrix(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors) :
         myel += N % comm->NumProc();
     }
 
-    std::shared_ptr<LifeV::MapEpetra> domainMap;
+    shp<LifeV::MapEpetra> domainMap;
     domainMap.reset(new LifeV::MapEpetra(N, myel, 0, comm));
 
-    std::shared_ptr<MATRIXEPETRA> matrix;
+    shp<MATRIXEPETRA> matrix;
     matrix.reset(new MATRIXEPETRA(*rangeMap, N, false));
 
     Epetra_Map epetraMap = columnVectors[0]->epetraMap();
@@ -120,17 +116,16 @@ SparseMatrix(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors) :
 
 void
 SparseMatrix::
-add(std::shared_ptr<aMatrix> other)
+add(shp<aMatrix> other)
 {
     if (isZero())
     {
-        hardCopy(other);
+        deepCopy(other);
         return;
     }
 
     if (!other->isZero())
     {
-        checkType(other, SPARSE);
         SparseMatrix* otherMatrix = dynamic_cast<SparseMatrix*>(other.get());
         (*M_matrix) += *otherMatrix->M_matrix;
     }
@@ -144,11 +139,11 @@ multiplyByScalar(const double& coeff)
         (*M_matrix) *= coeff;
 }
 
-std::shared_ptr<aMatrix>
+shp<aMatrix>
 SparseMatrix::
 transpose() const
 {
-    std::shared_ptr<SparseMatrix> retMatrix(new SparseMatrix());
+    shp<SparseMatrix> retMatrix(new SparseMatrix());
 
     if (M_matrix)
     {
@@ -164,21 +159,19 @@ transpose() const
     return retMatrix;
 }
 
-std::shared_ptr<aMatrix>
+shp<aMatrix>
 SparseMatrix::
-multiplyByMatrix(std::shared_ptr<aMatrix> other)
+multiplyByMatrix(shp<aMatrix> other)
 {
-    std::shared_ptr<SparseMatrix> retMat(new SparseMatrix());
+    shp<SparseMatrix> retMat(new SparseMatrix());
     if (isZero() || other->isZero())
         return retMat;
 
-    checkType(other, SPARSE);
-
-    std::shared_ptr<MATRIXEPETRA> otherMatrix = std::static_pointer_cast<MATRIXEPETRA>(other->data());
+    shp<MATRIXEPETRA> otherMatrix = convert<SparseMatrix>(other)->M_matrix;
 
     if (!isZero() && !other->isZero())
     {
-        std::shared_ptr<MATRIXEPETRA> mat(new MATRIXEPETRA(*M_matrix->rangeMapPtr()));
+        shp<MATRIXEPETRA> mat(new MATRIXEPETRA(*M_matrix->rangeMapPtr()));
         M_matrix->multiply(false, *otherMatrix, false, *mat, false);
         mat->globalAssemble(otherMatrix->domainMapPtr(), M_matrix->rangeMapPtr());
         retMat->setMatrix(mat);
@@ -187,16 +180,14 @@ multiplyByMatrix(std::shared_ptr<aMatrix> other)
     return retMat;
 }
 
-std::shared_ptr<aVector>
+shp<aVector>
 SparseMatrix::
-multiplyByVector(std::shared_ptr<aVector> vector)
+multiplyByVector(shp<aVector> vector)
 {
-    checkType(vector, DISTRIBUTED);
+    shp<DistributedVector> vec(new DistributedVector());
+    shp<VECTOREPETRA> otherVector = convert<DistributedVector>(vector)->getVector();
 
-    std::shared_ptr<DistributedVector> vec(new DistributedVector());
-    std::shared_ptr<VECTOREPETRA> otherVector(std::static_pointer_cast<VECTOREPETRA>(vector->data()));
-
-    std::shared_ptr<VECTOREPETRA> res;
+    shp<VECTOREPETRA> res;
     res.reset(new VECTOREPETRA((*M_matrix) * (*otherVector)));
 
     vec->setVector(res);
@@ -205,51 +196,42 @@ multiplyByVector(std::shared_ptr<aVector> vector)
 
 void
 SparseMatrix::
-setMatrix(std::shared_ptr<MATRIXEPETRA> matrix)
+setMatrix(shp<MATRIXEPETRA> matrix)
 {
     if (matrix)
     {
         M_matrix = matrix;
         this->M_nRows = M_matrix->rangeMapPtr()->mapSize();
         this->M_nCols = M_matrix->domainMapPtr()->mapSize();
-        M_normInf = M_matrix->matrixPtr()->NormInf();
     }
 }
 
 bool
 SparseMatrix::
-isZero()
+isZero() const
 {
-    if (!M_matrix)
-        return true;
-
-    if (normInf() < ZEROTHRESHOLD)
-        M_normInf = M_matrix->matrixPtr()->NormInf();
-
-    return normInf() < ZEROTHRESHOLD;
+    return M_matrix == nullptr;
 }
 
 void
 SparseMatrix::
-softCopy(std::shared_ptr<aMatrix> other)
+shallowCopy(shp<aDataWrapper> other)
 {
     if (other)
     {
-        checkType(other, SPARSE);
-        auto otherMatrix = dynamic_cast<SparseMatrix*>(other.get());
+        auto otherMatrix = convert<SparseMatrix>(other);
         setMatrix(otherMatrix->M_matrix);
     }
 }
 
 void
 SparseMatrix::
-hardCopy(std::shared_ptr<aMatrix> other)
+deepCopy(shp<aDataWrapper> other)
 {
     if (other)
     {
-        checkType(other, SPARSE);
-        auto otherMatrix = dynamic_cast<SparseMatrix*>(other.get());
-        std::shared_ptr<MATRIXEPETRA> newMatrix
+        auto otherMatrix = convert<SparseMatrix>(other);
+        shp<MATRIXEPETRA> newMatrix
             (new MATRIXEPETRA(*otherMatrix->M_matrix));
         setMatrix(newMatrix);
     }
@@ -262,14 +244,14 @@ dump(std::string filename) const
     M_matrix->spy(filename);
 }
 
-std::shared_ptr<DenseMatrix>
+shp<DenseMatrix>
 SparseMatrix::
 toDenseMatrixPtr() const
 {
     unsigned int M = M_matrix->rangeMapPtr()->mapSize();
     unsigned int N = M_matrix->domainMapPtr()->mapSize();
 
-    std::shared_ptr<DENSEMATRIX> innerMatrix(new DENSEMATRIX(M,N));
+    shp<DENSEMATRIX> innerMatrix(new DENSEMATRIX(M,N));
 
     int maxNumEntries = 0;
     for (unsigned int i = 0; i < M; i++)
@@ -292,7 +274,7 @@ toDenseMatrixPtr() const
     delete[] values;
     delete[] indices;
 
-    std::shared_ptr<DenseMatrix> retMat(new DenseMatrix());
+    shp<DenseMatrix> retMat(new DenseMatrix());
     retMat->setMatrix(innerMatrix);
 
     return retMat;
@@ -313,7 +295,7 @@ clone() const
     SparseMatrix* retMatrix = new SparseMatrix();
     if (M_matrix)
     {
-        std::shared_ptr<MATRIXEPETRA> newMatrix
+        shp<MATRIXEPETRA> newMatrix
             (new MATRIXEPETRA(*M_matrix));
         retMatrix->setMatrix(newMatrix);
     }
@@ -322,35 +304,35 @@ clone() const
 
 void
 SparseMatrix::
-setData(std::shared_ptr<void> data)
+setData(shp<void> data)
 {
     setMatrix(std::static_pointer_cast<MATRIXEPETRA>(data));
 }
 
-std::shared_ptr<void>
+shp<void>
 SparseMatrix::
 data() const
 {
     return M_matrix;
 }
 
-std::shared_ptr<SparseMatrix>
+shp<SparseMatrix>
 SparseMatrix::
-convertDenseMatrix(std::shared_ptr<DenseMatrix> denseMatrix,
-                   std::shared_ptr<Epetra_Comm> comm)
+convertDenseMatrix(shp<DenseMatrix> denseMatrix,
+                   shp<Epetra_Comm> comm)
 {
     using namespace LifeV;
-    std::shared_ptr<SparseMatrix> retMat(new SparseMatrix());
+    shp<SparseMatrix> retMat(new SparseMatrix());
 
     if (comm->MyPID() != 0)
         throw new Exception("convertDenseVector does not support more than one proc");
     unsigned int rows = denseMatrix->nRows();
     unsigned int cols = denseMatrix->nCols();
 
-    std::shared_ptr<MapEpetra> rangeMap(new MapEpetra(rows, rows, 0, comm));
-    std::shared_ptr<MapEpetra> domainMap(new MapEpetra(cols, cols, 0, comm));
+    shp<MapEpetra> rangeMap(new MapEpetra(rows, rows, 0, comm));
+    shp<MapEpetra> domainMap(new MapEpetra(cols, cols, 0, comm));
 
-    std::shared_ptr<MATRIXEPETRA> matrix(new MATRIXEPETRA(*rangeMap,rows,false));
+    shp<MATRIXEPETRA> matrix(new MATRIXEPETRA(*rangeMap,rows,false));
 
     for (unsigned int i = 0; i < rows; i++)
     {

@@ -27,10 +27,6 @@
 #include <memory>
 #include <filesystem>
 
-#include <redma/array/SparseMatrix.hpp>
-#include <redma/array/DistributedVector.hpp>
-#include <redma/array/DenseVector.hpp>
-#include <redma/array/DenseMatrix.hpp>
 #include <redma/utils/PrintLog.hpp>
 #include <redma/utils/Chrono.hpp>
 
@@ -39,12 +35,30 @@
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/mesh/RegionMesh.hpp>
 #include <lifev/core/util/LifeChrono.hpp>
+#include <lifev/core/array/MatrixEpetra.hpp>
+#include <lifev/core/array/VectorEpetra.hpp>
 
 #include <Epetra_SerialDenseSolver.h>
+#include <Epetra_SerialDenseMatrix.h>
+#include <Epetra_SerialDenseVector.h>
 
 // we define the namespace
 namespace RedMA
 {
+
+class DistributedVector;
+class SparseMatrix;
+class DenseVector;
+class DenseMatrix;
+
+template <class Type>
+using shp = std::shared_ptr<Type>;
+
+template <class Type1, class Type2>
+shp<Type1> spcast(shp<Type2> ptr)
+{
+    return std::static_pointer_cast<Type1>(ptr);
+}
 
 }
 
@@ -54,9 +68,8 @@ namespace RedMA
 #define COMMA                 ,
 
 // #define SHP(TYPE)           std::shared_ptr<argument_type<void(TYPE)>::type>
-#define SHP(TYPE)           std::shared_ptr<TYPE>
 
-#define EPETRACOMM          SHP(Epetra_Comm)
+#define EPETRACOMM          shp<Epetra_Comm>
 
 #define FEVECTOR            RedMA::DistributedVector
 #define FEMATRIX            RedMA::SparseMatrix
@@ -69,5 +82,9 @@ namespace RedMA
 #define FESPACE             LifeV::FESpace<MESH COMMA MAPEPETRA>
 #define ETFESPACE3          LifeV::ETFESpace<MESH COMMA MAPEPETRA COMMA 3 COMMA 3>
 #define ETFESPACE1          LifeV::ETFESpace<MESH COMMA MAPEPETRA COMMA 3 COMMA 1>
+#define VECTOREPETRA        LifeV::VectorEpetra
+#define DENSEVECTOR         Epetra_SerialDenseVector
+#define MATRIXEPETRA        LifeV::MatrixEpetra<double>
+#define DENSEMATRIX         Epetra_SerialDenseMatrix
 
 #endif  // REDMA_HPP

@@ -8,9 +8,9 @@ void
 BlockAssembler<BlockVector<DenseVector>, BlockMatrix<DenseMatrix>>::
 setup()
 {
-    typedef std::map<unsigned int, SHP(TreeNode)>         NodesMap;
+    typedef std::map<unsigned int, shp<TreeNode>>         NodesMap;
     typedef aAssembler<VInner, MInner>                    InnerAssembler;
-    typedef std::vector<SHP(TreeNode)>                    NodesVector;
+    typedef std::vector<shp<TreeNode>>                    NodesVector;
 
     printlog(GREEN, "[BlockAssembler] initializing block assembler ... \n", this->M_data.getVerbose());
     NodesMap nodesMap = M_tree.getNodesMap();

@@ -4,17 +4,13 @@ namespace RedMA
 {
 
 BlockMatrix::
-BlockMatrix() :
-  aMatrix(BLOCK),
-  M_isOpen(true)
+BlockMatrix()
 {
 
 }
 
 BlockMatrix::
-BlockMatrix(const BlockMatrix& other) :
-  aMatrix(BLOCK),
-  M_isOpen(true)
+BlockMatrix(const BlockMatrix& other)
 {
     resize(other.nRows(), other.nCols());
 
@@ -28,18 +24,16 @@ BlockMatrix(const BlockMatrix& other) :
 }
 
 BlockMatrix::
-BlockMatrix(const unsigned int& nRows, const unsigned int& nCols) :
-  aMatrix(BLOCK),
-  M_isOpen(true)
+BlockMatrix(const unsigned int& nRows, const unsigned int& nCols)
 {
     resize(nRows, nCols);
 }
 
 void
 BlockMatrix::
-add(std::shared_ptr<aMatrix> other)
+add(shp<aMatrix> other)
 {
-    std::shared_ptr<BlockMatrix> otherMatrix = std::static_pointer_cast<BlockMatrix>(other);
+    shp<BlockMatrix> otherMatrix = convert<BlockMatrix>(other);
 
     if (other->isZero())
         return;
@@ -55,12 +49,14 @@ add(std::shared_ptr<aMatrix> other)
                 block(i,j)->add(otherMatrix->block(i,j));
             else
             {
-                if (other->block(i,j))
-                    setBlock(i,j,std::shared_ptr<aMatrix>(other->block(i,j)->clone()));
+                if (otherMatrix->block(i,j))
+                {
+                    shp<aDataWrapper> blck(otherMatrix->block(i,j)->clone());
+                    setBlock(i,j,spcast<aMatrix>(blck));
+                }
             }
         }
     }
-    updateNormInf();
 }
 
 void
@@ -78,15 +74,14 @@ multiplyByScalar(const double& coeff)
                 block(i,j)->multiplyByScalar(coeff);
         }
     }
-    updateNormInf();
 }
 
-std::shared_ptr<aMatrix>
+shp<aMatrix>
 BlockMatrix::
-multiplyByMatrix(std::shared_ptr<aMatrix> other)
+multiplyByMatrix(shp<aMatrix> other)
 {
-    std::shared_ptr<BlockMatrix> otherMatrix = std::static_pointer_cast<BlockMatrix>(other);
-    std::shared_ptr<BlockMatrix> retMatrix(new BlockMatrix(nRows(), other->nCols()));
+    shp<BlockMatrix> otherMatrix = convert<BlockMatrix>(other);
+    shp<BlockMatrix> retMatrix(new BlockMatrix(nRows(), other->nCols()));
 
     if (isZero() || other->isZero())
     {
@@ -110,18 +105,14 @@ multiplyByMatrix(std::shared_ptr<aMatrix> other)
             }
         }
     }
-    retMatrix->close();
-    retMatrix->updateNormInf();
     return retMatrix;
 }
 
-std::shared_ptr<aMatrix>
+shp<aMatrix>
 BlockMatrix::
 transpose() const
 {
-    // checkClosed();
-
-    std::shared_ptr<BlockMatrix> retMatrix(new BlockMatrix(nCols(), nRows()));
+    shp<BlockMatrix> retMatrix(new BlockMatrix(nCols(), nRows()));
 
     for (unsigned int i = 0; i < nRows(); i++)
     {
@@ -131,37 +122,30 @@ transpose() const
         }
     }
 
-    retMatrix->close();
-
     return retMatrix;
 }
 
-std::shared_ptr<aVector>
+shp<aVector>
 BlockMatrix::
-multiplyByVector(std::shared_ptr<aVector> vector)
+multiplyByVector(shp<aVector> vector)
 {
-    checkType(vector, BLOCK);
-
-    BlockVector* otherVector = dynamic_cast<BlockVector*>(vector.get());
-    // checkClosed();
-    // otherVector->checkClosed();
-
-    std::shared_ptr<BlockVector> retVector(new BlockVector(nRows()));
+    shp<BlockVector> otherVector = convert<BlockVector>(vector);
+    shp<BlockVector> retVector(new BlockVector(nRows()));
 
     for (unsigned int i = 0; i < nRows(); i++)
     {
         for (unsigned int j = 0; j < nCols(); j++)
         {
             // check if we need to the conversion distributed->dense
-            std::shared_ptr<aVector> tempRes;
+            shp<aVector> tempRes;
             if (!block(i,j)->isZero())
             {
                 if (block(i,j)->type() == DENSE && otherVector->block(j)->type() == DISTRIBUTED)
                 {
                     // printlog(YELLOW, "[BlockMatrix::multiplyByVector] explicit dense->distributed conversion\n", true);
-                    std::shared_ptr<DistributedVector> asDistributed = std::static_pointer_cast<DistributedVector>(otherVector->block(j));
-                    std::shared_ptr<DenseVector> asDense = asDistributed->toDenseVectorPtr();
-                    tempRes = DistributedVector::convertDenseVector(std::static_pointer_cast<DenseVector>(block(i,j)->multiplyByVector(asDense)),asDistributed->commPtr());
+                    shp<DistributedVector> asDistributed = spcast<DistributedVector>(otherVector->block(j));
+                    shp<DenseVector> asDense = asDistributed->toDenseVectorPtr();
+                    tempRes = DistributedVector::convertDenseVector(spcast<DenseVector>(block(i,j)->multiplyByVector(asDense)),asDistributed->commPtr());
                 }
                 else
                     tempRes = block(i,j)->multiplyByVector(otherVector->block(j));
@@ -172,7 +156,6 @@ multiplyByVector(std::shared_ptr<aVector> vector)
             }
         }
     }
-    // retVector->close();
 
     return retVector;
 }
@@ -189,7 +172,7 @@ globalTypeIs(Datatype type)
             {
                 if (!block(i,j)->isZero() && block(i,j)->type() == BLOCK)
                 {
-                    if (!std::static_pointer_cast<BlockMatrix>(block(i,j))->globalTypeIs(type))
+                    if (!spcast<BlockMatrix>(block(i,j))->globalTypeIs(type))
                         return false;
                 }
                 else if (!block(i,j)->isZero() && block(i,j)->type() != type)
@@ -215,17 +198,17 @@ findComm()
             if (block(i,j) && M_comm == nullptr)
             {
                 if (!block(i,j)->isZero() && block(i,j)->type() == BLOCK)
-                    M_comm = std::static_pointer_cast<BlockMatrix>(block(i,j))->commPtr();
+                    M_comm = spcast<BlockMatrix>(block(i,j))->commPtr();
                 else if (!block(i,j)->isZero() && block(i,j)->type() == SPARSE)
-                    M_comm = std::static_pointer_cast<SparseMatrix>(block(i,j))->commPtr();
+                    M_comm = spcast<SparseMatrix>(block(i,j))->commPtr();
             }
         }
     }
 }
 
-std::shared_ptr<BlockMatrix>
+shp<BlockMatrix>
 BlockMatrix::
-convertInnerTo(Datatype type, std::shared_ptr<Epetra_Comm> comm)
+convertInnerTo(Datatype type, shp<Epetra_Comm> comm)
 {
     if (type != SPARSE)
         throw new Exception("convertInnerTo implemented only for sparse output");
@@ -239,7 +222,7 @@ convertInnerTo(Datatype type, std::shared_ptr<Epetra_Comm> comm)
     if (comm == nullptr)
         throw new Exception("No communicator in block matrix!");
 
-    std::shared_ptr<BlockMatrix> retMat(new BlockMatrix(nRows(),nCols()));
+    shp<BlockMatrix> retMat(new BlockMatrix(nRows(),nCols()));
 
     for (unsigned int i = 0; i < nRows(); i++)
     {
@@ -250,76 +233,67 @@ convertInnerTo(Datatype type, std::shared_ptr<Epetra_Comm> comm)
             {
                 if (!block(i,j)->isZero() && block(i,j)->type() == BLOCK)
                 {
-                    retMat->setBlock(i,j,std::static_pointer_cast<BlockMatrix>(block(i,j))->convertInnerTo(type,comm));
+                    retMat->setBlock(i,j,spcast<BlockMatrix>(block(i,j))->convertInnerTo(type,comm));
                 }
                 else if (!block(i,j)->isZero() && block(i,j)->type() != type)
                 {
                     if (block(i,j)->type() != DENSE)
                         throw new Exception("All inner matrices which are not sparse must be dense!");
-                    retMat->setBlock(i,j,SparseMatrix::convertDenseMatrix(std::static_pointer_cast<DenseMatrix>(block(i,j)),comm));
+                    retMat->setBlock(i,j,SparseMatrix::convertDenseMatrix(spcast<DenseMatrix>(block(i,j)),comm));
                 }
             }
         }
     }
-    retMat->close();
 
     return retMat;
 }
 
 void
 BlockMatrix::
-softCopy(std::shared_ptr<aMatrix> other)
+shallowCopy(shp<aDataWrapper> other)
 {
     if (other)
     {
-        checkType(other, BLOCK);
-        auto otherMatrix = dynamic_cast<BlockMatrix*>(other.get());
+        auto otherMatrix = convert<BlockMatrix>(other);
 
-        resize(other->nRows(), other->nCols());
+        resize(otherMatrix->nRows(), otherMatrix->nCols());
 
         for (unsigned int i = 0; i < nRows(); i++)
         {
             for (unsigned int j = 0; j < nCols(); j++)
             {
-                M_matrixGrid(i,j)->softCopy(otherMatrix->block(i,j));
+                M_matrixGrid(i,j)->shallowCopy(otherMatrix->block(i,j));
             }
         }
-
-        M_isOpen = otherMatrix->isOpen();
-        M_normInf = otherMatrix->normInf();
     }
 }
 
 void
 BlockMatrix::
-hardCopy(std::shared_ptr<aMatrix> other)
+deepCopy(shp<aDataWrapper> other)
 {
     if (other)
     {
-        checkType(other, BLOCK);
-        auto otherMatrix = dynamic_cast<BlockMatrix*>(other.get());
+        auto otherMatrix = convert<BlockMatrix>(other);
 
-        resize(other->nRows(), other->nCols());
+        resize(otherMatrix->nRows(), otherMatrix->nCols());
 
         for (unsigned int i = 0; i < nRows(); i++)
         {
             for (unsigned int j = 0; j < nCols(); j++)
             {
                 if (M_matrixGrid(i,j)->isZero())
-                    M_matrixGrid(i,j).reset(otherMatrix->block(i,j)->clone());
+                    M_matrixGrid(i,j).reset(static_cast<aMatrix*>(otherMatrix->block(i,j)->clone()));
                 else
-                    M_matrixGrid(i,j)->hardCopy(otherMatrix->block(i,j));
+                    M_matrixGrid(i,j)->deepCopy(otherMatrix->block(i,j));
             }
         }
-
-        M_isOpen = otherMatrix->isOpen();
-        M_normInf = otherMatrix->normInf();
     }
 }
 
 bool
 BlockMatrix::
-isZero()
+isZero() const
 {
     for (unsigned int i = 0; i < nRows(); i++)
     {
@@ -329,7 +303,7 @@ isZero()
                 return false;
         }
     }
-    return M_normInf < ZEROTHRESHOLD;
+    return true;
 }
 
 void
@@ -348,7 +322,7 @@ clone() const
     {
         for (unsigned int j = 0; j < nCols(); j++)
         {
-            retMatrix->setBlock(i,j,std::shared_ptr<aMatrix>(M_matrixGrid(i,j)->clone()));
+            retMatrix->setBlock(i,j,shp<aMatrix>(static_cast<aMatrix*>(M_matrixGrid(i,j)->clone())));
         }
     }
     return retMatrix;
@@ -371,19 +345,19 @@ resize(const unsigned int& nRows, const unsigned int& nCols)
     }
 }
 
-std::shared_ptr<aMatrix>
+shp<aMatrix>
 BlockMatrix::
 block(const unsigned int& iblock, const unsigned int& jblock) const
 {
     return M_matrixGrid(iblock,jblock);
 }
 
-std::shared_ptr<BlockMatrix>
+shp<BlockMatrix>
 BlockMatrix::
 getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
              const unsigned int& jbegin, const unsigned int& jend) const
 {
-    std::shared_ptr<BlockMatrix> retMatrix(new BlockMatrix());
+    shp<BlockMatrix> retMatrix(new BlockMatrix());
 
     unsigned int nrows = iend-ibegin+1;
     unsigned int ncols = jend-jbegin+1;
@@ -397,7 +371,6 @@ getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
         }
     }
 
-    retMatrix->close();
 
     return retMatrix;
 }
@@ -429,14 +402,10 @@ printPattern() const
 void
 BlockMatrix::
 setBlock(const unsigned int& iblock, const unsigned int& jblock,
-         std::shared_ptr<aMatrix> matrix)
+         shp<aMatrix> matrix)
 {
     if (matrix)
-    {
-        checkOpen();
         M_matrixGrid(iblock,jblock) = matrix;
-        updateNormInf();
-    }
 }
 
 unsigned int
@@ -448,41 +417,10 @@ level()
         for (unsigned int j = 0; j < nCols(); j++)
         {
             if (block(i,j)->type() == BLOCK)
-                return std::static_pointer_cast<BlockMatrix>(block(i,j))->level() + 1;
+                return convert<BlockMatrix>(block(i,j))->level() + 1;
         }
     }
     return 1;
-}
-
-
-void
-BlockMatrix::
-updateNormInf()
-{
-    for (unsigned int i = 0; i < nRows(); i++)
-    {
-        for (unsigned int j = 0; j < nCols(); j++)
-        {
-            if (block(i,j))
-                M_normInf = M_normInf < block(i,j)->normInf() ? block(i,j)->normInf() : M_normInf;
-        }
-    }
-}
-
-void
-BlockMatrix::
-close()
-{
-    M_isOpen = false;
-
-    for (unsigned int i = 0; i < nRows(); i++)
-    {
-        for (unsigned int j = 0; j < nCols(); j++)
-        {
-            if (block(i,j) == nullptr)
-                block(i,j).reset(new DenseMatrix());
-        }
-    }
 }
 
 }

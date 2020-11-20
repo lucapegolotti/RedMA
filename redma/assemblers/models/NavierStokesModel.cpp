@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 NavierStokesModel::
-NavierStokesModel(const DataContainer& data, SHP(TreeNode) treeNode)
+NavierStokesModel(const DataContainer& data, shp<TreeNode> treeNode)
   // StokesModel(data, treeNode),
   // M_useStabilization(false)
   // M_stabilization(nullptr)

@@ -5,7 +5,7 @@ namespace RedMA
 
 
 NavierStokesAssemblerRB::
-NavierStokesAssemblerRB(const DataContainer& data, SHP(TreeNode) treeNode) :
+NavierStokesAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode) :
   StokesAssemblerRB(data,treeNode),
   NavierStokesModel(data,treeNode)
 {
@@ -15,15 +15,15 @@ NavierStokesAssemblerRB(const DataContainer& data, SHP(TreeNode) treeNode) :
 
 void
 NavierStokesAssemblerRB::
-addConvectiveMatrixRightHandSide(SHP(aVector) sol, SHP(aMatrix) mat)
+addConvectiveMatrixRightHandSide(shp<aVector> sol, shp<aMatrix> mat)
 {
     // note: the jacobian is not consistent but we do this for efficiency
 }
 
 void
 NavierStokesAssemblerRB::
-addConvectiveTermJacobianRightHandSide(SHP(aVector) sol, SHP(aVector) lifting,
-                                       SHP(aMatrix) mat)
+addConvectiveTermJacobianRightHandSide(shp<aVector> sol, shp<aVector> lifting,
+                                       shp<aMatrix> mat)
 {
     Chrono chrono;
     chrono.start();
@@ -34,15 +34,15 @@ addConvectiveTermJacobianRightHandSide(SHP(aVector) sol, SHP(aVector) lifting,
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(VECTOREPETRA)  velocityHandler;
-    velocityHandler = M_bases->reconstructFEFunction(sol->block(0), 0, StokesModel::M_treeNode->M_ID);
+    shp<VECTOREPETRA>  velocityHandler;
+    velocityHandler = M_bases->reconstructFEFunction(convert<BlockVector>(sol)->block(0), 0, StokesModel::M_treeNode->M_ID);
 
-    // SHP(VECTOREPETRA)  liftingHandler;
+    // shp<VECTOREPETRA>  liftingHandler;
     // liftingHandler = M_bases->reconstructFEFunction(lifting->block(0), 0, StokesModel::M_treeNode->M_ID);
 
-    SHP(MATRIXEPETRA)  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
-    SHP(VECTOREPETRA)  velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
-    // SHP(VECTOREPETRA)  liftingRepeated(new VECTOREPETRA(*liftingHandler, Repeated));
+    shp<MATRIXEPETRA>  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<VECTOREPETRA>  velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
+    // shp<VECTOREPETRA>  liftingRepeated(new VECTOREPETRA(*liftingHandler, Repeated));
 
     integrate(elements(M_velocityFESpaceETA->mesh()),
                M_velocityFESpace->qr(),
@@ -61,14 +61,14 @@ addConvectiveTermJacobianRightHandSide(SHP(aVector) sol, SHP(aVector) lifting,
 
     convectiveMatrix->globalAssemble();
 
-    SHP(SparseMatrix) matrixWrap(new SparseMatrix());
+    shp<SparseMatrix> matrixWrap(new SparseMatrix());
     matrixWrap->setMatrix(convectiveMatrix);
 
     unsigned int id = StokesModel::M_treeNode->M_ID;
     auto projectedMat = M_bases->matrixProject(matrixWrap, 0, 0, id);
 
     projectedMat->multiplyByScalar(-1);
-    mat->block(0,0)->add(projectedMat);
+    convert<BlockMatrix>(mat)->block(0,0)->add(projectedMat);
 
     msg = "done, in ";
     msg += std::to_string(chrono.diff());
@@ -76,9 +76,9 @@ addConvectiveTermJacobianRightHandSide(SHP(aVector) sol, SHP(aVector) lifting,
     printlog(YELLOW, msg, this->M_data.getVerbose());
 }
 
-SHP(aVector)
+shp<aVector>
 NavierStokesAssemblerRB::
-getRightHandSide(const double& time, const SHP(aVector)& sol)
+getRightHandSide(const double& time, const shp<aVector>& sol)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -86,19 +86,21 @@ getRightHandSide(const double& time, const SHP(aVector)& sol)
     Chrono chrono;
     chrono.start();
 
+    auto solBlck = convert<BlockVector>(sol);
+
     std::string msg = "[NavierStokesAssemblerRB] computing rhs ...";
     printlog(YELLOW, msg, this->M_data.getVerbose());
 
-    SHP(aVector) retVec = StokesAssemblerRB::getRightHandSide(time,sol);
+    shp<BlockVector> retVec = convert<BlockVector>(StokesAssemblerRB::getRightHandSide(time,sol));
 
     bool approximatenonlinearterm = M_data("rb/online/approximatenonlinearterm", 1);
 
     if (!approximatenonlinearterm)
     {
-        SHP(VECTOREPETRA)  nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
-        SHP(VECTOREPETRA)  velocityReconstructed;
+        shp<VECTOREPETRA>  nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
+        shp<VECTOREPETRA>  velocityReconstructed;
 
-        velocityReconstructed = M_bases->reconstructFEFunction(sol->block(0), 0, StokesModel::M_treeNode->M_ID);
+        velocityReconstructed = M_bases->reconstructFEFunction(solBlck->block(0), 0, StokesModel::M_treeNode->M_ID);
 
         integrate(elements(M_velocityFESpaceETA->mesh()),
                    M_velocityFESpace->qr(),
@@ -111,10 +113,10 @@ getRightHandSide(const double& time, const SHP(aVector)& sol)
 
         nonLinearTerm->globalAssemble();
 
-        SHP(DistributedVector) nonLinearTermWrap(new DistributedVector());
+        shp<DistributedVector> nonLinearTermWrap(new DistributedVector());
         nonLinearTermWrap->setVector(nonLinearTerm);
 
-        SHP(BlockVector) nonLinearTermVec(new BlockVector(2));
+        shp<BlockVector> nonLinearTermVec(new BlockVector(2));
         nonLinearTermVec->setBlock(0,nonLinearTermWrap);
 
         M_bcManager->apply0DirichletBCs(*nonLinearTermVec,
@@ -131,10 +133,10 @@ getRightHandSide(const double& time, const SHP(aVector)& sol)
         {
             for (unsigned int j = 0; j < nterms; j++)
             {
-                SHP(BlockVector) currVec(new BlockVector(0));
-                currVec->hardCopy(M_nonLinearTermsDecomposition[i][j]);
-                currVec->multiplyByScalar(sol->block(0)->operator()(i) *
-                                          sol->block(0)->operator()(j));
+                shp<BlockVector> currVec(new BlockVector(0));
+                currVec->deepCopy(M_nonLinearTermsDecomposition[i][j]);
+                currVec->multiplyByScalar(solBlck->block(0)->operator()(i) *
+                                          solBlck->block(0)->operator()(j));
                 M_nonLinearTerm->add(currVec);
             }
         }
@@ -154,12 +156,12 @@ getRightHandSide(const double& time, const SHP(aVector)& sol)
     return retVec;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 NavierStokesAssemblerRB::
 getJacobianRightHandSide(const double& time,
-                         const SHP(aVector)& sol)
+                         const shp<aVector>& sol)
 {
-    SHP(aMatrix) jac = StokesAssemblerRB::getJacobianRightHandSide(time,sol);
+    shp<aMatrix> jac = StokesAssemblerRB::getJacobianRightHandSide(time,sol);
 
     if (M_exactJacobian)
         addConvectiveTermJacobianRightHandSide(sol, nullptr, jac);
@@ -189,8 +191,8 @@ RBsetup()
         if (nterms == -1)
             nterms = velocityBasis.size();
 
-        SHP(MATRIXEPETRA) nonLinearMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
-        SHP(VECTOREPETRA) nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
+        shp<MATRIXEPETRA> nonLinearMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
+        shp<VECTOREPETRA> nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
 
         M_nonLinearTermsDecomposition.resize(nterms);
         for (unsigned int i = 0; i < nterms; i++)
@@ -213,10 +215,10 @@ RBsetup()
             {
                 *nonLinearTerm = (*nonLinearMatrix) * (*velocityBasis[j]);
 
-                SHP(DistributedVector) nonLinearTermWrap(new DistributedVector());
+                shp<DistributedVector> nonLinearTermWrap(new DistributedVector());
                 nonLinearTermWrap->setVector(nonLinearTerm);
 
-                SHP(BlockVector) nonLinearTermVec(new BlockVector(2));
+                shp<BlockVector> nonLinearTermVec(new BlockVector(2));
                 nonLinearTermVec->setBlock(0,nonLinearTermWrap);
 
                 M_bcManager->apply0DirichletBCs(*nonLinearTermVec,

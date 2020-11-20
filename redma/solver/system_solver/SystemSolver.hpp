@@ -31,8 +31,8 @@ namespace RedMA
 
 class SystemSolver
 {
-    typedef SHP(aVector)               BV;
-    typedef SHP(aMatrix)               BM;
+    typedef shp<aVector>               BV;
+    typedef shp<aMatrix>               BM;
 
 public:
     SystemSolver(const DataContainer& data);

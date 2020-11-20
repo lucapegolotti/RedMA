@@ -20,6 +20,8 @@
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
 
+#include <redma/array/SparseMatrix.hpp>
+
 //  #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
 //  #include <rb/reduced_basis/util/EpetraArrayUtils.hpp>
 #include <redma/reduced_basis/MDEIMStructure.hpp>
@@ -48,20 +50,20 @@ public:
 
     void initialize(FEMATRIX matrix);
 
-    void setFESpace(SHP(FESPACE) fespace);
+    void setFESpace(shp<FESPACE> fespace);
 
     void checkOnSnapshots();
 
-    SHP(MDEIMStructure)& getMDEIMStructure() {return M_structure;}
+    shp<MDEIMStructure>& getMDEIMStructure() {return M_structure;}
 
     void dumpMDEIM(std::string dir);
 
-    void projectMDEIM(std::vector<SHP(VECTOREPETRA)> leftBasis,
-                      std::vector<SHP(VECTOREPETRA)> rightBasis);
+    void projectMDEIM(std::vector<shp<VECTOREPETRA>> leftBasis,
+                      std::vector<shp<VECTOREPETRA>> rightBasis);
 
-    void setDomainMap(SHP(MAPEPETRA) domainMap) {M_domainMap = domainMap;}
+    void setDomainMap(shp<MAPEPETRA> domainMap) {M_domainMap = domainMap;}
 
-    void setRangeMap(SHP(MAPEPETRA) rangeMap) {M_rangeMap = rangeMap;}
+    void setRangeMap(shp<MAPEPETRA> rangeMap) {M_rangeMap = rangeMap;}
 
     void loadMDEIM(std::string pathdir);
 
@@ -71,7 +73,7 @@ public:
 
 private:
 
-    SHP(VECTOREPETRA) vectorizeMatrix(FEMATRIX matrix);
+    shp<VECTOREPETRA> vectorizeMatrix(FEMATRIX matrix);
 
     void performPOD(std::string outdir);
 
@@ -114,16 +116,16 @@ private:
     void dumpProjectedBasis(std::string dir);
 
     FEMATRIX                                    M_firstSnapshot;
-    std::vector<SHP(VECTOREPETRA)>              M_snapshotsVectorized;
-    std::vector<SHP(VECTOREPETRA)>              M_basis;
-    std::vector<SHP(DENSEVECTOR)>               M_basisProjected;
-    SHP(MDEIMStructure)                         M_structure;
+    std::vector<shp<VECTOREPETRA>>              M_snapshotsVectorized;
+    std::vector<shp<VECTOREPETRA>>              M_basis;
+    std::vector<shp<DENSEVECTOR>>               M_basisProjected;
+    shp<MDEIMStructure>                         M_structure;
     EPETRACOMM                                  M_comm;
     DataContainer                               M_data;
-    SHP(FESPACE)                                M_fespace;
+    shp<FESPACE>                                M_fespace;
     bool                                        M_isInitialized;
-    SHP(MAPEPETRA)                              M_domainMap;
-    SHP(MAPEPETRA)                              M_rangeMap;
+    shp<MAPEPETRA>                              M_domainMap;
+    shp<MAPEPETRA>                              M_rangeMap;
 };
 
 }  // namespace RedMA

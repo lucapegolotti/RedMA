@@ -3,8 +3,8 @@
 namespace RedMA
 {
 
-SHP(aAssembler)
-AssemblerFactory(const DataContainer& data, SHP(TreeNode) treeNode)
+shp<aAssembler>
+AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode)
 {
     std::shared_ptr<aAssembler> ret;
     std::string assemblerString = data("assembler/type","stokes");

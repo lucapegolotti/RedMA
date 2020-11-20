@@ -33,8 +33,6 @@
 
 #include <fstream>
 
-#define DENSEMATRIX         Epetra_SerialDenseMatrix
-
 namespace RedMA
 {
 
@@ -45,34 +43,36 @@ public:
 
     // DenseMatrix(const std::vector<int>& columnVectors);
 
-    virtual void add(std::shared_ptr<aMatrix> other) override;
+    virtual void add(shp<aMatrix> other) override;
 
     virtual void multiplyByScalar(const double& coeff) override;
 
-    virtual std::shared_ptr<aMatrix> multiplyByMatrix(std::shared_ptr<aMatrix> other) override;
+    virtual shp<aMatrix> multiplyByMatrix(shp<aMatrix> other) override;
 
-    virtual std::shared_ptr<aMatrix> transpose() const override;
+    virtual shp<aMatrix> transpose() const override;
 
-    virtual std::shared_ptr<aVector> multiplyByVector(std::shared_ptr<aVector> vector) override;
+    virtual shp<aVector> multiplyByVector(shp<aVector> vector) override;
 
-    virtual void softCopy(std::shared_ptr<aMatrix> other) override;
+    virtual void shallowCopy(shp<aDataWrapper> other) override;
 
-    virtual void hardCopy(std::shared_ptr<aMatrix> other) override;
+    virtual void deepCopy(shp<aDataWrapper> other) override;
 
-    virtual bool isZero() override;
+    virtual bool isZero() const override;
 
-    virtual std::shared_ptr<void> data() const override;
+    virtual shp<void> data() const override;
 
-    virtual void setData(std::shared_ptr<void> data) override;
+    virtual void setData(shp<void> data) override;
 
     virtual void dump(std::string filename) const override;
 
     virtual DenseMatrix* clone() const override;
 
-    void setMatrix(std::shared_ptr<DENSEMATRIX> matrix);
+    virtual Datatype type() const override {return DENSE;}
+
+    void setMatrix(shp<DENSEMATRIX> matrix);
 
 private:
-    std::shared_ptr<DENSEMATRIX>        M_matrix;
+    shp<DENSEMATRIX>        M_matrix;
 };
 
 }

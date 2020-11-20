@@ -16,7 +16,7 @@ BDF(const DataContainer& data) :
 }
 
 BDF::
-BDF(const DataContainer& data, SHP(FunProvider) funProvider) :
+BDF(const DataContainer& data, shp<FunProvider> funProvider) :
   aTimeMarchingAlgorithm(data, funProvider),
   M_order(data("time_discretization/order",2))
 {
@@ -30,14 +30,14 @@ BDF(const DataContainer& data, SHP(FunProvider) funProvider) :
 
 void
 BDF::
-setup(const SHP(aVector)& zeroVector)
+setup(const shp<aVector>& zeroVector)
 {
     M_coefficients.reserve(M_order);
 
     for (unsigned int i = 0; i < M_order; i++)
     {
-        SHP(BlockVector) zeroVectorCopy(new BlockVector(0));
-        zeroVectorCopy->hardCopy(zeroVector);
+        shp<BlockVector> zeroVectorCopy(new BlockVector(0));
+        zeroVectorCopy->deepCopy(zeroVector);
         M_prevSolutions.push_back(zeroVectorCopy);
     }
 
@@ -65,12 +65,12 @@ setup(const SHP(aVector)& zeroVector)
     }
 }
 
-SHP(aVector)
+shp<aVector>
 BDF::
 computeExtrapolatedSolution()
 {
-    SHP(BlockVector) extrapolatedSolution(new BlockVector(0));
-    extrapolatedSolution->hardCopy(M_prevSolutions[0]);
+    shp<BlockVector> extrapolatedSolution(new BlockVector(0));
+    extrapolatedSolution->deepCopy(M_prevSolutions[0]);
     // std::cout << "extrapolatedSolution open?" << extrapolatedSolution->isOpen() << std::endl << std::flush;
     // std::cout << "extrapolatedSolution open?" << extrapolatedSolution->isOpen() << std::endl << std::flush;
     if (M_order == 1)
@@ -101,12 +101,12 @@ computeExtrapolatedSolution()
     return extrapolatedSolution;
 }
 
-SHP(aVector)
+shp<aVector>
 BDF::
 advance(const double& time, double& dt, int& status)
 {
-    typedef SHP(aVector)               BV;
-    typedef SHP(aMatrix)               BM;
+    typedef shp<aVector>               BV;
+    typedef shp<aMatrix>               BM;
 
     // we set the initial guess equal to the last solution
     // keep in mind that this MUST be a hard copy
@@ -128,7 +128,7 @@ advance(const double& time, double& dt, int& status)
         for (BV vec : M_prevSolutions)
         {
             BV vecCopy(new BlockVector(0));
-            vecCopy->hardCopy(M_prevSolutions[count]);
+            vecCopy->deepCopy(M_prevSolutions[count]);
             vecCopy->multiplyByScalar(M_coefficients[count]);
             prevContribution->add(vecCopy);
             count++;
@@ -136,7 +136,7 @@ advance(const double& time, double& dt, int& status)
         prevContribution->add(sol);
 
         BV retVec(new BlockVector(0));
-        retVec->hardCopy(mass->multiplyByVector(prevContribution));
+        retVec->deepCopy(mass->multiplyByVector(prevContribution));
 
         f->multiplyByScalar(-1. * M_rhsCoeff * dt);
         retVec->add(f);
@@ -155,7 +155,7 @@ advance(const double& time, double& dt, int& status)
         if (M_useExtrapolation)
             this->M_funProvider->setExtrapolatedSolution(computeExtrapolatedSolution());
 
-        retMat->hardCopy(this->M_funProvider->getJacobianRightHandSide(time+dt, sol));
+        retMat->deepCopy(this->M_funProvider->getJacobianRightHandSide(time+dt, sol));
         retMat->multiplyByScalar(-1. * M_rhsCoeff * dt);
         retMat->add(this->M_funProvider->getMass(time+dt, sol));
         retMat->add(this->M_funProvider->getMassJacobian(time+dt, sol));
@@ -182,20 +182,20 @@ advance(const double& time, double& dt, int& status)
     return sol;
 }
 
-SHP(aVector)
+shp<aVector>
 BDF::
-computeDerivative(const SHP(aVector)& solnp1, double& dt)
+computeDerivative(const shp<aVector>& solnp1, double& dt)
 {
-    typedef SHP(BlockVector)               BV;
+    typedef shp<BlockVector>               BV;
 
     BV retVec(new BlockVector(0));
-    retVec->hardCopy(solnp1);
+    retVec->deepCopy(solnp1);
 
     unsigned int count = 0;
     for (BV vec : M_prevSolutions)
     {
         BV vecCopy(new BlockVector(0));
-        vecCopy->hardCopy(vec);
+        vecCopy->deepCopy(vec);
         vecCopy->multiplyByScalar(M_coefficients[count]);
         retVec->add(vecCopy);
         count++;
@@ -207,11 +207,11 @@ computeDerivative(const SHP(aVector)& solnp1, double& dt)
 
 void
 BDF::
-shiftSolutions(const SHP(aVector)& sol)
+shiftSolutions(const shp<aVector>& sol)
 {
     // shift solutions
-    std::vector<SHP(BlockVector)> newPrevSolutions(M_order);
-    newPrevSolutions[0].reset(static_cast<BlockVector*>(sol->cloneVector()));
+    std::vector<shp<BlockVector>> newPrevSolutions(M_order);
+    newPrevSolutions[0].reset(static_cast<BlockVector*>(sol->clone()));
 
     for (unsigned int i = 0; i < M_order-1; i++)
         newPrevSolutions[i+1].reset(new BlockVector(*M_prevSolutions[i]));

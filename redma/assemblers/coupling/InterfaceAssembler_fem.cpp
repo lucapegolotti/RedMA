@@ -6,7 +6,7 @@ namespace RedMA
 template <>
 void
 InterfaceAssembler<VectorEp, MatrixEp>::
-buildMapLagrange(SHP(BasisFunctionFunctor) bfs)
+buildMapLagrange(shp<BasisFunctionFunctor> bfs)
 {
     unsigned int nBfs = bfs->getNumBasisFunctions();
     auto aFather = M_interface.M_assemblerFather;
@@ -26,7 +26,7 @@ buildMapLagrange(SHP(BasisFunctionFunctor) bfs)
 template <>
 std::vector<VectorEp>
 InterfaceAssembler<VectorEp, MatrixEp>::
-buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
+buildStabilizationVectorsVelocity(shp<BasisFunctionFunctor> bfs,
                                   const GeometricFace& face,
                                   SHP(aAssembler<VectorEp COMMA MatrixEp>) assembler) const
 {
@@ -40,9 +40,9 @@ buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
 
     std::vector<VectorEp> couplingVectors(3 * nBasisFunctions);
 
-    SHP(ETFESPACE3) etfespace = assembler->getETFESpaceCoupling();
+    shp<ETFESPACE3> etfespace = assembler->getETFESpaceCoupling();
     MAPEPETRA map = etfespace->map();
-    SHP(MESH) mesh = etfespace->mesh();
+    shp<MESH> mesh = etfespace->mesh();
     unsigned int faceFlag = face.M_flag;
 
     unsigned int count = 0;
@@ -61,7 +61,7 @@ buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
 
         for (unsigned int i = 0; i < nBasisFunctions; i++)
         {
-            SHP(VECTOREPETRA) currentMode(new VECTOREPETRA(map, LifeV::Repeated));
+            shp<VECTOREPETRA> currentMode(new VECTOREPETRA(map, LifeV::Repeated));
 
             bfs->setIndex(i);
             if (useFullStrain)
@@ -93,7 +93,7 @@ buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
 template <>
 std::vector<VectorEp>
 InterfaceAssembler<VectorEp, MatrixEp>::
-buildStabilizationVectorsPressure(SHP(BasisFunctionFunctor) bfs,
+buildStabilizationVectorsPressure(shp<BasisFunctionFunctor> bfs,
                                   const GeometricFace& face,
                                   SHP(aAssembler<VectorEp COMMA MatrixEp>) assembler) const
 {
@@ -107,9 +107,9 @@ buildStabilizationVectorsPressure(SHP(BasisFunctionFunctor) bfs,
 
     std::vector<VectorEp> couplingVectors(3 * nBasisFunctions);
 
-    SHP(ETFESPACE1) etfespace = assembler->getETFESpaceSecondary();
+    shp<ETFESPACE1> etfespace = assembler->getETFESpaceSecondary();
     MAPEPETRA map = etfespace->map();
-    SHP(MESH) mesh = etfespace->mesh();
+    shp<MESH> mesh = etfespace->mesh();
     unsigned int faceFlag = face.M_flag;
 
     unsigned int count = 0;
@@ -126,7 +126,7 @@ buildStabilizationVectorsPressure(SHP(BasisFunctionFunctor) bfs,
 
         for (unsigned int i = 0; i < nBasisFunctions; i++)
         {
-            SHP(VECTOREPETRA) currentMode(new VECTOREPETRA(map, LifeV::Repeated));
+            shp<VECTOREPETRA> currentMode(new VECTOREPETRA(map, LifeV::Repeated));
 
             bfs->setIndex(i);
 
@@ -161,7 +161,7 @@ buildStabilizationVectorsLagrange() const
 
     for (unsigned int i = 0; i < ncols; i++)
     {
-        SHP(VECTOREPETRA) newvec(new VECTOREPETRA(*lagrangeMap, LifeV::Unique));
+        shp<VECTOREPETRA> newvec(new VECTOREPETRA(*lagrangeMap, LifeV::Unique));
         newvec->zero();
 
         if (lagrangeMap->isOwned(i))
@@ -175,14 +175,14 @@ buildStabilizationVectorsLagrange() const
 template <>
 void
 InterfaceAssembler<VectorEp, MatrixEp>::
-buildStabilizationMatrix(SHP(AssemblerType) assembler,
+buildStabilizationMatrix(shp<AssemblerType> assembler,
                          const GeometricFace& face,
                          BlockMatrix<MatrixEp>& matrix)
 {
     BlockMatrix<MatrixEp> stab;
     stab.resize(1, assembler->getNumComponents());
 
-    SHP(BasisFunctionFunctor) bfs;
+    shp<BasisFunctionFunctor> bfs;
     bfs =  BasisFunctionFactory(M_data.getDatafile(), face);
 
     std::vector<VectorEp> stabVectorsVelocity;
@@ -191,14 +191,14 @@ buildStabilizationMatrix(SHP(AssemblerType) assembler,
     std::vector<VectorEp> stabVectorsPressure;
     stabVectorsPressure = buildStabilizationVectorsPressure(bfs, face, assembler);
 
-    stab.block(0,0).softCopy(MatrixEp(stabVectorsVelocity).transpose());
-    stab.block(0,1).softCopy(MatrixEp(stabVectorsPressure).transpose());
-    matrix.softCopy(stab);
+    stab.block(0,0).shallowCopy(MatrixEp(stabVectorsVelocity).transpose());
+    stab.block(0,1).shallowCopy(MatrixEp(stabVectorsPressure).transpose());
+    matrix.shallowCopy(stab);
 
     std::vector<VectorEp> stabVectorsLagrange = buildStabilizationVectorsLagrange();
     M_identity.resize(1,1);
 
-    M_identity.block(0,0).softCopy(MatrixEp(stabVectorsLagrange));
+    M_identity.block(0,0).shallowCopy(MatrixEp(stabVectorsLagrange));
 }
 
 template <>
@@ -253,7 +253,7 @@ getZeroVector() const
     BlockVector<VectorEp> retVector;
     retVector.resize(1);
 
-    SHP(MAPEPETRA) lagrangeMap;
+    shp<MAPEPETRA> lagrangeMap;
     if (M_fatherBT.nRows() > 0)
         lagrangeMap.reset(new MAPEPETRA(*M_fatherBT.block(0,0).data()->domainMapPtr()));
     else

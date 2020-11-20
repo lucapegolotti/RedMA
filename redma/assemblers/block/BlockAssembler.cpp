@@ -5,7 +5,7 @@ namespace RedMA
 //
 BlockAssembler::
 BlockAssembler(const DataContainer& data, const TreeStructure& tree,
-               SHP(DefaultAssemblers) defAssemblers) :
+               shp<DefaultAssemblers> defAssemblers) :
   aAssembler(data),
   M_tree(tree)
 {
@@ -15,7 +15,7 @@ BlockAssembler(const DataContainer& data, const TreeStructure& tree,
 
 void
 BlockAssembler::
-checkStabTerm(const SHP(aVector)& sol) const
+checkStabTerm(const shp<aVector>& sol) const
 {
     // for (auto as: M_dualAssemblers)
     //     as->checkStabilizationTerm(sol, M_primalAssemblers.size());
@@ -37,11 +37,11 @@ initializeFEspaces()
         as.second->initializeFEspaces();
 }
 
-SHP(aVector)
+shp<aVector>
 BlockAssembler::
 getLifting(const double& time) const
 {
-    SHP(BlockVector) retVec(new BlockVector(M_numberBlocks));
+    shp<BlockVector> retVec(new BlockVector(M_numberBlocks));
 
     for (auto as : M_primalAssemblers)
         retVec->setBlock(as.first,as.second->getLifting(time));
@@ -51,7 +51,7 @@ getLifting(const double& time) const
 
 void
 BlockAssembler::
-setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers)
+setDefaultAssemblers(shp<DefaultAssemblers> defAssemblers)
 {
     this->M_defaultAssemblers = defAssemblers;
     for (auto as : M_primalAssemblers)
@@ -60,13 +60,13 @@ setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers)
 
 void
 BlockAssembler::
-applyGlobalPiola(SHP(aVector) solution, bool inverse)
+applyGlobalPiola(shp<aVector> solution, bool inverse)
 {
     unsigned int count = 0;
     for (auto as : M_primalAssemblers)
     {
         as.second->applyPiola(
-            std::static_pointer_cast<BlockVector>(solution->block(count)),
+            convert<BlockVector>(convert<BlockVector>(solution)->block(count)),
             inverse);
         count = count + 1;
     }
@@ -74,40 +74,40 @@ applyGlobalPiola(SHP(aVector) solution, bool inverse)
 
 void
 BlockAssembler::
-apply0DirichletBCsMatrix(SHP(aMatrix) matrix, double diagCoeff) const
+apply0DirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
 {
     for (auto as : M_primalAssemblers)
         as.second->apply0DirichletBCsMatrix(
-            std::static_pointer_cast<BlockMatrix>(matrix->block(as.first, as.first)),
+            convert<BlockMatrix>(convert<BlockMatrix>(matrix)->block(as.first, as.first)),
             diagCoeff);
 }
 
 void
 BlockAssembler::
-apply0DirichletBCs(SHP(aVector) initialGuess) const
+apply0DirichletBCs(shp<aVector> initialGuess) const
 {
     unsigned int count = 0;
     for (auto as : M_primalAssemblers)
     {
         as.second->apply0DirichletBCs(
-            std::static_pointer_cast<BlockVector>(initialGuess->block(as.first)));
+            convert<BlockVector>(convert<BlockVector>(initialGuess)->block(as.first)));
     }
 }
 
 void
 BlockAssembler::
-applyDirichletBCs(const double& time, SHP(aVector) initialGuess) const
+applyDirichletBCs(const double& time, shp<aVector> initialGuess) const
 {
     for (auto as : M_primalAssemblers)
         as.second->applyDirichletBCs(time,
-            std::static_pointer_cast<BlockVector>(initialGuess->block(as.first)));
+            convert<BlockVector>(convert<BlockVector>(initialGuess)->block(as.first)));
 }
 
-SHP(aVector)
+shp<aVector>
 BlockAssembler::
 getZeroVector() const
 {
-    SHP(BlockVector) retVec(new BlockVector(M_numberBlocks));
+    shp<BlockVector> retVec(new BlockVector(M_numberBlocks));
 
     for (auto as : M_primalAssemblers)
         retVec->setBlock(as.first,as.second->getZeroVector());
@@ -126,11 +126,11 @@ getZeroVector() const
 
 void
 BlockAssembler::
-exportSolution(const double& t, const SHP(aVector)& sol)
+exportSolution(const double& t, const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)
         as.second->exportSolution(t,
-            std::static_pointer_cast<BlockVector>(sol->block(as.first)));
+            convert<BlockVector>(convert<BlockVector>(sol)->block(as.first)));
 }
 
 std::map<unsigned int,std::vector<double>>
@@ -148,89 +148,89 @@ getRandomizibleParametersVectors()
 
 void
 BlockAssembler::
-setExtrapolatedSolution(const SHP(aVector)& exSol)
+setExtrapolatedSolution(const shp<aVector>& exSol)
 {
     for (auto as : M_primalAssemblers)
         as.second->setExtrapolatedSolution(
-            std::static_pointer_cast<BlockVector>(exSol->block(as.first)));
+            convert<BlockVector>(convert<BlockVector>(exSol)->block(as.first)));
 }
 
 void
 BlockAssembler::
-postProcess(const double& t, const SHP(aVector)& sol)
+postProcess(const double& t, const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)
         as.second->postProcess(t,
-            std::static_pointer_cast<BlockVector>(sol->block(as.first)));
+            convert<BlockVector>(convert<BlockVector>(sol)->block(as.first)));
 
     if (this->M_data("coupling/check_stabterm", false))
         checkStabTerm(sol);
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 BlockAssembler::
-getMass(const double& time, const SHP(aVector)& sol)
+getMass(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) mass(new BlockMatrix(M_numberBlocks, M_numberBlocks));
+    shp<BlockMatrix> mass(new BlockMatrix(M_numberBlocks, M_numberBlocks));
 
     for (auto as : M_primalAssemblers)
     {
         unsigned int ind = as.first;
-        mass->setBlock(ind, ind, as.second->getMass(time, sol->block(ind)));
+        mass->setBlock(ind, ind, as.second->getMass(time, convert<BlockVector>(sol)->block(ind)));
     }
-    mass->close();
+
     return mass;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 BlockAssembler::
-getMassJacobian(const double& time, const SHP(aVector)& sol)
+getMassJacobian(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) massJacobian(new BlockMatrix(M_numberBlocks, M_numberBlocks));
+    shp<BlockMatrix> massJacobian(new BlockMatrix(M_numberBlocks, M_numberBlocks));
 
     for (auto as : M_primalAssemblers)
     {
         unsigned int ind = as.first;
-        massJacobian->setBlock(ind,ind,as.second->getMassJacobian(time, sol->block(ind)));
+        massJacobian->setBlock(ind,ind,as.second->getMassJacobian(time, convert<BlockVector>(sol)->block(ind)));
     }
 
     return massJacobian;
 }
 
-SHP(aVector)
+shp<aVector>
 BlockAssembler::
-getRightHandSide(const double& time, const SHP(aVector)& sol)
+getRightHandSide(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockVector) rhs(new BlockVector(M_numberBlocks));
+    shp<BlockVector> rhs(new BlockVector(M_numberBlocks));
 
     for (auto as: M_primalAssemblers)
     {
         unsigned int ind = as.first;
-        rhs->setBlock(ind,as.second->getRightHandSide(time, sol->block(ind)));
+        rhs->setBlock(ind,as.second->getRightHandSide(time, convert<BlockVector>(sol)->block(ind)));
     }
 
     // add interface contributions
     for (auto as: M_dualAssemblers)
     {
-        as->addContributionRhs(time, rhs, std::static_pointer_cast<BlockVector>(sol),
+        as->addContributionRhs(time, rhs, convert<BlockVector>(sol),
             M_primalAssemblers.size());
     }
 
     return rhs;
 }
 
-SHP(aVector)
+shp<aVector>
 BlockAssembler::
-convertFunctionRBtoFEM(SHP(aVector) rbFunction,
+convertFunctionRBtoFEM(shp<aVector> rbFunction,
                        EPETRACOMM comm) const
 {
-    SHP(BlockVector) retVec(new BlockVector(rbFunction->nRows()));
+    shp<BlockVector> retVec(new BlockVector(rbFunction->nRows()));
 
     for (auto as : M_primalAssemblers)
     {
         unsigned int ind = as.first;
         retVec->setBlock(ind,
-            std::static_pointer_cast<aAssemblerRB>(as.second)->convertFunctionRBtoFEM(rbFunction->block(ind)));
+            spcast<aAssemblerRB>(as.second)->convertFunctionRBtoFEM(convert<BlockVector>(rbFunction)->block(ind)));
     }
 
     if (rbFunction->nRows() > M_primalAssemblers.size())
@@ -239,20 +239,23 @@ convertFunctionRBtoFEM(SHP(aVector) rbFunction,
         {
             unsigned int indInterface = as->getInterface().M_ID + M_primalAssemblers.size();
             std::static_pointer_cast<BlockVector>(retVec->block(indInterface))->resize(1);
-            retVec->block(indInterface)->setBlock(0,
-                    DistributedVector::convertDenseVector(
-                    std::static_pointer_cast<DenseVector>(rbFunction->block(indInterface)->block(0)),
-                    comm));
+
+            convert<BlockVector>(retVec->block(indInterface))->setBlock(0,
+            DistributedVector::convertDenseVector(
+            convert<DenseVector>(
+                convert<BlockVector>(
+                    convert<BlockVector>(rbFunction)
+                    ->block(indInterface))->block(0)),comm));
         }
     }
     return retVec;
 }
 
-SHP(aVector)
+shp<aVector>
 BlockAssembler::
 getNonLinearTerm()
 {
-    SHP(BlockVector) retVec(new BlockVector(M_primalAssemblers.size()));
+    shp<BlockVector> retVec(new BlockVector(M_primalAssemblers.size()));
 
     for (auto as : M_primalAssemblers)
         retVec->setBlock(as.first,as.second->getNonLinearTerm());
@@ -261,22 +264,22 @@ getNonLinearTerm()
 }
 
 
-SHP(aMatrix)
+shp<aMatrix>
 BlockAssembler::
-getJacobianRightHandSide(const double& time, const SHP(aVector)& sol)
+getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) jac(new BlockMatrix(M_numberBlocks, M_numberBlocks));
+    shp<BlockMatrix> jac(new BlockMatrix(M_numberBlocks, M_numberBlocks));
 
     for (auto as: M_primalAssemblers)
     {
         unsigned int ind = as.first;
         jac->setBlock(ind,ind,as.second->getJacobianRightHandSide(time,
-                              sol->block(ind)));
+                              convert<BlockVector>(sol)->block(ind)));
     }
 
     for (auto as: M_dualAssemblers)
         as->addContributionJacobianRhs(time, jac,
-            std::static_pointer_cast<BlockVector>(sol),
+            spcast<BlockVector>(sol),
              M_primalAssemblers.size());
 
     return jac;
@@ -303,9 +306,9 @@ getIDMeshTypeMap() const
 // BlockAssembler::
 // setup()
 // {
-//     typedef std::map<unsigned int, SHP(TreeNode)>         NodesMap;
+//     typedef std::map<unsigned int, shp<TreeNode)>         NodesMap;
 //     typedef aAssembler                                    InnerAssembler;
-//     typedef std::vector<SHP(TreeNode)>                    NodesVector;
+//     typedef std::vector<shp<TreeNode)>                    NodesVector;
 //
 //     printlog(GREEN, "[BlockAssembler] initializing block assembler ... \n", this->M_data.getVerbose());
 //
@@ -313,7 +316,7 @@ getIDMeshTypeMap() const
 //     // allocate assemblers
 //     for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
 //     {
-//         SHP(InnerAssembler) newAssembler;
+//         shp<InnerAssembler) newAssembler;
 //         newAssembler = AssemblerFactory(this->M_data, it->second);
 //         newAssembler->setup();
 //         M_primalAssemblers[it->second->M_ID] = newAssembler;
@@ -327,7 +330,7 @@ getIDMeshTypeMap() const
 //         unsigned int countOutlet = 0;
 //         unsigned int myID = it->second->M_ID;
 //
-//         SHP(InnerAssembler) fatherAssembler = M_primalAssemblers[myID];
+//         shp<InnerAssembler) fatherAssembler = M_primalAssemblers[myID];
 //
 //         unsigned int countChildren = 0;
 //         for (NodesVector::iterator itVector = children.begin();
@@ -336,12 +339,12 @@ getIDMeshTypeMap() const
 //             if (*itVector)
 //             {
 //                 unsigned int otherID = (*itVector)->M_ID;
-//                 SHP(InnerAssembler) childAssembler = M_primalAssemblers[otherID];
+//                 shp<InnerAssembler) childAssembler = M_primalAssemblers[otherID];
 //                 Interface newInterface(fatherAssembler, myID,
 //                                        childAssembler, otherID,
 //                                        interfaceID);
 //                 newInterface.M_indexOutlet = countChildren;
-//                 SHP(InterfaceAssembler) inAssembler;
+//                 shp<InterfaceAssembler) inAssembler;
 //                 inAssembler.reset(new InterfaceAssembler(this->M_data, newInterface));
 //                 M_dualAssemblers.push_back(inAssembler);
 //                 interfaceID++;
@@ -352,14 +355,14 @@ getIDMeshTypeMap() const
 //
 //     if (!std::strcmp(this->M_data("bc_conditions/inletdirichlet", "weak").c_str(),"weak"))
 //     {
-//         SHP(InnerAssembler) inletAssembler = M_primalAssemblers[0];
+//         shp<InnerAssembler) inletAssembler = M_primalAssemblers[0];
 //
 //         // we set the inlet to child such that we are consistent with the normal orientation
 //         // with respect to flow direction
 //         Interface newInterface(nullptr, -1, inletAssembler, 0,
 //                                                interfaceID);
 //
-//         SHP(InterfaceAssembler) inletInAssembler;
+//         shp<InterfaceAssembler) inletInAssembler;
 //         inletInAssembler.reset(new InletInflowAssembler(this->M_data, newInterface));
 //
 //         M_dualAssemblers.push_back(inletInAssembler);
@@ -375,9 +378,9 @@ void
 BlockAssembler::
 setup()
 {
-    typedef std::map<unsigned int, SHP(TreeNode)>         NodesMap;
+    typedef std::map<unsigned int, shp<TreeNode>>         NodesMap;
     typedef aAssembler                                    InnerAssembler;
-    typedef std::vector<SHP(TreeNode)>                    NodesVector;
+    typedef std::vector<shp<TreeNode>>                    NodesVector;
 
     printlog(GREEN, "[BlockAssembler] initializing block assembler ... \n", this->M_data.getVerbose());
 
@@ -385,7 +388,7 @@ setup()
     // allocate assemblers
     for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
     {
-        SHP(InnerAssembler) newAssembler;
+        shp<InnerAssembler> newAssembler;
         newAssembler = AssemblerFactory(this->M_data, it->second);
         newAssembler->setDefaultAssemblers(M_defaultAssemblers);
         M_comm = newAssembler->getComm();
@@ -420,7 +423,7 @@ setup()
         unsigned int countOutlet = 0;
         unsigned int myID = it->second->M_ID;
 
-        SHP(InnerAssembler) fatherAssembler = M_primalAssemblers[myID];
+        shp<InnerAssembler> fatherAssembler = M_primalAssemblers[myID];
 
         unsigned int countChildren = 0;
         for (NodesVector::iterator itVector = children.begin();
@@ -429,12 +432,12 @@ setup()
             if (*itVector)
             {
                 unsigned int otherID = (*itVector)->M_ID;
-                SHP(InnerAssembler) childAssembler = M_primalAssemblers[otherID];
+                shp<InnerAssembler> childAssembler = M_primalAssemblers[otherID];
                 Interface newInterface(fatherAssembler, myID,
                                        childAssembler, otherID,
                                        interfaceID);
                 newInterface.M_indexOutlet = countChildren;
-                SHP(InterfaceAssembler) inAssembler;
+                shp<InterfaceAssembler> inAssembler;
                 inAssembler.reset(new InterfaceAssembler(this->M_data, newInterface));
                 M_dualAssemblers.push_back(inAssembler);
                 interfaceID++;
@@ -445,14 +448,14 @@ setup()
 
     if (!std::strcmp(this->M_data("bc_conditions/inletdirichlet", "weak").c_str(),"weak"))
     {
-        SHP(InnerAssembler) inletAssembler = M_primalAssemblers[0];
+        shp<InnerAssembler> inletAssembler = M_primalAssemblers[0];
 
         // we set the inlet to child such that we are consistent with the normal orientation
         // with respect to flow direction
         Interface newInterface(nullptr, -1, inletAssembler, 0,
                                                interfaceID);
 
-        SHP(InterfaceAssembler) inletInAssembler;
+        shp<InterfaceAssembler> inletInAssembler;
         inletInAssembler.reset(new InletInflowAssembler(this->M_data, newInterface));
 
         M_dualAssemblers.push_back(inletInAssembler);

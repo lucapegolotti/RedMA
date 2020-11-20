@@ -40,23 +40,23 @@ namespace RedMA
 class StokesModel
 {
 public:
-    StokesModel(const DataContainer& data, SHP(TreeNode) treeNode);
+    StokesModel(const DataContainer& data, shp<TreeNode> treeNode);
 
-    SHP(aVector) getForcingTerm(const double& time) const;
+    shp<aVector> getForcingTerm(const double& time) const;
 
-    void addNeumannBCs(SHP(aVector)& input, const double& time,
-                       const SHP(aVector)& sol);
+    void addNeumannBCs(shp<aVector>& input, const double& time,
+                       const shp<aVector>& sol);
 
-    SHP(aMatrix) assembleReducedStiffness(SHP(BCManager) bcManager,
+    shp<aMatrix> assembleReducedStiffness(shp<BCManager> bcManager,
                                          BlockMDEIMStructure* structure = nullptr);
 
-    SHP(aMatrix) assembleReducedMass(SHP(BCManager) bcManager,
+    shp<aMatrix> assembleReducedMass(shp<BCManager> bcManager,
                                     BlockMDEIMStructure* structure = nullptr);
 
-    SHP(aMatrix) assembleReducedDivergence(SHP(BCManager) bcManager,
+    shp<aMatrix> assembleReducedDivergence(shp<BCManager> bcManager,
                                           BlockMDEIMStructure* structure = nullptr);
 
-    std::map<unsigned int, double> computeFlowRates(SHP(aVector) sol,
+    std::map<unsigned int, double> computeFlowRates(shp<aVector> sol,
                                                     bool verbose = false);
 
     // these are int_{Gamma_N} phi_i * n inlets (just to check that it is preserved)
@@ -64,26 +64,26 @@ public:
     void assembleFlowRateVectors();
 
     // compute the jacobian of int_{Gamma_N}(int_{Gamma_N} u_i * n)phi_j
-    void assembleFlowRateJacobians(SHP(BCManager) bcManager);
+    void assembleFlowRateJacobians(shp<BCManager> bcManager);
 
-    SHP(VECTOREPETRA) assembleFlowRateVector(const GeometricFace& face);
+    shp<VECTOREPETRA> assembleFlowRateVector(const GeometricFace& face);
 
-    SHP(MATRIXEPETRA) assembleFlowRateJacobian(const GeometricFace& face);
+    shp<MATRIXEPETRA> assembleFlowRateJacobian(const GeometricFace& face);
 
-    void addBackFlowStabilization(SHP(aVector)& input,
-                                  SHP(aVector) sol,
+    void addBackFlowStabilization(shp<aVector>& input,
+                                  shp<aVector> sol,
                                   const unsigned int& faceFlag);
 
-    void exportNorms(double t, SHP(VECTOREPETRA) velocity, SHP(VECTOREPETRA) pressure);
+    void exportNorms(double t, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure);
 
     void initializePythonStructures();
 
-    void computeWallShearStress(SHP(VECTOREPETRA) velocity,
-                                SHP(VECTOREPETRA) WSS,
+    void computeWallShearStress(shp<VECTOREPETRA> velocity,
+                                shp<VECTOREPETRA> WSS,
                                 EPETRACOMM comm);
 
-    void apply0DirichletBCsMatrix(SHP(BCManager) bcManager,
-                                  SHP(aMatrix) matrix, double diagCoeff);
+    void apply0DirichletBCsMatrix(shp<BCManager> bcManager,
+                                  shp<aMatrix> matrix, double diagCoeff);
 
     void initializeVelocityFESpace(EPETRACOMM comm);
 
@@ -95,41 +95,41 @@ public:
 
 protected:
 
-    SHP(BlockVector) buildZeroVector() const;
+    shp<BlockVector> buildZeroVector() const;
 
     std::string                                       M_name;
     DataContainer                                     M_dataContainer;
-    SHP(TreeNode)                                     M_treeNode;
-    SHP(BlockMatrix)                                  M_mass;
-    SHP(BlockMatrix)                                  M_stiffness;
-    SHP(BlockMatrix)                                  M_divergence;
-    SHP(FESPACE)                                      M_velocityFESpace;
-    SHP(FESPACE)                                      M_pressureFESpace;
-    SHP(ETFESPACE3)                                   M_velocityFESpaceETA;
-    SHP(ETFESPACE1)                                   M_pressureFESpaceETA;
+    shp<TreeNode>                                     M_treeNode;
+    shp<BlockMatrix>                                  M_mass;
+    shp<BlockMatrix>                                  M_stiffness;
+    shp<BlockMatrix>                                  M_divergence;
+    shp<FESPACE>                                      M_velocityFESpace;
+    shp<FESPACE>                                      M_pressureFESpace;
+    shp<ETFESPACE3>                                   M_velocityFESpaceETA;
+    shp<ETFESPACE1>                                   M_pressureFESpaceETA;
     double                                            M_density;
     double                                            M_viscosity;
-    SHP(MATRIXEPETRA)                                 M_massWall;
-    SHP(SparseMatrix)                                 M_massVelocity;
-    SHP(SparseMatrix)                                 M_massPressure;
+    shp<MATRIXEPETRA>                                 M_massWall;
+    shp<SparseMatrix>                                 M_massVelocity;
+    shp<SparseMatrix>                                 M_massPressure;
     // first index is face flag
-    std::map<unsigned int, SHP(VECTOREPETRA)>         M_flowRateVectors;
-    std::map<unsigned int, SHP(BlockMatrix)>          M_flowRateJacobians;
+    std::map<unsigned int, shp<VECTOREPETRA>>         M_flowRateVectors;
+    std::map<unsigned int, shp<BlockMatrix>>          M_flowRateJacobians;
 
     std::string                                       M_velocityOrder;
     std::string                                       M_pressureOrder;
 
     // rb structures
-    SHP(BlockMDEIM)                                   M_mdeimMass;
-    SHP(BlockMDEIM)                                   M_mdeimStiffness;
-    SHP(BlockMDEIM)                                   M_mdeimDivergence;
-    SHP(RBBases)                                      M_bases;
+    shp<BlockMDEIM>                                   M_mdeimMass;
+    shp<BlockMDEIM>                                   M_mdeimStiffness;
+    shp<BlockMDEIM>                                   M_mdeimDivergence;
+    shp<RBBases>                                      M_bases;
     // PyObject*                                      M_pFunc;
     // PyObject*                                      M_pModule;
 
-    SHP(VECTOREPETRA)                                 M_xs;
-    SHP(VECTOREPETRA)                                 M_ys;
-    SHP(VECTOREPETRA)                                 M_zs;
+    shp<VECTOREPETRA>                                 M_xs;
+    shp<VECTOREPETRA>                                 M_ys;
+    shp<VECTOREPETRA>                                 M_zs;
 };
 
 }

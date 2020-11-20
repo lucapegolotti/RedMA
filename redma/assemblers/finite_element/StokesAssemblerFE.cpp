@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 StokesAssemblerFE::
-StokesAssemblerFE(const DataContainer& data, SHP(TreeNode) treeNode) :
+StokesAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode) :
   aAssemblerFE(data, treeNode),
   StokesModel(data, treeNode)
 {
@@ -44,7 +44,7 @@ setup()
 
 void
 StokesAssemblerFE::
-postProcess(const double& t, const SHP(aVector)& sol)
+postProcess(const double& t, const shp<aVector>& sol)
 {
     // shift solutions in multistep method embedded in windkessels
     M_bcManager->postProcess();
@@ -52,16 +52,17 @@ postProcess(const double& t, const SHP(aVector)& sol)
 
 void
 StokesAssemblerFE::
-exportSolution(const double& t, const SHP(aVector)& sol)
+exportSolution(const double& t, const shp<aVector>& sol)
 {
-    *M_velocityExporter = *static_cast<VECTOREPETRA*>(sol->block(0)->data().get());
-    *M_pressureExporter = *static_cast<VECTOREPETRA*>(sol->block(1)->data().get());
+    auto solBlck = convert<BlockVector>(sol);
+    *M_velocityExporter = *static_cast<VECTOREPETRA*>(solBlck->block(0)->data().get());
+    *M_pressureExporter = *static_cast<VECTOREPETRA*>(solBlck->block(1)->data().get());
 
     bool exportWSS = this->M_data("exporter/export_wss", 1);
     if (exportWSS)
         computeWallShearStress(M_velocityExporter, M_WSSExporter, M_comm);
 
-    SHP(BlockVector) solCopy(new BlockVector(2));
+    shp<BlockVector> solCopy(new BlockVector(2));
     solCopy->block(0)->setData(M_velocityExporter);
     StokesAssemblerFE::computeFlowRates(solCopy, true);
 
@@ -73,33 +74,33 @@ exportSolution(const double& t, const SHP(aVector)& sol)
     printlog(CYAN, ct.restore());
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 StokesAssemblerFE::
-getMass(const double& time, const SHP(aVector)& sol)
+getMass(const double& time, const shp<aVector>& sol)
 {
     return M_mass;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 StokesAssemblerFE::
-getMassJacobian(const double& time, const SHP(aVector)& sol)
+getMassJacobian(const double& time, const shp<aVector>& sol)
 {
-    SHP(aMatrix) retMat(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+    shp<aMatrix> retMat(new BlockMatrix(this->M_nComponents, this->M_nComponents));
     return retMat;
 }
 
-SHP(aVector)
+shp<aVector>
 StokesAssemblerFE::
 getRightHandSide(const double& time,
-                 const SHP(aVector)& sol)
+                 const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) systemMatrix(new BlockMatrix(this->M_nComponents,
+    shp<BlockMatrix> systemMatrix(new BlockMatrix(this->M_nComponents,
                                                   this->M_nComponents));
     systemMatrix->add(M_stiffness);
     systemMatrix->add(M_divergence);
     systemMatrix->multiplyByScalar(-1.0);
 
-    SHP(aVector) retVec = systemMatrix->multiplyByVector(sol);
+    shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
     addNeumannBCs(time, sol, retVec);
 
     this->M_bcManager->apply0DirichletBCs(*std::static_pointer_cast<BlockVector>(retVec), this->getFESpaceBCs(),
@@ -110,7 +111,7 @@ getRightHandSide(const double& time,
 
 void
 StokesAssemblerFE::
-addNeumannBCs(double time, SHP(aVector) sol, SHP(aVector) rhs)
+addNeumannBCs(double time, shp<aVector> sol, shp<aVector> rhs)
 {
 
     if (aAssembler::M_treeNode->isOutletNode())
@@ -121,20 +122,20 @@ addNeumannBCs(double time, SHP(aVector) sol, SHP(aVector) rhs)
         {
             double P = this->M_bcManager->getNeumannBc(time, rate.first, rate.second);
 
-            SHP(VECTOREPETRA) flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
+            shp<VECTOREPETRA> flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
             *flowRateCopy *= P;
 
-            *std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()) += *flowRateCopy;
+            *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;
             // addBackFlowStabilization(input, sol, rate.first);
         }
     }
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 StokesAssemblerFE::
-getJacobianRightHandSide(const double& time, const SHP(aVector)& sol)
+getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) retMat(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+    shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents, this->M_nComponents));
 
     retMat->add(M_stiffness);
     retMat->add(M_divergence);
@@ -148,8 +149,8 @@ getJacobianRightHandSide(const double& time, const SHP(aVector)& sol)
         for (auto rate : flowRates)
         {
             double dhdQ = this->M_bcManager->getNeumannJacobian(time, rate.first, rate.second);
-            SHP(BlockMatrix) curjac(new BlockMatrix(2,2));
-            curjac->hardCopy(M_flowRateJacobians[rate.first]);
+            shp<BlockMatrix> curjac(new BlockMatrix(2,2));
+            curjac->deepCopy(M_flowRateJacobians[rate.first]);
             curjac->multiplyByScalar(dhdQ);
 
             retMat->add(curjac);
@@ -162,25 +163,25 @@ getJacobianRightHandSide(const double& time, const SHP(aVector)& sol)
     return retMat;
 }
 
-SHP(aVector)
+shp<aVector>
 StokesAssemblerFE::
 getZeroVector() const
 {
     return buildZeroVector();
 }
 
-SHP(aVector)
+shp<aVector>
 StokesAssemblerFE::
 getFELifting(const double& time) const
 {
-    SHP(BlockVector) lifting(new BlockVector(2));
+    shp<BlockVector> lifting(new BlockVector(2));
     // velocity
-    SHP(DistributedVector) ucomp(new DistributedVector());
-    ucomp->setData(SHP(VECTOREPETRA)(new VECTOREPETRA(M_velocityFESpace->map(),LifeV::Unique)));
+    shp<DistributedVector> ucomp(new DistributedVector());
+    ucomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_velocityFESpace->map(),LifeV::Unique)));
     ucomp->multiplyByScalar(0);
 
-    SHP(DistributedVector) pcomp(new DistributedVector());
-    pcomp->setData(SHP(VECTOREPETRA)(new VECTOREPETRA(M_pressureFESpace->map(),LifeV::Unique)));
+    shp<DistributedVector> pcomp(new DistributedVector());
+    pcomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_pressureFESpace->map(),LifeV::Unique)));
     pcomp->multiplyByScalar(0);
 
     lifting->setBlock(0,ucomp);
@@ -192,7 +193,7 @@ getFELifting(const double& time) const
     return lifting;
 }
 
-SHP(aVector)
+shp<aVector>
 StokesAssemblerFE::
 getLifting(const double& time) const
 {
@@ -253,7 +254,7 @@ setExporter()
 
 void
 StokesAssemblerFE::
-apply0DirichletBCsMatrix(SHP(aMatrix) matrix, double diagCoeff) const
+apply0DirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
 {
     auto matrixConverted = std::static_pointer_cast<BlockMatrix>(matrix);
     this->M_bcManager->apply0DirichletMatrix(*matrixConverted, getFESpaceBCs(),
@@ -262,7 +263,7 @@ apply0DirichletBCsMatrix(SHP(aMatrix) matrix, double diagCoeff) const
 
 void
 StokesAssemblerFE::
-apply0DirichletBCs(SHP(aVector) vector) const
+apply0DirichletBCs(shp<aVector> vector) const
 {
     auto vectorConverted = std::static_pointer_cast<BlockVector>(vector);
     this->M_bcManager->apply0DirichletBCs(*vectorConverted, getFESpaceBCs(),
@@ -271,14 +272,14 @@ apply0DirichletBCs(SHP(aVector) vector) const
 
 void
 StokesAssemblerFE::
-applyDirichletBCs(const double& time, SHP(aVector) vector) const
+applyDirichletBCs(const double& time, shp<aVector> vector) const
 {
     auto vectorConverted = std::static_pointer_cast<BlockVector>(vector);
     this->M_bcManager->applyDirichletBCs(time, *vectorConverted, getFESpaceBCs(),
                                          getComponentBCs());
 }
 
-SHP(FESPACE)
+shp<FESPACE>
 StokesAssemblerFE::
 getFEspace(unsigned int index) const
 {
@@ -290,11 +291,11 @@ getFEspace(unsigned int index) const
     return nullptr;
 }
 
-std::vector<SHP(aMatrix)>
+std::vector<shp<aMatrix>>
 StokesAssemblerFE::
 getMatrices() const
 {
-    std::vector<SHP(aMatrix)> retVec;
+    std::vector<shp<aMatrix>> retVec;
 
     retVec.push_back(M_mass);
     retVec.push_back(M_stiffness);
@@ -303,7 +304,7 @@ getMatrices() const
     return retVec;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 StokesAssemblerFE::
 assembleMatrix(const unsigned int& index,
                BlockMDEIMStructure* structure)
@@ -322,19 +323,19 @@ assembleMatrix(const unsigned int& index,
     }
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 StokesAssemblerFE::
 getNorm(const unsigned int& fieldIndex, bool bcs)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(SparseMatrix) retMat(new SparseMatrix);
+    shp<SparseMatrix> retMat(new SparseMatrix);
     if (fieldIndex == 0)
     {
         // if (!M_massVelocity.data())
         // {
-            SHP(MATRIXEPETRA) Nu(new MATRIXEPETRA(M_velocityFESpace->map()));
+            shp<MATRIXEPETRA> Nu(new MATRIXEPETRA(M_velocityFESpace->map()));
 
             integrate(elements(M_velocityFESpaceETA->mesh()),
                       M_velocityFESpace->qr(),
@@ -348,7 +349,7 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
 
             if (bcs)
             {
-                SHP(BlockMatrix) normWrap(new BlockMatrix(1,1));
+                shp<BlockMatrix> normWrap(new BlockMatrix(1,1));
                 normWrap->block(0,0)->data() = Nu;
 
                 // note. Applying bcs does not change the norm if Dirichlet bcs are
@@ -368,7 +369,7 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
     {
         // if (!M_massPressure.data())
         // {
-            SHP(MATRIXEPETRA) Np(new MATRIXEPETRA(M_pressureFESpace->map()));
+            shp<MATRIXEPETRA> Np(new MATRIXEPETRA(M_pressureFESpace->map()));
 
             integrate(elements(M_pressureFESpaceETA->mesh()),
                       M_pressureFESpace->qr(),
@@ -389,7 +390,7 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
     return retMat;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 StokesAssemblerFE::
 getConstraintMatrix()
 {
@@ -398,7 +399,7 @@ getConstraintMatrix()
 
 void
 StokesAssemblerFE::
-setMDEIMs(SHP(MDEIMManager) mdeimManager)
+setMDEIMs(shp<MDEIMManager> mdeimManager)
 {
    // std::string mdeimdir = this->M_data("rb/online/mdeim/directory", "mdeims");
    //     // std::string meshName = this->M_treeNode->M_block->getMeshName();
@@ -416,14 +417,14 @@ setMDEIMs(SHP(MDEIMManager) mdeimManager)
 
 void
 StokesAssemblerFE::
-setExtrapolatedSolution(const SHP(aVector)& exSol)
+setExtrapolatedSolution(const shp<aVector>& exSol)
 {
-    M_extrapolatedSolution->softCopy(exSol);
+    M_extrapolatedSolution->shallowCopy(exSol);
 }
 
 void
 StokesAssemblerFE::
-applyPiola(SHP(aVector) solution, bool inverse)
+applyPiola(shp<aVector> solution, bool inverse)
 {
     std::string msg = "[";
     msg += this->M_name;
@@ -465,7 +466,7 @@ applyPiola(SHP(aVector) solution, bool inverse)
 
         auto defVelocityFESpace = defAssembler->getFEspace(0);
 
-        auto velocity = std::static_pointer_cast<VECTOREPETRA>(solution->block(0)->data());
+        auto velocity = spcast<VECTOREPETRA>(convert<BlockVector>(solution)->block(0)->data());
 
         Epetra_Map epetraMap = velocity->epetraMap();
         unsigned int numElements = epetraMap.NumMyElements() / 3;

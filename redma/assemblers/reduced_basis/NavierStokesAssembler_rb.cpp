@@ -18,8 +18,8 @@ addConvectiveMatrixRightHandSide(const BlockVector<DenseVector>& sol,
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(MATRIXEPETRA)  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
-    SHP(VECTOREPETRA)  velocityRepeated;
+    shp<MATRIXEPETRA>  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<VECTOREPETRA>  velocityRepeated;
 
     velocityRepeated = M_bases->reconstructFEFunction(sol.block(0), 0, M_treeNode->M_ID);
 
@@ -66,8 +66,8 @@ addConvectiveTermJacobianRightHandSide(const BlockVector<DenseVector>& sol,
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(MATRIXEPETRA)  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
-    SHP(VECTOREPETRA)  velocityRepeated;
+    shp<MATRIXEPETRA>  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<VECTOREPETRA>  velocityRepeated;
 
     velocityRepeated = M_bases->reconstructFEFunction(sol.block(0), 0, M_treeNode->M_ID);
 
@@ -108,7 +108,7 @@ NavierStokesAssembler<DenseVector, DenseMatrix>::
 getMass(const double& time, const BlockVector<DenseVector>& sol)
 {
     BlockMatrix<DenseMatrix> retMat;
-    retMat.hardCopy(this->M_mass);
+    retMat.deepCopy(this->M_mass);
 
     return retMat;
 }
@@ -138,7 +138,7 @@ getMassJacobian(const double& time, const BlockVector<DenseVector>& sol)
 //
 //     this->addConvectiveMatrixRightHandSide(sol, systemMatrix);
 //
-//     retVec.softCopy(systemMatrix * sol);
+//     retVec.shallowCopy(systemMatrix * sol);
 //
 //     // this->addNeumannBCs(retVec, time, sol);
 //
@@ -167,11 +167,11 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
     systemMatrix += this->M_divergence;
     systemMatrix *= (-1.0);
 
-    retVec.softCopy(systemMatrix * sol);
+    retVec.shallowCopy(systemMatrix * sol);
 
     #if 0
-    SHP(VECTOREPETRA)  nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
-    SHP(VECTOREPETRA)  velocityReconstructed;
+    shp<VECTOREPETRA>  nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
+    shp<VECTOREPETRA>  velocityReconstructed;
 
     velocityReconstructed = M_bases->reconstructFEFunction(sol.block(0), 0);
 
@@ -188,7 +188,7 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
     }
     else
     {
-        SHP(VECTOREPETRA)  extrapolatedSolution;
+        shp<VECTOREPETRA>  extrapolatedSolution;
         extrapolatedSolution = M_bases->reconstructFEFunction(M_extrapolatedSolution.block(0), 0);
 
         integrate(elements(M_velocityFESpaceETA->mesh()),
@@ -212,7 +212,7 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
             throw new Exception("Stabilization is not supported with extrapolation");
         else
         {
-            SHP(VECTOREPETRA)  pressureReconstructed;
+            shp<VECTOREPETRA>  pressureReconstructed;
             pressureReconstructed = M_bases->reconstructFEFunction(sol.block(1), 1);
 
             BlockVector<VectorEp> zeroVec(2);
@@ -232,7 +232,7 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
                                     getFESpaceBCs(),
                                     getComponentBCs());
 
-    M_nonLinearTerm.softCopy(M_bases->leftProject(nonLinearTermWrap));
+    M_nonLinearTerm.shallowCopy(M_bases->leftProject(nonLinearTermWrap));
 
     setenv("PYTHONPATH",".",1);
 
@@ -276,8 +276,8 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
 
     if (!approximatenonlinearterm)
     {
-        SHP(VECTOREPETRA)  nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
-        SHP(VECTOREPETRA)  velocityReconstructed;
+        shp<VECTOREPETRA>  nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
+        shp<VECTOREPETRA>  velocityReconstructed;
 
         velocityReconstructed = M_bases->reconstructFEFunction(sol.block(0), 0, M_treeNode->M_ID);
 
@@ -294,7 +294,7 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
         }
         else
         {
-            SHP(VECTOREPETRA)  extrapolatedSolution;
+            shp<VECTOREPETRA>  extrapolatedSolution;
             extrapolatedSolution = M_bases->reconstructFEFunction(M_extrapolatedSolution.block(0), 0, M_treeNode->M_ID);
 
             integrate(elements(M_velocityFESpaceETA->mesh()),
@@ -318,7 +318,7 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
                 throw new Exception("Stabilization is not supported with extrapolation");
             else
             {
-                SHP(VECTOREPETRA)  pressureReconstructed;
+                shp<VECTOREPETRA>  pressureReconstructed;
                 pressureReconstructed = M_bases->reconstructFEFunction(sol.block(1), 1, M_treeNode->M_ID);
 
                 BlockVector<VectorEp> zeroVec(2);
@@ -338,7 +338,7 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
                                         getFESpaceBCs(),
                                         getComponentBCs());
 
-        M_nonLinearTerm.softCopy(M_bases->leftProject(nonLinearTermWrap, ID()));
+        M_nonLinearTerm.shallowCopy(M_bases->leftProject(nonLinearTermWrap, ID()));
     }
     else
     {
@@ -349,7 +349,7 @@ getRightHandSide(const double& time, const BlockVector<DenseVector>& sol)
             for (unsigned int j = 0; j < nterms; j++)
             {
                 BlockVector<DenseVector> currVec;
-                currVec.hardCopy(M_nonLinearTermsDecomposition[i][j]);
+                currVec.deepCopy(M_nonLinearTermsDecomposition[i][j]);
                 currVec *= sol.block(0).data()->operator()(i) *
                            sol.block(0).data()->operator()(j);
                 M_nonLinearTerm += currVec;
@@ -406,8 +406,8 @@ RBsetup()
         if (nterms == -1)
             nterms = velocityBasis.size();
 
-        SHP(MATRIXEPETRA) nonLinearMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
-        SHP(VECTOREPETRA) nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
+        shp<MATRIXEPETRA> nonLinearMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
+        shp<VECTOREPETRA> nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
 
         M_nonLinearTermsDecomposition.resize(nterms);
         for (unsigned int i = 0; i < nterms; i++)
@@ -436,7 +436,7 @@ RBsetup()
                 M_bcManager->apply0DirichletBCs(nonLinearTermWrap,
                                                 getFESpaceBCs(),
                                                 getComponentBCs());
-                M_nonLinearTermsDecomposition[i][j].softCopy(M_bases->leftProject(nonLinearTermWrap, ID()));
+                M_nonLinearTermsDecomposition[i][j].shallowCopy(M_bases->leftProject(nonLinearTermWrap, ID()));
             }
         }
 

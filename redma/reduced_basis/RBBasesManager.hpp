@@ -34,13 +34,13 @@ public:
 
     void loadBases();
 
-    SHP(RBBases) getRBBases(std::string meshName) {return M_bases[meshName];}
+    shp<RBBases> getRBBases(std::string meshName) {return M_bases[meshName];}
 
 private:
     EPETRACOMM                                      M_comm;
     DataContainer                                   M_data;
     std::map<unsigned int, std::string>             M_IDMeshMap;
-    std::map<std::string, SHP(RBBases)>             M_bases;
+    std::map<std::string, shp<RBBases>>             M_bases;
 };
 
 }  // namespace RedMA

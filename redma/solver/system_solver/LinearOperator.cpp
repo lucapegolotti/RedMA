@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 LinearOperator::
-LinearOperator(const BM& matrix, SHP(BlockMaps) maps) :
+LinearOperator(const BM& matrix, shp<BlockMaps> maps) :
   M_matrix(matrix),
   M_maps(maps)
 {
@@ -28,9 +28,9 @@ Apply(const super::vector_Type& X, super::vector_Type& Y) const
     {
         for (unsigned int j = 0; j < M_collapsedMatrix->nCols(); j++)
         {
-            if (!M_collapsedMatrix->block(i,j)->isZero())
+            if (!convert<BlockMatrix>(M_collapsedMatrix)->block(i,j)->isZero())
             {
-                auto curBlock = std::static_pointer_cast<MATRIXEPETRA>(M_collapsedMatrix->block(i,j)->data());
+                auto curBlock = spcast<MATRIXEPETRA>(convert<BlockMatrix>(M_collapsedMatrix)->block(i,j)->data());
                 // EPETRA_CHK_ERR(curBlock->matrixPtr()->SetUseTranspose(true));
                 // curBlock->spy("block" + std::to_string(i) + "_" + std::to_string(j));
                 // std::cout << M_domainMap[j]->mapSize() << std::endl << std::flush;

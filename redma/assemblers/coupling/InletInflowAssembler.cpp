@@ -13,8 +13,8 @@ InletInflowAssembler(const DataContainer& data,
 void
 InletInflowAssembler::
 addContributionJacobianRhs(const double& time,
-                           SHP(BlockMatrix) jac,
-                           SHP(BlockVector) sol,
+                           shp<BlockMatrix> jac,
+                           shp<BlockVector> sol,
                            const unsigned int& nPrimalBlocks)
 {
     unsigned int fatherID = this->M_interface.M_indexFather;
@@ -23,8 +23,8 @@ addContributionJacobianRhs(const double& time,
 
     // hard copy, otherwise we flip the sign of the matrices every time this
     // function is called
-    jac->setBlock(childID,  nPrimalBlocks + interfaceID,SHP(BlockMatrix)(this->M_childBT->clone()));
-    jac->setBlock(nPrimalBlocks + interfaceID,  childID,SHP(BlockMatrix)(this->M_childB->clone()));
+    jac->setBlock(childID,  nPrimalBlocks + interfaceID,shp<BlockMatrix>(this->M_childBT->clone()));
+    jac->setBlock(nPrimalBlocks + interfaceID,  childID,shp<BlockMatrix>(this->M_childB->clone()));
 
     jac->block(childID,  nPrimalBlocks + interfaceID)->multiplyByScalar(-1);
     jac->block(nPrimalBlocks + interfaceID,  childID)->multiplyByScalar(-1);
@@ -33,18 +33,18 @@ addContributionJacobianRhs(const double& time,
     // {
     //     jac.block(nPrimalBlocks + interfaceID,  childID) += (this->M_stabChild * (-1.0 * this->M_stabilizationCoupling));
     //
-    //     jac.block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID).hardCopy(this->M_identity * (-1.0 * this->M_stabilizationCoupling));
+    //     jac.block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID).deepCopy(this->M_identity * (-1.0 * this->M_stabilizationCoupling));
     // }
 }
 
 void
 InletInflowAssembler::
-addContributionRhs(const double& time, SHP(BlockVector) rhs, SHP(BlockVector) sol,
+addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> sol,
                    const unsigned int& nPrimalBlocks)
 {
     unsigned int childID = this->M_interface.M_indexChild;
     unsigned int interfaceID = this->M_interface.M_ID;
-    SHP(aAssembler) assemblerChild = this->M_interface.M_assemblerChild;
+    shp<aAssembler> assemblerChild = this->M_interface.M_assemblerChild;
 
     auto temp = this->M_childBT->multiplyByVector(sol->block(nPrimalBlocks + interfaceID));
     temp->multiplyByScalar(-1);

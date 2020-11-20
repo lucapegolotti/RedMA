@@ -29,11 +29,11 @@ public:
       aAssembler(datafile)
     {}
 
-    aAssemblerRB(const DataContainer& datafile, SHP(TreeNode) node) :
+    aAssemblerRB(const DataContainer& datafile, shp<TreeNode> node) :
       aAssembler(datafile, node)
     {}
 
-    virtual SHP(aVector) convertFunctionRBtoFEM(SHP(aVector) rbSolution) const = 0;
+    virtual shp<aVector> convertFunctionRBtoFEM(shp<aVector> rbSolution) const = 0;
 };
 
 }

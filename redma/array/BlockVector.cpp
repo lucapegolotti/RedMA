@@ -4,14 +4,12 @@ namespace RedMA
 {
 
 BlockVector::
-BlockVector() :
-  aVector(BLOCK)
+BlockVector()
 {
 }
 
 BlockVector::
-BlockVector(const BlockVector& other) :
-  aVector(BLOCK)
+BlockVector(const BlockVector& other)
 {
     resize(other.nRows());
 
@@ -23,8 +21,7 @@ BlockVector(const BlockVector& other) :
 
 
 BlockVector::
-BlockVector(const unsigned int& nRows) :
-  aVector(BLOCK)
+BlockVector(const unsigned int& nRows)
 {
     resize(nRows);
 }
@@ -40,10 +37,10 @@ findComm()
         if (block(i) && M_comm == nullptr)
         {
             if (block(i)->type() == BLOCK)
-                M_comm = std::static_pointer_cast<BlockVector>(block(i))->commPtr();
+                M_comm = convert<BlockVector>(block(i))->commPtr();
             else if (block(i)->type() == DISTRIBUTED)
             {
-                M_comm = std::static_pointer_cast<DistributedVector>(block(i))->commPtr();
+                M_comm = convert<DistributedVector>(block(i))->commPtr();
             }
         }
     }
@@ -59,7 +56,7 @@ globalTypeIs(Datatype type)
         {
             if (!block(i)->isZero() && block(i)->type() == BLOCK)
             {
-                if (!std::static_pointer_cast<BlockVector>(block(i))->globalTypeIs(type))
+                if (!convert<BlockVector>(block(i))->globalTypeIs(type))
                     return false;
             }
             else if (!block(i)->isZero() && block(i)->type() != type)
@@ -73,20 +70,20 @@ globalTypeIs(Datatype type)
 
 void
 BlockVector::
-copyPattern(std::shared_ptr<BlockVector> other, bool verbose)
+copyPattern(shp<BlockVector> other, bool verbose)
 {
     throw new Exception("This function does not work");
     for (unsigned int i = 0; i < nRows(); i++)
     {
         if (block(i)->type() == BLOCK)
         {
-            std::static_pointer_cast<BlockVector>(block(i))->copyPattern(std::static_pointer_cast<BlockVector>(other->block(i)),false);
+            convert<BlockVector>(block(i))->copyPattern(convert<BlockVector>(other->block(i)),false);
         }
         else if (block(i)->type() != other->block(i)->type())
         {
             if (other->block(i)->type() == DENSE && block(i)->type() == DISTRIBUTED)
             {
-                setBlock(i,std::static_pointer_cast<DistributedVector>(block(i))->toDenseVectorPtr());
+                setBlock(i,convert<DistributedVector>(block(i))->toDenseVectorPtr());
             }
             else
                 throw new Exception("copyPattern: case not implemented");
@@ -94,9 +91,9 @@ copyPattern(std::shared_ptr<BlockVector> other, bool verbose)
     }
 }
 
-std::shared_ptr<BlockVector>
+shp<BlockVector>
 BlockVector::
-convertInnerTo(Datatype type, std::shared_ptr<Epetra_Comm> comm)
+convertInnerTo(Datatype type, shp<Epetra_Comm> comm)
 {
     if (type != DISTRIBUTED)
         throw new Exception("convertInnerTo implemented only for distributed output");
@@ -119,13 +116,13 @@ convertInnerTo(Datatype type, std::shared_ptr<Epetra_Comm> comm)
         {
             if (!block(i)->isZero() && block(i)->type() == BLOCK)
             {
-                retVec->setBlock(i,std::static_pointer_cast<BlockVector>(block(i))->convertInnerTo(type,comm));
+                retVec->setBlock(i,spcast<BlockVector>(block(i))->convertInnerTo(type,comm));
             }
             else if (!block(i)->isZero() && block(i)->type() != type)
             {
                 if (block(i)->type() != DENSE)
                     throw new Exception("All inner vectors which are not sparse must be dense!");
-                retVec->setBlock(i,DistributedVector::convertDenseVector(std::static_pointer_cast<DenseVector>(block(i)),comm));
+                retVec->setBlock(i,DistributedVector::convertDenseVector(spcast<DenseVector>(block(i)),comm));
             }
         }
     }
@@ -153,10 +150,10 @@ add(std::shared_ptr<aVector> other)
 
     if (nRows() == 0)
     {
-        hardCopy(other);
+        deepCopy(other);
         return;
     }
-    std::shared_ptr<BlockVector> otherVector = std::static_pointer_cast<BlockVector>(other);
+    std::shared_ptr<BlockVector> otherVector = convert<BlockVector>(other);
 
     if (nRows() != other->nRows())
         throw new Exception("BlockVector: inconsistent dimensions in add!");
@@ -172,10 +169,11 @@ add(std::shared_ptr<aVector> other)
         }
         else
             if (otherVector->block(i))
-                setBlock(i,std::shared_ptr<aVector>(otherVector->block(i)->cloneVector()));
+            {
+                shp<aDataWrapper> blck(otherVector->block(i)->clone());
+                setBlock(i,spcast<aVector>(blck));
+            }
     }
-
-    updateNormInf();
 }
 
 void
@@ -185,8 +183,6 @@ multiplyByScalar(const double& coeff)
     for (unsigned int i = 0; i < nRows(); i++)
     if (block(i))
         block(i)->multiplyByScalar(coeff);
-
-    updateNormInf();
 }
 
 void
@@ -198,65 +194,58 @@ dump(std::string namefile) const
 
 void
 BlockVector::
-softCopy(std::shared_ptr<aVector> other)
+shallowCopy(std::shared_ptr<aDataWrapper> other)
 {
     if (other)
     {
-        checkType(other, BLOCK);
-        auto otherVector = dynamic_cast<BlockVector*>(other.get());
+        auto otherVector = convert<BlockVector>(other);
 
-        resize(other->nRows());
+        resize(otherVector->nRows());
 
         for (unsigned int i = 0; i < nRows(); i++)
-            M_vectorGrid(i,0)->softCopy(otherVector->block(i));
+            M_vectorGrid(i,0)->shallowCopy(otherVector->block(i));
 
-        // M_isOpen = otherVector->isOpen();
-        M_normInf = otherVector->normInf();
     }
 }
 
 void
 BlockVector::
-hardCopy(std::shared_ptr<aVector> other)
+deepCopy(shp<aDataWrapper> other)
 {
     if (other)
     {
-        checkType(other, BLOCK);
-        std::shared_ptr<BlockVector> otherVector = std::static_pointer_cast<BlockVector>(other);
+        shp<BlockVector> otherVector = spcast<BlockVector>(other);
 
-        resize(other->nRows());
+        resize(otherVector->nRows());
 
         for (unsigned int i = 0; i < nRows(); i++)
         {
             if (otherVector->block(i))
-                M_vectorGrid(i,0).reset(otherVector->block(i)->cloneVector());
+                M_vectorGrid(i,0).reset(static_cast<aVector*>(otherVector->block(i)->clone()));
         }
-
-        // M_isOpen = otherVector->isOpen();
-        M_normInf = otherVector->normInf();
     }
 }
 
-aVector*
+BlockVector*
 BlockVector::
-cloneVector() const
+clone() const
 {
     BlockVector* retVector = new BlockVector(nRows());
     for (unsigned int i = 0; i < nRows(); i++)
-        retVector->setBlock(i,std::shared_ptr<aVector>(block(i)->cloneVector()));
+        retVector->setBlock(i,shp<aVector>(static_cast<aVector*>(block(i)->clone())));
     return retVector;
 }
 
 bool
 BlockVector::
-isZero()
+isZero() const
 {
     for (unsigned int i = 0; i < nRows(); i++)
     {
         if (block(i) && !block(i)->isZero())
             return false;
     }
-    return M_normInf < ZEROTHRESHOLD;
+    return true;
 }
 
 std::string
@@ -266,18 +255,18 @@ getString(const char& delimiter) const
     throw new Exception("GetString not implement for BlockVector!");
 }
 
-std::shared_ptr<aVector>
+shp<aVector>
 BlockVector::
 block(const unsigned int& iblock) const
 {
     return M_vectorGrid(iblock,0);
 }
 
-std::shared_ptr<BlockVector>
+shp<BlockVector>
 BlockVector::
 getSubvector(const unsigned int& ibegin, const unsigned int& iend) const
 {
-    std::shared_ptr<BlockVector> retVector(new BlockVector());
+    shp<BlockVector> retVector(new BlockVector());
 
     unsigned int nrows = iend-ibegin+1;
     retVector->resize(iend-ibegin+1);
@@ -290,10 +279,9 @@ getSubvector(const unsigned int& ibegin, const unsigned int& iend) const
 
 void
 BlockVector::
-setBlock(const unsigned int& iblock, std::shared_ptr<aVector> vector)
+setBlock(const unsigned int& iblock, shp<aVector> vector)
 {
     M_vectorGrid(iblock,0) = vector;
-    updateNormInf();
 }
 
 double
@@ -312,17 +300,6 @@ norm2() const
     }
 
     return sqrt(ret);
-}
-
-void
-BlockVector::
-updateNormInf()
-{
-    for (unsigned int i = 0; i < nRows(); i++)
-    {
-        if (block(i))
-            M_normInf = M_normInf < block(i)->normInf() ? block(i)->normInf() : M_normInf;
-    }
 }
 
 }

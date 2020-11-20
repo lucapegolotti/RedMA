@@ -6,7 +6,7 @@ namespace RedMA
 template <>
 std::vector<DenseVector>
 InterfaceAssembler<DenseVector, DenseMatrix>::
-buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
+buildStabilizationVectorsVelocity(shp<BasisFunctionFunctor> bfs,
                                   const GeometricFace& face,
                                   SHP(aAssembler<DenseVector COMMA DenseMatrix>) assembler) const
 {
@@ -20,7 +20,7 @@ buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
 template <>
 std::vector<DenseVector>
 InterfaceAssembler<DenseVector, DenseMatrix>::
-buildStabilizationVectorsPressure(SHP(BasisFunctionFunctor) bfs,
+buildStabilizationVectorsPressure(shp<BasisFunctionFunctor> bfs,
                                   const GeometricFace& face,
                                   SHP(aAssembler<DenseVector COMMA DenseMatrix>) assembler) const
 {
@@ -47,7 +47,7 @@ buildStabilizationVectorsLagrange() const
 template <>
 void
 InterfaceAssembler<DenseVector, DenseMatrix>::
-buildStabilizationMatrix(SHP(AssemblerType) assembler,
+buildStabilizationMatrix(shp<AssemblerType> assembler,
                          const GeometricFace& face,
                          BlockMatrix<DenseMatrix>& matrix)
 {

@@ -41,73 +41,73 @@ public:
 
     aAssembler(const DataContainer& datafile);
 
-    aAssembler(const DataContainer& datafile, SHP(TreeNode) node);
+    aAssembler(const DataContainer& datafile, shp<TreeNode> node);
 
-    inline SHP(BCManager) getBCManager() const {return M_bcManager;}
+    inline shp<BCManager> getBCManager() const {return M_bcManager;}
 
     virtual void setup() = 0;
 
     virtual void exportSolution(const double& t,
-                                const SHP(aVector)& sol) = 0;
+                                const shp<aVector>& sol) = 0;
 
     virtual void postProcess(const double& t,
-                             const SHP(aVector)& sol) = 0;
+                             const shp<aVector>& sol) = 0;
 
-    virtual SHP(aMatrix) getMass(const double& time,
-                                const SHP(aVector)& sol) = 0;
+    virtual shp<aMatrix> getMass(const double& time,
+                                const shp<aVector>& sol) = 0;
 
-    virtual SHP(aMatrix) getMassJacobian(const double& time,
-                                         const SHP(aVector)& sol) = 0;
+    virtual shp<aMatrix> getMassJacobian(const double& time,
+                                         const shp<aVector>& sol) = 0;
 
-    virtual SHP(aVector) getRightHandSide(const double& time,
-                                          const SHP(aVector)& sol) = 0;
+    virtual shp<aVector> getRightHandSide(const double& time,
+                                          const shp<aVector>& sol) = 0;
 
-    virtual SHP(aMatrix) getJacobianRightHandSide(const double& time,
-                                                      const SHP(aVector)& sol) = 0;
+    virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
+                                                      const shp<aVector>& sol) = 0;
 
-    virtual SHP(aVector) getLifting(const double& time) const = 0;
+    virtual shp<aVector> getLifting(const double& time) const = 0;
 
-    virtual SHP(aVector) getZeroVector() const = 0;
+    virtual shp<aVector> getZeroVector() const = 0;
 
     virtual void setExporter() = 0;
 
-    virtual void apply0DirichletBCsMatrix(SHP(aMatrix) matrix, double diagCoeff) const = 0;
+    virtual void apply0DirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const = 0;
 
-    virtual void apply0DirichletBCs(SHP(aVector) vector) const = 0;
+    virtual void apply0DirichletBCs(shp<aVector> vector) const = 0;
 
-    virtual void applyDirichletBCs(const double& time, SHP(aVector) vector) const = 0;
+    virtual void applyDirichletBCs(const double& time, shp<aVector> vector) const = 0;
 
-    virtual SHP(FESPACE) getFEspace(unsigned int index) const {return nullptr;}
+    virtual shp<FESPACE> getFEspace(unsigned int index) const {return nullptr;}
 
-    virtual void applyPiola(SHP(aVector) solution, bool inverse) = 0;
+    virtual void applyPiola(shp<aVector> solution, bool inverse) = 0;
 
     // this must be implemented by the inner assemblers
-    virtual inline SHP(FESPACE) getFESpaceBCs() const {return nullptr;}
+    virtual inline shp<FESPACE> getFESpaceBCs() const {return nullptr;}
 
     virtual inline unsigned int getComponentBCs() const {return 0;}
 
-    virtual inline SHP(TreeNode) getTreeNode() const {return M_treeNode;}
+    virtual inline shp<TreeNode> getTreeNode() const {return M_treeNode;}
 
     virtual inline unsigned int getNumComponents() const {return M_nComponents;}
 
     virtual inline EPETRACOMM getComm() const {return M_comm;}
 
-    virtual inline SHP(ETFESPACE3) getETFESpaceCoupling() const {return nullptr;}
+    virtual inline shp<ETFESPACE3> getETFESpaceCoupling() const {return nullptr;}
 
-    virtual inline SHP(ETFESPACE1) getETFESpaceSecondary() const {return nullptr;}
+    virtual inline shp<ETFESPACE1> getETFESpaceSecondary() const {return nullptr;}
 
-    virtual std::vector<SHP(aMatrix)> getMatrices() const {return std::vector<SHP(aMatrix)>();}
+    virtual std::vector<shp<aMatrix>> getMatrices() const {return std::vector<shp<aMatrix>>();}
 
-    virtual SHP(aMatrix) assembleMatrix(const unsigned int& index,
-                                       BlockMDEIMStructure* structure = nullptr) {return SHP(aMatrix)();}
+    virtual shp<aMatrix> assembleMatrix(const unsigned int& index,
+                                       BlockMDEIMStructure* structure = nullptr) {return shp<aMatrix>();}
 
-    virtual void setMDEIMs(SHP(MDEIMManager) mdeimManager) {}
+    virtual void setMDEIMs(shp<MDEIMManager> mdeimManager) {}
 
-    virtual SHP(aVector) getNonLinearTerm() {};
+    virtual shp<aVector> getNonLinearTerm() {};
 
     virtual void initializeFEspaces() {};
 
-    virtual void setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers)
+    virtual void setDefaultAssemblers(shp<DefaultAssemblers> defAssemblers)
     {
         M_defaultAssemblers = defAssemblers;
     };
@@ -116,18 +116,18 @@ public:
 
     virtual void RBsetup() {}
 
-    virtual SHP(RBBases) getRBBases() const {return nullptr;}
+    virtual shp<RBBases> getRBBases() const {return nullptr;}
 
-    virtual void setRBBases(SHP(RBBasesManager) rbManager) {}
+    virtual void setRBBases(shp<RBBasesManager> rbManager) {}
 
 protected:
     DataContainer                           M_data;
-    SHP(TreeNode)                           M_treeNode;
-    SHP(BCManager)                          M_bcManager;
+    shp<TreeNode>                           M_treeNode;
+    shp<BCManager>                          M_bcManager;
     unsigned int                            M_nComponents;
     EPETRACOMM                              M_comm;
     std::string                             M_name;
-    SHP(DefaultAssemblers)                  M_defaultAssemblers;
+    shp<DefaultAssemblers>                  M_defaultAssemblers;
 };
 
 }

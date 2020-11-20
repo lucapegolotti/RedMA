@@ -42,12 +42,12 @@ class Interface
 public:
     Interface ();
 
-    Interface(SHP(AssemblerType) assemblerFather, const int& indexFather,
-              SHP(AssemblerType) assemblerChild, const int& indexChild,
+    Interface(shp<AssemblerType> assemblerFather, const int& indexFather,
+              shp<AssemblerType> assemblerChild, const int& indexChild,
               const unsigned int& interfaceID);
 
-    SHP(AssemblerType)      M_assemblerFather;
-    SHP(AssemblerType)      M_assemblerChild;
+    shp<AssemblerType>      M_assemblerFather;
+    shp<AssemblerType>      M_assemblerChild;
     int                     M_indexFather;
     int                     M_indexChild;
     unsigned int            M_ID;
@@ -71,75 +71,75 @@ public:
 
     void buildCouplingMatrices();
 
-    void buildCouplingMatrices(SHP(AssemblerType) assembler,
+    void buildCouplingMatrices(shp<AssemblerType> assembler,
                                const GeometricFace& face,
-                               SHP(BlockMatrix) matrixT,
-                               SHP(BlockMatrix) matrix);
+                               shp<BlockMatrix> matrixT,
+                               shp<BlockMatrix> matrix);
 
-    void buildStabilizationMatrix(SHP(AssemblerType) assembler,
+    void buildStabilizationMatrix(shp<AssemblerType> assembler,
                                   const GeometricFace& face,
-                                  SHP(BlockMatrix) matrix);
+                                  shp<BlockMatrix> matrix);
 
-    void buildMapLagrange(SHP(BasisFunctionFunctor) bfs);
+    void buildMapLagrange(shp<BasisFunctionFunctor> bfs);
 
     virtual void addContributionRhs(const double& time,
-                                    SHP(BlockVector) rhs,
-                                    SHP(BlockVector) sol,
+                                    shp<BlockVector> rhs,
+                                    shp<BlockVector> sol,
                                     const unsigned int& nPrimalBlocks);
 
     virtual void addContributionJacobianRhs(const double& time,
-                                            SHP(BlockMatrix) jac,
-                                            SHP(BlockVector) sol,
+                                            shp<BlockMatrix> jac,
+                                            shp<BlockVector> sol,
                                             const unsigned int& nPrimalBlocks);
 
     inline Interface getInterface() const {return M_interface;};
 
-    SHP(BlockVector) getZeroVector() const;
+    shp<BlockVector> getZeroVector() const;
 
-    double checkStabilizationTerm(const SHP(BlockVector)& sol,
+    double checkStabilizationTerm(const shp<BlockVector>& sol,
                                   const unsigned int& nPrimalBlocks);
 
-    inline SHP(BlockMatrix) getFatherBT() const {return M_fatherBT;}
+    inline shp<BlockMatrix> getFatherBT() const {return M_fatherBT;}
 
-    inline SHP(BlockMatrix) getFatherB() const {return M_fatherB;}
+    inline shp<BlockMatrix> getFatherB() const {return M_fatherB;}
 
-    inline SHP(BlockMatrix) getChildBT() const {return M_childBT;}
+    inline shp<BlockMatrix> getChildBT() const {return M_childBT;}
 
-    inline SHP(BlockMatrix) getChildB() const {return M_childB;}
+    inline shp<BlockMatrix> getChildB() const {return M_childB;}
 
 protected:
-    SHP(LifeV::QuadratureRule) generateQuadratureRule(std::string tag) const;
+    shp<LifeV::QuadratureRule> generateQuadratureRule(std::string tag) const;
 
-    std::vector<SHP(DistributedVector)> buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
+    std::vector<shp<DistributedVector>> buildCouplingVectors(shp<BasisFunctionFunctor> bfs,
                                                              const GeometricFace& face,
-                                                             SHP(aAssembler) assembler) const;
+                                                             shp<aAssembler> assembler) const;
 
-    std::vector<SHP(DistributedVector)> buildStabilizationVectorsVelocity(SHP(BasisFunctionFunctor) bfs,
+    std::vector<shp<DistributedVector>> buildStabilizationVectorsVelocity(shp<BasisFunctionFunctor> bfs,
                                                                           const GeometricFace& face,
-                                                                          SHP(aAssembler) assembler) const;
+                                                                          shp<aAssembler> assembler) const;
 
-    std::vector<SHP(DistributedVector)> buildStabilizationVectorsPressure(SHP(BasisFunctionFunctor) bfs,
+    std::vector<shp<DistributedVector>> buildStabilizationVectorsPressure(shp<BasisFunctionFunctor> bfs,
                                                                           const GeometricFace& face,
-                                                                          SHP(aAssembler) assembler) const;
+                                                                          shp<aAssembler> assembler) const;
 
-    std::vector<SHP(DistributedVector)> buildStabilizationVectorsLagrange() const;
+    std::vector<shp<DistributedVector>> buildStabilizationVectorsLagrange() const;
 
     Interface                              M_interface;
-    SHP(BlockMatrix)                       M_identity;
-    SHP(BlockMatrix)                       M_fatherBT;
-    SHP(BlockMatrix)                       M_fatherB;
-    SHP(BlockMatrix)                       M_childBT;
-    SHP(BlockMatrix)                       M_childB;
-    // SHP(BlockMatrix)                       M_fatherBTreduced;
-    // SHP(BlockMatrix)                       M_fatherBreduced;
-    SHP(BlockMatrix)                       M_childBTfe;
-    SHP(BlockMatrix)                       M_childBfe;
+    shp<BlockMatrix>                       M_identity;
+    shp<BlockMatrix>                       M_fatherBT;
+    shp<BlockMatrix>                       M_fatherB;
+    shp<BlockMatrix>                       M_childBT;
+    shp<BlockMatrix>                       M_childB;
+    // shp<BlockMatrix)                       M_fatherBTreduced;
+    // shp<BlockMatrix)                       M_fatherBreduced;
+    shp<BlockMatrix>                       M_childBTfe;
+    shp<BlockMatrix>                       M_childBfe;
     // this is required in the RB setting to impose weakly dirichlet conditions
-    SHP(BlockMatrix)                       M_childBEp;
-    SHP(BlockMatrix)                       M_stabChild;
-    SHP(BlockMatrix)                       M_stabFather;
+    shp<BlockMatrix>                       M_childBEp;
+    shp<BlockMatrix>                       M_stabChild;
+    shp<BlockMatrix>                       M_stabFather;
     DataContainer                          M_data;
-    SHP(const LifeV::MapEpetra)            M_mapLagrange;
+    shp<const LifeV::MapEpetra>            M_mapLagrange;
     double                                 M_stabilizationCoupling;
     bool                                   M_isInlet;
 };

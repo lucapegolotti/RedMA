@@ -14,33 +14,42 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef aASSEMBLERFE_HPP
-#define aASSEMBLERFE_HPP
+#ifndef aDATAWRAPPER_HPP
+#define aDATAWRAPPER_HPP
 
-#include <redma/assemblers/abstract/aAssembler.hpp>
+#include <redma/RedMA.hpp>
+#include <redma/array/Datatypes.hpp>
+#include <redma/utils/Exception.hpp>
+#include <redma/array/TypesUtils.hpp>
+
+#include <memory>
 
 namespace RedMA
 {
 
-class aAssemblerFE : public aAssembler
+class aDataWrapper
 {
 public:
-    aAssemblerFE(const DataContainer& datafile) :
-      aAssembler(datafile)
-    {}
 
-    aAssemblerFE(const DataContainer& datafile, shp<TreeNode> node) :
-      aAssembler(datafile, node)
-    {}
+    virtual ~aDataWrapper() {}
 
-    virtual shp<aMatrix> getNorm(const unsigned int& fieldIndex, bool bcs = true) {return shp<SparseMatrix>();}
+    virtual Datatype type() const = 0;
 
-    virtual shp<aMatrix> getConstraintMatrix() {return shp<SparseMatrix>();}
+    virtual shp<void> data() const = 0;
 
-    virtual shp<aVector> getFELifting(const double& time) const = 0;
+    virtual void setData(shp<void> data) = 0;
 
+    virtual bool isZero() const = 0;
+
+    virtual aDataWrapper* clone() const = 0;
+
+    virtual void shallowCopy(shp<aDataWrapper> other) = 0;
+
+    virtual void deepCopy(shp<aDataWrapper> other) = 0;
+
+    virtual void dump(std::string namefile) const = 0;
 };
 
 }
 
-#endif // aASSEMBLERFE_HPP
+#endif // aDATAWRAPPER_HPP

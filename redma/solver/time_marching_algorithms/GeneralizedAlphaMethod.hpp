@@ -41,26 +41,25 @@ public:
 
     GeneralizedAlphaMethod(const DataContainer& data);
 
-    GeneralizedAlphaMethod(const DataContainer& data, SHP(FunProvider) funProvider);
+    GeneralizedAlphaMethod(const DataContainer& data, shp<FunProvider> funProvider);
 
-    virtual void setup(const SHP(aVector)& zeroVector) override;
+    virtual void setup(const shp<aVector>& zeroVector) override;
 
-    virtual SHP(aVector) advance(const double& time, double& dt, int& status) override;
+    virtual shp<aVector> advance(const double& time, double& dt, int& status) override;
 
-    virtual SHP(aVector) computeDerivative(const SHP(aVector)& solnp1, double& dt) override;
+    virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1, double& dt) override;
 
-    virtual void shiftSolutions(const SHP(aVector)& sol) override;
+    virtual void shiftSolutions(const shp<aVector>& sol) override;
 
 protected:
-    SHP(aVector) computesolnp1(SHP(aVector) dersol, const double& dt);
+    shp<aVector> computesolnp1(shp<aVector> dersol, const double& dt);
 
-    SHP(aVector) computesolnpalphaf(SHP(aVector) solnp1);
+    shp<aVector> computesolnpalphaf(shp<aVector> solnp1);
 
-    SHP(aVector) computedersolnpalpham(SHP(aVector) dersol);
+    shp<aVector> computedersolnpalpham(shp<aVector> dersol);
 
-
-    SHP(aVector)                            M_prevSolution;
-    SHP(aVector)                            M_prevDerivative;
+    shp<aVector>                           M_prevSolution;
+    shp<aVector>                           M_prevDerivative;
     unsigned int                           M_order;
     double                                 M_alpham;
     double                                 M_alphaf;

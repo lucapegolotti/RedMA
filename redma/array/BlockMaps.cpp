@@ -5,14 +5,14 @@ namespace RedMA
 
 void
 BlockMaps::
-updateCollapsedMatrix(SHP(BlockMatrix) matrix)
+updateCollapsedMatrix(shp<BlockMatrix> matrix)
 {
     M_collapsedMatrix = collapseBlocks(matrix, M_dimensionsRowsBlock, M_dimensionsColsBlock);
 }
 
 void
 BlockMaps::
-createFromBlockMatrix(SHP(BlockMatrix) matrix)
+createFromBlockMatrix(shp<BlockMatrix> matrix)
 {
     if (matrix->level() >= 2)
         updateCollapsedMatrix(matrix);
@@ -31,7 +31,7 @@ createFromBlockMatrix(SHP(BlockMatrix) matrix)
         {
             if (matrix->block(i,j)->type() == SPARSE)
             {
-                SHP(MATRIXEPETRA) curMatrix = std::static_pointer_cast<MATRIXEPETRA>(matrix->block(i,j)->data());
+                shp<MATRIXEPETRA> curMatrix = std::static_pointer_cast<MATRIXEPETRA>(matrix->block(i,j)->data());
                 if (curMatrix)
                 {
                     M_rangeEpetraMaps[i] = curMatrix->rangeMap().map(LifeV::Unique);
@@ -65,8 +65,8 @@ createFromBlockMatrix(SHP(BlockMatrix) matrix)
 }
 
 
-SHP(BlockMatrix)
-collapseBlocks(SHP(BlockMatrix) matrix,
+shp<BlockMatrix>
+collapseBlocks(shp<BlockMatrix> matrix,
                std::vector<unsigned int>& dimensionsRowsBlock,
                std::vector<unsigned int>& dimensionsColsBlock)
 {
@@ -127,12 +127,12 @@ collapseBlocks(SHP(BlockMatrix) matrix,
         }
 
 
-        SHP(BlockMatrix) retMat(new BlockMatrix(totalrows,totalcols));
+        shp<BlockMatrix> retMat(new BlockMatrix(totalrows,totalcols));
         for (unsigned int i = 0; i < totalrows; i++)
         {
             for (unsigned int j = 0; j < totalcols; j++)
             {
-                SHP(aMatrix) newBlock;
+                shp<aMatrix> newBlock;
 
                 unsigned int indexrow = 0;
                 while (cumulativeRows[indexrow] < i + 1)
@@ -150,7 +150,7 @@ collapseBlocks(SHP(BlockMatrix) matrix,
                 {
                     unsigned int localrow = (indexrow == 0) ? i : i - cumulativeRows[indexrow-1];
                     unsigned int localcol = (indexcol == 0) ? j : j - cumulativeCols[indexcol-1];
-                    newBlock = matrix->block(indexrow,indexcol)->block(localrow, localcol);
+                    newBlock = convert<BlockMatrix>(matrix->block(indexrow,indexcol))->block(localrow, localcol);
                 }
                 retMat->setBlock(i,j,newBlock);
             }
@@ -166,8 +166,8 @@ collapseBlocks(SHP(BlockMatrix) matrix,
     return nullptr;
 }
 
-SHP(SparseMatrix)
-blockMatrixToSparseMatrix(SHP(BlockMatrix) matrix)
+shp<SparseMatrix>
+blockMatrixToSparseMatrix(shp<BlockMatrix> matrix)
 {
     using namespace LifeV::MatrixEpetraStructuredUtility;
 
@@ -175,7 +175,7 @@ blockMatrixToSparseMatrix(SHP(BlockMatrix) matrix)
 
     matrix = maps.M_collapsedMatrix;
 
-    SHP(MATRIXEPETRA) ptrMatrix(new MATRIXEPETRA(*maps.M_monolithicRangeMap));
+    shp<MATRIXEPETRA> ptrMatrix(new MATRIXEPETRA(*maps.M_monolithicRangeMap));
     //
     // std::vector<unsigned int> dimensionsRows;
     // std::vector<unsigned int> dimensionsCols;
@@ -194,7 +194,7 @@ blockMatrixToSparseMatrix(SHP(BlockMatrix) matrix)
     {
         for (unsigned int j = 0; j < matrix->nCols(); j++)
         {
-            SHP(LifeV::MatrixEpetraStructuredView<double>) globalView;
+            shp<LifeV::MatrixEpetraStructuredView<double>> globalView;
             globalView = createBlockView(ptrMatrix, structure, i, j);
 
             LifeV::MatrixBlockStructure blockStructure;
@@ -203,7 +203,7 @@ blockMatrixToSparseMatrix(SHP(BlockMatrix) matrix)
             cols[0] = maps.M_dimensionsCols[j];
             blockStructure.setBlockStructure(rows, cols);
 
-            SHP(LifeV::MatrixEpetraStructuredView<double>) blockLocalView;
+            shp<LifeV::MatrixEpetraStructuredView<double>> blockLocalView;
             if (!matrix->block(i,j)->isZero())
             {
                 blockLocalView = createBlockView(std::static_pointer_cast<MATRIXEPETRA>(matrix->block(i,j)->data()),
@@ -214,32 +214,32 @@ blockMatrixToSparseMatrix(SHP(BlockMatrix) matrix)
     }
     ptrMatrix->globalAssemble(maps.M_monolithicDomainMap, maps.M_monolithicRangeMap);
 
-    SHP(SparseMatrix) retMatrix(new SparseMatrix());
+    shp<SparseMatrix> retMatrix(new SparseMatrix());
     retMatrix->setMatrix(ptrMatrix);
 
     return retMatrix;
 }
 
-SHP(aVector)
-getBlockVector(const SHP(VECTOREPETRA)& vector, const BlockMaps& maps)
+shp<aVector>
+getBlockVector(const shp<VECTOREPETRA>& vector, const BlockMaps& maps)
 {
     std::vector<unsigned int> rows = maps.M_dimensionsRowsBlock;
     auto rangeMaps = maps.M_rangeMaps;
 
-    SHP(BlockVector) retVec(new BlockVector(rows.size()));
+    shp<BlockVector> retVec(new BlockVector(rows.size()));
 
     unsigned int count = 0;
     unsigned int offset = 0;
     for (unsigned int iouter = 0; iouter < rows.size(); iouter++)
     {
-        SHP(BlockVector) curBlock(new BlockVector(rows[iouter]));
+        shp<BlockVector> curBlock(new BlockVector(rows[iouter]));
         for (unsigned int iinner = 0; iinner < rows[iouter]; iinner++)
         {
-            SHP(VECTOREPETRA) innerBlockPtr(new VECTOREPETRA(rangeMaps[count], LifeV::Unique));
+            shp<VECTOREPETRA> innerBlockPtr(new VECTOREPETRA(rangeMaps[count], LifeV::Unique));
             innerBlockPtr->subset(*vector, *rangeMaps[count], offset, 0);
             offset += rangeMaps[count]->mapSize();
             count++;
-            SHP(DistributedVector) distrVector(new DistributedVector());
+            shp<DistributedVector> distrVector(new DistributedVector());
             distrVector->setVector(innerBlockPtr);
             curBlock->setBlock(iinner, distrVector);
         }
@@ -249,13 +249,15 @@ getBlockVector(const SHP(VECTOREPETRA)& vector, const BlockMaps& maps)
     return retVec;
 }
 
-SHP(VECTOREPETRA)
-getEpetraVector(const SHP(aVector)& vector, const BlockMaps& maps)
+shp<VECTOREPETRA>
+getEpetraVector(const shp<aVector>& vector, const BlockMaps& maps)
 {
-    SHP(VECTOREPETRA) retVec(new VECTOREPETRA(maps.M_monolithicRangeMap,
+    shp<VECTOREPETRA> retVec(new VECTOREPETRA(maps.M_monolithicRangeMap,
                                               LifeV::Unique));
     auto rangeMaps = maps.M_rangeMaps;
     auto rows = maps.M_dimensionsRowsBlock;
+
+    shp<BlockVector> blckVector = convert<BlockVector>(vector);
 
     unsigned int count = 0;
     unsigned int offset = 0;
@@ -263,8 +265,8 @@ getEpetraVector(const SHP(aVector)& vector, const BlockMaps& maps)
     // blocks in the input vector are filled
     for (unsigned int iouter = 0; iouter < vector->nRows(); iouter++)
     {
-        auto curblock = vector->block(iouter);
-        unsigned int currows = vector->block(iouter)->nRows();
+        auto curblock = convert<BlockVector>(blckVector->block(iouter));
+        unsigned int currows = blckVector->block(iouter)->nRows();
 
         if (curblock->nRows() == 0 || curblock->isZero())
         {
@@ -280,7 +282,7 @@ getEpetraVector(const SHP(aVector)& vector, const BlockMaps& maps)
             {
                 if (curblock->block(iinner)->data())
                 {
-                    SHP(VECTOREPETRA) localVector;
+                    shp<VECTOREPETRA> localVector;
                     if (curblock->block(iinner)->type() == DENSE)
                     {
                         localVector = std::static_pointer_cast<DenseVector>(curblock->block(iinner))->toVectorEpetraPtr(rangeMaps[count]->commPtr());

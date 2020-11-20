@@ -31,13 +31,13 @@
 namespace RedMA
 {
 
-SHP(aTimeMarchingAlgorithm)
+shp<aTimeMarchingAlgorithm>
 TimeMarchingAlgorithmFactory(const DataContainer& data);
 
 
-SHP(aTimeMarchingAlgorithm)
+shp<aTimeMarchingAlgorithm>
 TimeMarchingAlgorithmFactory(const DataContainer& data,
-                             SHP(aFunctionProvider) funProvider);
+                             shp<aFunctionProvider> funProvider);
 
 }
 

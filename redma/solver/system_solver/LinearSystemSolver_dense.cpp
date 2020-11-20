@@ -69,8 +69,8 @@ computeSchurComplementDense(const BM& matrix)
                 for (unsigned int jj = 0; jj < curcols; jj++)
                 {
                     // select colum vector
-                    SHP(DENSEVECTOR) curVector(new DENSEVECTOR(currows));
-                    SHP(DENSEVECTOR) resVector(new DENSEVECTOR(currows));
+                    shp<DENSEVECTOR> curVector(new DENSEVECTOR(currows));
+                    shp<DENSEVECTOR> resVector(new DENSEVECTOR(currows));
 
                     for (unsigned int ii = 0 ; ii < currows; ii++)
                         (*curVector)(ii) = (*BTcollapsed.data())(ii,jj);
@@ -110,7 +110,7 @@ computeSchurComplementDense(const BM& matrix)
     Am1BT.finalize();
 
     BM schurComplement;
-    schurComplement.softCopy(B * Am1BT);
+    schurComplement.shallowCopy(B * Am1BT);
     schurComplement *= (-1.0);
     schurComplement += C;
 
@@ -182,7 +182,7 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         for (unsigned int i = 0; i < nPrimal; i++)
         {
             DenseVector collapsedRui = rhsU.block(i).collapse();
-            SHP(DENSEVECTOR) sol(new DENSEVECTOR(collapsedRui.getNumRows()));
+            shp<DENSEVECTOR> sol(new DENSEVECTOR(collapsedRui.getNumRows()));
             M_solversAs[i]->SetVectors(*sol, *collapsedRui.data());
             M_solversAs[i]->Solve();
 
@@ -202,7 +202,7 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         }
 
         BV rhsSchur;
-        rhsSchur.hardCopy(rhsL);
+        rhsSchur.deepCopy(rhsL);
         rhsSchur -= B * Am1ru;
         DenseVector rhsSchurCollapsed = rhsSchur.collapse().block(0);
         DenseVector solLCollapsed;
@@ -213,7 +213,7 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         B.convertVectorType(solLCollapsed, solL);
 
         BV rhsA;
-        rhsA.hardCopy(rhsU);
+        rhsA.deepCopy(rhsU);
         rhsA -= BT * solL;
         // solve for u
         BV solU;
@@ -222,7 +222,7 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
         for (unsigned int i = 0; i < nPrimal; i++)
         {
             DenseVector collapsedRhsAi = rhsA.block(i).collapse();
-            SHP(DENSEVECTOR) sol(new DENSEVECTOR(collapsedRhsAi.getNumRows()));
+            shp<DENSEVECTOR> sol(new DENSEVECTOR(collapsedRhsAi.getNumRows()));
 
             // collapsedAs[i] = A.block(i,i).collapse();
             // M_solversAs[i]->SetMatrix(*collapsedAs[i].data());
@@ -256,7 +256,7 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
             sol.block(i).resize(solU.block(i).nRows());
             for (unsigned int ii = 0; ii < solU.block(i).nRows(); ii++)
             {
-                sol.block(i).block(ii).softCopy(solU.block(i).block(ii));
+                sol.block(i).block(ii).shallowCopy(solU.block(i).block(ii));
             }
         }
 
@@ -266,7 +266,7 @@ solve(const BlockMatrix<BlockMatrix<DenseMatrix>>& matrix,
             sol.block(i + offset).resize(solL.block(i).nRows());
             for (unsigned int ii = 0; ii < solL.block(i).nRows(); ii++)
             {
-                sol.block(i + offset).block(ii).softCopy(solL.block(i).block(ii));
+                sol.block(i + offset).block(ii).shallowCopy(solL.block(i).block(ii));
             }
         }
     }

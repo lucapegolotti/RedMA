@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 StokesModel::
-StokesModel(const DataContainer& data, SHP(TreeNode) treeNode) :
+StokesModel(const DataContainer& data, shp<TreeNode> treeNode) :
   M_dataContainer(data),
   M_treeNode(treeNode)
 {
@@ -15,19 +15,19 @@ StokesModel(const DataContainer& data, SHP(TreeNode) treeNode) :
 }
 
 
-SHP(BlockVector)
+shp<BlockVector>
 StokesModel::
 buildZeroVector() const
 {
-    SHP(VECTOREPETRA) uComp(new VECTOREPETRA(M_velocityFESpace->map(),
+    shp<VECTOREPETRA> uComp(new VECTOREPETRA(M_velocityFESpace->map(),
                                              LifeV::Unique));
     uComp->zero();
-    SHP(VECTOREPETRA) pComp(new VECTOREPETRA(M_pressureFESpace->map(),
+    shp<VECTOREPETRA> pComp(new VECTOREPETRA(M_pressureFESpace->map(),
                                              LifeV::Unique));
 
     pComp->zero();
 
-    SHP(BlockVector) retVec(new BlockVector(2));
+    shp<BlockVector> retVec(new BlockVector(2));
 
     retVec->setBlock(0,epetraToDistributed(uComp));
     retVec->setBlock(1,epetraToDistributed(pComp));
@@ -35,7 +35,7 @@ buildZeroVector() const
     return retVec;
 }
 
-SHP(aVector)
+shp<aVector>
 StokesModel::
 getForcingTerm(const double& time) const
 {
@@ -45,8 +45,8 @@ getForcingTerm(const double& time) const
 
 void
 StokesModel::
-addNeumannBCs(SHP(aVector)& input, const double& time,
-              const SHP(aVector)& sol)
+addNeumannBCs(shp<aVector>& input, const double& time,
+              const shp<aVector>& sol)
 {
     // // if (this->M_treeNode->isOutletNode())
     //     // //     this->M_bcManager->applyNeumannBc(time, input, M_velocityFESpace, 0, flowRates);
@@ -69,19 +69,19 @@ addNeumannBCs(SHP(aVector)& input, const double& time,
     //     // }
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 StokesModel::
-assembleReducedStiffness(SHP(BCManager) bcManager,
+assembleReducedStiffness(shp<BCManager> bcManager,
                          BlockMDEIMStructure* structure)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(BlockMatrix) stiffness(new BlockMatrix(2,2));
+    shp<BlockMatrix> stiffness(new BlockMatrix(2,2));
 
     bool useFullStrain = M_dataContainer("fluid/use_strain", true);
 
-    SHP(MATRIXEPETRA) A(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<MATRIXEPETRA> A(new MATRIXEPETRA(M_velocityFESpace->map()));
 
     if (structure)
     {
@@ -136,7 +136,7 @@ assembleReducedStiffness(SHP(BCManager) bcManager,
     }
     A->globalAssemble();
 
-    SHP(SparseMatrix) Awrapper(new SparseMatrix);
+    shp<SparseMatrix> Awrapper(new SparseMatrix);
     Awrapper->setData(A);
     stiffness->setBlock(0,0,Awrapper);
 
@@ -144,16 +144,16 @@ assembleReducedStiffness(SHP(BCManager) bcManager,
     return stiffness;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 StokesModel::
-assembleReducedMass(SHP(BCManager) bcManager,
+assembleReducedMass(shp<BCManager> bcManager,
                     BlockMDEIMStructure* structure)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(BlockMatrix) mass(new BlockMatrix(2,2));
-    SHP(MATRIXEPETRA) M(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<BlockMatrix> mass(new BlockMatrix(2,2));
+    shp<MATRIXEPETRA> M(new MATRIXEPETRA(M_velocityFESpace->map()));
 
     if (structure)
     {
@@ -177,25 +177,25 @@ assembleReducedMass(SHP(BCManager) bcManager,
               ) >> M;
     }
     M->globalAssemble();
-    SHP(SparseMatrix) Mwrapper(new SparseMatrix);
+    shp<SparseMatrix> Mwrapper(new SparseMatrix);
     Mwrapper->setData(M);
     mass->setBlock(0,0,Mwrapper);
     bcManager->apply0DirichletMatrix(*mass, M_velocityFESpace, 0, 1.0);
-    mass->close();
+
     return mass;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 StokesModel::
-assembleReducedDivergence(SHP(BCManager) bcManager,
+assembleReducedDivergence(shp<BCManager> bcManager,
                           BlockMDEIMStructure* structure)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(BlockMatrix) divergence(new BlockMatrix(2,2));
+    shp<BlockMatrix> divergence(new BlockMatrix(2,2));
 
-    SHP(MATRIXEPETRA) BT(new MATRIXEPETRA(this->M_velocityFESpace->map()));
+    shp<MATRIXEPETRA> BT(new MATRIXEPETRA(this->M_velocityFESpace->map()));
 
     if (structure)
     {
@@ -221,7 +221,7 @@ assembleReducedDivergence(SHP(BCManager) bcManager,
     BT->globalAssemble(M_pressureFESpace->mapPtr(),
                        M_velocityFESpace->mapPtr());
 
-    SHP(MATRIXEPETRA) B(new MATRIXEPETRA(M_pressureFESpace->map()));
+    shp<MATRIXEPETRA> B(new MATRIXEPETRA(M_pressureFESpace->map()));
 
     if (structure)
     {
@@ -246,10 +246,10 @@ assembleReducedDivergence(SHP(BCManager) bcManager,
     B->globalAssemble(M_velocityFESpace->mapPtr(),
                       M_pressureFESpace->mapPtr());
 
-    SHP(SparseMatrix) BTwrapper(new SparseMatrix);
+    shp<SparseMatrix> BTwrapper(new SparseMatrix);
     BTwrapper->setData(BT);
 
-    SHP(SparseMatrix) Bwrapper(new SparseMatrix);
+    shp<SparseMatrix> Bwrapper(new SparseMatrix);
     Bwrapper->setData(B);
 
     divergence->setBlock(0,1,BTwrapper);
@@ -284,7 +284,7 @@ assembleFlowRateVectors()
 
 void
 StokesModel::
-assembleFlowRateJacobians(SHP(BCManager) bcManager)
+assembleFlowRateJacobians(shp<BCManager> bcManager)
 {
     // assemble inflow flow rate vector
     // if (M_treeNode->isInletNode())
@@ -302,8 +302,8 @@ assembleFlowRateJacobians(SHP(BCManager) bcManager)
 
         for (auto face : faces)
         {
-            SHP(BlockMatrix) newJacobian(new BlockMatrix(2,2));
-            SHP(SparseMatrix) jacWrapper(new SparseMatrix());
+            shp<BlockMatrix> newJacobian(new BlockMatrix(2,2));
+            shp<SparseMatrix> jacWrapper(new SparseMatrix());
             jacWrapper->setMatrix(assembleFlowRateJacobian(face));
 
             newJacobian->setBlock(0,0,jacWrapper);
@@ -318,8 +318,8 @@ assembleFlowRateJacobians(SHP(BCManager) bcManager)
 
 void
 StokesModel::
-apply0DirichletBCsMatrix(SHP(BCManager) bcManager,
-                         SHP(aMatrix) matrix, double diagCoeff)
+apply0DirichletBCsMatrix(shp<BCManager> bcManager,
+                         shp<aMatrix> matrix, double diagCoeff)
 {
     auto matrixConverted = std::static_pointer_cast<BlockMatrix>(matrix);
     bcManager->apply0DirichletMatrix(*matrixConverted, M_velocityFESpace,
@@ -328,15 +328,17 @@ apply0DirichletBCsMatrix(SHP(BCManager) bcManager,
 
 std::map<unsigned int, double>
 StokesModel::
-computeFlowRates(SHP(aVector) sol, bool verbose)
+computeFlowRates(shp<aVector> sol, bool verbose)
 {
+    auto solBlck = convert<BlockVector>(sol);
+
     std::string msg;
     std::map<unsigned int, double> flowRates;
     if (M_treeNode->isInletNode())
     {
         auto face = M_treeNode->M_block->getInlet();
 
-        flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(sol->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
+        flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(solBlck->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
         std::string msg = "[";
         msg += "StokesModel";
         msg += "]  inflow rate = ";
@@ -351,7 +353,7 @@ computeFlowRates(SHP(aVector) sol, bool verbose)
 
         for (auto face : faces)
         {
-            flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(sol->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
+            flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(solBlck->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
             std::string msg = "[";
             msg += "StokesModel";
             msg += "]  outflow rate = ";
@@ -364,14 +366,14 @@ computeFlowRates(SHP(aVector) sol, bool verbose)
     return flowRates;
 }
 
-SHP(VECTOREPETRA)
+shp<VECTOREPETRA>
 StokesModel::
 assembleFlowRateVector(const GeometricFace& face)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(VECTOREPETRA) flowRateVectorRepeated;
+    shp<VECTOREPETRA> flowRateVectorRepeated;
     flowRateVectorRepeated.reset(new VECTOREPETRA(M_velocityFESpace->map(),
                                                   Repeated));
 
@@ -385,12 +387,12 @@ assembleFlowRateVector(const GeometricFace& face)
 
     flowRateVectorRepeated->globalAssemble();
 
-    SHP(VECTOREPETRA) flowRateVector(new VECTOREPETRA(*flowRateVectorRepeated,
+    shp<VECTOREPETRA> flowRateVector(new VECTOREPETRA(*flowRateVectorRepeated,
                                                       Unique));
     return flowRateVector;
 }
 
-SHP(MATRIXEPETRA)
+shp<MATRIXEPETRA>
 StokesModel::
 assembleFlowRateJacobian(const GeometricFace& face)
 {
@@ -399,7 +401,7 @@ assembleFlowRateJacobian(const GeometricFace& face)
 
     const double dropTolerance(2.0 * std::numeric_limits<double>::min());
 
-    SHP(MAPEPETRA) rangeMap = M_flowRateVectors[face.M_flag]->mapPtr();
+    shp<MAPEPETRA> rangeMap = M_flowRateVectors[face.M_flag]->mapPtr();
     EPETRACOMM comm = rangeMap->commPtr();
 
 
@@ -408,7 +410,7 @@ assembleFlowRateJacobian(const GeometricFace& face)
     unsigned int numGlobalElements = epetraMap.NumGlobalElements();
 
     // this should be optimized
-    SHP(MATRIXEPETRA) flowRateJacobian;
+    shp<MATRIXEPETRA> flowRateJacobian;
     flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map(), numGlobalElements, false));
 
     // compute outer product of flowrate vector with itself
@@ -449,18 +451,18 @@ assembleFlowRateJacobian(const GeometricFace& face)
 
 void
 StokesModel::
-addBackFlowStabilization(SHP(aVector)& input,
-                         SHP(aVector) sol,
+addBackFlowStabilization(shp<aVector>& input,
+                         shp<aVector> sol,
                          const unsigned int& faceFlag)
 {
     // using namespace LifeV;
     // using namespace ExpressionAssembly;
     //
-    // SHP(VECTOREPETRA) vn(new VECTOREPETRA(*sol.block(0).data()));
+    // shp<VECTOREPETRA> vn(new VECTOREPETRA(*sol.block(0).data()));
     //
     // *vn *= *M_flowRateVectors[faceFlag];
     //
-    // SHP(VECTOREPETRA) absvn(new VECTOREPETRA(*vn));
+    // shp<VECTOREPETRA> absvn(new VECTOREPETRA(*vn));
     // absvn->abs();
     //
     // *vn -= *absvn;
@@ -468,8 +470,8 @@ addBackFlowStabilization(SHP(aVector)& input,
     //
     // *vn *= *sol.block(0).data();
     //
-    // SHP(VECTOREPETRA) vnRepeated(new VECTOREPETRA(*vn, Repeated));
-    // SHP(VECTOREPETRA) backflowStabRepeated(new VECTOREPETRA(vn->mapPtr(), Repeated));
+    // shp<VECTOREPETRA> vnRepeated(new VECTOREPETRA(*vn, Repeated));
+    // shp<VECTOREPETRA> backflowStabRepeated(new VECTOREPETRA(vn->mapPtr(), Repeated));
     //
     // QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
     //
@@ -483,14 +485,14 @@ addBackFlowStabilization(SHP(aVector)& input,
     //
     // *backflowStabRepeated *= 0.2 * M_density;
     //
-    // SHP(VECTOREPETRA) backflowStab(new VECTOREPETRA(*backflowStabRepeated, Unique));
+    // shp<VECTOREPETRA> backflowStab(new VECTOREPETRA(*backflowStabRepeated, Unique));
     //
     // *input.block(0).data() += *backflowStab;
 }
 
 void
 StokesModel::
-exportNorms(double t, SHP(VECTOREPETRA) velocity, SHP(VECTOREPETRA) pressure)
+exportNorms(double t, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure)
 {
     bool exportNorms = M_dataContainer("exporter/exportnorms", true);
 
@@ -523,7 +525,7 @@ initializePythonStructures()
 
 void
 StokesModel::
-computeWallShearStress(SHP(VECTOREPETRA) velocity, SHP(VECTOREPETRA) WSS,
+computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
                        EPETRACOMM comm)
 {
     using namespace LifeV;
@@ -547,9 +549,9 @@ computeWallShearStress(SHP(VECTOREPETRA) velocity, SHP(VECTOREPETRA) WSS,
 
     WSS->zero();
 
-    SHP(VECTOREPETRA) velocityRepeated(new VECTOREPETRA(*velocity,
+    shp<VECTOREPETRA> velocityRepeated(new VECTOREPETRA(*velocity,
                                                          Repeated));
-    SHP(VECTOREPETRA) weakWSSRepeated(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
+    shp<VECTOREPETRA> weakWSSRepeated(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
 
     integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
               myBDQR,
@@ -575,7 +577,7 @@ computeWallShearStress(SHP(VECTOREPETRA) velocity, SHP(VECTOREPETRA) WSS,
              ) >> weakWSSRepeated;
 
     weakWSSRepeated->globalAssemble();
-    SHP(VECTOREPETRA) weakWSSUnique(new VECTOREPETRA(*weakWSSRepeated, Unique));
+    shp<VECTOREPETRA> weakWSSUnique(new VECTOREPETRA(*weakWSSRepeated, Unique));
 
     LinearSolver linearSolver(comm);
     linearSolver.setOperator(M_massWall);

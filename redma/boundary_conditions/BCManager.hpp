@@ -36,17 +36,17 @@ class BCManager
 {
     typedef aTimeMarchingAlgorithm  TimeMarchingAlgorithm;
 public:
-    BCManager(const DataContainer& datafile, SHP(TreeNode) treeNode);
+    BCManager(const DataContainer& datafile, shp<TreeNode> treeNode);
 
     void applyDirichletBCs(const double& time, BlockVector& input,
-                           SHP(FESPACE) fespace, const unsigned int& index) const;
+                           shp<FESPACE> fespace, const unsigned int& index) const;
 
     void apply0DirichletBCs(BlockVector& input,
-                            SHP(FESPACE) fespace,
+                            shp<FESPACE> fespace,
                             const unsigned int& index) const;
 
     void apply0DirichletMatrix(BlockMatrix& input,
-                               SHP(FESPACE) fespace,
+                               shp<FESPACE> fespace,
                                const unsigned int& index,
                                const double& diagCoefficient) const;
 
@@ -75,14 +75,14 @@ private:
 
     static double fZero2(double t);
 
-    SHP(LifeV::BCHandler) createBCHandler0Dirichlet() const;
+    shp<LifeV::BCHandler> createBCHandler0Dirichlet() const;
 
-    void addInletBC(SHP(LifeV::BCHandler) bcs,
+    void addInletBC(shp<LifeV::BCHandler> bcs,
                     std::function<double(double)> law) const;
 
     void parseNeumannData();
 
-    SHP(TreeNode)                                    M_treeNode;
+    shp<TreeNode>                                    M_treeNode;
     DataContainer                                    M_data;
     std::function<double(double)>                    M_inflow;
     std::function<double(double)>                    M_inflowDt;
@@ -94,7 +94,7 @@ private:
     unsigned int                                     M_outletRing;
 
     // key is the outlet index (more than one for bifurcations)
-    std::map<unsigned int,SHP(WindkesselModel)>      M_models;
+    std::map<unsigned int,shp<WindkesselModel>>      M_models;
 
     double                                           M_coefficientInflow;
 };

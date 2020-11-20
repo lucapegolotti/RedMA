@@ -5,10 +5,10 @@ namespace RedMA
 
 NavierStokesStabilization::
 NavierStokesStabilization(const DataContainer& data,
-                          SHP(FESPACE) fespaceVelocity,
-                          SHP(FESPACE) fespacePressure,
-                          SHP(ETFESPACE3) etfespaceVelocity,
-                          SHP(ETFESPACE1) etfespacePressure) :
+                          shp<FESPACE> fespaceVelocity,
+                          shp<FESPACE> fespacePressure,
+                          shp<ETFESPACE3> etfespaceVelocity,
+                          shp<ETFESPACE1> etfespacePressure) :
   M_timeOrder(data("time_discretization/order", 2)),
   M_dt(data("time_discretization/dt", 0.01)),
   M_velocityFESpace(fespaceVelocity),

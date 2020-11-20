@@ -6,32 +6,32 @@ namespace RedMA
 
 SUPGStabilization::
 SUPGStabilization(const DataContainer& data,
-                  SHP(FESPACE) fespaceVelocity,
-                  SHP(FESPACE) fespacePressure,
-                  SHP(ETFESPACE3) etfespaceVelocity,
-                  SHP(ETFESPACE1) etfespacePressure) :
+                  shp<FESPACE> fespaceVelocity,
+                  shp<FESPACE> fespacePressure,
+                  shp<ETFESPACE3> etfespaceVelocity,
+                  shp<ETFESPACE1> etfespacePressure) :
   NavierStokesStabilization(data,
                             fespaceVelocity, fespacePressure,
                             etfespaceVelocity, etfespacePressure)
 {
 }
 
-SHP(BlockMatrix)
+shp<BlockMatrix>
 SUPGStabilization::
-getMass(SHP(BlockVector) sol, SHP(BlockVector) rhs)
+getMass(shp<BlockVector> sol, shp<BlockVector> rhs)
 {
     using namespace LifeV;
     using namespace LifeV::ExpressionAssembly;
-    SHP(SquareRoot) squareroot(new SquareRoot());
+    shp<SquareRoot> squareroot(new SquareRoot());
 
-    SHP(VECTOREPETRA) velocityRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
-    SHP(VECTOREPETRA) velocityRhsRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
-    SHP(VECTOREPETRA) pressureRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
 
-    SHP(MATRIXEPETRA) mass00(new MATRIXEPETRA(M_velocityFESpace->map()));
-    SHP(MATRIXEPETRA) mass01(new MATRIXEPETRA(M_velocityFESpace->map()));
-    SHP(MATRIXEPETRA) mass10(new MATRIXEPETRA(M_pressureFESpace->map()));
-    SHP(MATRIXEPETRA) mass11(new MATRIXEPETRA(M_pressureFESpace->map()));
+    shp<MATRIXEPETRA> mass00(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<MATRIXEPETRA> mass01(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<MATRIXEPETRA> mass10(new MATRIXEPETRA(M_pressureFESpace->map()));
+    shp<MATRIXEPETRA> mass11(new MATRIXEPETRA(M_pressureFESpace->map()));
 
     mass00->zero();
     mass01->zero();
@@ -64,16 +64,16 @@ getMass(SHP(BlockVector) sol, SHP(BlockVector) rhs)
 
     mass11->globalAssemble();
 
-    SHP(SparseMatrix) mass00wrap(new SparseMatrix());
+    shp<SparseMatrix> mass00wrap(new SparseMatrix());
     mass00wrap->setMatrix(mass00);
 
-    SHP(SparseMatrix) mass10wrap(new SparseMatrix());
+    shp<SparseMatrix> mass10wrap(new SparseMatrix());
     mass10wrap->setMatrix(mass10);
 
-    SHP(SparseMatrix) mass01wrap(new SparseMatrix());
+    shp<SparseMatrix> mass01wrap(new SparseMatrix());
     mass01wrap->setMatrix(mass01);
 
-    SHP(SparseMatrix) mass11wrap(new SparseMatrix());
+    shp<SparseMatrix> mass11wrap(new SparseMatrix());
     mass11wrap->setMatrix(mass11);
 
     M_mass.reset(new BlockMatrix(2,2));
@@ -85,22 +85,22 @@ getMass(SHP(BlockVector) sol, SHP(BlockVector) rhs)
     return M_mass;
 }
 
-SHP(BlockMatrix)
+shp<BlockMatrix>
 SUPGStabilization::
-getMassJac(SHP(BlockVector) sol, SHP(BlockVector) rhs)
+getMassJac(shp<BlockVector> sol, shp<BlockVector> rhs)
 {
     using namespace LifeV;
     using namespace LifeV::ExpressionAssembly;
-    SHP(SquareRoot) squareroot(new SquareRoot());
+    shp<SquareRoot> squareroot(new SquareRoot());
 
-    SHP(VECTOREPETRA) velocityRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
-    SHP(VECTOREPETRA) velocityRhsRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
-    SHP(VECTOREPETRA) pressureRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
 
-    SHP(MATRIXEPETRA) massjac00(new MATRIXEPETRA(M_velocityFESpace->map()));
-    SHP(MATRIXEPETRA) massjac01(new MATRIXEPETRA(M_velocityFESpace->map()));
-    SHP(MATRIXEPETRA) massjac10(new MATRIXEPETRA(M_pressureFESpace->map()));
-    SHP(MATRIXEPETRA) massjac11(new MATRIXEPETRA(M_pressureFESpace->map()));
+    shp<MATRIXEPETRA> massjac00(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<MATRIXEPETRA> massjac01(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<MATRIXEPETRA> massjac10(new MATRIXEPETRA(M_pressureFESpace->map()));
+    shp<MATRIXEPETRA> massjac11(new MATRIXEPETRA(M_pressureFESpace->map()));
 
     massjac00->zero();
     massjac01->zero();
@@ -126,16 +126,16 @@ getMassJac(SHP(BlockVector) sol, SHP(BlockVector) rhs)
 
     massjac11->globalAssemble();
 
-    SHP(SparseMatrix) massJac00wrap(new SparseMatrix());
+    shp<SparseMatrix> massJac00wrap(new SparseMatrix());
     massJac00wrap->setMatrix(massjac00);
 
-    SHP(SparseMatrix) massJac10wrap(new SparseMatrix());
+    shp<SparseMatrix> massJac10wrap(new SparseMatrix());
     massJac10wrap->setMatrix(massjac10);
 
-    SHP(SparseMatrix) massJac01wrap(new SparseMatrix());
+    shp<SparseMatrix> massJac01wrap(new SparseMatrix());
     massJac01wrap->setMatrix(massjac01);
 
-    SHP(SparseMatrix) massJac11wrap(new SparseMatrix());
+    shp<SparseMatrix> massJac11wrap(new SparseMatrix());
     massJac11wrap->setMatrix(massjac11);
 
     M_massJac.reset(new BlockMatrix(2,2));
@@ -147,22 +147,22 @@ getMassJac(SHP(BlockVector) sol, SHP(BlockVector) rhs)
     return M_massJac;
 }
 
-SHP(BlockMatrix)
+shp<BlockMatrix>
 SUPGStabilization::
-getJac(SHP(BlockVector) sol, SHP(BlockVector) rhs)
+getJac(shp<BlockVector> sol, shp<BlockVector> rhs)
 {
     using namespace LifeV;
     using namespace LifeV::ExpressionAssembly;
-    SHP(SquareRoot) squareroot(new SquareRoot());
+    shp<SquareRoot> squareroot(new SquareRoot());
 
-    SHP(VECTOREPETRA) velocityRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
-    SHP(VECTOREPETRA) velocityRhsRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
-    SHP(VECTOREPETRA) pressureRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
 
-    SHP(MATRIXEPETRA) jac00(new MATRIXEPETRA(M_velocityFESpace->map()));
-    SHP(MATRIXEPETRA) jac01(new MATRIXEPETRA(M_velocityFESpace->map()));
-    SHP(MATRIXEPETRA) jac10(new MATRIXEPETRA(M_pressureFESpace->map()));
-    SHP(MATRIXEPETRA) jac11(new MATRIXEPETRA(M_pressureFESpace->map()));
+    shp<MATRIXEPETRA> jac00(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<MATRIXEPETRA> jac01(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<MATRIXEPETRA> jac10(new MATRIXEPETRA(M_pressureFESpace->map()));
+    shp<MATRIXEPETRA> jac11(new MATRIXEPETRA(M_pressureFESpace->map()));
 
     jac00->zero();
     jac01->zero();
@@ -211,16 +211,16 @@ getJac(SHP(BlockVector) sol, SHP(BlockVector) rhs)
 
     jac11->globalAssemble();
 
-    SHP(SparseMatrix) jac00wrap(new SparseMatrix());
+    shp<SparseMatrix> jac00wrap(new SparseMatrix());
     jac00wrap->setMatrix(jac00);
 
-    SHP(SparseMatrix) jac10wrap(new SparseMatrix());
+    shp<SparseMatrix> jac10wrap(new SparseMatrix());
     jac10wrap->setMatrix(jac10);
 
-    SHP(SparseMatrix) jac01wrap(new SparseMatrix());
+    shp<SparseMatrix> jac01wrap(new SparseMatrix());
     jac01wrap->setMatrix(jac01);
 
-    SHP(SparseMatrix) jac11wrap(new SparseMatrix());
+    shp<SparseMatrix> jac11wrap(new SparseMatrix());
     jac11wrap->setMatrix(jac11);
 
     M_jac.reset(new BlockMatrix(2,2));
@@ -233,21 +233,21 @@ getJac(SHP(BlockVector) sol, SHP(BlockVector) rhs)
     return M_jac;
 }
 
-SHP(BlockVector)
+shp<BlockVector>
 SUPGStabilization::
-getResidual(SHP(BlockVector) sol,
-            SHP(BlockVector) rhs)
+getResidual(shp<BlockVector> sol,
+            shp<BlockVector> rhs)
 {
     using namespace LifeV;
     using namespace LifeV::ExpressionAssembly;
 
-    SHP(VECTOREPETRA) velocityRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
-    SHP(VECTOREPETRA) velocityRhsRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
-    SHP(VECTOREPETRA) pressureRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
 
-    SHP(SquareRoot) squareroot(new SquareRoot());
+    shp<SquareRoot> squareroot(new SquareRoot());
 
-    SHP(VECTOREPETRA) resvelrep(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
+    shp<VECTOREPETRA> resvelrep(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
     resvelrep->zero();
 
     integrate(elements(M_velocityFESpace->mesh()),
@@ -258,9 +258,9 @@ getResidual(SHP(BlockVector) sol,
              +TAU_C * div(phi_i) * trace(grad(VH))
             ) >> resvelrep;
     resvelrep->globalAssemble();
-    SHP(VECTOREPETRA) resvel(new VECTOREPETRA(*resvelrep, Unique));
+    shp<VECTOREPETRA> resvel(new VECTOREPETRA(*resvelrep, Unique));
 
-    SHP(VECTOREPETRA) respressrep(new VECTOREPETRA(M_pressureFESpace->map(), Repeated));
+    shp<VECTOREPETRA> respressrep(new VECTOREPETRA(M_pressureFESpace->map(), Repeated));
     respressrep->zero();
 
     integrate(elements(M_velocityFESpace->mesh()),
@@ -269,15 +269,15 @@ getResidual(SHP(BlockVector) sol,
               TAU_M * (dot(grad(phi_i),MOMENTUM_R))
              ) >> respressrep;
     respressrep->globalAssemble();
-    SHP(VECTOREPETRA) respress(new VECTOREPETRA(*respressrep, Unique));
+    shp<VECTOREPETRA> respress(new VECTOREPETRA(*respressrep, Unique));
 
-    SHP(DistributedVector) comp0(new DistributedVector());
+    shp<DistributedVector> comp0(new DistributedVector());
     comp0->setVector(resvel);
 
-    SHP(DistributedVector) comp1(new DistributedVector());
+    shp<DistributedVector> comp1(new DistributedVector());
     comp1->setVector(respress);
 
-    SHP(BlockVector) retVec(new BlockVector(2));
+    shp<BlockVector> retVec(new BlockVector(2));
     retVec->setBlock(0,comp0);
     retVec->setBlock(1,comp1);
 

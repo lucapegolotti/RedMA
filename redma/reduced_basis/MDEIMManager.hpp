@@ -32,13 +32,13 @@ public:
 
     void load();
 
-    std::vector<SHP(BlockMDEIM)> getMDEIMS(std::string meshName) {return M_mdeims[meshName];}
+    std::vector<shp<BlockMDEIM>> getMDEIMS(std::string meshName) {return M_mdeims[meshName];}
 
 private:
     EPETRACOMM                                            M_comm;
     DataContainer                                         M_data;
     std::map<unsigned int, std::string>                   M_IDMeshMap;
-    std::map<std::string, std::vector<SHP(BlockMDEIM)>>   M_mdeims;
+    std::map<std::string, std::vector<shp<BlockMDEIM>>>   M_mdeims;
 };
 
 }  // namespace RedMA

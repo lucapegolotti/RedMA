@@ -49,8 +49,8 @@ namespace RedMA
 class BasisGenerator
 {
     typedef aAssembler                                      AssemblerType;
-    typedef std::vector<std::vector<SHP(VECTOREPETRA)>>     VectorFunctions;
-    typedef std::pair<SHP(AssemblerType), VectorFunctions>  AssemblerSnapshotPair;
+    typedef std::vector<std::vector<shp<VECTOREPETRA>>>     VectorFunctions;
+    typedef std::pair<shp<AssemblerType>, VectorFunctions>  AssemblerSnapshotPair;
 public:
     BasisGenerator(const DataContainer& data, EPETRACOMM comm);
 
@@ -73,24 +73,24 @@ private:
 
     void orthonormalize();
 
-    SHP(TreeNode) generateDefaultTreeNode(const std::string& nameMesh);
+    shp<TreeNode> generateDefaultTreeNode(const std::string& nameMesh);
 
-    SHP(TreeNode) generateDefaultTube(const std::string& nameMesh);
+    shp<TreeNode> generateDefaultTube(const std::string& nameMesh);
 
-    SHP(TreeNode) generateDefaultSymmetricBifurcation(const std::string& nameMesh);
+    shp<TreeNode> generateDefaultSymmetricBifurcation(const std::string& nameMesh);
 
     void parseParameterSnapshots(const std::string& paramDir);
 
     void addSnapshotsFromFile(const std::string& snapshotsFile,
-                              std::vector<SHP(VECTOREPETRA)>& snapshots,
-                              SHP(FESPACE) fespace);
+                              std::vector<shp<VECTOREPETRA>>& snapshots,
+                              shp<FESPACE> fespace);
 
     LifeV::LinearSolver setupLinearSolver(SparseMatrix matrix);
 
     DataContainer                                       M_data;
     EPETRACOMM                                          M_comm;
     std::map<std::string, AssemblerSnapshotPair>        M_meshASPairMap;
-    std::map<std::string, SHP(RBBases)>                 M_bases;
+    std::map<std::string, shp<RBBases>>                 M_bases;
 };
 
 }  // namespace RedMA

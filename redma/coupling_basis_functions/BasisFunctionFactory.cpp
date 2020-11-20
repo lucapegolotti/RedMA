@@ -3,12 +3,12 @@
 namespace RedMA
 {
 
-SHP(BasisFunctionFunctor)
+shp<BasisFunctionFunctor>
 BasisFunctionFactory(const GetPot& datafile,
                      GeometricFace inlet,
                      bool isBoundary)
 {
-    SHP(BasisFunctionFunctor) basisFunction;
+    shp<BasisFunctionFunctor> basisFunction;
     std::string type = datafile("coupling/type", "chebyshev");
 
     if (!std::strcmp(type.c_str(), "fourier"))

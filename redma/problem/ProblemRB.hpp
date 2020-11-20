@@ -34,10 +34,10 @@ namespace RedMA
 
 class ProblemRB : public aProblem
 {
-    typedef SHP(BlockVector)                   BV;
-    typedef SHP(BlockVector)                   BBV;
-    typedef SHP(BlockMatrix)                   BM;
-    typedef SHP(BlockMatrix)                   BBM;
+    typedef shp<BlockVector>                   BV;
+    typedef shp<BlockVector>                   BBV;
+    typedef shp<BlockMatrix>                   BM;
+    typedef shp<BlockMatrix>                   BBM;
 public:
     ProblemRB(const DataContainer& data, EPETRACOMM comm, bool doSetup = true);
 
@@ -57,11 +57,11 @@ public:
 
     inline std::vector<double> getTimesteps() {return M_timestepsSolutions;}
 
-    inline SHP(BlockAssembler) getBlockAssembler() {return M_assembler;}
+    inline shp<BlockAssembler> getBlockAssembler() {return M_assembler;}
 
 private:
-    SHP(aTimeMarchingAlgorithm)  M_TMAlgorithm;
-    SHP(BlockAssembler)          M_assembler;
+    shp<aTimeMarchingAlgorithm>  M_TMAlgorithm;
+    shp<BlockAssembler>          M_assembler;
     BBV                                       M_solution;
     TreeStructure                             M_tree;
     GeometryParser                            M_geometryParser;

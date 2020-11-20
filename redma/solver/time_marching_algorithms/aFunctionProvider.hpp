@@ -33,21 +33,21 @@ public:
 
     aFunctionProvider() {};
 
-    virtual SHP(aVector) getZeroVector() const = 0;
+    virtual shp<aVector> getZeroVector() const = 0;
 
-    virtual SHP(aMatrix) getMass(const double& time, const SHP(aVector)& sol) = 0;
+    virtual shp<aMatrix> getMass(const double& time, const shp<aVector>& sol) = 0;
 
-    virtual SHP(aMatrix) getMassJacobian(const double& time, const SHP(aVector)& sol) = 0;
+    virtual shp<aMatrix> getMassJacobian(const double& time, const shp<aVector>& sol) = 0;
 
-    virtual SHP(aVector) getRightHandSide(const double& time, const SHP(aVector)& sol) = 0;
+    virtual shp<aVector> getRightHandSide(const double& time, const shp<aVector>& sol) = 0;
 
-    virtual SHP(aMatrix) getJacobianRightHandSide(const double& time, const SHP(aVector)& sol) = 0;
+    virtual shp<aMatrix> getJacobianRightHandSide(const double& time, const shp<aVector>& sol) = 0;
 
-    virtual void apply0DirichletBCs(SHP(aVector) vector) const = 0;
+    virtual void apply0DirichletBCs(shp<aVector> vector) const = 0;
 
-    virtual void applyDirichletBCs(const double& time, SHP(aVector) vector) const = 0;
+    virtual void applyDirichletBCs(const double& time, shp<aVector> vector) const = 0;
 
-    virtual void setExtrapolatedSolution(const SHP(aVector)& exSol) = 0;
+    virtual void setExtrapolatedSolution(const shp<aVector>& exSol) = 0;
 };
 
 }

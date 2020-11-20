@@ -38,27 +38,27 @@ public:
 
     PressureDrop(const double& C, const double& Rp, const double& Rd);
 
-    virtual SHP(aVector) getZeroVector() const override;
+    virtual shp<aVector> getZeroVector() const override;
 
-    virtual SHP(aMatrix) getMass(const double& time,
-                                const SHP(aVector)& sol) override;
+    virtual shp<aMatrix> getMass(const double& time,
+                                const shp<aVector>& sol) override;
 
-    virtual SHP(aMatrix) getMassJacobian(const double& time,
-                                        const SHP(aVector)& sol) override;
+    virtual shp<aMatrix> getMassJacobian(const double& time,
+                                        const shp<aVector>& sol) override;
 
-    virtual SHP(aVector) getRightHandSide(const double& time,
-                                         const SHP(aVector)& sol) override;
+    virtual shp<aVector> getRightHandSide(const double& time,
+                                         const shp<aVector>& sol) override;
 
-    virtual SHP(aMatrix) getJacobianRightHandSide(const double& time,
-                                                 const SHP(aVector)& sol) override;
+    virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
+                                                 const shp<aVector>& sol) override;
 
     inline void setFlowRate(const double& Q) {M_Q = Q;}
 
-    virtual void apply0DirichletBCs(SHP(aVector) vector) const override {}
+    virtual void apply0DirichletBCs(shp<aVector> vector) const override {}
 
-    virtual void applyDirichletBCs(const double& time, SHP(aVector) vector) const override {}
+    virtual void applyDirichletBCs(const double& time, shp<aVector> vector) const override {}
 
-    void setExtrapolatedSolution(const SHP(aVector)& exSol) override {throw new Exception("function must still be implemented PressureDrop");}
+    void setExtrapolatedSolution(const shp<aVector>& exSol) override {throw new Exception("function must still be implemented PressureDrop");}
 
 private:
     double                      M_C;  // compliance

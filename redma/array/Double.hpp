@@ -30,35 +30,27 @@ class Double : public aVector, public aMatrix
 public:
     Double();
 
-    virtual void add(std::shared_ptr<aMatrix> other) override;
+    virtual void add(shp<aMatrix> other) override;
 
     virtual void multiplyByScalar(const double& coeff) override;
 
-    virtual std::shared_ptr<aVector> multiplyByVector(std::shared_ptr<aVector> vector) override;
+    virtual shp<aVector> multiplyByVector(shp<aVector> vector) override;
 
-    virtual std::shared_ptr<aMatrix> multiplyByMatrix(std::shared_ptr<aMatrix> other) override;
+    virtual shp<aMatrix> multiplyByMatrix(shp<aMatrix> other) override;
 
     virtual void dump(std::string namefile) const override;
 
-    virtual void softCopy(std::shared_ptr<aMatrix> other) override;
+    virtual bool isZero() const override;
 
-    virtual void hardCopy(std::shared_ptr<aMatrix> other) override;
-
-    virtual bool isZero() override;
-
-    virtual aVector* cloneVector() const override;
-
-    virtual aMatrix* clone() const override;
-
-    std::shared_ptr<void> data() const override;
+    virtual aDataWrapper* clone() const override;
 
     virtual double operator()(unsigned int index) override;
 
-    virtual void add(std::shared_ptr<aVector> other) override;
+    virtual void add(shp<aVector> other) override;
 
-    virtual void softCopy(std::shared_ptr<aVector> other) override;
+    virtual void shallowCopy(shp<aDataWrapper> other) override;
 
-    virtual void hardCopy(std::shared_ptr<aVector> other) override;
+    virtual void deepCopy(shp<aDataWrapper> other) override;
 
     virtual std::string getString(const char& delimiter) const override;
 
@@ -68,10 +60,22 @@ public:
 
     double getValue() {return M_double;}
 
+    virtual Datatype type() const override {return DOUBLE;}
+
+    virtual shp<void> data() const override;
+
+    virtual void setData(shp<void>) override {};
+
+    virtual shp<aMatrix> transpose() const override {return nullptr;};
+
 private:
     double  M_double;
 };
 
+// specification of template function to avoid ambiguous cast
+template<>
+shp<Double> convert(shp<aDataWrapper> container);
+
 }
 
-#endif // VECTOREP_HPP
+#endif // DOUBLE_HPP

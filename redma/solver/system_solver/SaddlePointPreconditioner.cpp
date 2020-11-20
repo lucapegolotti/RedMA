@@ -19,9 +19,6 @@ setup(const BM& matrix, bool doComputeSchurComplement)
 
     Chrono chrono;
     chrono.start();
-
-    matrix->close();
-
     printlog(MAGENTA, "[SaddlePointPreconditioner] starting setup ...\n", M_data.getVerbose());
     // split matrices
     unsigned int nBlocks = matrix->nRows();
@@ -88,7 +85,7 @@ setup(const BM& matrix, bool doComputeSchurComplement)
         // printlog(GREEN, msg, M_data.getVerbose());
         //
         // // this is to be optimized
-        // M_matrixCollapsed->softCopy(collapseBlocks(matrix, allmaps));
+        // M_matrixCollapsed->shallowCopy(collapseBlocks(matrix, allmaps));
         //
         findSmallBlocks(A);
 
@@ -133,17 +130,17 @@ allocateApproximatedInverses(const BM& primalMatrix)
     {
         if (M_isSmallBlock[i])
         {
-            SHP(SparseMatrix) Blockcoll = blockMatrixToSparseMatrix(std::static_pointer_cast<BlockMatrix>(primalMatrix->block(i,i)));// = collapseBlocks(*Scoll1, BlockMaps(*Scoll1));
+            shp<SparseMatrix> Blockcoll = blockMatrixToSparseMatrix(spcast<BlockMatrix>(primalMatrix->block(i,i)));// = collapseBlocks(*Scoll1, BlockMaps(*Scoll1));
 
             // create invertible approximated matrix
             M_approximatedInverses[i].reset(new ApproxInv);
 
-            SHP(Teuchos::ParameterList) smallMatricesOptions;
+            shp<Teuchos::ParameterList> smallMatricesOptions;
             smallMatricesOptions.reset(new
                 Teuchos::ParameterList(M_solversOptionsInner->sublist("SmallMatricesInverses")));
 
-            // std::static_pointer_cast<MATRIXEPETRA>(Scoll->data())->spy("schur");
-            M_approximatedInverses[i]->SetRowMatrix(std::static_pointer_cast<MATRIXEPETRA>(Blockcoll->data())->matrixPtr());
+            // spcast<MATRIXEPETRA>(Scoll->data())->spy("schur");
+            M_approximatedInverses[i]->SetRowMatrix(spcast<MATRIXEPETRA>(Blockcoll->data())->matrixPtr());
             M_approximatedInverses[i]->SetParameterList(*smallMatricesOptions);
             M_approximatedInverses[i]->Compute();
         }
@@ -160,8 +157,8 @@ findSmallBlocks(const BM& primalMatrix)
     {
         M_isSmallBlock[i] = false;
 
-        unsigned int size1 = std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,0)->data())->rangeMapPtr()->mapSize();
-        unsigned int size2 = std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(1,0)->data())->rangeMapPtr()->mapSize();
+        unsigned int size1 = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data())->rangeMapPtr()->mapSize();
+        unsigned int size2 = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,0)->data())->rangeMapPtr()->mapSize();
 
         if (size1 + size2 < M_tresholdSizeExactSolve)
             M_isSmallBlock[i] = true;
@@ -174,21 +171,21 @@ computeSchurComplement(const BM& A, const BM& BT, const BM& B, const BM& C)
 {
     computeAm1BT(A, BT);
 
-    M_S = std::static_pointer_cast<BlockMatrix>(B->multiplyByMatrix(M_Am1BT));
+    M_S = convert<BlockMatrix>(B->multiplyByMatrix(M_Am1BT));
     M_S->multiplyByScalar(-1.0);
     M_S->add(C);
 
-    SHP(SparseMatrix) Scoll = blockMatrixToSparseMatrix(M_S);// = collapseBlocks(*Scoll1, BlockMaps(*Scoll1));
+    shp<SparseMatrix> Scoll = blockMatrixToSparseMatrix(M_S);// = collapseBlocks(*Scoll1, BlockMaps(*Scoll1));
 
     // create invertible approximated matrix
     M_approximatedSchurInverse.reset(new ApproxInv);
 
-    SHP(Teuchos::ParameterList) globalSchurOptions;
+    shp<Teuchos::ParameterList> globalSchurOptions;
     globalSchurOptions.reset(new
         Teuchos::ParameterList(M_solversOptionsInner->sublist("GlobalSchurOperator")));
 
-    // std::static_pointer_cast<MATRIXEPETRA>(Scoll->data())->spy("schur");
-    M_approximatedSchurInverse->SetRowMatrix(std::static_pointer_cast<MATRIXEPETRA>(Scoll->data())->matrixPtr());
+    // spcast<MATRIXEPETRA>(Scoll->data())->spy("schur");
+    M_approximatedSchurInverse->SetRowMatrix(spcast<MATRIXEPETRA>(Scoll->data())->matrixPtr());
     M_approximatedSchurInverse->SetParameterList(*globalSchurOptions);
     M_approximatedSchurInverse->Compute();
 }
@@ -203,25 +200,25 @@ allocateInverseSolvers(const BM& primalMatrix)
     {
         if (!M_isSmallBlock[i])
         {
-            SHP(InvOp) invOper;
-            SHP(NSOp) oper(new NSOp);
+            shp<InvOp> invOper;
+            shp<NSOp> oper(new NSOp);
 
-            boost::numeric::ublas::matrix<SHP(MATRIXEPETRA::matrix_type)> matrixGrid(2,2);
-            matrixGrid(0,0) = std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,0)->data())->matrixPtr();
-            matrixGrid(1,0) = std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(1,0)->data())->matrixPtr();
-            matrixGrid(0,1) = std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,1)->data())->matrixPtr();
-            if (!primalMatrix->block(i,i)->block(1,1)->isZero())
-                matrixGrid(1,1) = std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(1,1)->data())->matrixPtr();
+            boost::numeric::ublas::matrix<shp<MATRIXEPETRA::matrix_type>> matrixGrid(2,2);
+            matrixGrid(0,0) = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data())->matrixPtr();
+            matrixGrid(1,0) = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,0)->data())->matrixPtr();
+            matrixGrid(0,1) = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,1)->data())->matrixPtr();
+            if (!convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,1)->isZero())
+                matrixGrid(1,1) = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,1)->data())->matrixPtr();
 
-            unsigned int size1 = std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,0)->data())->rangeMapPtr()->mapSize();
-            unsigned int size2 = std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(1,0)->data())->rangeMapPtr()->mapSize();
+            unsigned int size1 = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data())->rangeMapPtr()->mapSize();
+            unsigned int size2 = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,0)->data())->rangeMapPtr()->mapSize();
 
             if ((M_tresholdSizeExactSolve == -1) || (size1 + size2 < M_tresholdSizeExactSolve))
             {
                 oper->setUp(matrixGrid,
-                std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,0)->data())->rangeMap().commPtr());
+                spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data())->rangeMap().commPtr());
 
-                SHP(Teuchos::ParameterList) options;
+                shp<Teuchos::ParameterList> options;
 
                 options.reset(new Teuchos::ParameterList(M_solversOptionsInner->sublist("InnerBlockOperator")));
 
@@ -258,13 +255,13 @@ allocateInnerPreconditioners(const BM& primalMatrix)
     {
         if (!M_isSmallBlock[i])
         {
-            if (primalMatrix->block(i,i)->block(0,0)->type() == SPARSE)
+            if (convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->type() == SPARSE)
             {
-                SHP(NSPrec) newPrec;
+                shp<NSPrec> newPrec;
                 newPrec.reset(LifeV::Operators::NSPreconditionerFactory::
                               instance().createObject("SIMPLE"));
                 Teuchos::RCP<Teuchos::ParameterList> curList(M_solversOptionsInner);
-                unsigned int size = std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,0)->data())->rangeMapPtr()->mapSize();
+                unsigned int size = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data())->rangeMapPtr()->mapSize();
                 // this obviously needs to be fixed..
                 if (size < 10000)
                 {
@@ -277,33 +274,33 @@ allocateInnerPreconditioners(const BM& primalMatrix)
 
                 newPrec->setOptions(*curList);
 
-                if (!primalMatrix->block(i,i)->block(1,1)->isZero())
+                if (!convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,1)->isZero())
                 {
-                    newPrec->setUp(std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,0)->data()),
-                                   std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(1,0)->data()),
-                                   std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,1)->data()),
-                                   std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(1,1)->data()));
+                    newPrec->setUp(spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data()),
+                                   spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,0)->data()),
+                                   spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,1)->data()),
+                                   spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,1)->data()));
                 }
                 else
                 {
-                    newPrec->setUp(std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,0)->data()),
-                                   std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(1,0)->data()),
-                                   std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,1)->data()));
+                    newPrec->setUp(spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data()),
+                                   spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,0)->data()),
+                                   spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,1)->data()));
                 }
 
-                std::vector<SHP(Epetra_Map)> localRangeMaps(2);
-                std::vector<SHP(Epetra_Map)> localDomainMaps(2);
+                std::vector<shp<Epetra_Map>> localRangeMaps(2);
+                std::vector<shp<Epetra_Map>> localDomainMaps(2);
 
                 for (unsigned int j = 0; j < 2; j++)
                     localRangeMaps[j].reset(new Epetra_Map(
-                    std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(j,0)->data())->matrixPtr()->OperatorRangeMap()));
+                    spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(j,0)->data())->matrixPtr()->OperatorRangeMap()));
 
                 for (unsigned int j = 0; j < 2; j++)
                     localDomainMaps[j].reset(new Epetra_Map(
-                    std::static_pointer_cast<MATRIXEPETRA>(primalMatrix->block(i,i)->block(0,j)->data())->matrixPtr()->OperatorDomainMap()));
+                    spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,j)->data())->matrixPtr()->OperatorDomainMap()));
 
-                SHP(LifeV::BlockEpetra_Map) rmblock(new LifeV::BlockEpetra_Map(localRangeMaps));
-                SHP(LifeV::BlockEpetra_Map) dmblock(new LifeV::BlockEpetra_Map(localDomainMaps));
+                shp<LifeV::BlockEpetra_Map> rmblock(new LifeV::BlockEpetra_Map(localRangeMaps));
+                shp<LifeV::BlockEpetra_Map> dmblock(new LifeV::BlockEpetra_Map(localDomainMaps));
                 newPrec->setRangeMap(rmblock);
                 newPrec->setDomainMap(dmblock);
 
@@ -325,20 +322,19 @@ computeAm1BT(const BM& A, const BM& BT)
     {
         for (unsigned int j = 0; j < BT->nCols(); j++)
         {
-            BM Abm = std::static_pointer_cast<BlockMatrix>(A->block(i,i));
-            BM BTbm = std::static_pointer_cast<BlockMatrix>(BT->block(i,j));
+            BM Abm = spcast<BlockMatrix>(A->block(i,i));
+            BM BTbm = spcast<BlockMatrix>(BT->block(i,j));
             M_Am1BT->setBlock(i,j,computeSingleAm1BT(Abm, BTbm,i));
         }
     }
-    M_Am1BT->close();
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 SaddlePointPreconditioner::
 computeSingleAm1BT(const BM& A, const BM& BT,
                    const unsigned int& index)
 {
-    SHP(BlockMatrix) retMat;
+    shp<BlockMatrix> retMat;
 
     if (!BT->isZero())
     {
@@ -353,8 +349,8 @@ computeSingleAm1BT(const BM& A, const BM& BT,
 
         unsigned int ncols = domainMap.mapSize();
 
-        std::vector<SHP(DistributedVector)> ressU(ncols);
-        std::vector<SHP(DistributedVector)> ressP(ncols);
+        std::vector<shp<DistributedVector>> ressU(ncols);
+        std::vector<shp<DistributedVector>> ressP(ncols);
 
         bool exactSolve = false;
 
@@ -374,12 +370,12 @@ computeSingleAm1BT(const BM& A, const BM& BT,
             if (domainMap.isOwned(i))
                 selector[i] = 1.0;
 
-            colU = (*std::static_pointer_cast<MATRIXEPETRA>(BT->block(0,0)->data())) * selector;
+            colU = (*spcast<MATRIXEPETRA>(BT->block(0,0)->data())) * selector;
 
             ressU[i].reset(new DistributedVector());
-            ressU[i]->setData(SHP(VECTOREPETRA)(new VECTOREPETRA(rangeMapU)));
+            ressU[i]->setData(shp<VECTOREPETRA>(new VECTOREPETRA(rangeMapU)));
             ressP[i].reset(new DistributedVector());
-            ressP[i]->setData(SHP(VECTOREPETRA)(new VECTOREPETRA(rangeMapP)));
+            ressP[i]->setData(shp<VECTOREPETRA>(new VECTOREPETRA(rangeMapP)));
 
             if (exactSolve)
             {
@@ -400,19 +396,19 @@ computeSingleAm1BT(const BM& A, const BM& BT,
                     M_invOperators[index]->ApplyInverse(X.epetraVector(), Y.epetraVector());
                 ct.restore();
 
-                std::static_pointer_cast<VECTOREPETRA>(ressU[i]->data())->subset(Y, rangeMapU, 0, 0);
-                std::static_pointer_cast<VECTOREPETRA>(ressP[i]->data())->subset(Y, rangeMapP, rangeMapU.mapSize(), 0);
+                spcast<VECTOREPETRA>(ressU[i]->data())->subset(Y, rangeMapU, 0, 0);
+                spcast<VECTOREPETRA>(ressP[i]->data())->subset(Y, rangeMapP, rangeMapU.mapSize(), 0);
             }
             else
             {
                 M_innerPreconditioners[index]->ApplyInverse(colU, colP,
-                                                            *std::static_pointer_cast<VECTOREPETRA>(ressU[i]->data()),
-                                                            *std::static_pointer_cast<VECTOREPETRA>(ressP[i]->data()));
+                                                            *spcast<VECTOREPETRA>(ressU[i]->data()),
+                                                            *spcast<VECTOREPETRA>(ressP[i]->data()));
             }
         }
 
-        SHP(SparseMatrix) Am1BTu(new SparseMatrix(ressU));
-        SHP(SparseMatrix) Am1BTp(new SparseMatrix(ressP));
+        shp<SparseMatrix> Am1BTu(new SparseMatrix(ressU));
+        shp<SparseMatrix> Am1BTp(new SparseMatrix(ressP));
         retMat->setBlock(0,0,Am1BTu);
         retMat->setBlock(1,0,Am1BTp);
 
@@ -531,7 +527,7 @@ applyEveryB(const VECTOREPETRA& X, VECTOREPETRA &Y) const
         for (unsigned int j = 0; j < M_nPrimalBlocks * 2; j++)
         {
             if (!M_matrixCollapsed->block(i,j)->isZero())
-                subRes += (*std::static_pointer_cast<MATRIXEPETRA>(M_matrixCollapsed->block(i,j)->data())) * Xs[j];
+                subRes += (*spcast<MATRIXEPETRA>(M_matrixCollapsed->block(i,j)->data())) * Xs[j];
         }
         Y.subset(subRes, curRange, 0, offset);
         offset += curRange.mapSize();
@@ -569,8 +565,8 @@ applyEveryAm1BT(const VECTOREPETRA& X, VECTOREPETRA &Y) const
         for (unsigned int j = 0; j < M_nDualBlocks; j++)
         {
             if (!M_Am1BT->block(i/2,j)->isZero())
-                if (!M_Am1BT->block(i/2,j)->block(i%2,0)->isZero())
-                    subRes += (*std::static_pointer_cast<MATRIXEPETRA>(M_Am1BT->block(i/2,j)->block(i%2,0)->data())) * Xs[j];
+                if (!convert<BlockMatrix>(M_Am1BT->block(i/2,j))->block(i%2,0)->isZero())
+                    subRes += (*spcast<MATRIXEPETRA>(convert<BlockMatrix>(M_Am1BT->block(i/2,j))->block(i%2,0)->data())) * Xs[j];
         }
         Y.subset(subRes, curRange, 0, offset);
         offset += curRange.mapSize();

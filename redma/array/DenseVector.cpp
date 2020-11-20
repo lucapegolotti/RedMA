@@ -5,15 +5,13 @@ namespace RedMA
 
 DenseVector::
 DenseVector() :
-  aVector(DENSE),
   M_vector(nullptr)
 {
 
 }
 
 DenseVector::
-DenseVector(const DenseVector& vector) :
-  aVector(DENSE)
+DenseVector(const DenseVector& vector)
 {
     M_vector.reset(new DENSEVECTOR(*vector.M_vector));
 }
@@ -22,17 +20,15 @@ void
 DenseVector::
 add(std::shared_ptr<aVector> other)
 {
-    checkType(other, DENSE);
-
     if (isZero())
     {
-        hardCopy(other);
+        deepCopy(other);
         return;
     }
 
     if (!other->isZero())
     {
-        DenseVector* otherVector = dynamic_cast<DenseVector*>(other.get());
+        shp<DenseVector> otherVector = convert<DenseVector>(other);
         (*M_vector) += (*static_cast<DENSEVECTOR*>(otherVector->data().get()));
     }
 }
@@ -47,33 +43,31 @@ multiplyByScalar(const double& coeff)
 
 void
 DenseVector::
-softCopy(std::shared_ptr<aVector> other)
+shallowCopy(std::shared_ptr<aDataWrapper> other)
 {
     if (other)
     {
-        checkType(other, DENSE);
-        auto otherMatrix = dynamic_cast<DenseVector*>(other.get());
-        setVector(otherMatrix->M_vector);
+        auto otherVector = convert<DenseVector>(other);
+        setVector(otherVector->M_vector);
     }
 }
 
 void
 DenseVector::
-hardCopy(std::shared_ptr<aVector> other)
+deepCopy(std::shared_ptr<aDataWrapper> other)
 {
     if (other)
     {
-        checkType(other, DENSE);
-        auto otherVector = dynamic_cast<DenseVector*>(other.get());
+        auto otherVector = convert<DenseVector>(other);
         std::shared_ptr<DENSEVECTOR> newVector
             (new DENSEVECTOR(*otherVector->M_vector));
         setVector(newVector);
     }
 }
 
-aVector*
+DenseVector*
 DenseVector::
-cloneVector() const
+clone() const
 {
     DenseVector* retVector = new DenseVector();
     if (M_vector)
@@ -87,14 +81,9 @@ cloneVector() const
 
 bool
 DenseVector::
-isZero()
+isZero() const
 {
-    if (!M_vector)
-        return true;
-    // we recompute just to make sure
-    if (M_normInf < ZEROTHRESHOLD)
-        M_normInf = M_vector->NormInf();
-    return M_normInf < ZEROTHRESHOLD;
+    return M_vector == nullptr;
 }
 
 double
@@ -193,7 +182,6 @@ setVector(std::shared_ptr<DENSEVECTOR> vector)
     {
         M_vector = vector;
         this->M_nRows = M_vector->Length();
-        this->M_normInf = M_vector->NormInf();
     }
 }
 

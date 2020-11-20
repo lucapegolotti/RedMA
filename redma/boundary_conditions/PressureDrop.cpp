@@ -13,55 +13,55 @@ PressureDrop(const double& C, const double& Rp, const double& Rd) :
 }
 
 
-SHP(aVector)
+shp<aVector>
 PressureDrop::
 getZeroVector() const
 {
-    SHP(BlockVector) retVec(new BlockVector(1));
-    SHP(Double) value(new Double());
+    shp<BlockVector> retVec(new BlockVector(1));
+    shp<Double> value(new Double());
     value->setValue(0);
     retVec->setBlock(0,value);
     return retVec;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 PressureDrop::
-getMass(const double& time, const SHP(aVector)& sol)
+getMass(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) mass(new BlockMatrix(1,1));
-    SHP(Double) one(new Double());
+    shp<BlockMatrix> mass(new BlockMatrix(1,1));
+    shp<Double> one(new Double());
     one->setValue(1.0);
     mass->setBlock(0,0,one);
 
     return mass;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 PressureDrop::
-getMassJacobian(const double& time, const SHP(aVector)& sol)
+getMassJacobian(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) massJac(new BlockMatrix(1,1));
+    shp<BlockMatrix> massJac(new BlockMatrix(1,1));
     return massJac;
 }
 
-SHP(aVector)
+shp<aVector>
 PressureDrop::
-getRightHandSide(const double& time, const SHP(aVector)& sol)
+getRightHandSide(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockVector) retVec(new BlockVector(1));
-    retVec->hardCopy(sol);
+    shp<BlockVector> retVec(new BlockVector(1));
+    retVec->deepCopy(sol);
     std::static_pointer_cast<Double>(retVec->block(0))->multiplyByScalar(-1.0 / (M_C * M_Rd));
     double v = std::static_pointer_cast<Double>(retVec->block(0))->getValue();
     // std::static_pointer_cast<Double>(retVec->block(0))->setValue(v + M_Q / M_C);
     return retVec;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 PressureDrop::
-getJacobianRightHandSide(const double& time, const SHP(aVector)& sol)
+getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) retMat(new BlockMatrix(1,1));
-    SHP(Double) value(new Double());
+    shp<BlockMatrix> retMat(new BlockMatrix(1,1));
+    shp<Double> value(new Double());
     // value->setValue(-1.0 / (M_C * M_Rd));
     retMat->setBlock(0,0,value);
     return retMat;

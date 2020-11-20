@@ -126,8 +126,8 @@ createDefaultAssemblers()
     //
     //             if (M_meshASPairMap.find(nameMesh) == M_meshASPairMap.end())
     //             {
-    //                 SHP(TreeNode) defTreeNode = generateDefaultTreeNode(nameMesh);
-    //                 SHP(AssemblerType) defAssembler = AssemblerFactory<FEVECTOR COMMA FEMATRIX>(M_data, defTreeNode);
+    //                 shp<TreeNode> defTreeNode = generateDefaultTreeNode(nameMesh);
+    //                 shp<AssemblerType> defAssembler = AssemblerFactory<FEVECTOR COMMA FEMATRIX>(M_data, defTreeNode);
     //                 defAssembler->setup();
     //
     //                 M_meshASPairMap[nameMesh].first = defAssembler;
@@ -258,7 +258,7 @@ addSupremizers()
     //         auto map = *constraintMatrix.data()->rangeMapPtr();
     //         auto linearSolver = setupLinearSolver(normMatrix);
     //
-    //         std::vector<SHP(VECTOREPETRA)> basisFunctions = M_bases[meshas.first]->getFullBasis(limitingfield);
+    //         std::vector<shp<VECTOREPETRA>> basisFunctions = M_bases[meshas.first]->getFullBasis(limitingfield);
     //
     //         for (unsigned int i = 0; i < basisFunctions.size(); i++)
     //         {
@@ -272,7 +272,7 @@ addSupremizers()
     //
     //             linearSolver.setRightHandSide(rhs.data());
     //
-    //             SHP(VECTOREPETRA) solution(new VECTOREPETRA(map, LifeV::Unique));
+    //             shp<VECTOREPETRA> solution(new VECTOREPETRA(map, LifeV::Unique));
     //             linearSolver.solve(solution);
     //
     //             M_bases[meshas.first]->addPrimalSupremizer(solution, field2augment, limitingfield);
@@ -323,7 +323,7 @@ addSupremizers()
     //                 printlog(YELLOW, "adding supremizer " + std::to_string(i) + " ... \n",
     //                          M_data.getVerbose());
     //
-    //                 SHP(VECTOREPETRA) selector(new VECTOREPETRA(lagrangeMap, LifeV::Unique));
+    //                 shp<VECTOREPETRA> selector(new VECTOREPETRA(lagrangeMap, LifeV::Unique));
     //                 selector->zero();
     //                 selector->operator[](i) = 1.0;
     //
@@ -334,7 +334,7 @@ addSupremizers()
     //
     //                 linearSolver.setRightHandSide(rhs.data());
     //
-    //                 SHP(VECTOREPETRA) solution(new VECTOREPETRA(map, LifeV::Unique));
+    //                 shp<VECTOREPETRA> solution(new VECTOREPETRA(map, LifeV::Unique));
     //                 linearSolver.solve(solution);
     //
     //                 M_bases[meshas.first]->addDualSupremizer(solution, field2augment);
@@ -375,7 +375,7 @@ performPOD()
     //         pod.generatePODbasisTol(podtol);
     //
     //         unsigned int nbfs = pod.getRBdimension();
-    //         std::vector<SHP(VECTOREPETRA)> basisFunctions(nbfs);
+    //         std::vector<shp<VECTOREPETRA>> basisFunctions(nbfs);
     //
     //         pod.swapReducedBasis(basisFunctions, 0);
     //         M_bases[pair.first]->setPath(outdir + "/" + pair.first);
@@ -386,7 +386,7 @@ performPOD()
     // printlog(MAGENTA, "done\n", M_data.getVerbose());
 }
 
-SHP(TreeNode)
+shp<TreeNode>
 BasisGenerator::
 generateDefaultTreeNode(const std::string& nameMesh)
 {
@@ -402,7 +402,7 @@ generateDefaultTreeNode(const std::string& nameMesh)
     // return nullptr;
 }
 
-SHP(TreeNode)
+shp<TreeNode>
 BasisGenerator::
 generateDefaultTube(const std::string& nameMesh)
 {
@@ -410,25 +410,25 @@ generateDefaultTube(const std::string& nameMesh)
     // unsigned int length = std::atoi(nameMesh.substr(7,8).c_str());
     // std::string refinement = nameMesh.substr(9);
     //
-    // SHP(Tube) defaultTube(new Tube(M_comm, refinement, false, diameter, length));
+    // shp<Tube> defaultTube(new Tube(M_comm, refinement, false, diameter, length));
     // defaultTube->readMesh();
     //
-    // SHP(TreeNode) treeNode(new TreeNode(defaultTube, 1234));
+    // shp<TreeNode> treeNode(new TreeNode(defaultTube, 1234));
     //
     // return treeNode;
 }
 
-SHP(TreeNode)
+shp<TreeNode>
 BasisGenerator::
 generateDefaultSymmetricBifurcation(const std::string& nameMesh)
 {
     // unsigned int alpha = std::atoi(nameMesh.substr(13,15).c_str());
     // std::string refinement = nameMesh.substr(17);
     //
-    // SHP(BifurcationSymmetric) defaultBifurcation(new BifurcationSymmetric(M_comm, refinement, false, alpha));
+    // shp<BifurcationSymmetric> defaultBifurcation(new BifurcationSymmetric(M_comm, refinement, false, alpha));
     // defaultBifurcation->readMesh();
     //
-    // SHP(TreeNode) treeNode(new TreeNode(defaultBifurcation, 1234));
+    // shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234));
     //
     // return treeNode;
 }
@@ -461,15 +461,15 @@ parseParameterSnapshots(const std::string& paramDir)
 void
 BasisGenerator::
 addSnapshotsFromFile(const std::string& snapshotsFile,
-                     std::vector<SHP(VECTOREPETRA)>& snapshots,
-                     SHP(FESPACE) fespace)
+                     std::vector<shp<VECTOREPETRA>>& snapshots,
+                     shp<FESPACE> fespace)
 {
 
     // std::ifstream infile(snapshotsFile);
     // std::string line;
     // while(std::getline(infile,line))
     // {
-    //     SHP(VECTOREPETRA) newVector(new VECTOREPETRA(fespace->map()));
+    //     shp<VECTOREPETRA> newVector(new VECTOREPETRA(fespace->map()));
     //
     //     std::stringstream linestream(line);
     //     std::string value;

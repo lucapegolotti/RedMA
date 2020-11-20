@@ -26,22 +26,22 @@ class SUPGStabilization : public NavierStokesStabilization
 {
 public:
     SUPGStabilization(const DataContainer& data,
-                      SHP(FESPACE) fespaceVelocity,
-                      SHP(FESPACE) fespacePressure,
-                      SHP(ETFESPACE3) etfespaceVelocity,
-                      SHP(ETFESPACE1) etfespacePressure);
+                      shp<FESPACE> fespaceVelocity,
+                      shp<FESPACE> fespacePressure,
+                      shp<ETFESPACE3> etfespaceVelocity,
+                      shp<ETFESPACE1> etfespacePressure);
 
-    virtual SHP(BlockMatrix) getMass(SHP(BlockVector) sol,
-                                     SHP(BlockVector) rhs) override;
+    virtual shp<BlockMatrix> getMass(shp<BlockVector> sol,
+                                     shp<BlockVector> rhs) override;
 
-    virtual SHP(BlockMatrix) getMassJac(SHP(BlockVector) sol,
-                                        SHP(BlockVector) rhs) override;
+    virtual shp<BlockMatrix> getMassJac(shp<BlockVector> sol,
+                                        shp<BlockVector> rhs) override;
 
-    virtual SHP(BlockMatrix) getJac(SHP(BlockVector) sol,
-                                    SHP(BlockVector) rhs) override;
+    virtual shp<BlockMatrix> getJac(shp<BlockVector> sol,
+                                    shp<BlockVector> rhs) override;
 
-    virtual SHP(BlockVector) getResidual(SHP(BlockVector) sol,
-                                         SHP(BlockVector) rhs) override;
+    virtual shp<BlockVector> getResidual(shp<BlockVector> sol,
+                                         shp<BlockVector> rhs) override;
 
 };
 

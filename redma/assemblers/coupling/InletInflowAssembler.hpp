@@ -31,13 +31,13 @@ public:
                          const Interface& interface);
 
     virtual void addContributionRhs(const double& time,
-                                    SHP(BlockVector) rhs,
-                                    SHP(BlockVector) sol,
+                                    shp<BlockVector> rhs,
+                                    shp<BlockVector> sol,
                                     const unsigned int& nPrimalBlocks) override;
 
     virtual void addContributionJacobianRhs(const double& time,
-                                            SHP(BlockMatrix) jac,
-                                            SHP(BlockVector) sol,
+                                            shp<BlockMatrix> jac,
+                                            shp<BlockVector> sol,
                                             const unsigned int& nPrimalBlocks) override;
 
 };

@@ -3,7 +3,7 @@
 //
 // StokesAssembler::
 // StokesAssembler(const DataContainer& data,
-//                 SHP(TreeNode) treeNode) :
+//                 shp<TreeNode> treeNode) :
 //   aAssembler(data, treeNode)
 // {
 //     // M_density = this->M_data("fluid/density", 1.0);
@@ -59,14 +59,14 @@
 //     // M_pFunc = PyObject_GetAttrString(M_pModule, "evaluate_model");
 // }
 //
-// SHP(VECTOREPETRA)
+// shp<VECTOREPETRA>
 // StokesAssembler::
 // assembleFlowRateVector(const GeometricFace& face)
 // {
 //     // using namespace LifeV;
 //     // using namespace ExpressionAssembly;
 //     //
-//     // SHP(VECTOREPETRA) flowRateVectorRepeated;
+//     // shp<VECTOREPETRA> flowRateVectorRepeated;
 //     // flowRateVectorRepeated.reset(new VECTOREPETRA(M_velocityFESpace->map(),
 //     //                                               Repeated));
 //     //
@@ -80,7 +80,7 @@
 //     //
 //     // flowRateVectorRepeated->globalAssemble();
 //     //
-//     // SHP(VECTOREPETRA) flowRateVector(new VECTOREPETRA(*flowRateVectorRepeated,
+//     // shp<VECTOREPETRA> flowRateVector(new VECTOREPETRA(*flowRateVectorRepeated,
 //     //                                                   Unique));
 //     // return flowRateVector;
 // }
@@ -173,7 +173,7 @@
 //     // systemMatrix += M_divergence;
 //     // systemMatrix *= (-1.0);
 //     //
-//     // retVec.softCopy(systemMatrix * sol);
+//     // retVec.shallowCopy(systemMatrix * sol);
 //     //
 //     // // addNeumannBCs(retVec, time, sol);
 //     //
@@ -246,7 +246,7 @@
 //
 // void
 // StokesAssembler::
-// computeWallShearStress(SHP(VECTOREPETRA) velocity)
+// computeWallShearStress(shp<VECTOREPETRA> velocity)
 // {
 //     // using namespace LifeV;
 //     // using namespace ExpressionAssembly;
@@ -269,9 +269,9 @@
 //     //
 //     // M_WSSExporter->zero();
 //     //
-//     // SHP(VECTOREPETRA) velocityRepeated(new VECTOREPETRA(*velocity,
+//     // shp<VECTOREPETRA> velocityRepeated(new VECTOREPETRA(*velocity,
 //     //                                                      Repeated));
-//     // SHP(VECTOREPETRA) weakWSSRepeated(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
+//     // shp<VECTOREPETRA> weakWSSRepeated(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
 //     //
 //     // integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
 //     //           myBDQR,
@@ -297,7 +297,7 @@
 //     //          ) >> weakWSSRepeated;
 //     //
 //     // weakWSSRepeated->globalAssemble();
-//     // SHP(VECTOREPETRA) weakWSSUnique(new VECTOREPETRA(*weakWSSRepeated, Unique));
+//     // shp<VECTOREPETRA> weakWSSUnique(new VECTOREPETRA(*weakWSSRepeated, Unique));
 //     //
 //     // M_WSSExporter->zero();
 //     //
@@ -347,7 +347,7 @@
 //     // //     {
 //     // //         double dhdQ = this->M_bcManager->getNeumannJacobian(time, rate.first, rate.second);
 //     // //         BlockMatrix<InMatrixType> curjac;
-//     // //         curjac.hardCopy(M_flowRateJacobians[rate.first]);
+//     // //         curjac.deepCopy(M_flowRateJacobians[rate.first]);
 //     // //         curjac *= dhdQ;
 //     // //
 //     // //         retMat += curjac;
@@ -404,7 +404,7 @@
 //     // M_exporter->setPostDir(outdir);
 // }
 //
-// SHP(FESPACE)
+// shp<FESPACE>
 // StokesAssembler::
 // getFEspace(unsigned int index) const
 // {
@@ -682,7 +682,7 @@
 //
 // void
 // StokesAssembler::
-// setRBBases(SHP(RBBasesManager) rbManager)
+// setRBBases(shp<RBBasesManager> rbManager)
 // {
 //     // std::string mdeimdir = this->M_data("rb/online/mdeim/directory", "mdeims");
 //     // std::string meshName = this->M_treeNode->M_block->getMeshName();
@@ -736,7 +736,7 @@
 // StokesAssembler::
 // setExtrapolatedSolution(const BlockVector& exSol)
 // {
-//     // M_extrapolatedSolution.softCopy(exSol);
+//     // M_extrapolatedSolution.shallowCopy(exSol);
 // }
 //
 // void

@@ -65,7 +65,7 @@ loadSingularValues()
 
 void
 RBBases::
-addPrimalSupremizer(SHP(VECTOREPETRA) supremizer,
+addPrimalSupremizer(shp<VECTOREPETRA> supremizer,
                     const unsigned int& fieldToAugment,
                     const unsigned int& fieldConstraint)
 {
@@ -94,14 +94,14 @@ computeOnlineNumberBasisFunctions(unsigned int index)
 
 void
 RBBases::
-addDualSupremizer(SHP(VECTOREPETRA) supremizer, const unsigned int& fieldToAugment)
+addDualSupremizer(shp<VECTOREPETRA> supremizer, const unsigned int& fieldToAugment)
 {
     M_dualSupremizers[fieldToAugment].push_back(supremizer);
 }
 
 void
 RBBases::
-setFESpace(SHP(FESPACE) fespace, const unsigned int& indexbasis)
+setFESpace(shp<FESPACE> fespace, const unsigned int& indexbasis)
 {
     M_fespaces[indexbasis] = fespace;
     M_fespacesAreSet = true;
@@ -109,7 +109,7 @@ setFESpace(SHP(FESPACE) fespace, const unsigned int& indexbasis)
 
 void
 RBBases::
-addVectorsFromFile(std::string filename, std::vector<SHP(VECTOREPETRA)>& vectors,
+addVectorsFromFile(std::string filename, std::vector<shp<VECTOREPETRA>>& vectors,
                    const unsigned int& indexField, int Nmax)
 {
     // using namespace boost::filesystem;
@@ -123,7 +123,7 @@ addVectorsFromFile(std::string filename, std::vector<SHP(VECTOREPETRA)>& vectors
         std::string line;
         while (std::getline(infile,line) && (Nmax < 0 || count < Nmax))
         {
-            SHP(VECTOREPETRA) newVector(new VECTOREPETRA(M_fespaces[indexField]->map()));
+            shp<VECTOREPETRA> newVector(new VECTOREPETRA(M_fespaces[indexField]->map()));
 
             std::stringstream linestream(line);
             std::string value;
@@ -180,7 +180,7 @@ loadBases()
         for (unsigned int i = 0; i < M_numFields; i++)
         {
             auto curBasis = getEnrichedBasis(i, -1);
-            SHP(SparseMatrix) curBasisMatrix(new SparseMatrix(curBasis));
+            shp<SparseMatrix> curBasisMatrix(new SparseMatrix(curBasis));
             M_enrichedBasesMatrices.push_back(curBasisMatrix);
             M_enrichedBasesMatricesTransposed.push_back(std::static_pointer_cast<SparseMatrix>(curBasisMatrix->transpose()));
         }
@@ -317,14 +317,14 @@ dump()
 void
 RBBases::
 scaleBasisWithPiola(unsigned int index, unsigned int ID,
-                    std::function<void(SHP(VECTOREPETRA))> transform)
+                    std::function<void(shp<VECTOREPETRA>)> transform)
 {
-    std::vector<SHP(VECTOREPETRA)> newEnrichedBasis;
+    std::vector<shp<VECTOREPETRA>> newEnrichedBasis;
     auto refEnrichedBasis = getEnrichedBasis(index,-1);
 
     for (auto vec : refEnrichedBasis)
     {
-        SHP(VECTOREPETRA) newVector(new VECTOREPETRA(M_fespaces[index]->map()));
+        shp<VECTOREPETRA> newVector(new VECTOREPETRA(M_fespaces[index]->map()));
         *newVector = *vec;
 
         transform(newVector);
@@ -333,16 +333,16 @@ scaleBasisWithPiola(unsigned int index, unsigned int ID,
 
     M_enrichedBasesMap[index][ID] = newEnrichedBasis;
 
-    SHP(SparseMatrix) basisMatrix(new SparseMatrix(newEnrichedBasis));
+    shp<SparseMatrix> basisMatrix(new SparseMatrix(newEnrichedBasis));
     M_enrichedBasesMatricesMap[index][ID] = basisMatrix;
     M_enrichedBasesMatricesTransposedMap[index][ID] = std::static_pointer_cast<SparseMatrix>(basisMatrix->transpose());
 }
 
-SHP(BlockMatrix)
+shp<BlockMatrix>
 RBBases::
-leftProject(SHP(BlockMatrix) matrix, unsigned int ID)
+leftProject(shp<BlockMatrix> matrix, unsigned int ID)
 {
-    SHP(BlockMatrix) projectedMatrix(new BlockMatrix(matrix->nRows(), matrix->nCols()));
+    shp<BlockMatrix> projectedMatrix(new BlockMatrix(matrix->nRows(), matrix->nCols()));
 
     for (unsigned int i = 0; i < matrix->nRows(); i++)
     {
@@ -354,11 +354,11 @@ leftProject(SHP(BlockMatrix) matrix, unsigned int ID)
     return projectedMatrix;
 }
 
-SHP(RBMATRIX)
+shp<RBMATRIX>
 RBBases::
-leftProject(SHP(FEMATRIX) matrix, unsigned int basisIndex, unsigned int ID)
+leftProject(shp<FEMATRIX> matrix, unsigned int basisIndex, unsigned int ID)
 {
-    SHP(DenseMatrix) retMat(new DenseMatrix);
+    shp<DenseMatrix> retMat(new DenseMatrix);
 
     if (matrix->data())
     {
@@ -367,7 +367,7 @@ leftProject(SHP(FEMATRIX) matrix, unsigned int basisIndex, unsigned int ID)
         auto rangeMap = std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, false)->data())->domainMapPtr();
         auto domainMap = std::static_pointer_cast<MATRIXEPETRA>(matrix->data())->domainMapPtr();
 
-        SHP(MATRIXEPETRA) innerMatrix(new MATRIXEPETRA(*rangeMap));
+        shp<MATRIXEPETRA> innerMatrix(new MATRIXEPETRA(*rangeMap));
 
         // for some reason it is more efficient to transpose and then multiply
         std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, true)->data())->multiply(false, *std::static_pointer_cast<MATRIXEPETRA>(matrix->data()), false,
@@ -375,7 +375,7 @@ leftProject(SHP(FEMATRIX) matrix, unsigned int basisIndex, unsigned int ID)
 
         innerMatrix->globalAssemble(domainMap, rangeMap);
 
-        SHP(SparseMatrix) retMatEp(new SparseMatrix());
+        shp<SparseMatrix> retMatEp(new SparseMatrix());
         retMatEp->setMatrix(innerMatrix);
 
         return retMatEp->toDenseMatrixPtr();
@@ -384,24 +384,24 @@ leftProject(SHP(FEMATRIX) matrix, unsigned int basisIndex, unsigned int ID)
 }
 
 // we assume that the basis for the lagrange multiplier is the identity
-SHP(BlockVector)
+shp<BlockVector>
 RBBases::
-projectOnLagrangeSpace(SHP(BlockVector) vector)
+projectOnLagrangeSpace(shp<BlockVector> vector)
 {
     if (vector->nRows() > 1)
         throw new Exception("projectOnLagrangeSpace: error!");
 
-    SHP(BlockVector) retVec(new BlockVector(1));
+    shp<BlockVector> retVec(new BlockVector(1));
     retVec->setBlock(0,std::static_pointer_cast<DistributedVector>(vector->block(0))->toDenseVectorPtr());
 
     return retVec;
 }
 
-SHP(BlockVector)
+shp<BlockVector>
 RBBases::
-leftProject(SHP(BlockVector) vector, unsigned int ID)
+leftProject(shp<BlockVector> vector, unsigned int ID)
 {
-    SHP(BlockVector) projectedVector(new BlockVector(vector->nRows()));
+    shp<BlockVector> projectedVector(new BlockVector(vector->nRows()));
 
     for (unsigned int i = 0; i < vector->nRows(); i++)
         projectedVector->setBlock(i,leftProject(std::static_pointer_cast<DistributedVector>(vector->block(i)), i, ID));
@@ -409,13 +409,13 @@ leftProject(SHP(BlockVector) vector, unsigned int ID)
     return projectedVector;
 }
 
-SHP(DenseVector)
+shp<DenseVector>
 RBBases::
-leftProject(SHP(DistributedVector) vector, unsigned int basisIndex, unsigned int ID)
+leftProject(shp<DistributedVector> vector, unsigned int basisIndex, unsigned int ID)
 {
     if (vector->data())
     {
-        SHP(DistributedVector) resVector;
+        shp<DistributedVector> resVector;
         resVector = std::static_pointer_cast<DistributedVector>(getEnrichedBasisMatrices(basisIndex, ID, true)->multiplyByVector(vector));
 
         return resVector->toDenseVectorPtr();
@@ -423,11 +423,11 @@ leftProject(SHP(DistributedVector) vector, unsigned int basisIndex, unsigned int
     return nullptr;
 }
 
-SHP(BlockMatrix)
+shp<BlockMatrix>
 RBBases::
-rightProject(SHP(BlockMatrix) matrix, unsigned int ID)
+rightProject(shp<BlockMatrix> matrix, unsigned int ID)
 {
-    SHP(BlockMatrix) projectedMatrix(new BlockMatrix(matrix->nRows(), matrix->nCols()));
+    shp<BlockMatrix> projectedMatrix(new BlockMatrix(matrix->nRows(), matrix->nCols()));
 
     for (unsigned int i = 0; i < matrix->nRows(); i++)
     {
@@ -439,11 +439,11 @@ rightProject(SHP(BlockMatrix) matrix, unsigned int ID)
     return projectedMatrix;
 }
 
-SHP(DenseMatrix)
+shp<DenseMatrix>
 RBBases::
-rightProject(SHP(FEMATRIX) matrix, unsigned int basisIndex, unsigned int ID)
+rightProject(shp<FEMATRIX> matrix, unsigned int basisIndex, unsigned int ID)
 {
-    SHP(DenseMatrix) retMat(new DenseMatrix());
+    shp<DenseMatrix> retMat(new DenseMatrix());
 
     if (matrix->data())
     {
@@ -451,14 +451,14 @@ rightProject(SHP(FEMATRIX) matrix, unsigned int basisIndex, unsigned int ID)
         auto rangeMap = std::static_pointer_cast<MATRIXEPETRA>(matrix->data())->rangeMapPtr(); ;
         auto domainMap = std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, false)->data())->domainMapPtr();
 
-        SHP(MATRIXEPETRA) innerMatrix(new MATRIXEPETRA(*rangeMap));
+        shp<MATRIXEPETRA> innerMatrix(new MATRIXEPETRA(*rangeMap));
 
         std::static_pointer_cast<MATRIXEPETRA>(matrix->data())->multiply(false, *std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, false)->data()),
                                 false, *innerMatrix);
 
         innerMatrix->globalAssemble(domainMap, rangeMap);
 
-        SHP(SparseMatrix) retMatEp(new SparseMatrix());
+        shp<SparseMatrix> retMatEp(new SparseMatrix());
         retMatEp->setMatrix(innerMatrix);
 
         return retMatEp->toDenseMatrixPtr();
@@ -467,14 +467,14 @@ rightProject(SHP(FEMATRIX) matrix, unsigned int basisIndex, unsigned int ID)
 }
 
 
-std::vector<SHP(VECTOREPETRA)>
+std::vector<shp<VECTOREPETRA>>
 RBBases::
 getBasis(const unsigned int& index)
 {
     if (M_onlineTol < 1e-15)
         return M_bases[index];
 
-    std::vector<SHP(VECTOREPETRA)> basis;
+    std::vector<shp<VECTOREPETRA>> basis;
 
     for (unsigned int i = 0; i < M_NsOnline[index]; i++)
         basis.push_back(M_bases[index][i]);
@@ -482,13 +482,13 @@ getBasis(const unsigned int& index)
     return basis;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 RBBases::
-matrixProject(SHP(aMatrix) matrix, unsigned int basisIndexRow,
+matrixProject(shp<aMatrix> matrix, unsigned int basisIndexRow,
               unsigned int basisIndexCol,
               unsigned int ID)
 {
-    SHP(DenseMatrix) retMat(new DenseMatrix());
+    shp<DenseMatrix> retMat(new DenseMatrix());
 
     if (matrix->data())
     {
@@ -498,7 +498,7 @@ matrixProject(SHP(aMatrix) matrix, unsigned int basisIndexRow,
         auto rangeMap = std::static_pointer_cast<MATRIXEPETRA>(matrix->data())->rangeMapPtr();
         auto domainMap = std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexCol, ID, false)->data())->domainMapPtr();
 
-        SHP(MATRIXEPETRA) auxMatrix(new MATRIXEPETRA(*rangeMap));
+        shp<MATRIXEPETRA> auxMatrix(new MATRIXEPETRA(*rangeMap));
 
         std::static_pointer_cast<MATRIXEPETRA>(matrix->data())->multiply(false, *std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexCol, ID, false)->data()),
                                 false, *auxMatrix);
@@ -506,14 +506,14 @@ matrixProject(SHP(aMatrix) matrix, unsigned int basisIndexRow,
 
         rangeMap = std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, false)->data())->domainMapPtr();
 
-        SHP(MATRIXEPETRA) innerMatrix(new MATRIXEPETRA(*rangeMap));
+        shp<MATRIXEPETRA> innerMatrix(new MATRIXEPETRA(*rangeMap));
 
         std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, true)->data())->multiply(false, *auxMatrix,
                                                                            false, *innerMatrix);
 
         innerMatrix->globalAssemble(domainMap, rangeMap);
 
-        SHP(SparseMatrix) retMatEp(new SparseMatrix());
+        shp<SparseMatrix> retMatEp(new SparseMatrix());
         retMatEp->setMatrix(innerMatrix);
 
         return retMatEp->toDenseMatrixPtr();
@@ -521,14 +521,14 @@ matrixProject(SHP(aMatrix) matrix, unsigned int basisIndexRow,
     return retMat;
 }
 
-std::vector<SHP(VECTOREPETRA)>
+std::vector<shp<VECTOREPETRA>>
 RBBases::
 getEnrichedBasis(const unsigned int& index, unsigned int ID)
 {
     if (M_enrichedBasesMap[index][ID].size() > 0)
         return M_enrichedBasesMap[index][ID];
 
-    std::vector<SHP(VECTOREPETRA)> retVectors = getBasis(index);
+    std::vector<shp<VECTOREPETRA>> retVectors = getBasis(index);
     if (M_data("rb/online/basis/useprimalsupremizers", 1))
     {
         for (unsigned int j = 0; j < M_numFields; j++)
@@ -592,7 +592,7 @@ getSelectors(unsigned int index)
     return selectors;
 }
 
-SHP(FEMATRIX)
+shp<FEMATRIX>
 RBBases::
 getEnrichedBasisMatrices(const unsigned int& index, const unsigned int& ID,
                          bool transpose)
@@ -628,12 +628,12 @@ getEnrichedBasisMatrices(const unsigned int& index, const unsigned int& ID,
     }
 }
 
-SHP(VECTOREPETRA)
+shp<VECTOREPETRA>
 RBBases::
-reconstructFEFunction(SHP(aVector) rbSolution, unsigned int index,
+reconstructFEFunction(shp<aVector> rbSolution, unsigned int index,
                       unsigned int ID)
 {
-    SHP(DistributedVector) rbSolutionDistributed;
+    shp<DistributedVector> rbSolutionDistributed;
     if (rbSolution->type() == DENSE)
     {
         rbSolutionDistributed = DistributedVector::convertDenseVector(std::static_pointer_cast<DenseVector>(rbSolution),M_comm);
@@ -644,22 +644,22 @@ reconstructFEFunction(SHP(aVector) rbSolution, unsigned int index,
     }
 
 
-    SHP(DistributedVector) res = std::static_pointer_cast<DistributedVector>(getEnrichedBasisMatrices(index, ID, false)->multiplyByVector(rbSolutionDistributed));
+    shp<DistributedVector> res = std::static_pointer_cast<DistributedVector>(getEnrichedBasisMatrices(index, ID, false)->multiplyByVector(rbSolutionDistributed));
 
     return std::static_pointer_cast<VECTOREPETRA>(res->data());
 }
 
 void
 RBBases::
-normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
+normalizeBasis(const unsigned int& index, shp<MATRIXEPETRA> normMatrix)
 {
     throw new Exception("normalizeBasis not implemented in RBBases");
     // printlog(MAGENTA, "\n[RBBases] normalizing via stabilized Gram Schimdt...\n", M_data.getVerbose());
     //
     // const double thrsh = 1e-5;
     //
-    // auto project = [normMatrix] (const SHP(VECTOREPETRA)& vec1,
-    //                              const SHP(VECTOREPETRA)& vec2)->double
+    // auto project = [normMatrix] (const shp<VECTOREPETRA>& vec1,
+    //                              const shp<VECTOREPETRA>& vec2)->double
     // {
     //     auto rmap = *normMatrix->rangeMapPtr();
     //
@@ -672,8 +672,8 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
     //
     // std::vector<bool> keepVector(M_bases[index].size(), true);
     //
-    // auto orthonormalizeWrtBasis = [&](SHP(VECTOREPETRA)& vector,
-    //                                   std::vector<SHP(VECTOREPETRA)>& basis,
+    // auto orthonormalizeWrtBasis = [&](shp<VECTOREPETRA>& vector,
+    //                                   std::vector<shp<VECTOREPETRA>>& basis,
     //                                   const unsigned int& count)->void
     // {
     //     auto rmap = *normMatrix->rangeMapPtr();
@@ -693,7 +693,7 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
     //
     //             if (std::abs(1.0 - std::abs(coeff)) > thrsh)
     //             {
-    //                 SHP(VECTOREPETRA) aux(new VECTOREPETRA(rmap));
+    //                 shp<VECTOREPETRA> aux(new VECTOREPETRA(rmap));
     //                 *aux = *vector - (*basisV) * coeff;
     //
     //                 vector = aux;
@@ -729,7 +729,7 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
     // // re-orthonormalize the primal basis because if it is not orhonormal to
     // // machine precision it's a mess
     //
-    // std::vector<SHP(VECTOREPETRA)> incrBasis;
+    // std::vector<shp<VECTOREPETRA>> incrBasis;
     //
     // printlog(GREEN, "normalizing basis\n", M_data.getVerbose());
     // for (unsigned int i = 0; i < M_bases[index].size(); i++)
@@ -791,7 +791,7 @@ normalizeBasis(const unsigned int& index, SHP(MATRIXEPETRA) normMatrix)
     // }
     //
     // // finally select the basis functions that we keep
-    // std::vector<SHP(VECTOREPETRA)> newBasis;
+    // std::vector<shp<VECTOREPETRA>> newBasis;
     // for (unsigned int i = 0; i < keepVector.size(); i++)
     // {
     //     if (keepVector[i])

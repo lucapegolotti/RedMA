@@ -161,7 +161,7 @@ projectMDEIM()
     //         {
     //             unsigned int numFields = mdeim.getNumRows();
     //
-    //             SHP(RBBases) curBases(new RBBases(M_data, M_comm));
+    //             shp<RBBases> curBases(new RBBases(M_data, M_comm));
     //             curBases->setPath(basisdir + "/" + mdeims.first);
     //             curBases->setNumberOfFields(numFields);
     //

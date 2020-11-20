@@ -82,7 +82,7 @@ protected:
     void linearInterpolation(const std::vector<std::pair<double,double>>& values,
                              std::function<double(double)>& funct);
 
-    SHP(GetPot)                                           M_datafile;
+    shp<GetPot>                                           M_datafile;
     std::function<double(double)>                         M_inflow;
     std::function<double(double)>                         M_ramp;
     std::map<unsigned int, std::function<double(double)>> M_distalPressures;

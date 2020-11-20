@@ -5,15 +5,13 @@ namespace RedMA
 
 DistributedVector::
 DistributedVector() :
-  aVector(DISTRIBUTED),
   M_vector(nullptr)
 {
 
 }
 
 DistributedVector::
-DistributedVector(const DistributedVector& vector) :
-  aVector(DISTRIBUTED)
+DistributedVector(const DistributedVector& vector)
 {
     M_vector.reset(new VECTOREPETRA(*vector.M_vector));
 }
@@ -27,19 +25,17 @@ add(std::shared_ptr<aVector> other)
 
     if (other->type() == DENSE)
         other = convertDenseVector(std::static_pointer_cast<DenseVector>(other),commPtr());
-    checkType(other, DISTRIBUTED);
+
+    auto otherVector = convert<DistributedVector>(other);
 
     if (isZero())
     {
-        hardCopy(other);
+        deepCopy(other);
         return;
     }
 
     if (!other->isZero())
-    {
-        std::shared_ptr<DistributedVector> otherVector = std::static_pointer_cast<DistributedVector>(other);
-        (*M_vector) += *std::static_pointer_cast<VECTOREPETRA>(otherVector->data());
-    }
+        (*M_vector) += *otherVector->getVector();
 }
 
 void
@@ -59,37 +55,32 @@ dump(std::string namefile) const
 
 void
 DistributedVector::
-softCopy(std::shared_ptr<aVector> other)
+shallowCopy(std::shared_ptr<aDataWrapper> other)
 {
     if (other)
     {
-        checkType(other, DISTRIBUTED);
-        auto otherVector = std::static_pointer_cast<DistributedVector>(other);
+        auto otherVector = convert<DistributedVector>(other);
         setVector(otherVector->M_vector);
     }
 }
 
 void
 DistributedVector::
-hardCopy(std::shared_ptr<aVector> other)
+deepCopy(std::shared_ptr<aDataWrapper> other)
 {
     if (other)
     {
-        checkType(other, DISTRIBUTED);
-        auto otherVector = std::static_pointer_cast<DistributedVector>(other);
+        auto otherVector = convert<DistributedVector>(other);
         std::shared_ptr<VECTOREPETRA> newVector;
         if (otherVector->M_vector)
-        {
-            VECTOREPETRA vv = *otherVector->M_vector;
-            newVector.reset(new VECTOREPETRA(vv));
-        }
+            newVector.reset(new VECTOREPETRA(*otherVector->M_vector));
         setVector(newVector);
     }
 }
 
-aVector*
+DistributedVector*
 DistributedVector::
-cloneVector() const
+clone() const
 {
     DistributedVector* retVector = new DistributedVector();
     if (M_vector)
@@ -103,14 +94,9 @@ cloneVector() const
 
 bool
 DistributedVector::
-isZero()
+isZero() const
 {
-    if (!M_vector)
-        return true;
-    // we recompute it, because we might have forgotten to update it
-    if (M_normInf < ZEROTHRESHOLD)
-        this->M_normInf = M_vector->normInf();
-    return M_normInf < ZEROTHRESHOLD;
+    return M_vector == nullptr;
 }
 
 double
@@ -291,7 +277,6 @@ setVector(std::shared_ptr<VECTOREPETRA> vector)
 
         M_vector = vector;
         this->M_nRows = mapPtr->mapSize();
-        this->M_normInf = M_vector->normInf();
     }
 }
 

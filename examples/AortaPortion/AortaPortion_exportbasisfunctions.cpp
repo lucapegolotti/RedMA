@@ -65,11 +65,11 @@ int main(int argc, char **argv)
     //     auto defAssembler = library.getDefaultAssembler(m);
     //     defAssembler->setup();
     //
-    //     std::vector<std::vector<SHP(VECTOREPETRA)>> basisFunctions;
+    //     std::vector<std::vector<shp<VECTOREPETRA>>> basisFunctions;
     //
     //     for (int fieldIndex = 0; fieldIndex < 2; fieldIndex++)
     //     {
-    //         std::vector<SHP(VECTOREPETRA)> functions;
+    //         std::vector<shp<VECTOREPETRA>> functions;
     //         std::string filename = indir + "/" + m + "/field" + std::to_string(fieldIndex) + "_piola." + format;
     //         if (!std::filesystem::esists(filename))
     //             filename = indir + "/" + m + "/field" + std::to_string(fieldIndex) + "." + format;
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
     //         unsigned int count = 0;
     //         while(std::getline(infile,line) && count < nmodes)
     //         {
-    //             SHP(VECTOREPETRA) newVector(new VECTOREPETRA(fespace->map()));
+    //             shp<VECTOREPETRA> newVector(new VECTOREPETRA(fespace->map()));
     //
     //             std::stringstream linestream(line);
     //             std::string value;

@@ -3,7 +3,7 @@
 namespace RedMA
 {
 
-SHP(LifeV::QuadratureRule)
+shp<LifeV::QuadratureRule>
 InterfaceAssembler::
 generateQuadratureRule(std::string tag) const
 {
@@ -49,7 +49,7 @@ generateQuadratureRule(std::string tag) const
   // 4.32835393772893970E-002
   // 4.32835393772893970E-002
 
-    SHP(QuadratureRule) customRule;
+    shp<QuadratureRule> customRule;
     if (!std::strcmp(tag.c_str(),"STRANG10"))
     {
         // rule taken from https://people.sc.fsu.edu/~jburkardt/datasets/quadrature_rules_tri/quadrature_rules_tri.html
@@ -203,8 +203,8 @@ Interface()
 }
 
 Interface::
-Interface(SHP(AssemblerType) assemblerFather, const int& indexFather,
-          SHP(AssemblerType) assemblerChild, const int& indexChild,
+Interface(shp<AssemblerType> assemblerFather, const int& indexFather,
+          shp<AssemblerType> assemblerChild, const int& indexChild,
           const unsigned int& interfaceID) :
   M_assemblerFather(assemblerFather),
   M_indexFather(indexFather),
@@ -258,11 +258,11 @@ setup()
     printlog(YELLOW, msg, M_data.getVerbose());
 }
 
-std::vector<SHP(DistributedVector)>
+std::vector<shp<DistributedVector>>
 InterfaceAssembler::
-buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
+buildCouplingVectors(shp<BasisFunctionFunctor> bfs,
                      const GeometricFace& face,
-                     SHP(aAssembler) assembler) const
+                     shp<aAssembler> assembler) const
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -276,11 +276,11 @@ buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
 
     unsigned int nBasisFunctions = bfs->getNumBasisFunctions();
 
-    std::vector<SHP(DistributedVector)> couplingVectors(3 * nBasisFunctions);
+    std::vector<shp<DistributedVector>> couplingVectors(3 * nBasisFunctions);
 
-    SHP(ETFESPACE3) etfespace = assembler->getETFESpaceCoupling();
+    shp<ETFESPACE3> etfespace = assembler->getETFESpaceCoupling();
     MAPEPETRA map = etfespace->map();
-    SHP(MESH) mesh = etfespace->mesh();
+    shp<MESH> mesh = etfespace->mesh();
     unsigned int faceFlag = face.M_flag;
 
     unsigned int count = 0;
@@ -295,7 +295,7 @@ buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
         versor[dim] = 1.;
         for (unsigned int i = 0; i < nBasisFunctions; i++)
         {
-            SHP(VECTOREPETRA) currentMode(new VECTOREPETRA(map, LifeV::Repeated));
+            shp<VECTOREPETRA> currentMode(new VECTOREPETRA(map, LifeV::Repeated));
 
             bfs->setIndex(i);
             integrate(boundary(mesh, faceFlag),
@@ -314,20 +314,20 @@ buildCouplingVectors(SHP(BasisFunctionFunctor) bfs,
 
 void
 InterfaceAssembler::
-buildCouplingMatrices(SHP(AssemblerType) assembler, const GeometricFace& face,
-                      SHP(BlockMatrix) matrixT, SHP(BlockMatrix) matrix)
+buildCouplingMatrices(shp<AssemblerType> assembler, const GeometricFace& face,
+                      shp<BlockMatrix> matrixT, shp<BlockMatrix> matrix)
 {
-    SHP(BasisFunctionFunctor) bfs;
+    shp<BasisFunctionFunctor> bfs;
 
     bfs = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet);
 
-    std::vector<SHP(DistributedVector)> couplingVectors;
+    std::vector<shp<DistributedVector>> couplingVectors;
     couplingVectors = buildCouplingVectors(bfs, face, assembler);
 
     matrixT->resize(assembler->getNumComponents(),1);
     matrix->resize(1,assembler->getNumComponents());
     // we assume that the first field is the one to be coupled
-    SHP(SparseMatrix) couplingMatrix(new SparseMatrix(couplingVectors));
+    shp<SparseMatrix> couplingMatrix(new SparseMatrix(couplingVectors));
     matrixT->setBlock(0,0,couplingMatrix);
     matrix->setBlock(0,0,couplingMatrix->transpose());
 
@@ -339,16 +339,16 @@ buildCouplingMatrices(SHP(AssemblerType) assembler, const GeometricFace& face,
 
 void
 InterfaceAssembler::
-addContributionRhs(const double& time, SHP(BlockVector) rhs,
-                   SHP(BlockVector) sol, const unsigned int& nPrimalBlocks)
+addContributionRhs(const double& time, shp<BlockVector> rhs,
+                   shp<BlockVector> sol, const unsigned int& nPrimalBlocks)
 {
     unsigned int fatherID = M_interface.M_indexFather;
     unsigned int childID = M_interface.M_indexChild;
     unsigned int interfaceID = M_interface.M_ID;
-    SHP(aAssembler) assemblerFather = M_interface.M_assemblerFather;
-    SHP(aAssembler) assemblerChild = M_interface.M_assemblerChild;
+    shp<aAssembler> assemblerFather = M_interface.M_assemblerFather;
+    shp<aAssembler> assemblerChild = M_interface.M_assemblerChild;
 
-    SHP(aVector) tempResFather;
+    shp<aVector> tempResFather;
 
     // we have (-1) because we are solving H un+1 = F(.) and coupling is in F
     tempResFather = M_fatherBT->multiplyByVector(sol->block(nPrimalBlocks + interfaceID));
@@ -394,7 +394,7 @@ addContributionRhs(const double& time, SHP(BlockVector) rhs,
 
 double
 InterfaceAssembler::
-checkStabilizationTerm(const SHP(BlockVector)& sol, const unsigned int& nPrimalBlocks)
+checkStabilizationTerm(const shp<BlockVector>& sol, const unsigned int& nPrimalBlocks)
 {
     // if (M_stabilizationCoupling > THRESHOLDSTAB &&
     //     M_interface.M_assemblerFather && M_interface.M_assemblerChild)
@@ -430,8 +430,8 @@ checkStabilizationTerm(const SHP(BlockVector)& sol, const unsigned int& nPrimalB
 
 void
 InterfaceAssembler::
-addContributionJacobianRhs(const double& time, SHP(BlockMatrix) jac,
-                           SHP(BlockVector) sol, const unsigned int& nPrimalBlocks)
+addContributionJacobianRhs(const double& time, shp<BlockMatrix> jac,
+                           shp<BlockVector> sol, const unsigned int& nPrimalBlocks)
 {
     unsigned int fatherID = M_interface.M_indexFather;
     unsigned int childID = M_interface.M_indexChild;
@@ -439,14 +439,14 @@ addContributionJacobianRhs(const double& time, SHP(BlockMatrix) jac,
 
     // hard copy, otherwise we flip the sign of the matrices every time this
     // function is called
-    jac->setBlock(fatherID, nPrimalBlocks + interfaceID, SHP(BlockMatrix)(M_fatherBT->clone()));
-    jac->setBlock(childID, nPrimalBlocks + interfaceID, SHP(BlockMatrix)(M_childBT->clone()));
-    jac->setBlock(nPrimalBlocks + interfaceID, fatherID, SHP(BlockMatrix)(M_fatherB->clone()));
-    jac->setBlock(nPrimalBlocks + interfaceID, childID, SHP(BlockMatrix)(M_childB->clone()));
-    // jac->block(fatherID, nPrimalBlocks + interfaceID)->hardCopy(M_fatherBT);
-    //jac->block(childID,  nPrimalBlocks + interfaceID)->hardCopy(M_childBT);
-    // jac->block(nPrimalBlocks + interfaceID, fatherID)->hardCopy(M_fatherB);
-    // jac->block(nPrimalBlocks + interfaceID,  childID)->hardCopy(M_childB);
+    jac->setBlock(fatherID, nPrimalBlocks + interfaceID, shp<BlockMatrix>(M_fatherBT->clone()));
+    jac->setBlock(childID, nPrimalBlocks + interfaceID, shp<BlockMatrix>(M_childBT->clone()));
+    jac->setBlock(nPrimalBlocks + interfaceID, fatherID, shp<BlockMatrix>(M_fatherB->clone()));
+    jac->setBlock(nPrimalBlocks + interfaceID, childID, shp<BlockMatrix>(M_childB->clone()));
+    // jac->block(fatherID, nPrimalBlocks + interfaceID)->deepCopy(M_fatherBT);
+    //jac->block(childID,  nPrimalBlocks + interfaceID)->deepCopy(M_childBT);
+    // jac->block(nPrimalBlocks + interfaceID, fatherID)->deepCopy(M_fatherB);
+    // jac->block(nPrimalBlocks + interfaceID,  childID)->deepCopy(M_childB);
 
     jac->block(fatherID, nPrimalBlocks + interfaceID)->multiplyByScalar(-1);
     jac->block(childID,  nPrimalBlocks + interfaceID)->multiplyByScalar(-1);
@@ -458,17 +458,17 @@ addContributionJacobianRhs(const double& time, SHP(BlockMatrix) jac,
     //     jac.block(nPrimalBlocks + interfaceID, fatherID) += (M_stabFather * (-0.5 * M_stabilizationCoupling));
     //     jac.block(nPrimalBlocks + interfaceID,  childID) += (M_stabChild * (-0.5 * M_stabilizationCoupling));
     //
-    //     jac.block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID).hardCopy(M_identity * (-1.0 * M_stabilizationCoupling));
+    //     jac.block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID).deepCopy(M_identity * (-1.0 * M_stabilizationCoupling));
     // }
 }
 
-SHP(BlockVector)
+shp<BlockVector>
 InterfaceAssembler::
 getZeroVector() const
 {
-    SHP(BlockVector) retVector(new BlockVector(1));
+    shp<BlockVector> retVector(new BlockVector(1));
 
-    SHP(VECTOREPETRA) zeroVec(new VECTOREPETRA(*M_mapLagrange, LifeV::Unique));
+    shp<VECTOREPETRA> zeroVec(new VECTOREPETRA(*M_mapLagrange, LifeV::Unique));
     zeroVec->zero();
     // *zeroVec += 1;
 
@@ -489,8 +489,7 @@ buildCouplingMatrices()
         GeometricFace outlet = asFather->getTreeNode()->M_block->getOutlet(indexOutlet);
 
         buildCouplingMatrices(asFather, outlet, M_fatherBT, M_fatherB);
-        M_fatherBT->close();
-        M_fatherB->close();
+
         if (M_stabilizationCoupling > THRESHOLDSTAB)
         {
             buildStabilizationMatrix(asFather, outlet, M_stabFather);
@@ -514,8 +513,7 @@ buildCouplingMatrices()
         inlet.M_normal *= (-1.);
 
         buildCouplingMatrices(asChild, inlet, M_childBT, M_childB);
-        M_childBT->close();
-        M_childB->close();
+
         if (M_stabilizationCoupling > THRESHOLDSTAB)
         {
             buildStabilizationMatrix(asChild, inlet, M_stabChild);
@@ -539,14 +537,14 @@ buildCouplingMatrices()
 
 void
 InterfaceAssembler::
-buildStabilizationMatrix(SHP(AssemblerType) assembler,
+buildStabilizationMatrix(shp<AssemblerType> assembler,
                          const GeometricFace& face,
-                         SHP(BlockMatrix) matrix)
+                         shp<BlockMatrix> matrix)
 {
     // BlockMatrix<MatrixEp> stab;
     // stab.resize(1, assembler->getNumComponents());
     //
-    // SHP(BasisFunctionFunctor) bfs;
+    // shp<BasisFunctionFunctor> bfs;
     // bfs =  BasisFunctionFactory(M_data.getDatafile(), face);
     //
     // std::vector<VectorEp> stabVectorsVelocity;
@@ -555,14 +553,14 @@ buildStabilizationMatrix(SHP(AssemblerType) assembler,
     // std::vector<VectorEp> stabVectorsPressure;
     // stabVectorsPressure = buildStabilizationVectorsPressure(bfs, face, assembler);
     //
-    // stab.block(0,0).softCopy(MatrixEp(stabVectorsVelocity).transpose());
-    // stab.block(0,1).softCopy(MatrixEp(stabVectorsPressure).transpose());
-    // matrix.softCopy(stab);
+    // stab.block(0,0).shallowCopy(MatrixEp(stabVectorsVelocity).transpose());
+    // stab.block(0,1).shallowCopy(MatrixEp(stabVectorsPressure).transpose());
+    // matrix.shallowCopy(stab);
     //
     // std::vector<VectorEp> stabVectorsLagrange = buildStabilizationVectorsLagrange();
     // M_identity.resize(1,1);
     //
-    // M_identity.block(0,0).softCopy(MatrixEp(stabVectorsLagrange));
+    // M_identity.block(0,0).shallowCopy(MatrixEp(stabVectorsLagrange));
 }
 
 }

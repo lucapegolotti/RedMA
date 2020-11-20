@@ -14,33 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef aASSEMBLERFE_HPP
-#define aASSEMBLERFE_HPP
+#ifndef TYPESUTILS_HPP
+#define TYPESUTILS_HPP
 
-#include <redma/assemblers/abstract/aAssembler.hpp>
+#include <redma/utils/Exception.hpp>
+#include <memory>
+
+#define ZEROTHRESHOLD       1e-100
 
 namespace RedMA
 {
 
-class aAssemblerFE : public aAssembler
+template <class DType, class ContainerType>
+shp<DType> convert(shp<ContainerType> container)
 {
-public:
-    aAssemblerFE(const DataContainer& datafile) :
-      aAssembler(datafile)
-    {}
-
-    aAssemblerFE(const DataContainer& datafile, shp<TreeNode> node) :
-      aAssembler(datafile, node)
-    {}
-
-    virtual shp<aMatrix> getNorm(const unsigned int& fieldIndex, bool bcs = true) {return shp<SparseMatrix>();}
-
-    virtual shp<aMatrix> getConstraintMatrix() {return shp<SparseMatrix>();}
-
-    virtual shp<aVector> getFELifting(const double& time) const = 0;
-
-};
+    if (container->type() != DType().type())
+    {
+        std::string msg = "Error in convert: converting ";
+        msg += std::to_string(container->type());
+        msg += " to ";
+        msg += std::to_string(DType().type());
+        msg += "\n";
+        throw new Exception(msg);
+    }
+    return spcast<DType>(container);
+}
 
 }
 
-#endif // aASSEMBLERFE_HPP
+#endif // TYPESUTILS_HPP

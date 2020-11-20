@@ -27,8 +27,8 @@ namespace RedMA
 
 class aAssembler;
 
-SHP(aAssembler)
-AssemblerFactory(const DataContainer& data, SHP(TreeNode) treeNode);
+shp<aAssembler>
+AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode);
 
 class DefaultAssemblersLibrary
 {
@@ -36,17 +36,17 @@ class DefaultAssemblersLibrary
 public:
     DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>& meshes, EPETRACOMM comm);
 
-    SHP(TreeNode) generateDefaultTreeNode(const std::string& nameMesh);
+    shp<TreeNode> generateDefaultTreeNode(const std::string& nameMesh);
 
-    SHP(TreeNode) generateDefaultTube(const std::string& nameMesh);
+    shp<TreeNode> generateDefaultTube(const std::string& nameMesh);
 
-    SHP(TreeNode) generateDefaultSymmetricBifurcation(const std::string& nameMesh);
+    shp<TreeNode> generateDefaultSymmetricBifurcation(const std::string& nameMesh);
 
-    SHP(AssemblerType) getDefaultAssembler(const std::string& namemesh);
+    shp<AssemblerType> getDefaultAssembler(const std::string& namemesh);
 
 private:
     DataContainer                                   M_data;
-    std::map<std::string, SHP(AssemblerType)>       M_assemblersMap;
+    std::map<std::string, shp<AssemblerType>>       M_assemblersMap;
     EPETRACOMM                                      M_comm;
     unsigned int                                    M_count;
 };

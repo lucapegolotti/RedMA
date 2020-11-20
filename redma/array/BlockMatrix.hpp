@@ -36,8 +36,12 @@ namespace RedMA
 
 class BlockMatrix : public aMatrix
 {
-    typedef boost::numeric::ublas::matrix<std::shared_ptr<aMatrix>>       Grid;
+
+    typedef boost::numeric::ublas::matrix<shp<aMatrix>>       Grid;
+
 public:
+
+    BlockMatrix();
 
     virtual ~BlockMatrix() {};
 
@@ -45,21 +49,21 @@ public:
 
     BlockMatrix(const unsigned int& nRows, const unsigned int& nCols);
 
-    virtual void add(std::shared_ptr<aMatrix> other) override;
+    virtual void add(shp<aMatrix> other) override;
 
     virtual void multiplyByScalar(const double& coeff) override;
 
-    virtual std::shared_ptr<aMatrix> multiplyByMatrix(std::shared_ptr<aMatrix> other) override;
+    virtual shp<aMatrix> multiplyByMatrix(shp<aMatrix> other) override;
 
-    virtual std::shared_ptr<aMatrix> transpose() const override;
+    virtual shp<aMatrix> transpose() const override;
 
-    virtual std::shared_ptr<aVector> multiplyByVector(std::shared_ptr<aVector> vector) override;
+    virtual shp<aVector> multiplyByVector(shp<aVector> vector) override;
 
-    virtual void softCopy(std::shared_ptr<aMatrix> other) override;
+    virtual void shallowCopy(shp<aDataWrapper> other) override;
 
-    virtual void hardCopy(std::shared_ptr<aMatrix> other) override;
+    virtual void deepCopy(shp<aDataWrapper> other) override;
 
-    virtual bool isZero() override;
+    virtual bool isZero() const override;
 
     virtual void dump(std::string filename) const override;
 
@@ -67,46 +71,36 @@ public:
 
     void resize(const unsigned int& nRows, const unsigned int& nCols);
 
-    std::shared_ptr<aMatrix> block(const unsigned int& iblock, const unsigned int& jblock) const override;
-
-    std::shared_ptr<BlockMatrix> getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
-                                 const unsigned int& jbegin, const unsigned int& jend) const;
+    shp<aMatrix> block(const unsigned int& iblock, const unsigned int& jblock) const;
 
     void setBlock(const unsigned int& iblock, const unsigned int& jblock,
-                  std::shared_ptr<aMatrix> matrix) override;
+                  shp<aMatrix> matrix);
+
+    shp<BlockMatrix> getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
+                                  const unsigned int& jbegin, const unsigned int& jend) const;
 
     unsigned int level();
 
     bool globalTypeIs(Datatype type);
 
-    std::shared_ptr<BlockMatrix> convertInnerTo(Datatype type, std::shared_ptr<Epetra_Comm> comm = nullptr);
-
-    // inline bool isFinalized() const {return M_isFinalized;}
+    shp<BlockMatrix> convertInnerTo(Datatype type, shp<Epetra_Comm> comm = nullptr);
 
     void printPattern() const;
 
-    void close() override;
-
     void findComm();
 
-    std::shared_ptr<Epetra_Comm> commPtr() {findComm(); return M_comm;}
+    shp<Epetra_Comm> commPtr() {findComm(); return M_comm;}
 
-    void open() override {M_isOpen = true;}
+    virtual Datatype type() const override {return BLOCK;}
 
-    inline bool isOpen() const {return M_isOpen;}
+    virtual shp<void> data() const override {return nullptr;};
 
-    inline void checkOpen() const {if (!isOpen()) throw new Exception("BlockMatrix must be open for this operation!");}
-
-    inline void checkClosed() const {if (isOpen()) throw new Exception("BlockMatrix must be closed for this operation!");}
+    virtual void setData(shp<void> data) override {};
 
 protected:
-    BlockMatrix();
 
-    void updateNormInf();
-
-    std::shared_ptr<Epetra_Comm>  M_comm;
+    shp<Epetra_Comm>              M_comm;
     Grid                          M_matrixGrid;
-    bool                          M_isOpen;
 };
 
 }

@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 StokesAssemblerRB::
-StokesAssemblerRB(const DataContainer& data, SHP(TreeNode) treeNode) :
+StokesAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode) :
   aAssemblerRB(data, treeNode),
   StokesModel(data,treeNode)
 {
@@ -41,39 +41,39 @@ setup()
     printlog(YELLOW, msg, this->M_data.getVerbose());
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 StokesAssemblerRB::
-getMass(const double& time, const SHP(aVector)& sol)
+getMass(const double& time, const shp<aVector>& sol)
 {
     return M_reducedMass;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 StokesAssemblerRB::
-getMassJacobian(const double& time, const SHP(aVector)& sol)
+getMassJacobian(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) retMat(new BlockMatrix(2,2));
+    shp<BlockMatrix> retMat(new BlockMatrix(2,2));
     return retMat;
 }
 
-SHP(aVector)
+shp<aVector>
 StokesAssemblerRB::
-getRightHandSide(const double& time, const SHP(aVector)& sol)
+getRightHandSide(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) systemMatrix(new BlockMatrix(this->M_nComponents,
+    shp<BlockMatrix> systemMatrix(new BlockMatrix(this->M_nComponents,
                                                   this->M_nComponents));
     systemMatrix->add(M_reducedStiffness);
     systemMatrix->add(M_reducedDivergence);
     systemMatrix->multiplyByScalar(-1.0);
-    SHP(aVector) retVec = systemMatrix->multiplyByVector(sol);
+    shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
     return retVec;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 StokesAssemblerRB::
-getJacobianRightHandSide(const double& time, const SHP(aVector)& sol)
+getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) retMat(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+    shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents, this->M_nComponents));
 
     retMat->add(M_reducedStiffness);
     retMat->add(M_reducedDivergence);
@@ -134,11 +134,11 @@ setExporter()
     M_exporter->setPostDir(outdir);
 }
 
-std::vector<SHP(aMatrix)>
+std::vector<shp<aMatrix>>
 StokesAssemblerRB::
 getMatrices() const
 {
-    std::vector<SHP(aMatrix)> retVec;
+    std::vector<shp<aMatrix>> retVec;
 
     retVec.push_back(M_reducedMass);
     retVec.push_back(M_reducedStiffness);
@@ -147,7 +147,7 @@ getMatrices() const
     return retVec;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 StokesAssemblerRB::
 assembleMatrix(const unsigned int& index, BlockMDEIMStructure* structure)
 {
@@ -156,45 +156,45 @@ assembleMatrix(const unsigned int& index, BlockMDEIMStructure* structure)
 
 void
 StokesAssemblerRB::
-apply0DirichletBCsMatrix(SHP(aMatrix) matrix, double diagCoeff) const
+apply0DirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
 {
     // throw new Exception("Method not implemented for RB");
 }
 
 void
 StokesAssemblerRB::
-applyDirichletBCs(const double& time, SHP(aVector) vector) const
+applyDirichletBCs(const double& time, shp<aVector> vector) const
 {
     // throw new Exception("Method not implemented for RB");
 }
 
 void
 StokesAssemblerRB::
-postProcess(const double& t, const SHP(aVector)& sol)
+postProcess(const double& t, const shp<aVector>& sol)
 {
     M_bcManager->postProcess();
 }
 
 void
 StokesAssemblerRB::
-apply0DirichletBCs(SHP(aVector) vector) const
+apply0DirichletBCs(shp<aVector> vector) const
 {
     // throw new Exception("Method not implemented for RB");
 }
 
 void
 StokesAssemblerRB::
-exportSolution(const double& t, const SHP(aVector)& sol)
+exportSolution(const double& t, const shp<aVector>& sol)
 {
-
+    auto solBlck = convert<BlockVector>(sol);
     std::ofstream outfile("rbcoefs/block" + std::to_string(StokesModel::M_treeNode->M_ID) + "t" + std::to_string(t) + ".txt");
-    std::string str2write = std::static_pointer_cast<DenseVector>(sol->block(0))->getString(',') + "\n";
+    std::string str2write = spcast<DenseVector>(solBlck->block(0))->getString(',') + "\n";
     outfile.write(str2write.c_str(), str2write.size());
     outfile.close();
     unsigned int id = StokesModel::M_treeNode->M_ID;
 
-    *M_velocityExporter = *M_bases->reconstructFEFunction(sol->block(0), 0, id);
-    *M_pressureExporter = *M_bases->reconstructFEFunction(sol->block(1), 1, id);
+    *M_velocityExporter = *M_bases->reconstructFEFunction(solBlck->block(0), 0, id);
+    *M_pressureExporter = *M_bases->reconstructFEFunction(solBlck->block(1), 1, id);
 
     bool exportWSS = this->M_data("exporter/export_wss", 1);
     if (exportWSS)
@@ -212,21 +212,21 @@ exportSolution(const double& t, const SHP(aVector)& sol)
     printlog(CYAN, ct.restore());
 }
 
-SHP(aVector)
+shp<aVector>
 StokesAssemblerRB::
 getZeroVector() const
 {
-    SHP(BlockVector) retVec(new BlockVector(M_nComponents));
+    shp<BlockVector> retVec(new BlockVector(M_nComponents));
 
-    SHP(DENSEVECTOR) uComp(new DENSEVECTOR(M_bases->getSizeEnrichedBasis(0)));
+    shp<DENSEVECTOR> uComp(new DENSEVECTOR(M_bases->getSizeEnrichedBasis(0)));
     uComp->Scale(0.0);
-    SHP(DENSEVECTOR) pComp(new DENSEVECTOR(M_bases->getSizeEnrichedBasis(1)));
+    shp<DENSEVECTOR> pComp(new DENSEVECTOR(M_bases->getSizeEnrichedBasis(1)));
     pComp->Scale(0.0);
 
-    SHP(DenseVector) uCompWrap(new DenseVector());
+    shp<DenseVector> uCompWrap(new DenseVector());
     uCompWrap->setVector(uComp);
 
-    SHP(DenseVector) pCompWrap(new DenseVector());
+    shp<DenseVector> pCompWrap(new DenseVector());
     pCompWrap->setVector(pComp);
 
     retVec->setBlock(0,uCompWrap);
@@ -235,18 +235,18 @@ getZeroVector() const
     return retVec;
 }
 
-SHP(aVector)
+shp<aVector>
 StokesAssemblerRB::
 getLifting(const double& time) const
 {
-    SHP(BlockVector) liftingFE(new BlockVector(2));
+    shp<BlockVector> liftingFE(new BlockVector(2));
     // velocity
-    SHP(DistributedVector) ucomp(new DistributedVector());
-    ucomp->setData(SHP(VECTOREPETRA)(new VECTOREPETRA(M_velocityFESpace->map(),LifeV::Unique)));
+    shp<DistributedVector> ucomp(new DistributedVector());
+    ucomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_velocityFESpace->map(),LifeV::Unique)));
     ucomp->multiplyByScalar(0);
 
-    SHP(DistributedVector) pcomp(new DistributedVector());
-    pcomp->setData(SHP(VECTOREPETRA)(new VECTOREPETRA(M_pressureFESpace->map(),LifeV::Unique)));
+    shp<DistributedVector> pcomp(new DistributedVector());
+    pcomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_pressureFESpace->map(),LifeV::Unique)));
     pcomp->multiplyByScalar(0);
 
     liftingFE->setBlock(0,ucomp);
@@ -255,7 +255,7 @@ getLifting(const double& time) const
     this->M_bcManager->applyDirichletBCs(time, *liftingFE, this->getFESpaceBCs(),
                                          this->getComponentBCs());
 
-    // SHP(aVector) lifting = M_bases->leftProject(liftingFE, StokesModel::M_treeNode->M_ID);
+    // shp<aVector> lifting = M_bases->leftProject(liftingFE, StokesModel::M_treeNode->M_ID);
     return liftingFE;
 }
 
@@ -268,11 +268,11 @@ RBsetup()
 
     // scale with piola
     unsigned int indexField = 0;
-    M_bases->scaleBasisWithPiola(0, StokesModel::M_treeNode->M_ID, [=](SHP(VECTOREPETRA) vector)
+    M_bases->scaleBasisWithPiola(0, StokesModel::M_treeNode->M_ID, [=](shp<VECTOREPETRA> vector)
     {
-        SHP(BlockVector) vectorWrap(new BlockVector(2));
+        shp<BlockVector> vectorWrap(new BlockVector(2));
 
-        SHP(DistributedVector) compVec(new DistributedVector());
+        shp<DistributedVector> compVec(new DistributedVector());
         compVec->setVector(vector);
 
         vectorWrap->setBlock(0,compVec);
@@ -393,7 +393,7 @@ RBsetup()
     }
 }
 
-SHP(RBBases)
+shp<RBBases>
 StokesAssemblerRB::
 getRBBases() const
 {
@@ -402,7 +402,7 @@ getRBBases() const
 
 void
 StokesAssemblerRB::
-setRBBases(SHP(RBBasesManager) rbManager)
+setRBBases(shp<RBBasesManager> rbManager)
 {
     // std::string mdeimdir = this->M_data("rb/online/mdeim/directory", "mdeims");
     std::string meshName = StokesModel::M_treeNode->M_block->getMeshName();
@@ -417,26 +417,28 @@ setRBBases(SHP(RBBasesManager) rbManager)
     M_bases->setFESpace(M_pressureFESpace, 1);
 }
 
-SHP(aVector)
+shp<aVector>
 StokesAssemblerRB::
-convertFunctionRBtoFEM(SHP(aVector) rbSolution) const
+convertFunctionRBtoFEM(shp<aVector> rbSolution) const
 {
-    SHP(BlockVector) retVec(new BlockVector(2));
+    auto rbSolutionBlck = convert<BlockVector>(rbSolution);
+
+    shp<BlockVector> retVec(new BlockVector(2));
 
     unsigned int id = StokesModel::M_treeNode->M_ID;
 
-    if (rbSolution->block(0)->data())
+    if (rbSolutionBlck->block(0)->data())
     {
-        SHP(DenseVector) comp0 = std::static_pointer_cast<DenseVector>(rbSolution->block(0));
-        SHP(DistributedVector) rec0(new DistributedVector());
+        shp<DenseVector> comp0 = convert<DenseVector>(rbSolutionBlck->block(0));
+        shp<DistributedVector> rec0(new DistributedVector());
         rec0->setVector(M_bases->reconstructFEFunction(comp0, 0, id));
         retVec->setBlock(0,rec0);
     }
 
-    if (rbSolution->block(1)->data())
+    if (rbSolutionBlck->block(1)->data())
     {
-        SHP(DenseVector) comp1 = std::static_pointer_cast<DenseVector>(rbSolution->block(1));
-        SHP(DistributedVector) rec1(new DistributedVector());
+        shp<DenseVector> comp1 = convert<DenseVector>(rbSolutionBlck->block(1));
+        shp<DistributedVector> rec1(new DistributedVector());
         rec1->setVector(M_bases->reconstructFEFunction(comp1, 1, id));
         retVec->setBlock(1,rec1);
     }
@@ -446,7 +448,7 @@ convertFunctionRBtoFEM(SHP(aVector) rbSolution) const
 
 void
 StokesAssemblerRB::
-applyPiola(SHP(aVector) solution, bool inverse)
+applyPiola(shp<aVector> solution, bool inverse)
 {
     // std::string msg = "[";
     // msg += this->M_name;
@@ -486,7 +488,7 @@ applyPiola(SHP(aVector) solution, bool inverse)
 
     auto defVelocityFESpace = defAssembler->getFEspace(0);
 
-    auto velocity = std::static_pointer_cast<VECTOREPETRA>(solution->block(0)->data());
+    auto velocity = spcast<VECTOREPETRA>(convert<BlockVector>(solution)->block(0)->data());
 
     Epetra_Map epetraMap = velocity->epetraMap();
     unsigned int numElements = epetraMap.NumMyElements() / 3;

@@ -18,21 +18,21 @@ InverseOperator(const DataContainer& data) :
 
 void
 InverseOperator::
-setOperator(SHP(LinearOperator) oper)
+setOperator(shp<LinearOperator> oper)
 {
     M_invOper->setOperator(oper);
 }
 
 void
 InverseOperator::
-setBlockMaps(SHP(BlockMaps) maps)
+setBlockMaps(shp<BlockMaps> maps)
 {
     M_maps = maps;
 }
 
 void
 InverseOperator::
-setPreconditioner(SHP(PreconditionerOperator) prec)
+setPreconditioner(shp<PreconditionerOperator> prec)
 {
     M_invOper->setPreconditioner(prec);
 }
@@ -53,10 +53,10 @@ setSolverOptions()
 
 int
 InverseOperator::
-invert(const SHP(aVector)& rhs, SHP(aVector)& sol)
+invert(const shp<aVector>& rhs, shp<aVector>& sol)
 {
-    SHP(VECTOREPETRA) rhsEpetra = getEpetraVector(rhs, *M_maps);
-    SHP(VECTOREPETRA) solEpetra = getEpetraVector(sol, *M_maps);
+    shp<VECTOREPETRA> rhsEpetra = getEpetraVector(rhs, *M_maps);
+    shp<VECTOREPETRA> solEpetra = getEpetraVector(sol, *M_maps);
     M_invOper->ApplyInverse(rhsEpetra->epetraVector(), solEpetra->epetraVector());
 
     sol = getBlockVector(solEpetra, *M_maps);

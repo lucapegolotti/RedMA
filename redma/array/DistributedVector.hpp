@@ -21,10 +21,6 @@
 #include <redma/utils/Exception.hpp>
 #include <redma/array/DenseVector.hpp>
 
-#include <lifev/core/array/VectorEpetra.hpp>
-
-#define VECTOREPETRA        LifeV::VectorEpetra
-
 namespace RedMA
 {
 
@@ -35,49 +31,53 @@ public:
 
     DistributedVector(const DistributedVector& vector);
 
-    virtual void add(std::shared_ptr<aVector> other) override;
+    virtual void add(shp<aVector> other) override;
 
     virtual void multiplyByScalar(const double& coeff) override;
 
     virtual void dump(std::string namefile) const override;
 
-    virtual void softCopy(std::shared_ptr<aVector> other) override;
+    virtual void shallowCopy(shp<aDataWrapper> other) override;
 
-    virtual void hardCopy(std::shared_ptr<aVector> other) override;
+    virtual void deepCopy(shp<aDataWrapper> other) override;
 
-    virtual aVector* cloneVector() const override;
+    virtual DistributedVector* clone() const override;
 
-    virtual bool isZero() override;
+    virtual bool isZero() const override;
 
     std::string getString(const char& delimiter) const override;
 
     double norm2() const override;
 
-    virtual std::shared_ptr<void> data() const override;
+    virtual shp<void> data() const override;
 
-    virtual void setData(std::shared_ptr<void> data) override;
+    virtual void setData(shp<void> data) override;
 
     double maxMagnitude3D() const;
 
     DenseVector toDenseVector() const;
 
-    std::shared_ptr<Epetra_Comm> commPtr() {return M_vector->mapPtr()->commPtr();}
+    shp<Epetra_Comm> commPtr() {return M_vector->mapPtr()->commPtr();}
 
-    std::shared_ptr<DenseVector> toDenseVectorPtr() const;
+    shp<DenseVector> toDenseVectorPtr() const;
 
-    static std::shared_ptr<DistributedVector> convertDenseVector(
-        std::shared_ptr<DenseVector> denseVector,
-        std::shared_ptr<Epetra_Comm> comm);
+    static shp<DistributedVector> convertDenseVector(
+        shp<DenseVector> denseVector,
+        shp<Epetra_Comm> comm);
 
-    void setVector(std::shared_ptr<VECTOREPETRA> vector);
+    void setVector(shp<VECTOREPETRA> vector);
+
+    shp<VECTOREPETRA> getVector() {return M_vector;}
 
     virtual double operator()(unsigned int index) override {return M_vector->operator[](index);}
 
+    virtual Datatype type() const override {return DISTRIBUTED;}
+
 private:
-    std::shared_ptr<VECTOREPETRA>  M_vector;
+    shp<VECTOREPETRA>  M_vector;
 };
 
-std::shared_ptr<DistributedVector> epetraToDistributed(std::shared_ptr<VECTOREPETRA> vector);
+shp<DistributedVector> epetraToDistributed(shp<VECTOREPETRA> vector);
 
 }
 

@@ -38,7 +38,7 @@ addSnapshot(BlockMatrix newSnapshot)
 
 void
 BlockMDEIM::
-setFESpace(SHP(FESPACE) fespace, const unsigned int& index)
+setFESpace(shp<FESPACE> fespace, const unsigned int& index)
 {
     // M_fespaces[index] = fespace;
     // for (unsigned int j = 0; j < M_nCols; j++)
@@ -52,7 +52,7 @@ setFESpace(SHP(FESPACE) fespace, const unsigned int& index)
 
 void
 BlockMDEIM::
-setRangeMap(SHP(MAPEPETRA) map, const unsigned int& index)
+setRangeMap(shp<MAPEPETRA> map, const unsigned int& index)
 {
     // M_rangeMaps[index] = map;
     //
@@ -65,7 +65,7 @@ setRangeMap(SHP(MAPEPETRA) map, const unsigned int& index)
 
 void
 BlockMDEIM::
-setDomainMap(SHP(MAPEPETRA) map, const unsigned int& index)
+setDomainMap(shp<MAPEPETRA> map, const unsigned int& index)
 {
     // M_domainMaps[index] = map;
     //
@@ -99,7 +99,7 @@ resize(unsigned int rows, unsigned int cols)
 
 void
 BlockMDEIM::
-setRBBases(SHP(RBBases) bases)
+setRBBases(shp<RBBases> bases)
 {
     M_bases = bases;
 }
@@ -192,7 +192,7 @@ assembleMatrix(BlockMatrix reducedMat)
     // {
     //     for (unsigned int j = 0; j < M_nCols; j++)
     //     {
-    //         retMat.block(i,j).softCopy(M_mdeims(i,j)->assembleMatrix(reducedMat.block(i,j)));
+    //         retMat.block(i,j).shallowCopy(M_mdeims(i,j)->assembleMatrix(reducedMat.block(i,j)));
     //     }
     // }
     // return retMat;
@@ -209,7 +209,7 @@ assembleProjectedMatrix(BlockMatrix reducedMat)
     // {
     //     for (unsigned int j = 0; j < M_nCols; j++)
     //     {
-    //         retMat.block(i,j).softCopy(M_mdeims(i,j)->assembleProjectedMatrix(reducedMat.block(i,j)));
+    //         retMat.block(i,j).shallowCopy(M_mdeims(i,j)->assembleProjectedMatrix(reducedMat.block(i,j)));
     //     }
     // }
     // return retMat;

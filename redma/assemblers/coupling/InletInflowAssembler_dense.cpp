@@ -42,8 +42,8 @@ addContributionRhs(const double& time,
 //
 //     // hard copy, otherwise we flip the sign of the matrices every time this
 //     // function is called
-//     jac.block(childID,  nPrimalBlocks + interfaceID).hardCopy(this->M_childBT);
-//     jac.block(nPrimalBlocks + interfaceID,  childID).hardCopy(this->M_childB);
+//     jac.block(childID,  nPrimalBlocks + interfaceID).deepCopy(this->M_childBT);
+//     jac.block(nPrimalBlocks + interfaceID,  childID).deepCopy(this->M_childB);
 //
 //     jac.block(childID,  nPrimalBlocks + interfaceID) *= (-1);
 //     jac.block(nPrimalBlocks + interfaceID,  childID) *= (-1);
@@ -52,7 +52,7 @@ addContributionRhs(const double& time,
 //     {
 //         jac.block(nPrimalBlocks + interfaceID,  childID) += (this->M_stabChild * (-1.0 * this->M_stabilizationCoupling));
 //
-//         jac.block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID).hardCopy(this->M_identity * (-1.0 * this->M_stabilizationCoupling));
+//         jac.block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID).deepCopy(this->M_identity * (-1.0 * this->M_stabilizationCoupling));
 //     }
 // }
 

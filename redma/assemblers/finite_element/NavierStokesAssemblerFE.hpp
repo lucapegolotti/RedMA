@@ -27,33 +27,33 @@ namespace RedMA
 class NavierStokesAssemblerFE : public StokesAssemblerFE, public NavierStokesModel
 {
 public:
-    NavierStokesAssemblerFE(const DataContainer& data, SHP(TreeNode) treeNode,
+    NavierStokesAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode,
                             std::string stabilizationName = "");
 
     void setup() override;
 
-    void addConvectiveMatrixRightHandSide(SHP(aVector) sol,
-                                          SHP(aMatrix) mat) override;
+    void addConvectiveMatrixRightHandSide(shp<aVector> sol,
+                                          shp<aMatrix> mat) override;
 
-    void addConvectiveTermJacobianRightHandSide(SHP(aVector) sol,
-                                                SHP(aVector) lifting,
-                                                SHP(aMatrix) mat) override;
+    void addConvectiveTermJacobianRightHandSide(shp<aVector> sol,
+                                                shp<aVector> lifting,
+                                                shp<aMatrix> mat) override;
 
-    SHP(aMatrix) getMass(const double& time,
-                         const SHP(aVector)& sol) override;
+    shp<aMatrix> getMass(const double& time,
+                         const shp<aVector>& sol) override;
 
-    SHP(aMatrix) getMassJacobian(const double& time,
-                                 const SHP(aVector)& sol) override;
+    shp<aMatrix> getMassJacobian(const double& time,
+                                 const shp<aVector>& sol) override;
 
-    SHP(aVector) getRightHandSide(const double& time,
-                                  const SHP(aVector)& sol) override;
+    shp<aVector> getRightHandSide(const double& time,
+                                  const shp<aVector>& sol) override;
 
-    SHP(aMatrix) getJacobianRightHandSide(const double& time,
-                                          const SHP(aVector)& sol) override;
+    shp<aMatrix> getJacobianRightHandSide(const double& time,
+                                          const shp<aVector>& sol) override;
 
 
 protected:
-    SHP(NavierStokesStabilization)                    M_stabilization;
+    shp<NavierStokesStabilization>                    M_stabilization;
     std::string                                       M_stabilizationName;
 };
 

@@ -37,7 +37,7 @@ addSnapshot(FEMATRIX newSnapshot)
 
 void
 MDEIM::
-setFESpace(SHP(FESPACE) fespace)
+setFESpace(shp<FESPACE> fespace)
 {
     M_fespace = fespace;
 }
@@ -46,7 +46,7 @@ void
 MDEIM::
 initialize(FEMATRIX matrix)
 {
-    // SHP(MATRIXEPETRA) matrixEpetra = matrix.data();
+    // shp<MATRIXEPETRA> matrixEpetra = matrix.data();
     //
     // if (matrixEpetra)
     // {
@@ -543,7 +543,7 @@ computeInterpolationRhsOnline(Epetra_SerialDenseVector& interpVector,
     //
     // auto map = M_fespace->map();
     //
-    // SHP(MATRIXEPETRA) Ah = reducedMat.data();
+    // shp<MATRIXEPETRA> Ah = reducedMat.data();
     //
     // Epetra_SerialDenseVector localInterpVector(std::max(ms->numMyLocalMagicPoints, 1));
     // localInterpVector(0) = 1.2345;
@@ -614,7 +614,7 @@ checkOnline(FEMATRIX reducedMatrix, FEMATRIX fullMatrix)
     // {
     //     FEMATRIX approxMat(assembleMatrix(reducedMatrix));
     //
-    //     SHP(MATRIXEPETRA) actualMatrix = fullMatrix.data();
+    //     shp<MATRIXEPETRA> actualMatrix = fullMatrix.data();
     //
     //     std::cout << "=======CHECKING ONLINE MDEIM========" << std::endl << std::flush;
     //     std::cout << "NORM apprMatrix = " << approxMat.data()->normFrobenius() << std::endl << std::flush;
@@ -637,7 +637,7 @@ assembleMatrix(FEMATRIX reducedMatrix)
     //     auto ms = M_structure;
     //
     //     // Comparison vectors
-    //     SHP(VECTOREPETRA) approximation;
+    //     shp<VECTOREPETRA> approximation;
     //
     //     // Compute interpolation vector
     //     Epetra_SerialDenseVector myInterpVector(ms->N);
@@ -648,7 +648,7 @@ assembleMatrix(FEMATRIX reducedMatrix)
     //     computeFeInterpolation(myInterpVector, *approximation);
     //     std::cout << "myInterpVector " << myInterpVector.Norm2() << std::endl << std::flush;
     //     std::cout << "approximation " << approximation->norm2() << std::endl << std::flush;
-    //     SHP(MATRIXEPETRA) apprMatrix;
+    //     shp<MATRIXEPETRA> apprMatrix;
     //     apprMatrix.reset(new MATRIXEPETRA(M_fespace->map(), 100));
     //     apprMatrix->matrixPtr( )->Scale(0.);
     //
@@ -671,7 +671,7 @@ assembleProjectedMatrix(FEMATRIX reducedMatrix)
     //     auto ms = M_structure;
     //
     //     // Comparison vectors
-    //     SHP(DENSEVECTOR) approximation;
+    //     shp<DENSEVECTOR> approximation;
     //
     //     // Compute interpolation vector
     //     Epetra_SerialDenseVector myInterpVector(ms->N);
@@ -729,7 +729,7 @@ loadBasis(std::string filename)
     // std::string line;
     // while(std::getline(infile,line))
     // {
-    //     SHP(VECTOREPETRA) newVector(new VECTOREPETRA(*M_structure->vectorMap));
+    //     shp<VECTOREPETRA> newVector(new VECTOREPETRA(*M_structure->vectorMap));
     //
     //     std::stringstream linestream(line);
     //     std::string value;
@@ -755,7 +755,7 @@ loadProjectedBasis(std::string filename)
     // while(std::getline(infile,line))
     // {
     //     unsigned int N = (M_structure->Nleft) * (M_structure->Nright);
-    //     SHP(DENSEVECTOR) newVector(new DENSEVECTOR(N));
+    //     shp<DENSEVECTOR> newVector(new DENSEVECTOR(N));
     //     std::stringstream linestream(line);
     //     std::string value;
     //     unsigned int i = 0;
@@ -878,12 +878,12 @@ computeInterpolationVectorOffline(VECTOREPETRA& vector,
     // }
 }
 //
-SHP(VECTOREPETRA)
+shp<VECTOREPETRA>
 MDEIM::
 vectorizeMatrix(FEMATRIX matrix)
 {
     // std::cout << "vectorizeMatrix" << std::endl << std::flush;
-    // SHP(VECTOREPETRA) vectorizedMatrix(new VECTOREPETRA(*M_structure->vectorMap,
+    // shp<VECTOREPETRA> vectorizedMatrix(new VECTOREPETRA(*M_structure->vectorMap,
     //                                                     LifeV::Unique));
     // std::cout << "1" << std::endl << std::flush;
     //
@@ -922,7 +922,7 @@ performPOD(std::string outdir)
     //     pod.generatePODbasisTol(podtol);
     //
     //     unsigned int nbfs = pod.getRBdimension();
-    //     std::vector<SHP(VECTOREPETRA)> basisFunctions(nbfs);
+    //     std::vector<shp<VECTOREPETRA>> basisFunctions(nbfs);
     //
     //     pod.swapReducedBasis(basisFunctions, 0);
     //     M_basis = basisFunctions;
@@ -999,8 +999,8 @@ dumpProjectedBasis(std::string dir)
 
 void
 MDEIM::
-projectMDEIM(std::vector<SHP(VECTOREPETRA)> leftBasis,
-             std::vector<SHP(VECTOREPETRA)> rightBasis)
+projectMDEIM(std::vector<shp<VECTOREPETRA>> leftBasis,
+             std::vector<shp<VECTOREPETRA>> rightBasis)
 {
     // if (M_isInitialized)
     // {
@@ -1014,7 +1014,7 @@ projectMDEIM(std::vector<SHP(VECTOREPETRA)> leftBasis,
     //     {
     //         SHP(DENSEMATRIX) newMatrix(new DENSEMATRIX(Nleft, Nright));
     //
-    //         SHP(MATRIXEPETRA) basisMatrix(new MATRIXEPETRA(*M_rangeMap));
+    //         shp<MATRIXEPETRA> basisMatrix(new MATRIXEPETRA(*M_rangeMap));
     //
     //         reconstructMatrixFromVectorizedForm(*M_basis[bind], *basisMatrix);
     //         basisMatrix->globalAssemble(M_domainMap, M_rangeMap);
@@ -1030,7 +1030,7 @@ projectMDEIM(std::vector<SHP(VECTOREPETRA)> leftBasis,
     //             }
     //         }
     //
-    //         SHP(DENSEVECTOR) newBasis(new DENSEVECTOR(Nleft * Nright));
+    //         shp<DENSEVECTOR> newBasis(new DENSEVECTOR(Nleft * Nright));
     //
     //         unsigned int count = 0;
     //         for (unsigned int i = 0; i < Nleft; i++)

@@ -37,18 +37,18 @@ public:
     aTimeMarchingAlgorithm(const DataContainer& datafile);
 
     aTimeMarchingAlgorithm(const DataContainer& datafile,
-                           SHP(FunProvider) funProvider);
+                           shp<FunProvider> funProvider);
 
-    virtual void setup(const SHP(aVector)& zeroVector) = 0;
+    virtual void setup(const shp<aVector>& zeroVector) = 0;
 
-    virtual SHP(aVector) advance(const double& time, double& dt,
+    virtual shp<aVector> advance(const double& time, double& dt,
                                 int& status) = 0;
 
     // compute derivative of u at tn+1 given its value
-    virtual SHP(aVector) computeDerivative(const SHP(aVector)& solnp1,
+    virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1,
                                           double& dt) = 0;
 
-    virtual void shiftSolutions(const SHP(aVector)& sol) = 0;
+    virtual void shiftSolutions(const shp<aVector>& sol) = 0;
 
     void dumpSolverStatistics(std::vector<SolverStatistics> statistics,
                               const double& t) const;
@@ -60,7 +60,7 @@ protected:
 
     DataContainer                                       M_data;
     SystemSolver                                        M_systemSolver;
-    SHP(FunProvider)                                    M_funProvider;
+    shp<FunProvider>                                    M_funProvider;
     std::string                                         M_statisticsFile;
     EPETRACOMM                                          M_comm;
 };

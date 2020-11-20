@@ -3,9 +3,7 @@
 namespace RedMA
 {
 Double::
-Double() :
-  aMatrix(DOUBLE),
-  aVector(DOUBLE)
+Double()
 {
     M_double = 0;
 }
@@ -16,8 +14,7 @@ add(std::shared_ptr<aMatrix> other)
 {
     if (!other->isZero())
     {
-        aMatrix::checkType(other, DOUBLE);
-        double value = std::static_pointer_cast<Double>(other)->getValue();
+        double value = convert<Double>(other)->getValue();
         M_double += value;
     }
 }
@@ -36,8 +33,7 @@ multiplyByVector(std::shared_ptr<aVector> vector)
     std::shared_ptr<Double> res(new Double());
     if (!vector->isZero())
     {
-        aMatrix::checkType(vector, DOUBLE);
-        double value = std::static_pointer_cast<Double>(vector)->getValue();
+        double value = convert<Double>(vector)->getValue();
 
         res->setValue(M_double * value);
     }
@@ -51,8 +47,7 @@ multiplyByMatrix(std::shared_ptr<aMatrix> other)
     std::shared_ptr<Double> res(new Double());
     if (!other->isZero())
     {
-        aMatrix::checkType(other, DOUBLE);
-        double value = std::static_pointer_cast<Double>(other)->getValue();
+        double value = convert<Double>(other)->getValue();
         res->setValue(M_double * value);
     }
     return res;
@@ -65,30 +60,9 @@ dump(std::string namefile) const
 
 }
 
-void
-Double::
-softCopy(std::shared_ptr<aMatrix> other)
-{
-    aMatrix::checkType(other, DOUBLE);
-    double value = std::static_pointer_cast<Double>(other)->getValue();
-    M_double = value;
-}
-
-void
-Double::
-hardCopy(std::shared_ptr<aMatrix> other)
-{
-    std::cout << "hardCopy" << std::endl << std::flush;
-    aMatrix::checkType(other, DOUBLE);
-    double value = 0;
-    if (other)
-        value = std::static_pointer_cast<Double>(other)->getValue();
-    M_double = value;
-}
-
 bool
 Double::
-isZero()
+isZero() const
 {
     return M_double == 0;
 }
@@ -106,29 +80,26 @@ add(std::shared_ptr<aVector> other)
 {
     if (!other->isZero())
     {
-        aVector::checkType(other, DOUBLE);
-        double value = std::static_pointer_cast<Double>(other)->getValue();
+        double value = value = convert<Double>(other)->getValue();
         M_double += value;
     }
 }
 
 void
 Double::
-softCopy(std::shared_ptr<aVector> other)
+shallowCopy(std::shared_ptr<aDataWrapper> other)
 {
-    aVector::checkType(other, DOUBLE);
-    double value = std::static_pointer_cast<Double>(other)->getValue();
+    double value = convert<Double>(other)->getValue();
     M_double = value;
 }
 
 void
 Double::
-hardCopy(std::shared_ptr<aVector> other)
+deepCopy(std::shared_ptr<aDataWrapper> other)
 {
-    aVector::checkType(other, DOUBLE);
     double value = 0;
     if (other)
-        value = std::static_pointer_cast<Double>(other)->getValue();
+        value = convert<Double>(other)->getValue();
     M_double = value;
 }
 
@@ -146,22 +117,14 @@ norm2() const
     return M_double > 0 ? M_double : -M_double;
 }
 
-aVector*
-Double::
-cloneVector() const
-{
-    Double* retVector = new Double();
-    retVector->setValue(M_double);
-    return retVector;
-}
-
-aMatrix*
+aDataWrapper*
 Double::
 clone() const
 {
-    Double* retMatrix = new Double();
-    retMatrix->setValue(M_double);
-    return retMatrix;
+    throw new Exception("Method clone not implemented for Double!");
+    // Double* retDouble = new Double();
+    // retDouble->setValue(M_double);
+    // return retDouble;
 }
 
 std::shared_ptr<void>
@@ -170,6 +133,22 @@ data() const
 {
     std::shared_ptr<double> res(new double(M_double));
     return res;
+}
+
+// specification of template function to avoid ambiguous cast
+template<>
+shp<Double> convert(shp<aDataWrapper> container)
+{
+    if (container->type() != DOUBLE)
+    {
+        std::string msg = "Error in convert: converting ";
+        msg += std::to_string(container->type());
+        msg += " to ";
+        msg += std::to_string(DOUBLE);
+        msg += "\n";
+        throw new Exception(msg);
+    }
+    return spcast<Double>(spcast<aVector>(container));
 }
 
 }

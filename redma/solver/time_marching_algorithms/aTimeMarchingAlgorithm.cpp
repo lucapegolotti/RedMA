@@ -12,7 +12,7 @@ aTimeMarchingAlgorithm(const DataContainer& data) :
 
 aTimeMarchingAlgorithm::
 aTimeMarchingAlgorithm(const DataContainer& data,
-                       SHP(FunProvider) funProvider) :
+                       shp<FunProvider> funProvider) :
   M_data(data),
   M_systemSolver(data),
   M_funProvider(funProvider)

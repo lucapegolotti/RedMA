@@ -17,74 +17,37 @@
 #ifndef aVECTOR_HPP
 #define aVECTOR_HPP
 
+#include <redma/array/aDataWrapper.hpp>
+#include <redma/array/Datatypes.hpp>
 #include <redma/utils/Exception.hpp>
+#include <redma/array/TypesUtils.hpp>
 
 #include <memory>
-
-#define ZEROTHRESHOLD   1e-100
 
 namespace RedMA
 {
 
-enum Datatype{DENSE, SPARSE, DISTRIBUTED, BLOCK, DOUBLE};
-
-class aVector
+class aVector : public aDataWrapper
 {
 public:
-    aVector(Datatype type) :
-      M_nRows(0),
-      M_type(type),
-      M_normInf(0.0)
-    {
-    }
+    aVector() : M_nRows(0) {}
 
     virtual ~aVector() {};
 
-    virtual void add(std::shared_ptr<aVector> other) = 0;
+    virtual void add(shp<aVector> other) = 0;
 
     virtual void multiplyByScalar(const double& coeff) = 0;
-
-    virtual void dump(std::string namefile) const = 0;
-
-    virtual void softCopy(std::shared_ptr<aVector> other) = 0;
-
-    virtual void hardCopy(std::shared_ptr<aVector> other) = 0;
-
-    virtual aVector* cloneVector() const {};
-
-    virtual bool isZero() = 0;
 
     virtual std::string getString(const char& delimiter) const = 0;
 
     virtual double norm2() const = 0;
 
-    virtual std::shared_ptr<void> data() const {throw new Exception("Method data() not overloaded");}
-
-    virtual void setData(std::shared_ptr<void> data) {throw new Exception("Method setData() not overloaded");}
-
-    virtual std::shared_ptr<aVector> block(const unsigned int& i) const {throw new Exception("Method block(uint) not overloaded");}
-
-    virtual void setBlock(const unsigned int& i, std::shared_ptr<aVector> vector) {throw new Exception("Method block(uint) not overloaded");}
-
-    inline double normInf() const {return M_normInf;}
+    virtual double operator()(unsigned int index) = 0;
 
     inline unsigned int nRows() const {return M_nRows;}
 
-    inline Datatype type() {return M_type;}
-
-    virtual double operator()(unsigned int index) = 0;
-
 protected:
-    template <class Type>
-    void checkType(std::shared_ptr<Type> other, Datatype type)
-    {
-        if (other->type() != type)
-            throw new Exception("Unexpected datatype of vector!");
-    }
-
     unsigned int        M_nRows;
-    Datatype            M_type;
-    double              M_normInf;
 };
 
 }

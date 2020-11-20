@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     Chrono chrono;
     chrono.start();
 
-    SHP(ProblemRB) rbProblem(new ProblemRB(data, comm));
+    shp<ProblemRB> rbProblem(new ProblemRB(data, comm));
     double setupTimeRB = chrono.diff();
 
     comparison.setProblemRB(rbProblem);

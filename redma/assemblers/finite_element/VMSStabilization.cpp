@@ -6,32 +6,32 @@ namespace RedMA
 
 VMSStabilization::
 VMSStabilization(const DataContainer& data,
-                 SHP(FESPACE) fespaceVelocity,
-                 SHP(FESPACE) fespacePressure,
-                 SHP(ETFESPACE3) etfespaceVelocity,
-                 SHP(ETFESPACE1) etfespacePressure) :
+                 shp<FESPACE> fespaceVelocity,
+                 shp<FESPACE> fespacePressure,
+                 shp<ETFESPACE3> etfespaceVelocity,
+                 shp<ETFESPACE1> etfespacePressure) :
   NavierStokesStabilization(data,
                             fespaceVelocity, fespacePressure,
                             etfespaceVelocity, etfespacePressure)
 {
 }
 
-SHP(BlockMatrix)
+shp<BlockMatrix>
 VMSStabilization::
-getMass(SHP(BlockVector) sol, SHP(BlockVector) rhs)
+getMass(shp<BlockVector> sol, shp<BlockVector> rhs)
 {
     // using namespace LifeV;
     // using namespace LifeV::ExpressionAssembly;
     // SHP(SquareRoot) squareroot(new SquareRoot());
     //
-    // SHP(VECTOREPETRA) velocityRep(new VECTOREPETRA(*sol.block(0).data(), Repeated));
-    // SHP(VECTOREPETRA) velocityRhsRep(new VECTOREPETRA(*rhs.block(0).data(), Repeated));
-    // SHP(VECTOREPETRA) pressureRep(new VECTOREPETRA(*sol.block(1).data(), Repeated));
+    // shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*sol.block(0).data(), Repeated));
+    // shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*rhs.block(0).data(), Repeated));
+    // shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*sol.block(1).data(), Repeated));
     //
-    // SHP(MATRIXEPETRA) mass00(new MATRIXEPETRA(M_velocityFESpace->map()));
-    // SHP(MATRIXEPETRA) mass01(new MATRIXEPETRA(M_velocityFESpace->map()));
-    // SHP(MATRIXEPETRA) mass10(new MATRIXEPETRA(M_pressureFESpace->map()));
-    // SHP(MATRIXEPETRA) mass11(new MATRIXEPETRA(M_pressureFESpace->map()));
+    // shp<MATRIXEPETRA> mass00(new MATRIXEPETRA(M_velocityFESpace->map()));
+    // shp<MATRIXEPETRA> mass01(new MATRIXEPETRA(M_velocityFESpace->map()));
+    // shp<MATRIXEPETRA> mass10(new MATRIXEPETRA(M_pressureFESpace->map()));
+    // shp<MATRIXEPETRA> mass11(new MATRIXEPETRA(M_pressureFESpace->map()));
     //
     // mass00->zero();
     // mass01->zero();
@@ -81,22 +81,22 @@ getMass(SHP(BlockVector) sol, SHP(BlockVector) rhs)
     // return M_mass;
 }
 
-SHP(BlockMatrix)
+shp<BlockMatrix>
 VMSStabilization::
-getMassJac(SHP(BlockVector) sol, SHP(BlockVector) rhs)
+getMassJac(shp<BlockVector> sol, shp<BlockVector> rhs)
 {
     // using namespace LifeV;
     // using namespace LifeV::ExpressionAssembly;
     // SHP(SquareRoot) squareroot(new SquareRoot());
     //
-    // SHP(VECTOREPETRA) velocityRep(new VECTOREPETRA(*sol.block(0).data(), Repeated));
-    // SHP(VECTOREPETRA) velocityRhsRep(new VECTOREPETRA(*rhs.block(0).data(), Repeated));
-    // SHP(VECTOREPETRA) pressureRep(new VECTOREPETRA(*sol.block(1).data(), Repeated));
+    // shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*sol.block(0).data(), Repeated));
+    // shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*rhs.block(0).data(), Repeated));
+    // shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*sol.block(1).data(), Repeated));
     //
-    // SHP(MATRIXEPETRA) massjac00(new MATRIXEPETRA(M_velocityFESpace->map()));
-    // SHP(MATRIXEPETRA) massjac01(new MATRIXEPETRA(M_velocityFESpace->map()));
-    // SHP(MATRIXEPETRA) massjac10(new MATRIXEPETRA(M_pressureFESpace->map()));
-    // SHP(MATRIXEPETRA) massjac11(new MATRIXEPETRA(M_pressureFESpace->map()));
+    // shp<MATRIXEPETRA> massjac00(new MATRIXEPETRA(M_velocityFESpace->map()));
+    // shp<MATRIXEPETRA> massjac01(new MATRIXEPETRA(M_velocityFESpace->map()));
+    // shp<MATRIXEPETRA> massjac10(new MATRIXEPETRA(M_pressureFESpace->map()));
+    // shp<MATRIXEPETRA> massjac11(new MATRIXEPETRA(M_pressureFESpace->map()));
     //
     // massjac00->zero();
     // massjac01->zero();
@@ -135,22 +135,22 @@ getMassJac(SHP(BlockVector) sol, SHP(BlockVector) rhs)
     // return M_massJac;
 }
 
-SHP(BlockMatrix)
+shp<BlockMatrix>
 VMSStabilization::
-getJac(SHP(BlockVector) sol, SHP(BlockVector) rhs)
+getJac(shp<BlockVector> sol, shp<BlockVector> rhs)
 {
     // using namespace LifeV;
     // using namespace LifeV::ExpressionAssembly;
     // SHP(SquareRoot) squareroot(new SquareRoot());
     //
-    // SHP(VECTOREPETRA) velocityRep(new VECTOREPETRA(*sol.block(0).data(), Repeated));
-    // SHP(VECTOREPETRA) velocityRhsRep(new VECTOREPETRA(*rhs.block(0).data(), Repeated));
-    // SHP(VECTOREPETRA) pressureRep(new VECTOREPETRA(*sol.block(1).data(), Repeated));
+    // shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*sol.block(0).data(), Repeated));
+    // shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*rhs.block(0).data(), Repeated));
+    // shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*sol.block(1).data(), Repeated));
     //
-    // SHP(MATRIXEPETRA) jac00(new MATRIXEPETRA(M_velocityFESpace->map()));
-    // SHP(MATRIXEPETRA) jac01(new MATRIXEPETRA(M_velocityFESpace->map()));
-    // SHP(MATRIXEPETRA) jac10(new MATRIXEPETRA(M_pressureFESpace->map()));
-    // SHP(MATRIXEPETRA) jac11(new MATRIXEPETRA(M_pressureFESpace->map()));
+    // shp<MATRIXEPETRA> jac00(new MATRIXEPETRA(M_velocityFESpace->map()));
+    // shp<MATRIXEPETRA> jac01(new MATRIXEPETRA(M_velocityFESpace->map()));
+    // shp<MATRIXEPETRA> jac10(new MATRIXEPETRA(M_pressureFESpace->map()));
+    // shp<MATRIXEPETRA> jac11(new MATRIXEPETRA(M_pressureFESpace->map()));
     //
     // jac00->zero();
     // jac01->zero();
@@ -218,21 +218,21 @@ getJac(SHP(BlockVector) sol, SHP(BlockVector) rhs)
     // return M_jac;
 }
 
-SHP(BlockVector)
+shp<BlockVector>
 VMSStabilization::
-getResidual(SHP(BlockVector) sol,
-            SHP(BlockVector) rhs)
+getResidual(shp<BlockVector> sol,
+            shp<BlockVector> rhs)
 {
     // using namespace LifeV;
     // using namespace LifeV::ExpressionAssembly;
     //
-    // SHP(VECTOREPETRA) velocityRep(new VECTOREPETRA(*sol.block(0).data(), Repeated));
-    // SHP(VECTOREPETRA) velocityRhsRep(new VECTOREPETRA(*rhs.block(0).data(), Repeated));
-    // SHP(VECTOREPETRA) pressureRep(new VECTOREPETRA(*sol.block(1).data(), Repeated));
+    // shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*sol.block(0).data(), Repeated));
+    // shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*rhs.block(0).data(), Repeated));
+    // shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*sol.block(1).data(), Repeated));
     //
     // SHP(SquareRoot) squareroot(new SquareRoot());
     //
-    // SHP(VECTOREPETRA) resvelrep(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
+    // shp<VECTOREPETRA> resvelrep(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
     // resvelrep->zero();
     //
     // integrate(elements(M_velocityFESpace->mesh()),
@@ -247,9 +247,9 @@ getResidual(SHP(BlockVector) sol,
     //          +TAU_C * div(phi_i) * trace(grad(VH))
     //         ) >> resvelrep;
     // resvelrep->globalAssemble();
-    // SHP(VECTOREPETRA) resvel(new VECTOREPETRA(*resvelrep, Unique));
+    // shp<VECTOREPETRA> resvel(new VECTOREPETRA(*resvelrep, Unique));
     //
-    // SHP(VECTOREPETRA) respressrep(new VECTOREPETRA(M_pressureFESpace->map(), Repeated));
+    // shp<VECTOREPETRA> respressrep(new VECTOREPETRA(M_pressureFESpace->map(), Repeated));
     // respressrep->zero();
     //
     // integrate(elements(M_velocityFESpace->mesh()),
@@ -258,7 +258,7 @@ getResidual(SHP(BlockVector) sol,
     //           TAU_M * (dot(grad(phi_i),MOMENTUM_R))
     //          ) >> respressrep;
     // respressrep->globalAssemble();
-    // SHP(VECTOREPETRA) respress(new VECTOREPETRA(*respressrep, Unique));
+    // shp<VECTOREPETRA> respress(new VECTOREPETRA(*respressrep, Unique));
     //
     // BlockVector retVec(2);
     // retVec.block(0).data() = resvel;

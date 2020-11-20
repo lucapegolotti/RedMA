@@ -29,7 +29,7 @@ load()
     for (auto idmeshpair : M_IDMeshMap)
     {
         std::string curdir = mdeimdir + "/" + idmeshpair.second;
-        std::vector<SHP(BlockMDEIM)> mdeimvec;
+        std::vector<shp<BlockMDEIM>> mdeimvec;
 
         unsigned int matrixIndex = 0;
         while (std::filesystem::exists(curdir + "/blockmdeim" + std::to_string(matrixIndex)))
@@ -44,7 +44,7 @@ load()
             while (std::filesystem::exists(blockmdeimdir + "/mdeim_0_" + std::to_string(countcol)))
                 countcol++;
 
-            SHP(BlockMDEIM) newMdeim(new BlockMDEIM());
+            shp<BlockMDEIM> newMdeim(new BlockMDEIM());
             newMdeim->setDataContainer(M_data);
 
             newMdeim->setComm(M_comm);

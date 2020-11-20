@@ -40,76 +40,76 @@ public:
     BlockAssembler() {}
 
     BlockAssembler(const DataContainer& data, const TreeStructure& tree,
-                   SHP(DefaultAssemblers) defAssemblers = nullptr);
+                   shp<DefaultAssemblers> defAssemblers = nullptr);
 
     // virtual ~BlockAssembler() {}
 
     virtual void setup() override;
 
     virtual void exportSolution(const double& t,
-                                const SHP(aVector)& sol) override;
+                                const shp<aVector>& sol) override;
 
     virtual void postProcess(const double& t,
-                             const SHP(aVector)& sol) override;
+                             const shp<aVector>& sol) override;
 
-    virtual SHP(aMatrix) getMass(const double& time,
-                                const SHP(aVector)& sol) override;
+    virtual shp<aMatrix> getMass(const double& time,
+                                const shp<aVector>& sol) override;
 
-    virtual SHP(aMatrix) getMassJacobian(const double& time,
-                                        const SHP(aVector)& sol) override;
+    virtual shp<aMatrix> getMassJacobian(const double& time,
+                                        const shp<aVector>& sol) override;
 
-    virtual SHP(aVector) getRightHandSide(const double& time,
-                                         const SHP(aVector)& sol) override;
+    virtual shp<aVector> getRightHandSide(const double& time,
+                                         const shp<aVector>& sol) override;
 
-    virtual SHP(aMatrix) getJacobianRightHandSide(const double& time,
-                                                 const SHP(aVector)& sol) override;
+    virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
+                                                 const shp<aVector>& sol) override;
 
-    virtual SHP(aVector) getLifting(const double& time) const override;
+    virtual shp<aVector> getLifting(const double& time) const override;
 
-    virtual SHP(aVector) getZeroVector() const override;
+    virtual shp<aVector> getZeroVector() const override;
 
-    virtual void apply0DirichletBCsMatrix(SHP(aMatrix) matrix, double diagCoeff) const override;
+    virtual void apply0DirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
 
-    virtual void apply0DirichletBCs(SHP(aVector) vector) const override;
+    virtual void apply0DirichletBCs(shp<aVector> vector) const override;
 
     virtual void setExporter() override;
 
-    virtual void applyDirichletBCs(const double& time, SHP(aVector) vector) const override;
+    virtual void applyDirichletBCs(const double& time, shp<aVector> vector) const override;
 
-    virtual void checkStabTerm(const SHP(aVector)& sol) const;
+    virtual void checkStabTerm(const shp<aVector>& sol) const;
 
     std::map<unsigned int, std::string> getIDMeshTypeMap() const;
 
-    inline SHP(aAssembler) block(const unsigned int& index) {return M_primalAssemblers[index];}
+    inline shp<aAssembler> block(const unsigned int& index) {return M_primalAssemblers[index];}
 
-    std::map<unsigned int, SHP(aAssembler)> getAssemblersMap() const {return M_primalAssemblers;}
+    std::map<unsigned int, shp<aAssembler>> getAssemblersMap() const {return M_primalAssemblers;}
 
-    std::vector<SHP(InterfaceAssembler)> getDualAssemblers() const {return M_dualAssemblers;}
+    std::vector<shp<InterfaceAssembler>> getDualAssemblers() const {return M_dualAssemblers;}
 
-    SHP(aVector) convertFunctionRBtoFEM(SHP(aVector) rbFunction, EPETRACOMM comm) const;
+    shp<aVector> convertFunctionRBtoFEM(shp<aVector> rbFunction, EPETRACOMM comm) const;
 
-    virtual void setExtrapolatedSolution(const SHP(aVector)& exSol) override;
+    virtual void setExtrapolatedSolution(const shp<aVector>& exSol) override;
 
-    virtual SHP(aVector) getNonLinearTerm() override;
+    virtual shp<aVector> getNonLinearTerm() override;
 
     std::map<unsigned int,std::vector<double>> getRandomizibleParametersVectors();
 
-    virtual void applyPiola(SHP(aVector) solution, bool inverse) override {}
+    virtual void applyPiola(shp<aVector> solution, bool inverse) override {}
 
-    void applyGlobalPiola(SHP(aVector) solution, bool inverse);
+    void applyGlobalPiola(shp<aVector> solution, bool inverse);
 
     virtual void initializeFEspaces() override;
 
-    void setDefaultAssemblers(SHP(DefaultAssemblers) defAssemblers) override;
+    void setDefaultAssemblers(shp<DefaultAssemblers> defAssemblers) override;
 
 protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;
-    std::map<unsigned int, SHP(aAssembler)>                       M_primalAssemblers;
-    std::vector<SHP(InterfaceAssembler)>                          M_dualAssemblers;
+    std::map<unsigned int, shp<aAssembler>>                       M_primalAssemblers;
+    std::vector<shp<InterfaceAssembler>>                          M_dualAssemblers;
     unsigned int                                                  M_numberBlocks;
-    SHP(MDEIMManager)                                             M_mdeimManager;
-    SHP(RBBasesManager)                                           M_basesManager;
+    shp<MDEIMManager>                                             M_mdeimManager;
+    shp<RBBasesManager>                                           M_basesManager;
 };
 
 }

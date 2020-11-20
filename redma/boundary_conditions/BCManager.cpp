@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 BCManager::
-BCManager(const DataContainer& data, SHP(TreeNode) treeNode) :
+BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
   M_data(data),
   M_treeNode(treeNode)
 {
@@ -41,7 +41,7 @@ parseNeumannData()
 
 void
 BCManager::
-addInletBC(SHP(LifeV::BCHandler) bcs, std::function<double(double)> law) const
+addInletBC(shp<LifeV::BCHandler> bcs, std::function<double(double)> law) const
 {
     if (M_treeNode->isInletNode())
     {
@@ -68,15 +68,15 @@ addInletBC(SHP(LifeV::BCHandler) bcs, std::function<double(double)> law) const
 void
 BCManager::
 applyDirichletBCs(const double& time, BlockVector& input,
-                  SHP(FESPACE) fespace, const unsigned int& index) const
+                  shp<FESPACE> fespace, const unsigned int& index) const
 {
-    SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
+    shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet();
 
     addInletBC(bcs, M_inflow);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
-    SHP(VECTOREPETRA) curVec(std::static_pointer_cast<VECTOREPETRA>(input.block(index)->data()));
+    shp<VECTOREPETRA> curVec(std::static_pointer_cast<VECTOREPETRA>(input.block(index)->data()));
 
     if (curVec)
         bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
@@ -93,11 +93,11 @@ fZero2(double time)
 void
 BCManager::
 apply0DirichletMatrix(BlockMatrix& input,
-                      SHP(FESPACE) fespace,
+                      shp<FESPACE> fespace,
                       const unsigned int& index,
                       const double& diagCoefficient) const
 {
-    SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
+    shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet();
 
     if (M_strongDirichlet)
         addInletBC(bcs, fZero2);
@@ -110,7 +110,7 @@ apply0DirichletMatrix(BlockMatrix& input,
     {
         if (!input.block(index, j)->isZero())
         {
-            SHP(MATRIXEPETRA) curMatrix = std::static_pointer_cast<MATRIXEPETRA>(input.block(index, j)->data());
+            shp<MATRIXEPETRA> curMatrix = std::static_pointer_cast<MATRIXEPETRA>(input.block(index, j)->data());
             auto domainMap = curMatrix->domainMapPtr();
             auto rangeMap = curMatrix->rangeMapPtr();
             bcManageMatrix(*curMatrix, *fespace->mesh(),
@@ -123,29 +123,29 @@ apply0DirichletMatrix(BlockMatrix& input,
 
 void
 BCManager::
-apply0DirichletBCs(BlockVector& input, SHP(FESPACE) fespace,
+apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
                    const unsigned int& index) const
 {
-    SHP(LifeV::BCHandler) bcs = createBCHandler0Dirichlet();
+    shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet();
 
     if (M_strongDirichlet)
         addInletBC(bcs, fZero2);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
-    SHP(VECTOREPETRA) curVec(std::static_pointer_cast<VECTOREPETRA>(input.block(index)->data()));
+    shp<VECTOREPETRA> curVec(std::static_pointer_cast<VECTOREPETRA>(input.block(index)->data()));
     if (curVec)
         bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
                     *bcs, fespace->feBd(), 0.0, 0.0);
 }
 
-SHP(LifeV::BCHandler)
+shp<LifeV::BCHandler>
 BCManager::
 createBCHandler0Dirichlet() const
 {
     LifeV::BCFunctionBase zeroFunction(fZero);
 
-    SHP(LifeV::BCHandler) bcs;
+    shp<LifeV::BCHandler> bcs;
     bcs.reset(new LifeV::BCHandler);
 
     bcs->addBC("Wall", M_wallFlag, LifeV::Essential,

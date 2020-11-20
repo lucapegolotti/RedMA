@@ -38,22 +38,22 @@ class InverseOperator
 public:
     InverseOperator(const DataContainer& data);
 
-    void setBlockMaps(SHP(BlockMaps) maps);
+    void setBlockMaps(shp<BlockMaps> maps);
 
-    void setOperator(SHP(LinearOperator) oper);
+    void setOperator(shp<LinearOperator> oper);
 
-    void setPreconditioner(SHP(PreconditionerOperator) prec);
+    void setPreconditioner(shp<PreconditionerOperator> prec);
 
     void setSolverOptions();
 
-    int invert(const SHP(aVector)& rhs, SHP(aVector)& sol);
+    int invert(const shp<aVector>& rhs, shp<aVector>& sol);
 
 private:
     DataContainer                                   M_data;
-    SHP(InvertibleOperatorType)                     M_invOper;
-    SHP(Teuchos::ParameterList)                     M_pListLinSolver;
+    shp<InvertibleOperatorType>                     M_invOper;
+    shp<Teuchos::ParameterList>                     M_pListLinSolver;
     Teuchos::RCP<Teuchos::ParameterList>            M_solversOptions;
-    SHP(BlockMaps)                                  M_maps;
+    shp<BlockMaps>                                  M_maps;
     // SHP(BlockDimension)                             M_dimensions;
 };
 

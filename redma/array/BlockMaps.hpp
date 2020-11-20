@@ -34,37 +34,37 @@ class BlockMaps
 public:
     BlockMaps();
 
-    BlockMaps(SHP(BlockMatrix) matrix) {createFromBlockMatrix(matrix);}
+    BlockMaps(shp<BlockMatrix> matrix) {createFromBlockMatrix(matrix);}
 
-    void createFromBlockMatrix(SHP(BlockMatrix) matrix);
+    void createFromBlockMatrix(shp<BlockMatrix> matrix);
 
-    void updateCollapsedMatrix(SHP(BlockMatrix) matrix);
+    void updateCollapsedMatrix(shp<BlockMatrix> matrix);
 
-    SHP(BlockMatrix)                 M_collapsedMatrix;
-    std::vector<SHP(MAPEPETRA)>      M_rangeMaps;
-    std::vector<SHP(MAPEPETRA)>      M_domainMaps;
-    std::vector<SHP(Epetra_Map)>     M_rangeEpetraMaps;
-    std::vector<SHP(Epetra_Map)>     M_domainEpetraMaps;
-    SHP(MAPEPETRA)                   M_monolithicRangeMap;
-    SHP(MAPEPETRA)                   M_monolithicDomainMap;
+    shp<BlockMatrix>                 M_collapsedMatrix;
+    std::vector<shp<MAPEPETRA>>      M_rangeMaps;
+    std::vector<shp<MAPEPETRA>>      M_domainMaps;
+    std::vector<shp<Epetra_Map>>     M_rangeEpetraMaps;
+    std::vector<shp<Epetra_Map>>     M_domainEpetraMaps;
+    shp<MAPEPETRA>                   M_monolithicRangeMap;
+    shp<MAPEPETRA>                   M_monolithicDomainMap;
     std::vector<unsigned int>        M_dimensionsRows;
     std::vector<unsigned int>        M_dimensionsCols;
     std::vector<unsigned int>        M_dimensionsRowsBlock;
     std::vector<unsigned int>        M_dimensionsColsBlock;
 };
 
-SHP(BlockMatrix) collapseBlocks(SHP(BlockMatrix) matrix,
+shp<BlockMatrix> collapseBlocks(shp<BlockMatrix> matrix,
                                 std::vector<unsigned int>& dimensionsRowsBlock,
                                 std::vector<unsigned int>& dimensionsColsBlock);
 
-SHP(SparseMatrix) blockMatrixToSparseMatrix(SHP(BlockMatrix) matrix);
+shp<SparseMatrix> blockMatrixToSparseMatrix(shp<BlockMatrix> matrix);
 
-SHP(SparseMatrix) denseMatrixToSparseMatrix(SHP(DenseMatrix) matrix);
+shp<SparseMatrix> denseMatrixToSparseMatrix(shp<DenseMatrix> matrix);
 
-SHP(VECTOREPETRA) getEpetraVector(const SHP(aVector)& vector,
+shp<VECTOREPETRA> getEpetraVector(const shp<aVector>& vector,
                                   const BlockMaps& maps);
 
-SHP(aVector) getBlockVector(const SHP(VECTOREPETRA)& vector,
+shp<aVector> getBlockVector(const shp<VECTOREPETRA>& vector,
                             const BlockMaps& maps);
 }
 

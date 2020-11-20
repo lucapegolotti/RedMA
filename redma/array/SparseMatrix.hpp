@@ -30,10 +30,7 @@
 #include <redma/array/DistributedVector.hpp>
 #include <redma/array/DenseMatrix.hpp>
 
-#include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
-
-#define MATRIXEPETRA        LifeV::MatrixEpetra<double>
 
 namespace RedMA
 {
@@ -45,48 +42,50 @@ public:
 
     SparseMatrix(const SparseMatrix& other);
 
-    SparseMatrix(std::vector<std::shared_ptr<DistributedVector>> columnVectors);
+    SparseMatrix(std::vector<shp<DistributedVector>> columnVectors);
 
-    SparseMatrix(const std::vector<std::shared_ptr<VECTOREPETRA>>& columnVectors);
+    SparseMatrix(const std::vector<shp<VECTOREPETRA>>& columnVectors);
 
-    virtual void add(std::shared_ptr<aMatrix> other) override;
+    virtual void add(shp<aMatrix> other) override;
 
     virtual void multiplyByScalar(const double& coeff) override;
 
-    virtual std::shared_ptr<aMatrix> multiplyByMatrix(std::shared_ptr<aMatrix> other) override;
+    virtual shp<aMatrix> multiplyByMatrix(shp<aMatrix> other) override;
 
-    virtual std::shared_ptr<aMatrix> transpose() const override;
+    virtual shp<aMatrix> transpose() const override;
 
-    virtual std::shared_ptr<aVector> multiplyByVector(std::shared_ptr<aVector> vector) override;
+    virtual shp<aVector> multiplyByVector(shp<aVector> vector) override;
 
-    virtual void softCopy(std::shared_ptr<aMatrix> other) override;
+    virtual void shallowCopy(shp<aDataWrapper> other) override;
 
-    virtual void hardCopy(std::shared_ptr<aMatrix> other) override;
+    virtual void deepCopy(shp<aDataWrapper> other) override;
 
-    virtual bool isZero() override;
+    virtual bool isZero() const override;
 
     virtual SparseMatrix* clone() const override;
 
-    void setMatrix(std::shared_ptr<MATRIXEPETRA> matrix);
+    void setMatrix(shp<MATRIXEPETRA> matrix);
 
-    virtual std::shared_ptr<void> data() const override;
+    virtual shp<void> data() const override;
 
-    virtual void setData(std::shared_ptr<void> data) override;
+    virtual void setData(shp<void> data) override;
 
     DenseMatrix toDenseMatrix() const;
 
-    std::shared_ptr<DenseMatrix> toDenseMatrixPtr() const;
+    shp<DenseMatrix> toDenseMatrixPtr() const;
 
     virtual void dump(std::string namefile) const override;
 
-    std::shared_ptr<Epetra_Comm> commPtr() {return M_matrix->rangeMapPtr()->commPtr();}
+    shp<Epetra_Comm> commPtr() {return M_matrix->rangeMapPtr()->commPtr();}
 
-    static std::shared_ptr<SparseMatrix> convertDenseMatrix(
-        std::shared_ptr<DenseMatrix> denseVector,
-        std::shared_ptr<Epetra_Comm> comm);
+    virtual Datatype type() const override {return SPARSE;}
+
+    static shp<SparseMatrix> convertDenseMatrix(
+        shp<DenseMatrix> denseVector,
+        shp<Epetra_Comm> comm);
 
 private:
-    std::shared_ptr<MATRIXEPETRA>           M_matrix;
+    shp<MATRIXEPETRA>           M_matrix;
 };
 
 }

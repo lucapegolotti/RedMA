@@ -307,10 +307,10 @@ struct MDEIMStructure
     std::vector<int>                globalIndicesMagicPoints;
     std::vector<std::vector<int>>   columnIndices;
     Epetra_SerialDenseMatrix        Qj;
-    SHP(MAPEPETRA)                  vectorMap;
+    shp<MAPEPETRA>                  vectorMap;
 };
 
-typedef boost::numeric::ublas::matrix<SHP(MDEIMStructure)>   BlockMDEIMStructure;
+typedef boost::numeric::ublas::matrix<shp<MDEIMStructure>>   BlockMDEIMStructure;
 
 }  // namespace RedMA
 

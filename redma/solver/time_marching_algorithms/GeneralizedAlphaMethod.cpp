@@ -12,7 +12,7 @@ GeneralizedAlphaMethod(const DataContainer& data) :
 }
 
 GeneralizedAlphaMethod::
-GeneralizedAlphaMethod(const DataContainer& data, SHP(FunProvider) funProvider) :
+GeneralizedAlphaMethod(const DataContainer& data, shp<FunProvider> funProvider) :
   aTimeMarchingAlgorithm(data, funProvider),
   M_order(2)
 {
@@ -21,10 +21,10 @@ GeneralizedAlphaMethod(const DataContainer& data, SHP(FunProvider) funProvider) 
 
 void
 GeneralizedAlphaMethod::
-setup(const SHP(aVector)& zeroVector)
+setup(const shp<aVector>& zeroVector)
 {
-    // M_prevSolution.hardCopy(zeroVector);
-    // M_prevDerivative.hardCopy(zeroVector);
+    // M_prevSolution.deepCopy(zeroVector);
+    // M_prevDerivative.deepCopy(zeroVector);
     //
     // M_rhoinf = this->M_data("time_discretization/rhoinf", 0.5);
     //
@@ -33,7 +33,7 @@ setup(const SHP(aVector)& zeroVector)
     // M_gamma = 0.5 + M_alpham - M_alphaf;
 }
 
-SHP(aVector)
+shp<aVector>
 GeneralizedAlphaMethod::
 advance(const double& time, double& dt, int& status)
 {
@@ -42,7 +42,7 @@ advance(const double& time, double& dt, int& status)
     //
     // // we are actually solving for the derivative
     // BV initialGuess;
-    // initialGuess.hardCopy(M_prevDerivative);
+    // initialGuess.deepCopy(M_prevDerivative);
     //
     // std::cout << "think about boundary conditions for generalized alpha " << std::endl << std::flush;
     // exit(1);
@@ -76,7 +76,7 @@ advance(const double& time, double& dt, int& status)
     //     // here the choice of hard copies is compulsory
     //     BM retMat;
     //
-    //     retMat.hardCopy(this->M_funProvider->getJacobianRightHandSide(time + dt*M_alphaf, solnpalphaf));
+    //     retMat.deepCopy(this->M_funProvider->getJacobianRightHandSide(time + dt*M_alphaf, solnpalphaf));
     //     // we are computing the jacobian actually with respect to dersol -> we multiply
     //     // by the derivative of solnp1 wrt dersol
     //     const double coeff = M_gamma * M_alphaf * dt;
@@ -100,53 +100,53 @@ advance(const double& time, double& dt, int& status)
     // return sol;
 }
 
-SHP(aVector)
+shp<aVector>
 GeneralizedAlphaMethod::
-computesolnp1(SHP(aVector) dersol, const double& dt)
+computesolnp1(shp<aVector> dersol, const double& dt)
 {
     // BlockVector solnp1;
-    // solnp1.hardCopy(M_prevSolution);
+    // solnp1.deepCopy(M_prevSolution);
     // solnp1 += (M_prevDerivative * dt);
     // solnp1 += (dersol - M_prevDerivative) * (M_gamma * dt);
     //
     // return solnp1;
 }
 
-SHP(aVector)
+shp<aVector>
 GeneralizedAlphaMethod::
-computesolnpalphaf(SHP(aVector) solnp1)
+computesolnpalphaf(shp<aVector> solnp1)
 {
     // BlockVector solnpalphaf;
-    // solnpalphaf.hardCopy(M_prevSolution);
+    // solnpalphaf.deepCopy(M_prevSolution);
     // solnpalphaf += (solnp1 - M_prevSolution) * M_alphaf;
     //
     // return solnpalphaf;
 }
 
-SHP(aVector)
+shp<aVector>
 GeneralizedAlphaMethod::
-computedersolnpalpham(SHP(aVector) dersol)
+computedersolnpalpham(shp<aVector> dersol)
 {
     // BlockVector dersolnpalpham;
-    // dersolnpalpham.hardCopy(M_prevDerivative);
+    // dersolnpalpham.deepCopy(M_prevDerivative);
     // dersolnpalpham += (dersol - M_prevDerivative) * M_alpham;
     //
     // return dersolnpalpham;
 }
 
-SHP(aVector)
+shp<aVector>
 GeneralizedAlphaMethod::
-computeDerivative(const SHP(aVector)& solnp1, double& dt)
+computeDerivative(const shp<aVector>& solnp1, double& dt)
 {
     // BlockVector dersolnpalpham;
-    // dersolnpalpham.hardCopy(M_prevDerivative);
+    // dersolnpalpham.deepCopy(M_prevDerivative);
     // dersolnpalpham += (solnp1 - M_prevSolution - (M_prevDerivative * dt)) * (1.0 / (M_gamma * dt));
     // return dersolnpalpham;
 }
 
 void
 GeneralizedAlphaMethod::
-shiftSolutions(const SHP(aVector)& sol)
+shiftSolutions(const shp<aVector>& sol)
 {
     // double dt = this->M_data("time_discretization/dt", 0.01);
     // M_prevDerivative = computeDerivative(sol, dt);

@@ -3,10 +3,10 @@
 namespace RedMA
 {
 
-SHP(aTimeMarchingAlgorithm)
+shp<aTimeMarchingAlgorithm>
 TimeMarchingAlgorithmFactory(const DataContainer& data)
 {
-    SHP(aTimeMarchingAlgorithm) ret;
+    shp<aTimeMarchingAlgorithm> ret;
     std::string algorithmString = data("time_discretization/algorithm","bdf");
 
     if (!std::strcmp(algorithmString.c_str(),"bdf"))
@@ -21,11 +21,11 @@ TimeMarchingAlgorithmFactory(const DataContainer& data)
     return ret;
 }
 
-SHP(aTimeMarchingAlgorithm)
+shp<aTimeMarchingAlgorithm>
 TimeMarchingAlgorithmFactory(const DataContainer& data,
-                             SHP(aFunctionProvider) funProvider)
+                             shp<aFunctionProvider> funProvider)
 {
-    SHP(aTimeMarchingAlgorithm) ret;
+    shp<aTimeMarchingAlgorithm> ret;
     std::string algorithmString = data("time_discretization/algorithm","bdf");
 
     if (!std::strcmp(algorithmString.c_str(),"bdf"))

@@ -48,9 +48,9 @@ private:
     double                                              M_Rd; // distal resistance
     std::function<double(double)>                       M_Pd; // distal reference pressure
     double                                              M_dt;
-    SHP(PressureDrop)                                   M_pressureDrop;
-    SHP(BDF)                                            M_bdf;
-    SHP(BlockVector)                                    M_pressureDropSolution;
+    shp<PressureDrop>                                   M_pressureDrop;
+    shp<BDF>                                            M_bdf;
+    shp<BlockVector>                                    M_pressureDropSolution;
     DataContainer                                       M_data;
 };
 

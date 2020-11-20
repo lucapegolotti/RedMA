@@ -14,19 +14,19 @@ void
 LinearSystemSolver::
 solve(const BM& matrix, const BV& rhs, BV& sol)
 {
-    if (matrix->type() == BLOCK && matrix->block(0,0)->type() == DOUBLE)
+    if (matrix->type() == BLOCK && convert<BlockMatrix>(matrix)->block(0,0)->type() == DOUBLE)
     {
-        double matValue = std::static_pointer_cast<Double>(matrix->block(0,0))->getValue();
-        double rhsValue = std::static_pointer_cast<Double>(rhs->block(0))->getValue();
-        sol->hardCopy(rhs);
-        std::static_pointer_cast<Double>(sol->block(0))->setValue(rhsValue/matValue);
+        double matValue = convert<Double>(convert<BlockMatrix>(matrix)->block(0,0))->getValue();
+        double rhsValue = convert<Double>(convert<BlockVector>(rhs)->block(0))->getValue();
+        sol->deepCopy(rhs);
+        spcast<Double>(convert<BlockVector>(sol)->block(0))->setValue(rhsValue/matValue);
         return;
     }
 
     BM matrixSparse = matrix;
     BV rhsSparse = rhs;
-    if (!std::static_pointer_cast<BlockMatrix>(matrixSparse)->globalTypeIs(SPARSE))
-        matrixSparse = std::static_pointer_cast<BlockMatrix>(matrixSparse)->convertInnerTo(SPARSE,M_comm);
+    if (!convert<BlockMatrix>(matrixSparse)->globalTypeIs(SPARSE))
+        matrixSparse = convert<BlockMatrix>(matrixSparse)->convertInnerTo(SPARSE,M_comm);
 
     // std::cout << "here" << std::endl << std::flush;
     // if (!std::static_pointer_cast<BlockVector>(rhsSparse)->globalTypeIs(DISTRIBUTED))
@@ -34,9 +34,9 @@ solve(const BM& matrix, const BV& rhs, BV& sol)
     // std::cout << "there" << std::endl << std::flush;
 
     if (!M_maps)
-        M_maps.reset(new BlockMaps(std::static_pointer_cast<BlockMatrix>(matrixSparse)));
+        M_maps.reset(new BlockMaps(convert<BlockMatrix>(matrixSparse)));
     else
-        M_maps->updateCollapsedMatrix(std::static_pointer_cast<BlockMatrix>(matrixSparse));
+        M_maps->updateCollapsedMatrix(convert<BlockMatrix>(matrixSparse));
 
     M_oper.reset(new LinearOperator(matrixSparse,M_maps));
 

@@ -31,8 +31,8 @@
 namespace RedMA
 {
 
-SHP(aAssembler)
-AssemblerFactory(const DataContainer& data, SHP(TreeNode) treeNode);
+shp<aAssembler>
+AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode);
 
 }
 

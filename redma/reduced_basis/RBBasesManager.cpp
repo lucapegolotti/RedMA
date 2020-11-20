@@ -36,7 +36,7 @@ load()
         while (std::filesystem::exists(curdir + "/svd" + std::to_string(numFields) + ".txt"))
             numFields++;
 
-        SHP(RBBases) newBases(new RBBases(M_data, M_comm));
+        shp<RBBases> newBases(new RBBases(M_data, M_comm));
         newBases->setNumberOfFields(numFields);
         newBases->setPath(curdir);
         newBases->loadSingularValues();

@@ -40,8 +40,8 @@ struct SolverStatistics
 
 class LinearSystemSolver
 {
-    typedef SHP(aVector)               BV;
-    typedef SHP(aMatrix)               BM;
+    typedef shp<aVector>               BV;
+    typedef shp<aMatrix>               BM;
 
 public:
     LinearSystemSolver(const DataContainer& datafile);
@@ -62,17 +62,17 @@ private:
     void computeSchurComplementDense(const BM& matrix) {};
 
     // these are relative to dense solver
-    std::vector<SHP(Epetra_SerialDenseSolver)>      M_solversAs;
+    std::vector<shp<Epetra_SerialDenseSolver>>      M_solversAs;
     Epetra_SerialDenseSolver                        M_schurSolver;
     std::vector<DenseMatrix>                        M_collapsedAs;
     DenseMatrix                                     M_schurComplementColl;
     //
 
     DataContainer                                   M_data;
-    SHP(InverseOperator)                            M_invOper;
-    SHP(LinearOperator)                             M_oper;
-    SHP(PreconditionerOperator)                     M_prec;
-    SHP(BlockMaps)                                  M_maps;
+    shp<InverseOperator>                            M_invOper;
+    shp<LinearOperator>                             M_oper;
+    shp<PreconditionerOperator>                     M_prec;
+    shp<BlockMaps>                                  M_maps;
 
     SolverStatistics                                M_statistics;
     unsigned                                        M_numSolves;

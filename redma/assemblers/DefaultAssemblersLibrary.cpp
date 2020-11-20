@@ -18,14 +18,14 @@ DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>&
 
         if (M_assemblersMap.find(mesh) == M_assemblersMap.end())
         {
-            SHP(TreeNode) defTreeNode = generateDefaultTreeNode(nameMesh);
+            shp<TreeNode> defTreeNode = generateDefaultTreeNode(nameMesh);
             if (defTreeNode)
             {
                 // we set these to stokes and fem because we are only interested in
                 // the finite element spaces
                 defTreeNode->M_block->setAssemblerType("stokes");
                 defTreeNode->M_block->setDiscretizationMethod("fem");
-                SHP(AssemblerType) defAssembler = AssemblerFactory(M_data, defTreeNode);
+                shp<AssemblerType> defAssembler = AssemblerFactory(M_data, defTreeNode);
                 defAssembler->initializeFEspaces();
                 // defAssembler->setup();
                 M_assemblersMap[mesh]= defAssembler;
@@ -35,7 +35,7 @@ DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>&
     }
 }
 
-SHP(TreeNode)
+shp<TreeNode>
 DefaultAssemblersLibrary::
 generateDefaultTreeNode(const std::string& nameMesh)
 {
@@ -51,7 +51,7 @@ generateDefaultTreeNode(const std::string& nameMesh)
     return nullptr;
 }
 
-SHP(TreeNode)
+shp<TreeNode>
 DefaultAssemblersLibrary::
 generateDefaultTube(const std::string& nameMesh)
 {
@@ -59,31 +59,31 @@ generateDefaultTube(const std::string& nameMesh)
     unsigned int length = std::atoi(nameMesh.substr(7,8).c_str());
     std::string refinement = nameMesh.substr(9);
 
-    SHP(Tube) defaultTube(new Tube(M_comm, refinement, false, diameter, length, false));
+    shp<Tube> defaultTube(new Tube(M_comm, refinement, false, diameter, length, false));
     defaultTube->readMesh();
 
-    SHP(TreeNode) treeNode(new TreeNode(defaultTube, 1234 + M_count));
+    shp<TreeNode> treeNode(new TreeNode(defaultTube, 1234 + M_count));
 
     return treeNode;
 }
 
-SHP(TreeNode)
+shp<TreeNode>
 DefaultAssemblersLibrary::
 generateDefaultSymmetricBifurcation(const std::string& nameMesh)
 {
     unsigned int alpha = std::atoi(nameMesh.substr(13,15).c_str());
     std::string refinement = nameMesh.substr(17);
 
-    SHP(BifurcationSymmetric) defaultBifurcation(new BifurcationSymmetric(M_comm,
+    shp<BifurcationSymmetric> defaultBifurcation(new BifurcationSymmetric(M_comm,
                                                  refinement, false, alpha, false));
     defaultBifurcation->readMesh();
 
-    SHP(TreeNode) treeNode(new TreeNode(defaultBifurcation, 1234 + M_count));
+    shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234 + M_count));
 
     return treeNode;
 }
 
-SHP(aAssembler)
+shp<aAssembler>
 DefaultAssemblersLibrary::
 getDefaultAssembler(const std::string& namemesh)
 {

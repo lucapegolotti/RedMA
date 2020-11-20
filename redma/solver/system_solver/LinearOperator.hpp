@@ -34,11 +34,11 @@ namespace RedMA
 class LinearOperator : public LifeV::Operators::LinearOperatorAlgebra
 {
     typedef LifeV::Operators::LinearOperatorAlgebra         super;
-    typedef SHP(aVector)                                BV;
-    typedef SHP(aMatrix)                                BM;
+    typedef shp<aVector>                                BV;
+    typedef shp<aMatrix>                                BM;
 
 public:
-    LinearOperator(const BM& matrix, SHP(BlockMaps) maps);
+    LinearOperator(const BM& matrix, shp<BlockMaps> maps);
 
     // I provide null implementation of virtual methods
     // only to be able to instantiate class
@@ -63,17 +63,17 @@ public:
 
     virtual const super::map_Type& OperatorRangeMap() const override {}
 
-    // inline SHP(BlockDimension) getBlockDimension() const {return M_dimensions;}
+    // inline shp<BlockDimension) getBlockDimension() const {return M_dimensions;}
 
 private:
     GetPot                                M_datafile;
     EPETRACOMM                            M_comm;
     BM                                    M_matrix;
     BM                                    M_collapsedMatrix;
-    SHP(LifeV::BlockEpetra_Map)           M_domainMap;
-    SHP(LifeV::BlockEpetra_Map)           M_rangeMap;
-    SHP(BlockMaps)                        M_maps;
-    // SHP(BlockDimension)                   M_dimensions;
+    shp<LifeV::BlockEpetra_Map>           M_domainMap;
+    shp<LifeV::BlockEpetra_Map>           M_rangeMap;
+    shp<BlockMaps>                        M_maps;
+    // shp<BlockDimension)                   M_dimensions;
 };
 
 }

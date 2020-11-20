@@ -29,26 +29,26 @@ namespace RedMA
 class NavierStokesAssemblerRB : public StokesAssemblerRB, public NavierStokesModel
 {
 public:
-    NavierStokesAssemblerRB(const DataContainer& data, SHP(TreeNode) treeNode);
+    NavierStokesAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode);
 
-    void addConvectiveMatrixRightHandSide(SHP(aVector) sol,
-                                          SHP(aMatrix) mat) override;
+    void addConvectiveMatrixRightHandSide(shp<aVector> sol,
+                                          shp<aMatrix> mat) override;
 
-    void addConvectiveTermJacobianRightHandSide(SHP(aVector) sol,
-                                                SHP(aVector) lifting,
-                                                SHP(aMatrix) mat) override;
+    void addConvectiveTermJacobianRightHandSide(shp<aVector> sol,
+                                                shp<aVector> lifting,
+                                                shp<aMatrix> mat) override;
 
-    SHP(aVector) getRightHandSide(const double& time,
-                                  const SHP(aVector)& sol) override;
+    shp<aVector> getRightHandSide(const double& time,
+                                  const shp<aVector>& sol) override;
 
-    SHP(aMatrix) getJacobianRightHandSide(const double& time,
-                                          const SHP(aVector)& sol) override;
+    shp<aMatrix> getJacobianRightHandSide(const double& time,
+                                          const shp<aVector>& sol) override;
 
     virtual void RBsetup() override;
 
 protected:
-    std::vector<std::vector<SHP(BlockVector)>>       M_nonLinearTermsDecomposition;
-    SHP(BlockVector)                                 M_nonLinearTerm;
+    std::vector<std::vector<shp<BlockVector>>>       M_nonLinearTermsDecomposition;
+    shp<BlockVector>                                 M_nonLinearTerm;
     bool                                             M_exactJacobian;
 };
 

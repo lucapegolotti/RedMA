@@ -5,7 +5,7 @@ namespace RedMA
 
 
 NavierStokesAssemblerFE::
-NavierStokesAssemblerFE(const DataContainer& data, SHP(TreeNode) treeNode,
+NavierStokesAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode,
                         std::string stabilizationName) :
   StokesAssemblerFE(data,treeNode),
   NavierStokesModel(data,treeNode),
@@ -62,14 +62,14 @@ setup()
 
 void
 NavierStokesAssemblerFE::
-addConvectiveMatrixRightHandSide(SHP(aVector) sol, SHP(aMatrix) mat)
+addConvectiveMatrixRightHandSide(shp<aVector> sol, shp<aMatrix> mat)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(MATRIXEPETRA) convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
-    SHP(VECTOREPETRA) velocityHandler = std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data());
-    SHP(VECTOREPETRA) velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
+    shp<MATRIXEPETRA> convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<VECTOREPETRA> velocityHandler = spcast<VECTOREPETRA>(convert<BlockVector>(sol)->block(0)->data());
+    shp<VECTOREPETRA> velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
 
     integrate(elements(M_velocityFESpaceETA->mesh()),
                M_velocityFESpace->qr(),
@@ -81,23 +81,23 @@ addConvectiveMatrixRightHandSide(SHP(aVector) sol, SHP(aMatrix) mat)
              ) >> convectiveMatrix;
     convectiveMatrix->globalAssemble();
 
-    *std::static_pointer_cast<MATRIXEPETRA>(mat->block(0,0)->data()) -= *convectiveMatrix;
+    *spcast<MATRIXEPETRA>(convert<BlockMatrix>(mat)->block(0,0)->data()) -= *convectiveMatrix;
 }
 
 void
 NavierStokesAssemblerFE::
-addConvectiveTermJacobianRightHandSide(SHP(aVector) sol, SHP(aVector) lifting,
-                                       SHP(aMatrix) mat)
+addConvectiveTermJacobianRightHandSide(shp<aVector> sol, shp<aVector> lifting,
+                                       shp<aMatrix> mat)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    SHP(VECTOREPETRA) velocityHandler = std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data());
-    // SHP(VECTOREPETRA) liftingHandler = std::static_pointer_cast<VECTOREPETRA>(lifting->block(0)->data());
+    shp<VECTOREPETRA> velocityHandler = spcast<VECTOREPETRA>(convert<BlockVector>(sol)->block(0)->data());
+    // shp<VECTOREPETRA> liftingHandler = std::static_pointer_cast<VECTOREPETRA>(lifting->block(0)->data());
 
-    SHP(MATRIXEPETRA)  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
-    SHP(VECTOREPETRA)  velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
-    // SHP(VECTOREPETRA)  liftingRepeated(new VECTOREPETRA(*liftingHandler, Repeated));
+    shp<MATRIXEPETRA>  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<VECTOREPETRA>  velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
+    // shp<VECTOREPETRA>  liftingRepeated(new VECTOREPETRA(*liftingHandler, Repeated));
 
     // if the extrapolation is null (e.g. first step), the matrix is singular.
     // Hence we solve the non linear problem for the first step
@@ -134,37 +134,35 @@ addConvectiveTermJacobianRightHandSide(SHP(aVector) sol, SHP(aVector) lifting,
                  ) >> convectiveMatrix;
     // }
     convectiveMatrix->globalAssemble();
-    *std::static_pointer_cast<MATRIXEPETRA>(mat->block(0,0)->data()) -= *convectiveMatrix;
+    *spcast<MATRIXEPETRA>(convert<BlockMatrix>(mat)->block(0,0)->data()) -= *convectiveMatrix;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 NavierStokesAssemblerFE::
-getMass(const double& time, const SHP(aVector)& sol)
+getMass(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) retMat(new BlockMatrix(0,0));
-    retMat->hardCopy(this->M_mass);
+    shp<BlockMatrix> retMat(new BlockMatrix(0,0));
+    retMat->deepCopy(this->M_mass);
     if (M_stabilization)
     {
-        retMat->open();
         // if (M_extrapolatedSolution.norm2() < 1e-15)
-        retMat->add(M_stabilization->getMass(std::static_pointer_cast<BlockVector>(sol),
-                                             std::static_pointer_cast<BlockVector>(this->getForcingTerm(time))));
+        retMat->add(M_stabilization->getMass(convert<BlockVector>(sol),
+                                             convert<BlockVector>(this->getForcingTerm(time))));
         // else
         //retMat += M_stabilization->getMass(M_extrapolatedSolution, this->getForcingTerm(time));
 
         this->M_bcManager->apply0DirichletMatrix(*retMat, this->getFESpaceBCs(),
                                                  this->getComponentBCs(), 1.0);
-        retMat->close();
     }
 
     return retMat;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 NavierStokesAssemblerFE::
-getMassJacobian(const double& time, const SHP(aVector)& sol)
+getMassJacobian(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) retMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+    shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
     if (M_stabilization)
     {
         retMat->add(M_stabilization->getMassJac(std::static_pointer_cast<BlockVector>(sol),
@@ -178,11 +176,11 @@ getMassJacobian(const double& time, const SHP(aVector)& sol)
     return retMat;
 }
 
-SHP(aVector)
+shp<aVector>
 NavierStokesAssemblerFE::
-getRightHandSide(const double& time, const SHP(aVector)& sol)
+getRightHandSide(const double& time, const shp<aVector>& sol)
 {
-    SHP(BlockMatrix) systemMatrix(new BlockMatrix(this->M_nComponents,
+    shp<BlockMatrix> systemMatrix(new BlockMatrix(this->M_nComponents,
                                                   this->M_nComponents));
 
     systemMatrix->add(M_stiffness);
@@ -194,7 +192,7 @@ getRightHandSide(const double& time, const SHP(aVector)& sol)
     // else
     this->addConvectiveMatrixRightHandSide(sol, systemMatrix);
 
-    SHP(aVector) retVec = systemMatrix->multiplyByVector(sol);
+    shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
     // int a;
     // std::cin >> a;
 
@@ -213,7 +211,7 @@ getRightHandSide(const double& time, const SHP(aVector)& sol)
         //                                            this->getForcingTerm(time));
         // }
         // else
-        SHP(BlockVector) residual = M_stabilization->getResidual(std::static_pointer_cast<BlockVector>(sol),
+        shp<BlockVector> residual = M_stabilization->getResidual(std::static_pointer_cast<BlockVector>(sol),
                                                                  std::static_pointer_cast<BlockVector>(this->getForcingTerm(time)));
         residual->multiplyByScalar(-1);
         retVec->add(residual);
@@ -222,12 +220,12 @@ getRightHandSide(const double& time, const SHP(aVector)& sol)
     return retVec;
 }
 
-SHP(aMatrix)
+shp<aMatrix>
 NavierStokesAssemblerFE::
 getJacobianRightHandSide(const double& time,
-                         const SHP(aVector)& sol)
+                         const shp<aVector>& sol)
 {
-    SHP(aMatrix) retMat = StokesAssemblerFE::getJacobianRightHandSide(time, sol);
+    shp<aMatrix> retMat = StokesAssemblerFE::getJacobianRightHandSide(time, sol);
 
     // if (this->M_extrapolatedSolution.nRows() > 0 && this->M_extrapolatedSolution.norm2() > 1e-15)
     //     this->addConvectiveTermJacobianRightHandSide(this->M_extrapolatedSolution,
@@ -237,7 +235,7 @@ getJacobianRightHandSide(const double& time,
 
     if (M_stabilization)
     {
-        SHP(BlockMatrix) stabJac = M_stabilization->getJac(std::static_pointer_cast<BlockVector>(sol),
+        shp<BlockMatrix> stabJac = M_stabilization->getJac(std::static_pointer_cast<BlockVector>(sol),
                                                            std::static_pointer_cast<BlockVector>(this->getForcingTerm(time)));
         stabJac->multiplyByScalar(-1);
         retMat->add(stabJac);

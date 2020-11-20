@@ -26,8 +26,6 @@
 #include <fstream>
 #include <memory>
 
-#define DENSEVECTOR         Epetra_SerialDenseVector
-
 namespace RedMA
 {
 
@@ -38,36 +36,38 @@ public:
 
     DenseVector(const DenseVector& vector);
 
-    virtual void add(std::shared_ptr<aVector> other) override;
+    virtual void add(shp<aVector> other) override;
 
     virtual void multiplyByScalar(const double& coeff) override;
 
     virtual void dump(std::string namefile) const override;
 
-    virtual void softCopy(std::shared_ptr<aVector> other) override;
+    virtual void shallowCopy(shp<aDataWrapper> other) override;
 
-    virtual void hardCopy(std::shared_ptr<aVector> other) override;
+    virtual void deepCopy(shp<aDataWrapper> other) override;
 
-    virtual aVector* cloneVector() const override;
+    virtual DenseVector* clone() const override;
 
-    virtual bool isZero() override;
+    virtual bool isZero() const override;
 
     double norm2() const override;
 
     std::string getString(const char& delimiter) const override;
 
-    virtual std::shared_ptr<void> data() const override;
+    virtual shp<void> data() const override;
 
-    virtual void setData(std::shared_ptr<void> data) override;
+    virtual void setData(shp<void> data) override;
 
-    void setVector(std::shared_ptr<DENSEVECTOR> vector);
+    void setVector(shp<DENSEVECTOR> vector);
 
-    std::shared_ptr<LifeV::VectorEpetra> toVectorEpetraPtr(std::shared_ptr<Epetra_Comm> comm) const;
+    shp<LifeV::VectorEpetra> toVectorEpetraPtr(shp<Epetra_Comm> comm) const;
 
     virtual double operator()(unsigned int index) override {return M_vector->operator()(index);}
 
+    virtual Datatype type() const override {return DENSE;}
+
 private:
-    std::shared_ptr<DENSEVECTOR>  M_vector;
+    shp<DENSEVECTOR>        M_vector;
 };
 
 }

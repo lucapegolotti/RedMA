@@ -84,9 +84,10 @@ dumpSnapshots(ProblemFEM& problem,
             unsigned int count = 0;
             for (auto sol : solutions)
             {
+                auto solBlck = convert<DistributedVector>(convert<BlockVector>(convert<BlockVector>(sol)->block(idmeshtype.first))->block(i));
                 if (count % takeEvery == 0)
                 {
-                    std::string str2write = std::static_pointer_cast<DistributedVector>(sol->block(idmeshtype.first))->block(i)->getString(',') + "\n";
+                    std::string str2write = solBlck->getString(',') + "\n";
                     if (M_comm->MyPID() == 0)
                         outfile.write(str2write.c_str(), str2write.size());
                 }
@@ -103,7 +104,8 @@ dumpSnapshots(ProblemFEM& problem,
                                                              std::ios::binary);
             for (auto sol : solutions)
             {
-                double Umax = std::static_pointer_cast<DistributedVector>(sol->block(idmeshtype.first)->block(0))->maxMagnitude3D();
+                auto solBlck = convert<DistributedVector>(convert<BlockVector>(convert<BlockVector>(sol)->block(idmeshtype.first))->block(0));
+                double Umax = solBlck->maxMagnitude3D();
                 auto tNode = problem.getBlockAssembler()->block(0)->getTreeNode();
                 double D = 2 * tNode->M_block->getInlet().M_radius;
                 double curReynolds = Umax * density * D / viscosity;
@@ -157,11 +159,11 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
 
                 auto fespace = problem.getBlockAssembler()->block(mtn.second[0])->getFEspace(fieldIndex);
 
-                std::vector<SHP(VECTOREPETRA)> snapshots;
+                std::vector<shp<VECTOREPETRA>> snapshots;
 
                 while(std::getline(infile,line))
                 {
-                    SHP(VECTOREPETRA) newVector(new VECTOREPETRA(fespace->map()));
+                    shp<VECTOREPETRA> newVector(new VECTOREPETRA(fespace->map()));
 
                     std::stringstream linestream(line);
                     std::string value;
@@ -184,9 +186,9 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
                     unsigned int count = 0;
                     for (auto bindex : mtn.second)
                     {
-                        SHP(DistributedVector) vecWrap(new DistributedVector());
+                        shp<DistributedVector> vecWrap(new DistributedVector());
                         vecWrap->setVector(snapshots[i + count * nsnapshots]);
-                        auxVec->block(bindex)->setBlock(fieldIndex,vecWrap);
+                        convert<BlockVector>(convert<BlockVector>(auxVec)->block(bindex))->setBlock(fieldIndex,vecWrap);
                         count++;
                     }
 
@@ -202,7 +204,7 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
                 unsigned int count = 0;
                 for (auto sol : snapshots)
                 {
-                    SHP(DistributedVector) vectorWrap(new DistributedVector());
+                    shp<DistributedVector> vectorWrap(new DistributedVector());
                     vectorWrap->setVector(sol);
                     std::string str2write = vectorWrap->getString(',') + "\n";
                     if (M_comm->MyPID() == 0)
