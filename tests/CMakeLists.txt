@@ -1,23 +1,15 @@
-add_executable(TestTube TestTube.cpp)
-target_include_directories(TestTube PRIVATE ${HEADERS_DIRS})
-target_link_libraries(TestTube ${LINKED_LIBRARIES})
+file(GLOB allfiles "${CMAKE_CURRENT_SOURCE_DIR}/*")
 
-add_executable(TestBifurcationSymmetric TestBifurcationSymmetric.cpp)
-target_include_directories(TestBifurcationSymmetric PRIVATE ${HEADERS_DIRS})
-target_link_libraries(TestBifurcationSymmetric ${LINKED_LIBRARIES})
+set(HEADERS_TESTS "${CMAKE_CURRENT_SOURCE_DIR}/AtomicTest.hpp" CACHE INTERNAL "")
+set(SOURCES_TESTS "${CMAKE_CURRENT_SOURCE_DIR}/AtomicTest.cpp" CACHE INTERNAL "")
 
-add_executable(TestTreeStructure TestTreeStructure.cpp)
-target_include_directories(TestTreeStructure PRIVATE ${HEADERS_DIRS})
-target_link_libraries(TestTreeStructure ${LINKED_LIBRARIES})
+add_library(tests STATIC ${HEADERS_TESTS} ${SOURCES_TESTS})
+target_link_libraries(tests ${LINKED_LIBRARIES})
 
-add_executable(TestGeometryParser TestGeometryParser.cpp)
-target_include_directories(TestGeometryParser PRIVATE ${HEADERS_DIRS})
-target_link_libraries(TestGeometryParser ${LINKED_LIBRARIES})
+set(LINKED_LIBRARIES ${LINKED_LIBRARIES} tests)
 
-add_custom_command(
-        TARGET TestGeometryParser POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_SOURCE_DIR}/tests/testdata/testdata1.xml
-                ${CMAKE_CURRENT_BINARY_DIR}/testdata/testdata1.xml)
-
-configure_file(test_all.sh ${CMAKE_CURRENT_BINARY_DIR}/test_all.sh COPYONLY)
+foreach(filename ${allfiles})
+    if(IS_DIRECTORY ${filename})
+        add_subdirectory(${filename})
+    endif()
+endforeach()

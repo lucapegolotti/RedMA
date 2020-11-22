@@ -71,6 +71,8 @@ public:
 
     void setMatrix(shp<DENSEMATRIX> matrix);
 
+    shp<DENSEMATRIX> getMatrix();
+
 private:
     shp<DENSEMATRIX>        M_matrix;
 };

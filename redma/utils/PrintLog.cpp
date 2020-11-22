@@ -4,16 +4,16 @@ namespace RedMA
 {
 
 void
-printlog(Color outColor, std::string text, bool verbose)
+printlog(Color outColor, std::string text, bool verbose, bool useHierarchy)
 {
     std::string sp = "  ";
     unsigned int hierarchy = 0;
 
-    if (outColor == MAGENTA)
+    if (useHierarchy && outColor == MAGENTA)
         hierarchy = 0;
-    if (outColor == GREEN)
+    if (useHierarchy && outColor == GREEN)
         hierarchy = 1;
-    if (outColor == YELLOW)
+    if (useHierarchy && outColor == YELLOW)
         hierarchy = 2;
 
     if(verbose)
@@ -36,9 +36,9 @@ to_string( const T& n )
 }
 
 void
-printlog(Color outColor, int num, bool verbose)
+printlog(Color outColor, int num, bool verbose, bool useHierarchy)
 {
-    printlog(outColor, to_string(num), verbose);
+    printlog(outColor, to_string(num), verbose, useHierarchy);
 }
 
 void

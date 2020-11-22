@@ -10,12 +10,6 @@ DenseVector() :
 
 }
 
-DenseVector::
-DenseVector(const DenseVector& vector)
-{
-    M_vector.reset(new DENSEVECTOR(*vector.M_vector));
-}
-
 void
 DenseVector::
 add(std::shared_ptr<aVector> other)
@@ -28,6 +22,9 @@ add(std::shared_ptr<aVector> other)
 
     if (!other->isZero())
     {
+        if (other->nRows() != nRows())
+            throw new Exception("[DenseVector::add] inconsistent dimensions of vectors");
+
         shp<DenseVector> otherVector = convert<DenseVector>(other);
         (*M_vector) += (*static_cast<DENSEVECTOR*>(otherVector->data().get()));
     }
@@ -183,6 +180,13 @@ setVector(std::shared_ptr<DENSEVECTOR> vector)
         M_vector = vector;
         this->M_nRows = M_vector->Length();
     }
+}
+
+shp<DENSEVECTOR>
+DenseVector::
+getVector()
+{
+    return M_vector;
 }
 
 

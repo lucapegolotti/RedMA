@@ -10,7 +10,7 @@ DenseMatrix()
 
 void
 DenseMatrix::
-add(std::shared_ptr<aMatrix> other)
+add(shp<aMatrix> other)
 {
     if (isZero())
     {
@@ -20,6 +20,9 @@ add(std::shared_ptr<aMatrix> other)
 
     if (!other->isZero())
     {
+        if (other->nRows() != nRows() || other->nCols() != nCols())
+            throw new Exception("[DenseMatrix::add] inconsistent dimensions of matrices");
+
         shp<DenseMatrix> otherMatrix = convert<DenseMatrix>(other);
         (*M_matrix) += *static_cast<DENSEMATRIX*>(otherMatrix->data().get());
     }
@@ -33,18 +36,18 @@ multiplyByScalar(const double& coeff)
         M_matrix->Scale(coeff);
 }
 
-std::shared_ptr<aMatrix>
+shp<aMatrix>
 DenseMatrix::
 transpose() const
 {
-    std::shared_ptr<DenseMatrix> retMatrix(new DenseMatrix());
+    shp<DenseMatrix> retMatrix(new DenseMatrix());
 
     if (M_matrix)
     {
         unsigned int nrows = M_nCols;
         unsigned int ncols = M_nRows;
 
-        std::shared_ptr<DENSEMATRIX> inMatrix(new DENSEMATRIX());
+        shp<DENSEMATRIX> inMatrix(new DENSEMATRIX());
 
         inMatrix->Reshape(nrows,ncols);
 
@@ -64,7 +67,7 @@ transpose() const
 
 void
 DenseMatrix::
-setMatrix(std::shared_ptr<DENSEMATRIX> matrix)
+setMatrix(shp<DENSEMATRIX> matrix)
 {
     if (matrix)
     {
@@ -74,42 +77,42 @@ setMatrix(std::shared_ptr<DENSEMATRIX> matrix)
     }
 }
 
-std::shared_ptr<aMatrix>
+shp<aMatrix>
 DenseMatrix::
-multiplyByMatrix(std::shared_ptr<aMatrix> other)
+multiplyByMatrix(shp<aMatrix> other)
 {
-    std::shared_ptr<DenseMatrix> retMat(new DenseMatrix());
+    shp<DenseMatrix> retMat(new DenseMatrix());
 
     if (isZero() || other->isZero())
         return retMat;
 
-    std::shared_ptr<DENSEMATRIX> otherMatrix = std::static_pointer_cast<DENSEMATRIX>(other->data());
+    shp<DENSEMATRIX> otherMatrix = spcast<DENSEMATRIX>(other->data());
 
     if (!isZero() && !other->isZero())
     {
-        std::shared_ptr<DENSEMATRIX> mat;
+        shp<DENSEMATRIX> mat;
         mat.reset(new DENSEMATRIX(nRows(), other->nCols()));
         mat->Multiply('N', 'N', 1.0, *M_matrix, *otherMatrix, 0.0);
-        setMatrix(mat);
+        retMat->setMatrix(mat);
     }
+
+    return retMat;
 }
 
-std::shared_ptr<aVector>
+shp<aVector>
 DenseMatrix::
-multiplyByVector(std::shared_ptr<aVector> vector)
+multiplyByVector(shp<aVector> vector)
 {
+    shp<DenseVector> retVec(new DenseVector());
+
     if (isZero())
-    {
-        // place holder for zero vector
-        return std::shared_ptr<DenseVector>(new DenseVector());
-    }
+        return retVec;
 
-    std::shared_ptr<DENSEVECTOR> otherVector = std::static_pointer_cast<DENSEVECTOR>(vector->data());
+    shp<DENSEVECTOR> otherVector = spcast<DENSEVECTOR>(vector->data());
 
-    std::shared_ptr<DenseVector> retVec(new DenseVector());
     if (!isZero() && !vector->isZero())
     {
-        std::shared_ptr<DENSEVECTOR> res;
+        shp<DENSEVECTOR> res;
         res.reset(new DENSEVECTOR(M_nRows));
         M_matrix->Multiply(false, *otherVector, *res);
         retVec->setVector(res);
@@ -154,28 +157,24 @@ isZero() const
 
 void
 DenseMatrix::
-shallowCopy(std::shared_ptr<aDataWrapper> other)
+shallowCopy(shp<aDataWrapper> other)
 {
     if (other)
     {
         auto otherMatrix = convert<DenseMatrix>(other);
-        std::shared_ptr<DENSEMATRIX> otherMatrixPtr
-            (static_cast<DENSEMATRIX*>(otherMatrix->data().get()));
-        setMatrix(otherMatrixPtr);
+        setMatrix(otherMatrix->getMatrix());
     }
 }
 
 void
 DenseMatrix::
-deepCopy(std::shared_ptr<aDataWrapper> other)
+deepCopy(shp<aDataWrapper> other)
 {
     if (other)
     {
         auto otherMatrix = convert<DenseMatrix>(other);
-        std::shared_ptr<DENSEMATRIX> otherMatrixPtr
-            (static_cast<DENSEMATRIX*>(otherMatrix->data().get()));
-        std::shared_ptr<DENSEMATRIX> newMatrix
-            (new DENSEMATRIX(*otherMatrixPtr));
+        shp<DENSEMATRIX> otherMatrixPtr = otherMatrix->getMatrix();
+        shp<DENSEMATRIX> newMatrix(new DENSEMATRIX(*otherMatrixPtr));
         setMatrix(newMatrix);
     }
 }
@@ -187,14 +186,14 @@ clone() const
     DenseMatrix* retMatrix = new DenseMatrix();
     if (M_matrix)
     {
-        std::shared_ptr<DENSEMATRIX> newMatrix
+        shp<DENSEMATRIX> newMatrix
             (new DENSEMATRIX(*M_matrix));
         retMatrix->setMatrix(newMatrix);
     }
     return retMatrix;
 }
 
-std::shared_ptr<void>
+shp<void>
 DenseMatrix::
 data() const
 {
@@ -203,9 +202,16 @@ data() const
 
 void
 DenseMatrix::
-setData(std::shared_ptr<void> data)
+setData(shp<void> data)
 {
-    setData(std::static_pointer_cast<DENSEMATRIX>(data));
+    spcast<DENSEMATRIX>(data);
+}
+
+shp<DENSEMATRIX>
+DenseMatrix::
+getMatrix()
+{
+    return M_matrix;
 }
 
 }

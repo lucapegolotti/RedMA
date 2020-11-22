@@ -1,10 +1,13 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.14)
 
 project(RedMA VERSION 1.0.0 DESCRIPTION "Reduced Modeling of Arteries")
 
 set(CMAKE_CXX_STANDARD 17)
 
-message(STATUS ${TPL_LifeV_INCLUDE_DIRS})
+set(SOURCES "" CACHE INTERNAL "")
+set(HEADERS "" CACHE INTERNAL "")
+
+# message(STATUS ${TPL_LifeV_INCLUDE_DIRS})
 set(HEADERS_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${TPL_MPI_INCLUDE_DIRS}
@@ -110,4 +113,5 @@ add_subdirectory(redma)
 set(LINKED_LIBRARIES ${LINKED_LIBRARIES} core)
 
 add_subdirectory(examples)
+enable_testing()
 add_subdirectory(tests)

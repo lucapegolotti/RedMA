@@ -14,37 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef PRINTLOG_HPP
-#define PRINTLOG_HPP
+#include <redma/utils/Exception.hpp>
+#include <redma/utils/PrintLog.hpp>
 
-#include <iostream>
-#include <string>
-#include <sstream>
+#include <functional>
 
-namespace RedMA
-{
+#define SUCCESS 0
+#define FAILURE 1
 
-enum Color {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE};
-
-extern void printlog(Color outColor, std::string text, bool verbose = true, bool useHierarchy = true);
-
-template<typename T>
-extern std::string to_string(const T& n);
-
-extern void printlog(Color outColor, int num, bool verbose = true, bool useHierarchy = true);
-
-class CoutRedirecter
+class AtomicTest
 {
 public:
-    void redirect();
+    AtomicTest(std::string name, std::function<int(void)> test);
 
-    std::string restore();
+    int run();
 
 private:
-    std::streambuf* M_prevBuf;
-    std::ostringstream M_strCout;
+    std::string                     M_testName;
+    std::function<bool(void)>       M_test;
+
 };
-
-}  // namespace RedMA
-
-#endif  // PRINTLOG_HPP

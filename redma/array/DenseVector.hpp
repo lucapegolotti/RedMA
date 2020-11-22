@@ -34,8 +34,6 @@ class DenseVector : public aVector
 public:
     DenseVector();
 
-    DenseVector(const DenseVector& vector);
-
     virtual void add(shp<aVector> other) override;
 
     virtual void multiplyByScalar(const double& coeff) override;
@@ -59,6 +57,8 @@ public:
     virtual void setData(shp<void> data) override;
 
     void setVector(shp<DENSEVECTOR> vector);
+
+    shp<DENSEVECTOR> getVector();
 
     shp<LifeV::VectorEpetra> toVectorEpetraPtr(shp<Epetra_Comm> comm) const;
 

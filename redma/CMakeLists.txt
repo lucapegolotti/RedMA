@@ -1,12 +1,10 @@
-add_subdirectory(array)
-add_subdirectory(assemblers)
-add_subdirectory(boundary_conditions)
-add_subdirectory(coupling_basis_functions)
-add_subdirectory(geometry)
-add_subdirectory(problem)
-add_subdirectory(reduced_basis)
-add_subdirectory(solver)
-add_subdirectory(utils)
+file(GLOB allfiles "${CMAKE_CURRENT_SOURCE_DIR}/*")
+
+foreach(filename ${allfiles})
+    if(IS_DIRECTORY ${filename})
+        add_subdirectory(${filename})
+    endif()
+endforeach()
 
 # note: setting this to shared may cause problem at runtime when loading meshes
 add_library(core STATIC
