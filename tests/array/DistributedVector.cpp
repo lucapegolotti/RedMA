@@ -15,7 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <redma/RedMA.hpp>
-#include <redma/array/DenseVector.hpp>
+#include <redma/array/DistributedVector.hpp>
 
 #include <tests/AtomicTest.hpp>
 
@@ -23,21 +23,41 @@
 
 using namespace RedMA;
 
-shp<DENSEVECTOR> randvec(unsigned int N)
+shp<Epetra_Comm> generateComm()
 {
-    shp<DENSEVECTOR> vec(new DENSEVECTOR(N));
+    #ifdef HAVE_MPI
+    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    #else
+    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
+    #endif
+    return comm;
+}
+
+shp<LifeV::MapEpetra> generateMap(unsigned int size, shp<Epetra_Comm> comm)
+{
+    shp<LifeV::MapEpetra> map;
+    map.reset(new LifeV::MapEpetra(size, size, 0, comm));
+
+    return map;
+}
+
+shp<VECTOREPETRA> randvec(unsigned int N)
+{
+    shp<Epetra_Comm> comm = generateComm();
+    shp<LifeV::MapEpetra> map = generateMap(N, comm);
+    shp<VECTOREPETRA> vec(new VECTOREPETRA(map));
 
     for (unsigned int i = 0; i < N; i++)
-        vec->operator()(i) = rand() % 10;
+        vec->operator[](i) = rand() % 10;
 
     return vec;
 }
 
-bool checkEqual(shp<DENSEVECTOR> vec1, shp<DENSEVECTOR> vec2)
+bool checkEqual(shp<VECTOREPETRA> vec1, shp<VECTOREPETRA> vec2, int L)
 {
-    for (unsigned int i = 0; i < vec1->Length(); i++)
+    for (unsigned int i = 0; i < L; i++)
     {
-        if (abs(vec1->operator()(i) - vec2->operator()(i)) > 1e-14)
+        if (abs(vec1->operator[](i) - vec2->operator[](i)) > 1e-14)
             return false;
     }
     return true;
@@ -45,18 +65,18 @@ bool checkEqual(shp<DENSEVECTOR> vec1, shp<DENSEVECTOR> vec2)
 
 int constructor()
 {
-    DenseVector dVector;
+    DistributedVector dVector;
 
     return SUCCESS;
 }
 
 int setVector()
 {
-    shp<DENSEVECTOR> vec = randvec(5);
-    DenseVector dVector;
+    shp<VECTOREPETRA> vec = randvec(5);
+    DistributedVector dVector;
     dVector.setVector(vec);
 
-    bool areEqual = checkEqual(dVector.getVector(), vec);
+    bool areEqual = checkEqual(dVector.getVector(), vec, dVector.nRows());
 
     return !areEqual;
 }
@@ -66,22 +86,22 @@ int add1()
 {
     unsigned int N = 3;
 
-    shp<DENSEVECTOR> vec1 = randvec(N);
-    shp<DENSEVECTOR> vec1Copy(new DENSEVECTOR(*vec1));
-    shp<DENSEVECTOR> vec2 = randvec(N);
+    shp<VECTOREPETRA> vec1 = randvec(N);
+    shp<VECTOREPETRA> vec1Copy(new VECTOREPETRA(*vec1));
+    shp<VECTOREPETRA> vec2 = randvec(N);
 
-    shp<DenseVector> dvec1(new DenseVector());
+    shp<DistributedVector> dvec1(new DistributedVector());
     dvec1->setVector(vec1);
 
-    shp<DenseVector> dvec2(new DenseVector());
+    shp<DistributedVector> dvec2(new DistributedVector());
     dvec2->setVector(vec2);
 
     dvec1->add(dvec2);
 
     for (unsigned int i = 0; i < N; i++)
     {
-        double expected = vec1Copy->operator()(i) + vec2->operator()(i);
-        if (abs(dvec1->getVector()->operator()(i) - expected) > 1e-14)
+        double expected = vec1Copy->operator[](i) + vec2->operator[](i);
+        if (abs(dvec1->getVector()->operator[](i) - expected) > 1e-14)
             return FAILURE;
     }
     return SUCCESS;
@@ -92,13 +112,13 @@ int add2()
 {
     unsigned int N = 3;
 
-    shp<DENSEVECTOR> vec1 = randvec(N);
-    shp<DENSEVECTOR> vec2 = randvec(N+1);
+    shp<VECTOREPETRA> vec1 = randvec(N);
+    shp<VECTOREPETRA> vec2 = randvec(N+1);
 
-    shp<DenseVector> dvec1(new DenseVector());
+    shp<DistributedVector> dvec1(new DistributedVector());
     dvec1->setVector(vec1);
 
-    shp<DenseVector> dvec2(new DenseVector());
+    shp<DistributedVector> dvec2(new DistributedVector());
     dvec2->setVector(vec2);
 
     try
@@ -120,13 +140,13 @@ int add3()
 
     unsigned int M = 4;
 
-    shp<DenseVector> dvec1(new DenseVector());
-    shp<DenseVector> dvec2(new DenseVector());
-    shp<DENSEVECTOR> vec2 = randvec(M);
+    shp<DistributedVector> dvec1(new DistributedVector());
+    shp<DistributedVector> dvec2(new DistributedVector());
+    shp<VECTOREPETRA> vec2 = randvec(M);
 
     dvec2->setVector(vec2);
     dvec1->add(dvec2);
-    areEqual = checkEqual(vec2, dvec1->getVector());
+    areEqual = checkEqual(vec2, dvec1->getVector(), dvec1->nRows());
 
     if (areEqual)
         return SUCCESS;
@@ -141,14 +161,14 @@ int add4()
 
     unsigned int N = 5;
 
-    shp<DenseVector> dvec1(new DenseVector());
-    shp<DenseVector> dvec2(new DenseVector());
-    shp<DENSEVECTOR> vec1 = randvec(N);
+    shp<DistributedVector> dvec1(new DistributedVector());
+    shp<DistributedVector> dvec2(new DistributedVector());
+    shp<VECTOREPETRA> vec1 = randvec(N);
 
     dvec1->setVector(vec1);
     dvec1->add(dvec2);
 
-    areEqual = checkEqual(vec1, dvec1->getVector());
+    areEqual = checkEqual(vec1, dvec1->getVector(), N);
 
     if (areEqual)
         return SUCCESS;
@@ -160,26 +180,27 @@ int multiplyByScalar()
 {
     unsigned int N = 5;
 
-    shp<DenseVector> dvec1(new DenseVector());
-    shp<DENSEVECTOR> vec1 = randvec(N);
+    shp<DistributedVector> dvec1(new DistributedVector());
+    shp<VECTOREPETRA> vec1 = randvec(N);
 
-    double normm = vec1->NormInf();
+    double normm = vec1->normInf();
 
     dvec1->setVector(vec1);
     dvec1->multiplyByScalar(1.234);
 
-    if (abs(normm * 1.234 - dvec1->getVector()->NormInf()) < 1e-14)
+    if (abs(normm * 1.234 - dvec1->getVector()->normInf()) < 1e-14)
         return SUCCESS;
 
     return FAILURE;
 }
+
 // we just check that no errors are thrown
 int clone()
 {
     unsigned int M = 5;
 
-    shp<DenseVector> dvec(new DenseVector());
-    shp<DENSEVECTOR> vec = randvec(M);
+    shp<DistributedVector> dvec(new DistributedVector());
+    shp<VECTOREPETRA> vec = randvec(M);
     dvec->setVector(vec);
 
     shp<aVector> aux(dvec->clone());
@@ -191,16 +212,16 @@ int shallowCopy()
 {
     unsigned int N = 6;
 
-    shp<DenseVector> dvec(new DenseVector());
+    shp<DistributedVector> dvec(new DistributedVector());
     dvec->setVector(randvec(N));
 
-    shp<DenseVector> otherdvec(new DenseVector());
+    shp<DistributedVector> otherdvec(new DistributedVector());
     otherdvec->shallowCopy(dvec);
 
-    otherdvec->getVector()->operator()(2) = otherdvec->getVector()->operator()(2) + 1;
+    otherdvec->getVector()->operator[](2) = otherdvec->getVector()->operator[](2) + 1;
 
     // check if also dmat was modified
-    if (otherdvec->getVector()->operator()(2) == dvec->getVector()->operator()(2))
+    if (otherdvec->getVector()->operator[](2) == dvec->getVector()->operator[](2))
         return SUCCESS;
 
     return FAILURE;
@@ -210,16 +231,16 @@ int deepCopy()
 {
     unsigned int N = 6;
 
-    shp<DenseVector> dvec(new DenseVector());
+    shp<DistributedVector> dvec(new DistributedVector());
     dvec->setVector(randvec(N));
 
-    shp<DenseVector> otherdvec(new DenseVector());
+    shp<DistributedVector> otherdvec(new DistributedVector());
     otherdvec->deepCopy(dvec);
 
-    otherdvec->getVector()->operator()(2) = otherdvec->getVector()->operator()(2) + 1;
+    otherdvec->getVector()->operator[](2) = otherdvec->getVector()->operator[](2) + 1;
 
     // check if dvec wasn't modified
-    if (otherdvec->getVector()->operator()(2) != dvec->getVector()->operator()(2))
+    if (otherdvec->getVector()->operator[](2) != dvec->getVector()->operator[](2))
         return SUCCESS;
 
     return FAILURE;
@@ -229,10 +250,10 @@ int accessOperator()
 {
     unsigned int N = 6;
 
-    DenseVector dvec;
+    DistributedVector dvec;
     dvec.setVector(randvec(N));
 
-    if (dvec(3) == dvec.getVector()->operator()(3))
+    if (dvec(3) == dvec.getVector()->operator[](3))
         return SUCCESS;
 
     return FAILURE;
@@ -240,6 +261,7 @@ int accessOperator()
 
 int main()
 {
+    MPI_Init(nullptr, nullptr);
     srand(time(NULL));
 
     int status = SUCCESS;

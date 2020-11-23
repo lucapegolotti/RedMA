@@ -9,19 +9,12 @@ SparseMatrix()
 }
 
 SparseMatrix::
-SparseMatrix(const SparseMatrix& other)
-{
-    if (other.M_matrix)
-        setMatrix(other.M_matrix);
-}
-
-SparseMatrix::
 SparseMatrix(std::vector<shp<DistributedVector>> columnVectors)
 {
     const double dropTolerance(2.0 * std::numeric_limits<double>::min());
 
     unsigned int N = columnVectors.size();
-    shp<LifeV::MapEpetra> rangeMap = std::static_pointer_cast<VECTOREPETRA>(columnVectors[0]->data())->mapPtr();
+    shp<LifeV::MapEpetra> rangeMap = columnVectors[0]->getVector()->mapPtr();
     shp<Epetra_Comm> comm = rangeMap->commPtr();
 
     unsigned int myel = N / comm->NumProc();
@@ -38,12 +31,12 @@ SparseMatrix(std::vector<shp<DistributedVector>> columnVectors)
     shp<MATRIXEPETRA> matrix;
     matrix.reset(new MATRIXEPETRA(*rangeMap, N, false));
 
-    Epetra_Map epetraMap = static_cast<VECTOREPETRA*>(columnVectors[0]->data().get())->epetraMap();
+    Epetra_Map epetraMap = columnVectors[0]->getVector()->epetraMap();
     unsigned int numElements = epetraMap.NumMyElements();
 
     for (unsigned int i = 0; i < N; i++)
     {
-        shp<VECTOREPETRA> clmPtr = std::static_pointer_cast<VECTOREPETRA>(columnVectors[i]->data());
+        shp<VECTOREPETRA> clmPtr = columnVectors[i]->getVector();
         VECTOREPETRA columnVectorUnique(*clmPtr, LifeV::Unique);
         for (unsigned int dof = 0; dof < numElements; dof++)
         {
@@ -52,9 +45,7 @@ SparseMatrix(std::vector<shp<DistributedVector>> columnVectors)
             {
                 double value(columnVectorUnique[gdof]);
                 if (std::abs(value) > dropTolerance)
-                {
                     matrix->addToCoefficient(gdof, i, value);
-                }
             }
         }
     }
@@ -126,6 +117,9 @@ add(shp<aMatrix> other)
 
     if (!other->isZero())
     {
+        if (other->nRows() != nRows() || other->nCols() != nCols())
+            throw new Exception("[SparseMatrix::add] inconsistent dimensions of matrices");
+
         SparseMatrix* otherMatrix = dynamic_cast<SparseMatrix*>(other.get());
         (*M_matrix) += *otherMatrix->M_matrix;
     }
@@ -185,12 +179,18 @@ SparseMatrix::
 multiplyByVector(shp<aVector> vector)
 {
     shp<DistributedVector> vec(new DistributedVector());
-    shp<VECTOREPETRA> otherVector = convert<DistributedVector>(vector)->getVector();
 
-    shp<VECTOREPETRA> res;
-    res.reset(new VECTOREPETRA((*M_matrix) * (*otherVector)));
+    if (isZero())
+        return vec;
 
-    vec->setVector(res);
+    if (!isZero() && !vector->isZero())
+    {
+        shp<VECTOREPETRA> otherVector = convert<DistributedVector>(vector)->getVector();
+        shp<VECTOREPETRA> res;
+        res.reset(new VECTOREPETRA((*M_matrix) * (*otherVector)));
+        vec->setVector(res);
+    }
+
     return vec;
 }
 
@@ -345,6 +345,13 @@ convertDenseMatrix(shp<DenseMatrix> denseMatrix,
     matrix->globalAssemble(domainMap, rangeMap);
     retMat->setMatrix(matrix);
     return retMat;
+}
+
+shp<MATRIXEPETRA>
+SparseMatrix::
+getMatrix()
+{
+    return M_matrix;
 }
 
 }

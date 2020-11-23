@@ -40,8 +40,6 @@ class SparseMatrix : public aMatrix
 public:
     SparseMatrix();
 
-    SparseMatrix(const SparseMatrix& other);
-
     SparseMatrix(std::vector<shp<DistributedVector>> columnVectors);
 
     SparseMatrix(const std::vector<shp<VECTOREPETRA>>& columnVectors);
@@ -64,25 +62,26 @@ public:
 
     virtual SparseMatrix* clone() const override;
 
-    void setMatrix(shp<MATRIXEPETRA> matrix);
-
     virtual shp<void> data() const override;
 
     virtual void setData(shp<void> data) override;
+
+    virtual void dump(std::string namefile) const override;
+
+    virtual Datatype type() const override {return SPARSE;}
+
+    static shp<SparseMatrix> convertDenseMatrix(shp<DenseMatrix> denseMatrix,
+                                                shp<Epetra_Comm> comm);
 
     DenseMatrix toDenseMatrix() const;
 
     shp<DenseMatrix> toDenseMatrixPtr() const;
 
-    virtual void dump(std::string namefile) const override;
+    void setMatrix(shp<MATRIXEPETRA> matrix);
+
+    shp<MATRIXEPETRA> getMatrix();
 
     shp<Epetra_Comm> commPtr() {return M_matrix->rangeMapPtr()->commPtr();}
-
-    virtual Datatype type() const override {return SPARSE;}
-
-    static shp<SparseMatrix> convertDenseMatrix(
-        shp<DenseMatrix> denseVector,
-        shp<Epetra_Comm> comm);
 
 private:
     shp<MATRIXEPETRA>           M_matrix;

@@ -35,7 +35,11 @@ add(std::shared_ptr<aVector> other)
     }
 
     if (!other->isZero())
+    {
+        if (other->nRows() != nRows())
+            throw new Exception("[DistributedVector::add] inconsistent dimensions of vectors");
         (*M_vector) += *otherVector->getVector();
+    }
 }
 
 void
