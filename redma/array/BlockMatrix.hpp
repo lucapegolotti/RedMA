@@ -25,6 +25,7 @@
 #include <redma/array/SparseMatrix.hpp>
 #include <redma/array/DenseMatrix.hpp>
 #include <redma/array/Double.hpp>
+#include <redma/array/Wrap.hpp>
 
 #include <boost/numeric/ublas/matrix.hpp>
 

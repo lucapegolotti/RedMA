@@ -20,6 +20,7 @@
 #include <redma/utils/Exception.hpp>
 #include <redma/array/DenseVector.hpp>
 #include <redma/array/DistributedVector.hpp>
+#include <redma/array/Wrap.hpp>
 
 #include <boost/numeric/ublas/matrix.hpp>
 
@@ -38,7 +39,7 @@ public:
 
     virtual ~BlockVector() {};
 
-    BlockVector(const BlockVector& other);
+    // BlockVector(const BlockVector& other);
 
     BlockVector(const unsigned int& nRows);
 
@@ -82,7 +83,7 @@ public:
 
     virtual shp<void> data() const override {return nullptr;};
 
-    virtual void setData(shp<void>) override {};
+    virtual void setData(shp<void>) override {throw new Exception("setData undefined for BlockVector");};
 
     virtual Datatype type() const override {return BLOCK;}
 

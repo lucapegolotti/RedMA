@@ -7,17 +7,17 @@ BlockVector::
 BlockVector()
 {
 }
-
-BlockVector::
-BlockVector(const BlockVector& other)
-{
-    resize(other.nRows());
-
-    for (unsigned int i = 0; i < other.nRows(); i++)
-    {
-        setBlock(i, other.block(i));
-    }
-}
+//
+// BlockVector::
+// BlockVector(const BlockVector& other)
+// {
+//     resize(other.nRows());
+//
+//     for (unsigned int i = 0; i < other.nRows(); i++)
+//     {
+//         setBlock(i, other.block(i));
+//     }
+// }
 
 
 BlockVector::
@@ -203,7 +203,7 @@ shallowCopy(std::shared_ptr<aDataWrapper> other)
         resize(otherVector->nRows());
 
         for (unsigned int i = 0; i < nRows(); i++)
-            M_vectorGrid(i,0)->shallowCopy(otherVector->block(i));
+            M_vectorGrid(i,0) = otherVector->block(i);
 
     }
 }
@@ -281,6 +281,8 @@ void
 BlockVector::
 setBlock(const unsigned int& iblock, shp<aVector> vector)
 {
+    if (iblock > nRows())
+        throw new Exception("[BlockVector::setBlock] iblock > nRows()!!");
     M_vectorGrid(iblock,0) = vector;
 }
 
