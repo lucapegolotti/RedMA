@@ -21,6 +21,7 @@
 
 #define SUCCESS 0
 #define FAILURE 1
+#define TZERO   1e-14
 
 class AtomicTest
 {

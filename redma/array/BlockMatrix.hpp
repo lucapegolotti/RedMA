@@ -46,8 +46,6 @@ public:
 
     virtual ~BlockMatrix() {};
 
-    BlockMatrix(const BlockMatrix& other);
-
     BlockMatrix(const unsigned int& nRows, const unsigned int& nCols);
 
     virtual void add(shp<aMatrix> other) override;

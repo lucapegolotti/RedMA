@@ -108,7 +108,7 @@ bool checkEqual(shp<MATRIXEPETRA> mat1, shp<MATRIXEPETRA> mat2, int numrows, int
 
         for (unsigned int j = 0; j < numEntries1; j++)
         {
-            if (abs(values1[indices1[j]] - values2[indices2[j]]) > 1e-14)
+            if (abs(values1[indices1[j]] - values2[indices2[j]]) > TZERO)
                 return false;
         }
 
@@ -124,7 +124,7 @@ bool checkEqual(shp<VECTOREPETRA> vec1, shp<VECTOREPETRA> vec2, int L)
 {
     for (unsigned int i = 0; i < L; i++)
     {
-        if (abs(vec1->operator[](i) - vec2->operator[](i)) > 1e-14)
+        if (abs(vec1->operator[](i) - vec2->operator[](i)) > TZERO)
             return false;
     }
     return true;
@@ -316,7 +316,7 @@ int multiplyByScalar()
     dmat1->setMatrix(mat1);
     dmat1->multiplyByScalar(1.234);
 
-    if (abs(normm * 1.234 - dmat1->getMatrix()->normInf()) < 1e-14)
+    if (abs(normm * 1.234 - dmat1->getMatrix()->normInf()) < TZERO)
         return SUCCESS;
 
     return FAILURE;
@@ -531,7 +531,7 @@ int toDenseMatrix()
     *dmat.getMatrix() += *mat;
     double normDiff = dmat.getMatrix()->NormInf();
 
-    if (normDiff < 1e-14)
+    if (normDiff < TZERO)
         return SUCCESS;
 
     return FAILURE;

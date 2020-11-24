@@ -259,6 +259,8 @@ shp<aVector>
 BlockVector::
 block(const unsigned int& iblock) const
 {
+    if (iblock >= nRows())
+        throw new Exception("BlockVector: iblock > nRows()!");
     return M_vectorGrid(iblock,0);
 }
 
@@ -281,8 +283,8 @@ void
 BlockVector::
 setBlock(const unsigned int& iblock, shp<aVector> vector)
 {
-    if (iblock > nRows())
-        throw new Exception("[BlockVector::setBlock] iblock > nRows()!!");
+    if (iblock >= nRows())
+        throw new Exception("[BlockVector::setBlock] iblock >= nRows()!!");
     M_vectorGrid(iblock,0) = vector;
 }
 

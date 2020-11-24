@@ -37,7 +37,7 @@ bool checkEqual(shp<DENSEVECTOR> vec1, shp<DENSEVECTOR> vec2)
 {
     for (unsigned int i = 0; i < vec1->Length(); i++)
     {
-        if (abs(vec1->operator()(i) - vec2->operator()(i)) > 1e-14)
+        if (abs(vec1->operator()(i) - vec2->operator()(i)) > TZERO)
             return false;
     }
     return true;
@@ -81,7 +81,7 @@ int add1()
     for (unsigned int i = 0; i < N; i++)
     {
         double expected = vec1Copy->operator()(i) + vec2->operator()(i);
-        if (abs(dvec1->getVector()->operator()(i) - expected) > 1e-14)
+        if (abs(dvec1->getVector()->operator()(i) - expected) > TZERO)
             return FAILURE;
     }
     return SUCCESS;
@@ -168,7 +168,7 @@ int multiplyByScalar()
     dvec1->setVector(vec1);
     dvec1->multiplyByScalar(1.234);
 
-    if (abs(normm * 1.234 - dvec1->getVector()->NormInf()) < 1e-14)
+    if (abs(normm * 1.234 - dvec1->getVector()->NormInf()) < TZERO)
         return SUCCESS;
 
     return FAILURE;

@@ -185,6 +185,9 @@ multiplyByVector(shp<aVector> vector)
 
     if (!isZero() && !vector->isZero())
     {
+        if (vector->nRows() != nCols())
+            throw new Exception("[SparseMatrix::multiplyByVector] inconsistent dimensions!");
+
         shp<VECTOREPETRA> otherVector = convert<DistributedVector>(vector)->getVector();
         shp<VECTOREPETRA> res;
         res.reset(new VECTOREPETRA((*M_matrix) * (*otherVector)));

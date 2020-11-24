@@ -9,19 +9,6 @@ BlockMatrix()
 
 }
 
-BlockMatrix::
-BlockMatrix(const BlockMatrix& other)
-{
-    resize(other.nRows(), other.nCols());
-
-    for (unsigned int i = 0; i < other.nRows(); i++)
-    {
-        for (unsigned int j = 0; j < other.nCols(); j++)
-        {
-            setBlock(i,j,other.block(i,j));
-        }
-    }
-}
 
 BlockMatrix::
 BlockMatrix(const unsigned int& nRows, const unsigned int& nCols)
@@ -37,6 +24,12 @@ add(shp<aMatrix> other)
 
     if (other->isZero())
         return;
+
+    if (isZero())
+    {
+        deepCopy(other);
+        return;
+    }
 
     if (nRows() != other->nRows() || nCols() != other->nCols())
         throw new Exception("BlockMatrix: inconsistent dimensions in add!");
@@ -132,6 +125,9 @@ multiplyByVector(shp<aVector> vector)
     shp<BlockVector> otherVector = convert<BlockVector>(vector);
     shp<BlockVector> retVector(new BlockVector(nRows()));
 
+    if (otherVector->isZero())
+        return retVector;
+
     for (unsigned int i = 0; i < nRows(); i++)
     {
         for (unsigned int j = 0; j < nCols(); j++)
@@ -149,6 +145,7 @@ multiplyByVector(shp<aVector> vector)
                 }
                 else
                     tempRes = block(i,j)->multiplyByVector(otherVector->block(j));
+
                 if (retVector->block(i)->isZero())
                     retVector->setBlock(i,tempRes);
                 else
@@ -349,6 +346,12 @@ shp<aMatrix>
 BlockMatrix::
 block(const unsigned int& iblock, const unsigned int& jblock) const
 {
+    if (iblock >= nRows())
+        throw new Exception("[BlockMatrix::block] iblock >= nRows()");
+
+    if (jblock >= nCols())
+        throw new Exception("[BlockMatrix::block] jblock >= nCols()");
+
     return M_matrixGrid(iblock,jblock);
 }
 
@@ -357,6 +360,9 @@ BlockMatrix::
 getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
              const unsigned int& jbegin, const unsigned int& jend) const
 {
+    if (ibegin > nRows() || iend > nRows() || jbegin > nCols() || jend > nCols())
+        throw new Exception("[BlockMatrix::getSubmatrix] wrong bounds!");
+
     shp<BlockMatrix> retMatrix(new BlockMatrix());
 
     unsigned int nrows = iend-ibegin+1;
@@ -404,6 +410,12 @@ BlockMatrix::
 setBlock(const unsigned int& iblock, const unsigned int& jblock,
          shp<aMatrix> matrix)
 {
+    if (iblock >= nRows())
+        throw new Exception("[BlockMatrix::setBlock] iblock >= nRows()");
+
+    if (jblock >= nCols())
+        throw new Exception("[BlockMatrix::setBlock] jblock >= nCols()");
+
     if (matrix)
         M_matrixGrid(iblock,jblock) = matrix;
 }

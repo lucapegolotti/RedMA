@@ -67,7 +67,7 @@ bool checkEqual(shp<VECTOREPETRA> vec1, shp<VECTOREPETRA> vec2, int L)
 {
     for (unsigned int i = 0; i < L; i++)
     {
-        if (abs(vec1->operator[](i) - vec2->operator[](i)) > 1e-14)
+        if (abs(vec1->operator[](i) - vec2->operator[](i)) > TZERO)
             return false;
     }
     return true;
@@ -126,7 +126,7 @@ int add1()
     bvec1->add(bvec2);
     std::cout << expectedNorm << std::endl << std::flush;
     std::cout << bvec1->norm2() << std::endl << std::flush;
-    if (std::abs(expectedNorm-bvec1->norm2()) > 1e-14)
+    if (std::abs(expectedNorm-bvec1->norm2()) > TZERO)
         return FAILURE;
 
     // we also check if adding a non-block vector raises an exception
@@ -186,7 +186,7 @@ int add3()
 
     bvec1->add(bvec2);
 
-    if (std::abs(bvec1->norm2() - bvec2->norm2()) < 1e-14)
+    if (std::abs(bvec1->norm2() - bvec2->norm2()) < TZERO)
         return SUCCESS;
 
     return FAILURE;
@@ -208,7 +208,7 @@ int add4()
 
     bvec1->add(bvec2);
 
-    if (std::abs(bvec1->norm2() - prevnnorm) < 1e-14)
+    if (std::abs(bvec1->norm2() - prevnnorm) < TZERO)
         return SUCCESS;
 
     return FAILURE;
@@ -225,7 +225,7 @@ int multiplyByScalar()
     double normm = bvec1->norm2();
     bvec1->multiplyByScalar(1.234);
 
-    if (abs(normm * 1.234 - bvec1->norm2()) < 1e-14)
+    if (abs(normm * 1.234 - bvec1->norm2()) < TZERO)
         return SUCCESS;
 
     return FAILURE;
@@ -259,7 +259,7 @@ int shallowCopy()
     bvec2->multiplyByScalar(2);
 
     // check if also dmat was modified
-    if (std::abs(bvec2->norm2() - bvec1->norm2()) < 1e-14)
+    if (std::abs(bvec2->norm2() - bvec1->norm2()) < TZERO)
         return SUCCESS;
 
     return FAILURE;
@@ -279,7 +279,7 @@ int deepCopy()
     bvec2->multiplyByScalar(2);
 
     // check if also dmat was modified
-    if (std::abs(bvec2->norm2() - bvec1->norm2()) > 1e-14)
+    if (std::abs(bvec2->norm2() - bvec1->norm2()) > TZERO)
         return SUCCESS;
 
     return FAILURE;
@@ -303,6 +303,45 @@ int globalTypeIs()
     return FAILURE;
 }
 
+int getSubvector()
+{
+    unsigned int M = 6;
+    shp<BlockVector> bvec(new BlockVector(6));
+    bvec->setBlock(0, wrap(randvecepetra(M)));
+    bvec->setBlock(1, wrap(randvecdense(M+1)));
+    bvec->setBlock(2, wrap(randvecdense(M-1)));
+    auto v1 = randvecepetra(M);
+    bvec->setBlock(3, wrap(v1));
+    auto v2 = randvecdense(M+2);
+    bvec->setBlock(4, wrap(v2));
+    bvec->setBlock(5, wrap(randvecdense(M-1)));
+
+    auto subvec = bvec->getSubvector(3,4);
+
+    if (subvec->nRows() != 2)
+        return FAILURE;
+
+    if (abs(subvec->block(0)->norm2() - v1->norm2()) > TZERO)
+        return FAILURE;
+
+    return SUCCESS;
+}
+
+int block()
+{
+    shp<BlockVector> bvec(new BlockVector(10));
+
+    try
+    {
+        bvec->block(100);
+    }
+    catch (Exception* e)
+    {
+        return SUCCESS;
+    }
+    return FAILURE;
+}
+
 int main()
 {
     MPI_Init(nullptr, nullptr);
@@ -321,6 +360,8 @@ int main()
     status |= AtomicTest("ShallowCopy", &shallowCopy).run();
     status |= AtomicTest("DeepCopy", &deepCopy).run();
     status |= AtomicTest("GlobalTypeIs", &globalTypeIs).run();
+    status |= AtomicTest("GetSubvector", &getSubvector).run();
+    status |= AtomicTest("Block", &block).run();
 
     return status;
 }

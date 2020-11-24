@@ -67,7 +67,7 @@ bool checkEqual(shp<DENSEMATRIX> mat1, shp<DENSEMATRIX> mat2)
     {
         for (unsigned int j = 0; j < mat1->N(); j++)
         {
-            if (abs(mat1->operator()(i,j) - mat2->operator()(i,j)) > 1e-14)
+            if (abs(mat1->operator()(i,j) - mat2->operator()(i,j)) > TZERO)
                 return false;
         }
     }
@@ -78,7 +78,7 @@ bool checkEqual(shp<DENSEVECTOR> vec1, shp<DENSEVECTOR> vec2)
 {
     for (unsigned int i = 0; i < vec1->Length(); i++)
     {
-        if (abs(vec1->operator()(i) - vec2->operator()(i)) > 1e-14)
+        if (abs(vec1->operator()(i) - vec2->operator()(i)) > TZERO)
             return false;
     }
     return true;
@@ -124,7 +124,7 @@ int add1()
         for (unsigned int j = 0; j < M; j++)
         {
             double expected = mat1Copy->operator()(i,j) + mat2->operator()(i,j);
-            if (abs(dmat1->getMatrix()->operator()(i,j) - expected) > 1e-14)
+            if (abs(dmat1->getMatrix()->operator()(i,j) - expected) > TZERO)
                 return FAILURE;
         }
     }
@@ -216,7 +216,7 @@ int multiplyByScalar()
     dmat1->setMatrix(mat1);
     dmat1->multiplyByScalar(1.234);
 
-    if (abs(normm * 1.234 - dmat1->getMatrix()->NormInf()) < 1e-14)
+    if (abs(normm * 1.234 - dmat1->getMatrix()->NormInf()) < TZERO)
         return SUCCESS;
 
     return FAILURE;
@@ -362,7 +362,7 @@ int transpose()
     {
         for (unsigned int j = 0; j < M; j++)
         {
-            if (abs((*mat)(i,j)-(*matT)(j,i)) > 1e-14)
+            if (abs((*mat)(i,j)-(*matT)(j,i)) > TZERO)
                 return FAILURE;
         }
     }

@@ -112,6 +112,8 @@ multiplyByVector(shp<aVector> vector)
 
     if (!isZero() && !vector->isZero())
     {
+        if (vector->nRows() != nCols())
+            throw new Exception("[DenseMatrix::multiplyByVector] inconsistent dimensions!");
         shp<DENSEVECTOR> res;
         res.reset(new DENSEVECTOR(M_nRows));
         M_matrix->Multiply(false, *otherVector, *res);
