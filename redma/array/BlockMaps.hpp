@@ -32,7 +32,7 @@ namespace RedMA
 class BlockMaps
 {
 public:
-    BlockMaps();
+    BlockMaps() {}
 
     BlockMaps(shp<BlockMatrix> matrix) {createFromBlockMatrix(matrix);}
 

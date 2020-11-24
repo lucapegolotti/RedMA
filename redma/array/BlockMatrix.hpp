@@ -102,6 +102,8 @@ protected:
     Grid                          M_matrixGrid;
 };
 
+shp<SparseMatrix> blockMatrixToSparseMatrix(shp<BlockMatrix> matrix);
+
 }
 
 #endif // BLOCKMATRIX_HPP
