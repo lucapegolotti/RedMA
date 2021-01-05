@@ -20,8 +20,6 @@ void
 BlockMatrix::
 add(shp<aMatrix> other)
 {
-    shp<BlockMatrix> otherMatrix = convert<BlockMatrix>(other);
-
     if (other->isZero())
         return;
 
@@ -33,6 +31,8 @@ add(shp<aMatrix> other)
 
     if (nRows() != other->nRows() || nCols() != other->nCols())
         throw new Exception("BlockMatrix: inconsistent dimensions in add!");
+
+    shp<BlockMatrix> otherMatrix = convert<BlockMatrix>(other);
 
     for (unsigned int i = 0; i < nRows(); i++)
     {
@@ -73,7 +73,6 @@ shp<aMatrix>
 BlockMatrix::
 multiplyByMatrix(shp<aMatrix> other)
 {
-    shp<BlockMatrix> otherMatrix = convert<BlockMatrix>(other);
     shp<BlockMatrix> retMatrix(new BlockMatrix(nRows(), other->nCols()));
 
     if (isZero() || other->isZero())
@@ -81,6 +80,8 @@ multiplyByMatrix(shp<aMatrix> other)
         retMatrix.reset(new BlockMatrix(0, 0));
         return retMatrix;
     }
+
+    shp<BlockMatrix> otherMatrix = convert<BlockMatrix>(other);
 
     for (unsigned int i = 0; i < nRows(); i++)
     {
@@ -122,11 +123,12 @@ shp<aVector>
 BlockMatrix::
 multiplyByVector(shp<aVector> vector)
 {
-    shp<BlockVector> otherVector = convert<BlockVector>(vector);
     shp<BlockVector> retVector(new BlockVector(nRows()));
 
-    if (otherVector->isZero())
+    if (vector->isZero())
         return retVector;
+
+    shp<BlockVector> otherVector = convert<BlockVector>(vector);
 
     for (unsigned int i = 0; i < nRows(); i++)
     {
@@ -249,7 +251,7 @@ void
 BlockMatrix::
 shallowCopy(shp<aDataWrapper> other)
 {
-    if (other)
+    if (other && !other->isZero())
     {
         auto otherMatrix = convert<BlockMatrix>(other);
 
@@ -269,7 +271,7 @@ void
 BlockMatrix::
 deepCopy(shp<aDataWrapper> other)
 {
-    if (other)
+    if (other && !other->isZero())
     {
         auto otherMatrix = convert<BlockMatrix>(other);
 

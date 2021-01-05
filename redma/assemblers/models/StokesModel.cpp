@@ -29,8 +29,8 @@ buildZeroVector() const
 
     shp<BlockVector> retVec(new BlockVector(2));
 
-    retVec->setBlock(0,epetraToDistributed(uComp));
-    retVec->setBlock(1,epetraToDistributed(pComp));
+    retVec->setBlock(0,wrap(uComp));
+    retVec->setBlock(1,wrap(pComp));
 
     return retVec;
 }

@@ -309,7 +309,7 @@ void
 SparseMatrix::
 setData(shp<void> data)
 {
-    setMatrix(std::static_pointer_cast<MATRIXEPETRA>(data));
+    setMatrix(spcast<MATRIXEPETRA>(data));
 }
 
 shp<void>
@@ -341,7 +341,7 @@ convertDenseMatrix(shp<DenseMatrix> denseMatrix,
     {
         for (unsigned int j = 0; j < cols; j++)
         {
-            double value = std::static_pointer_cast<DENSEMATRIX>(denseMatrix->data())->operator()(i,j);
+            double value = spcast<DENSEMATRIX>(denseMatrix->data())->operator()(i,j);
             matrix->addToCoefficient(i, j, value);
         }
     }

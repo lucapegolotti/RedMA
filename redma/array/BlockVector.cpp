@@ -184,7 +184,7 @@ void
 BlockVector::
 shallowCopy(std::shared_ptr<aDataWrapper> other)
 {
-    if (other)
+    if (other && !other->isZero())
     {
         auto otherVector = convert<BlockVector>(other);
 
@@ -200,7 +200,7 @@ void
 BlockVector::
 deepCopy(shp<aDataWrapper> other)
 {
-    if (other)
+    if (other && !other->isZero())
     {
         shp<BlockVector> otherVector = spcast<BlockVector>(other);
 

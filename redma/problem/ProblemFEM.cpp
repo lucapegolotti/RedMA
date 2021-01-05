@@ -87,8 +87,7 @@ solve()
             M_solutions.push_back(M_solution);
             M_timestepsSolutions.push_back(t);
         }
-        // if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
-        if (saveEvery > 0 && count % saveEvery == 0)
+        if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
         {
             M_assembler->exportSolution(t, M_solution);
         }

@@ -30,7 +30,7 @@ setup()
     M_divergence = std::static_pointer_cast<BlockMatrix>(assembleReducedDivergence(M_bcManager)); // #3
 
     assembleFlowRateVectors();
-    assembleFlowRateJacobians(this->M_bcManager);
+    // assembleFlowRateJacobians(this->M_bcManager);
 
     setExporter();
 

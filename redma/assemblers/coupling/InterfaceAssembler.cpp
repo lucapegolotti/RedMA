@@ -472,7 +472,7 @@ getZeroVector() const
     zeroVec->zero();
     // *zeroVec += 1;
 
-    retVector->setBlock(0,epetraToDistributed(zeroVec));
+    retVector->setBlock(0,wrap(zeroVec));
     return retVector;
 }
 

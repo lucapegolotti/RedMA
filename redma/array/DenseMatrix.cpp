@@ -206,7 +206,7 @@ void
 DenseMatrix::
 setData(shp<void> data)
 {
-    spcast<DENSEMATRIX>(data);
+    setMatrix(spcast<DENSEMATRIX>(data));
 }
 
 shp<DENSEMATRIX>

@@ -12,7 +12,7 @@ DenseVector() :
 
 void
 DenseVector::
-add(std::shared_ptr<aVector> other)
+add(shp<aVector> other)
 {
     if (isZero())
     {
@@ -40,7 +40,7 @@ multiplyByScalar(const double& coeff)
 
 void
 DenseVector::
-shallowCopy(std::shared_ptr<aDataWrapper> other)
+shallowCopy(shp<aDataWrapper> other)
 {
     if (other)
     {
@@ -51,12 +51,12 @@ shallowCopy(std::shared_ptr<aDataWrapper> other)
 
 void
 DenseVector::
-deepCopy(std::shared_ptr<aDataWrapper> other)
+deepCopy(shp<aDataWrapper> other)
 {
     if (other)
     {
         auto otherVector = convert<DenseVector>(other);
-        std::shared_ptr<DENSEVECTOR> newVector
+        shp<DENSEVECTOR> newVector
             (new DENSEVECTOR(*otherVector->M_vector));
         setVector(newVector);
     }
@@ -69,7 +69,7 @@ clone() const
     DenseVector* retVector = new DenseVector();
     if (M_vector)
     {
-        std::shared_ptr<DENSEVECTOR> newVector
+        shp<DENSEVECTOR> newVector
             (new DENSEVECTOR(*M_vector));
         retVector->setVector(newVector);
     }
@@ -96,16 +96,9 @@ norm2() const
 
 void
 DenseVector::
-setData(std::shared_ptr<void> data)
+setData(shp<void> data)
 {
-    M_vector = std::static_pointer_cast<DENSEVECTOR>(data);
-}
-
-std::shared_ptr<void>
-DenseVector::
-data() const
-{
-    return M_vector;
+    setVector(spcast<DENSEVECTOR>(data));
 }
 
 std::string
@@ -152,18 +145,18 @@ dump(std::string filename) const
     outfile.close();
 }
 
-std::shared_ptr<LifeV::VectorEpetra>
+shp<LifeV::VectorEpetra>
 DenseVector::
-toVectorEpetraPtr(std::shared_ptr<Epetra_Comm> comm) const
+toVectorEpetraPtr(shp<Epetra_Comm> comm) const
 {
     // note: we dont care about parallelism because we are assume that we are serial
     using namespace LifeV;
     unsigned int N = M_vector->Length();
 
-    std::shared_ptr<MapEpetra> rangeMap;
+    shp<MapEpetra> rangeMap;
     rangeMap.reset(new MapEpetra(N, N, 0, comm));
 
-    std::shared_ptr<VectorEpetra> retVec(new VectorEpetra(*rangeMap));
+    shp<VectorEpetra> retVec(new VectorEpetra(*rangeMap));
 
     for (unsigned int i = 0; i < N; i++)
         (*retVec)[i] = (*M_vector)(i);
@@ -173,7 +166,7 @@ toVectorEpetraPtr(std::shared_ptr<Epetra_Comm> comm) const
 
 void
 DenseVector::
-setVector(std::shared_ptr<DENSEVECTOR> vector)
+setVector(shp<DENSEVECTOR> vector)
 {
     if (vector)
     {
@@ -189,5 +182,11 @@ getVector()
     return M_vector;
 }
 
+shp<void>
+DenseVector::
+data() const
+{
+    return M_vector;
+}
 
 };

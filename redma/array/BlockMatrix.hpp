@@ -94,7 +94,7 @@ public:
 
     virtual shp<void> data() const override {return nullptr;};
 
-    virtual void setData(shp<void> data) override {};
+    virtual void setData(shp<void> data) override {throw new Exception("setData undefined for BlockMatrix");};
 
 protected:
 

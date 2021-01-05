@@ -77,8 +77,6 @@ private:
     shp<VECTOREPETRA>  M_vector;
 };
 
-shp<DistributedVector> epetraToDistributed(shp<VECTOREPETRA> vector);
-
 }
 
 #endif // DISTRIBUTEDVECTOR_HPP

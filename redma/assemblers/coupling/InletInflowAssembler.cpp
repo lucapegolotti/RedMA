@@ -59,6 +59,7 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
 
     // rhs->block(nPrimalBlocks + interfaceID) -= this->M_childB * sol.block(childID);
     temp = this->M_childBfe->multiplyByVector(assemblerChild->getLifting(time));
+
     if (assemblerChild->getRBBases())
         temp = assemblerChild->getRBBases()->projectOnLagrangeSpace(std::static_pointer_cast<BlockVector>(temp));
     rhs->block(nPrimalBlocks + interfaceID)->add(temp);

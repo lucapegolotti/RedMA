@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);
-    std::string outdir = "solution_fem_reference2/";
+    std::string outdir = "solution_fem_reference/";
     data.setValueString("exporter/outdir", outdir);
     data.finalize();
 

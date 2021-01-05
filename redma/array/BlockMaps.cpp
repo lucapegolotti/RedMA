@@ -255,10 +255,7 @@ getEpetraVector(const shp<aVector>& vector, const BlockMaps& maps)
     // blocks in the input vector are filled
     for (unsigned int iouter = 0; iouter < vector->nRows(); iouter++)
     {
-        auto curblock = convert<BlockVector>(blckVector->block(iouter));
-        unsigned int currows = blckVector->block(iouter)->nRows();
-
-        if (curblock->nRows() == 0 || curblock->isZero())
+        if (blckVector->block(iouter)->nRows() == 0 || blckVector->block(iouter)->isZero())
         {
             for (unsigned int iinner = 0; iinner < rows[iouter]; iinner++)
             {
@@ -268,6 +265,8 @@ getEpetraVector(const shp<aVector>& vector, const BlockMaps& maps)
         }
         else
         {
+            auto curblock = convert<BlockVector>(blckVector->block(iouter));
+
             for (unsigned int iinner = 0; iinner < curblock->nRows(); iinner++)
             {
                 if (curblock->block(iinner)->data())
@@ -275,11 +274,11 @@ getEpetraVector(const shp<aVector>& vector, const BlockMaps& maps)
                     shp<VECTOREPETRA> localVector;
                     if (curblock->block(iinner)->type() == DENSE)
                     {
-                        localVector = std::static_pointer_cast<DenseVector>(curblock->block(iinner))->toVectorEpetraPtr(rangeMaps[count]->commPtr());
+                        localVector = spcast<DenseVector>(curblock->block(iinner))->toVectorEpetraPtr(rangeMaps[count]->commPtr());
                     }
                     else
                     {
-                        localVector = std::static_pointer_cast<VECTOREPETRA>(curblock->block(iinner)->data());
+                        localVector = spcast<VECTOREPETRA>(curblock->block(iinner)->data());
                     }
                     retVec->subset(*localVector,
                                    *rangeMaps[count], 0, offset);

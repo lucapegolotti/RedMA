@@ -154,7 +154,6 @@ advance(const double& time, double& dt, int& status)
 
         if (M_useExtrapolation)
             this->M_funProvider->setExtrapolatedSolution(computeExtrapolatedSolution());
-
         retMat->deepCopy(this->M_funProvider->getJacobianRightHandSide(time+dt, sol));
         retMat->multiplyByScalar(-1. * M_rhsCoeff * dt);
         retMat->add(this->M_funProvider->getMass(time+dt, sol));

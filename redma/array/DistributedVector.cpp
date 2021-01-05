@@ -18,13 +18,13 @@ DistributedVector(const DistributedVector& vector)
 
 void
 DistributedVector::
-add(std::shared_ptr<aVector> other)
+add(shp<aVector> other)
 {
     if (other->isZero())
         return;
 
     if (other->type() == DENSE)
-        other = convertDenseVector(std::static_pointer_cast<DenseVector>(other),commPtr());
+        other = convertDenseVector(spcast<DenseVector>(other),commPtr());
 
     auto otherVector = convert<DistributedVector>(other);
 
@@ -59,7 +59,7 @@ dump(std::string namefile) const
 
 void
 DistributedVector::
-shallowCopy(std::shared_ptr<aDataWrapper> other)
+shallowCopy(shp<aDataWrapper> other)
 {
     if (other)
     {
@@ -70,12 +70,12 @@ shallowCopy(std::shared_ptr<aDataWrapper> other)
 
 void
 DistributedVector::
-deepCopy(std::shared_ptr<aDataWrapper> other)
+deepCopy(shp<aDataWrapper> other)
 {
     if (other)
     {
         auto otherVector = convert<DistributedVector>(other);
-        std::shared_ptr<VECTOREPETRA> newVector;
+        shp<VECTOREPETRA> newVector;
         if (otherVector->M_vector)
             newVector.reset(new VECTOREPETRA(*otherVector->M_vector));
         setVector(newVector);
@@ -89,7 +89,7 @@ clone() const
     DistributedVector* retVector = new DistributedVector();
     if (M_vector)
     {
-        std::shared_ptr<VECTOREPETRA> newVector
+        shp<VECTOREPETRA> newVector
             (new VECTOREPETRA(*M_vector));
         retVector->setVector(newVector);
     }
@@ -114,18 +114,11 @@ norm2() const
     return mynorm;
 }
 
-std::shared_ptr<void>
-DistributedVector::
-data() const
-{
-    return M_vector;
-}
-
 void
 DistributedVector::
-setData(std::shared_ptr<void> data)
+setData(shp<void> data)
 {
-    M_vector = std::static_pointer_cast<VECTOREPETRA>(data);
+    setVector(spcast<VECTOREPETRA>(data));
 }
 
 std::string
@@ -198,16 +191,16 @@ toDenseVector() const
     return *toDenseVectorPtr();
 }
 
-std::shared_ptr<DenseVector>
+shp<DenseVector>
 DistributedVector::
 toDenseVectorPtr() const
 {
-    std::shared_ptr<DenseVector> retVec(new DenseVector());
+    shp<DenseVector> retVec(new DenseVector());
 
     if (M_vector)
     {
         auto mapPtr = M_vector->mapPtr();
-        std::shared_ptr<DENSEVECTOR> innerVector(new DENSEVECTOR(mapPtr->mapSize()));
+        shp<DENSEVECTOR> innerVector(new DENSEVECTOR(mapPtr->mapSize()));
 
         for (unsigned int i = 0; i < innerVector->Length(); i++)
             (*innerVector)(i) = M_vector->operator[](i);
@@ -218,28 +211,28 @@ toDenseVectorPtr() const
     return retVec;
 }
 
-std::shared_ptr<DistributedVector>
+shp<DistributedVector>
 DistributedVector::
-convertDenseVector(std::shared_ptr<DenseVector> denseVector, std::shared_ptr<Epetra_Comm> comm)
+convertDenseVector(shp<DenseVector> denseVector, shp<Epetra_Comm> comm)
 {
     using namespace LifeV;
-    std::shared_ptr<DistributedVector> retVec(new DistributedVector());
+    shp<DistributedVector> retVec(new DistributedVector());
 
     if (comm->MyPID() != 0)
         throw new Exception("convertDenseVector does not support more than one proc");
 
     unsigned int length = denseVector->nRows();
-    std::shared_ptr<MapEpetra> map(new MapEpetra(length, length, 0, comm));
+    shp<MapEpetra> map(new MapEpetra(length, length, 0, comm));
 
-    std::shared_ptr<VECTOREPETRA> innerVec(new VECTOREPETRA(*map));
+    shp<VECTOREPETRA> innerVec(new VECTOREPETRA(*map));
     innerVec->zero();
 
     for (unsigned int i = 0; i < length; i++)
     {
-        double value = std::static_pointer_cast<DENSEVECTOR>(denseVector->data())->operator()(i);
+        double value = spcast<DENSEVECTOR>(denseVector->data())->operator()(i);
         innerVec->operator[](i) = value;
     }
-    std::shared_ptr<DistributedVector> retVector(new DistributedVector());
+    shp<DistributedVector> retVector(new DistributedVector());
     retVector->setVector(innerVec);
 
     return retVector;
@@ -248,7 +241,7 @@ convertDenseVector(std::shared_ptr<DenseVector> denseVector, std::shared_ptr<Epe
 
 void
 DistributedVector::
-setVector(std::shared_ptr<VECTOREPETRA> vector)
+setVector(shp<VECTOREPETRA> vector)
 {
     if (vector)
     {
@@ -259,12 +252,11 @@ setVector(std::shared_ptr<VECTOREPETRA> vector)
     }
 }
 
-std::shared_ptr<DistributedVector>
-epetraToDistributed(std::shared_ptr<VECTOREPETRA> vector)
+shp<void>
+DistributedVector::
+data() const
 {
-    std::shared_ptr<DistributedVector> retVec(new DistributedVector());
-    retVec->setData(vector);
-    return retVec;
+    return M_vector;
 }
 
 };
