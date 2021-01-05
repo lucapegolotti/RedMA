@@ -7,18 +7,6 @@ BlockVector::
 BlockVector()
 {
 }
-//
-// BlockVector::
-// BlockVector(const BlockVector& other)
-// {
-//     resize(other.nRows());
-//
-//     for (unsigned int i = 0; i < other.nRows(); i++)
-//     {
-//         setBlock(i, other.block(i));
-//     }
-// }
-
 
 BlockVector::
 BlockVector(const unsigned int& nRows)

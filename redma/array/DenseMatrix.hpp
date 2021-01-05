@@ -41,8 +41,6 @@ class DenseMatrix : public aMatrix
 public:
     DenseMatrix();
 
-    // DenseMatrix(const std::vector<int>& columnVectors);
-
     virtual void add(shp<aMatrix> other) override;
 
     virtual void multiplyByScalar(const double& coeff) override;

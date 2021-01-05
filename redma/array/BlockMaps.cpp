@@ -176,16 +176,6 @@ blockMatrixToSparseMatrix(shp<BlockMatrix> matrix)
     matrix = maps.M_collapsedMatrix;
 
     shp<MATRIXEPETRA> ptrMatrix(new MATRIXEPETRA(*maps.M_monolithicRangeMap));
-    //
-    // std::vector<unsigned int> dimensionsRows;
-    // std::vector<unsigned int> dimensionsCols;
-    //
-    // for (auto map : rangeMaps)
-    //     dimensionsRows.push_back(map->mapSize());
-    //
-    // for (auto map : domainMaps)
-    //     dimensionsCols.push_back(map->mapSize());
-    //
     LifeV::MatrixBlockStructure structure;
     structure.setBlockStructure(maps.M_dimensionsRows,
                                 maps.M_dimensionsCols);

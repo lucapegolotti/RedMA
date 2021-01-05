@@ -218,31 +218,6 @@ toDenseVectorPtr() const
     return retVec;
 }
 
-// std::shared_ptr<DistributedVector>
-// DistributedVector::
-// convertDenseVector(std::shared_ptr<DenseVector> denseVector, std::shared_ptr<Epetra_Comm> comm)
-// {
-//     using namespace LifeV;
-//     std::shared_ptr<DistributedVector> retVec(new DistributedVector());
-//
-//     if (comm->MyPID() != 0)
-//         throw new Exception("convertDenseVector does not support more than one proc");
-//
-//     unsigned int length = denseVector->nRows();
-//     std::cout << "length = " << length << std::endl << std::flush;
-//     std::shared_ptr<MapEpetra> map(new MapEpetra(length, length, 0, comm));
-//
-//     retVec->data().reset(new VECTOREPETRA(*map));
-//
-//     for (unsigned int i = 0; i < length; i++)
-//     {
-//         static_cast<VECTOREPETRA*>(retVec->data().get())->operator[](i) =
-//         static_cast<VECTOREPETRA*>(denseVector->data().get())->operator()(i);
-//     }
-//
-//     return retVec;
-// }
-
 std::shared_ptr<DistributedVector>
 DistributedVector::
 convertDenseVector(std::shared_ptr<DenseVector> denseVector, std::shared_ptr<Epetra_Comm> comm)

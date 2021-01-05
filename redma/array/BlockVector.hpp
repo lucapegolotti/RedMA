@@ -39,8 +39,6 @@ public:
 
     virtual ~BlockVector() {};
 
-    // BlockVector(const BlockVector& other);
-
     BlockVector(const unsigned int& nRows);
 
     virtual void add(shp<aVector> other) override;
