@@ -93,7 +93,7 @@ addConvectiveTermJacobianRightHandSide(shp<aVector> sol, shp<aVector> lifting,
     using namespace ExpressionAssembly;
 
     shp<VECTOREPETRA> velocityHandler = spcast<VECTOREPETRA>(convert<BlockVector>(sol)->block(0)->data());
-    // shp<VECTOREPETRA> liftingHandler = std::static_pointer_cast<VECTOREPETRA>(lifting->block(0)->data());
+    // shp<VECTOREPETRA> liftingHandler = spcast<VECTOREPETRA>(lifting->block(0)->data());
 
     shp<MATRIXEPETRA>  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
     shp<VECTOREPETRA>  velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
@@ -165,8 +165,8 @@ getMassJacobian(const double& time, const shp<aVector>& sol)
     shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
     if (M_stabilization)
     {
-        retMat->add(M_stabilization->getMassJac(std::static_pointer_cast<BlockVector>(sol),
-                                                std::static_pointer_cast<BlockVector>(this->getForcingTerm(time))));
+        retMat->add(M_stabilization->getMassJac(spcast<BlockVector>(sol),
+                                                spcast<BlockVector>(this->getForcingTerm(time))));
         // we do it here because matrices from stabilization have no bcs
         this->M_bcManager->apply0DirichletMatrix(*retMat, this->getFESpaceBCs(),
                                                  this->getComponentBCs(), 0.0);
@@ -198,7 +198,7 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
 
     addNeumannBCs(time, sol, retVec);
 
-    this->M_bcManager->apply0DirichletBCs(*std::static_pointer_cast<BlockVector>(retVec), this->getFESpaceBCs(),
+    this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec), this->getFESpaceBCs(),
                                          this->getComponentBCs());
 
     if (M_stabilization)
@@ -211,8 +211,8 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
         //                                            this->getForcingTerm(time));
         // }
         // else
-        shp<BlockVector> residual = M_stabilization->getResidual(std::static_pointer_cast<BlockVector>(sol),
-                                                                 std::static_pointer_cast<BlockVector>(this->getForcingTerm(time)));
+        shp<BlockVector> residual = M_stabilization->getResidual(spcast<BlockVector>(sol),
+                                                                 spcast<BlockVector>(this->getForcingTerm(time)));
         residual->multiplyByScalar(-1);
         retVec->add(residual);
     }
@@ -235,13 +235,13 @@ getJacobianRightHandSide(const double& time,
 
     if (M_stabilization)
     {
-        shp<BlockMatrix> stabJac = M_stabilization->getJac(std::static_pointer_cast<BlockVector>(sol),
-                                                           std::static_pointer_cast<BlockVector>(this->getForcingTerm(time)));
+        shp<BlockMatrix> stabJac = M_stabilization->getJac(spcast<BlockVector>(sol),
+                                                           spcast<BlockVector>(this->getForcingTerm(time)));
         stabJac->multiplyByScalar(-1);
         retMat->add(stabJac);
     }
 
-    this->M_bcManager->apply0DirichletMatrix(*std::static_pointer_cast<BlockMatrix>(retMat), this->getFESpaceBCs(),
+    this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(retMat), this->getFESpaceBCs(),
                                              this->getComponentBCs(), 0.0);
 
     return retMat;

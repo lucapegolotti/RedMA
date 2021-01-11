@@ -496,7 +496,7 @@ buildCouplingMatrices()
             // M_stabFather *= 0.5;
         }
 
-        M_mapLagrange = std::static_pointer_cast<MATRIXEPETRA>(M_fatherBT->block(0,0)->data())->domainMapPtr();
+        M_mapLagrange = spcast<MATRIXEPETRA>(M_fatherBT->block(0,0)->data())->domainMapPtr();
 
         if (!std::strcmp(asFather->getTreeNode()->M_block->getDiscretizationMethod().c_str(),"rb"))
         {
@@ -525,7 +525,7 @@ buildCouplingMatrices()
 
         M_childBTfe = M_childBT;
         M_childBfe = M_childB;
-        M_mapLagrange = std::static_pointer_cast<MATRIXEPETRA>(M_childBT->block(0,0)->data())->domainMapPtr();
+        M_mapLagrange = spcast<MATRIXEPETRA>(M_childBT->block(0,0)->data())->domainMapPtr();
 
         if (!std::strcmp(asChild->getTreeNode()->M_block->getDiscretizationMethod().c_str(),"rb"))
         {

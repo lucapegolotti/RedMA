@@ -321,7 +321,7 @@ StokesModel::
 apply0DirichletBCsMatrix(shp<BCManager> bcManager,
                          shp<aMatrix> matrix, double diagCoeff)
 {
-    auto matrixConverted = std::static_pointer_cast<BlockMatrix>(matrix);
+    auto matrixConverted = spcast<BlockMatrix>(matrix);
     bcManager->apply0DirichletMatrix(*matrixConverted, M_velocityFESpace,
                                      0, diagCoeff);
 }

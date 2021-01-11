@@ -32,7 +32,7 @@ getNeumannCondition(const double& time, const double& rate)
     CoutRedirecter ct;
     ct.redirect();
     // time - M_dt because we are assuming that we are already in a newton iteration
-    M_pressureDropSolution = std::static_pointer_cast<BlockVector>(M_bdf->advance(time - M_dt, M_dt, status));
+    M_pressureDropSolution = spcast<BlockVector>(M_bdf->advance(time - M_dt, M_dt, status));
     ct.restore();
 
     if (status)
@@ -42,7 +42,7 @@ getNeumannCondition(const double& time, const double& rate)
     // of the simulation is too high
     double ramp = M_data.evaluateRamp(time);
     std::cout << "ramp = " << std::endl << std::flush;
-    return ramp * M_Rp * rate + *std::static_pointer_cast<double>(M_pressureDropSolution->block(0)->data()) + M_Pd(time);
+    return ramp * M_Rp * rate + *spcast<double>(M_pressureDropSolution->block(0)->data()) + M_Pd(time);
 }
 
 double

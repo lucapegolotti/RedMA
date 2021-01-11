@@ -25,9 +25,9 @@ setup()
     msg += "] initializing ...";
     printlog(YELLOW, msg, this->M_data.getVerbose());
     initializeFEspaces();
-    M_mass = std::static_pointer_cast<BlockMatrix>(assembleReducedMass(M_bcManager)); // #1
-    M_stiffness = std::static_pointer_cast<BlockMatrix>(assembleReducedStiffness(M_bcManager)); // #2
-    M_divergence = std::static_pointer_cast<BlockMatrix>(assembleReducedDivergence(M_bcManager)); // #3
+    M_mass = spcast<BlockMatrix>(assembleReducedMass(M_bcManager)); // #1
+    M_stiffness = spcast<BlockMatrix>(assembleReducedStiffness(M_bcManager)); // #2
+    M_divergence = spcast<BlockMatrix>(assembleReducedDivergence(M_bcManager)); // #3
     assembleFlowRateVectors();
     // assembleFlowRateJacobians();
 

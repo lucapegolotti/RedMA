@@ -50,9 +50,9 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
 {
     shp<BlockVector> retVec(new BlockVector(1));
     retVec->deepCopy(sol);
-    std::static_pointer_cast<Double>(retVec->block(0))->multiplyByScalar(-1.0 / (M_C * M_Rd));
-    double v = std::static_pointer_cast<Double>(retVec->block(0))->getValue();
-    // std::static_pointer_cast<Double>(retVec->block(0))->setValue(v + M_Q / M_C);
+    spcast<Double>(retVec->block(0))->multiplyByScalar(-1.0 / (M_C * M_Rd));
+    double v = spcast<Double>(retVec->block(0))->getValue();
+    // spcast<Double>(retVec->block(0))->setValue(v + M_Q / M_C);
     return retVec;
 }
 

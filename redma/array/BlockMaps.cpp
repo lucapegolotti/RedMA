@@ -31,7 +31,7 @@ createFromBlockMatrix(shp<BlockMatrix> matrix)
         {
             if (matrix->block(i,j)->type() == SPARSE)
             {
-                shp<MATRIXEPETRA> curMatrix = std::static_pointer_cast<MATRIXEPETRA>(matrix->block(i,j)->data());
+                shp<MATRIXEPETRA> curMatrix = spcast<MATRIXEPETRA>(matrix->block(i,j)->data());
                 if (curMatrix)
                 {
                     M_rangeEpetraMaps[i] = curMatrix->rangeMap().map(LifeV::Unique);
@@ -196,7 +196,7 @@ blockMatrixToSparseMatrix(shp<BlockMatrix> matrix)
             shp<LifeV::MatrixEpetraStructuredView<double>> blockLocalView;
             if (!matrix->block(i,j)->isZero())
             {
-                blockLocalView = createBlockView(std::static_pointer_cast<MATRIXEPETRA>(matrix->block(i,j)->data()),
+                blockLocalView = createBlockView(spcast<MATRIXEPETRA>(matrix->block(i,j)->data()),
                                                  blockStructure, 0, 0);
                 copyBlock(blockLocalView, globalView);
             }

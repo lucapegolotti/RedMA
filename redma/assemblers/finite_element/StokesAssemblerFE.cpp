@@ -25,9 +25,9 @@ setup()
     msg += "] initializing ...";
     printlog(YELLOW, msg, this->M_data.getVerbose());
     initializeFEspaces();
-    M_mass = std::static_pointer_cast<BlockMatrix>(assembleReducedMass(M_bcManager)); // #1
-    M_stiffness = std::static_pointer_cast<BlockMatrix>(assembleReducedStiffness(M_bcManager)); // #2
-    M_divergence = std::static_pointer_cast<BlockMatrix>(assembleReducedDivergence(M_bcManager)); // #3
+    M_mass = spcast<BlockMatrix>(assembleReducedMass(M_bcManager)); // #1
+    M_stiffness = spcast<BlockMatrix>(assembleReducedStiffness(M_bcManager)); // #2
+    M_divergence = spcast<BlockMatrix>(assembleReducedDivergence(M_bcManager)); // #3
 
     assembleFlowRateVectors();
     // assembleFlowRateJacobians(this->M_bcManager);
@@ -103,7 +103,7 @@ getRightHandSide(const double& time,
     shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
     addNeumannBCs(time, sol, retVec);
 
-    this->M_bcManager->apply0DirichletBCs(*std::static_pointer_cast<BlockVector>(retVec), this->getFESpaceBCs(),
+    this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec), this->getFESpaceBCs(),
                                          this->getComponentBCs());
 
     return retVec;
@@ -256,7 +256,7 @@ void
 StokesAssemblerFE::
 apply0DirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
 {
-    auto matrixConverted = std::static_pointer_cast<BlockMatrix>(matrix);
+    auto matrixConverted = spcast<BlockMatrix>(matrix);
     this->M_bcManager->apply0DirichletMatrix(*matrixConverted, getFESpaceBCs(),
                                              getComponentBCs(), diagCoeff);
 }
@@ -265,7 +265,7 @@ void
 StokesAssemblerFE::
 apply0DirichletBCs(shp<aVector> vector) const
 {
-    auto vectorConverted = std::static_pointer_cast<BlockVector>(vector);
+    auto vectorConverted = spcast<BlockVector>(vector);
     this->M_bcManager->apply0DirichletBCs(*vectorConverted, getFESpaceBCs(),
                                           getComponentBCs());
 }
@@ -274,7 +274,7 @@ void
 StokesAssemblerFE::
 applyDirichletBCs(const double& time, shp<aVector> vector) const
 {
-    auto vectorConverted = std::static_pointer_cast<BlockVector>(vector);
+    auto vectorConverted = spcast<BlockVector>(vector);
     this->M_bcManager->applyDirichletBCs(time, *vectorConverted, getFESpaceBCs(),
                                          getComponentBCs());
 }

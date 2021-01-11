@@ -182,7 +182,7 @@ loadBases()
             auto curBasis = getEnrichedBasis(i, -1);
             shp<SparseMatrix> curBasisMatrix(new SparseMatrix(curBasis));
             M_enrichedBasesMatrices.push_back(curBasisMatrix);
-            M_enrichedBasesMatricesTransposed.push_back(std::static_pointer_cast<SparseMatrix>(curBasisMatrix->transpose()));
+            M_enrichedBasesMatricesTransposed.push_back(spcast<SparseMatrix>(curBasisMatrix->transpose()));
         }
     }
 }
@@ -335,7 +335,7 @@ scaleBasisWithPiola(unsigned int index, unsigned int ID,
 
     shp<SparseMatrix> basisMatrix(new SparseMatrix(newEnrichedBasis));
     M_enrichedBasesMatricesMap[index][ID] = basisMatrix;
-    M_enrichedBasesMatricesTransposedMap[index][ID] = std::static_pointer_cast<SparseMatrix>(basisMatrix->transpose());
+    M_enrichedBasesMatricesTransposedMap[index][ID] = spcast<SparseMatrix>(basisMatrix->transpose());
 }
 
 shp<BlockMatrix>
@@ -348,7 +348,7 @@ leftProject(shp<BlockMatrix> matrix, unsigned int ID)
     {
         for (unsigned int j = 0; j < matrix->nCols(); j++)
         {
-            projectedMatrix->setBlock(i,j,leftProject(std::static_pointer_cast<SparseMatrix>(matrix->block(i,j)), i, ID));
+            projectedMatrix->setBlock(i,j,leftProject(spcast<SparseMatrix>(matrix->block(i,j)), i, ID));
         }
     }
     return projectedMatrix;
@@ -364,13 +364,13 @@ leftProject(shp<FEMATRIX> matrix, unsigned int basisIndex, unsigned int ID)
     {
         // the basis is transposed
 
-        auto rangeMap = std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, false)->data())->domainMapPtr();
-        auto domainMap = std::static_pointer_cast<MATRIXEPETRA>(matrix->data())->domainMapPtr();
+        auto rangeMap = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, false)->data())->domainMapPtr();
+        auto domainMap = spcast<MATRIXEPETRA>(matrix->data())->domainMapPtr();
 
         shp<MATRIXEPETRA> innerMatrix(new MATRIXEPETRA(*rangeMap));
 
         // for some reason it is more efficient to transpose and then multiply
-        std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, true)->data())->multiply(false, *std::static_pointer_cast<MATRIXEPETRA>(matrix->data()), false,
+        spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, true)->data())->multiply(false, *spcast<MATRIXEPETRA>(matrix->data()), false,
                                                                         *innerMatrix);
 
         innerMatrix->globalAssemble(domainMap, rangeMap);
@@ -392,7 +392,7 @@ projectOnLagrangeSpace(shp<BlockVector> vector)
         throw new Exception("projectOnLagrangeSpace: error!");
 
     shp<BlockVector> retVec(new BlockVector(1));
-    retVec->setBlock(0,std::static_pointer_cast<DistributedVector>(vector->block(0))->toDenseVectorPtr());
+    retVec->setBlock(0,spcast<DistributedVector>(vector->block(0))->toDenseVectorPtr());
 
     return retVec;
 }
@@ -404,7 +404,7 @@ leftProject(shp<BlockVector> vector, unsigned int ID)
     shp<BlockVector> projectedVector(new BlockVector(vector->nRows()));
 
     for (unsigned int i = 0; i < vector->nRows(); i++)
-        projectedVector->setBlock(i,leftProject(std::static_pointer_cast<DistributedVector>(vector->block(i)), i, ID));
+        projectedVector->setBlock(i,leftProject(spcast<DistributedVector>(vector->block(i)), i, ID));
 
     return projectedVector;
 }
@@ -416,7 +416,7 @@ leftProject(shp<DistributedVector> vector, unsigned int basisIndex, unsigned int
     if (vector->data())
     {
         shp<DistributedVector> resVector;
-        resVector = std::static_pointer_cast<DistributedVector>(getEnrichedBasisMatrices(basisIndex, ID, true)->multiplyByVector(vector));
+        resVector = spcast<DistributedVector>(getEnrichedBasisMatrices(basisIndex, ID, true)->multiplyByVector(vector));
 
         return resVector->toDenseVectorPtr();
     }
@@ -433,7 +433,7 @@ rightProject(shp<BlockMatrix> matrix, unsigned int ID)
     {
         for (unsigned int j = 0; j < matrix->nCols(); j++)
         {
-            projectedMatrix->setBlock(i,j,rightProject(std::static_pointer_cast<SparseMatrix>(matrix->block(i,j)), j, ID));
+            projectedMatrix->setBlock(i,j,rightProject(spcast<SparseMatrix>(matrix->block(i,j)), j, ID));
         }
     }
     return projectedMatrix;
@@ -448,12 +448,12 @@ rightProject(shp<FEMATRIX> matrix, unsigned int basisIndex, unsigned int ID)
     if (matrix->data())
     {
         // the basis is transposed
-        auto rangeMap = std::static_pointer_cast<MATRIXEPETRA>(matrix->data())->rangeMapPtr(); ;
-        auto domainMap = std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, false)->data())->domainMapPtr();
+        auto rangeMap = spcast<MATRIXEPETRA>(matrix->data())->rangeMapPtr(); ;
+        auto domainMap = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, false)->data())->domainMapPtr();
 
         shp<MATRIXEPETRA> innerMatrix(new MATRIXEPETRA(*rangeMap));
 
-        std::static_pointer_cast<MATRIXEPETRA>(matrix->data())->multiply(false, *std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, false)->data()),
+        spcast<MATRIXEPETRA>(matrix->data())->multiply(false, *spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, false)->data()),
                                 false, *innerMatrix);
 
         innerMatrix->globalAssemble(domainMap, rangeMap);
@@ -495,20 +495,20 @@ matrixProject(shp<aMatrix> matrix, unsigned int basisIndexRow,
         // Vrow' A Vcol
 
         // compute A Vcol
-        auto rangeMap = std::static_pointer_cast<MATRIXEPETRA>(matrix->data())->rangeMapPtr();
-        auto domainMap = std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexCol, ID, false)->data())->domainMapPtr();
+        auto rangeMap = spcast<MATRIXEPETRA>(matrix->data())->rangeMapPtr();
+        auto domainMap = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexCol, ID, false)->data())->domainMapPtr();
 
         shp<MATRIXEPETRA> auxMatrix(new MATRIXEPETRA(*rangeMap));
 
-        std::static_pointer_cast<MATRIXEPETRA>(matrix->data())->multiply(false, *std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexCol, ID, false)->data()),
+        spcast<MATRIXEPETRA>(matrix->data())->multiply(false, *spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexCol, ID, false)->data()),
                                 false, *auxMatrix);
         auxMatrix->globalAssemble(domainMap, rangeMap);
 
-        rangeMap = std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, false)->data())->domainMapPtr();
+        rangeMap = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, false)->data())->domainMapPtr();
 
         shp<MATRIXEPETRA> innerMatrix(new MATRIXEPETRA(*rangeMap));
 
-        std::static_pointer_cast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, true)->data())->multiply(false, *auxMatrix,
+        spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, true)->data())->multiply(false, *auxMatrix,
                                                                            false, *innerMatrix);
 
         innerMatrix->globalAssemble(domainMap, rangeMap);
@@ -636,17 +636,17 @@ reconstructFEFunction(shp<aVector> rbSolution, unsigned int index,
     shp<DistributedVector> rbSolutionDistributed;
     if (rbSolution->type() == DENSE)
     {
-        rbSolutionDistributed = DistributedVector::convertDenseVector(std::static_pointer_cast<DenseVector>(rbSolution),M_comm);
+        rbSolutionDistributed = DistributedVector::convertDenseVector(spcast<DenseVector>(rbSolution),M_comm);
     }
     else
     {
-        rbSolutionDistributed = std::static_pointer_cast<DistributedVector>(rbSolution);
+        rbSolutionDistributed = spcast<DistributedVector>(rbSolution);
     }
 
 
-    shp<DistributedVector> res = std::static_pointer_cast<DistributedVector>(getEnrichedBasisMatrices(index, ID, false)->multiplyByVector(rbSolutionDistributed));
+    shp<DistributedVector> res = spcast<DistributedVector>(getEnrichedBasisMatrices(index, ID, false)->multiplyByVector(rbSolutionDistributed));
 
-    return std::static_pointer_cast<VECTOREPETRA>(res->data());
+    return spcast<VECTOREPETRA>(res->data());
 }
 
 void

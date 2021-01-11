@@ -76,7 +76,7 @@ solve()
 
         int status = -1;
 
-        M_solution = std::static_pointer_cast<BlockVector>(M_TMAlgorithm->advance(t, dt, status));
+        M_solution = spcast<BlockVector>(M_TMAlgorithm->advance(t, dt, status));
         if (status)
             throw new Exception("Error in solver. Status != 0.");
 
