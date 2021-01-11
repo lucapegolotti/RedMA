@@ -114,7 +114,7 @@ addVectorsFromFile(std::string filename, std::vector<shp<VECTOREPETRA>>& vectors
 {
     // using namespace boost::filesystem;
 
-    if (std::filesystem::exists(filename))
+    if (fs::exists(filename))
     {
         std::ifstream infile;
         infile.open(filename);

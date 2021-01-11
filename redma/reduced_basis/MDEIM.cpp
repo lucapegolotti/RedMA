@@ -696,7 +696,7 @@ loadMDEIM(std::string pathdir)
 {
     // // using namespace boost::filesystem;
     //
-    // if (std::filesystem::exists(pathdir + "/structure.mstr"))
+    // if (fs::exists(pathdir + "/structure.mstr"))
     // {
     //     M_structure.reset(new MDEIMStructure(pathdir + "/structure.mstr", M_comm));
     //
@@ -705,14 +705,14 @@ loadMDEIM(std::string pathdir)
     //     M_isInitialized = true;
     // }
     //
-    // if (std::filesystem::exists(pathdir + "/basis.mbasis") && M_data("rb/online/mdeim/loadfullbasis", false))
+    // if (fs::exists(pathdir + "/basis.mbasis") && M_data("rb/online/mdeim/loadfullbasis", false))
     // {
     //     if (!M_isInitialized)
     //         throw new Exception("MDEIM structure not loaded!");
     //     loadBasis(pathdir + "/basis.mbasis");
     // }
     //
-    // if (std::filesystem::exists(pathdir + "/projbasis.mbasis"))
+    // if (fs::exists(pathdir + "/projbasis.mbasis"))
     // {
     //     if (!M_isInitialized)
     //         throw new Exception("MDEIM structure not loaded!");

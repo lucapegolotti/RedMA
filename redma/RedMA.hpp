@@ -25,7 +25,18 @@
 #endif
 
 #include <memory>
-#include <filesystem>
+
+#ifndef __has_include
+  static_assert(false, "__has_include not supported");
+#else
+#if __has_include(<filesystem>)
+    #include <filesystem>
+        namespace fs = std::filesystem;
+    #elif __has_include(<experimental/filesystem>)
+    #include <experimental/filesystem>
+        namespace fs = std::experimental::filesystem;
+    #endif
+#endif
 
 #include <redma/utils/PrintLog.hpp>
 #include <redma/utils/Chrono.hpp>
@@ -62,12 +73,7 @@ shp<Type1> spcast(shp<Type2> ptr)
 
 }
 
-// this is a trick to allow for commas in arguments to SHP macro
-// template<typename T> struct argument_type;
-// template<typename T, typename U> struct argument_type<T(U)> {typedef U type;};
 #define COMMA                 ,
-
-// #define SHP(TYPE)           std::shared_ptr<argument_type<void(TYPE)>::type>
 
 #define EPETRACOMM          shp<Epetra_Comm>
 

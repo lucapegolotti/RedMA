@@ -31,7 +31,7 @@ takeDEIMSnapshots()
     //     problem.doStoreSolutions();
     //
     //     unsigned int paramIndex = 0;
-    //     while (std::filesystem::exists(outdir + "/param" + std::to_string(paramIndex)))
+    //     while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
     //         paramIndex++;
     //     std::string curdir = outdir + "/param" + std::to_string(paramIndex);
     //     create_directory(curdir);
@@ -66,7 +66,7 @@ dumpDEIMSnapshots(ProblemRB& problem,
     // for (auto idmeshtype : IDmeshTypeMap)
     // {
     //     std::string meshtypedir = outdir + "/" + idmeshtype.second;
-    //     std::filesystem::create_directory(meshtypedir);
+    //     fs::create_directory(meshtypedir);
     //
     //     unsigned int nfields = nonLinearTerms[0].block(idmeshtype.first).nRows();
     //

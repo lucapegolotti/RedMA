@@ -19,7 +19,7 @@
 
 #include <redma/reduced_basis/BlockMDEIM.hpp>
 
-#include <filesystem>
+#include <redma/RedMA.hpp>
 
 namespace RedMA
 {

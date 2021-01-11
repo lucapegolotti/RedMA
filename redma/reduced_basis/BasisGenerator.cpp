@@ -13,7 +13,7 @@ BasisGenerator(const DataContainer& data, EPETRACOMM comm) :
     //
     // std::string outdir = M_data("rb/offline/basis/directory", "basis");
     //
-    // if (std::filesystem::esists(outdir))
+    // if (fs::esists(outdir))
     //     printlog(YELLOW,"[BasisGenerator] basis directory already exists!\n", data.getVerbose());
     //
     // // we want to consider the whole basis when adding supremizers
@@ -40,12 +40,12 @@ generateMatricesOnly()
     //
     // std::string outdir = "matricesForOffline";
     //
-    // std::filesystem::create_directory(outdir);
+    // fs::create_directory(outdir);
     //
     // // dump norms
     // for (auto& meshas : M_meshASPairMap)
     // {
-    //     std::filesystem::create_directory(outdir + "/" + meshas.first);
+    //     fs::create_directory(outdir + "/" + meshas.first);
     //
     //     unsigned int nComponents = meshas.second.first->getNumComponents();
     //
@@ -112,7 +112,7 @@ createDefaultAssemblers()
     // std::string paramdir = snapshotsdir + "/param";
     // unsigned int i = 0;
     // // we loop over the folders with the parameters
-    // while (std::filesystem::exists(paramdir + std::to_string(i)))
+    // while (fs::exists(paramdir + std::to_string(i)))
     // {
     //     directory_iterator end_it;
     //     for (directory_iterator it(paramdir + std::to_string(i)); it != end_it; it++)
@@ -185,7 +185,7 @@ parseFiles()
     // std::string paramdir = snapshotsdir + "/param";
     // unsigned int i = 0;
     // // we loop over the folders with the parameters
-    // while (std::filesystem::exists(paramdir + std::to_string(i)))
+    // while (fs::exists(paramdir + std::to_string(i)))
     // {
     //     directory_iterator end_it;
     //     for (directory_iterator it(paramdir + std::to_string(i)); it != end_it; it++)
@@ -353,14 +353,14 @@ performPOD()
     // double podtol = M_data("rb/offline/basis/podtol", 1e-5);
     //
     // std::string outdir = M_data("rb/offline/basis/directory", "basis");
-    // std::filesystem::create_directory(outdir);
+    // fs::create_directory(outdir);
     //
     // printlog(MAGENTA, "[BasisGenerator] performing POD ... \n", M_data.getVerbose());
     // for (auto pair : M_meshASPairMap)
     // {
     //     unsigned int count = 0;
     //     VectorFunctions newBasisFunctions(pair.second.second.size());
-    //     std::filesystem::create_directory(outdir + "/" + pair.first);
+    //     fs::create_directory(outdir + "/" + pair.first);
     //
     //     for (auto sn : pair.second.second)
     //     {

@@ -33,7 +33,7 @@ load()
         // count number of fields
 
         unsigned int numFields = 0;
-        while (std::filesystem::exists(curdir + "/svd" + std::to_string(numFields) + ".txt"))
+        while (fs::exists(curdir + "/svd" + std::to_string(numFields) + ".txt"))
             numFields++;
 
         shp<RBBases> newBases(new RBBases(M_data, M_comm));

@@ -71,7 +71,7 @@ int main(int argc, char **argv)
     //     {
     //         std::vector<shp<VECTOREPETRA>> functions;
     //         std::string filename = indir + "/" + m + "/field" + std::to_string(fieldIndex) + "_piola." + format;
-    //         if (!std::filesystem::esists(filename))
+    //         if (!fs::esists(filename))
     //             filename = indir + "/" + m + "/field" + std::to_string(fieldIndex) + "." + format;
     //         std::ifstream infile(filename);
     //         std::string line;

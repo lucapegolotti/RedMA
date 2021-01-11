@@ -73,7 +73,7 @@ takeMatricesSnapshots()
     //
     // std::string outdir = M_data("rb/offline/mdeim/directory", "mdeims");
     //
-    // if (std::filesystem::exists(outdir))
+    // if (fs::exists(outdir))
     //     throw new Exception("Mdeims directory already exists!");
     //
     // for (unsigned int isnapshot = 0; isnapshot < nSnapshots; isnapshot++)
@@ -153,7 +153,7 @@ projectMDEIM()
     //
     // std::string basisdir = M_data("rb/offline/basis/directory", "basis");
     //
-    // if (std::filesystem::exists(basisdir))
+    // if (fs::exists(basisdir))
     // {
     //     for (auto& mdeims : M_primalBlockMDEIMsMap)
     //     {

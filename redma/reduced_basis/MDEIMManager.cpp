@@ -32,16 +32,16 @@ load()
         std::vector<shp<BlockMDEIM>> mdeimvec;
 
         unsigned int matrixIndex = 0;
-        while (std::filesystem::exists(curdir + "/blockmdeim" + std::to_string(matrixIndex)))
+        while (fs::exists(curdir + "/blockmdeim" + std::to_string(matrixIndex)))
         {
             std::string blockmdeimdir = curdir + "/blockmdeim" + std::to_string(matrixIndex);
 
             unsigned int countrow = 0;
-            while (std::filesystem::exists(blockmdeimdir + "/mdeim_" + std::to_string(countrow) + "_0"))
+            while (fs::exists(blockmdeimdir + "/mdeim_" + std::to_string(countrow) + "_0"))
                 countrow++;
 
             unsigned int countcol = 0;
-            while (std::filesystem::exists(blockmdeimdir + "/mdeim_0_" + std::to_string(countcol)))
+            while (fs::exists(blockmdeimdir + "/mdeim_0_" + std::to_string(countcol)))
                 countcol++;
 
             shp<BlockMDEIM> newMdeim(new BlockMDEIM());

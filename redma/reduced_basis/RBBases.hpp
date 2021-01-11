@@ -24,7 +24,7 @@
 
 // #include <rb/reduced_basis/rbSolver/ProperOrthogonalDecomposition.hpp>
 
-#include <filesystem>
+#include <redma/RedMA.hpp>
 
 namespace RedMA
 {

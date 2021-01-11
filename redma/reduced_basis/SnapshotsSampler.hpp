@@ -23,8 +23,6 @@
 
 #include <redma/geometry/GeometryPrinter.hpp>
 
-#include <filesystem>
-
 namespace RedMA
 {
 

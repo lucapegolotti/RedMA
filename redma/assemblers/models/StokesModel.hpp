@@ -17,6 +17,7 @@
 #ifndef STOKESMODEL_HPP
 #define STOKESMODEL_HPP
 
+#include <redma/RedMA.hpp>
 #include <redma/assemblers/abstract/aAssembler.hpp>
 #include <redma/array/DistributedVector.hpp>
 #include <redma/array/SparseMatrix.hpp>
@@ -29,7 +30,6 @@
 #include <lifev/core/filter/ExporterVTK.hpp>
 #include <lifev/core/filter/ExporterHDF5.hpp>
 
-#include <filesystem>
 // #include <Python.h>
 
 // class BlockMDEIM;

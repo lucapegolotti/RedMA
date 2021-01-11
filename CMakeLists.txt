@@ -86,6 +86,7 @@ set(LINKED_LIBRARIES
     umfpack
     openblas
     amd
+    stdc++fs
     )
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -94,7 +95,7 @@ endif()
 
 # we disable warnings of wrong return type because these are already present
 # at the level of LifeV
-set(CMAKE_CXX_FLAGS "-std=c++17 -Wno-return-type -Wno-unknown-pragmas")
+set(CMAKE_CXX_FLAGS "-Wno-return-type -Wno-unknown-pragmas")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 

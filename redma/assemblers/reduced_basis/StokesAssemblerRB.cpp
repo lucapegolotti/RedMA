@@ -98,7 +98,7 @@ setExporter()
     outputName += std::to_string(aAssembler::M_treeNode->M_ID);
 
     std::string outdir = this->M_data("exporter/outdir", "solutions/");
-    std::filesystem::create_directory(outdir);
+    fs::create_directory(outdir);
 
     std::string format = this->M_data("exporter/type", "hdf5");
     if (!std::strcmp(format.c_str(), "hdf5"))

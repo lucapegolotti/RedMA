@@ -17,9 +17,9 @@
 #ifndef STOKESASSEMBLERFE_HPP
 #define STOKESASSEMBLERFE_HPP
 
+#include <redma/RedMA.hpp>
 #include <redma/assemblers/abstract/aAssemblerFE.hpp>
 #include <redma/assemblers/models/StokesModel.hpp>
-#include <filesystem>
 
 namespace RedMA
 {

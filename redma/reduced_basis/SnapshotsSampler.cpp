@@ -16,9 +16,9 @@ takeSnapshots()
 {
     // using namespace boost::filesystem;
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
-    // if (std::filesystem::exists(outdir))
+    // if (fs::exists(outdir))
     //    throw new Exception("Snapshots directory already exists!");
-    std::filesystem::create_directory(outdir);
+    fs::create_directory(outdir);
     GeometryPrinter printer;
 
     unsigned int nSnapshots = M_data("rb/offline/snapshots/number", 10);
@@ -32,10 +32,10 @@ takeSnapshots()
         problem.doStoreSolutions();
 
         unsigned int paramIndex = 0;
-        while (std::filesystem::exists(outdir + "/param" + std::to_string(paramIndex)))
+        while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
-        std::filesystem::create_directory(curdir);
+        fs::create_directory(curdir);
         problem.getTree().randomSampleAroundOriginalValue(bound);
         problem.setup();
 
@@ -71,7 +71,7 @@ dumpSnapshots(ProblemFEM& problem,
     for (auto idmeshtype : IDmeshTypeMap)
     {
         std::string meshtypedir = outdir + "/" + idmeshtype.second;
-        std::filesystem::create_directory(meshtypedir);
+        fs::create_directory(meshtypedir);
 
         unsigned int nfields = solutions[0]->block(idmeshtype.first)->nRows();
 
@@ -132,7 +132,7 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
     {
         std::string paramfile = snapshotsDir + "/param" + std::to_string(i);
         std::string treefile =  paramfile + "/tree.xml";
-        if (std::filesystem::exists(treefile))
+        if (fs::exists(treefile))
         {
             M_data.setValueString("geometric_structure/xmlfile", treefile);
             ProblemFEM problem(M_data, M_comm, false);

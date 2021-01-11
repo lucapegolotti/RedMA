@@ -6,7 +6,7 @@ foreach(filename ${allfiles})
     endif()
 endforeach()
 
-# note: setting this to shared may cause problem at runtime when loading meshes
+# note: setting this to shared may cause problems at runtime when loading meshes
 add_library(core STATIC
             ${HEADERS}
             ${SOURCES})

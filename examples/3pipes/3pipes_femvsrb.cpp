@@ -17,7 +17,6 @@
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/problem/ComparisonFEMvsRB.hpp>
-#include <filesystem>
 
 using namespace RedMA;
 
@@ -170,7 +169,7 @@ int main(int argc, char **argv)
     // double runTimeFEM;
     //
     // std::string outdir = "solution_fem_reference/";
-    // if (std::filesystem::esists(outdir))
+    // if (fs::esists(outdir))
     // {
     //     std::ifstream infile;
     //
@@ -203,13 +202,13 @@ int main(int argc, char **argv)
     //
     // std::vector<std::pair<std::string, SHP(DataContainer)>> datacs = generateDatafiles(comm);
     //
-    // std::filesystem::create_directory("rb_solutions");
+    // fs::create_directory("rb_solutions");
     //
     // unsigned int index = 0;
     // for (auto curdata : datacs)
     // {
     //     std::string curDir = "rb_solutions/sol" + std::to_string(index) + "/";
-    //     std::filesystem::create_directory(curDir);
+    //     fs::create_directory(curDir);
     //
     //     Chrono chrono;
     //     chrono.start();

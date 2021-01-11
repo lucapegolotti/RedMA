@@ -26,7 +26,7 @@
 //  #include <rb/reduced_basis/util/EpetraArrayUtils.hpp>
 #include <redma/reduced_basis/MDEIMStructure.hpp>
 
-#include <filesystem>
+#include <redma/RedMA.hpp>
 
 namespace RedMA
 {

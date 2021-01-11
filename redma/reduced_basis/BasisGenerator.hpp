@@ -39,7 +39,7 @@
 #include <Teuchos_XMLParameterListHelpers.hpp>
 #include <Teuchos_RCP.hpp>
 
-#include <filesystem>
+#include <redma/RedMA.hpp>
 
 #include <fstream>
 
