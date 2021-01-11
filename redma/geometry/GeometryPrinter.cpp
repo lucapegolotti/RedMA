@@ -11,13 +11,13 @@ GeometryPrinter()
 void
 GeometryPrinter::
 saveToFile(TreeStructure& tree, std::string name,
-           std::shared_ptr<Epetra_Comm> comm)
+           shp<Epetra_Comm> comm)
 {
     if (comm->MyPID() == 0)
     {
         using namespace tinyxml2;
-        typedef std::shared_ptr<TreeNode> TreeNodePtr;
-        typedef std::map<std::string,std::shared_ptr<GeometricParameter> >
+        typedef shp<TreeNode> TreeNodePtr;
+        typedef std::map<std::string,shp<GeometricParameter> >
                                           GeometricParametersMap;
 
         std::queue<TreeNodePtr> nodesQueue;

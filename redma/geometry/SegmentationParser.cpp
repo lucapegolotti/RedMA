@@ -340,14 +340,14 @@ createTreeForward(const int& lengthTubes,
     double length = 0;
     int curLength = lengthTubes;
     bool continueLoop = true;
-    // std::queue<std::shared_ptr<Tube> > tubeQueue;
+    // std::queue<shp<Tube> > tubeQueue;
     do
     {
         printlog(MAGENTA, std::string("[SegmentationParser] placing tube ").
                           append(std::to_string(count+1)).append("\n"), M_verbose);
         int status = 0;
 
-        std::shared_ptr<Tube> childTube(new Tube(M_comm,"normal",true,1,curLength));
+        shp<Tube> childTube(new Tube(M_comm,"normal",true,1,curLength));
 
         Vector3D cb = prevCenter;
 

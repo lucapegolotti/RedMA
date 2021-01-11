@@ -1,19 +1,5 @@
-set(HEADERS
-    ${HEADERS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/aProblem.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ProblemFEM.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ProblemRB.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/DataContainer.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ComparisonFEMvsRB.hpp
-    CACHE INTERNAL ""
-)
+file(GLOB headers_files "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+set(HEADERS ${HEADERS} ${headers_files} CACHE INTERNAL "")
 
-set(SOURCES
-    ${SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/aProblem.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ProblemFEM.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ProblemRB.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/DataContainer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ComparisonFEMvsRB.cpp
-    CACHE INTERNAL ""
-)
+file(GLOB source_files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+set(SOURCES ${SOURCES} ${source_files} CACHE INTERNAL "")

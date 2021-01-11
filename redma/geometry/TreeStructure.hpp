@@ -38,14 +38,14 @@ namespace RedMA
 class TreeNode
 {
 public:
-    TreeNode(std::shared_ptr<BuildingBlock> block, unsigned int id);
+    TreeNode(shp<BuildingBlock> block, unsigned int id);
 
     bool isOutletNode();
 
     bool isInletNode();
 
-    std::vector<std::shared_ptr<TreeNode> > M_children;
-    std::shared_ptr<BuildingBlock>          M_block;
+    std::vector<shp<TreeNode> > M_children;
+    shp<BuildingBlock>          M_block;
     unsigned int                            M_ID;
     unsigned int                            M_depth;
     unsigned int                            M_nChildren;
@@ -54,8 +54,8 @@ public:
 class TreeStructure
 {
 private:
-    typedef std::shared_ptr<TreeNode>      TreeNodePtr;
-    typedef std::shared_ptr<BuildingBlock> BuildingBlockPtr;
+    typedef shp<TreeNode>      TreeNodePtr;
+    typedef shp<BuildingBlock> BuildingBlockPtr;
     typedef LifeV::VectorSmall<3>          Vector3D;
 public:
     TreeStructure(bool verbose = false);
@@ -85,7 +85,7 @@ public:
 
     void readMeshes(std::string meshdir = "../geometries/");
 
-    void createRandom(unsigned int blocksNumber, std::shared_ptr<Epetra_Comm> comm);
+    void createRandom(unsigned int blocksNumber, shp<Epetra_Comm> comm);
 
     std::map<unsigned int, TreeNodePtr> getNodesMap();
 

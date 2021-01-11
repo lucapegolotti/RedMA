@@ -5,16 +5,8 @@ add_subdirectory(finite_element)
 add_subdirectory(reduced_basis)
 add_subdirectory(models)
 
-set(HEADERS
-    ${HEADERS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/AssemblerFactory.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/DefaultAssemblersLibrary.hpp
-    CACHE INTERNAL ""
-)
+file(GLOB headers_files "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+set(HEADERS ${HEADERS} ${headers_files} CACHE INTERNAL "")
 
-set(SOURCES
-    ${SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/AssemblerFactory.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/DefaultAssemblersLibrary.cpp
-    CACHE INTERNAL ""
-)
+file(GLOB source_files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+set(SOURCES ${SOURCES} ${source_files} CACHE INTERNAL "")

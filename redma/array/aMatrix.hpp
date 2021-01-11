@@ -17,6 +17,7 @@
 #ifndef aMATRIX_HPP
 #define aMATRIX_HPP
 
+#include <redma/RedMA.hpp>
 #include <redma/array/aDataWrapper.hpp>
 #include <redma/array/aVector.hpp>
 #include <redma/utils/Exception.hpp>

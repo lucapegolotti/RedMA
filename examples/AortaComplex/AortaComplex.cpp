@@ -57,9 +57,9 @@ int main(int argc, char **argv)
 {
     #ifdef HAVE_MPI
     MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    shp<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
     #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
+    shp<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
     DataContainer data;

@@ -6,7 +6,7 @@ namespace RedMA
 shp<aAssembler>
 AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode)
 {
-    std::shared_ptr<aAssembler> ret;
+    shp<aAssembler> ret;
     std::string assemblerString = data("assembler/type","stokes");
 
     std::string method = treeNode->M_block->getDiscretizationMethod();

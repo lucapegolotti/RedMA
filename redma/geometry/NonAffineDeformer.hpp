@@ -17,6 +17,8 @@
 #ifndef NONAFFINEDEFORMER_HPP
 #define NONAFFINEDEFORMER_HPP
 
+#include <redma/RedMA.hpp>
+
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
 
@@ -37,19 +39,19 @@ namespace RedMA
 class NonAffineDeformer
 {
     typedef LifeV::RegionMesh<LifeV::LinearTetra>          mesh_Type;
-    typedef std::shared_ptr<mesh_Type>                     meshPtr_Type;
-    typedef std::shared_ptr<Epetra_Comm>                   commPtr_Type;
+    typedef shp<mesh_Type>                     meshPtr_Type;
+    typedef shp<Epetra_Comm>                   commPtr_Type;
     typedef LifeV::MapEpetra                               map_Type;
-    typedef std::shared_ptr<map_Type>                      mapPtr_Type;
+    typedef shp<map_Type>                      mapPtr_Type;
     typedef LifeV::FESpace<mesh_Type, map_Type>            fespace_Type;
-    typedef std::shared_ptr<fespace_Type>                  fespacePtr_Type;
+    typedef shp<fespace_Type>                  fespacePtr_Type;
     typedef LifeV::ETFESpace< mesh_Type, map_Type, 3, 3 >  fespaceETA_Type;
-    typedef std::shared_ptr<fespaceETA_Type>               fespaceETAPtr_Type;
+    typedef shp<fespaceETA_Type>               fespaceETAPtr_Type;
     typedef LifeV::MatrixEpetra<LifeV::Real>               matrix_Type;
-    typedef std::shared_ptr<matrix_Type>                   matrixPtr_Type;
-    typedef std::shared_ptr<LifeV::BCHandler>              bcPtr_Type;
+    typedef shp<matrix_Type>                   matrixPtr_Type;
+    typedef shp<LifeV::BCHandler>              bcPtr_Type;
     typedef LifeV::VectorEpetra                            vector_Type;
-    typedef std::shared_ptr<vector_Type>                   vectorPtr_Type;
+    typedef shp<vector_Type>                   vectorPtr_Type;
 
 
 public:

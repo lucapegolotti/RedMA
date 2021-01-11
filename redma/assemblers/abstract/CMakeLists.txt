@@ -1,13 +1,5 @@
-set(HEADERS
-    ${HEADERS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/aAssembler.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/aAssemblerFE.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/aAssemblerRB.hpp
-    CACHE INTERNAL ""
-)
+file(GLOB headers_files "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+set(HEADERS ${HEADERS} ${headers_files} CACHE INTERNAL "")
 
-set(SOURCES
-    ${SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/aAssembler.cpp
-    CACHE INTERNAL ""
-)
+file(GLOB source_files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+set(SOURCES ${SOURCES} ${source_files} CACHE INTERNAL "")

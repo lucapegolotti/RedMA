@@ -1,18 +1,5 @@
-set(HEADERS
-    ${HEADERS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/TimeMarchingAlgorithmFactory.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/aTimeMarchingAlgorithm.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/BDF.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/GeneralizedAlphaMethod.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/aFunctionProvider.hpp
-    CACHE INTERNAL ""
-)
+file(GLOB headers_files "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+set(HEADERS ${HEADERS} ${headers_files} CACHE INTERNAL "")
 
-set(SOURCES
-    ${SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/TimeMarchingAlgorithmFactory.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/aTimeMarchingAlgorithm.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/BDF.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/GeneralizedAlphaMethod.cpp
-    CACHE INTERNAL ""
-)
+file(GLOB source_files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+set(SOURCES ${SOURCES} ${source_files} CACHE INTERNAL "")

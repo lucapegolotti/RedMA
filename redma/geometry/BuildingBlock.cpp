@@ -125,7 +125,7 @@ matrixInverse(Matrix3D& matrix, Matrix3D* inverse)
     (*inverse)(2,2) = (a*e - b*d)/(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
 }
 
-std::map<std::string,std::shared_ptr<GeometricParameter> >&
+std::map<std::string,shp<GeometricParameter> >&
 BuildingBlock::
 getParametersMap()
 {
@@ -266,7 +266,7 @@ applyAffineTransformation(bool transformMesh)
         throw Exception(errorMsg);
     }
 
-    std::shared_ptr<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
+    shp<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
 
     if (transformMesh)
         transformer.reset(new Transformer(*M_mesh));

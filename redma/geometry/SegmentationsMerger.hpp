@@ -29,9 +29,9 @@ class SegmentationsMerger
 {
     typedef LifeV::VectorSmall<3>                          Vector3D;
     typedef GeometricFace                                  Contour;
-    typedef std::shared_ptr<Epetra_Comm>                   commPtr_Type;
+    typedef shp<Epetra_Comm>                   commPtr_Type;
     typedef LifeV::MatrixSmall<3,3>                        Matrix3D;
-    typedef std::shared_ptr<SegmentationParser>            SegmentationParserPtr;
+    typedef shp<SegmentationParser>            SegmentationParserPtr;
 
 public:
     SegmentationsMerger(const GetPot& datafile,
@@ -59,7 +59,7 @@ private:
                             double initialRadius,
                             SegmentationParserPtr segmentationFather,
                             SegmentationParserPtr segmentationChild,
-                            std::shared_ptr<BifurcationSymmetric> bifurcation);
+                            shp<BifurcationSymmetric> bifurcation);
 
     double rotateBifurcation(Vector3D initialCenter,
                              Vector3D initialAxis,
@@ -67,25 +67,25 @@ private:
                              double initialRadius,
                              SegmentationParserPtr segmentationFather,
                              SegmentationParserPtr segmentationChild,
-                             std::shared_ptr<BifurcationSymmetric> bifurcation);
+                             shp<BifurcationSymmetric> bifurcation);
 
     // params: bx,by,bz,rotation_axis_x,rotation_axis_y,rotation_axis_z,
     // alpha, scale, alpha_axis, out1_alphax, out1_alphay, out1_alphaz,
     // out2_alphax, out2_alphay, out2_alphaz
-    int deformBifurcation(std::shared_ptr<BifurcationSymmetric> bifurcation,
+    int deformBifurcation(shp<BifurcationSymmetric> bifurcation,
                           std::vector<double> params);
 
     // params: alpha_axis, out1_alphax, out1_alphay, out1_alphaz,
     // out2_alphax, out2_alphay, out2_alphaz
-    int deformPlacedBifurcation(std::shared_ptr<BifurcationSymmetric> bifurcation,
+    int deformPlacedBifurcation(shp<BifurcationSymmetric> bifurcation,
                                 std::vector<double> params);
 
-    double computeLoss(std::shared_ptr<BifurcationSymmetric> bifurcation,
+    double computeLoss(shp<BifurcationSymmetric> bifurcation,
                        SegmentationParserPtr segmentationFather,
                        SegmentationParserPtr segmentationChild,
                        const double inletConst, const double outletConst);
 
-    double optimizeLoss(std::shared_ptr<BifurcationSymmetric> bifurcation,
+    double optimizeLoss(shp<BifurcationSymmetric> bifurcation,
                         SegmentationParserPtr segmentationFather,
                         SegmentationParserPtr segmentationChild,
                         std::vector<double>& params,

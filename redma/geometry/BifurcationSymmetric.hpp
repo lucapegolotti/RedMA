@@ -66,7 +66,7 @@ private:
               const double& out2_alphax,
               const double& out2_alphay,
               const double& out2_alphaz,
-              std::shared_ptr<Transformer> transformer,
+              shp<Transformer> transformer,
               bool transformMesh = true);
 
     void rotateGeometricFace(const GeometricFace& face, Vector3D& rotatedCenter,

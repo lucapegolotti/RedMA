@@ -1,15 +1,5 @@
-set(HEADERS
-    ${HEADERS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/BCManager.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/WindkesselModel.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/PressureDrop.hpp
-    CACHE INTERNAL ""
-)
+file(GLOB headers_files "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+set(HEADERS ${HEADERS} ${headers_files} CACHE INTERNAL "")
 
-set(SOURCES
-    ${SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/BCManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/WindkesselModel.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/PressureDrop.cpp
-    CACHE INTERNAL ""
-)
+file(GLOB source_files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+set(SOURCES ${SOURCES} ${source_files} CACHE INTERNAL "")

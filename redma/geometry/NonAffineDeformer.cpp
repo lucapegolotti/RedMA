@@ -80,14 +80,14 @@ solveSystem()
     linearSolver.setParameters(*aztecList);
 
     typedef LifeV::PreconditionerML         precML_type;
-    typedef std::shared_ptr<precML_type>    precMLPtr_type;
+    typedef shp<precML_type>    precMLPtr_type;
     precML_type * precRawPtr;
     precRawPtr = new precML_type;
     // we set to look for the "fake" precMLL entry in order to set the
     // default parameters of ML preconditioner
     GetPot dummyDatafile;
     precRawPtr->setDataFromGetPot(dummyDatafile, "precMLL");
-    std::shared_ptr<LifeV::Preconditioner> precPtr;
+    shp<LifeV::Preconditioner> precPtr;
     precPtr.reset(precRawPtr);
 
     linearSolver.setPreconditioner(precPtr);
