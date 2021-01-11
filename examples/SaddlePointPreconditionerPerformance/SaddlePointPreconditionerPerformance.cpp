@@ -15,7 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <redma/RedMA.hpp>
-#include <redma/problem/ProblemFEM.hpp>
+#include <redma/problem/GlobalProblem.hpp>
 #include <redma/problem/DataContainer.hpp>
 
 using namespace RedMA;
@@ -48,7 +48,7 @@ void solveProblem(EPETRACOMM comm, std::string innerprec, std::string approxschu
     std::cout << "Writing " << outfile << std::endl;
     data.setValueString("time_discretization/solverstatistics", outfile);
 
-    ProblemFEM femProblem(data, comm);
+    GlobalProblem femProblem(data, comm);
 
     femProblem.solve();
 }

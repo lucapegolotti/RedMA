@@ -15,7 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <redma/RedMA.hpp>
-#include <redma/problem/ProblemFEM.hpp>
+#include <redma/problem/GlobalProblem.hpp>
 #include <redma/problem/DataContainer.hpp>
 
 using namespace RedMA;
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     data.setInflow(inflow);
     data.setVerbose(comm->MyPID() == 0);
 
-    ProblemFEM femProblem(data, comm);
+    GlobalProblem femProblem(data, comm);
 
     femProblem.solve();
 

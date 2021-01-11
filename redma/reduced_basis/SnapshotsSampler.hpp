@@ -19,7 +19,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
-#include <redma/problem/ProblemFEM.hpp>
+#include <redma/problem/GlobalProblem.hpp>
 
 #include <redma/geometry/GeometryPrinter.hpp>
 
@@ -33,7 +33,7 @@ public:
 
     void takeSnapshots();
 
-    void dumpSnapshots(ProblemFEM& problem, std::string outdir);
+    void dumpSnapshots(GlobalProblem& problem, std::string outdir);
 
     void transformSnapshotsWithPiola(std::string snapshotsDir,
                                      unsigned int fieldIndex,

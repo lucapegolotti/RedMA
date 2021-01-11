@@ -19,7 +19,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
-#include <redma/problem/ProblemFEM.hpp>
+#include <redma/problem/GlobalProblem.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
 
 #include <redma/reduced_basis/BlockMDEIM.hpp>

@@ -161,11 +161,11 @@ int main(int argc, char **argv)
     // data.finalize();
     // Chrono chrono;
     // chrono.start();
-    // shp<ProblemFEM> femProblem(new ProblemFEM(data, comm));
+    // shp<GlobalProblem> femProblem(new GlobalProblem(data, comm));
     // double setupTimeFEM = chrono.diff();
     //
     // ComparisonFEMvsRB comparison(data, comm);
-    // comparison.setProblemFEM(femProblem);
+    // comparison.setGlobalProblem(femProblem);
     // double runTimeFEM;
     //
     // std::string outdir = "solution_fem_reference/";
