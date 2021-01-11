@@ -195,7 +195,7 @@ int multiplyByScalar()
 }
 
 // we just check that no errors are thrown
-int clone()
+int _clone()
 {
     unsigned int M = 5;
 
@@ -273,7 +273,7 @@ int main()
     status |= AtomicTest("Add3", &add3).run();
     status |= AtomicTest("Add4", &add4).run();
     status |= AtomicTest("MultiplyByScalar", &multiplyByScalar).run();
-    status |= AtomicTest("clone", &clone).run();
+    status |= AtomicTest("clone", &_clone).run();
     status |= AtomicTest("ShallowCopy", &shallowCopy).run();
     status |= AtomicTest("DeepCopy", &deepCopy).run();
     status |= AtomicTest("Access", &accessOperator).run();

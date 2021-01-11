@@ -316,7 +316,7 @@ int multiplyByVector3()
 
 
 // we just check that no errors are thrown
-int clone()
+int _clone()
 {
     unsigned int N = 3;
     unsigned int M = 5;
@@ -436,7 +436,7 @@ int main()
     status |= AtomicTest("MultiplyByVector1", &multiplyByVector1).run();
     status |= AtomicTest("MultiplyByVector2", &multiplyByVector2).run();
     status |= AtomicTest("MultiplyByVector3", &multiplyByVector3).run();
-    status |= AtomicTest("Clone", &clone).run();
+    status |= AtomicTest("Clone", &_clone).run();
     status |= AtomicTest("Transpose", &transpose).run();
     status |= AtomicTest("ShallowCopy", &shallowCopy).run();
     status |= AtomicTest("DeepCopy", &deepCopy).run();
