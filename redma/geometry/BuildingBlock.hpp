@@ -183,12 +183,12 @@ protected:
                                                 const Vector3D& translation,
                                                 const double& scale);
 
-    static  void rotationFunction(double& x, double& y, double& z,
-                                  const Matrix3D& affMatrix,
-                                  const Vector3D& transl, const double& scale);
+    static void rotationFunction(double& x, double& y, double& z,
+                                 const Matrix3D& affMatrix,
+                                 const Vector3D& transl, const double& scale);
 
     static double fZero(const double& t, const double& x, const double& y,
-                      const double& z, const LifeV::ID& i);
+                        const double& z, const LifeV::ID& i);
 
     GeometricParametersHandler M_parametersHandler;
     std::string M_name;

@@ -37,13 +37,6 @@ GeometricFace(Vector3D center, Vector3D normal, double radius,
 }
 
 void
-BuildingBlock::
-setDatafile(const GetPot& datafile)
-{
-    M_datafile = datafile;
-}
-
-void
 GeometricFace::
 print() const
 {
@@ -91,6 +84,13 @@ BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
     M_parametersHandler.registerParameter("bx", 0.0, -infty, infty);
     M_parametersHandler.registerParameter("by", 0.0, -infty, infty);
     M_parametersHandler.registerParameter("bz", 0.0, -infty, infty);
+}
+
+void
+BuildingBlock::
+setDatafile(const GetPot& datafile)
+{
+    M_datafile = datafile;
 }
 
 int
@@ -266,7 +266,7 @@ applyAffineTransformation(bool transformMesh)
         throw Exception(errorMsg);
     }
 
-    std::shared_ptr<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
+    std::shared_ptr<LifeV::MeshUtility::MeshTransformer<mesh_Type>> transformer;
 
     if (transformMesh)
         transformer.reset(new Transformer(*M_mesh));
