@@ -38,7 +38,7 @@ traverseXML(tinyxml2::XMLElement* curElement,
 {
     if (M_maxNumBlocks < 0 || M_numBlocks < M_maxNumBlocks)
     {
-        std::shared_ptr<BuildingBlock> newNode;
+        shp<BuildingBlock> newNode;
         unsigned int outletParent = -1;
         if (curElement)
             newNode = parseElement(curElement, outletParent);
@@ -170,7 +170,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
     returnBlock->setDiscretizationMethod(discrMethod);
     returnBlock->setAssemblerType(assembler);
 
-    typedef std::shared_ptr<GeometricParameter> GeometricParameterPtr;
+    typedef shp<GeometricParameter> GeometricParameterPtr;
     std::map<std::string,GeometricParameterPtr>& parametersMap =
                                   returnBlock->getParametersMap();
 

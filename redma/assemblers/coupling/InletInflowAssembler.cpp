@@ -61,7 +61,7 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
     temp = this->M_childBfe->multiplyByVector(assemblerChild->getLifting(time));
 
     if (assemblerChild->getRBBases())
-        temp = assemblerChild->getRBBases()->projectOnLagrangeSpace(std::static_pointer_cast<BlockVector>(temp));
+        temp = assemblerChild->getRBBases()->projectOnLagrangeSpace(spcast<BlockVector>(temp));
     rhs->block(nPrimalBlocks + interfaceID)->add(temp);
 
     // // here + because the stabilization term is (stress - lagrange) => hence

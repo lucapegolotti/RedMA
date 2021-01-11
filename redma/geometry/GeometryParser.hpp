@@ -38,8 +38,8 @@ namespace RedMA
 
 class GeometryParser
 {
-    typedef std::shared_ptr<Epetra_Comm>  commPtr_Type;
-    typedef std::shared_ptr<BuildingBlock>  BuildingBlockPtr;
+    typedef shp<Epetra_Comm>  commPtr_Type;
+    typedef shp<BuildingBlock>  BuildingBlockPtr;
     typedef tinyxml2::XMLElement  XMLEl;
 
 public:

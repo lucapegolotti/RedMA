@@ -80,7 +80,7 @@ private:
 
 class GeometricParametersHandler
 {
-    typedef std::shared_ptr<GeometricParameter> GeometricParameterPtr;
+    typedef shp<GeometricParameter> GeometricParameterPtr;
 public:
     GeometricParametersHandler();
 

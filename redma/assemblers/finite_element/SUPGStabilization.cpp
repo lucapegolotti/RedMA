@@ -24,9 +24,9 @@ getMass(shp<BlockVector> sol, shp<BlockVector> rhs)
     using namespace LifeV::ExpressionAssembly;
     shp<SquareRoot> squareroot(new SquareRoot());
 
-    shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
-    shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
-    shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*spcast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*spcast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*spcast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
 
     shp<MATRIXEPETRA> mass00(new MATRIXEPETRA(M_velocityFESpace->map()));
     shp<MATRIXEPETRA> mass01(new MATRIXEPETRA(M_velocityFESpace->map()));
@@ -93,9 +93,9 @@ getMassJac(shp<BlockVector> sol, shp<BlockVector> rhs)
     using namespace LifeV::ExpressionAssembly;
     shp<SquareRoot> squareroot(new SquareRoot());
 
-    shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
-    shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
-    shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*spcast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*spcast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*spcast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
 
     shp<MATRIXEPETRA> massjac00(new MATRIXEPETRA(M_velocityFESpace->map()));
     shp<MATRIXEPETRA> massjac01(new MATRIXEPETRA(M_velocityFESpace->map()));
@@ -155,9 +155,9 @@ getJac(shp<BlockVector> sol, shp<BlockVector> rhs)
     using namespace LifeV::ExpressionAssembly;
     shp<SquareRoot> squareroot(new SquareRoot());
 
-    shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
-    shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
-    shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*spcast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*spcast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*spcast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
 
     shp<MATRIXEPETRA> jac00(new MATRIXEPETRA(M_velocityFESpace->map()));
     shp<MATRIXEPETRA> jac01(new MATRIXEPETRA(M_velocityFESpace->map()));
@@ -241,9 +241,9 @@ getResidual(shp<BlockVector> sol,
     using namespace LifeV;
     using namespace LifeV::ExpressionAssembly;
 
-    shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
-    shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
-    shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*std::static_pointer_cast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRep(new VECTOREPETRA(*spcast<VECTOREPETRA>(sol->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> velocityRhsRep(new VECTOREPETRA(*spcast<VECTOREPETRA>(rhs->block(0)->data()), Repeated));
+    shp<VECTOREPETRA> pressureRep(new VECTOREPETRA(*spcast<VECTOREPETRA>(sol->block(1)->data()), Repeated));
 
     shp<SquareRoot> squareroot(new SquareRoot());
 

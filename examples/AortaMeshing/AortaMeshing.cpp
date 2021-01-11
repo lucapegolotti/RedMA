@@ -33,16 +33,16 @@ int main(int argc, char **argv)
 {
     #ifdef HAVE_MPI
     MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    shp<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
     #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
+    shp<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
     GetPot datafile("datafiles/data");
 
     SegmentationsMerger merger(datafile,comm,true);
 
-    std::shared_ptr<SegmentationParser> sp1(new SegmentationParser(datafile, comm,
+    shp<SegmentationParser> sp1(new SegmentationParser(datafile, comm,
                 "datafiles/aorta.pth", "datafiles/aorta_segs_final.ctgr", "linear", true));
 
     double constCenters = datafile("segmentation_parser/const_centers", 2.0);
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 
     printer.saveToFile(tree2, "tree_aorta2.xml", comm);
 
-    std::shared_ptr<SegmentationParser> sp2(new SegmentationParser(datafile, comm,
+    shp<SegmentationParser> sp2(new SegmentationParser(datafile, comm,
                 "datafiles/subclavian.pth", "datafiles/subclavian_segs_final.ctgr", "linear", true));
 
     contours = sp2->getContours();
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     // tree_subclavian.traverseAndDeformGeometries();
     // tree_subclavian.dump("output/","../../../meshes/");
 
-    std::shared_ptr<SegmentationParser> sp3(new SegmentationParser(datafile, comm,
+    shp<SegmentationParser> sp3(new SegmentationParser(datafile, comm,
                 "datafiles/Lt-carotid.pth", "datafiles/Lt-carotid_segs_final.ctgr", "linear", true));
 
     contours = sp3->getContours();
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 
     cuts.push_back(contours[26]);
 
-    std::shared_ptr<SegmentationParser> sp4(new SegmentationParser(datafile, comm,
+    shp<SegmentationParser> sp4(new SegmentationParser(datafile, comm,
                "datafiles/btrunk.pth", "datafiles/btrunk_segs_final.ctgr", "linear", true));
 
     contours = sp4->getContours();
@@ -109,7 +109,7 @@ int main(int argc, char **argv)
     // tree_btrunk1.traverseAndDeformGeometries();
     // tree_btrunk1.dump("output/","../../../meshes/");
 
-    std::shared_ptr<SegmentationParser> sp5(new SegmentationParser(datafile, comm,
+    shp<SegmentationParser> sp5(new SegmentationParser(datafile, comm,
                "datafiles/rt-carotid.pth", "datafiles/rt-carotid_segs_final.ctgr", "linear", true));
 
     contours = sp5->getContours();

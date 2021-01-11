@@ -45,7 +45,7 @@ setSolverOptions()
                                      "datafiles/solversOptionsFast");
     optionsPrec += ".xml";
     M_solversOptions = Teuchos::getParametersFromXmlFile(optionsPrec);
-    std::shared_ptr<Teuchos::ParameterList> monolithicOptions;
+    shp<Teuchos::ParameterList> monolithicOptions;
     monolithicOptions.reset(
         new Teuchos::ParameterList(M_solversOptions->sublist("MonolithicOperator")));
     M_pListLinSolver = monolithicOptions;

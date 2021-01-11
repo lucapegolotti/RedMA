@@ -105,7 +105,7 @@ applyNonAffineTransformation(bool transformMesh)
     printlog(MAGENTA, "[" + M_name +
                     " BuildingBlock] applying non affine transformation ...\n",
                     M_verbose);
-    std::shared_ptr<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
+    shp<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
 
     if (transformMesh)
         transformer.reset(new LifeV::MeshUtility::MeshTransformer<mesh_Type>(*M_mesh));
@@ -121,7 +121,7 @@ applyNonAffineTransformation(bool transformMesh)
 void
 Tube::
 nonAffineScaling(const double& lengthRatio, const double& radiusRatio,
-                 std::shared_ptr<Transformer> transformer)
+                 shp<Transformer> transformer)
 {
     std::string msg = std::string("[") + M_name + " BuildingBlock]";
     msg = msg + " scaling with lenghtRatio = " + std::to_string(lengthRatio) +
@@ -153,7 +153,7 @@ scalingFunction(double& x, double& y, double& z,
 
 void
 Tube::
-bend(const double& bendAngle, std::shared_ptr<Transformer> transformer, bool transformMesh)
+bend(const double& bendAngle, shp<Transformer> transformer, bool transformMesh)
 {
     std::string msg = std::string("[") + M_name + " BuildingBlock]";
     msg = msg + " bending with bendAngle = " + std::to_string(bendAngle) + "\n";
@@ -183,7 +183,7 @@ bend(const double& bendAngle, std::shared_ptr<Transformer> transformer, bool tra
                 LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
             	LifeV::BCFunctionBase outletFunction(foo);
 
-                std::shared_ptr<LifeV::BCHandler> bcs(new LifeV::BCHandler);
+                shp<LifeV::BCHandler> bcs(new LifeV::BCHandler);
                 bcs->addBC("Inflow", 1, LifeV::Essential, LifeV::Full,
                            zeroFunction, 3);
                 bcs->addBC("Outflow", 2, LifeV::Essential, LifeV::Full,

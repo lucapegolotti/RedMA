@@ -1,10 +1,10 @@
-#include "ProblemFEM.hpp"
+#include "GlobalProblem.hpp"
 
 namespace RedMA
 {
 
-ProblemFEM::
-ProblemFEM(const DataContainer& data, EPETRACOMM comm, bool doSetup) :
+GlobalProblem::
+GlobalProblem(const DataContainer& data, EPETRACOMM comm, bool doSetup) :
   aProblem(data),
   M_geometryParser(data.getDatafile(),
                    data("geometric_structure/xmlfile","tree.xml"),
@@ -19,7 +19,7 @@ ProblemFEM(const DataContainer& data, EPETRACOMM comm, bool doSetup) :
 }
 
 void
-ProblemFEM::
+GlobalProblem::
 setup()
 {
     typedef BlockAssembler BAssembler;
@@ -42,7 +42,7 @@ setup()
 }
 
 void
-ProblemFEM::
+GlobalProblem::
 solve()
 {
     double t0 = M_data("time_discretization/t0", 0.0);
@@ -63,20 +63,20 @@ solve()
     {
         if (t < t0)
         {
-            std::string msg = "[ProblemFEM] solving ramp"
+            std::string msg = "[GlobalProblem] solving ramp"
                               ", t = " + std::to_string(t) + " -> " + std::to_string(t+dt) + "\n";
             printlog(MAGENTA, msg, M_data.getVerbose());
         }
         else
         {
-            std::string msg = "[ProblemFEM] solving timestep " + std::to_string(count) +
+            std::string msg = "[GlobalProblem] solving timestep " + std::to_string(count) +
                               ", t = " + std::to_string(t) + " -> " + std::to_string(t+dt) + "\n";
             printlog(MAGENTA, msg, M_data.getVerbose());
         }
 
         int status = -1;
 
-        M_solution = std::static_pointer_cast<BlockVector>(M_TMAlgorithm->advance(t, dt, status));
+        M_solution = spcast<BlockVector>(M_TMAlgorithm->advance(t, dt, status));
         if (status)
             throw new Exception("Error in solver. Status != 0.");
 
@@ -88,9 +88,7 @@ solve()
             M_timestepsSolutions.push_back(t);
         }
         if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
-        {
             M_assembler->exportSolution(t, M_solution);
-        }
 
         M_assembler->postProcess(t, M_solution);
         M_TMAlgorithm->shiftSolutions(M_solution);

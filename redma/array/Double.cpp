@@ -10,7 +10,7 @@ Double()
 
 void
 Double::
-add(std::shared_ptr<aMatrix> other)
+add(shp<aMatrix> other)
 {
     if (!other->isZero())
     {
@@ -26,11 +26,11 @@ multiplyByScalar(const double& coeff)
     M_double *= coeff;
 }
 
-std::shared_ptr<aVector>
+shp<aVector>
 Double::
-multiplyByVector(std::shared_ptr<aVector> vector)
+multiplyByVector(shp<aVector> vector)
 {
-    std::shared_ptr<Double> res(new Double());
+    shp<Double> res(new Double());
     if (!vector->isZero())
     {
         double value = convert<Double>(vector)->getValue();
@@ -40,11 +40,11 @@ multiplyByVector(std::shared_ptr<aVector> vector)
     return res;
 }
 
-std::shared_ptr<aMatrix>
+shp<aMatrix>
 Double::
-multiplyByMatrix(std::shared_ptr<aMatrix> other)
+multiplyByMatrix(shp<aMatrix> other)
 {
-    std::shared_ptr<Double> res(new Double());
+    shp<Double> res(new Double());
     if (!other->isZero())
     {
         double value = convert<Double>(other)->getValue();
@@ -76,7 +76,7 @@ operator()(unsigned int index)
 
 void
 Double::
-add(std::shared_ptr<aVector> other)
+add(shp<aVector> other)
 {
     if (!other->isZero())
     {
@@ -87,7 +87,7 @@ add(std::shared_ptr<aVector> other)
 
 void
 Double::
-shallowCopy(std::shared_ptr<aDataWrapper> other)
+shallowCopy(shp<aDataWrapper> other)
 {
     double value = convert<Double>(other)->getValue();
     M_double = value;
@@ -95,7 +95,7 @@ shallowCopy(std::shared_ptr<aDataWrapper> other)
 
 void
 Double::
-deepCopy(std::shared_ptr<aDataWrapper> other)
+deepCopy(shp<aDataWrapper> other)
 {
     double value = 0;
     if (other)
@@ -127,11 +127,11 @@ clone() const
     // return retDouble;
 }
 
-std::shared_ptr<void>
+shp<void>
 Double::
 data() const
 {
-    std::shared_ptr<double> res(new double(M_double));
+    shp<double> res(new double(M_double));
     return res;
 }
 

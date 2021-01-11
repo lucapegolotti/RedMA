@@ -17,7 +17,7 @@
 #ifndef COMPARISONFEMVSRB_HPP
 #define COMPARISONFEMVSRB_HPP
 
-#include <redma/problem/ProblemFEM.hpp>
+#include <redma/problem/GlobalProblem.hpp>
 #include <redma/problem/ProblemRB.hpp>
 
 namespace RedMA
@@ -28,7 +28,7 @@ class ComparisonFEMvsRB
 public:
     ComparisonFEMvsRB(const DataContainer& data, EPETRACOMM comm);
 
-    void setProblemFEM(const shp<ProblemFEM>& problemFEM) {M_problemFEM = problemFEM;}
+    void setGlobalProblem(const shp<GlobalProblem>& problemFEM) {M_problemFEM = problemFEM;}
 
     void setProblemRB(const shp<ProblemRB>& problemRB) {M_problemRB = problemRB;}
 
@@ -51,7 +51,7 @@ public:
     double getTimeRB() {return M_timeRB;}
 
 private:
-    shp<ProblemFEM>                                     M_problemFEM;
+    shp<GlobalProblem>                                     M_problemFEM;
     shp<ProblemRB>                                      M_problemRB;
     std::vector<BlockVector>                            M_loadedSolutions;
     double                                              M_timeFEM;

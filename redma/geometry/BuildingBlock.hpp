@@ -74,19 +74,19 @@ class BuildingBlock
 {
 protected:
     typedef LifeV::RegionMesh<LifeV::LinearTetra>          mesh_Type;
-    typedef std::shared_ptr<mesh_Type>                     meshPtr_Type;
-    typedef std::shared_ptr<Epetra_Comm>                   commPtr_Type;
+    typedef shp<mesh_Type>                     meshPtr_Type;
+    typedef shp<Epetra_Comm>                   commPtr_Type;
     typedef LifeV::MapEpetra                               map_Type;
-    typedef std::shared_ptr<map_Type>                      mapPtr_Type;
+    typedef shp<map_Type>                      mapPtr_Type;
     typedef LifeV::VectorSmall<3>                          Vector3D;
     typedef LifeV::MatrixSmall<3,3>                        Matrix3D;
     typedef LifeV::ExporterVTK<mesh_Type>                  Exporter;
     typedef LifeV::FESpace<mesh_Type, map_Type>            FESpace_Type;
-    typedef std::shared_ptr<FESpace_Type>                  FESpacePtr_Type;
+    typedef shp<FESpace_Type>                  FESpacePtr_Type;
     typedef LifeV::VectorEpetra                            vector_Type;
-    typedef std::shared_ptr<vector_Type>                   vectorPtr_Type;
+    typedef shp<vector_Type>                   vectorPtr_Type;
     typedef LifeV::MeshUtility::MeshTransformer<mesh_Type> Transformer;
-    typedef std::shared_ptr<GeometricParameter>            GeometricParameterPtr;
+    typedef shp<GeometricParameter>            GeometricParameterPtr;
 
 public:
     BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose);
@@ -95,7 +95,7 @@ public:
 
     GeometricParameterPtr getParameter(std::string name){return M_parametersHandler.getParameter(name);};
 
-    std::map<std::string,std::shared_ptr<GeometricParameter> >& getParametersMap();
+    std::map<std::string,shp<GeometricParameter> >& getParametersMap();
 
     GeometricParametersHandler& getGeometricParametersHandler() {return M_parametersHandler;}
 

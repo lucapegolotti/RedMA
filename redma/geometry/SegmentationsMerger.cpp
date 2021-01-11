@@ -114,8 +114,8 @@ mergeTwoSegmentations(SegmentationParserPtr segmentationFather,
                             contours1[closestPoint].M_center - firstCenter);
     guessTransv = guessTransv / guessTransv.norm();
 
-    std::vector<std::shared_ptr<BifurcationSymmetric>> bifurcationsVector;
-    std::shared_ptr<BifurcationSymmetric> bifurcation;
+    std::vector<shp<BifurcationSymmetric>> bifurcationsVector;
+    shp<BifurcationSymmetric> bifurcation;
     double minloss = 1e15;
     unsigned int bestBifurcation;
     unsigned int count = 0;
@@ -203,7 +203,7 @@ rotateBifurcation(Vector3D initialCenter,
                   double initialRadius,
                   SegmentationParserPtr segmentationFather,
                   SegmentationParserPtr segmentationChild,
-                  std::shared_ptr<BifurcationSymmetric> bifurcation)
+                  shp<BifurcationSymmetric> bifurcation)
 {
     Vector3D refAxis = bifurcation->getInletNormal();
     Vector3D axis;
@@ -285,7 +285,7 @@ placeBifurcation(Vector3D initialCenter,
                  double initialRadius,
                  SegmentationParserPtr segmentationFather,
                  SegmentationParserPtr segmentationChild,
-                 std::shared_ptr<BifurcationSymmetric> bifurcation)
+                 shp<BifurcationSymmetric> bifurcation)
 {
     Vector3D refAxis = bifurcation->getInletNormal();
     Vector3D axis;
@@ -328,7 +328,7 @@ placeBifurcation(Vector3D initialCenter,
 // out2_alphax, out2_alphay, out2_alphaz
 int
 SegmentationsMerger::
-deformBifurcation(std::shared_ptr<BifurcationSymmetric> bifurcation,
+deformBifurcation(shp<BifurcationSymmetric> bifurcation,
                   std::vector<double> params)
 {
     int status = 0;
@@ -360,7 +360,7 @@ deformBifurcation(std::shared_ptr<BifurcationSymmetric> bifurcation,
 // out2_alphax, out2_alphay, out2_alphaz
 int
 SegmentationsMerger::
-deformPlacedBifurcation(std::shared_ptr<BifurcationSymmetric> bifurcation,
+deformPlacedBifurcation(shp<BifurcationSymmetric> bifurcation,
                         std::vector<double> params)
 {
     int status = 0;
@@ -382,7 +382,7 @@ deformPlacedBifurcation(std::shared_ptr<BifurcationSymmetric> bifurcation,
 
 double
 SegmentationsMerger::
-optimizeLoss(std::shared_ptr<BifurcationSymmetric> bifurcation,
+optimizeLoss(shp<BifurcationSymmetric> bifurcation,
              SegmentationParserPtr segmentationFather,
              SegmentationParserPtr segmentationChild,
              std::vector<double>& params,
@@ -492,7 +492,7 @@ optimizeLoss(std::shared_ptr<BifurcationSymmetric> bifurcation,
 
 double
 SegmentationsMerger::
-computeLoss(std::shared_ptr<BifurcationSymmetric> bifurcation,
+computeLoss(shp<BifurcationSymmetric> bifurcation,
             SegmentationParserPtr segmentationFather,
             SegmentationParserPtr segmentationChild,
             const double inletConst, const double outletConst)

@@ -26,7 +26,7 @@ checkOnlineMDEIM()
     //
     // for (unsigned int i = 0; i < nChecks; i++)
     // {
-    //     ProblemFEM problem(M_data, M_comm, false);
+    //     GlobalProblem problem(M_data, M_comm, false);
     //
     //     problem.getTree().randomSampleAroundOriginalValue(bound);
     //     // this can be optimized. Matrices are assembled twice
@@ -55,7 +55,7 @@ loadMDEIMs()
     // // using namespace boost::filesystem;
     //
     // // this is only to get the assembler to give to the mdeims
-    // ProblemFEM problem(M_data, M_comm, false);
+    // GlobalProblem problem(M_data, M_comm, false);
     // problem.setup();
     // auto assemblers = problem.getBlockAssembler()->getAssemblersMap();
     // auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();

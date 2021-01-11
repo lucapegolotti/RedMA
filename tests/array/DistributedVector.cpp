@@ -26,9 +26,9 @@ using namespace RedMA;
 shp<Epetra_Comm> generateComm()
 {
     #ifdef HAVE_MPI
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    shp<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
     #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
+    shp<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
     return comm;
 }

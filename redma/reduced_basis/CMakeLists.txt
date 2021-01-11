@@ -1,30 +1,5 @@
-set(HEADERS
-    ${HEADERS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/SnapshotsSampler.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/BasisGenerator.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/MDEIMGenerator.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/MDEIMChecker.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/BlockMDEIM.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/MDEIM.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/MDEIMManager.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/MDEIMStructure.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/RBBases.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/RBBasesManager.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/DEIMSnapshotsSampler.hpp
-    CACHE INTERNAL ""
-)
+file(GLOB headers_files "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+set(HEADERS ${HEADERS} ${headers_files} CACHE INTERNAL "")
 
-set(SOURCES
-    ${SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/SnapshotsSampler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/BasisGenerator.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/MDEIMGenerator.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/MDEIMChecker.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/BlockMDEIM.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/MDEIM.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/MDEIMManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/RBBases.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/RBBasesManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/DEIMSnapshotsSampler.cpp
-    CACHE INTERNAL ""
-)
+file(GLOB source_files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+set(SOURCES ${SOURCES} ${source_files} CACHE INTERNAL "")

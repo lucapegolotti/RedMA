@@ -78,7 +78,7 @@ takeMatricesSnapshots()
     //
     // for (unsigned int isnapshot = 0; isnapshot < nSnapshots; isnapshot++)
     // {
-    //     ProblemFEM problem(M_data, M_comm, false);
+    //     GlobalProblem problem(M_data, M_comm, false);
     //     problem.doStoreSolutions();
     //
     //     problem.getTree().randomSampleAroundOriginalValue(bound);

@@ -41,7 +41,7 @@ class SegmentationParser
 {
     typedef LifeV::VectorSmall<3>                          Vector3D;
     typedef GeometricFace                                  Contour;
-    typedef std::shared_ptr<Epetra_Comm>                   commPtr_Type;
+    typedef shp<Epetra_Comm>                   commPtr_Type;
     typedef LifeV::MatrixSmall<3,3>                        Matrix3D;
 
 public:

@@ -20,7 +20,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/utils/PrintLog.hpp>
 #include <redma/problem/DataContainer.hpp>
-#include <redma/problem/ProblemFEM.hpp>
+#include <redma/problem/GlobalProblem.hpp>
 #include <redma/assemblers/AssemblerFactory.hpp>
 #include <redma/assemblers/coupling/InterfaceAssembler.hpp>
 

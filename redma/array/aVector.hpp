@@ -17,6 +17,7 @@
 #ifndef aVECTOR_HPP
 #define aVECTOR_HPP
 
+#include <redma/RedMA.hpp>
 #include <redma/array/aDataWrapper.hpp>
 #include <redma/array/Datatypes.hpp>
 #include <redma/utils/Exception.hpp>

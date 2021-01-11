@@ -68,10 +68,10 @@ buildPreconditioner(const BM& matrix)
     {
         unsigned int recomputeevery = M_data("preconditioner/recomputeevery", 1);
         if (M_prec == nullptr || (M_numSolves % recomputeevery) == 0)
-            M_prec.reset(new SaddlePointPreconditioner(M_data, std::static_pointer_cast<BlockMatrix>(matrix)));
+            M_prec.reset(new SaddlePointPreconditioner(M_data, spcast<BlockMatrix>(matrix)));
         else
         {
-            std::static_pointer_cast<SaddlePointPreconditioner>(M_prec)->setup(std::static_pointer_cast<BlockMatrix>(matrix), false);
+            spcast<SaddlePointPreconditioner>(M_prec)->setup(spcast<BlockMatrix>(matrix), false);
         }
     }
     else

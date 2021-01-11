@@ -16,7 +16,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
-#include <redma/problem/ProblemFEM.hpp>
+#include <redma/problem/GlobalProblem.hpp>
 
 using namespace RedMA;
 
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     data.setValueString("exporter/outdir", outdir);
     data.finalize();
 
-    ProblemFEM femProblem(data, comm);
+    GlobalProblem femProblem(data, comm);
     femProblem.solve();
 
     msg = "Total time =  ";

@@ -321,7 +321,7 @@ StokesModel::
 apply0DirichletBCsMatrix(shp<BCManager> bcManager,
                          shp<aMatrix> matrix, double diagCoeff)
 {
-    auto matrixConverted = std::static_pointer_cast<BlockMatrix>(matrix);
+    auto matrixConverted = spcast<BlockMatrix>(matrix);
     bcManager->apply0DirichletMatrix(*matrixConverted, M_velocityFESpace,
                                      0, diagCoeff);
 }
@@ -588,13 +588,13 @@ computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
     linearSolver.setParameters(*aztecList);
 
     typedef LifeV::PreconditionerML         precML_type;
-    typedef std::shared_ptr<precML_type>    precMLPtr_type;
+    typedef shp<precML_type>    precMLPtr_type;
     precML_type * precRawPtr;
     precRawPtr = new precML_type;
 
     GetPot dummyDatafile;
     precRawPtr->setDataFromGetPot(dummyDatafile, "precMLL");
-    std::shared_ptr<LifeV::Preconditioner> precPtr;
+    shp<LifeV::Preconditioner> precPtr;
     precPtr.reset(precRawPtr);
 
     linearSolver.setPreconditioner(precPtr);

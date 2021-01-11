@@ -65,7 +65,7 @@ public:
 private:
     void nonAffineScaling(const double& lengthRatio,
                           const double& outRadiusRatio,
-                          std::shared_ptr<Transformer> transformer);
+                          shp<Transformer> transformer);
 
     static void scalingFunction(double& x, double& y, double& z,
                                 const double& lenghtRatio,
@@ -86,7 +86,7 @@ private:
     Matrix3D computeJacobianBend(const double& x, const double& y, const double& z,
                                  const double& bendAngle, const double& L);
 
-    void bend(const double& bendAngle, std::shared_ptr<Transformer> transformer,
+    void bend(const double& bendAngle, shp<Transformer> transformer,
               bool transformMesh = true);
 
     Vector3D M_inletCenterRef;

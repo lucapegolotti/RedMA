@@ -1,21 +1,5 @@
-set(HEADERS
-    ${HEADERS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/StokesAssemblerFE.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesAssemblerFE.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/HFStabilization.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesStabilization.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/VMSStabilization.hpp
-    CACHE INTERNAL ""
-)
+file(GLOB headers_files "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+set(HEADERS ${HEADERS} ${headers_files} CACHE INTERNAL "")
 
-set(SOURCES
-    ${SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/StokesAssemblerFE.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesAssemblerFE.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/HFStabilization.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/NavierStokesStabilization.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/SUPGStabilization.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/VMSStabilization.cpp
-    CACHE INTERNAL ""
-)
+file(GLOB source_files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+set(SOURCES ${SOURCES} ${source_files} CACHE INTERNAL "")

@@ -95,7 +95,7 @@ convertInnerTo(Datatype type, shp<Epetra_Comm> comm)
     if (comm == nullptr)
         throw new Exception("No communicator in block vector!");
 
-    std::shared_ptr<BlockVector> retVec(new BlockVector(nRows()));
+    shp<BlockVector> retVec(new BlockVector(nRows()));
 
     for (unsigned int i = 0; i < nRows(); i++)
     {
@@ -131,7 +131,7 @@ resize(const unsigned int& nRows)
 
 void
 BlockVector::
-add(std::shared_ptr<aVector> other)
+add(shp<aVector> other)
 {
     if (other->nRows() == 0)
         return;
@@ -141,7 +141,7 @@ add(std::shared_ptr<aVector> other)
         deepCopy(other);
         return;
     }
-    std::shared_ptr<BlockVector> otherVector = convert<BlockVector>(other);
+    shp<BlockVector> otherVector = convert<BlockVector>(other);
 
     if (nRows() != other->nRows())
         throw new Exception("BlockVector: inconsistent dimensions in add!");
@@ -182,7 +182,7 @@ dump(std::string namefile) const
 
 void
 BlockVector::
-shallowCopy(std::shared_ptr<aDataWrapper> other)
+shallowCopy(shp<aDataWrapper> other)
 {
     if (other && !other->isZero())
     {

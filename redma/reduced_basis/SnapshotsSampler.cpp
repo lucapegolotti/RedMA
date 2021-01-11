@@ -26,7 +26,7 @@ takeSnapshots()
 
     for (unsigned int i = 0; i < nSnapshots; i++)
     {
-        ProblemFEM problem(M_data, M_comm, false);
+        GlobalProblem problem(M_data, M_comm, false);
         // this is to allow taking the snapshots at the end of the simulation from
         // the fem problem
         problem.doStoreSolutions();
@@ -49,7 +49,7 @@ takeSnapshots()
 
 void
 SnapshotsSampler::
-dumpSnapshots(ProblemFEM& problem,
+dumpSnapshots(GlobalProblem& problem,
               std::string outdir)
 {
     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
@@ -135,7 +135,7 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
         if (fs::exists(treefile))
         {
             M_data.setValueString("geometric_structure/xmlfile", treefile);
-            ProblemFEM problem(M_data, M_comm, false);
+            GlobalProblem problem(M_data, M_comm, false);
 
             problem.setup();
 

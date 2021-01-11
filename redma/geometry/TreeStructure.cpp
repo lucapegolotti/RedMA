@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 TreeNode::
-TreeNode(std::shared_ptr<BuildingBlock> block, unsigned int id) :
+TreeNode(shp<BuildingBlock> block, unsigned int id) :
   M_block(block),
   M_ID(id),
   M_nChildren(0)
@@ -80,7 +80,7 @@ addChild(unsigned int baseID, BuildingBlockPtr blockToAdd, int outletIndex)
                                maxChildrenStr + ")";
         throw Exception(errorMsg);
     }
-    std::shared_ptr<TreeNode> newNode(new TreeNode(blockToAdd,M_maxID));
+    shp<TreeNode> newNode(new TreeNode(blockToAdd,M_maxID));
     if (outletIndex == -1)
         baseNode->M_children[baseNode->M_nChildren] = newNode;
     else
@@ -152,7 +152,7 @@ setRoot(BuildingBlockPtr block)
         std::string errorMsg = "Trees can only contain one root!";
         throw Exception(errorMsg);
     }
-    std::shared_ptr<TreeNode> newNode(new TreeNode(block,0));
+    shp<TreeNode> newNode(new TreeNode(block,0));
     M_root = newNode;
     M_root->M_depth = 0;
     M_nodesMap[0] = M_root;
@@ -299,12 +299,12 @@ getMeshListNames()
 
 void
 TreeStructure::
-createRandom(unsigned int blocksNumber, std::shared_ptr<Epetra_Comm> comm)
+createRandom(unsigned int blocksNumber, shp<Epetra_Comm> comm)
 {
     for (int i = 0; i < blocksNumber; i++)
     {
         const unsigned int numberClasses = 2;
-        std::shared_ptr<BuildingBlock> newBlock;
+        shp<BuildingBlock> newBlock;
 
         int chosenClass = rand() % numberClasses;
         std::string ref = "coarse";

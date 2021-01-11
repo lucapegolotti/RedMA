@@ -33,12 +33,12 @@
 namespace RedMA
 {
 
-class ProblemFEM : public aProblem
+class GlobalProblem : public aProblem
 {
     typedef shp<BlockVector>                   BV;
     typedef shp<BlockMatrix>                   BM;
 public:
-    ProblemFEM(const DataContainer& data, EPETRACOMM comm, bool doSetup = true);
+    GlobalProblem(const DataContainer& data, EPETRACOMM comm, bool doSetup = true);
 
     virtual void setup();
 

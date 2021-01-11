@@ -23,7 +23,7 @@
 #endif
 
 #include <redma/RedMA.hpp>
-#include <redma/problem/ProblemFEM.hpp>
+#include <redma/problem/GlobalProblem.hpp>
 #include <redma/problem/DataContainer.hpp>
 
 using namespace RedMA;
@@ -57,9 +57,9 @@ int main(int argc, char **argv)
 {
     #ifdef HAVE_MPI
     MPI_Init (nullptr, nullptr);
-    std::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    shp<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
     #else
-    std::shared_ptr<Epetra_Comm> comm(new Epetra_SerialComm ());
+    shp<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
     DataContainer data;
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     data.setDistalPressure(distalPressure4, 4);
     data.finalize();
 
-    ProblemFEM femProblem(data, comm);
+    GlobalProblem femProblem(data, comm);
 
     femProblem.solve();
 

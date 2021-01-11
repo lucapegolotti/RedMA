@@ -60,8 +60,8 @@ public:
     inline shp<BlockAssembler> getBlockAssembler() {return M_assembler;}
 
 private:
-    shp<aTimeMarchingAlgorithm>  M_TMAlgorithm;
-    shp<BlockAssembler>          M_assembler;
+    shp<aTimeMarchingAlgorithm>               M_TMAlgorithm;
+    shp<BlockAssembler>                       M_assembler;
     BBV                                       M_solution;
     TreeStructure                             M_tree;
     GeometryParser                            M_geometryParser;
