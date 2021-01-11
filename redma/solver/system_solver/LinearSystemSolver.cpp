@@ -28,11 +28,6 @@ solve(const BM& matrix, const BV& rhs, BV& sol)
     if (!convert<BlockMatrix>(matrixSparse)->globalTypeIs(SPARSE))
         matrixSparse = convert<BlockMatrix>(matrixSparse)->convertInnerTo(SPARSE,M_comm);
 
-    // std::cout << "here" << std::endl << std::flush;
-    // if (!std::static_pointer_cast<BlockVector>(rhsSparse)->globalTypeIs(DISTRIBUTED))
-    //     rhsSparse = std::static_pointer_cast<BlockVector>(rhsSparse)->convertInnerTo(DISTRIBUTED,std::static_pointer_cast<BlockMatrix>(matrixSparse)->commPtr());
-    // std::cout << "there" << std::endl << std::flush;
-
     if (!M_maps)
         M_maps.reset(new BlockMaps(convert<BlockMatrix>(matrixSparse)));
     else

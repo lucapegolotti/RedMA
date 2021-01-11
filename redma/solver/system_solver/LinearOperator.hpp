@@ -63,8 +63,6 @@ public:
 
     virtual const super::map_Type& OperatorRangeMap() const override {}
 
-    // inline shp<BlockDimension) getBlockDimension() const {return M_dimensions;}
-
 private:
     GetPot                                M_datafile;
     EPETRACOMM                            M_comm;
@@ -73,7 +71,6 @@ private:
     shp<LifeV::BlockEpetra_Map>           M_domainMap;
     shp<LifeV::BlockEpetra_Map>           M_rangeMap;
     shp<BlockMaps>                        M_maps;
-    // shp<BlockDimension)                   M_dimensions;
 };
 
 }

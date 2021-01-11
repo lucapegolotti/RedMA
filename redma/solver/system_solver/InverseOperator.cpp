@@ -61,8 +61,6 @@ invert(const shp<aVector>& rhs, shp<aVector>& sol)
 
     sol = getBlockVector(solEpetra, *M_maps);
 
-    // std::cout << "sol" << std::endl << std::flush;
-    // std::cout << std::static_pointer_cast<VECTOREPETRA>(sol->block(0)->block(0)->data())->mapPtr()->mapSize() << std::endl << std::flush;
     return M_invOper->NumIter();
 }
 

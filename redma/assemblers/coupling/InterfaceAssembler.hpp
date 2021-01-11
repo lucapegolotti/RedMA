@@ -130,8 +130,6 @@ protected:
     shp<BlockMatrix>                       M_fatherB;
     shp<BlockMatrix>                       M_childBT;
     shp<BlockMatrix>                       M_childB;
-    // shp<BlockMatrix)                       M_fatherBTreduced;
-    // shp<BlockMatrix)                       M_fatherBreduced;
     shp<BlockMatrix>                       M_childBTfe;
     shp<BlockMatrix>                       M_childBfe;
     // this is required in the RB setting to impose weakly dirichlet conditions

@@ -78,7 +78,7 @@ apply0DirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
 {
     for (auto as : M_primalAssemblers)
         as.second->apply0DirichletBCsMatrix(
-            convert<BlockMatrix>(convert<BlockMatrix>(matrix)->block(as.first, as.first)),
+            convert<BlockMatrix>(matrix)->block(as.first, as.first),
             diagCoeff);
 }
 
@@ -90,7 +90,7 @@ apply0DirichletBCs(shp<aVector> initialGuess) const
     for (auto as : M_primalAssemblers)
     {
         as.second->apply0DirichletBCs(
-            convert<BlockVector>(convert<BlockVector>(initialGuess)->block(as.first)));
+            convert<BlockVector>(initialGuess)->block(as.first));
     }
 }
 
@@ -100,7 +100,7 @@ applyDirichletBCs(const double& time, shp<aVector> initialGuess) const
 {
     for (auto as : M_primalAssemblers)
         as.second->applyDirichletBCs(time,
-            convert<BlockVector>(convert<BlockVector>(initialGuess)->block(as.first)));
+            convert<BlockVector>(initialGuess)->block(as.first));
 }
 
 shp<aVector>
@@ -130,7 +130,7 @@ exportSolution(const double& t, const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)
         as.second->exportSolution(t,
-            convert<BlockVector>(convert<BlockVector>(sol)->block(as.first)));
+            convert<BlockVector>(sol)->block(as.first));
 }
 
 std::map<unsigned int,std::vector<double>>
@@ -152,7 +152,7 @@ setExtrapolatedSolution(const shp<aVector>& exSol)
 {
     for (auto as : M_primalAssemblers)
         as.second->setExtrapolatedSolution(
-            convert<BlockVector>(convert<BlockVector>(exSol)->block(as.first)));
+            convert<BlockVector>(exSol)->block(as.first));
 }
 
 void
@@ -160,8 +160,7 @@ BlockAssembler::
 postProcess(const double& t, const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)
-        as.second->postProcess(t,
-            convert<BlockVector>(convert<BlockVector>(sol)->block(as.first)));
+        as.second->postProcess(t, convert<BlockVector>(sol)->block(as.first));
 
     if (this->M_data("coupling/check_stabterm", false))
         checkStabTerm(sol);
@@ -238,7 +237,7 @@ convertFunctionRBtoFEM(shp<aVector> rbFunction,
         for (auto as : M_dualAssemblers)
         {
             unsigned int indInterface = as->getInterface().M_ID + M_primalAssemblers.size();
-            std::static_pointer_cast<BlockVector>(retVec->block(indInterface))->resize(1);
+            spcast<BlockVector>(retVec->block(indInterface))->resize(1);
 
             convert<BlockVector>(retVec->block(indInterface))->setBlock(0,
             DistributedVector::convertDenseVector(

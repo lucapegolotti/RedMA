@@ -54,7 +54,6 @@ private:
     shp<Teuchos::ParameterList>                     M_pListLinSolver;
     Teuchos::RCP<Teuchos::ParameterList>            M_solversOptions;
     shp<BlockMaps>                                  M_maps;
-    // SHP(BlockDimension)                             M_dimensions;
 };
 
 }

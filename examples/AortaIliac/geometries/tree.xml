@@ -14,7 +14,7 @@
     <use_linear_elasticity>0</use_linear_elasticity>
     <buildingblock type="tube" refinement="h0.12" d="1" L="2" outlet="1">
         <L_ratio>1</L_ratio>
-        <Rout_ratio>0.87693301723645511</Rout_ratio>
+        <Rout_ratio>0.87693301723645511</Rout_ra:qtio>
         <alpha>2.8658649782602703</alpha>
         <alpha_axis>2.0523905511813667</alpha_axis>
         <bend>0.3965646032926548</bend>

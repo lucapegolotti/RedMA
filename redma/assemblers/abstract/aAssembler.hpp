@@ -54,7 +54,7 @@ public:
                              const shp<aVector>& sol) = 0;
 
     virtual shp<aMatrix> getMass(const double& time,
-                                const shp<aVector>& sol) = 0;
+                                 const shp<aVector>& sol) = 0;
 
     virtual shp<aMatrix> getMassJacobian(const double& time,
                                          const shp<aVector>& sol) = 0;
@@ -63,7 +63,7 @@ public:
                                           const shp<aVector>& sol) = 0;
 
     virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
-                                                      const shp<aVector>& sol) = 0;
+                                                  const shp<aVector>& sol) = 0;
 
     virtual shp<aVector> getLifting(const double& time) const = 0;
 
