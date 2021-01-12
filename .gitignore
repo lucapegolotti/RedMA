@@ -3,5 +3,6 @@ build/
 build_/
 config.sh
 meshes/
-doc/
+doc/html/
+doc/latex/
 .idea/

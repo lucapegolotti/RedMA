@@ -22,23 +22,49 @@
 namespace RedMA
 {
 
+/// Abstract assembler class for a finite element (FE) problem.
 class aAssemblerFE : public aAssembler
 {
 public:
+    /*! \brief Constructor taking a datafile as argument.
+     *
+     * \param datafile The datafile.
+     */
     aAssemblerFE(const DataContainer& datafile) :
       aAssembler(datafile)
     {}
 
+    /*! \brief Constructor taking a datafile and a TreeNode as argument.
+     *
+     * \param datafile The datafile.
+     * \param datafile The TreeNode encoding the physical domain.
+     */
     aAssemblerFE(const DataContainer& datafile, shp<TreeNode> node) :
       aAssembler(datafile, node)
     {}
 
+    /*! \brief Getter for the norm corresponding to a specific field.
+     *
+     * \param fieldIndex Index of the desired field.
+     * \param bcs If true, applies bcs to the norm matrix.
+     * \return Shared pointer to aMatrix of the desired norm.
+     */
     virtual shp<aMatrix> getNorm(const unsigned int& fieldIndex, bool bcs = true) {return shp<SparseMatrix>();}
 
+    /*! \brief Getter for the constraint matrix (e.g., divergence matrix in Stokes).
+     *
+     * If not overloaded, returns an empty SparseMatrix.
+     *
+     * \return Shared pointer to aMatrix of the constraint matrix.
+     */
     virtual shp<aMatrix> getConstraintMatrix() {return shp<SparseMatrix>();}
 
+    /*! \brief Getter for the FE lifting.
+     *
+     * \param time Current time.
+     * \return Shared pointer to aVector of the FE lifting.
+     */
     virtual shp<aVector> getFELifting(const double& time) const = 0;
-
 };
 
 }

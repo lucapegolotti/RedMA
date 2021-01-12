@@ -22,17 +22,32 @@
 namespace RedMA
 {
 
+/// Abstract assembler class for a reduced basis (RB) problem.
 class aAssemblerRB : public aAssembler
 {
 public:
+    /*! \brief Constructor taking a datafile as argument.
+     *
+     * \param datafile The datafile.
+     */
     aAssemblerRB(const DataContainer& datafile) :
       aAssembler(datafile)
     {}
 
+    /*! \brief Constructor taking a datafile and a TreeNode as argument.
+     *
+     * \param datafile The datafile.
+     * \param datafile The TreeNode encoding the physical domain.
+     */
     aAssemblerRB(const DataContainer& datafile, shp<TreeNode> node) :
       aAssembler(datafile, node)
     {}
 
+    /*! \brief Project the RB function onto the finite element space.
+     *
+     * \param rbSolution RB coefficients of the solutions
+     * \return Shared pointer to aVector of the projected function.
+     */
     virtual shp<aVector> convertFunctionRBtoFEM(shp<aVector> rbSolution) const = 0;
 };
 

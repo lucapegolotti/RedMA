@@ -69,12 +69,12 @@ public:
         return this->M_velocityFESpaceETA;
     }
 
-    virtual inline shp<ETFESPACE1> getETFESpaceSecondary() const override
-    {
-        return this->M_pressureFESpaceETA;
-    }
+    // virtual inline shp<ETFESPACE1> getETFESpaceSecondary() const override
+    // {
+    //     return this->M_pressureFESpaceETA;
+    // }
 
-    void apply0DirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
+    void applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
 
     void apply0DirichletBCs(shp<aVector> vector) const override;
 

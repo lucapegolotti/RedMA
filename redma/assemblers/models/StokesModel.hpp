@@ -82,7 +82,7 @@ public:
                                 shp<VECTOREPETRA> WSS,
                                 EPETRACOMM comm);
 
-    void apply0DirichletBCsMatrix(shp<BCManager> bcManager,
+    void applyDirichletBCsMatrix(shp<BCManager> bcManager,
                                   shp<aMatrix> matrix, double diagCoeff);
 
     void initializeVelocityFESpace(EPETRACOMM comm);
