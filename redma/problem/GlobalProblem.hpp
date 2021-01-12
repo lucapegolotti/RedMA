@@ -33,25 +33,56 @@
 namespace RedMA
 {
 
+/*! \brief Object managing a problem defined on multiple subdomains.
+ *
+ * This class provides an interface to solve a differential problem on multiple
+ * subdomains.
+ */
 class GlobalProblem : public aProblem
 {
     typedef shp<BlockVector>                   BV;
     typedef shp<BlockMatrix>                   BM;
 public:
+    /*! \brief Constructor.
+     *
+     * Here, the geometry is parsed from the .xml contained in the datafile
+     * and, if doSetup == true, the setup method is launched.
+     *
+     * \param data Datafile with problem settings.
+     * \param comm MPI Communicator
+     * \param doSetup If true, setup is launched.
+     */
     GlobalProblem(const DataContainer& data, EPETRACOMM comm, bool doSetup = true);
 
+    /*! \brief Setup method.
+     *
+     * Read reference meshes and deform them, set default assemblers (these are used,
+     * e.g, in the Piola transformation), initialize time marching algorithm.
+     */
     virtual void setup();
 
+    /*! \brief Solve method.
+     *
+     * Method that launches the time loop over the timesteps.
+     */
     virtual void solve();
 
+    /*! \brief Set if solutions should be stored at each timestep.
+     *
+     * The solutions can be retrieved with getSolutions().
+     */
     void doStoreSolutions() {M_storeSolutions = true;}
 
+    /// Getter for the geometric tree
     inline TreeStructure& getTree() {return M_tree;}
 
+    /// Getter for the solutions
     inline std::vector<BV> getSolutions() {return M_solutions;}
 
+    /// Get a vector with all the timesteps
     inline std::vector<double> getTimesteps() {return M_timestepsSolutions;}
 
+    /// Getter for the BlockAssembler.
     inline shp<BlockAssembler> getBlockAssembler() {return M_assembler;}
 
 private:

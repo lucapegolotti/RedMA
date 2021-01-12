@@ -22,15 +22,23 @@
 namespace RedMA
 {
 
+/// Generic interface for a mathematical problem.
 class aProblem
 {
 public:
+    /*! \brief Constructor.
+     *
+     * \param data Datafile.
+     */
     aProblem(const DataContainer& data);
 
+    /// Virtual setup method
     virtual void setup() = 0;
 
+    /// Virtual solve method
     virtual void solve() = 0;
 
+    /// Getter for the datafile
     DataContainer& getData() {return M_data;}
 
 protected:

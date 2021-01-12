@@ -42,8 +42,8 @@ int main(int argc, char **argv)
     data.setValueString("exporter/outdir", outdir);
     data.finalize();
 
-    GlobalProblem femProblem(data, comm);
-    femProblem.solve();
+    GlobalProblem globalProblem(data, comm);
+    globalProblem.solve();
 
     msg = "Total time =  ";
     msg += std::to_string(chrono.diff());
