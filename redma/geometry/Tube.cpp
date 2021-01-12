@@ -33,7 +33,7 @@ Tube(commPtr_Type comm, std::string refinement, bool verbose,
     M_inletNormalRef[1] = 0.0;
     M_inletNormalRef[2] = -1.0;
 
-    // outlet of outlet (reference configuration)
+    // normal of outlet (reference configuration)
     M_outletNormalRef[0] = 0.0;
     M_outletNormalRef[1] = 0.0;
     M_outletNormalRef[2] = 1.0;

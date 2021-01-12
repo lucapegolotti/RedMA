@@ -74,8 +74,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
     outletParent = -1;
     if (element->Attribute("outlet"))
     {
-        // decrease by one because we want numbering of outlets to start from
-        // 1
+        // decrease by one because we want numbering of outlets to start from 0
         outletParent = std::stoi(element->Attribute("outlet")) - 1;
     }
 

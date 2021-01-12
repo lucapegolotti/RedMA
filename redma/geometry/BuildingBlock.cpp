@@ -37,13 +37,6 @@ GeometricFace(Vector3D center, Vector3D normal, double radius,
 }
 
 void
-BuildingBlock::
-setDatafile(const GetPot& datafile)
-{
-    M_datafile = datafile;
-}
-
-void
 GeometricFace::
 print() const
 {
@@ -91,6 +84,13 @@ BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
     M_parametersHandler.registerParameter("bx", 0.0, -infty, infty);
     M_parametersHandler.registerParameter("by", 0.0, -infty, infty);
     M_parametersHandler.registerParameter("bz", 0.0, -infty, infty);
+}
+
+void
+BuildingBlock::
+setDatafile(const GetPot& datafile)
+{
+    M_datafile = datafile;
 }
 
 int
