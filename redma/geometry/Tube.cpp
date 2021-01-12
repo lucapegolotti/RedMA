@@ -254,7 +254,7 @@ Tube::
 bendFunctionAnalytic(double &x, double &y, double &z,
                      const double& bendAngle, const double& L)
 {
-    // we know: lenght of the tube at initial configuration L and angle we want
+    // we know: length of the tube at initial configuration L and angle we want
     // alpha.
     // We imagine that the midline of the tube coincides with the arc of a circle.
     // Therefore, we have that
@@ -262,7 +262,7 @@ bendFunctionAnalytic(double &x, double &y, double &z,
 
     double r = L / bendAngle;
 
-    // then, we determine the position of the current point in the arclenght
+    // then, we determine the position of the current point in the arclength
     double ratio = z / L;
     double actualAngle = bendAngle * ratio;
 
