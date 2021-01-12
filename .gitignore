@@ -1,7 +1,9 @@
 .DS_Store
 build/
 build_/
+cmake-build-debug/
 config.sh
 meshes/
 doc/
 .idea/
+

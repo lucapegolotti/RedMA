@@ -355,6 +355,10 @@ applyAffineTransformation(bool transformMesh)
                " BuildingBlock] translating with vector " + transStr +
                " ...\n", M_verbose);
 
+        printlog(YELLOW, "[" + M_name +
+                         " BuildingBlock] applying scaling of " + std::to_string(M_scale) +
+                         " ...\n", M_verbose);
+
         M_R =  computeRotationMatrix(rotation, angle);
 
         auto foo = std::bind(rotationFunction,
@@ -365,10 +369,6 @@ applyAffineTransformation(bool transformMesh)
 
         if (transformMesh)
             transformer->transformMesh(foo);
-
-        printlog(YELLOW, "[" + M_name +
-                " BuildingBlock] applying scaling of " + std::to_string(M_scale) +
-                " ...\n", M_verbose);
 
         printlog(GREEN, "done\n", M_verbose);
     }
