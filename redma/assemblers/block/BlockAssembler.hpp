@@ -32,74 +32,228 @@
 namespace RedMA
 {
 
+/*! \brief Block assembler class to handle multiple assemblers.
+ *
+ * Internally, the assemblers are divided into primal assemblers, which discretize
+ * the PDEs in the interior of the domains, and dual assemblers, which take care
+ * of the coupling.
+ */
 class BlockAssembler : public aAssembler
 {
     typedef DefaultAssemblersLibrary  DefaultAssemblers;
 
 public:
+    /// Default empty constructor.
     BlockAssembler() {}
 
+    /*! \brief Constructor with multiple arguments.
+     *
+     * \param data DataContainer of the problem.
+     * \param tree Geometric tree.
+     * \param Default assemblers for the building blocks in the reference configuration.
+     */
     BlockAssembler(const DataContainer& data, const TreeStructure& tree,
                    shp<DefaultAssemblers> defAssemblers = nullptr);
 
-    // virtual ~BlockAssembler() {}
-
+    /*! \brief Setup method.
+     *
+     * The setup function is called on the primal assemblers. Moreover,
+     * the dual assemblers on the interfaces are generated based on the domain
+     * connectivity within M_tree. If the RB method is used, the bases are loaded.
+     */
     virtual void setup() override;
 
-    virtual void exportSolution(const double& t,
+    /*! \brief Export the solutions in all subdomains.
+     *
+     * The export function is called in all the primal assemblers.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     */
+    virtual void exportSolution(const double& time,
                                 const shp<aVector>& sol) override;
 
-    virtual void postProcess(const double& t,
+    /*! \brief Postprocess function to be called at the end of the timestep.
+     *
+     * The postProcess function is called in all the primal assemblers.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     */
+    virtual void postProcess(const double& time,
                              const shp<aVector>& sol) override;
 
+    /*! \brief Getter for the mass matrix.
+    *
+    * The getMass method is called in all the subdomains and each output is
+    * positioned in the diagonal.
+    *
+    * \param time Current time.
+    * \param sol Current solution.
+    * \return Shared pointer to BlockMatrix containing the global mass matrix.
+    */
     virtual shp<aMatrix> getMass(const double& time,
-                                const shp<aVector>& sol) override;
+                                 const shp<aVector>& sol) override;
 
+    /*! \brief Getter for the mass matrix jacobian.
+    *
+    * The getMassJacobians method is called in all the subdomains and each output is
+    * positioned in the diagonal.
+    *
+    * \param time Current time.
+    * \param sol Current solution.
+    * \return Shared pointer to BlockMatrix containing the global mass matrix jacobian.
+    */
     virtual shp<aMatrix> getMassJacobian(const double& time,
-                                        const shp<aVector>& sol) override;
-
-    virtual shp<aVector> getRightHandSide(const double& time,
                                          const shp<aVector>& sol) override;
 
-    virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
-                                                 const shp<aVector>& sol) override;
+    /*! \brief Getter for the global right-hand side.
+    *
+    * The getRightHandSide method is called in all the subdomains.
+    *
+    * \param time Current time.
+    * \param sol Current solution.
+    * \return Shared pointer to BlockVector containing the global right-hand side.
+    */
+    virtual shp<aVector> getRightHandSide(const double& time,
+                                          const shp<aVector>& sol) override;
 
+     /*! \brief Getter for the global right-hand side jacobian.
+     *
+     * The getJacobianRightHandSide method is called in all the subdomains, and the
+     * coupling matrices are positioned according to the connectivity of the
+     * primal assemblers.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     * \return Shared pointer to BlockVector containing the global right-hand side.
+     */
+    virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
+                                                  const shp<aVector>& sol) override;
+
+    /*! \brief Getter for the lifting at a specific time.
+     *
+     * The getLifting function is called in every primal assembler.
+     * \param time Current time.
+     * \return Shared pointer to BlockVector containing the lifting.
+     */
     virtual shp<aVector> getLifting(const double& time) const override;
 
+    /*! \brief Getter for the zero vector.
+     *
+     * The getZeroVector is called in every primal assembler.
+     * \return Shared pointer to BlockVector containing the lifting.
+     */
     virtual shp<aVector> getZeroVector() const override;
 
+    /*! \brief Apply Dirichlet bcs to a matrix with prescribed
+     *         diagonal coefficient.
+     *
+     * The applyDirichletBCsMatrix function is called in every subdomain.
+     * Note: by construction, the coupling matrices have the bcs
+     * incorporated in them (i.e., the rows corresponding to Dirichlet nodes are
+     * zero).
+     *
+     * \param matrix The matrix to modify.
+     * \param diagCoeff diagonal coefficient.
+     */
     virtual void applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
 
+    /*! \brief Apply homogeneous Dirichlet bcs to a vector.
+     *
+     * The apply0DirichletBCs function is called in every subdomain.
+     *
+     * \param vector The vector to modify.
+     */
     virtual void apply0DirichletBCs(shp<aVector> vector) const override;
 
-    virtual void setExporter() override;
-
+    /*! \brief Apply Dirichlet bcs to a vector at a specific time.
+     *
+     * The applyDirichletBCs function is called in every subdomain.
+     *
+     * \param time Current time
+     * \param vector Shared pointer to the vector to modify.
+     */
     virtual void applyDirichletBCs(const double& time, shp<aVector> vector) const override;
 
+    /// Set exporter (set exporters in all the subdomains).
+    virtual void setExporter() override;
+
+    /*! \brief Check the magnitude of the stabilization term for the coupling.
+     *
+     * Currently not implemented.
+     */
     virtual void checkStabTerm(const shp<aVector>& sol) const;
 
+    /// Create and get a map of type [key,value] = [id,meshname].
     std::map<unsigned int, std::string> getIDMeshTypeMap() const;
 
+    /*! \brief Getter for a primal assembler with given index.
+     *
+     * \param index Index of the primal assembler to get.
+     * \return Shared pointer to aAssembler of the desired primal assembler.
+     */
     inline shp<aAssembler> block(const unsigned int& index) {return M_primalAssemblers[index];}
 
+    /*! \brief Get the primal assembler map.
+     *
+     * \return Retrun a map with key == id; value is a shared pointer to an
+     *         aAssembler of a primal block.
+     */
     std::map<unsigned int, shp<aAssembler>> getAssemblersMap() const {return M_primalAssemblers;}
 
+    /*! \brief Get vector of dual assemblers.
+     *
+     * \return Vector of shared pointers to InterfaceAssembler.
+     */
     std::vector<shp<InterfaceAssembler>> getDualAssemblers() const {return M_dualAssemblers;}
 
+    /*! \brief Convert RB function to FE function.
+     *
+     * The convertFunctionRBtoFEM function is called on every primal assembler.
+     *
+     * \param rbFunction Shared pointer to BlockVector containing the RB coefficients.
+     * \param comm MPI Communicator.
+     * \return Shared pointer to the converted vector.
+     */
     shp<aVector> convertFunctionRBtoFEM(shp<aVector> rbFunction, EPETRACOMM comm) const;
 
+    /*! \brief Set extrapolated solution.
+     *
+     * The extrapolated solution is set in every primal block.
+     *
+     * \param exSol Shared pointer to a BlockVector containing the extrapolated
+     *              solution.
+     */
     virtual void setExtrapolatedSolution(const shp<aVector>& exSol) override;
 
+    /*! \brief Getter for the nonlinear term.
+     *
+     * The getNonLinearTerm is called in every primal assembler.
+     *
+     * \return Shared pointer to a BlockVector containing the nonlinear term.
+     */
     virtual shp<aVector> getNonLinearTerm() override;
 
+    /*! \brief Get map with all the randomizible geometrical parameters.
+     *
+     * The map is generated by calling the same method on the TreeNodes internal
+     * to the primal assemblers.
+     * \return Map with key == id and value == vector of randomizible parameters.
+     */
     std::map<unsigned int,std::vector<double>> getRandomizibleParametersVectors();
 
-    virtual void applyPiola(shp<aVector> solution, bool inverse) override {}
+    /*! \brief Applies the piola transformation (or its inverse) to a BlockVector.
+     *
+     * \param solution Shared pointer to GlobalVector to transform.
+     * \param inverse If true, inverse of Piola transformation is applied.
+     */
+    virtual void applyPiola(shp<aVector> solution, bool inverse) override;
 
-    void applyGlobalPiola(shp<aVector> solution, bool inverse);
-
+    /// Initialize all the finite element spaces in the primal assemblers.
     virtual void initializeFEspaces() override;
 
+    /// Setter fot the default assemblers.
     void setDefaultAssemblers(shp<DefaultAssemblers> defAssemblers) override;
 
 protected:
