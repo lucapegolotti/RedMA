@@ -2,6 +2,7 @@
 build/
 build_/
 cmake-build-debug/
+cmake-build-release/
 config.sh
 meshes/
 doc/html/
