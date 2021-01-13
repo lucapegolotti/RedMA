@@ -60,7 +60,7 @@ setDefaultAssemblers(shp<DefaultAssemblers> defAssemblers)
 
 void
 BlockAssembler::
-applyGlobalPiola(shp<aVector> solution, bool inverse)
+applyPiola(shp<aVector> solution, bool inverse)
 {
     unsigned int count = 0;
     for (auto as : M_primalAssemblers)

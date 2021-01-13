@@ -220,6 +220,8 @@ public:
      *
      * This method must raise an Exception if the Piola transformation does not
      * make sense for the current problem.
+     * \param solution Shared pointer to aVector to transform.
+     * \param inverse If true, inverse of Piola transformation is applied.
      */
     virtual void applyPiola(shp<aVector> solution, bool inverse) = 0;
 

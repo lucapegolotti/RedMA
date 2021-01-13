@@ -66,7 +66,7 @@ dumpSnapshots(GlobalProblem& problem,
         omode = omode | std::ios::binary;
 
     for (auto sol : solutions)
-        problem.getBlockAssembler()->applyGlobalPiola(sol, true);
+        problem.getBlockAssembler()->applyPiola(sol, true);
 
     for (auto idmeshtype : IDmeshTypeMap)
     {
@@ -194,7 +194,7 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
 
                     const bool inverse = true;
                     std::cout << "Applying piola" << std::endl << std::flush;
-                    problem.getBlockAssembler()->applyGlobalPiola(auxVec, inverse);
+                    problem.getBlockAssembler()->applyPiola(auxVec, inverse);
                 }
 
                 infile.close();
