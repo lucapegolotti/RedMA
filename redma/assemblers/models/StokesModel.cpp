@@ -293,7 +293,7 @@ assembleFlowRateJacobians(shp<BCManager> bcManager)
     //     M_flowRateJacobians[face.M_flag]->resize(2,2);
     //     M_flowRateJacobians[face.M_flag]->block(0,0)->setData(assembleFlowRateJacobian(face));
     //
-    //     apply0DirichletBCsMatrix(bcManager,M_flowRateJacobians[face.M_flag], 0.0);
+    //     applyDirichletBCsMatrix(bcManager,M_flowRateJacobians[face.M_flag], 0.0);
     // }
 
     if (M_treeNode->isOutletNode())
@@ -308,7 +308,7 @@ assembleFlowRateJacobians(shp<BCManager> bcManager)
 
             newJacobian->setBlock(0,0,jacWrapper);
 
-            apply0DirichletBCsMatrix(bcManager,newJacobian, 0.0);
+            applyDirichletBCsMatrix(bcManager,newJacobian, 0.0);
 
             M_flowRateJacobians[face.M_flag] = newJacobian;
 
@@ -318,7 +318,7 @@ assembleFlowRateJacobians(shp<BCManager> bcManager)
 
 void
 StokesModel::
-apply0DirichletBCsMatrix(shp<BCManager> bcManager,
+applyDirichletBCsMatrix(shp<BCManager> bcManager,
                          shp<aMatrix> matrix, double diagCoeff)
 {
     auto matrixConverted = spcast<BlockMatrix>(matrix);

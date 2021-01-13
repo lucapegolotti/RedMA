@@ -68,7 +68,7 @@ public:
 
     virtual shp<aVector> getZeroVector() const override;
 
-    virtual void apply0DirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
+    virtual void applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
 
     virtual void apply0DirichletBCs(shp<aVector> vector) const override;
 

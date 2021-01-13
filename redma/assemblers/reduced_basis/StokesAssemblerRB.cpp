@@ -156,7 +156,7 @@ assembleMatrix(const unsigned int& index, BlockMDEIMStructure* structure)
 
 void
 StokesAssemblerRB::
-apply0DirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
+applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
 {
     // throw new Exception("Method not implemented for RB");
 }

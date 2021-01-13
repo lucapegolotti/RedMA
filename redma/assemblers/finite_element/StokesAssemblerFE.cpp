@@ -254,7 +254,7 @@ setExporter()
 
 void
 StokesAssemblerFE::
-apply0DirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
+applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
 {
     auto matrixConverted = spcast<BlockMatrix>(matrix);
     this->M_bcManager->apply0DirichletMatrix(*matrixConverted, getFESpaceBCs(),
@@ -356,7 +356,7 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
                 // homogeneous (=> lifting) or imposed weakly. Here we impose bcs
                 // in order to have the correct conditions in the computation of the
                 // supremizers (we have to solve a linear system..)
-                apply0DirichletBCsMatrix(normWrap, 1.0);
+                applyDirichletBCsMatrix(normWrap, 1.0);
             }
 
             M_massVelocity->setData(Nu);

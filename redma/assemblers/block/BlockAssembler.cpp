@@ -74,10 +74,10 @@ applyGlobalPiola(shp<aVector> solution, bool inverse)
 
 void
 BlockAssembler::
-apply0DirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
+applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
 {
     for (auto as : M_primalAssemblers)
-        as.second->apply0DirichletBCsMatrix(
+        as.second->applyDirichletBCsMatrix(
             convert<BlockMatrix>(matrix)->block(as.first, as.first),
             diagCoeff);
 }

@@ -5,6 +5,7 @@ cmake-build-debug/
 cmake-build-release/
 config.sh
 meshes/
-doc/
+doc/html/
+doc/latex/
 .idea/
 
