@@ -73,17 +73,35 @@ public:
      */
     void doStoreSolutions() {M_storeSolutions = true;}
 
-    /// Getter for the geometric tree
+    /*! \brief Getter for the geometric tree.
+     *
+     * \return Reference to M_tree.
+     */
     inline TreeStructure& getTree() {return M_tree;}
 
-    /// Getter for the solutions
+    /*! \brief Get stored solutions.
+     *
+     *  \return Vector of shared pointer to BlockVectors, containing the solutions.
+     */
     inline std::vector<BV> getSolutions() {return M_solutions;}
 
-    /// Get a vector with all the timesteps
+    /*! \brief Get a vector with all the timesteps.
+     *
+     * \return A vector with all the timesteps.
+     */
     inline std::vector<double> getTimesteps() {return M_timestepsSolutions;}
 
-    /// Getter for the BlockAssembler.
+    /*! Getter for the BlockAssembler.
+     *
+     * \return Shared pointer to the internal BlockAssembler.
+     */
     inline shp<BlockAssembler> getBlockAssembler() {return M_assembler;}
+
+    /*! Check if internal BlockAssembler is composed of only FE assemblers.
+     *
+     * \return True if all the primal assemblers are finite element assemblers.
+     */
+    bool isFEProblem();
 
 private:
     shp<aTimeMarchingAlgorithm>                M_TMAlgorithm;

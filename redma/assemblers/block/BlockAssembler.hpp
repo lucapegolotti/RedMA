@@ -253,8 +253,17 @@ public:
     /// Initialize all the finite element spaces in the primal assemblers.
     virtual void initializeFEspaces() override;
 
-    /// Setter fot the default assemblers.
+    /*! Setter fot the default assemblers.
+     *
+     * \param Shared pointer to the default assemblers.
+     */
     void setDefaultAssemblers(shp<DefaultAssemblers> defAssemblers) override;
+
+    /*! Check if all the primal assemblers are finite element assemblers.
+     *
+     * \return True if all the primal assemblers are finite element assemblers.
+     */
+    bool arePrimalAssemblersFE();
 
 protected:
     GetPot                                                        M_datafile;

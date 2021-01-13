@@ -14,10 +14,8 @@ void
 SnapshotsSampler::
 takeSnapshots()
 {
-    // using namespace boost::filesystem;
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
-    // if (fs::exists(outdir))
-    //    throw new Exception("Snapshots directory already exists!");
+
     fs::create_directory(outdir);
     GeometryPrinter printer;
 
@@ -26,18 +24,25 @@ takeSnapshots()
 
     for (unsigned int i = 0; i < nSnapshots; i++)
     {
+        unsigned int paramIndex = 0;
+        // we find the first parameter index available
+        while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
+            paramIndex++;
+        std::string curdir = outdir + "/param" + std::to_string(paramIndex);
+
         GlobalProblem problem(M_data, M_comm, false);
+
         // this is to allow taking the snapshots at the end of the simulation from
         // the fem problem
         problem.doStoreSolutions();
 
-        unsigned int paramIndex = 0;
-        while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
-            paramIndex++;
-        std::string curdir = outdir + "/param" + std::to_string(paramIndex);
         fs::create_directory(curdir);
         problem.getTree().randomSampleAroundOriginalValue(bound);
         problem.setup();
+
+        if (!problem.isFEProblem())
+            throw new Exception("The tree must be composed of only FE nodes to "
+                                "sample the snapshots!");
 
         std::string filename = curdir + "/tree.xml";
         printer.saveToFile(problem.getTree(), filename, M_comm);

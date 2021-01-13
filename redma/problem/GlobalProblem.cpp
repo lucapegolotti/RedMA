@@ -29,7 +29,9 @@ setup()
                                        "../../../meshes/");
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();
-    M_tree.dump("tree/","../../../meshes/");
+
+    // uncomment this to dump tree after it has been read
+    // M_tree.dump("tree/","../../../meshes/");
 
     M_defaultAssemblers.reset(new DefaultAssemblersLibrary
                                   (M_data, M_tree.getMeshListNames(), M_comm));
@@ -95,6 +97,13 @@ solve()
         if (t >= t0)
             count++;
     }
+}
+
+bool
+GlobalProblem::
+isFEProblem()
+{
+    return M_assembler->arePrimalAssemblersFE();
 }
 
 }

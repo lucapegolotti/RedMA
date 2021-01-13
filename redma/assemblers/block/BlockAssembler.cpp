@@ -466,5 +466,18 @@ setup()
     printlog(GREEN, "done\n", this->M_data.getVerbose());
 }
 
+bool
+BlockAssembler::
+arePrimalAssemblersFE()
+{
+    for (auto& primalas : M_primalAssemblers)
+    {
+        auto block = primalas.second->getTreeNode()->M_block;
+        if (std::strcmp(block->getDiscretizationMethod().c_str(),"fem") != 0)
+            return false;
+    }
+    return true;
+}
+
 
 }
