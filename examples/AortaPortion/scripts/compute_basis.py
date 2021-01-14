@@ -12,7 +12,7 @@ import sys
 
 mesh_name = sys.argv[1] # 'tube_1x1_h0.08'
 out_dir = 'basis/'
-matrix_dir = 'matricesForOffline/'
+matrix_dir = 'matrices/'
 tol_velocity = 1e-4
 tol_pressure = 1e-5
 

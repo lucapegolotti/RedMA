@@ -30,10 +30,6 @@
 #include <lifev/core/filter/ExporterVTK.hpp>
 #include <lifev/core/filter/ExporterHDF5.hpp>
 
-// #include <Python.h>
-
-// class BlockMDEIM;
-
 namespace RedMA
 {
 
