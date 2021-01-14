@@ -359,8 +359,8 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
                 applyDirichletBCsMatrix(normWrap, 1.0);
             }
 
-            M_massVelocity->setData(Nu);
-            retMat->setData(Nu);
+            // M_massVelocity->setMatrix(Nu);
+            retMat->setMatrix(Nu);
         // }
         // else
         //     retMat = M_massVelocity;
@@ -380,8 +380,8 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
 
             Np->globalAssemble();
 
-            M_massPressure->setData(Np);
-            retMat->setData(Np);
+            // M_massPressure->setMatrix(Np);
+            retMat->setMatrix(Np);
         // }
         // else
         //     retMat = M_massPressure;

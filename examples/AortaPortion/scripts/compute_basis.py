@@ -10,19 +10,23 @@ import scipy.sparse as sparse
 from sksparse.cholmod import cholesky
 import sys
 
+build_directory = "../"
+
 mesh_name = sys.argv[1] # 'tube_1x1_h0.08'
-out_dir = 'basis/'
-matrix_dir = 'matrices/'
+out_dir = build_directory + 'basis/'
+matrix_dir = build_directory + 'matrices/'
 tol_velocity = 1e-4
 tol_pressure = 1e-5
 
-generate_velocity = False
-generate_pressure = False
-generate_primal_supremizers = False
+generate_velocity = True
+generate_pressure = True
+generate_primal_supremizers = True
 generate_dual_supremizers = True
 
-nsnapshots = 188
+# this is the maximum number of snapshots we want to process
+nsnapshots = 200
 
+# if true, we normalize with respect to custom norms
 use_custom_norms = True
 
 def create_dir(name):
@@ -41,7 +45,7 @@ def generate_basis(index, nsnaps, norm_matrix, tol):
     count = 0
     print("reading snapshots ...",flush=True)
     for i in range(nsnaps):
-        fname = 'snapshots/param' + str(i) + '/' + mesh_name + '/field' + str(index) + '.snap'
+        fname = build_directory + 'snapshots/param' + str(i) + '/' + mesh_name + '/field' + str(index) + '.snap'
         if os.path.isfile(fname):
             count = count + 1
             print('\t snapshotfile: ' + fname,flush=True)

@@ -92,8 +92,8 @@ generateMatricesOnly()
 
         for (auto face : faces)
         {
-            shp<BlockMatrix> constraintMatrixBlock;
-            shp<BlockMatrix> constraintMatrixDummyBlock;
+            shp<BlockMatrix> constraintMatrixBlock(new BlockMatrix(0,0));
+            shp<BlockMatrix> constraintMatrixDummyBlock(new BlockMatrix(0,0));
             interfaceAssembler.buildCouplingMatrices(meshas.second.first,
                                                      face,
                                                      constraintMatrixBlock,
@@ -398,47 +398,53 @@ shp<TreeNode>
 BasisGenerator::
 generateDefaultTreeNode(const std::string& nameMesh)
 {
-    // if (nameMesh.find("tube") != std::string::npos)
-    //     return generateDefaultTube(nameMesh);
-    // else if (nameMesh.find("bifurcation_symmetric"))
-    //     return generateDefaultSymmetricBifurcation(nameMesh);
-    // else
-    // {
-    //     throw new Exception("BasisGenerator: this branch must still be implemented");
-    // }
-    //
-    // return nullptr;
+    if (nameMesh.find("tube") != std::string::npos)
+        return generateDefaultTube(nameMesh);
+    else if (nameMesh.find("bifurcation_symmetric"))
+        return generateDefaultSymmetricBifurcation(nameMesh);
+    else
+    {
+        throw new Exception("BasisGenerator: this branch must still be implemented");
+    }
+
+    return nullptr;
 }
 
 shp<TreeNode>
 BasisGenerator::
 generateDefaultTube(const std::string& nameMesh)
 {
-    // unsigned int diameter = std::atoi(nameMesh.substr(5,6).c_str());
-    // unsigned int length = std::atoi(nameMesh.substr(7,8).c_str());
-    // std::string refinement = nameMesh.substr(9);
-    //
-    // shp<Tube> defaultTube(new Tube(M_comm, refinement, false, diameter, length));
-    // defaultTube->readMesh();
-    //
-    // shp<TreeNode> treeNode(new TreeNode(defaultTube, 1234));
-    //
-    // return treeNode;
+    unsigned int diameter = std::atoi(nameMesh.substr(5,6).c_str());
+    unsigned int length = std::atoi(nameMesh.substr(7,8).c_str());
+    std::string refinement = nameMesh.substr(9);
+
+    shp<Tube> defaultTube(new Tube(M_comm, refinement, false, diameter, length));
+    defaultTube->readMesh();
+    defaultTube->setDiscretizationMethod("fem");
+    // not very general
+    defaultTube->setAssemblerType("navierstokes");
+
+    shp<TreeNode> treeNode(new TreeNode(defaultTube, 1234));
+
+    return treeNode;
 }
 
 shp<TreeNode>
 BasisGenerator::
 generateDefaultSymmetricBifurcation(const std::string& nameMesh)
 {
-    // unsigned int alpha = std::atoi(nameMesh.substr(13,15).c_str());
-    // std::string refinement = nameMesh.substr(17);
-    //
-    // shp<BifurcationSymmetric> defaultBifurcation(new BifurcationSymmetric(M_comm, refinement, false, alpha));
-    // defaultBifurcation->readMesh();
-    //
-    // shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234));
-    //
-    // return treeNode;
+    unsigned int alpha = std::atoi(nameMesh.substr(13,15).c_str());
+    std::string refinement = nameMesh.substr(17);
+
+    shp<BifurcationSymmetric> defaultBifurcation(new BifurcationSymmetric(M_comm, refinement, false, alpha));
+    defaultBifurcation->readMesh();
+    defaultBifurcation->setDiscretizationMethod("fem");
+    // not very general
+    defaultBifurcation->setAssemblerType("navierstokes");
+
+    shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234));
+
+    return treeNode;
 }
 
 void
