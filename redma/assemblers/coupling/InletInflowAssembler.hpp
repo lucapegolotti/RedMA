@@ -22,19 +22,39 @@
 namespace RedMA
 {
 
+/// \brief Class for the assembly of the matrix handling the weak dirichlet bcs.
 class InletInflowAssembler  : public InterfaceAssembler
 {
     typedef aAssembler         AssemblerType;
 
 public:
+    /*! \brief Constructor taking a DataContainer and an Interface as arguments.
+     *
+     * \param data The DataContainer of the problem.
+     * \param interface The interface.
+     */
     InletInflowAssembler(const DataContainer& data,
                          const Interface& interface);
 
+    /* \brief Add coupling contribution to a right-hand side.
+    *
+    * \param time Current time (needed in derived classes).
+    * \param rhs Shared pointer to the right-hand side.
+    * \param sol Shared pointer to the solution.
+    * \param nPrimalBlocks number of primal blocks in the problem.
+    */
     virtual void addContributionRhs(const double& time,
                                     shp<BlockVector> rhs,
                                     shp<BlockVector> sol,
                                     const unsigned int& nPrimalBlocks) override;
 
+    /* \brief Add coupling contribution to the jacobian right-hand side.
+    *
+    * \param time Current time (needed in derived classes).
+    * \param jac Shared pointer to the jacobian of the right-hand side.
+    * \param sol Shared pointer to the solution.
+    * \param nPrimalBlocks Number of primal blocks in the problem.
+    */
     virtual void addContributionJacobianRhs(const double& time,
                                             shp<BlockMatrix> jac,
                                             shp<BlockVector> sol,

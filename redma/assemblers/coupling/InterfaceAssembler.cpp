@@ -335,6 +335,7 @@ buildCouplingMatrices(shp<AssemblerType> assembler, const GeometricFace& face,
                                                      assembler->getFESpaceBCs(),
                                                      assembler->getComponentBCs(),
                                                      0.0);
+
 }
 
 void
