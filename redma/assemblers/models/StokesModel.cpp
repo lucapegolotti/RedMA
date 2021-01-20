@@ -71,8 +71,7 @@ addNeumannBCs(shp<aVector>& input, const double& time,
 
 shp<aMatrix>
 StokesModel::
-assembleReducedStiffness(shp<BCManager> bcManager,
-                         BlockMDEIMStructure* structure)
+assembleReducedStiffness(shp<BCManager> bcManager)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -83,32 +82,33 @@ assembleReducedStiffness(shp<BCManager> bcManager,
 
     shp<MATRIXEPETRA> A(new MATRIXEPETRA(M_velocityFESpace->map()));
 
-    if (structure)
+    // if (structure)
+    if (0)
     {
-        unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
-        unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
-
-        if (useFullStrain)
-        {
-            integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-                      M_velocityFESpace->qr(),
-                      M_velocityFESpaceETA,
-                      M_velocityFESpaceETA,
-                      value(0.5 * M_viscosity) *
-                      dot(grad(phi_i) + transpose(grad(phi_i)),
-                      grad(phi_j) + transpose(grad(phi_j)))
-                  ) >> A;
-        }
-        else
-        {
-            integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-                      M_velocityFESpace->qr(),
-                      M_velocityFESpaceETA,
-                      M_velocityFESpaceETA,
-                      value(M_viscosity) *
-                      dot(grad(phi_i),grad(phi_j))
-                  ) >> A;
-        }
+        // unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
+        // unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
+        //
+        // if (useFullStrain)
+        // {
+        //     integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+        //               M_velocityFESpace->qr(),
+        //               M_velocityFESpaceETA,
+        //               M_velocityFESpaceETA,
+        //               value(0.5 * M_viscosity) *
+        //               dot(grad(phi_i) + transpose(grad(phi_i)),
+        //               grad(phi_j) + transpose(grad(phi_j)))
+        //           ) >> A;
+        // }
+        // else
+        // {
+        //     integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+        //               M_velocityFESpace->qr(),
+        //               M_velocityFESpaceETA,
+        //               M_velocityFESpaceETA,
+        //               value(M_viscosity) *
+        //               dot(grad(phi_i),grad(phi_j))
+        //           ) >> A;
+        // }
     }
     else
     {
@@ -146,8 +146,7 @@ assembleReducedStiffness(shp<BCManager> bcManager,
 
 shp<aMatrix>
 StokesModel::
-assembleReducedMass(shp<BCManager> bcManager,
-                    BlockMDEIMStructure* structure)
+assembleReducedMass(shp<BCManager> bcManager)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -155,16 +154,17 @@ assembleReducedMass(shp<BCManager> bcManager,
     shp<BlockMatrix> mass(new BlockMatrix(2,2));
     shp<MATRIXEPETRA> M(new MATRIXEPETRA(M_velocityFESpace->map()));
 
-    if (structure)
+    // if (structure)
+    if (0)
     {
-        unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
-        unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
-        integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-                  M_velocityFESpace->qr(),
-                  M_velocityFESpaceETA,
-                  M_velocityFESpaceETA,
-                  value(M_density) * dot(phi_i, phi_j)
-              ) >> M;
+        // unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
+        // unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
+        // integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+        //           M_velocityFESpace->qr(),
+        //           M_velocityFESpaceETA,
+        //           M_velocityFESpaceETA,
+        //           value(M_density) * dot(phi_i, phi_j)
+        //       ) >> M;
 
     }
     else
@@ -187,8 +187,7 @@ assembleReducedMass(shp<BCManager> bcManager,
 
 shp<aMatrix>
 StokesModel::
-assembleReducedDivergence(shp<BCManager> bcManager,
-                          BlockMDEIMStructure* structure)
+assembleReducedDivergence(shp<BCManager> bcManager)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -197,16 +196,17 @@ assembleReducedDivergence(shp<BCManager> bcManager,
 
     shp<MATRIXEPETRA> BT(new MATRIXEPETRA(this->M_velocityFESpace->map()));
 
-    if (structure)
+    // if (structure)
+    if (0)
     {
-        unsigned int numVolumes = (*structure)(0,1)->numReducedElements;
-        unsigned int* volumes = (*structure)(0,1)->reducedElements.data();
-        integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-                  M_velocityFESpace->qr(),
-                  M_velocityFESpaceETA,
-                  M_pressureFESpaceETA,
-                  value(-1.0) * phi_j * div(phi_i)
-              ) >> BT;
+        // unsigned int numVolumes = (*structure)(0,1)->numReducedElements;
+        // unsigned int* volumes = (*structure)(0,1)->reducedElements.data();
+        // integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+        //           M_velocityFESpace->qr(),
+        //           M_velocityFESpaceETA,
+        //           M_pressureFESpaceETA,
+        //           value(-1.0) * phi_j * div(phi_i)
+        //       ) >> BT;
     }
     else
     {
@@ -223,16 +223,17 @@ assembleReducedDivergence(shp<BCManager> bcManager,
 
     shp<MATRIXEPETRA> B(new MATRIXEPETRA(M_pressureFESpace->map()));
 
-    if (structure)
+    // if (structure)
+    if (0)
     {
-        unsigned int numVolumes = (*structure)(1,0)->numReducedElements;
-        unsigned int* volumes = (*structure)(1,0)->reducedElements.data();
-        integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-                 M_pressureFESpace->qr(),
-                 M_pressureFESpaceETA,
-                 M_velocityFESpaceETA,
-                 phi_i * div(phi_j)
-             ) >> B;
+        // unsigned int numVolumes = (*structure)(1,0)->numReducedElements;
+        // unsigned int* volumes = (*structure)(1,0)->reducedElements.data();
+        // integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
+        //          M_pressureFESpace->qr(),
+        //          M_pressureFESpaceETA,
+        //          M_velocityFESpaceETA,
+        //          phi_i * div(phi_j)
+        //      ) >> B;
     }
     else
     {

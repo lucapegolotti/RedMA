@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     printlog(MAGENTA, msg, true);
 
     DataContainer data;
-    data.setDatafile("datafiles/data");
+    data.setDatafile("datafiles/data_fem");
     data.setVerbose(comm->MyPID() == 0);
     std::string outdir = "solution_fem_reference/";
     data.setValueString("exporter/outdir", outdir);

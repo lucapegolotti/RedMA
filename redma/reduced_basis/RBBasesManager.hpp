@@ -34,7 +34,7 @@ public:
 
     void loadBases();
 
-    shp<RBBases> getRBBases(std::string meshName) {return M_bases[meshName];}
+    shp<RBBases> getRBBases(std::string meshName);
 
 private:
     EPETRACOMM                                      M_comm;

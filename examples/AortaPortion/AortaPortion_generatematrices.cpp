@@ -16,7 +16,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
-#include <redma/reduced_basis/BasisGenerator.hpp>
+#include <redma/reduced_basis/MatricesGenerator.hpp>
 
 using namespace RedMA;
 
@@ -35,8 +35,8 @@ int main(int argc, char **argv)
     data.setVerbose(comm->MyPID() == 0);
     data.finalize();
 
-    BasisGenerator generator(data, comm);
-    generator.generateMatricesOnly();
+    MatricesGenerator generator(data, comm);
+    generator.generate();
 
     return 0;
 }

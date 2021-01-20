@@ -36,6 +36,9 @@ void
 RBBases::
 setPath(std::string path)
 {
+    if (!fs::exists(path))
+        throw new Exception("Path " + path + " does not exist! Maybe you forgot the .xml geometry file.");
+
     M_path = path;
 }
 

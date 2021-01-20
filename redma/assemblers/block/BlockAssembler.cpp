@@ -479,5 +479,17 @@ arePrimalAssemblersFE()
     return true;
 }
 
+bool
+BlockAssembler::
+arePrimalAssemblersRB()
+{
+    for (auto& primalas : M_primalAssemblers)
+    {
+        auto block = primalas.second->getTreeNode()->M_block;
+        if (std::strcmp(block->getDiscretizationMethod().c_str(),"rb") != 0)
+            return false;
+    }
+    return true;
+}
 
 }

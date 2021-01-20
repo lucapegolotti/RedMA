@@ -16,7 +16,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
-#include <redma/reduced_basis/DEIMSnapshotsSampler.hpp>
+// #include <redma/reduced_basis/DEIMSnapshotsSampler.hpp>
 
 using namespace RedMA;
 
@@ -30,13 +30,13 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    DataContainer data;
-    data.setDatafile("datafiles/data");
-    data.setVerbose(comm->MyPID() == 0);
-    data.finalize();
-
-    DEIMSnapshotsSampler sampler(data, comm);
-    sampler.takeDEIMSnapshots();
+    // DataContainer data;
+    // data.setDatafile("datafiles/data");
+    // data.setVerbose(comm->MyPID() == 0);
+    // data.finalize();
+    //
+    // DEIMSnapshotsSampler sampler(data, comm);
+    // sampler.takeDEIMSnapshots();
 
     return 0;
 }

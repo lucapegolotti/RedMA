@@ -49,7 +49,7 @@ public:
 
     void printMsg()
     {
-        std::string msg = "[Exception] ";
+        std::string msg = "\n[Exception] ";
         msg += M_msg;
         msg += "\n";
         printlog(RED, msg);

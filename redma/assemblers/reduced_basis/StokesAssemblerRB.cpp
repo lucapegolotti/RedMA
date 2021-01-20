@@ -149,7 +149,7 @@ getMatrices() const
 
 shp<aMatrix>
 StokesAssemblerRB::
-assembleMatrix(const unsigned int& index, BlockMDEIMStructure* structure)
+assembleMatrix(const unsigned int& index)
 {
     throw new Exception("assembleMatrix not implemented for StokesAssemblerRB");
 }

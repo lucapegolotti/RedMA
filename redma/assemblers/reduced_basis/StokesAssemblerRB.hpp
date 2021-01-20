@@ -84,10 +84,9 @@ public:
 
     virtual std::vector<shp<aMatrix>> getMatrices() const override;
 
-    virtual shp<aMatrix> assembleMatrix(const unsigned int& index,
-                                        BlockMDEIMStructure* structure = nullptr) override;
+    virtual shp<aMatrix> assembleMatrix(const unsigned int& index) override;
 
-    virtual void setMDEIMs(shp<MDEIMManager> mdeimManager) override {throw new Exception("setMDEIMs method not implemented for RB");}
+    // virtual void setMDEIMs(shp<MDEIMManager> mdeimManager) override {throw new Exception("setMDEIMs method not implemented for RB");}
 
     void setExtrapolatedSolution(const shp<aVector>& exSol) override {throw new Exception("setExtrapolatedSolution method not implemented for RB");}
 

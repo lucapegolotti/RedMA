@@ -23,8 +23,6 @@
 #include <redma/solver/time_marching_algorithms/aFunctionProvider.hpp>
 #include <redma/geometry/TreeStructure.hpp>
 
-#include <redma/reduced_basis/MDEIMStructure.hpp>
-#include <redma/reduced_basis/MDEIMManager.hpp>
 #include <redma/reduced_basis/RBBasesManager.hpp>
 
 #include <redma/problem/DataContainer.hpp>
@@ -232,14 +230,13 @@ public:
      * \param structure BlockMDEIMStructure instance (currently not supported).
      * \return The assembled matrix.
      */
-    virtual shp<aMatrix> assembleMatrix(const unsigned int& index,
-                                       BlockMDEIMStructure* structure = nullptr) {return shp<aMatrix>();}
+    virtual shp<aMatrix> assembleMatrix(const unsigned int& index) {return shp<aMatrix>();}
 
-    /*! \brief Setter for MDEIMs manager.
-     *
-     *  Currently not supported.
-     */
-    virtual void setMDEIMs(shp<MDEIMManager> mdeimManager) {}
+    // /*! \brief Setter for MDEIMs manager.
+    //  *
+    //  *  Currently not supported.
+    //  */
+    // virtual void setMDEIMs(shp<MDEIMManager> mdeimManager) {}
 
     /*! \brief Get nonlinear part of the right-hand side (when applicable).
      *

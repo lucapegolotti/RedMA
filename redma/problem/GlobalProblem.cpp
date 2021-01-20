@@ -106,4 +106,11 @@ isFEProblem()
     return M_assembler->arePrimalAssemblersFE();
 }
 
+bool
+GlobalProblem::
+isRBProblem()
+{
+    return M_assembler->arePrimalAssemblersRB();
+}
+
 }

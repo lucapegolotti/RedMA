@@ -16,7 +16,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
-#include <redma/problem/ProblemRB.hpp>
+#include <redma/problem/GlobalProblem.hpp>
 #include <chrono>
 #include <thread>
 #include <time.h>       /* time */
@@ -41,11 +41,11 @@ int main(int argc, char **argv)
     printlog(MAGENTA, msg, true);
 
     DataContainer data;
-    data.setDatafile("datafiles/data");
+    data.setDatafile("datafiles/data_rb");
     data.setVerbose(comm->MyPID() == 0);
     data.finalize();
 
-    ProblemRB rbProblem(data, comm);
+    GlobalProblem rbProblem(data, comm);
     rbProblem.solve();
 
     msg = "Total time =  ";

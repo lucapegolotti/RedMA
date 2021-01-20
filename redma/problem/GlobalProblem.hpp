@@ -103,6 +103,12 @@ public:
      */
     bool isFEProblem();
 
+    /*! Check if internal BlockAssembler is composed of only RB assemblers.
+     *
+     * \return True if all the primal assemblers are reduced basis assemblers.
+     */
+    bool isRBProblem();
+
 private:
     shp<aTimeMarchingAlgorithm>                M_TMAlgorithm;
     shp<BlockAssembler>                        M_assembler;

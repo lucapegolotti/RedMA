@@ -85,14 +85,13 @@ public:
 
     virtual std::vector<shp<aMatrix>> getMatrices() const override;
 
-    virtual shp<aMatrix> assembleMatrix(const unsigned int& index,
-                                        BlockMDEIMStructure* structure = nullptr) override;
+    virtual shp<aMatrix> assembleMatrix(const unsigned int& index) override;
 
     virtual shp<aMatrix> getNorm(const unsigned int& fieldIndex, bool bcs = true) override;
 
     virtual shp<aMatrix> getConstraintMatrix() override;
 
-    virtual void setMDEIMs(shp<MDEIMManager> mdeimManager) override;
+    // virtual void setMDEIMs(shp<MDEIMManager> mdeimManager) override;
 
     void setExtrapolatedSolution(const shp<aVector>& exSol) override;
 

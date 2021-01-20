@@ -68,4 +68,14 @@ loadBases()
     printlog(YELLOW, msg, this->M_data.getVerbose());
 }
 
+shp<RBBases>
+RBBasesManager::
+getRBBases(std::string meshName)
+{
+    if (M_bases.find(meshName) == M_bases.end())
+        throw new Exception("Basis with mesh " + meshName + "is not available!");
+
+    return M_bases[meshName];
+}
+
 }  // namespace RedMA

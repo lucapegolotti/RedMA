@@ -306,20 +306,19 @@ getMatrices() const
 
 shp<aMatrix>
 StokesAssemblerFE::
-assembleMatrix(const unsigned int& index,
-               BlockMDEIMStructure* structure)
+assembleMatrix(const unsigned int& index)
 {
     if (index == 0)
     {
-        return assembleReducedMass(M_bcManager, structure);
+        return assembleReducedMass(M_bcManager);
     }
     else if (index == 1)
     {
-        return assembleReducedStiffness(M_bcManager, structure);
+        return assembleReducedStiffness(M_bcManager);
     }
     else if (index == 2)
     {
-        return assembleReducedDivergence(M_bcManager, structure);
+        return assembleReducedDivergence(M_bcManager);
     }
 }
 
@@ -397,23 +396,23 @@ getConstraintMatrix()
     return M_divergence->block(0,1);
 }
 
-void
-StokesAssemblerFE::
-setMDEIMs(shp<MDEIMManager> mdeimManager)
-{
-   // std::string mdeimdir = this->M_data("rb/online/mdeim/directory", "mdeims");
-   //     // std::string meshName = this->M_treeNode->M_block->getMeshName();
-   //     // unsigned int dashpos = meshName.find("/");
-   //     // unsigned int formatpos = meshName.find(".mesh");
-   //     // std::string actualName = meshName.substr(dashpos + 1,
-   //     //                                          formatpos - dashpos - 1);
-   //     //
-   //     // auto mdeims = mdeimManager->getMDEIMS(actualName);
-   //     //
-   //     // M_mdeimMass = mdeims[0];
-   //     // M_mdeimStiffness = mdeims[1];
-   //     // M_mdeimDivergence = mdeims[2];
-}
+// void
+// StokesAssemblerFE::
+// setMDEIMs(shp<MDEIMManager> mdeimManager)
+// {
+//    // std::string mdeimdir = this->M_data("rb/online/mdeim/directory", "mdeims");
+//    //     // std::string meshName = this->M_treeNode->M_block->getMeshName();
+//    //     // unsigned int dashpos = meshName.find("/");
+//    //     // unsigned int formatpos = meshName.find(".mesh");
+//    //     // std::string actualName = meshName.substr(dashpos + 1,
+//    //     //                                          formatpos - dashpos - 1);
+//    //     //
+//    //     // auto mdeims = mdeimManager->getMDEIMS(actualName);
+//    //     //
+//    //     // M_mdeimMass = mdeims[0];
+//    //     // M_mdeimStiffness = mdeims[1];
+//    //     // M_mdeimDivergence = mdeims[2];
+// }
 
 void
 StokesAssemblerFE::

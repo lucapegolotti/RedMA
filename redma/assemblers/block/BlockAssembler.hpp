@@ -265,13 +265,19 @@ public:
      */
     bool arePrimalAssemblersFE();
 
+    /*! Check if all the primal assemblers are reduced basis assemblers.
+     *
+     * \return True if all the primal assemblers are reduced basis assemblers.
+     */
+    bool arePrimalAssemblersRB();
+
 protected:
     GetPot                                                        M_datafile;
     TreeStructure                                                 M_tree;
     std::map<unsigned int, shp<aAssembler>>                       M_primalAssemblers;
     std::vector<shp<InterfaceAssembler>>                          M_dualAssemblers;
     unsigned int                                                  M_numberBlocks;
-    shp<MDEIMManager>                                             M_mdeimManager;
+    // shp<MDEIMManager>                                             M_mdeimManager;
     shp<RBBasesManager>                                           M_basesManager;
 };
 

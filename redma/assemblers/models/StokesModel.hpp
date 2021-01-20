@@ -23,7 +23,7 @@
 #include <redma/array/SparseMatrix.hpp>
 #include <redma/geometry/BuildingBlock.hpp>
 
-#include <redma/reduced_basis/BlockMDEIM.hpp>
+// #include <redma/reduced_basis/BlockMDEIM.hpp>
 
 #include <lifev/eta/expression/Integrate.hpp>
 #include <lifev/core/filter/Exporter.hpp>
@@ -43,14 +43,11 @@ public:
     void addNeumannBCs(shp<aVector>& input, const double& time,
                        const shp<aVector>& sol);
 
-    shp<aMatrix> assembleReducedStiffness(shp<BCManager> bcManager,
-                                         BlockMDEIMStructure* structure = nullptr);
+    shp<aMatrix> assembleReducedStiffness(shp<BCManager> bcManager);
 
-    shp<aMatrix> assembleReducedMass(shp<BCManager> bcManager,
-                                    BlockMDEIMStructure* structure = nullptr);
+    shp<aMatrix> assembleReducedMass(shp<BCManager> bcManager);
 
-    shp<aMatrix> assembleReducedDivergence(shp<BCManager> bcManager,
-                                          BlockMDEIMStructure* structure = nullptr);
+    shp<aMatrix> assembleReducedDivergence(shp<BCManager> bcManager);
 
     std::map<unsigned int, double> computeFlowRates(shp<aVector> sol,
                                                     bool verbose = false);
@@ -116,9 +113,9 @@ protected:
     std::string                                       M_pressureOrder;
 
     // rb structures
-    shp<BlockMDEIM>                                   M_mdeimMass;
-    shp<BlockMDEIM>                                   M_mdeimStiffness;
-    shp<BlockMDEIM>                                   M_mdeimDivergence;
+    // shp<BlockMDEIM>                                   M_mdeimMass;
+    // shp<BlockMDEIM>                                   M_mdeimStiffness;
+    // shp<BlockMDEIM>                                   M_mdeimDivergence;
     shp<RBBases>                                      M_bases;
     // PyObject*                                      M_pFunc;
     // PyObject*                                      M_pModule;
