@@ -101,7 +101,7 @@ private:
     unsigned int                                         M_nPrimalBlocks;
     unsigned int                                         M_nDualBlocks;
     std::vector<shp<Epetra_SerialDenseSolver>>           M_solversAsDense;
-    int                                                  M_tresholdSizeExactSolve;
+    int                                                  M_thresholdSizeExactSolve;
     std::vector<bool>                                    M_isSmallBlock;
 };
 

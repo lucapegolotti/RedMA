@@ -76,7 +76,7 @@ buildPreconditioner(const BM& matrix)
     }
     else
     {
-        throw new Exception("Unkown type of preconditioner!");
+        throw new Exception("Unknown type of preconditioner!");
     }
     M_statistics.M_precSetupTime = M_prec->getSetupTime();
 }

@@ -405,7 +405,6 @@ assembleFlowRateJacobian(const GeometricFace& face)
     shp<MAPEPETRA> rangeMap = M_flowRateVectors[face.M_flag]->mapPtr();
     EPETRACOMM comm = rangeMap->commPtr();
 
-
     Epetra_Map epetraMap = M_flowRateVectors[face.M_flag]->epetraMap();
     unsigned int numElements = epetraMap.NumMyElements();
     unsigned int numGlobalElements = epetraMap.NumGlobalElements();
@@ -609,11 +608,11 @@ initializeVelocityFESpace(EPETRACOMM comm)
 {
     // initialize fespace velocity
     M_velocityFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
-                            M_velocityOrder, 3, comm));
+                                        M_velocityOrder, 3, comm));
 
     M_velocityFESpaceETA.reset(new ETFESPACE3(M_velocityFESpace->mesh(),
-                                           &(M_velocityFESpace->refFE()),
-                                             comm));
+                                              &(M_velocityFESpace->refFE()),
+                                              comm));
 }
 
 
@@ -623,10 +622,10 @@ initializePressureFESpace(EPETRACOMM comm)
 {
     // initialize fespace pressure
     M_pressureFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
-                                       M_pressureOrder, 1, comm));
+                                        M_pressureOrder, 1, comm));
     M_pressureFESpaceETA.reset(new ETFESPACE1(M_pressureFESpace->mesh(),
-                                           &(M_pressureFESpace->refFE()),
-                                             comm));
+                                              &(M_pressureFESpace->refFE()),
+                                              comm));
 }
 
 }

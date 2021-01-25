@@ -7,7 +7,7 @@ SaddlePointPreconditioner::
 SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
   M_data(data),
   M_matrix(matrix),
-  M_tresholdSizeExactSolve(-1)
+  M_thresholdSizeExactSolve(-1)
 {
     setup(matrix, true);
 }
@@ -32,7 +32,7 @@ setup(const BM& matrix, bool doComputeSchurComplement)
 
     // preconditioner used to approximate Am1 in iterations
     M_innerPrecType = M_data("preconditioner/inner", "SIMPLE");
-    M_tresholdSizeExactSolve = M_data("preconditioner/thresholdsize", -1);
+    M_thresholdSizeExactSolve = M_data("preconditioner/thresholdsize", -1);
     // solution method to approximate BAm1BT in schur
     M_approxSchurType = M_data("preconditioner/approxshur", "SIMPLE");
 
@@ -160,7 +160,7 @@ findSmallBlocks(const BM& primalMatrix)
         unsigned int size1 = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data())->rangeMapPtr()->mapSize();
         unsigned int size2 = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,0)->data())->rangeMapPtr()->mapSize();
 
-        if (size1 + size2 < M_tresholdSizeExactSolve)
+        if (size1 + size2 < M_thresholdSizeExactSolve)
             M_isSmallBlock[i] = true;
     }
 }
@@ -213,7 +213,7 @@ allocateInverseSolvers(const BM& primalMatrix)
             unsigned int size1 = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data())->rangeMapPtr()->mapSize();
             unsigned int size2 = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,0)->data())->rangeMapPtr()->mapSize();
 
-            if ((M_tresholdSizeExactSolve == -1) || (size1 + size2 < M_tresholdSizeExactSolve))
+            if ((M_thresholdSizeExactSolve == -1) || (size1 + size2 < M_thresholdSizeExactSolve))
             {
                 oper->setUp(matrixGrid,
                 spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data())->rangeMap().commPtr());
@@ -360,7 +360,6 @@ computeSingleAm1BT(const BM& A, const BM& BT,
         VECTOREPETRA selector(domainMap);
         VECTOREPETRA colU(rangeMapU);
         VECTOREPETRA colP(rangeMapP);
-
 
         for (unsigned int i = 0; i < ncols; i++)
         {

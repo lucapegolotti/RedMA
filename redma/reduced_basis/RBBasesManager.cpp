@@ -5,7 +5,7 @@ namespace RedMA
 
 RBBasesManager::
 RBBasesManager(const DataContainer& dataContainer, EPETRACOMM comm,
-             std::map<unsigned int, std::string> idmeshmap) :
+               std::map<unsigned int, std::string> idmeshmap) :
   M_data(dataContainer),
   M_comm(comm),
   M_IDMeshMap(idmeshmap)

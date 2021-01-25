@@ -193,8 +193,6 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
     this->addConvectiveMatrixRightHandSide(sol, systemMatrix);
 
     shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
-    // int a;
-    // std::cin >> a;
 
     addNeumannBCs(time, sol, retVec);
 
