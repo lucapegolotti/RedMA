@@ -60,6 +60,8 @@ public:
 
     void postProcess();
 
+    shp<VECTOREPETRA> computeBoundaryIndicator(shp<FESPACE> fespace);
+
     inline bool useStrongDirichlet() const {return M_strongDirichlet;}
 
 private:
@@ -72,6 +74,9 @@ private:
     static double fZero(const double& t, const double& x, const double& y,
                         const double& z, const unsigned int& i);
 
+    static double fOne(const double& t, const double& x, const double& y,
+                       const double& z, const unsigned int& i);
+
     static double constantFunction(const double& t, const double& x, const double& y,
                                    const double& z, const unsigned int& i,
                                    const double& K);
@@ -81,7 +86,8 @@ private:
     shp<LifeV::BCHandler> createBCHandler0Dirichlet(const bool& ringOnly = false) const;
 
     void addInletBC(shp<LifeV::BCHandler> bcs,
-                    std::function<double(double)> law) const;
+                    std::function<double(double)> law,
+                    const bool& ringOnly = false) const;
 
     void parseNeumannData();
 

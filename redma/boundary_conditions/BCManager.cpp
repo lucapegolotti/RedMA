@@ -15,7 +15,7 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
     M_inletFlag = treeNode->M_block->getInlet().M_flag;
     M_wallFlag = treeNode->M_block->wallFlag();
     M_inletRingFlag = treeNode->M_block->getInlet().M_ringFlag;
-    M_outletRingFlag = treeNode->M_block->getOutlet(0).M_ringFlag;
+    M_outletRingFlag = treeNode->M_block->getOutlet(0).M_ringFlag;  // assuming all outlets are the same
 }
 
 void
@@ -39,7 +39,7 @@ parseNeumannData()
 
 void
 BCManager::
-addInletBC(shp<LifeV::BCHandler> bcs, std::function<double(double)> law) const
+addInletBC(shp<LifeV::BCHandler> bcs, std::function<double(double)> law, const bool& ringOnly) const
 {
     if (M_treeNode->isInletNode())
     {
@@ -58,8 +58,17 @@ addInletBC(shp<LifeV::BCHandler> bcs, std::function<double(double)> law) const
         LifeV::BCFunctionBase inflowFunction(foo);
         bcs->addBC("Inlet", M_inletFlag, LifeV::Essential, LifeV::Full,
                    inflowFunction, 3);
-        bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
-                   LifeV::Full, zeroFunction, 3);
+
+        if (ringOnly) {
+            bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
+                       LifeV::Full, zeroFunction, 3);
+            bcs->addBC("OutletRing", M_outletRingFlag, LifeV::EssentialEdges,
+                       LifeV::Full, zeroFunction, 3);
+        }
+        else {
+            bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
+                       LifeV::Full, zeroFunction, 3);
+        }
     }
 }
 
@@ -71,7 +80,7 @@ applyDirichletBCs(const double& time, BlockVector& input,
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
-    addInletBC(bcs, M_inflow);
+    addInletBC(bcs, M_inflow, ringOnly);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -100,7 +109,7 @@ apply0DirichletMatrix(BlockMatrix& input,
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
     if (M_strongDirichlet)
-        addInletBC(bcs, fZero2);
+        addInletBC(bcs, fZero2, ringOnly);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -130,7 +139,7 @@ apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
     if (M_strongDirichlet)
-        addInletBC(bcs, fZero2);
+        addInletBC(bcs, fZero2, ringOnly);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -162,6 +171,29 @@ createBCHandler0Dirichlet(const bool& ringOnly) const
 
 
     return bcs;
+}
+
+shp<VECTOREPETRA>
+BCManager::
+computeBoundaryIndicator(shp<FESPACE> fespace)
+{
+    shp<VECTOREPETRA> boundaryIndicator(new VECTOREPETRA(fespace->map()));
+    boundaryIndicator->zero();
+
+    LifeV::BCFunctionBase oneFunction(fOne);
+
+    shp<LifeV::BCHandler> bcs;
+    bcs.reset(new LifeV::BCHandler);
+
+    bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
+               LifeV::Full, oneFunction, 3);
+
+    bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
+
+    bcManageRhs(*boundaryIndicator, *fespace->mesh(), fespace->dof(),
+                *bcs, fespace->feBd(), 1.0, 0.0);
+
+    return boundaryIndicator;
 }
 
 double
@@ -231,6 +263,14 @@ fZero(const double& t, const double& x, const double& y,
       const double& z, const unsigned int& i)
 {
     return 0.0;
+}
+
+double
+BCManager::
+fOne(const double& t, const double& x, const double& y,
+      const double& z, const unsigned int& i)
+{
+    return 1.0;
 }
 
 double

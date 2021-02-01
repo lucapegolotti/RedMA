@@ -16,173 +16,182 @@
 
 #include "MembraneAssemblerFE.hpp"
 
-namespace RedMA
-{
+namespace RedMA {
 
-MembraneAssemblerFE::
-MembraneAssemblerFE(const DataContainer& data,
-                    shp<TreeNode> treeNode) :
-        NavierStokesAssemblerFE(data, treeNode)
-{
-    M_membrane_density = data("structure/density", 1.2);
-    M_membrane_thickness = data("structure/thickness", 0.1);
-    M_wall_elasticity = data("structure/external_wall/elastic", 1e4);
-    M_wall_viscoelasticity = data("structure/external_wall/plastic", 1e3);
-    computeLameConstants();
-    M_addNoSlipBC = false;
-}
+    MembraneAssemblerFE::
+    MembraneAssemblerFE(const DataContainer &data,
+                        shp<TreeNode> treeNode) :
+            NavierStokesAssemblerFE(data, treeNode) {
+        M_membrane_density = data("structure/density", 1.2);
+        M_membrane_thickness = data("structure/thickness", 0.1);
+        M_wall_elasticity = data("structure/external_wall/elastic", 1e4);
+        M_wall_viscoelasticity = data("structure/external_wall/plastic", 1e3);
+        M_wallFlag = data("structure/flag", 10);
 
-void
-MembraneAssemblerFE::
-setup()
-{
-    NavierStokesAssemblerFE::setup();
+        computeLameConstants();
 
-    M_TMA_Displacements = TimeMarchingAlgorithmFactory(this->M_data, this->getZeroVector());
-    M_TMA_Displacements->setComm(this->M_comm);
+        M_addNoSlipBC = false;
+    }
 
-    M_boundaryStiffness.reset(new BlockMatrix(2,2));
-    M_boundaryStiffness->deepCopy(assembleBoundaryStiffness());
+    void
+    MembraneAssemblerFE::
+    setup() {
+        NavierStokesAssemblerFE::setup();
 
-    M_boundaryMass.reset(new BlockMatrix(2,2));
-    M_boundaryMass->deepCopy(assembleBoundaryMass());
-}
+        M_boundaryIndicator = M_bcManager->computeBoundaryIndicator(M_velocityFESpace);
 
-void
-MembraneAssemblerFE::
-computeLameConstants()
-{
-    double poisson = this->M_dataContainer("structure/poisson", 0.45);
-    double young = this->M_dataContainer("structure/young", 4e6);
+        M_TMA_Displacements = TimeMarchingAlgorithmFactory(this->M_data, this->getZeroVector());
+        M_TMA_Displacements->setComm(this->M_comm);
 
-    M_lameI = (this->M_membrane_thickness * young * poisson)/((1. - 2*poisson)*(1. + poisson));
-    M_lameII = this->M_membrane_thickness * young/(2. * (1. + poisson));
+        M_boundaryStiffness.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+        M_boundaryStiffness->deepCopy(assembleBoundaryStiffness());
 
-}
+        M_boundaryMass.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+        M_boundaryMass->deepCopy(assembleBoundaryMass());
+    }
 
-shp<aMatrix>
-MembraneAssemblerFE::
-assembleBoundaryMass(bool verbose)
-{
-    using namespace LifeV::ExpressionAssembly;
+    void
+    MembraneAssemblerFE::
+    computeLameConstants() {
+        double poisson = this->M_dataContainer("structure/poisson", 0.45);
+        double young = this->M_dataContainer("structure/young", 4e6);
 
-    shp<BlockMatrix> boundaryMass(new BlockMatrix(2,2));
+        M_lameI = (young * poisson) / ((1. - 2 * poisson) * (1. + poisson));
+        M_lameII = young / (2. * (1. + poisson));
 
-    printlog(YELLOW, "Assembling boundary mass matrix ...\n", verbose);
+    }
 
-    LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
+    shp<aMatrix>
+    MembraneAssemblerFE::
+    assembleBoundaryMass(bool verbose) {
+        using namespace LifeV::ExpressionAssembly;
 
-    shp<MATRIXEPETRA> BM(new MATRIXEPETRA(M_velocityFESpace->map()));
+        shp<BlockMatrix> boundaryMass(new BlockMatrix(this->M_nComponents, this->M_nComponents));
 
-    unsigned int wallFlag = this->M_dataContainer("structure/flag", 10);
-    integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
-              myBDQR,
-              M_velocityFESpaceETA,
-              M_velocityFESpaceETA,
-              dot (phi_i, phi_j)
-    ) >> BM;
-    BM->globalAssemble();
+        printlog(YELLOW, "Assembling boundary mass matrix ...\n", verbose);
 
-    shp<SparseMatrix> Mwrapper(new SparseMatrix);
-    Mwrapper->setData(BM);
-    boundaryMass->setBlock(0,0,Mwrapper);
+        LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
 
-    return boundaryMass;
-}
+        shp<MATRIXEPETRA > BM(new MATRIXEPETRA(M_velocityFESpace->map()));
 
-shp<aMatrix>
-MembraneAssemblerFE::
-assembleReducedMass(shp<BCManager> bcManager)
-{
-    using namespace LifeV::ExpressionAssembly;
+        integrate(boundary(M_velocityFESpaceETA->mesh(), M_wallFlag),
+                  myBDQR,
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  dot(phi_i, phi_j)
+        ) >> BM;
+        BM->globalAssemble();
 
-    shp<aMatrix> mass = StokesModel::assembleReducedMass(bcManager);
+        shp<SparseMatrix> Mwrapper(new SparseMatrix);
+        Mwrapper->setData(BM);
+        boundaryMass->setBlock(0, 0, Mwrapper);
 
-    shp<aMatrix> boundaryMass = this->assembleBoundaryMass();
-    boundaryMass->multiplyByScalar(M_membrane_density * M_membrane_thickness +
-                                   M_wall_viscoelasticity);
+        return boundaryMass;
+    }
 
-    mass->add(boundaryMass);
+    shp<aMatrix>
+    MembraneAssemblerFE::
+    assembleReducedMass(shp<BCManager> bcManager) {
+        using namespace LifeV::ExpressionAssembly;
 
-    return mass;
-}
+        shp<aMatrix> mass = NavierStokesAssemblerFE::assembleReducedMass(bcManager);
 
-shp<aMatrix>
-MembraneAssemblerFE::
-assembleBoundaryStiffness(bool verbose)
-{
-    using namespace LifeV::ExpressionAssembly;
+        shp<aMatrix> boundaryMass = this->assembleBoundaryMass();
+        boundaryMass->multiplyByScalar(M_membrane_density * M_membrane_thickness +
+                                       M_wall_viscoelasticity);
 
-    shp<BlockMatrix> boundaryStiffness(new BlockMatrix(2,2));
+        mass->add(boundaryMass);
 
-    printlog(YELLOW, "Assembling boundary stiffness matrix ...\n", verbose);
+        return mass;
+    }
 
-    LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
+    shp<aMatrix>
+    MembraneAssemblerFE::
+    assembleBoundaryStiffness(bool verbose) {
+        using namespace LifeV::ExpressionAssembly;
 
-    shp<MATRIXEPETRA> BS(new MATRIXEPETRA(M_velocityFESpace->map()));
+        shp<BlockMatrix> boundaryStiffness(new BlockMatrix(this->M_nComponents, this->M_nComponents));
 
-    LifeV::MatrixSmall<3,3> Eye;
-    Eye *= 0.0;
-    Eye[0][0] = 1;
-    Eye[1][1] = 1;
-    Eye[2][2] = 1;
-    unsigned int wallFlag = M_dataContainer("structure/flag", 10);
+        printlog(YELLOW, "Assembling boundary stiffness matrix ...\n", verbose);
 
-    integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
-              myBDQR,
-              M_velocityFESpaceETA,
-              M_velocityFESpaceETA,
-              2  *  value(this->M_lameII) *
-              0.5 * dot(
-                      (grad(phi_j) - grad(phi_j)*outerProduct(Nface, Nface))
-                      + transpose(grad(phi_j) - grad(phi_j)*outerProduct(Nface, Nface)),
-                      (grad (phi_i) - grad(phi_i)*outerProduct(Nface, Nface))) +
-              value(this->M_lameI) *
-              dot(value(Eye),(grad(phi_j) - grad(phi_j)*outerProduct(Nface, Nface))) *
-              dot(value(Eye),(grad(phi_i) - grad(phi_i)*outerProduct(Nface, Nface)))
-    ) >>  BS;
-    BS->globalAssemble();
+        LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
 
-    shp<SparseMatrix> Awrapper(new SparseMatrix);
-    Awrapper->setData(BS);
-    boundaryStiffness->setBlock(0,0,Awrapper);
+        shp<MATRIXEPETRA > BS(new MATRIXEPETRA(M_velocityFESpace->map()));
 
-    return boundaryStiffness;
-}
+        LifeV::MatrixSmall<3, 3> Eye;
+        Eye *= 0.0;
+        Eye[0][0] = 1;
+        Eye[1][1] = 1;
+        Eye[2][2] = 1;
 
-shp<aVector>
-MembraneAssemblerFE::
-getRightHandSide(const double& time,
-                 const shp<aVector>& sol_u)
-{
-    shp<aVector> retVec = NavierStokesAssemblerFE::getRightHandSide(time, sol_u);
+        integrate(boundary(M_velocityFESpaceETA->mesh(), M_wallFlag),
+                  myBDQR,
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  2 * value(this->M_lameII) *
+                  0.5 * dot(
+                          (grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface))
+                          + transpose(grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface)),
+                          (grad(phi_i) - grad(phi_i) * outerProduct(Nface, Nface))) +
+                  value(this->M_lameI) *
+                  dot(value(Eye), (grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface))) *
+                  dot(value(Eye), (grad(phi_i) - grad(phi_i) * outerProduct(Nface, Nface)))
+        ) >> BS;
+        BS->globalAssemble();
 
-    shp<aVector> extrapolatedDisplacement = this->M_TMA_Displacements->computeExtrapolatedSolution();
+        shp<SparseMatrix> Awrapper(new SparseMatrix);
+        Awrapper->setData(BS);
+        boundaryStiffness->setBlock(0, 0, Awrapper);
 
-    shp<aVector> membraneContrib = M_boundaryStiffness->multiplyByVector(extrapolatedDisplacement);
-    membraneContrib->multiplyByScalar(-M_membrane_thickness);
+        return boundaryStiffness;
+    }
 
-    shp<aVector> wallContrib = M_boundaryMass->multiplyByVector((extrapolatedDisplacement));
-    wallContrib->multiplyByScalar(-M_wall_elasticity);
+    shp<aVector>
+    MembraneAssemblerFE::
+    getRightHandSide(const double &time,
+                     const shp<aVector> &sol_u) {
+        shp<aVector> retVec = NavierStokesAssemblerFE::getRightHandSide(time, sol_u);
 
-    retVec->add(membraneContrib);
-    retVec->add(wallContrib);
+        shp<aVector> extrapolatedDisplacement = this->M_TMA_Displacements->computeExtrapolatedSolution();
 
-    return retVec;
-}
+        shp<aVector> membraneContrib = M_boundaryStiffness->multiplyByVector(extrapolatedDisplacement);
+        membraneContrib->multiplyByScalar(-M_membrane_thickness);
 
-void
-MembraneAssemblerFE::
-postProcess(const double &t, const double &dt, const shp<aVector> &sol)
-{
-    NavierStokesAssemblerFE::postProcess(t, dt, sol);
+        shp<aVector> wallContrib = M_boundaryMass->multiplyByVector((extrapolatedDisplacement));
+        wallContrib->multiplyByScalar(-M_wall_elasticity);
 
-    shp<BlockVector> currDisplacement(new BlockVector(0));
-    currDisplacement->deepCopy(M_TMA_Displacements->simpleAdvance(dt, sol));
+        retVec->add(membraneContrib);
+        retVec->add(wallContrib);
 
-    M_TMA_Displacements->shiftSolutions(currDisplacement);
-}
+        return retVec;
+    }
+
+    void
+    MembraneAssemblerFE::
+    postProcess(const double &t, const double &dt, const shp<aVector> &sol) {
+        NavierStokesAssemblerFE::postProcess(t, dt, sol);
+
+        shp<BlockVector> currDisplacement(new BlockVector(this->M_nComponents));
+        currDisplacement->deepCopy(M_TMA_Displacements->simpleAdvance(dt, sol));
+
+        printlog(YELLOW, "Updating displacements field ...\n", this->M_dataContainer.getVerbose());
+        M_TMA_Displacements->shiftSolutions(currDisplacement);
+
+        *M_displacementExporter = *static_cast<VECTOREPETRA *>(currDisplacement->block(0)->data().get());
+        *M_displacementExporter *= (*M_boundaryIndicator);
+    }
+
+    void
+    MembraneAssemblerFE::
+    setExporter() {
+        NavierStokesAssemblerFE::setExporter();
+
+        M_displacementExporter.reset(new VECTOREPETRA(M_velocityFESpace->map(),
+                                                      M_exporter->mapType()));
+
+        M_exporter->addVariable(LifeV::ExporterData < MESH > ::VectorField,
+                                "displacement", M_velocityFESpace, M_displacementExporter, 0.0);
+    }
+
 
 }  // namespace RedMA
-
-

@@ -225,12 +225,11 @@ simpleAdvance(const double &dt, const shp<aVector> &sol)
     if (M_order <= 0 || M_order > 3)
         throw new Exception("BDF scheme of requested order not implemented");
 
-    shp<BlockVector> retVec(new BlockVector(2));
+    shp<BlockVector> retVec(new BlockVector(0));
     retVec->deepCopy(sol);
-    retVec->multiplyByScalar(dt);
-    retVec->multiplyByScalar(M_rhsCoeff);
+    retVec->multiplyByScalar(dt * M_rhsCoeff);
 
-    shp<BlockVector> oldSteps(new BlockVector(2));
+    shp<BlockVector> oldSteps(new BlockVector(0));
     oldSteps->deepCopy(M_prevSolutions[0]);
     oldSteps->multiplyByScalar(M_coefficients[0]);
 

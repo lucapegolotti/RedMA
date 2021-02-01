@@ -240,6 +240,7 @@ getJacobianRightHandSide(const double& time,
         stabJac->multiplyByScalar(-1);
         retMat->add(stabJac);
     }
+
     this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(retMat),
                                              this->getFESpaceBCs(),
                                              this->getComponentBCs(), 0.0,

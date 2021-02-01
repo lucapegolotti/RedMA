@@ -44,9 +44,13 @@ public:
 
     void postProcess(const double& t, const double &dt, const shp<aVector>& sol) override;
 
+    void setExporter() override;
+
 protected:
 
     void computeLameConstants();
+
+    void computeBoundaryIndicator();
 
     shp<aTimeMarchingAlgorithm>                     M_TMA_Displacements;
 
@@ -56,9 +60,13 @@ protected:
     double                                          M_membrane_thickness;
     double                                          M_wall_elasticity;
     double                                          M_wall_viscoelasticity;
+    unsigned int                                    M_wallFlag;
 
     shp<BlockMatrix>                                M_boundaryStiffness;
     shp<BlockMatrix>                                M_boundaryMass;
+
+    shp<VECTOREPETRA>                               M_displacementExporter;
+    shp<VECTOREPETRA>                               M_boundaryIndicator;
 
 };
 
