@@ -44,7 +44,7 @@ setup()
 
 void
 StokesAssemblerFE::
-postProcess(const double& t, const shp<aVector>& sol)
+postProcess(const double& t, const double &dt, const shp<aVector>& sol)
 {
     // shift solutions in multistep method embedded in windkessels
     M_bcManager->postProcess();
@@ -95,7 +95,7 @@ getRightHandSide(const double& time,
                  const shp<aVector>& sol)
 {
     shp<BlockMatrix> systemMatrix(new BlockMatrix(this->M_nComponents,
-                                                  this->M_nComponents));
+                                                    this->M_nComponents));
     systemMatrix->add(M_stiffness);
     systemMatrix->add(M_divergence);
     systemMatrix->multiplyByScalar(-1.0);
@@ -103,8 +103,10 @@ getRightHandSide(const double& time,
     shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
     addNeumannBCs(time, sol, retVec);
 
-    this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec), this->getFESpaceBCs(),
-                                         this->getComponentBCs());
+    this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec),
+                                          this->getFESpaceBCs(),
+                                          this->getComponentBCs(),
+                                          !(this->M_addNoSlipBC));
 
     return retVec;
 }
@@ -141,7 +143,6 @@ getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
     retMat->add(M_divergence);
     retMat->multiplyByScalar(-1.0);
 
-
     if (aAssembler::M_treeNode->isOutletNode())
     {
         auto flowRates = computeFlowRates(sol);
@@ -158,7 +159,8 @@ getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
     }
 
     this->M_bcManager->apply0DirichletMatrix(*retMat, getFESpaceBCs(),
-                                   getComponentBCs(), 0.0);
+                                             getComponentBCs(), 0.0,
+                                             !(this->M_addNoSlipBC));
 
     return retMat;
 }
@@ -184,11 +186,13 @@ getFELifting(const double& time) const
     pcomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_pressureFESpace->map(),LifeV::Unique)));
     pcomp->multiplyByScalar(0);
 
-    lifting->setBlock(0,ucomp);
-    lifting->setBlock(1,pcomp);
+    lifting->setBlock(0, ucomp);
+    lifting->setBlock(1, pcomp);
 
-    this->M_bcManager->applyDirichletBCs(time, *lifting, this->getFESpaceBCs(),
-                                         this->getComponentBCs());
+    this->M_bcManager->applyDirichletBCs(time, *lifting,
+                                         this->getFESpaceBCs(),
+                                         this->getComponentBCs(),
+                                         !(this->M_addNoSlipBC));
 
     return lifting;
 }
@@ -258,7 +262,8 @@ applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
 {
     auto matrixConverted = spcast<BlockMatrix>(matrix);
     this->M_bcManager->apply0DirichletMatrix(*matrixConverted, getFESpaceBCs(),
-                                             getComponentBCs(), diagCoeff);
+                                             getComponentBCs(), diagCoeff,
+                                             !(this->M_addNoSlipBC));
 }
 
 void
@@ -267,7 +272,8 @@ apply0DirichletBCs(shp<aVector> vector) const
 {
     auto vectorConverted = spcast<BlockVector>(vector);
     this->M_bcManager->apply0DirichletBCs(*vectorConverted, getFESpaceBCs(),
-                                          getComponentBCs());
+                                          getComponentBCs(),
+                                          !(this->M_addNoSlipBC));
 }
 
 void
@@ -276,7 +282,7 @@ applyDirichletBCs(const double& time, shp<aVector> vector) const
 {
     auto vectorConverted = spcast<BlockVector>(vector);
     this->M_bcManager->applyDirichletBCs(time, *vectorConverted, getFESpaceBCs(),
-                                         getComponentBCs());
+                                         getComponentBCs(), !(this->M_addNoSlipBC));
 }
 
 shp<FESPACE>
@@ -354,7 +360,7 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
                 // note. Applying bcs does not change the norm if Dirichlet bcs are
                 // homogeneous (=> lifting) or imposed weakly. Here we impose bcs
                 // in order to have the correct conditions in the computation of the
-                // supremizers (we have to solve a linear system..)
+                // supremizers (we have to solve a linear system...)
                 applyDirichletBCsMatrix(normWrap, 1.0);
             }
 

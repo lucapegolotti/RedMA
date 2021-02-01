@@ -73,10 +73,12 @@ public:
 
     /*! Virtual postProcess functions (to be called at the end of the timestep).
      *
-     * \param time Current time.
+     * \param t Current time.
+     * \param dt Time step.
      * \param sol Current solution.
      */
     virtual void postProcess(const double& t,
+                             const double& dt,
                              const shp<aVector>& sol) = 0;
 
     /*! \brief Virtual getter for mass matrix.
@@ -133,7 +135,7 @@ public:
      * \param index Index of the desired component.
      * \return Shared pointer to desired finite element space.
      */
-    virtual shp<FESPACE> getFEspace(unsigned int index) const {return nullptr;}
+    virtual inline shp<FESPACE> getFEspace(unsigned int index) const {return nullptr;}
 
     /*! \brief Getter for the finite element s corresponding to the Dirichlet bcs (e.g., in the
      *         Stokes equations, the finite element s of the velocity).

@@ -31,7 +31,6 @@ load()
         std::string curdir = basisdir + "/" + idmeshpair.second;
 
         // count number of fields
-
         unsigned int numFields = 0;
         while (fs::exists(curdir + "/svd" + std::to_string(numFields) + ".txt"))
             numFields++;

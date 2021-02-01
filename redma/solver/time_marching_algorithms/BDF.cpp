@@ -6,7 +6,8 @@ namespace RedMA
 BDF::
 BDF(const DataContainer& data) :
   aTimeMarchingAlgorithm(data),
-  M_order(data("time_discretization/order",2))
+  M_order(data("time_discretization/order",2)),
+  M_extrapolationOrder(data("time_discretization/order", 2))
 {
     M_useExtrapolation = this->M_data("time_discretization/use_extrapolation", 0);
     // if we set this we save the evaluation of the residual at the end of resolution
@@ -18,7 +19,8 @@ BDF(const DataContainer& data) :
 BDF::
 BDF(const DataContainer& data, shp<FunProvider> funProvider) :
   aTimeMarchingAlgorithm(data, funProvider),
-  M_order(data("time_discretization/order",2))
+  M_order(data("time_discretization/order",2)),
+  M_extrapolationOrder(data("time_discretization/order", 2))
 {
     setup(this->M_funProvider->getZeroVector());
 
@@ -28,18 +30,41 @@ BDF(const DataContainer& data, shp<FunProvider> funProvider) :
         this->M_systemSolver.isLinearProblem();
 }
 
+BDF::
+BDF(const DataContainer& data, const shp<aVector>& zeroVector):
+  aTimeMarchingAlgorithm(data, zeroVector),
+  M_order(data("time_discretization/order",2)),
+  M_extrapolationOrder(data("time_discretization/order", 2))
+{
+    setup(zeroVector);
+
+    M_useExtrapolation = this->M_data("time_discretization/use_extrapolation", 0);
+    // if we set this we save the evaluation of the residual at the end of resolution
+    // (important for rb method)
+    if (M_useExtrapolation)
+        this->M_systemSolver.isLinearProblem();
+}
+
 void
 BDF::
 setup(const shp<aVector>& zeroVector)
 {
-    M_coefficients.reserve(M_order);
-
-    for (unsigned int i = 0; i < M_order; i++)
+    for (unsigned int i = 0; i < std::max(M_order, M_extrapolationOrder); i++)
     {
         shp<BlockVector> zeroVectorCopy(new BlockVector(0));
         zeroVectorCopy->deepCopy(zeroVector);
         M_prevSolutions.push_back(zeroVectorCopy);
     }
+
+    this->setBDFCoefficients();
+    this->setExtrapolationCoefficients();
+}
+
+void
+BDF::
+setBDFCoefficients()
+{
+    M_coefficients.reserve(M_order);
 
     if (M_order == 1)
     {
@@ -63,42 +88,56 @@ setup(const shp<aVector>& zeroVector)
     {
         throw new Exception("BDF scheme of requested order not implemented");
     }
+
 }
+
+void
+BDF::
+setExtrapolationCoefficients()
+{
+    M_extrapolationCoefficients.reserve(M_extrapolationOrder);
+
+    if (M_extrapolationOrder == 1)
+    {
+        M_extrapolationCoefficients[0] = 1.0;
+    }
+    else if (M_extrapolationOrder == 2)
+    {
+        M_extrapolationCoefficients[0] = 2.0;
+        M_extrapolationCoefficients[1] = -1.0;
+    }
+    else if (M_extrapolationOrder == 3)
+    {
+        M_extrapolationCoefficients[0] = 3.0;
+        M_extrapolationCoefficients[1] = -3.0;
+        M_extrapolationCoefficients[2] = 1.0;
+    }
+    else
+    {
+        throw new Exception("Extrapolation scheme of requested order not implemented");
+    }
+}
+
 
 shp<aVector>
 BDF::
-computeExtrapolatedSolution()
-{
+computeExtrapolatedSolution() {
+
+    if (M_extrapolationOrder <= 0 || M_extrapolationOrder > 3)
+        throw new Exception("Extrapolation scheme of requested order not implemented");
+
     shp<BlockVector> extrapolatedSolution(new BlockVector(0));
     extrapolatedSolution->deepCopy(M_prevSolutions[0]);
-    // std::cout << "extrapolatedSolution open?" << extrapolatedSolution->isOpen() << std::endl << std::flush;
-    // std::cout << "extrapolatedSolution open?" << extrapolatedSolution->isOpen() << std::endl << std::flush;
-    if (M_order == 1)
-    {
+    extrapolatedSolution->multiplyByScalar(M_extrapolationCoefficients[0]);
 
+    for (unsigned int i = 1; i < M_extrapolationOrder; i++) {
+        M_prevSolutions[i]->multiplyByScalar(M_extrapolationCoefficients[i]);
+        extrapolatedSolution->add(M_prevSolutions[i]);
+        M_prevSolutions[i]->multiplyByScalar(1.0 / M_extrapolationCoefficients[i]);
     }
-    else if (M_order == 2)
-    {
-        // std::cout << "extrapolatedSolution open?" << extrapolatedSolution->isOpen() << std::endl << std::flush;
-        extrapolatedSolution->multiplyByScalar(2);
-        M_prevSolutions[1]->multiplyByScalar(-1);
-        extrapolatedSolution->add(M_prevSolutions[1]);
-        M_prevSolutions[1]->multiplyByScalar(-1);
-    }
-    else if (M_order == 3)
-    {
-        extrapolatedSolution->multiplyByScalar(3);
-        // M_prevSolutions[1]->close();
-        M_prevSolutions[1]->multiplyByScalar(-3);
-        extrapolatedSolution->add(M_prevSolutions[1]);
-        M_prevSolutions[1]->multiplyByScalar(-1.0/3.0);
-        // M_prevSolutions[2]->close();
-        extrapolatedSolution->add(M_prevSolutions[2]);
-    }
-    else
-        throw new Exception("BDF scheme of requested order not implemented");
 
     return extrapolatedSolution;
+
 }
 
 shp<aVector>
@@ -124,8 +163,7 @@ advance(const double& time, double& dt, int& status)
         BV f(this->M_funProvider->getRightHandSide(time+dt, sol));
 
         BV prevContribution(new BlockVector(0));
-        unsigned int count = 0;
-        for (BV vec : M_prevSolutions)
+        for (unsigned int count = 0; count < M_order; count++)
         {
             BV vecCopy(new BlockVector(0));
             vecCopy->deepCopy(M_prevSolutions[count]);
@@ -160,10 +198,9 @@ advance(const double& time, double& dt, int& status)
         retMat->add(this->M_funProvider->getMassJacobian(time+dt, sol));
 
         // this is the part relative to the previous steps
-        unsigned int count = 0;
-        for (BV vec : M_prevSolutions)
+        for (unsigned int count = 0; count < M_order; count++)
         {
-            auto massjac = this->M_funProvider->getMassJacobian(time+dt, vec);
+            auto massjac = this->M_funProvider->getMassJacobian(time+dt, M_prevSolutions[count]);
             massjac->multiplyByScalar(M_coefficients[count]);
             retMat->add(massjac);
             count++;
@@ -183,6 +220,34 @@ advance(const double& time, double& dt, int& status)
 
 shp<aVector>
 BDF::
+simpleAdvance(const double &dt, const shp<aVector> &sol)
+{
+    if (M_order <= 0 || M_order > 3)
+        throw new Exception("BDF scheme of requested order not implemented");
+
+    shp<BlockVector> retVec(new BlockVector(2));
+    retVec->deepCopy(sol);
+    retVec->multiplyByScalar(dt);
+    retVec->multiplyByScalar(M_rhsCoeff);
+
+    shp<BlockVector> oldSteps(new BlockVector(2));
+    oldSteps->deepCopy(M_prevSolutions[0]);
+    oldSteps->multiplyByScalar(M_coefficients[0]);
+
+    for (unsigned int i = 1; i < M_order; i++) {
+        M_prevSolutions[i]->multiplyByScalar(M_coefficients[i]);
+        oldSteps->add(M_prevSolutions[i]);
+        M_prevSolutions[i]->multiplyByScalar(1.0 / M_coefficients[i]);
+    }
+    oldSteps->multiplyByScalar(-1.0);
+
+    retVec->add(oldSteps);
+
+    return retVec;
+}
+
+shp<aVector>
+BDF::
 computeDerivative(const shp<aVector>& solnp1, double& dt)
 {
     typedef shp<BlockVector>               BV;
@@ -190,11 +255,10 @@ computeDerivative(const shp<aVector>& solnp1, double& dt)
     BV retVec(new BlockVector(0));
     retVec->deepCopy(solnp1);
 
-    unsigned int count = 0;
-    for (BV vec : M_prevSolutions)
+    for (unsigned int count = 0; count < M_order; count++)
     {
         BV vecCopy(new BlockVector(0));
-        vecCopy->deepCopy(vec);
+        vecCopy->deepCopy(M_prevSolutions[count]);
         vecCopy->multiplyByScalar(M_coefficients[count]);
         retVec->add(vecCopy);
         count++;
@@ -209,10 +273,10 @@ BDF::
 shiftSolutions(const shp<aVector>& sol)
 {
     // shift solutions
-    std::vector<shp<BlockVector>> newPrevSolutions(M_order);
+    std::vector<shp<BlockVector>> newPrevSolutions(std::max(M_order, M_extrapolationOrder));
     newPrevSolutions[0].reset(static_cast<BlockVector*>(sol->clone()));
 
-    for (unsigned int i = 0; i < M_order-1; i++)
+    for (unsigned int i = 0; i < std::max(M_order, M_extrapolationOrder)-1; i++)
         newPrevSolutions[i+1].reset(new BlockVector(*M_prevSolutions[i]));
 
     M_prevSolutions = newPrevSolutions;

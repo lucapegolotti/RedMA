@@ -43,13 +43,19 @@ public:
 
     GeneralizedAlphaMethod(const DataContainer& data, shp<FunProvider> funProvider);
 
+    GeneralizedAlphaMethod(const DataContainer& data, const shp<aVector>& zeroVector);
+
     virtual void setup(const shp<aVector>& zeroVector) override;
 
     virtual shp<aVector> advance(const double& time, double& dt, int& status) override;
 
+    virtual shp<aVector> simpleAdvance(const double &dt, const shp<aVector> &sol) override;
+
     virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1, double& dt) override;
 
     virtual void shiftSolutions(const shp<aVector>& sol) override;
+
+    virtual shp<aVector> computeExtrapolatedSolution() override;
 
 protected:
     shp<aVector> computesolnp1(shp<aVector> dersol, const double& dt);

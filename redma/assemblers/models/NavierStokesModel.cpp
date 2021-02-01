@@ -4,13 +4,11 @@ namespace RedMA
 {
 
 NavierStokesModel::
-NavierStokesModel(const DataContainer& data, shp<TreeNode> treeNode)
-  // StokesModel(data, treeNode),
-  // M_useStabilization(false)
-  // M_stabilization(nullptr)
+NavierStokesModel(const DataContainer& data, shp<TreeNode> treeNode){}
+    /*StokesModel(data, treeNode)
 {
-    // this->M_name = "NavierStokesModel";
-}
+    this->M_name = "NavierStokesModel";
+}*/
 
 // void
 // NavierStokesAssembler::

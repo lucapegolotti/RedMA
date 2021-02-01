@@ -152,7 +152,8 @@ getMass(const double& time, const shp<aVector>& sol)
         //retMat += M_stabilization->getMass(M_extrapolatedSolution, this->getForcingTerm(time));
 
         this->M_bcManager->apply0DirichletMatrix(*retMat, this->getFESpaceBCs(),
-                                                 this->getComponentBCs(), 1.0);
+                                                 this->getComponentBCs(), 1.0,
+                                                 !(this->M_addNoSlipBC));
     }
 
     return retMat;
@@ -167,9 +168,11 @@ getMassJacobian(const double& time, const shp<aVector>& sol)
     {
         retMat->add(M_stabilization->getMassJac(spcast<BlockVector>(sol),
                                                 spcast<BlockVector>(this->getForcingTerm(time))));
+
         // we do it here because matrices from stabilization have no bcs
         this->M_bcManager->apply0DirichletMatrix(*retMat, this->getFESpaceBCs(),
-                                                 this->getComponentBCs(), 0.0);
+                                                 this->getComponentBCs(), 0.0,
+                                                 !(this->M_addNoSlipBC));
 
     }
 
@@ -181,7 +184,7 @@ NavierStokesAssemblerFE::
 getRightHandSide(const double& time, const shp<aVector>& sol)
 {
     shp<BlockMatrix> systemMatrix(new BlockMatrix(this->M_nComponents,
-                                                  this->M_nComponents));
+                                                    this->M_nComponents));
 
     systemMatrix->add(M_stiffness);
     systemMatrix->add(M_divergence);
@@ -195,9 +198,8 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
     shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
 
     addNeumannBCs(time, sol, retVec);
-
     this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec), this->getFESpaceBCs(),
-                                         this->getComponentBCs());
+                                          this->getComponentBCs(), !(this->M_addNoSlipBC));
 
     if (M_stabilization)
     {
@@ -238,9 +240,10 @@ getJacobianRightHandSide(const double& time,
         stabJac->multiplyByScalar(-1);
         retMat->add(stabJac);
     }
-
-    this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(retMat), this->getFESpaceBCs(),
-                                             this->getComponentBCs(), 0.0);
+    this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(retMat),
+                                             this->getFESpaceBCs(),
+                                             this->getComponentBCs(), 0.0,
+                                             !(this->M_addNoSlipBC));
 
     return retMat;
 }

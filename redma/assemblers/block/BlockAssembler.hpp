@@ -78,9 +78,11 @@ public:
      * The postProcess function is called in all the primal assemblers.
      *
      * \param time Current time.
+     * \param dt Time step.
      * \param sol Current solution.
      */
     virtual void postProcess(const double& time,
+                             const double &dt,
                              const shp<aVector>& sol) override;
 
     /*! \brief Getter for the mass matrix.
@@ -277,7 +279,7 @@ protected:
     std::map<unsigned int, shp<aAssembler>>                       M_primalAssemblers;
     std::vector<shp<InterfaceAssembler>>                          M_dualAssemblers;
     unsigned int                                                  M_numberBlocks;
-    // shp<MDEIMManager>                                             M_mdeimManager;
+    // shp<MDEIMManager>                                            M_mdeimManager;
     shp<RBBasesManager>                                           M_basesManager;
 };
 

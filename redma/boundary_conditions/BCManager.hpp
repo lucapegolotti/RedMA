@@ -39,16 +39,19 @@ public:
     BCManager(const DataContainer& datafile, shp<TreeNode> treeNode);
 
     void applyDirichletBCs(const double& time, BlockVector& input,
-                           shp<FESPACE> fespace, const unsigned int& index) const;
+                           shp<FESPACE> fespace, const unsigned int& index,
+                           const bool& ringOnly = false) const;
 
     void apply0DirichletBCs(BlockVector& input,
                             shp<FESPACE> fespace,
-                            const unsigned int& index) const;
+                            const unsigned int& index,
+                            const bool& ringOnly = false) const;
 
     void apply0DirichletMatrix(BlockMatrix& input,
                                shp<FESPACE> fespace,
                                const unsigned int& index,
-                               const double& diagCoefficient) const;
+                               const double& diagCoefficient,
+                               const bool& ringOnly = false) const;
 
     double getNeumannBc(const double& time, const double& flag, const double& rate);
 
@@ -75,7 +78,7 @@ private:
 
     static double fZero2(double t);
 
-    shp<LifeV::BCHandler> createBCHandler0Dirichlet() const;
+    shp<LifeV::BCHandler> createBCHandler0Dirichlet(const bool& ringOnly = false) const;
 
     void addInletBC(shp<LifeV::BCHandler> bcs,
                     std::function<double(double)> law) const;
@@ -90,8 +93,8 @@ private:
 
     unsigned int                                     M_inletFlag;
     unsigned int                                     M_wallFlag;
-    unsigned int                                     M_inletRing;
-    unsigned int                                     M_outletRing;
+    unsigned int                                     M_inletRingFlag;
+    unsigned int                                     M_outletRingFlag;
 
     // key is the outlet index (more than one for bifurcations)
     std::map<unsigned int,shp<WindkesselModel>>      M_models;

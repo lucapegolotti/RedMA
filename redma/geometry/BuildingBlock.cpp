@@ -10,7 +10,7 @@ GeometricFace() :
   M_normal(Vector3D(1.0,0.0,0.0)),
   M_radius(1.0),
   M_flag(0),
-  M_diskFlag(0)
+  M_ringFlag(0)
 {
 }
 
@@ -21,18 +21,18 @@ GeometricFace(Vector3D center, Vector3D normal, double radius,
   M_normal(normal),
   M_radius(radius),
   M_flag(flag),
-  M_diskFlag(0)
+  M_ringFlag(0)
 {
 }
 
 GeometricFace::
 GeometricFace(Vector3D center, Vector3D normal, double radius,
-              unsigned int flag, unsigned int flagDisk) :
+              unsigned int flag, unsigned int flagRing) :
   M_center(center),
   M_normal(normal),
   M_radius(radius),
   M_flag(flag),
-  M_diskFlag(flagDisk)
+  M_ringFlag(flagRing)
 {
 }
 
@@ -49,6 +49,7 @@ print() const
                     std::to_string(M_normal[2]) + ")\n");
     printlog(WHITE, std::string("\tradius = ") + std::to_string(M_radius) + "\n");
     printlog(WHITE, std::string("\tflag = ") + std::to_string(M_flag) + "\n");
+    printlog(WHITE, std::string("\tring flag = ") + std::to_string(M_ringFlag) + "\n");
 
 }
 

@@ -40,23 +40,34 @@ public:
 
     BDF(const DataContainer& data, shp<FunProvider> funProvider);
 
+    BDF(const DataContainer& data, const shp<aVector>& zeroVector);
+
     virtual void setup(const shp<aVector>& zeroVector) override;
 
     virtual shp<aVector> advance(const double& time, double& dt,
-                                              int& status) override;
+                                 int& status) override;
+
+    virtual shp<aVector> simpleAdvance(const double &dt, const shp<aVector> &sol) override;
 
     virtual void shiftSolutions(const shp<aVector>& sol) override;
 
     virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1,
                                            double& dt) override;
 
-    shp<aVector> computeExtrapolatedSolution();
+    virtual shp<aVector> computeExtrapolatedSolution() override;
 
 protected:
+
+    void setBDFCoefficients();
+
+    void setExtrapolationCoefficients();
+
     std::vector<shp<BlockVector>>            M_prevSolutions;
     std::vector<double>                      M_coefficients;
-    unsigned int                             M_order;
     double                                   M_rhsCoeff;
+    unsigned int                             M_order;
+    unsigned int                             M_extrapolationOrder;
+    std::vector<double>                      M_extrapolationCoefficients;
     bool                                     M_useExtrapolation;
 };
 

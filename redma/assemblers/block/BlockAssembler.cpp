@@ -86,7 +86,6 @@ void
 BlockAssembler::
 apply0DirichletBCs(shp<aVector> initialGuess) const
 {
-    unsigned int count = 0;
     for (auto as : M_primalAssemblers)
     {
         as.second->apply0DirichletBCs(
@@ -157,10 +156,10 @@ setExtrapolatedSolution(const shp<aVector>& exSol)
 
 void
 BlockAssembler::
-postProcess(const double& t, const shp<aVector>& sol)
+postProcess(const double& t, const double &dt, const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)
-        as.second->postProcess(t, convert<BlockVector>(sol)->block(as.first));
+        as.second->postProcess(t, dt, convert<BlockVector>(sol)->block(as.first));
 
     if (this->M_data("coupling/check_stabterm", false))
         checkStabTerm(sol);
@@ -394,23 +393,30 @@ setup()
         M_primalAssemblers[it->second->M_ID] = newAssembler;
     }
 
-    M_basesManager.reset(new RBBasesManager(M_data, M_comm, getIDMeshTypeMap()));
-    M_basesManager->load();
+    if (!(this->arePrimalAssemblersFE())) {
+        M_basesManager.reset(new RBBasesManager(M_data, M_comm, getIDMeshTypeMap()));
+        M_basesManager->load();
+    }
 
     for (auto& primalas : M_primalAssemblers)
     {
         primalas.second->setup();
         // we set the RBBases later because we need the finite element space
-        primalas.second->setRBBases(M_basesManager);
+        auto block = primalas.second->getTreeNode()->M_block;
+        if (std::strcmp(block->getDiscretizationMethod().c_str(), "rb") == 0)
+            primalas.second->setRBBases(M_basesManager);
     }
 
     // we need to load the bases here because now we have the finite element space
-    M_basesManager->loadBases();
+    if(!(this->arePrimalAssemblersFE()))
+        M_basesManager->loadBases();
 
     for (auto& primalas : M_primalAssemblers)
     {
         // restrict RB matrices based on desired pod tolerance (if needed)
-        primalas.second->RBsetup();
+        auto block = primalas.second->getTreeNode()->M_block;
+        if (std::strcmp(block->getDiscretizationMethod().c_str(), "rb") == 0)
+            primalas.second->RBsetup();
     }
 
     // allocate interface assemblers
@@ -473,7 +479,7 @@ arePrimalAssemblersFE()
     for (auto& primalas : M_primalAssemblers)
     {
         auto block = primalas.second->getTreeNode()->M_block;
-        if (std::strcmp(block->getDiscretizationMethod().c_str(),"fem") != 0)
+        if (std::strcmp(block->getDiscretizationMethod().c_str(), "fem") != 0)
             return false;
     }
     return true;
@@ -486,7 +492,7 @@ arePrimalAssemblersRB()
     for (auto& primalas : M_primalAssemblers)
     {
         auto block = primalas.second->getTreeNode()->M_block;
-        if (std::strcmp(block->getDiscretizationMethod().c_str(),"rb") != 0)
+        if (std::strcmp(block->getDiscretizationMethod().c_str(), "rb") != 0)
             return false;
     }
     return true;

@@ -43,9 +43,9 @@ public:
     void addNeumannBCs(shp<aVector>& input, const double& time,
                        const shp<aVector>& sol);
 
-    shp<aMatrix> assembleReducedStiffness(shp<BCManager> bcManager);
+    virtual shp<aMatrix> assembleReducedStiffness(shp<BCManager> bcManager);
 
-    shp<aMatrix> assembleReducedMass(shp<BCManager> bcManager);
+    virtual shp<aMatrix> assembleReducedMass(shp<BCManager> bcManager);
 
     shp<aMatrix> assembleReducedDivergence(shp<BCManager> bcManager);
 
@@ -123,6 +123,8 @@ protected:
     shp<VECTOREPETRA>                                 M_xs;
     shp<VECTOREPETRA>                                 M_ys;
     shp<VECTOREPETRA>                                 M_zs;
+
+    bool                                              M_addNoSlipBC;
 };
 
 }

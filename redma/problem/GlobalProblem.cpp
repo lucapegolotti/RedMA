@@ -92,7 +92,7 @@ solve()
         if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
             M_assembler->exportSolution(t, M_solution);
 
-        M_assembler->postProcess(t, M_solution);
+        M_assembler->postProcess(t, dt, M_solution);
         M_TMAlgorithm->shiftSolutions(M_solution);
         if (t >= t0)
             count++;

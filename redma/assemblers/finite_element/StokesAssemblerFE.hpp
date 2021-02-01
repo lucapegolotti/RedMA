@@ -34,7 +34,7 @@ public:
     virtual void exportSolution(const double& t,
                                 const shp<aVector>& sol) override;
 
-    virtual void postProcess(const double& t, const shp<aVector>& sol) override;
+    virtual void postProcess(const double& t, const double &dt, const shp<aVector>& sol) override;
 
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;
@@ -69,11 +69,6 @@ public:
     {
         return this->M_velocityFESpaceETA;
     }
-
-    // virtual inline shp<ETFESPACE1> getETFESpaceSecondary() const override
-    // {
-    //     return this->M_pressureFESpaceETA;
-    // }
 
     void applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
 

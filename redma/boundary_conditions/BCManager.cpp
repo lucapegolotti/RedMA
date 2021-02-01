@@ -14,8 +14,8 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
     parseNeumannData();
     M_inletFlag = treeNode->M_block->getInlet().M_flag;
     M_wallFlag = treeNode->M_block->wallFlag();
-    M_inletRing = 30;
-    M_outletRing = 31;
+    M_inletRingFlag = treeNode->M_block->getInlet().M_ringFlag;
+    M_outletRingFlag = treeNode->M_block->getOutlet(0).M_ringFlag;
 }
 
 void
@@ -66,9 +66,10 @@ addInletBC(shp<LifeV::BCHandler> bcs, std::function<double(double)> law) const
 void
 BCManager::
 applyDirichletBCs(const double& time, BlockVector& input,
-                  shp<FESPACE> fespace, const unsigned int& index) const
+                  shp<FESPACE> fespace, const unsigned int& index,
+                  const bool& ringOnly) const
 {
-    shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet();
+    shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
     addInletBC(bcs, M_inflow);
 
@@ -93,9 +94,10 @@ BCManager::
 apply0DirichletMatrix(BlockMatrix& input,
                       shp<FESPACE> fespace,
                       const unsigned int& index,
-                      const double& diagCoefficient) const
+                      const double& diagCoefficient,
+                      const bool& ringOnly) const
 {
-    shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet();
+    shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
     if (M_strongDirichlet)
         addInletBC(bcs, fZero2);
@@ -122,9 +124,10 @@ apply0DirichletMatrix(BlockMatrix& input,
 void
 BCManager::
 apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
-                   const unsigned int& index) const
+                   const unsigned int& index,
+                   const bool& ringOnly) const
 {
-    shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet();
+    shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
     if (M_strongDirichlet)
         addInletBC(bcs, fZero2);
@@ -139,19 +142,24 @@ apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
 
 shp<LifeV::BCHandler>
 BCManager::
-createBCHandler0Dirichlet() const
+createBCHandler0Dirichlet(const bool& ringOnly) const
 {
     LifeV::BCFunctionBase zeroFunction(fZero);
 
     shp<LifeV::BCHandler> bcs;
     bcs.reset(new LifeV::BCHandler);
 
-    bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
-               LifeV::Full, zeroFunction, 3);
-    // bcs->addBC("InletRing", M_wallFlag, LifeV::EssentialEdges,
-    //            LifeV::Full, zeroFunction, 3);
-    // bcs->addBC("OutletRing", M_wallFlag, LifeV::EssentialEdges,
-    //            LifeV::Full, zeroFunction, 3);
+    if (ringOnly) {
+        bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
+                   LifeV::Full, zeroFunction, 3);
+        bcs->addBC("OutletRing", M_outletRingFlag, LifeV::EssentialEdges,
+                   LifeV::Full, zeroFunction, 3);
+    }
+    else {
+        bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
+                   LifeV::Full, zeroFunction, 3);
+    }
+
 
     return bcs;
 }

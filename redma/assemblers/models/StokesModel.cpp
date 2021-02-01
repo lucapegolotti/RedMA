@@ -12,6 +12,7 @@ StokesModel(const DataContainer& data, shp<TreeNode> treeNode) :
     M_viscosity = data("fluid/viscosity", 0.035);
     M_velocityOrder = data("fluid/velocity_order", "P2");
     M_pressureOrder = data("fluid/pressure_order", "P1");
+    M_addNoSlipBC = true;
 }
 
 
@@ -140,7 +141,8 @@ assembleReducedStiffness(shp<BCManager> bcManager)
     Awrapper->setData(A);
     stiffness->setBlock(0,0,Awrapper);
 
-    bcManager->apply0DirichletMatrix(*stiffness, M_velocityFESpace, 0, 0.0);
+    bcManager->apply0DirichletMatrix(*stiffness, M_velocityFESpace, 0, 0.0, !(M_addNoSlipBC));
+
     return stiffness;
 }
 
@@ -180,7 +182,8 @@ assembleReducedMass(shp<BCManager> bcManager)
     shp<SparseMatrix> Mwrapper(new SparseMatrix);
     Mwrapper->setData(M);
     mass->setBlock(0,0,Mwrapper);
-    bcManager->apply0DirichletMatrix(*mass, M_velocityFESpace, 0, 1.0);
+
+    bcManager->apply0DirichletMatrix(*mass, M_velocityFESpace, 0, 1.0, !(M_addNoSlipBC));
 
     return mass;
 }
@@ -256,7 +259,7 @@ assembleReducedDivergence(shp<BCManager> bcManager)
     divergence->setBlock(0,1,BTwrapper);
     divergence->setBlock(1,0,Bwrapper);
 
-    bcManager->apply0DirichletMatrix(*divergence, M_velocityFESpace, 0, 0.0);
+    bcManager->apply0DirichletMatrix(*divergence, M_velocityFESpace, 0, 0.0, !(M_addNoSlipBC));
 
     return divergence;
 }
@@ -309,7 +312,7 @@ assembleFlowRateJacobians(shp<BCManager> bcManager)
 
             newJacobian->setBlock(0,0,jacWrapper);
 
-            applyDirichletBCsMatrix(bcManager,newJacobian, 0.0);
+            applyDirichletBCsMatrix(bcManager, newJacobian, 0.0);
 
             M_flowRateJacobians[face.M_flag] = newJacobian;
 
@@ -324,7 +327,7 @@ applyDirichletBCsMatrix(shp<BCManager> bcManager,
 {
     auto matrixConverted = spcast<BlockMatrix>(matrix);
     bcManager->apply0DirichletMatrix(*matrixConverted, M_velocityFESpace,
-                                     0, diagCoeff);
+                                     0, diagCoeff, !(M_addNoSlipBC));
 }
 
 std::map<unsigned int, double>

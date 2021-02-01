@@ -35,7 +35,7 @@ public:
     virtual void exportSolution(const double& t,
                                 const shp<aVector>& sol) override;
 
-    virtual void postProcess(const double& t, const shp<aVector>& sol) override;
+    virtual void postProcess(const double& t, const double &dt, const shp<aVector>& sol) override;
 
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;

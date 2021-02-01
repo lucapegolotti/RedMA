@@ -45,11 +45,11 @@ public:
     shp<aMatrix> getMassJacobian(const double& time,
                                  const shp<aVector>& sol) override;
 
-    shp<aVector> getRightHandSide(const double& time,
-                                  const shp<aVector>& sol) override;
-
-    shp<aMatrix> getJacobianRightHandSide(const double& time,
+    virtual shp<aVector> getRightHandSide(const double& time,
                                           const shp<aVector>& sol) override;
+
+    virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
+                                                  const shp<aVector>& sol) override;
 
 
 protected:
