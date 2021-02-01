@@ -7,7 +7,7 @@ paraview.simple._DisableFirstRenderCameraReset()
 stringtosearch = "velocity." # CHANGE THIS VARIABLE TO LOAD OTHER VARIABLE
 
 print(os.curdir)
-dir = "/Users/luca/RedMA/build/examples/NavierStokesExample/solutions/" # SET DIR HERE
+dir = "/Users/luca/RedMA/build/examples/StokesExample/solutions/"  # SET DIR HERE
 renderView1 = GetActiveViewOrCreate('RenderView')
 count = 0
 
@@ -15,6 +15,7 @@ def getStamp(elem):
     firstdot = elem.find(".")+1
     print(elem[firstdot:firstdot+5])
     return int(elem[firstdot:firstdot+5])
+
 
 listdir = os.listdir(dir)
 lists = []
@@ -37,7 +38,7 @@ animationScene1 = GetAnimationScene()
 animationScene1.UpdateAnimationUsingDataTimeSteps()
 renderView1 = GetActiveViewOrCreate('RenderView')
 
-for i in range(0,count):
+for i in range(count):
     lists[i].sort(key=getStamp)
     block = XMLPartitionedUnstructuredGridReader(FileName=lists[i])
     block_disp = Show(block, renderView1)

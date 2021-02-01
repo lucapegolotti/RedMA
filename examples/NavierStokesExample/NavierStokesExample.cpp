@@ -34,14 +34,26 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
+    Chrono chrono;
+    chrono.start();
+
+    std::string msg = "Starting chrono...\n";
+    printlog(MAGENTA, msg, true);
+
     DataContainer data;
-    data.setDatafile("datafiles/data");
-    data.setInflow(inflow);
+    data.setDatafile("datafiles/data_fem");
     data.setVerbose(comm->MyPID() == 0);
+    std::string outdir = "solution_fem_reference/";
+    data.setValueString("exporter/outdir", outdir);
+    data.finalize();
 
     GlobalProblem femProblem(data, comm);
-
     femProblem.solve();
+
+    msg = "Total time =  ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(MAGENTA, msg, true);
 
     return 0;
 }
