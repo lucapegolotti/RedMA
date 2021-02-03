@@ -29,15 +29,16 @@ class MembraneAssemblerFE : public NavierStokesAssemblerFE {
 public:
 
     MembraneAssemblerFE(const DataContainer& datafile,
-                        shp<TreeNode> treeNode);
+                        shp<TreeNode> treeNode,
+                        std::string stabilizationName = "");
 
     void setup() override;
 
     shp<aMatrix> assembleReducedMass(shp<BCManager> bcManager) override;
 
-    shp<aMatrix> assembleBoundaryMass(bool verbose = false);
+    shp<aMatrix> assembleBoundaryMass(shp<BCManager> bcManager, bool verbose = false);
 
-    shp<aMatrix> assembleBoundaryStiffness(bool verbose = false);
+    shp<aMatrix> assembleBoundaryStiffness(shp<BCManager> bcManager, bool verbose = false);
 
     shp<aVector> getRightHandSide(const double& time,
                                   const shp<aVector>& sol) override;
@@ -49,8 +50,6 @@ public:
 protected:
 
     void computeLameConstants();
-
-    void computeBoundaryIndicator();
 
     shp<aTimeMarchingAlgorithm>                     M_TMA_Displacements;
 

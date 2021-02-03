@@ -118,7 +118,6 @@ setExtrapolationCoefficients()
     }
 }
 
-
 shp<aVector>
 BDF::
 computeExtrapolatedSolution() {
@@ -220,27 +219,29 @@ advance(const double& time, double& dt, int& status)
 
 shp<aVector>
 BDF::
-simpleAdvance(const double &dt, const shp<aVector> &sol)
+simpleAdvance(const double &dt, const shp<BlockVector> &sol)
 {
     if (M_order <= 0 || M_order > 3)
         throw new Exception("BDF scheme of requested order not implemented");
 
-    shp<BlockVector> retVec(new BlockVector(0));
-    retVec->deepCopy(sol);
+    shp<BlockVector> retVec(new BlockVector(2));
+
+    // I update only the first field, as pressure is not defined (i.e. is 0) for the membrane
+    retVec->setBlock(0, sol->block(0));
     retVec->multiplyByScalar(dt * M_rhsCoeff);
 
-    shp<BlockVector> oldSteps(new BlockVector(0));
-    oldSteps->deepCopy(M_prevSolutions[0]);
+    shp<DistributedVector> oldSteps(new DistributedVector());
+    oldSteps->deepCopy(M_prevSolutions[0]->block(0));
     oldSteps->multiplyByScalar(M_coefficients[0]);
 
     for (unsigned int i = 1; i < M_order; i++) {
         M_prevSolutions[i]->multiplyByScalar(M_coefficients[i]);
-        oldSteps->add(M_prevSolutions[i]);
+        oldSteps->add(M_prevSolutions[i]->block(0));
         M_prevSolutions[i]->multiplyByScalar(1.0 / M_coefficients[i]);
     }
     oldSteps->multiplyByScalar(-1.0);
 
-    retVec->add(oldSteps);
+    retVec->block(0)->add(oldSteps);
 
     return retVec;
 }

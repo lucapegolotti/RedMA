@@ -62,8 +62,6 @@ addInletBC(shp<LifeV::BCHandler> bcs, std::function<double(double)> law, const b
         if (ringOnly) {
             bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
                        LifeV::Full, zeroFunction, 3);
-            bcs->addBC("OutletRing", M_outletRingFlag, LifeV::EssentialEdges,
-                       LifeV::Full, zeroFunction, 3);
         }
         else {
             bcs->addBC("Wall", M_wallFlag, LifeV::Essential,

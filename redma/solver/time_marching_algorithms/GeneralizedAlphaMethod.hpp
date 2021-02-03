@@ -49,7 +49,7 @@ public:
 
     virtual shp<aVector> advance(const double& time, double& dt, int& status) override;
 
-    virtual shp<aVector> simpleAdvance(const double &dt, const shp<aVector> &sol) override;
+    virtual shp<aVector> simpleAdvance(const double &dt, const shp<BlockVector> &sol) override;
 
     virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1, double& dt) override;
 

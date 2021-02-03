@@ -20,8 +20,9 @@ namespace RedMA {
 
     MembraneAssemblerFE::
     MembraneAssemblerFE(const DataContainer &data,
-                        shp<TreeNode> treeNode) :
-            NavierStokesAssemblerFE(data, treeNode) {
+                        shp<TreeNode> treeNode,
+                        std::string stabilizationName) :
+            NavierStokesAssemblerFE(data, treeNode, stabilizationName) {
         M_membrane_density = data("structure/density", 1.2);
         M_membrane_thickness = data("structure/thickness", 0.1);
         M_wall_elasticity = data("structure/external_wall/elastic", 1e4);
@@ -44,10 +45,10 @@ namespace RedMA {
         M_TMA_Displacements->setComm(this->M_comm);
 
         M_boundaryStiffness.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
-        M_boundaryStiffness->deepCopy(assembleBoundaryStiffness());
+        M_boundaryStiffness->deepCopy(assembleBoundaryStiffness(M_bcManager));
 
         M_boundaryMass.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
-        M_boundaryMass->deepCopy(assembleBoundaryMass());
+        M_boundaryMass->deepCopy(assembleBoundaryMass(M_bcManager));
     }
 
     void
@@ -63,7 +64,7 @@ namespace RedMA {
 
     shp<aMatrix>
     MembraneAssemblerFE::
-    assembleBoundaryMass(bool verbose) {
+    assembleBoundaryMass(shp<BCManager> bcManager, bool verbose) {
         using namespace LifeV::ExpressionAssembly;
 
         shp<BlockMatrix> boundaryMass(new BlockMatrix(this->M_nComponents, this->M_nComponents));
@@ -72,7 +73,7 @@ namespace RedMA {
 
         LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
 
-        shp<MATRIXEPETRA > BM(new MATRIXEPETRA(M_velocityFESpace->map()));
+        shp<MATRIXEPETRA> BM(new MATRIXEPETRA(M_velocityFESpace->map()));
 
         integrate(boundary(M_velocityFESpaceETA->mesh(), M_wallFlag),
                   myBDQR,
@@ -86,6 +87,8 @@ namespace RedMA {
         Mwrapper->setData(BM);
         boundaryMass->setBlock(0, 0, Mwrapper);
 
+        bcManager->apply0DirichletMatrix(*boundaryMass, M_velocityFESpace, 0, 0.0, !(M_addNoSlipBC));
+
         return boundaryMass;
     }
 
@@ -96,7 +99,7 @@ namespace RedMA {
 
         shp<aMatrix> mass = NavierStokesAssemblerFE::assembleReducedMass(bcManager);
 
-        shp<aMatrix> boundaryMass = this->assembleBoundaryMass();
+        shp<aMatrix> boundaryMass = this->assembleBoundaryMass(bcManager);
         boundaryMass->multiplyByScalar(M_membrane_density * M_membrane_thickness +
                                        M_wall_viscoelasticity);
 
@@ -107,7 +110,7 @@ namespace RedMA {
 
     shp<aMatrix>
     MembraneAssemblerFE::
-    assembleBoundaryStiffness(bool verbose) {
+    assembleBoundaryStiffness(shp<BCManager> bcManager, bool verbose) {
         using namespace LifeV::ExpressionAssembly;
 
         shp<BlockMatrix> boundaryStiffness(new BlockMatrix(this->M_nComponents, this->M_nComponents));
@@ -116,7 +119,7 @@ namespace RedMA {
 
         LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
 
-        shp<MATRIXEPETRA > BS(new MATRIXEPETRA(M_velocityFESpace->map()));
+        shp<MATRIXEPETRA> BS(new MATRIXEPETRA(M_velocityFESpace->map()));
 
         LifeV::MatrixSmall<3, 3> Eye;
         Eye *= 0.0;
@@ -143,6 +146,8 @@ namespace RedMA {
         Awrapper->setData(BS);
         boundaryStiffness->setBlock(0, 0, Awrapper);
 
+        bcManager->apply0DirichletMatrix(*boundaryStiffness, M_velocityFESpace, 0, 0.0, !(M_addNoSlipBC));
+
         return boundaryStiffness;
     }
 
@@ -163,6 +168,9 @@ namespace RedMA {
         retVec->add(membraneContrib);
         retVec->add(wallContrib);
 
+        this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec), this->getFESpaceBCs(),
+                                              this->getComponentBCs(), !(this->M_addNoSlipBC));
+
         return retVec;
     }
 
@@ -171,14 +179,20 @@ namespace RedMA {
     postProcess(const double &t, const double &dt, const shp<aVector> &sol) {
         NavierStokesAssemblerFE::postProcess(t, dt, sol);
 
-        shp<BlockVector> currDisplacement(new BlockVector(this->M_nComponents));
-        currDisplacement->deepCopy(M_TMA_Displacements->simpleAdvance(dt, sol));
+        // TODO: bad check, it could be done much better
+        if (sol->type() != BLOCK)
+            throw new Exception("The solution must be a block vector!");
 
-        printlog(YELLOW, "Updating displacements field ...\n", this->M_dataContainer.getVerbose());
-        M_TMA_Displacements->shiftSolutions(currDisplacement);
+        printlog(YELLOW, "[MembraneAssemblerFE] Updating displacements field ...\n",
+                 this->M_dataContainer.getVerbose());
+
+        shp<BlockVector> currDisplacement(new BlockVector(this->M_nComponents));
+        currDisplacement->deepCopy(M_TMA_Displacements->simpleAdvance(dt, spcast<BlockVector>(sol)));
 
         *M_displacementExporter = *static_cast<VECTOREPETRA *>(currDisplacement->block(0)->data().get());
         *M_displacementExporter *= (*M_boundaryIndicator);
+
+        M_TMA_Displacements->shiftSolutions(currDisplacement);
     }
 
     void
@@ -189,7 +203,7 @@ namespace RedMA {
         M_displacementExporter.reset(new VECTOREPETRA(M_velocityFESpace->map(),
                                                       M_exporter->mapType()));
 
-        M_exporter->addVariable(LifeV::ExporterData < MESH > ::VectorField,
+        M_exporter->addVariable(LifeV::ExporterData <MESH> ::VectorField,
                                 "displacement", M_velocityFESpace, M_displacementExporter, 0.0);
     }
 

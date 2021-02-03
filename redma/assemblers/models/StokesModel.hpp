@@ -47,7 +47,7 @@ public:
 
     virtual shp<aMatrix> assembleReducedMass(shp<BCManager> bcManager);
 
-    shp<aMatrix> assembleReducedDivergence(shp<BCManager> bcManager);
+    virtual shp<aMatrix> assembleReducedDivergence(shp<BCManager> bcManager);
 
     std::map<unsigned int, double> computeFlowRates(shp<aVector> sol,
                                                     bool verbose = false);

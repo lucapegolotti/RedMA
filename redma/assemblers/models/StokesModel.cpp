@@ -200,7 +200,7 @@ assembleReducedDivergence(shp<BCManager> bcManager)
     shp<MATRIXEPETRA> BT(new MATRIXEPETRA(this->M_velocityFESpace->map()));
 
     // if (structure)
-    if (0)
+    if (false)
     {
         // unsigned int numVolumes = (*structure)(0,1)->numReducedElements;
         // unsigned int* volumes = (*structure)(0,1)->reducedElements.data();
@@ -227,7 +227,7 @@ assembleReducedDivergence(shp<BCManager> bcManager)
     shp<MATRIXEPETRA> B(new MATRIXEPETRA(M_pressureFESpace->map()));
 
     // if (structure)
-    if (0)
+    if (false)
     {
         // unsigned int numVolumes = (*structure)(1,0)->numReducedElements;
         // unsigned int* volumes = (*structure)(1,0)->reducedElements.data();
@@ -256,8 +256,8 @@ assembleReducedDivergence(shp<BCManager> bcManager)
     shp<SparseMatrix> Bwrapper(new SparseMatrix);
     Bwrapper->setData(B);
 
-    divergence->setBlock(0,1,BTwrapper);
-    divergence->setBlock(1,0,Bwrapper);
+    divergence->setBlock(0,1, BTwrapper);
+    divergence->setBlock(1,0, Bwrapper);
 
     bcManager->apply0DirichletMatrix(*divergence, M_velocityFESpace, 0, 0.0, !(M_addNoSlipBC));
 
@@ -272,11 +272,11 @@ assembleFlowRateVectors()
     if (M_treeNode->isInletNode())
     {
         auto face = M_treeNode->M_block->getInlet();
-        // std::cout << "\nInlet normal\n" << std::endl;
-        // face.print();
+
         M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face);
     }
 
+    // assemble outflow(s) flow rate vector(s)
     if (M_treeNode->isOutletNode())
     {
         auto faces = M_treeNode->M_block->getOutlets();
@@ -412,7 +412,7 @@ assembleFlowRateJacobian(const GeometricFace& face)
     unsigned int numElements = epetraMap.NumMyElements();
     unsigned int numGlobalElements = epetraMap.NumGlobalElements();
 
-    // this should be optimized
+    // TODO: this should be optimized
     shp<MATRIXEPETRA> flowRateJacobian;
     flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map(), numGlobalElements, false));
 

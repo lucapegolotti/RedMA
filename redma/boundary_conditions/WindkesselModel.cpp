@@ -36,7 +36,7 @@ getNeumannCondition(const double& time, const double& rate)
     ct.restore();
 
     if (status)
-        throw new Exception("Error in WindkesselModel: status != 0");
+        throw new Exception("Error in Windkessel Model: status != 0");
 
     // we do this to smooth out the value of Rp, which otherwise at the beginning
     // of the simulation is too high

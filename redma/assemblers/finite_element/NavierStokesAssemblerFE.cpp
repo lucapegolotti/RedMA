@@ -27,6 +27,9 @@ setup()
 
     if (!std::strcmp(M_stabilizationName.c_str(),"supg"))
     {
+        printlog(WHITE, "[NavierStokesAssemblerFE] Setting up SUPG stabilization...\n",
+                 this->M_dataContainer.getVerbose());
+
         M_stabilization.reset(new SUPGStabilization(this->M_data,
                                                     this->M_velocityFESpace,
                                                     this->M_pressureFESpace,
@@ -36,6 +39,9 @@ setup()
     }
     // else if (!std::strcmp(stabilizationType.c_str(),"vms"))
     // {
+    //    printlog(WHITE, "[NavierStokesAssemblerFE] Setting up VMS stabilization...\n",
+    //             this->M_dataContainer.getVerbose());
+    //
     //     M_stabilization.reset(new VMSStabilization(this->M_data,
     //                                                this->M_velocityFESpace,
     //                                                this->M_pressureFESpace,
@@ -45,6 +51,9 @@ setup()
     // }
     // else if (!std::strcmp(stabilizationType.c_str(),"hf"))
     // {
+    //    printlog(WHITE, "[NavierStokesAssemblerFE] Setting up HF stabilization...\n",
+    //             this->M_dataContainer.getVerbose());
+    //
     //     M_stabilization.reset(new HFStabilization(this->M_data,
     //                                               this->M_velocityFESpace,
     //                                               this->M_pressureFESpace,
@@ -54,6 +63,8 @@ setup()
     // }
     else if (!std::strcmp(M_stabilizationName.c_str(),""))
     {
+        printlog(WHITE, "[NavierStokesAssemblerFE] Proceeding without stabilization...\n",
+                 this->M_dataContainer.getVerbose());
 
     }
     else

@@ -110,7 +110,7 @@ advance(const double& time, double& dt, int& status)
 
 shp<aVector>
 GeneralizedAlphaMethod::
-simpleAdvance(const double &dt, const shp<aVector> &sol)
+simpleAdvance(const double &dt, const shp<BlockVector> &sol)
 {
     // placeholder for simple advancing, used in membrane model to update displacements
 }

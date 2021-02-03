@@ -47,6 +47,13 @@ AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode)
             ret.reset(new MembraneAssemblerFE(data, treeNode));
         }
     }
+    else if (!std::strcmp(assemblerType.c_str(),"navierstokessupg_membrane"))
+    {
+        if (!std::strcmp(method.c_str(),"fem"))
+        {
+            ret.reset(new MembraneAssemblerFE(data, treeNode, "supg"));
+        }
+    }
     else
         throw new Exception("Specified assembler is not implemented!");
 

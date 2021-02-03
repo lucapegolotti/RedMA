@@ -47,7 +47,7 @@ public:
     virtual shp<aVector> advance(const double& time, double& dt,
                                 int& status) = 0;
 
-    virtual shp<aVector> simpleAdvance(const double &dt, const shp<aVector> &sol) = 0;
+    virtual shp<aVector> simpleAdvance(const double &dt, const shp<BlockVector> &sol) = 0;
 
     // compute derivative of u at tn+1 given its value
     virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1,
