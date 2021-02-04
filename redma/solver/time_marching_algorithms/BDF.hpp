@@ -56,6 +56,10 @@ public:
 
     virtual shp<aVector> computeExtrapolatedSolution() override;
 
+    shp<aVector> combineOldSolutions() override;
+
+    std::vector<double> getCoefficients() const override;
+
 protected:
 
     void setBDFCoefficients();

@@ -105,7 +105,7 @@ outputdir = rb_solutions
 	poisson      = 0.3
 	num_young    = 1
 	young    	 = 3.e+6 # 1.07e7 4.07e6'
-	thickness    = 0.1 # 0.2 0.15'
+	thickness    = 0.05 # 0.2 0.15'
 	density	     = 1.2
 	flag = 10
 	[./external_wall]

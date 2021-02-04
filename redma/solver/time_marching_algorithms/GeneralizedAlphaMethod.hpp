@@ -57,6 +57,10 @@ public:
 
     virtual shp<aVector> computeExtrapolatedSolution() override;
 
+    std::vector<double> getCoefficients() const override;
+
+    shp<aVector> combineOldSolutions() override;
+
 protected:
     shp<aVector> computesolnp1(shp<aVector> dersol, const double& dt);
 

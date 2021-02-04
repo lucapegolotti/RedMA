@@ -141,6 +141,24 @@ computeExtrapolatedSolution() {
 
 shp<aVector>
 BDF::
+combineOldSolutions()
+{
+    shp<BlockVector> oldSteps(new BlockVector(0));
+
+    oldSteps->deepCopy(M_prevSolutions[0]);
+    oldSteps->multiplyByScalar(M_coefficients[0]);
+
+    for (unsigned int i = 1; i < M_order; i++) {
+        M_prevSolutions[i]->multiplyByScalar(M_coefficients[i]);
+        oldSteps->add(M_prevSolutions[i]);
+        M_prevSolutions[i]->multiplyByScalar(1.0 / M_coefficients[i]);
+    }
+
+    return oldSteps;
+}
+
+shp<aVector>
+BDF::
 advance(const double& time, double& dt, int& status)
 {
     typedef shp<aVector>               BV;
@@ -191,6 +209,7 @@ advance(const double& time, double& dt, int& status)
 
         if (M_useExtrapolation)
             this->M_funProvider->setExtrapolatedSolution(computeExtrapolatedSolution());
+
         retMat->deepCopy(this->M_funProvider->getJacobianRightHandSide(time+dt, sol));
         retMat->multiplyByScalar(-1. * M_rhsCoeff * dt);
         retMat->add(this->M_funProvider->getMass(time+dt, sol));
@@ -280,6 +299,16 @@ shiftSolutions(const shp<aVector>& sol)
         newPrevSolutions[i+1].reset(new BlockVector(*M_prevSolutions[i]));
 
     M_prevSolutions = newPrevSolutions;
+}
+
+std::vector<double>
+BDF::
+getCoefficients() const
+{
+    std::vector<double> retVec(M_coefficients);
+    retVec.push_back(M_rhsCoeff);
+
+    return retVec;
 }
 
 }

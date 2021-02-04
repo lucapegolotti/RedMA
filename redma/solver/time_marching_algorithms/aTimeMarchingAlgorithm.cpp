@@ -31,7 +31,7 @@ initializeStatisticsFile()
 {
    M_statisticsFile = M_data("time_discretization/solverstatistics","none");
 
-   if (std::strcmp(M_statisticsFile.c_str(),"none"))
+   if (std::strcmp(M_statisticsFile.c_str(), "none"))
    {
        std::ofstream outfile;
 

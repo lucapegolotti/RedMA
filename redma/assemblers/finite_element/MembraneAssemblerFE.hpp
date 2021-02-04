@@ -38,6 +38,8 @@ public:
 
     shp<aMatrix> assembleBoundaryMass(shp<BCManager> bcManager, bool verbose = false);
 
+    shp<aMatrix> assembleReducedStiffness(shp<BCManager> bcManager) override;
+
     shp<aMatrix> assembleBoundaryStiffness(shp<BCManager> bcManager, bool verbose = false);
 
     shp<aVector> getRightHandSide(const double& time,

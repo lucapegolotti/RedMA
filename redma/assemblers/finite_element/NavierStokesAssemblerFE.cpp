@@ -201,9 +201,6 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
     systemMatrix->add(M_divergence);
     systemMatrix->multiplyByScalar(-1.0);
 
-    // if (this->M_extrapolatedSolution.nRows() > 0 && this->M_extrapolatedSolution.norm2() > 1e-15)
-    //     this->addConvectiveMatrixRightHandSide(this->M_extrapolatedSolution, systemMatrix);
-    // else
     this->addConvectiveMatrixRightHandSide(sol, systemMatrix);
 
     shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
@@ -214,14 +211,6 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
 
     if (M_stabilization)
     {
-        // if (this->M_extrapolatedSolution.norm2() > 1e-15)
-        // {
-        //     throw new Exception("Stabilization is not supported with extrapolation");
-        //
-        //     retVec -= M_stabilization->getResidual(M_extrapolatedSolution,
-        //                                            this->getForcingTerm(time));
-        // }
-        // else
         shp<BlockVector> residual = M_stabilization->getResidual(spcast<BlockVector>(sol),
                                                                  spcast<BlockVector>(this->getForcingTerm(time)));
         residual->multiplyByScalar(-1);
@@ -238,10 +227,6 @@ getJacobianRightHandSide(const double& time,
 {
     shp<aMatrix> retMat = StokesAssemblerFE::getJacobianRightHandSide(time, sol);
 
-    // if (this->M_extrapolatedSolution.nRows() > 0 && this->M_extrapolatedSolution.norm2() > 1e-15)
-    //     this->addConvectiveTermJacobianRightHandSide(this->M_extrapolatedSolution,
-    //                                                  this->getZeroVector(), retMat);
-    // else
     this->addConvectiveTermJacobianRightHandSide(sol, this->getZeroVector(), retMat);
 
     if (M_stabilization)

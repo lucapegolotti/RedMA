@@ -57,6 +57,10 @@ public:
 
     virtual shp<aVector> computeExtrapolatedSolution() = 0;
 
+    virtual shp<aVector> combineOldSolutions() = 0;
+
+    virtual std::vector<double> getCoefficients() const = 0;
+
     void dumpSolverStatistics(std::vector<SolverStatistics> statistics,
                               const double& t) const;
 

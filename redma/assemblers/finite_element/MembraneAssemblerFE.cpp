@@ -100,8 +100,7 @@ namespace RedMA {
         shp<aMatrix> mass = NavierStokesAssemblerFE::assembleReducedMass(bcManager);
 
         shp<aMatrix> boundaryMass = this->assembleBoundaryMass(bcManager);
-        boundaryMass->multiplyByScalar(M_membrane_density * M_membrane_thickness +
-                                       M_wall_viscoelasticity);
+        boundaryMass->multiplyByScalar(M_membrane_density * M_membrane_thickness);
 
         mass->add(boundaryMass);
 
@@ -151,19 +150,54 @@ namespace RedMA {
         return boundaryStiffness;
     }
 
+    shp<aMatrix>
+    MembraneAssemblerFE::
+    assembleReducedStiffness(shp<BCManager> bcManager) {
+        using namespace LifeV::ExpressionAssembly;
+
+        shp<aMatrix> stiffness = NavierStokesAssemblerFE::assembleReducedStiffness(bcManager);
+
+        double dt = this->M_dataContainer("time_discretization/dt", 0.01);
+        //double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
+        double rhs_coeff = 2.0 / 3.0; // TODO: generalize this!!!!
+
+        shp<aMatrix> boundaryStiffness = this->assembleBoundaryStiffness(bcManager);
+        boundaryStiffness->multiplyByScalar(M_membrane_thickness * dt * rhs_coeff);
+
+        stiffness->add(boundaryStiffness);
+
+        return stiffness;
+    }
+
     shp<aVector>
     MembraneAssemblerFE::
     getRightHandSide(const double &time,
-                     const shp<aVector> &sol_u) {
-        shp<aVector> retVec = NavierStokesAssemblerFE::getRightHandSide(time, sol_u);
+                     const shp<aVector> &sol) {
+        shp<aVector> retVec = NavierStokesAssemblerFE::getRightHandSide(time, sol);
 
-        shp<aVector> extrapolatedDisplacement = this->M_TMA_Displacements->computeExtrapolatedSolution();
+        // adding external wall contribution involved as velocity mass matrix in system matrix
+        double  dt = this->M_dataContainer("time_discretization/dt", 0.01);
+        //double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
+        double rhs_coeff = 2.0 / 3.0; // TODO: generalize this!!!!
 
-        shp<aVector> membraneContrib = M_boundaryStiffness->multiplyByVector(extrapolatedDisplacement);
-        membraneContrib->multiplyByScalar(-M_membrane_thickness);
+        shp<BlockMatrix> wallMatrix(new BlockMatrix(this->M_nComponents,
+                                                      this->M_nComponents));
 
-        shp<aVector> wallContrib = M_boundaryMass->multiplyByVector((extrapolatedDisplacement));
-        wallContrib->multiplyByScalar(-M_wall_elasticity);
+        wallMatrix->add(M_boundaryMass);
+        wallMatrix->multiplyByScalar(M_wall_viscoelasticity + M_wall_elasticity * dt * rhs_coeff);
+
+        retVec->add(wallMatrix->multiplyByVector(sol));
+
+        // computing current displacement part due to previous displacements
+        shp<aVector> rhsDisplacement = this->M_TMA_Displacements->combineOldSolutions();
+
+        // computing membrane stress contribution on previous displacements
+        shp<aVector> membraneContrib = M_boundaryStiffness->multiplyByVector(rhsDisplacement);
+        membraneContrib->multiplyByScalar(M_membrane_thickness);
+
+        // computing external wall contribution on previous displacements
+        shp<aVector> wallContrib = M_boundaryMass->multiplyByVector((rhsDisplacement));
+        wallContrib->multiplyByScalar(M_wall_elasticity);
 
         retVec->add(membraneContrib);
         retVec->add(wallContrib);

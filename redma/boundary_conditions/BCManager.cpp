@@ -156,42 +156,22 @@ createBCHandler0Dirichlet(const bool& ringOnly) const
     shp<LifeV::BCHandler> bcs;
     bcs.reset(new LifeV::BCHandler);
 
-    if (ringOnly) {
-        bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
-                   LifeV::Full, zeroFunction, 3);
-        bcs->addBC("OutletRing", M_outletRingFlag, LifeV::EssentialEdges,
-                   LifeV::Full, zeroFunction, 3);
-    }
-    else {
+    if (!(ringOnly))
         bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
                    LifeV::Full, zeroFunction, 3);
+    else {
+        if (M_treeNode->isInletNode())
+            bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
+                       LifeV::Full, zeroFunction, 3);
+
+        if (M_treeNode->isOutletNode())
+            // this imposes the BC at all outlets, as the outlet ring flag is the same
+            // for all outlets; thus outlet building blocks MUST be tubes!!
+            bcs->addBC("OutletRing", M_outletRingFlag, LifeV::EssentialEdges,
+                       LifeV::Full, zeroFunction, 3);
     }
 
-
     return bcs;
-}
-
-shp<VECTOREPETRA>
-BCManager::
-computeBoundaryIndicator(shp<FESPACE> fespace)
-{
-    shp<VECTOREPETRA> boundaryIndicator(new VECTOREPETRA(fespace->map()));
-    boundaryIndicator->zero();
-
-    LifeV::BCFunctionBase oneFunction(fOne);
-
-    shp<LifeV::BCHandler> bcs;
-    bcs.reset(new LifeV::BCHandler);
-
-    bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
-               LifeV::Full, oneFunction, 3);
-
-    bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
-
-    bcManageRhs(*boundaryIndicator, *fespace->mesh(), fespace->dof(),
-                *bcs, fespace->feBd(), 1.0, 0.0);
-
-    return boundaryIndicator;
 }
 
 double
@@ -253,6 +233,29 @@ postProcess()
 {
     for (auto windkessel : M_models)
         windkessel.second->shiftSolutions();
+}
+
+shp<VECTOREPETRA>
+BCManager::
+computeBoundaryIndicator(shp<FESPACE> fespace)
+{
+    shp<VECTOREPETRA> boundaryIndicator(new VECTOREPETRA(fespace->map()));
+    boundaryIndicator->zero();
+
+    LifeV::BCFunctionBase oneFunction(fOne);
+
+    shp<LifeV::BCHandler> bcs;
+    bcs.reset(new LifeV::BCHandler);
+
+    bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
+               LifeV::Full, oneFunction, 3);
+
+    bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
+
+    bcManageRhs(*boundaryIndicator, *fespace->mesh(), fespace->dof(),
+                *bcs, fespace->feBd(), 1.0, 0.0);
+
+    return boundaryIndicator;
 }
 
 double

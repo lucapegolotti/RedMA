@@ -119,8 +119,22 @@ shp<aVector>
 GeneralizedAlphaMethod::
 computeExtrapolatedSolution()
 {
-    // placeholdr for computation of extrapolated solution (of given order),
+    // placeholder for computation of extrapolated solution (of given order),
     // used in membrane model to extrapolate displacements
+}
+
+std::vector<double>
+GeneralizedAlphaMethod::
+getCoefficients() const
+{
+    // placeholder for the return of the characteristic coefficients of the method
+}
+
+shp<aVector>
+GeneralizedAlphaMethod::
+combineOldSolutions()
+{
+    return M_prevSolution;
 }
 
 shp<aVector>
