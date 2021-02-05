@@ -44,32 +44,6 @@ getForcingTerm(const double& time) const
     return buildZeroVector();
 }
 
-void
-StokesModel::
-addNeumannBCs(shp<aVector>& input, const double& time,
-              const shp<aVector>& sol)
-{
-    // // if (this->M_treeNode->isOutletNode())
-    //     // //     this->M_bcManager->applyNeumannBc(time, input, M_velocityFESpace, 0, flowRates);
-    //     //
-    //     // if (this->M_treeNode->isOutletNode())
-    //     // {
-    //     //     auto flowRates = computeFlowRates(sol, true);
-    //     //
-    //     //     for (auto rate : flowRates)
-    //     //     {
-    //     //         double P = this->M_bcManager->getNeumannBc(time, rate.first, rate.second);
-    //     //         BlockVector<InVectorType> curvec(this->M_nComponents);
-    //     //
-    //     //         curvec.block(0).data().reset(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
-    //     //         curvec.block(0) *= P;
-    //     //         input += curvec;
-    //     //
-    //     //         // addBackFlowStabilization(input, sol, rate.first);
-    //     //     }
-    //     // }
-}
-
 shp<aMatrix>
 StokesModel::
 assembleReducedStiffness(shp<BCManager> bcManager)

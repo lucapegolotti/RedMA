@@ -116,13 +116,33 @@ StokesAssemblerFE::
 addNeumannBCs(double time, shp<aVector> sol, shp<aVector> rhs)
 {
 
+    if (aAssembler::M_treeNode->isInletNode())
+    {
+        std::string inflowBCType = this->M_data("fluid/inflow_bc","dirichlet");
+
+        if (std::strcmp(inflowBCType.c_str(), "neumann") == 0)
+        {
+            shp<LifeV::BCHandler> bcs;
+            bcs.reset(new LifeV::BCHandler);
+
+            this->M_bcManager->applyInflowNeumannBCs(bcs);
+
+            bcs->bcUpdate(*M_velocityFESpace->mesh(), M_velocityFESpace->feBd(),
+                          M_velocityFESpace->dof());
+
+            bcManageRhs(*spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()),
+                        *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+                        *bcs, M_velocityFESpace->feBd(), 1.0, time);
+        }
+    }
+
     if (aAssembler::M_treeNode->isOutletNode())
     {
         auto flowRates = computeFlowRates(sol, true);
 
         for (auto rate : flowRates)
         {
-            double P = this->M_bcManager->getNeumannBc(time, rate.first, rate.second);
+            double P = this->M_bcManager->getOutflowNeumannBC(time, rate.first, rate.second);
 
             shp<VECTOREPETRA> flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
             *flowRateCopy *= P;
@@ -149,7 +169,7 @@ getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
 
         for (auto rate : flowRates)
         {
-            double dhdQ = this->M_bcManager->getNeumannJacobian(time, rate.first, rate.second);
+            double dhdQ = this->M_bcManager->getOutflowNeumannJacobian(time, rate.first, rate.second);
             shp<BlockMatrix> curjac(new BlockMatrix(2,2));
             curjac->deepCopy(M_flowRateJacobians[rate.first]);
             curjac->multiplyByScalar(dhdQ);

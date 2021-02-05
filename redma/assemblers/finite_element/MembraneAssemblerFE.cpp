@@ -37,12 +37,15 @@ namespace RedMA {
     void
     MembraneAssemblerFE::
     setup() {
+
         NavierStokesAssemblerFE::setup();
 
         M_boundaryIndicator = M_bcManager->computeBoundaryIndicator(M_velocityFESpace);
 
-        M_TMA_Displacements = TimeMarchingAlgorithmFactory(this->M_data, this->getZeroVector());
-        M_TMA_Displacements->setComm(this->M_comm);
+        if (!(M_TMA_Displacements)){
+            M_TMA_Displacements = TimeMarchingAlgorithmFactory(this->M_data, this->getZeroVector());
+            M_TMA_Displacements->setComm(this->M_comm);
+        }
 
         M_boundaryStiffness.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
         M_boundaryStiffness->deepCopy(assembleBoundaryStiffness(M_bcManager));
@@ -157,9 +160,13 @@ namespace RedMA {
 
         shp<aMatrix> stiffness = NavierStokesAssemblerFE::assembleReducedStiffness(bcManager);
 
-        double dt = this->M_dataContainer("time_discretization/dt", 0.01);
-        //double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
-        double rhs_coeff = 2.0 / 3.0; // TODO: generalize this!!!!
+        if (!(M_TMA_Displacements)){
+            M_TMA_Displacements = TimeMarchingAlgorithmFactory(this->M_data, this->getZeroVector());
+            M_TMA_Displacements->setComm(this->M_comm);
+        }
+
+        double  dt = this->M_dataContainer("time_discretization/dt", 0.01);
+        double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
 
         shp<aMatrix> boundaryStiffness = this->assembleBoundaryStiffness(bcManager);
         boundaryStiffness->multiplyByScalar(M_membrane_thickness * dt * rhs_coeff);
@@ -175,10 +182,14 @@ namespace RedMA {
                      const shp<aVector> &sol) {
         shp<aVector> retVec = NavierStokesAssemblerFE::getRightHandSide(time, sol);
 
+        if (!(M_TMA_Displacements)){
+            M_TMA_Displacements = TimeMarchingAlgorithmFactory(this->M_data, this->getZeroVector());
+            M_TMA_Displacements->setComm(this->M_comm);
+        }
+
         // adding external wall contribution involved as velocity mass matrix in system matrix
         double  dt = this->M_dataContainer("time_discretization/dt", 0.01);
-        //double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
-        double rhs_coeff = 2.0 / 3.0; // TODO: generalize this!!!!
+        double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
 
         shp<BlockMatrix> wallMatrix(new BlockMatrix(this->M_nComponents,
                                                       this->M_nComponents));
@@ -213,15 +224,11 @@ namespace RedMA {
     postProcess(const double &t, const double &dt, const shp<aVector> &sol) {
         NavierStokesAssemblerFE::postProcess(t, dt, sol);
 
-        // TODO: bad check, it could be done much better
-        if (sol->type() != BLOCK)
-            throw new Exception("The solution must be a block vector!");
-
         printlog(YELLOW, "[MembraneAssemblerFE] Updating displacements field ...\n",
                  this->M_dataContainer.getVerbose());
 
         shp<BlockVector> currDisplacement(new BlockVector(this->M_nComponents));
-        currDisplacement->deepCopy(M_TMA_Displacements->simpleAdvance(dt, spcast<BlockVector>(sol)));
+        currDisplacement->deepCopy(M_TMA_Displacements->simpleAdvance(dt, convert<BlockVector>(sol)));
 
         *M_displacementExporter = *static_cast<VECTOREPETRA *>(currDisplacement->block(0)->data().get());
         *M_displacementExporter *= (*M_boundaryIndicator);

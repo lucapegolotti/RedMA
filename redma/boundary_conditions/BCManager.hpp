@@ -53,10 +53,14 @@ public:
                                const double& diagCoefficient,
                                const bool& ringOnly = false) const;
 
-    double getNeumannBc(const double& time, const double& flag, const double& rate);
+    void applyInflowDirichletBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag = false) const;
+
+    void applyInflowNeumannBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag = false) const;
+
+    double getOutflowNeumannBC(const double& time, const double& flag, const double& rate);
 
     // actually derivative wrt to flowrate
-    double getNeumannJacobian(const double& time, const double& flag, const double& rate);
+    double getOutflowNeumannJacobian(const double& time, const double& flag, const double& rate);
 
     void postProcess();
 
@@ -65,11 +69,17 @@ public:
     inline bool useStrongDirichlet() const {return M_strongDirichlet;}
 
 private:
-    static double poiseuille(const double& t, const double& x, const double& y,
-                             const double& z, const unsigned int& i,
-                             const GeometricFace& face,
-                             const std::function<double(double)> inflow,
-                             const double& coefficient);
+    static double poiseuilleInflow(const double& t, const double& x, const double& y,
+                                  const double& z, const unsigned int& i,
+                                  const GeometricFace& face,
+                                  const std::function<double(double)> inflow,
+                                  const double& coefficient);
+
+    static double neumannInflow(const double& t, const double& x, const double& y,
+                                const double& z, const unsigned int& i,
+                                std::function<double(double)> inflowLaw);
+
+    void checkInflowLaw();
 
     static double fZero(const double& t, const double& x, const double& y,
                         const double& z, const unsigned int& i);
@@ -81,21 +91,21 @@ private:
                                    const double& z, const unsigned int& i,
                                    const double& K);
 
-    static double fZero2(double t);
-
     shp<LifeV::BCHandler> createBCHandler0Dirichlet(const bool& ringOnly = false) const;
 
     void addInletBC(shp<LifeV::BCHandler> bcs,
-                    std::function<double(double)> law,
-                    const bool& ringOnly = false) const;
+                    const bool& ringOnly = false,
+                    const bool& zeroFlag = false) const;
 
-    void parseNeumannData();
+    void parseOutflowNeumannData();
 
     shp<TreeNode>                                    M_treeNode;
     DataContainer                                    M_data;
+
+    std::string                                      M_inletBCType;
     std::function<double(double)>                    M_inflow;
-    std::function<double(double)>                    M_inflowDt;
     bool                                             M_strongDirichlet;
+    double                                           M_coefficientInflow;
 
     unsigned int                                     M_inletFlag;
     unsigned int                                     M_wallFlag;
@@ -103,9 +113,7 @@ private:
     unsigned int                                     M_outletRingFlag;
 
     // key is the outlet index (more than one for bifurcations)
-    std::map<unsigned int,shp<WindkesselModel>>      M_models;
-
-    double                                           M_coefficientInflow;
+    std::map<unsigned int, shp<WindkesselModel>>     M_models;
 };
 
 }

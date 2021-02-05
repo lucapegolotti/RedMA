@@ -23,6 +23,8 @@
 #include <lifev/core/filter/GetPot.hpp>
 
 #include <fstream>
+#include <functional>
+#include <map>
 
 namespace RedMA
 {
@@ -190,6 +192,15 @@ protected:
      */
     void linearInterpolation(const std::vector<std::pair<double,double>>& values,
                              std::function<double(double)>& funct);
+
+    /*! \brief Check if the inflow should be generated from file or externally set
+     *
+     * Reads 'generate_inflow' field from data file; if 0 or 1, it returns; if -1
+     * (default value), it returns 1 if a datafile for the inflow is available,
+     * 0 otherwise.
+     *
+     */
+    bool checkGenerateInflow() const;
 
     shp<GetPot>                                           M_datafile;
     std::function<double(double)>                         M_inflow;

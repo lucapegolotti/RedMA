@@ -7,7 +7,7 @@ BDF::
 BDF(const DataContainer& data) :
   aTimeMarchingAlgorithm(data),
   M_order(data("time_discretization/order",2)),
-  M_extrapolationOrder(data("time_discretization/order", 2))
+  M_extrapolationOrder(data("time_discretization/extrapolation_order", 2))
 {
     M_useExtrapolation = this->M_data("time_discretization/use_extrapolation", 0);
     // if we set this we save the evaluation of the residual at the end of resolution
@@ -20,7 +20,7 @@ BDF::
 BDF(const DataContainer& data, shp<FunProvider> funProvider) :
   aTimeMarchingAlgorithm(data, funProvider),
   M_order(data("time_discretization/order",2)),
-  M_extrapolationOrder(data("time_discretization/order", 2))
+  M_extrapolationOrder(data("time_discretization/extrapolation_order", 2))
 {
     setup(this->M_funProvider->getZeroVector());
 
@@ -34,7 +34,7 @@ BDF::
 BDF(const DataContainer& data, const shp<aVector>& zeroVector):
   aTimeMarchingAlgorithm(data, zeroVector),
   M_order(data("time_discretization/order",2)),
-  M_extrapolationOrder(data("time_discretization/order", 2))
+  M_extrapolationOrder(data("time_discretization/extrapolation_order", 2))
 {
     setup(zeroVector);
 
@@ -293,7 +293,7 @@ shiftSolutions(const shp<aVector>& sol)
 {
     // shift solutions
     std::vector<shp<BlockVector>> newPrevSolutions(std::max(M_order, M_extrapolationOrder));
-    newPrevSolutions[0].reset(static_cast<BlockVector*>(sol->clone()));
+    newPrevSolutions[0].reset(dynamic_cast<BlockVector*>(sol->clone()));
 
     for (unsigned int i = 0; i < std::max(M_order, M_extrapolationOrder)-1; i++)
         newPrevSolutions[i+1].reset(new BlockVector(*M_prevSolutions[i]));
@@ -305,7 +305,7 @@ std::vector<double>
 BDF::
 getCoefficients() const
 {
-    std::vector<double> retVec(M_coefficients);
+    std::vector<double> retVec = M_coefficients;
     retVec.push_back(M_rhsCoeff);
 
     return retVec;

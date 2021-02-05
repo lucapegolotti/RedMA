@@ -18,6 +18,7 @@
 #define STOKESMODEL_HPP
 
 #include <redma/RedMA.hpp>
+#include <redma/RedMA.hpp>
 #include <redma/assemblers/abstract/aAssembler.hpp>
 #include <redma/array/DistributedVector.hpp>
 #include <redma/array/SparseMatrix.hpp>
@@ -39,9 +40,6 @@ public:
     StokesModel(const DataContainer& data, shp<TreeNode> treeNode);
 
     shp<aVector> getForcingTerm(const double& time) const;
-
-    void addNeumannBCs(shp<aVector>& input, const double& time,
-                       const shp<aVector>& sol);
 
     virtual shp<aMatrix> assembleReducedStiffness(shp<BCManager> bcManager);
 

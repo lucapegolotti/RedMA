@@ -16,6 +16,7 @@ outputdir = rb_solutions
 [../]
 
 [bc_conditions]
+    inlet_bc_type = dirichlet
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 	coefficientinflow = 1.000552724487405
@@ -118,6 +119,7 @@ outputdir = rb_solutions
 	algorithm = bdf
 	rhoinf = 0.5
 	order = 2
+	extrapolation_order = 2
 	t0ramp = -0.02
 	t0 = 0
 	T = 0.30

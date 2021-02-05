@@ -20,13 +20,11 @@
 
 using namespace RedMA;
 
-/*#define COEFF 10*/
-
-/*double maxLaw(double t)
+double inflowNeumann(double t)
 {
-    const double T = 3e-3;
+    const double T = 6e-3;
     const double omega = 2.0 * M_PI / (T);
-    const double Pmax = 13300.0;
+    const double Pmax = 3000.0;
     if (t <= T)
     {
         return -0.5 * (1.0 - cos(omega * t) ) * Pmax;
@@ -34,17 +32,6 @@ using namespace RedMA;
     return 0;
 }
 
-double maxLawDt(double t)
-{
-    const double T = 3e-3;
-    const double omega = 2.0 * M_PI / (T);
-    const double Pmax = 13300.0;
-    if (t <= T)
-    {
-        return -0.5 * omega * sin(omega * t) * Pmax;
-    }
-    return 0.0;
-}*/
 
 int main(int argc, char **argv)
 {
@@ -64,13 +51,10 @@ int main(int argc, char **argv)
     DataContainer data;
     data.setDatafile("datafiles/data_fem");
     data.setVerbose(comm->MyPID() == 0);
+    data.setInflow(inflowNeumann);
     std::string outdir = "solution_fem_reference/";
     data.setValueString("exporter/outdir", outdir);
     data.finalize();
-
-    /*gs.setExportNorms("norms_nonconforming.txt");
-    gs.setLawInflow(std::function<double(double)>(maxLaw));
-    gs.setLawDtInflow(std::function<double(double)>(maxLawDt));*/
 
     GlobalProblem globalProblem(data, comm);
     globalProblem.solve();

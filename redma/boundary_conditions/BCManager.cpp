@@ -8,10 +8,17 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
   M_data(data),
   M_treeNode(treeNode)
 {
+    M_inletBCType = data("bc_conditions/inlet_bc_type", "dirichlet");
+
     M_inflow = data.getInflow();
     M_strongDirichlet = std::strcmp(data("bc_conditions/inletdirichlet", "weak").c_str(),"strong") == 0;
     M_coefficientInflow = data("bc_conditions/coefficientinflow", 1.0);
-    parseNeumannData();
+
+    if (M_treeNode->isOutletNode())
+        this->parseOutflowNeumannData();
+    if (M_treeNode->isInletNode())
+        this->checkInflowLaw();
+
     M_inletFlag = treeNode->M_block->getInlet().M_flag;
     M_wallFlag = treeNode->M_block->wallFlag();
     M_inletRingFlag = treeNode->M_block->getInlet().M_ringFlag;
@@ -20,7 +27,7 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
 
 void
 BCManager::
-parseNeumannData()
+parseOutflowNeumannData()
 {
     unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
 
@@ -39,25 +46,70 @@ parseNeumannData()
 
 void
 BCManager::
-addInletBC(shp<LifeV::BCHandler> bcs, std::function<double(double)> law, const bool& ringOnly) const
+applyInflowDirichletBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag) const
+{
+    std::function<double(double)> inflowLaw;
+    if (zeroFlag)
+        inflowLaw = std::function<double(double)>([](double t){return 0.0;});
+    else
+        inflowLaw = this->M_inflow;
+
+    auto foo = std::bind(poiseuilleInflow,
+                         std::placeholders::_1,
+                         std::placeholders::_2,
+                         std::placeholders::_3,
+                         std::placeholders::_4,
+                         std::placeholders::_5,
+                         M_treeNode->M_block->getInlet(),
+                         inflowLaw,
+                         this->M_coefficientInflow);
+
+    LifeV::BCFunctionBase inflowFunction(foo);
+    bcs->addBC("Inlet", M_inletFlag, LifeV::Essential, LifeV::Full,
+               inflowFunction, 3);
+}
+
+void
+BCManager::
+applyInflowNeumannBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag) const
+{
+    std::function<double(double)> inflowLaw;
+    if (zeroFlag)
+        inflowLaw = std::function<double(double)>([](double t){return 0.0;});
+    else
+        inflowLaw = this->M_inflow;
+
+    auto inflowBoundaryCondition = std::bind(neumannInflow,
+                                             std::placeholders::_1,
+                                             std::placeholders::_2,
+                                             std::placeholders::_3,
+                                             std::placeholders::_4,
+                                             std::placeholders::_5,
+                                             inflowLaw);
+
+    LifeV::BCFunctionBase inflowFunction(inflowBoundaryCondition);
+    bcs->addBC("Inlet", M_inletFlag, LifeV::Natural, LifeV::Normal,
+               inflowFunction);
+}
+
+void
+BCManager::
+addInletBC(shp<LifeV::BCHandler> bcs, const bool& ringOnly, const bool& zeroFlag) const
 {
     if (M_treeNode->isInletNode())
     {
         LifeV::BCFunctionBase zeroFunction(fZero);
 
-        auto foo = std::bind(poiseuille,
-                             std::placeholders::_1,
-                             std::placeholders::_2,
-                             std::placeholders::_3,
-                             std::placeholders::_4,
-                             std::placeholders::_5,
-                             M_treeNode->M_block->getInlet(),
-                             law,
-                             M_coefficientInflow);
+        if (std::strcmp(M_inletBCType.c_str(), "dirichlet") == 0)
+            // imposing a parabolic velocity profile matching a desired flowrate
+            this->applyInflowDirichletBCs(bcs, zeroFlag);
 
-        LifeV::BCFunctionBase inflowFunction(foo);
-        bcs->addBC("Inlet", M_inletFlag, LifeV::Essential, LifeV::Full,
-                   inflowFunction, 3);
+        else if (std::strcmp(M_inletBCType.c_str(), "neumann") == 0)
+            // imposing a pressure bump at initial times
+            this->applyInflowNeumannBCs(bcs, zeroFlag);
+
+        else
+            throw new Exception("Selected inflow BCs not implemented!");
 
         if (ringOnly) {
             bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
@@ -78,7 +130,7 @@ applyDirichletBCs(const double& time, BlockVector& input,
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
-    addInletBC(bcs, M_inflow, ringOnly);
+    addInletBC(bcs, ringOnly);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -87,13 +139,6 @@ applyDirichletBCs(const double& time, BlockVector& input,
     if (curVec)
         bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
                     *bcs, fespace->feBd(), 1.0, time);
-}
-
-double
-BCManager::
-fZero2(double time)
-{
-    return 0.0;
 }
 
 void
@@ -106,8 +151,8 @@ apply0DirichletMatrix(BlockMatrix& input,
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
-    if (M_strongDirichlet)
-        addInletBC(bcs, fZero2, ringOnly);
+    if ((std::strcmp(M_inletBCType.c_str(), "dirichlet") == 0) && (M_strongDirichlet))
+        addInletBC(bcs, ringOnly, true);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -136,8 +181,8 @@ apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
-    if (M_strongDirichlet)
-        addInletBC(bcs, fZero2, ringOnly);
+    if ((std::strcmp(M_inletBCType.c_str(), "dirichlet") == 0) && (M_strongDirichlet))
+        addInletBC(bcs, ringOnly, true);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -176,13 +221,12 @@ createBCHandler0Dirichlet(const bool& ringOnly) const
 
 double
 BCManager::
-poiseuille(const double& t, const double& x, const double& y,
-          const double& z, const unsigned int& i,
-          const GeometricFace& face, const std::function<double(double)> inflow,
-          const double& coefficient)
+poiseuilleInflow(const double& t, const double& x, const double& y,
+                const double& z, const unsigned int& i,
+                const GeometricFace& face, const std::function<double(double)> inflow,
+                const double& coefficient)
 {
     typedef LifeV::VectorSmall<3>   Vector3D;
-    // GeometricFace face = M_treeNode->M_block->getInlet();
 
     const Vector3D& center = face.M_center;
     const Vector3D& normal = face.M_normal;
@@ -207,7 +251,53 @@ poiseuille(const double& t, const double& x, const double& y,
 
 double
 BCManager::
-getNeumannBc(const double& time, const double& flag, const double& rate)
+neumannInflow(const double &t, const double &x,
+              const double &y, const double &z, const unsigned int &i,
+              std::function<double(double)> inflowLaw)
+{
+    return inflowLaw(t);
+}
+
+void
+BCManager::
+checkInflowLaw()
+{
+    if ( (!M_inflow) and (std::strcmp(M_inletBCType.c_str(), "dirichlet") == 0) ) {
+        printlog(RED, "Setting default Dirichlet inflow BC (unit constant))",
+                 this->M_data.getVerbose());
+
+        std::function<double(double)> inflow(
+                [](double t) {
+                    return 1.0;
+                });
+
+        M_inflow = inflow;
+    }
+
+    else if ( (!M_inflow) and (std::strcmp(M_inletBCType.c_str(), "neumann") == 0) ) {
+        printlog(RED, "Setting default Neumann inflow BC (pressure bump at initial times)",
+                 this->M_data.getVerbose());
+
+        const double T = 6e-3;
+        const double omega = 2.0 * M_PI / T;
+        const double Pmax = 300.0;
+
+        std::function<double(double)> inflow(
+                [T, omega, Pmax](double t) {
+                    if (t <= T) {
+                        return -0.5 * (1.0 - std::cos(omega * t)) * Pmax;
+                    }
+                    return 0.0;
+                });
+
+        M_inflow = inflow;
+    }
+
+}
+
+double
+BCManager::
+getOutflowNeumannBC(const double& time, const double& flag, const double& rate)
 {
     auto it = M_models.find(flag);
     if (it == M_models.end())
@@ -218,7 +308,7 @@ getNeumannBc(const double& time, const double& flag, const double& rate)
 
 double
 BCManager::
-getNeumannJacobian(const double& time, const double& flag, const double& rate)
+getOutflowNeumannJacobian(const double& time, const double& flag, const double& rate)
 {
     auto it = M_models.find(flag);
     if (it == M_models.end())

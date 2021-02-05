@@ -4,10 +4,8 @@ namespace RedMA
 {
 
 DataContainer::
-DataContainer()
-{
-
-}
+DataContainer():
+M_verbose(false) {}
 
 void
 DataContainer::
@@ -20,7 +18,13 @@ void
 DataContainer::
 setInflow(const std::function<double(double)>& inflow)
 {
-    M_inflow = inflow;
+    bool generate_inflow = this->checkGenerateInflow();
+
+    if (!(generate_inflow))
+        M_inflow = inflow;
+    else
+        printlog(YELLOW, "[DataContainer] WARNING: Inflow function will be "
+                      "read from file, as the 'generate_inflow' flag in datafile is set to 1\n");
 }
 
 std::function<double(double)>
@@ -123,15 +127,26 @@ finalize()
         generateRamp();
         generateInflow();
     }
+
+    if (!M_inflow)
+        throw new Exception("An inflow function has neither being set neither being "
+                            "interpolated from datafile! Either call to  'setInflow' method before "
+                            "the 'finalize' method (with 'generate_inflow' flag set to 0) or call "
+                            "the 'finalize' method (with 'generate_inflow' flag set to 1 and "
+                            "providing a valid inflow text file)!");
 }
 
 void
 DataContainer::
 generateInflow()
 {
-    auto flowValues = parseInflow();
+    bool generate_inflow = this->checkGenerateInflow();
 
-    linearInterpolation(flowValues, M_inflow);
+    if (generate_inflow)
+    {
+        auto flowValues = parseInflow();
+        linearInterpolation(flowValues, M_inflow);
+    }
 }
 
 void
@@ -169,7 +184,7 @@ linearInterpolation(const std::vector<std::pair<double,double>>& values,
         }
         if (count == values.size())
         {
-            printlog(YELLOW, "Warning: exiting the bounds of the inflow file");
+            printlog(YELLOW, "WARNING: exiting the bounds of the inflow file");
             return values[count-1].second;
         }
 
@@ -229,4 +244,19 @@ evaluateRamp(double time)
         return 1;
 }
 
+bool
+DataContainer::
+checkGenerateInflow() const
+{
+    int generate_inflow = (*M_datafile)("bc_conditions/generate_inflow", -1);
+
+    if (generate_inflow == -1)
+    {
+        std::ifstream inflowfile((*M_datafile)("bc_conditions/inflowfile",
+                                               "datafiles/inflow.txt"));
+        generate_inflow = (inflowfile.good()) ? 1 : 0;
+    }
+
+    return (generate_inflow == 1);
+}
 }

@@ -253,7 +253,7 @@ public:
      */
     virtual void initializeFEspaces() {};
 
-    /* \brief Setter for the default assemblers.
+    /*! \brief Setter for the default assemblers.
      *
      * \param Shared pointer to the DefaultAssemblers.
      */
@@ -262,7 +262,7 @@ public:
         M_defaultAssemblers = defAssemblers;
     };
 
-    /* \brief Get the ID of the internal TreeNode.
+    /*! \brief Get the ID of the internal TreeNode.
      *
      * \return Index of the tree node.
      */
