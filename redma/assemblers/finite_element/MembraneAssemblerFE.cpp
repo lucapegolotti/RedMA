@@ -25,6 +25,7 @@ namespace RedMA {
             NavierStokesAssemblerFE(data, treeNode, stabilizationName) {
         M_membrane_density = data("structure/density", 1.2);
         M_membrane_thickness = data("structure/thickness", 0.1);
+        M_transverse_shear_coeff = data("structure/transverse_shear_coefficient", 1.0);
         M_wall_elasticity = data("structure/external_wall/elastic", 1e4);
         M_wall_viscoelasticity = data("structure/external_wall/plastic", 1e3);
         M_wallFlag = data("structure/flag", 10);
@@ -57,7 +58,7 @@ namespace RedMA {
     void
     MembraneAssemblerFE::
     computeLameConstants() {
-        double poisson = this->M_dataContainer("structure/poisson", 0.45);
+        double poisson = this->M_dataContainer("structure/poisson", 0.30);
         double young = this->M_dataContainer("structure/young", 4e6);
 
         M_lameI = (young * poisson) / ((1. - 2 * poisson) * (1. + poisson));
@@ -133,14 +134,20 @@ namespace RedMA {
                   myBDQR,
                   M_velocityFESpaceETA,
                   M_velocityFESpaceETA,
-                  2 * value(this->M_lameII) *
+                  2.0 * value(this->M_lameII) *
                   0.5 * dot(
                           (grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface))
                           + transpose(grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface)),
                           (grad(phi_i) - grad(phi_i) * outerProduct(Nface, Nface))) +
                   value(this->M_lameI) *
-                  dot(value(Eye), (grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface))) *
-                  dot(value(Eye), (grad(phi_i) - grad(phi_i) * outerProduct(Nface, Nface)))
+                          dot(value(Eye), (grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface))) *
+                          dot(value(Eye), (grad(phi_i) - grad(phi_i) * outerProduct(Nface, Nface))) +
+                  2.0 * value((this->M_transverse_shear_coeff - 1.0) * this->M_lameII) *
+                  0.5 * dot(
+                          ((grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface) +
+                          transpose(grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface))) *
+                          outerProduct(Nface, Nface)),
+                          (grad(phi_i) - grad(phi_i) * outerProduct(Nface, Nface)))
         ) >> BS;
         BS->globalAssemble();
 
@@ -187,17 +194,16 @@ namespace RedMA {
             M_TMA_Displacements->setComm(this->M_comm);
         }
 
-        // adding external wall contribution involved as velocity mass matrix in system matrix
+        // computing external wall contribution involved as velocity mass matrix in system matrix
         double  dt = this->M_dataContainer("time_discretization/dt", 0.01);
         double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
 
         shp<BlockMatrix> wallMatrix(new BlockMatrix(this->M_nComponents,
                                                       this->M_nComponents));
 
-        wallMatrix->add(M_boundaryMass);
-        wallMatrix->multiplyByScalar(M_wall_viscoelasticity + M_wall_elasticity * dt * rhs_coeff);
-
-        retVec->add(wallMatrix->multiplyByVector(sol));
+        wallMatrix->add(this->M_boundaryMass);
+        wallMatrix->multiplyByScalar(-1.0 * M_wall_viscoelasticity
+                                     - 1.0 * M_wall_elasticity * dt * rhs_coeff);
 
         // computing current displacement part due to previous displacements
         shp<aVector> rhsDisplacement = this->M_TMA_Displacements->combineOldSolutions();
@@ -210,6 +216,8 @@ namespace RedMA {
         shp<aVector> wallContrib = M_boundaryMass->multiplyByVector((rhsDisplacement));
         wallContrib->multiplyByScalar(M_wall_elasticity);
 
+        // adding the three new contributions
+        retVec->add(wallMatrix->multiplyByVector(sol));
         retVec->add(membraneContrib);
         retVec->add(wallContrib);
 
@@ -217,6 +225,33 @@ namespace RedMA {
                                               this->getComponentBCs(), !(this->M_addNoSlipBC));
 
         return retVec;
+    }
+
+    shp<aMatrix>
+    MembraneAssemblerFE::
+    getJacobianRightHandSide(const double &time, const shp<aVector> &sol)
+    {
+        shp<aMatrix> retMat = NavierStokesAssemblerFE::getJacobianRightHandSide(time, sol);
+
+        // adding external wall contribution involved as velocity mass matrix in system matrix
+        double  dt = this->M_dataContainer("time_discretization/dt", 0.01);
+        double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
+
+        shp<BlockMatrix> wallMatrix(new BlockMatrix(this->M_nComponents,
+                                                      this->M_nComponents));
+
+        wallMatrix->add(this->M_boundaryMass);
+        wallMatrix->multiplyByScalar(-1.0 * M_wall_viscoelasticity
+                                     - 1.0 * M_wall_elasticity * dt * rhs_coeff);
+
+        retMat->add(wallMatrix);
+
+        this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(retMat),
+                                                 this->getFESpaceBCs(),
+                                                 this->getComponentBCs(), 0.0,
+                                                 !(this->M_addNoSlipBC));
+
+        return retMat;
     }
 
     void
@@ -230,6 +265,8 @@ namespace RedMA {
         shp<BlockVector> currDisplacement(new BlockVector(this->M_nComponents));
         currDisplacement->deepCopy(M_TMA_Displacements->simpleAdvance(dt, convert<BlockVector>(sol)));
 
+        // TODO: it may be a good idea to export in exportSolution, but I should well figure out how
+        // TODO: to do it in a smart way!
         *M_displacementExporter = *static_cast<VECTOREPETRA *>(currDisplacement->block(0)->data().get());
         *M_displacementExporter *= (*M_boundaryIndicator);
 
@@ -244,7 +281,7 @@ namespace RedMA {
         M_displacementExporter.reset(new VECTOREPETRA(M_velocityFESpace->map(),
                                                       M_exporter->mapType()));
 
-        M_exporter->addVariable(LifeV::ExporterData <MESH> ::VectorField,
+        M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
                                 "displacement", M_velocityFESpace, M_displacementExporter, 0.0);
     }
 

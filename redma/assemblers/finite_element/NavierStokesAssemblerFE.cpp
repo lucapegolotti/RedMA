@@ -25,7 +25,7 @@ setup()
 {
     StokesAssemblerFE::setup();
 
-    if (!std::strcmp(M_stabilizationName.c_str(),"supg"))
+    if (!std::strcmp(M_stabilizationName.c_str(), "supg"))
     {
         printlog(WHITE, "[NavierStokesAssemblerFE] Setting up SUPG stabilization...\n",
                  this->M_dataContainer.getVerbose());
@@ -197,15 +197,15 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
     shp<BlockMatrix> systemMatrix(new BlockMatrix(this->M_nComponents,
                                                     this->M_nComponents));
 
-    systemMatrix->add(M_stiffness);
-    systemMatrix->add(M_divergence);
+    systemMatrix->add(this->M_stiffness);
+    systemMatrix->add(this->M_divergence);
     systemMatrix->multiplyByScalar(-1.0);
 
     this->addConvectiveMatrixRightHandSide(sol, systemMatrix);
 
     shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
 
-    addNeumannBCs(time, sol, retVec);
+    StokesAssemblerFE::addNeumannBCs(time, sol, retVec);
     this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec), this->getFESpaceBCs(),
                                           this->getComponentBCs(), !(this->M_addNoSlipBC));
 
@@ -213,7 +213,7 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
     {
         shp<BlockVector> residual = M_stabilization->getResidual(spcast<BlockVector>(sol),
                                                                  spcast<BlockVector>(this->getForcingTerm(time)));
-        residual->multiplyByScalar(-1);
+        residual->multiplyByScalar(-1.);
         retVec->add(residual);
     }
 

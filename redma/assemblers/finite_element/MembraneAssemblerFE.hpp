@@ -45,6 +45,9 @@ public:
     shp<aVector> getRightHandSide(const double& time,
                                   const shp<aVector>& sol) override;
 
+    shp<aMatrix> getJacobianRightHandSide(const double& time,
+                                          const shp<aVector>& sol) override;
+
     void postProcess(const double& t, const double &dt, const shp<aVector>& sol) override;
 
     void setExporter() override;
@@ -59,6 +62,7 @@ protected:
     double                                          M_lameII;
     double                                          M_membrane_density;
     double                                          M_membrane_thickness;
+    double                                          M_transverse_shear_coeff;
     double                                          M_wall_elasticity;
     double                                          M_wall_viscoelasticity;
     unsigned int                                    M_wallFlag;

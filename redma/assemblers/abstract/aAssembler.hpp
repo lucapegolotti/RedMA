@@ -177,15 +177,13 @@ public:
      */
     virtual inline shp<ETFESPACE3> getETFESpaceCoupling() const {return nullptr;}
 
-    // virtual inline shp<ETFESPACE1> getETFESpaceSecondary() const {return nullptr;}
-
     /*! \brief Getter for the vector of assembled matrices.
      *
      * If not overloaded, this method returns an empty vector of aMatrix.
      *
      * \return Vector of shared pointers to aMatrix (empty if not overloaded).
      */
-    virtual std::vector<shp<aMatrix>> getMatrices() const {return std::vector<shp<aMatrix>>();}
+    virtual inline std::vector<shp<aMatrix>> getMatrices() const {return std::vector<shp<aMatrix>>();}
 
     /*! \brief Getter for the internal BCManager.
      *
@@ -193,7 +191,8 @@ public:
      */
     inline shp<BCManager> getBCManager() const {return M_bcManager;}
 
-    /// Virtual setup of the exporter.
+    /*! \brief Virtual setup of the exporter.
+     */
     virtual void setExporter() = 0;
 
     /*! \brief Virtual method to apply Dirichlet bcs to a matrix.

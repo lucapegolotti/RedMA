@@ -469,7 +469,7 @@ addBackFlowStabilization(shp<aVector>& input,
 
 void
 StokesModel::
-exportNorms(double t, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure)
+exportNorms(const double& t, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure)
 {
     bool exportNorms = M_dataContainer("exporter/exportnorms", true);
 

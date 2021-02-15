@@ -96,28 +96,36 @@ void
 BCManager::
 addInletBC(shp<LifeV::BCHandler> bcs, const bool& ringOnly, const bool& zeroFlag) const
 {
+    typedef LifeV::VectorSmall<3>   Vector3D;
+
     if (M_treeNode->isInletNode())
     {
         LifeV::BCFunctionBase zeroFunction(fZero);
 
-        if (std::strcmp(M_inletBCType.c_str(), "dirichlet") == 0)
-            // imposing a parabolic velocity profile matching a desired flowrate
+        if (!std::strcmp(M_inletBCType.c_str(), "dirichlet"))
+            // imposing an inflow velocity profile
             this->applyInflowDirichletBCs(bcs, zeroFlag);
 
-        else if (std::strcmp(M_inletBCType.c_str(), "neumann") == 0)
-            // imposing a pressure bump at initial times
+        else if (!std::strcmp(M_inletBCType.c_str(), "neumann"))
+            // imposing an inflow pressure --> actually this is done at RHS so this is not called!
             this->applyInflowNeumannBCs(bcs, zeroFlag);
 
         else
             throw new Exception("Selected inflow BCs not implemented!");
 
-        if (ringOnly) {
-            bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
+        if (!ringOnly) {
+            bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
                        LifeV::Full, zeroFunction, 3);
         }
         else {
-            bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
+            bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
                        LifeV::Full, zeroFunction, 3);
+
+            /*// TODO: generalize for a generic inlet orientation
+            std::vector <LifeV::ID> compz (1);
+            compz[0] = 2;
+            bcs->addBC("InletRingZ", M_inletRingFlag, LifeV::EssentialEdges,
+                       LifeV::Component, zeroFunction, compz);*/
         }
     }
 }
@@ -130,7 +138,8 @@ applyDirichletBCs(const double& time, BlockVector& input,
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
-    addInletBC(bcs, ringOnly);
+    if (!std::strcmp(M_inletBCType.c_str(), "dirichlet"))
+        addInletBC(bcs, ringOnly);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -151,7 +160,7 @@ apply0DirichletMatrix(BlockMatrix& input,
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
-    if ((std::strcmp(M_inletBCType.c_str(), "dirichlet") == 0) && (M_strongDirichlet))
+    if ((!std::strcmp(M_inletBCType.c_str(), "dirichlet")) && (M_strongDirichlet))
         addInletBC(bcs, ringOnly, true);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
@@ -181,7 +190,7 @@ apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
-    if ((std::strcmp(M_inletBCType.c_str(), "dirichlet") == 0) && (M_strongDirichlet))
+    if ((!std::strcmp(M_inletBCType.c_str(), "dirichlet")) && (M_strongDirichlet))
         addInletBC(bcs, ringOnly, true);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
@@ -196,24 +205,40 @@ shp<LifeV::BCHandler>
 BCManager::
 createBCHandler0Dirichlet(const bool& ringOnly) const
 {
+    typedef LifeV::VectorSmall<3>   Vector3D;
+
     LifeV::BCFunctionBase zeroFunction(fZero);
 
     shp<LifeV::BCHandler> bcs;
     bcs.reset(new LifeV::BCHandler);
 
-    if (!(ringOnly))
+    if (!ringOnly)
         bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
                    LifeV::Full, zeroFunction, 3);
     else {
-        if (M_treeNode->isInletNode())
-            bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
-                       LifeV::Full, zeroFunction, 3);
+        std::vector <LifeV::ID> compz (1);
+        compz[0] = 2;
 
-        if (M_treeNode->isOutletNode())
+        if (M_treeNode->isInletNode()) {
+             bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
+                          LifeV::Full, zeroFunction, 3);
+
+            /*// TODO: generalize for a generic inlet orientation
+            bcs->addBC("InletRingZ", M_inletRingFlag, LifeV::EssentialEdges,
+                       LifeV::Component, zeroFunction, compz);*/
+        }
+
+        if (M_treeNode->isOutletNode()) {
             // this imposes the BC at all outlets, as the outlet ring flag is the same
             // for all outlets; thus outlet building blocks MUST be tubes!!
+
             bcs->addBC("OutletRing", M_outletRingFlag, LifeV::EssentialEdges,
-                       LifeV::Full, zeroFunction, 3);
+                         LifeV::Full, zeroFunction, 3);
+
+            /*// TODO: generalize for a generic inlet orientation
+            bcs->addBC("OutletRingZ", M_outletRingFlag, LifeV::EssentialEdges,
+                       LifeV::Component, zeroFunction, compz);*/
+        }
     }
 
     return bcs;
@@ -222,9 +247,9 @@ createBCHandler0Dirichlet(const bool& ringOnly) const
 double
 BCManager::
 poiseuilleInflow(const double& t, const double& x, const double& y,
-                const double& z, const unsigned int& i,
-                const GeometricFace& face, const std::function<double(double)> inflow,
-                const double& coefficient)
+                 const double& z, const unsigned int& i,
+                 const GeometricFace& face, const std::function<double(double)> inflow,
+                 const double& coefficient)
 {
     typedef LifeV::VectorSmall<3>   Vector3D;
 
@@ -278,9 +303,9 @@ checkInflowLaw()
         printlog(RED, "Setting default Neumann inflow BC (pressure bump at initial times)",
                  this->M_data.getVerbose());
 
-        const double T = 6e-3;
+        const double T = 3e-3;
         const double omega = 2.0 * M_PI / T;
-        const double Pmax = 300.0;
+        const double Pmax = 13300.0;
 
         std::function<double(double)> inflow(
                 [T, omega, Pmax](double t) {

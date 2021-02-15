@@ -68,6 +68,8 @@ public:
 
     inline bool useStrongDirichlet() const {return M_strongDirichlet;}
 
+    inline std::string getInletBCType() const {return M_inletBCType;}
+
 private:
     static double poiseuilleInflow(const double& t, const double& x, const double& y,
                                   const double& z, const unsigned int& i,

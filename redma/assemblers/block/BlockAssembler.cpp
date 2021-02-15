@@ -10,7 +10,7 @@ BlockAssembler(const DataContainer& data, const TreeStructure& tree,
   M_tree(tree)
 {
     this->M_defaultAssemblers = defAssemblers;
-    setup();
+    this->setup();
 }
 
 void
@@ -451,7 +451,8 @@ setup()
         }
     }
 
-    if (!std::strcmp(this->M_data("bc_conditions/inletdirichlet", "weak").c_str(),"weak"))
+    if ((!std::strcmp(this->M_data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet")) &&
+        (!std::strcmp(this->M_data("bc_conditions/inletdirichlet", "weak").c_str(), "weak")))
     {
         shp<InnerAssembler> inletAssembler = M_primalAssemblers[0];
 

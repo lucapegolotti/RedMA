@@ -22,12 +22,12 @@ using namespace RedMA;
 
 double inflowNeumann(double t)
 {
-    const double T = 6e-3;
-    const double omega = 2.0 * M_PI / (T);
-    const double Pmax = 3000.0;
+    const double T = 3e-3;
+    const double omega = 2.0 * M_PI / T;
+    const double Pmax = 13300.0;
     if (t <= T)
     {
-        return -0.5 * (1.0 - cos(omega * t) ) * Pmax;
+        return -0.5 * (1.0 - std::cos(omega * t) ) * Pmax;
     }
     return 0;
 }

@@ -186,7 +186,6 @@ advance(const double& time, double& dt, int& status)
             vecCopy->deepCopy(M_prevSolutions[count]);
             vecCopy->multiplyByScalar(M_coefficients[count]);
             prevContribution->add(vecCopy);
-            count++;
         }
         prevContribution->add(sol);
 
@@ -221,7 +220,6 @@ advance(const double& time, double& dt, int& status)
             auto massjac = this->M_funProvider->getMassJacobian(time+dt, M_prevSolutions[count]);
             massjac->multiplyByScalar(M_coefficients[count]);
             retMat->add(massjac);
-            count++;
         }
         return retMat;
     });
@@ -245,8 +243,8 @@ simpleAdvance(const double &dt, const shp<BlockVector> &sol)
 
     shp<BlockVector> retVec(new BlockVector(2));
 
-    // I update only the first field, as pressure is not defined (i.e. is 0) for the membrane
-    retVec->setBlock(0, sol->block(0));
+    // I update only field 0, as for displacements no pressure is defined (i.e. it equals 0)
+    retVec->deepCopy(sol);
     retVec->multiplyByScalar(dt * M_rhsCoeff);
 
     shp<DistributedVector> oldSteps(new DistributedVector());

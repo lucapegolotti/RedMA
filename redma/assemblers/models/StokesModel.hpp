@@ -65,7 +65,7 @@ public:
                                   shp<aVector> sol,
                                   const unsigned int& faceFlag);
 
-    void exportNorms(double t, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure);
+    void exportNorms(const double& t, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure);
 
     void initializePythonStructures();
 

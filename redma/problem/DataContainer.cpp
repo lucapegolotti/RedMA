@@ -129,7 +129,7 @@ finalize()
     }
 
     if (!M_inflow)
-        throw new Exception("An inflow function has neither being set neither being "
+        throw new Exception("An inflow function has neither being set nor being "
                             "interpolated from datafile! Either call to  'setInflow' method before "
                             "the 'finalize' method (with 'generate_inflow' flag set to 0) or call "
                             "the 'finalize' method (with 'generate_inflow' flag set to 1 and "

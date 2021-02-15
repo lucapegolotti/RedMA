@@ -115,12 +115,9 @@ void
 StokesAssemblerFE::
 addNeumannBCs(double time, shp<aVector> sol, shp<aVector> rhs)
 {
-
     if (aAssembler::M_treeNode->isInletNode())
     {
-        std::string inflowBCType = this->M_data("fluid/inflow_bc","dirichlet");
-
-        if (std::strcmp(inflowBCType.c_str(), "neumann") == 0)
+        if (!std::strcmp(this->M_bcManager->getInletBCType().c_str(), "neumann"))
         {
             shp<LifeV::BCHandler> bcs;
             bcs.reset(new LifeV::BCHandler);
@@ -148,7 +145,8 @@ addNeumannBCs(double time, shp<aVector> sol, shp<aVector> rhs)
             *flowRateCopy *= P;
 
             *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;
-            // addBackFlowStabilization(input, sol, rate.first);
+
+            // *spcast<VECTOREPETRA>(rhs.block(0)->data()) += *flowRateCopy;
         }
     }
 }
