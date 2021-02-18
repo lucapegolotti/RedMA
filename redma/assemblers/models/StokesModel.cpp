@@ -23,9 +23,9 @@ buildZeroVector() const
     shp<VECTOREPETRA> uComp(new VECTOREPETRA(M_velocityFESpace->map(),
                                              LifeV::Unique));
     uComp->zero();
+
     shp<VECTOREPETRA> pComp(new VECTOREPETRA(M_pressureFESpace->map(),
                                              LifeV::Unique));
-
     pComp->zero();
 
     shp<BlockVector> retVec(new BlockVector(2));
@@ -510,7 +510,7 @@ computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
 
     QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
 
-    unsigned int wallFlag = M_treeNode->M_block->wallFlag();
+    unsigned int wallFlag = M_treeNode->M_block->getWallFlag();
     if (M_massWall == nullptr)
     {
         M_massWall.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
@@ -565,7 +565,6 @@ computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
     linearSolver.setParameters(*aztecList);
 
     typedef LifeV::PreconditionerML         precML_type;
-    typedef shp<precML_type>    precMLPtr_type;
     precML_type * precRawPtr;
     precRawPtr = new precML_type;
 

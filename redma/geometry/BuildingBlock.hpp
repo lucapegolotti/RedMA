@@ -26,6 +26,7 @@
 #include <redma/utils/Exception.hpp>
 #include <redma/utils/PrintLog.hpp>
 #include <redma/geometry/GeometricParametersHandler.hpp>
+#include <redma/geometry/MembraneThicknessComputer.hpp>
 
 #include <lifev/core/mesh/RegionMesh.hpp>
 #include <lifev/core/mesh/MeshData.hpp>
@@ -124,7 +125,7 @@ public:
 
     void setIsChild(bool isChild);
 
-    meshPtr_Type getMesh();
+    meshPtr_Type getMesh() const;
 
     void setDatafile(const GetPot& datafile);
 
@@ -141,6 +142,10 @@ public:
 
     static Matrix3D computeRotationMatrix(Vector3D axis, double angle);
 
+    void computeMembraneThickness();
+
+    inline shp<VECTOREPETRA> getMembraneThickness() const {return M_membraneThicknessComputer->getThickness();}
+
     std::string getRefinement(){return M_refinement;};
 
     virtual std::string getOptionalParameter(unsigned int index){return "";};
@@ -154,6 +159,8 @@ public:
     inline std::string getDiscretizationMethod() const {return M_discrMethod;}
 
     inline std::string getAssemblerType() const {return M_assemblerType;}
+
+    inline unsigned int getWallFlag() const {return M_wallFlag;}
 
     inline void setDiscretizationMethod(std::string method) {M_discrMethod = method;}
 
@@ -175,8 +182,6 @@ public:
 
     virtual void nonAffineTransf(double& x, double& y, double& z) {};
 
-    unsigned int wallFlag() {return M_wallFlag;}
-
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,
@@ -190,41 +195,43 @@ protected:
     static double fZero(const double& t, const double& x, const double& y,
                         const double& z, const LifeV::ID& i);
 
-    GeometricParametersHandler M_parametersHandler;
-    std::string M_name;
+    GeometricParametersHandler                     M_parametersHandler;
+    std::string                                    M_name;
 
-    std::string M_refinement;
-    std::string M_meshName;
-    meshPtr_Type M_mesh;
+    std::string                                    M_refinement;
+    std::string                                    M_meshName;
+    meshPtr_Type                                   M_mesh;
 
-    Matrix3D M_R;
-    Matrix3D M_Raxis;
+    Matrix3D                                       M_R;
+    Matrix3D                                       M_Raxis;
 
-    commPtr_Type M_comm;
+    commPtr_Type                                   M_comm;
 
-    bool M_verbose;
+    bool                                           M_verbose;
 
-    std::string M_datafileName;
+    std::string                                    M_datafileName;
 
-    GeometricFace M_inlet;
-    std::vector<GeometricFace> M_outlets;
+    GeometricFace                                  M_inlet;
+    std::vector<GeometricFace>                     M_outlets;
 
-    bool M_isChild;
+    bool                                           M_isChild;
 
-    double M_inletScale;
-    double M_scale;
+    double                                         M_inletScale;
+    double                                         M_scale;
 
-    Vector3D M_inletTranslation;
-    Vector3D M_inletRotationAxis;
-    Vector3D M_translation;
-    double M_inletAngle;
+    Vector3D                                       M_inletTranslation;
+    Vector3D                                       M_inletRotationAxis;
+    Vector3D                                       M_translation;
+    double                                         M_inletAngle;
 
-    GetPot M_datafile;
+    GetPot                                         M_datafile;
 
-    std::string M_discrMethod;
-    std::string M_assemblerType;
+    std::string                                    M_discrMethod;
+    std::string                                    M_assemblerType;
 
-    unsigned int M_wallFlag;
+    unsigned int                                   M_wallFlag;
+
+    shp<MembraneThicknessComputer>                 M_membraneThicknessComputer;
 };
 
 }  // namespace RedMA

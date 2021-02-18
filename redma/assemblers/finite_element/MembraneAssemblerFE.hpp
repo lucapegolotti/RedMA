@@ -20,6 +20,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/assemblers/finite_element/NavierStokesAssemblerFE.hpp>
 #include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
+#include <redma/geometry/MembraneThicknessComputer.hpp>
 
 namespace RedMA
 {
@@ -37,6 +38,8 @@ public:
     shp<aMatrix> assembleReducedMass(shp<BCManager> bcManager) override;
 
     shp<aMatrix> assembleBoundaryMass(shp<BCManager> bcManager, bool verbose = false);
+
+    shp<aMatrix> assembleWallBoundaryMass(shp<BCManager> bcManager, bool verbose = false);
 
     shp<aMatrix> assembleReducedStiffness(shp<BCManager> bcManager) override;
 
@@ -56,12 +59,15 @@ protected:
 
     void computeLameConstants();
 
+    void computeThickness();
+
+    void exportThickness();
+
     shp<aTimeMarchingAlgorithm>                     M_TMA_Displacements;
 
     double                                          M_lameI;
     double                                          M_lameII;
     double                                          M_membrane_density;
-    double                                          M_membrane_thickness;
     double                                          M_transverse_shear_coeff;
     double                                          M_wall_elasticity;
     double                                          M_wall_viscoelasticity;
@@ -69,6 +75,7 @@ protected:
 
     shp<BlockMatrix>                                M_boundaryStiffness;
     shp<BlockMatrix>                                M_boundaryMass;
+    shp<BlockMatrix>                                M_wallBoundaryMass;
 
     shp<VECTOREPETRA>                               M_displacementExporter;
     shp<VECTOREPETRA>                               M_boundaryIndicator;

@@ -111,6 +111,7 @@ outputdir = rb_solutions
 	density	     = 1.2
 	transverse_shear_coefficient = 0.8333
 	flag = 10
+	constant_thickness = 1
 	[./external_wall]
 		elastic = 0
 		plastic = 0

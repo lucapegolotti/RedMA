@@ -46,9 +46,12 @@ BasisFunctionFunctor::Function
 BasisFunctionFunctor::
 function()
 {
-    using namespace std::placeholders;
     return std::bind(&BasisFunctionFunctor::evaluateOperator, this,
-                     _1, _2, _3, _4, _5);
+                     std::placeholders::_1,
+                     std::placeholders::_2,
+                     std::placeholders::_3,
+                     std::placeholders::_4,
+                     std::placeholders::_5);
 }
 
 BasisFunctionFunctor::return_Type

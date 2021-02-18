@@ -384,7 +384,7 @@ setup()
 
     NodesMap nodesMap = M_tree.getNodesMap();
     // allocate assemblers
-    for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
+    for (auto it = nodesMap.begin(); it != nodesMap.end(); it++)
     {
         shp<InnerAssembler> newAssembler;
         newAssembler = AssemblerFactory(this->M_data, it->second);

@@ -80,7 +80,6 @@ solveSystem()
     linearSolver.setParameters(*aztecList);
 
     typedef LifeV::PreconditionerML         precML_type;
-    typedef shp<precML_type>    precMLPtr_type;
     precML_type * precRawPtr;
     precRawPtr = new precML_type;
     // we set to look for the "fake" precMLL entry in order to set the

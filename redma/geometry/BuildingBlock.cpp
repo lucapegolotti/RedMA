@@ -75,7 +75,7 @@ BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
     M_parametersHandler.registerParameter("rotation_axis_z", 0.0, -infty, infty);
     M_parametersHandler.registerParameter("alpha", 0.0, -mp2, mp2, false, true);
 
-
+    // angle around axis
     M_parametersHandler.registerParameter("alpha_axis", 0.0, -mp2, mp2, true, true);
 
     // scale
@@ -251,6 +251,27 @@ computeRotationMatrix(Vector3D axis, double angle)
     R(2,2) = mcos + axis[2] * axis[2] * omcos;
 
     return R;
+}
+
+void
+BuildingBlock::
+computeMembraneThickness() {
+
+    M_membraneThicknessComputer.reset(new MembraneThicknessComputer(M_datafile,
+                                                                    M_comm));
+
+    std::vector<double> radia_out;
+    std::vector<int> flags_out;
+    for (auto out : M_outlets){
+        radia_out.push_back(out.M_radius);
+        flags_out.push_back(out.M_ringFlag);
+    }
+
+    M_membraneThicknessComputer->setup(M_inlet.M_radius, radia_out,
+                                       M_inlet.M_ringFlag, flags_out,
+                                       M_mesh);
+
+    M_membraneThicknessComputer->solve();
 }
 
 void
@@ -562,7 +583,7 @@ setIsChild(bool isChild)
 
 BuildingBlock::meshPtr_Type
 BuildingBlock::
-getMesh()
+getMesh() const
 {
     return M_mesh;
 }

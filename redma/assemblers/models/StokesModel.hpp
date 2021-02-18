@@ -18,7 +18,6 @@
 #define STOKESMODEL_HPP
 
 #include <redma/RedMA.hpp>
-#include <redma/RedMA.hpp>
 #include <redma/assemblers/abstract/aAssembler.hpp>
 #include <redma/array/DistributedVector.hpp>
 #include <redma/array/SparseMatrix.hpp>

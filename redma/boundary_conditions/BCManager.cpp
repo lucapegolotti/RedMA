@@ -20,7 +20,7 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
         this->checkInflowLaw();
 
     M_inletFlag = treeNode->M_block->getInlet().M_flag;
-    M_wallFlag = treeNode->M_block->wallFlag();
+    M_wallFlag = treeNode->M_block->getWallFlag();
     M_inletRingFlag = treeNode->M_block->getInlet().M_ringFlag;
     M_outletRingFlag = treeNode->M_block->getOutlet(0).M_ringFlag;  // assuming all outlets are the same
 }
@@ -352,7 +352,7 @@ postProcess()
 
 shp<VECTOREPETRA>
 BCManager::
-computeBoundaryIndicator(shp<FESPACE> fespace)
+computeBoundaryIndicator(shp<FESPACE> fespace, int flag)
 {
     shp<VECTOREPETRA> boundaryIndicator(new VECTOREPETRA(fespace->map()));
     boundaryIndicator->zero();
@@ -362,8 +362,7 @@ computeBoundaryIndicator(shp<FESPACE> fespace)
     shp<LifeV::BCHandler> bcs;
     bcs.reset(new LifeV::BCHandler);
 
-    bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
-               LifeV::Full, oneFunction, 3);
+    bcs->addBC("Wall", flag, LifeV::Essential, LifeV::Full, oneFunction, 3);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 

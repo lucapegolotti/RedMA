@@ -18,6 +18,7 @@
 #define BCMANAGER_HPP
 
 #include <redma/RedMA.hpp>
+
 #include <redma/geometry/TreeStructure.hpp>
 #include <redma/array/BlockVector.hpp>
 #include <redma/array/BlockMatrix.hpp>
@@ -64,11 +65,21 @@ public:
 
     void postProcess();
 
-    shp<VECTOREPETRA> computeBoundaryIndicator(shp<FESPACE> fespace);
+    static shp<VECTOREPETRA> computeBoundaryIndicator(shp<FESPACE> fespace, int flag);
 
     inline bool useStrongDirichlet() const {return M_strongDirichlet;}
 
     inline std::string getInletBCType() const {return M_inletBCType;}
+
+    static double fZero(const double& t, const double& x, const double& y,
+                        const double& z, const unsigned int& i);
+
+    static double fOne(const double& t, const double& x, const double& y,
+                       const double& z, const unsigned int& i);
+
+    static double constantFunction(const double& t, const double& x, const double& y,
+                                   const double& z, const unsigned int& i,
+                                   const double& K);
 
 private:
     static double poiseuilleInflow(const double& t, const double& x, const double& y,
@@ -82,16 +93,6 @@ private:
                                 std::function<double(double)> inflowLaw);
 
     void checkInflowLaw();
-
-    static double fZero(const double& t, const double& x, const double& y,
-                        const double& z, const unsigned int& i);
-
-    static double fOne(const double& t, const double& x, const double& y,
-                       const double& z, const unsigned int& i);
-
-    static double constantFunction(const double& t, const double& x, const double& y,
-                                   const double& z, const unsigned int& i,
-                                   const double& K);
 
     shp<LifeV::BCHandler> createBCHandler0Dirichlet(const bool& ringOnly = false) const;
 
