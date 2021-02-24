@@ -61,6 +61,10 @@ shp<SparseMatrix> blockMatrixToSparseMatrix(shp<BlockMatrix> matrix);
 
 shp<SparseMatrix> denseMatrixToSparseMatrix(shp<DenseMatrix> matrix);
 
+shp<DenseMatrix> blockMatrixToDenseMatrix(shp<BlockMatrix> matrix);
+
+shp<DenseVector> blockVectorToDenseVector(shp<BlockVector> vector);
+
 shp<VECTOREPETRA> getEpetraVector(const shp<aVector>& vector,
                                   const BlockMaps& maps);
 

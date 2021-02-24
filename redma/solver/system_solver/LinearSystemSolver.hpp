@@ -59,13 +59,19 @@ public:
 private:
 
     // only required for dense computation
-    void computeSchurComplementDense(const BM& matrix) {};
+    void computeSchurComplementDense(const BM& matrix);
+
+    void solveDense(const BM& matrix, const BV& rhs, BV& sol);
+
+    void convertVectorType(const shp<BlockMatrix>& matrix,
+                           const shp<DenseVector>& vector,
+                           shp<BlockVector>& targetVector);
 
     // these are relative to dense solver
     std::vector<shp<Epetra_SerialDenseSolver>>      M_solversAs;
     Epetra_SerialDenseSolver                        M_schurSolver;
-    std::vector<DenseMatrix>                        M_collapsedAs;
-    DenseMatrix                                     M_schurComplementColl;
+    std::vector<shp<DenseMatrix>>                   M_collapsedAs;
+    shp<DenseMatrix>                                M_schurComplementColl;
     //
 
     DataContainer                                   M_data;

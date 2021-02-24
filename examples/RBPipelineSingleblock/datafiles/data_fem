@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/tree_rb.xml
+	xmlfile = geometries/tree_fem.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -61,7 +61,7 @@ outputdir = rb_solutions
 	[../]
 	[./online]
 		usemdeim = false
-		monolithicSolve = true
+		monolithicSolve = false
 		recomputeSchur = false
 		approximatenonlinearterm = 0
 		[./basis]
@@ -69,8 +69,7 @@ outputdir = rb_solutions
 			podtol_field0 = 1e-1
 			podtol_field1 = 1e-5
 			useprimalsupremizers = 1
-			usedualsupremizers = 1
-			numberdualsupremizers = 30
+			usedualsupremizers = 0
 		[../]
 		[./mdeim]
 			loadfullbasis   = true
@@ -139,8 +138,8 @@ outputdir = rb_solutions
 
 [coupling]
 	type                = chebyshev
-	nMax                = 2
+	nMax                = 5
 	stab_coefficient	= 1e-16
 	check_stabterm		= true
-	nfcts_weak_dirichlet = 2
+	nfcts_weak_dirichlet = 5
 [../]

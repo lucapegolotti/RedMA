@@ -134,16 +134,17 @@ multiplyByVector(shp<aVector> vector)
     {
         for (unsigned int j = 0; j < nCols(); j++)
         {
-            // check if we need to the conversion distributed->dense
+            // check if we need to make the conversion distributed->dense
             shp<aVector> tempRes;
             if (!block(i,j)->isZero())
             {
                 if (block(i,j)->type() == DENSE && otherVector->block(j)->type() == DISTRIBUTED)
                 {
                     // printlog(YELLOW, "[BlockMatrix::multiplyByVector] explicit dense->distributed conversion\n", true);
-                    shp<DistributedVector> asDistributed = spcast<DistributedVector>(otherVector->block(j));
+                    shp<DistributedVector> asDistributed = convert<DistributedVector>(otherVector->block(j));
                     shp<DenseVector> asDense = asDistributed->toDenseVectorPtr();
-                    tempRes = DistributedVector::convertDenseVector(spcast<DenseVector>(block(i,j)->multiplyByVector(asDense)),asDistributed->commPtr());
+                    // tempRes = DistributedVector::convertDenseVector(spcast<DenseVector>(block(i,j)->multiplyByVector(asDense)),asDistributed->commPtr());
+                    tempRes = block(i,j)->multiplyByVector(asDense);
                 }
                 else
                     tempRes = block(i,j)->multiplyByVector(otherVector->block(j));
@@ -309,7 +310,13 @@ void
 BlockMatrix::
 dump(std::string filename) const
 {
-    throw new Exception("Dump not implemented for BlockMatrix");
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        for (unsigned int j = 0; j < nCols(); j++)
+        {
+            M_matrixGrid(i,j)->dump(filename + "block_" + std::to_string(i) + "_" + std::to_string(j));
+        }
+    }
 }
 
 BlockMatrix*

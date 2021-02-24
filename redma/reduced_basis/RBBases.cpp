@@ -37,7 +37,7 @@ RBBases::
 setPath(std::string path)
 {
     if (!fs::exists(path))
-        throw new Exception("Path " + path + " does not exist! Maybe you forgot the .xml geometry file.");
+        throw new Exception("Path " + path + " does not exist! Maybe you forgot to update the .xml geometry file.");
 
     M_path = path;
 }
@@ -174,11 +174,9 @@ loadBases()
 
         }
 
-        print();
-
         for (unsigned i = 0; i < M_numFields; i++)
             if (M_bases[i].size() < M_NsOnline[i])
-                throw new Exception("Selected tolerance requires more vectors than the ones stored");
+                throw new Exception("Selected tolerance requires more vectors than those stored");
 
         for (unsigned int i = 0; i < M_numFields; i++)
         {
@@ -187,6 +185,8 @@ loadBases()
             M_enrichedBasesMatrices.push_back(curBasisMatrix);
             M_enrichedBasesMatricesTransposed.push_back(spcast<SparseMatrix>(curBasisMatrix->transpose()));
         }
+
+        print();
     }
 }
 
@@ -203,7 +203,6 @@ print()
     }
     else
         msg += "POD tolerance = all vectors\n";
-    printlog(WHITE, msg, M_data.getVerbose());
 
     for (int i = 0; i < M_numFields; i++)
     {
@@ -215,12 +214,10 @@ print()
             msg += "\tPrimal supremizers wrt field " + std::to_string(j) +
                    " = " + std::to_string(M_primalSupremizers(i,j).size()) + "\n";
         msg += "\tDual supremizers = " + std::to_string(M_dualSupremizers[i].size()) + "\n";
-        printlog(WHITE, msg, M_data.getVerbose());
         if (M_data("rb/online/basis/useprimalsupremizers", 1))
             msg +=  "\tUsing primal supremizers\n";
         else
             msg +=  "\tNOT using primal supremizers\n";
-        printlog(WHITE, msg, M_data.getVerbose());
 
         if (M_data("rb/online/basis/usedualsupremizers", 0))
         {
@@ -231,7 +228,6 @@ print()
         }
         else
             msg +=  "\tNOT using dual supremizers\n";
-        printlog(WHITE, msg, M_data.getVerbose());
 
         msg +=  "\tBasis size + supremizers = " + std::to_string(getEnrichedBasis(i,-1).size()) + "\n";
     }
@@ -508,6 +504,9 @@ matrixProject(shp<aMatrix> matrix, unsigned int basisIndexRow,
         auxMatrix->globalAssemble(domainMap, rangeMap);
 
         rangeMap = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, false)->data())->domainMapPtr();
+
+        spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, false)->data())->spy("basis_" + std::to_string(basisIndexRow));
+        spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexCol, ID, false)->data())->spy("basis_" + std::to_string(basisIndexCol));
 
         shp<MATRIXEPETRA> innerMatrix(new MATRIXEPETRA(*rangeMap));
 

@@ -210,6 +210,170 @@ blockMatrixToSparseMatrix(shp<BlockMatrix> matrix)
     return retMatrix;
 }
 
+shp<DenseMatrix>
+blockMatrixToDenseMatrix(shp<BlockMatrix> matrix)
+{
+    shp<DenseMatrix> retMatrix(new DenseMatrix());
+    if (matrix->level() == 1)
+    {
+        std::vector<unsigned int> nrows;
+        std::vector<unsigned int> ncols;
+
+        unsigned int nRows = matrix->nRows();
+        unsigned int nCols = matrix->nCols();
+
+        nrows.resize(matrix->nRows());
+        ncols.resize(matrix->nCols());
+
+        for (unsigned int i = 0; i < nRows; i++)
+            nrows[i] = matrix->block(i,0)->nRows();
+
+        for (unsigned int j = 0; j < nCols; j++)
+            ncols[j] = matrix->block(0,j)->nCols();
+
+        unsigned int totalrows = 0;
+        for (auto row : nrows)
+            totalrows += row;
+
+        unsigned int totalcols = 0;
+        for (auto col : ncols)
+            totalcols += col;
+
+        std::shared_ptr<DENSEMATRIX> inMatrix(new DENSEMATRIX(totalrows, totalcols));
+        inMatrix->Scale(0.0);
+
+        unsigned int offsetrow = 0;
+        for (unsigned int i = 0; i < nRows; i++)
+        {
+            unsigned int offsetcol = 0;
+            for (unsigned int j = 0; j < nCols; j++)
+            {
+                if (matrix->block(i,j)->data())
+                {
+                    for (unsigned ii = 0; ii < nrows[i]; ii++)
+                    {
+                        for (unsigned jj = 0; jj < ncols[j]; jj++)
+                        {
+                            auto innerMatrix = spcast<DENSEMATRIX>(matrix->block(i,j)->data());
+                            (*inMatrix)(ii + offsetrow, jj + offsetcol) = (*innerMatrix)(ii,jj);
+                        }
+                    }
+                }
+                offsetcol += ncols[j];
+            }
+            offsetrow += nrows[i];
+        }
+
+        retMatrix->setMatrix(inMatrix);
+    }
+    else if (matrix->level() == 2)
+    {
+        std::vector<unsigned int> nrowsout;
+        std::vector<unsigned int> ncolsout;
+        std::vector<unsigned int> nrows;
+        std::vector<unsigned int> ncols;
+
+        for (unsigned int i = 0; i < matrix->nRows(); i++)
+        {
+            unsigned int totrows = 0;
+            unsigned int j = 0;
+            while (matrix->block(i,j)->nRows() == 0)
+                j++;
+            for (unsigned int ii = 0; ii < matrix->block(i,j)->nRows(); ii++)
+            {
+                unsigned int jj = 0;
+                while (matrix->block(i,j)->block(ii,jj)->nRows() == 0)
+                    jj++;
+                totrows += matrix->block(i,j)->block(ii,jj)->nRows();
+                nrows.push_back(matrix->block(i,j)->block(ii,jj)->nRows());
+            }
+            nrowsout.push_back(totrows);
+        }
+
+        for (unsigned int j = 0; j < matrix->nCols(); j++)
+        {
+            unsigned int totcols = 0;
+            unsigned int i = 0;
+            while (matrix->block(i,j)->nCols() == 0)
+                i++;
+            for (unsigned int jj = 0; jj < matrix->block(i,j)->nCols(); jj++)
+            {
+                unsigned int ii = 0;
+                while (matrix->block(i,j)->block(ii,jj)->nCols() == 0)
+                    ii++;
+                totcols += matrix->block(i,j)->block(ii,jj)->nCols();
+                ncols.push_back(matrix->block(i,j)->block(ii,jj)->nCols());
+            }
+            ncolsout.push_back(totcols);
+        }
+
+        unsigned int totalrows = 0;
+        for (auto row : nrows)
+        {
+            totalrows += row;
+            std::cout << "row = " << row << std::endl << std::flush;
+        }
+
+        unsigned int totalcols = 0;
+        for (auto col : ncols)
+            totalcols += col;
+
+        std::shared_ptr<DENSEMATRIX> inMatrix(new DENSEMATRIX(totalrows, totalcols));
+        inMatrix->Scale(0.0);
+
+        unsigned int offsetrow;
+        unsigned int offsetrowout = 0;
+        for (unsigned int i = 0; i < matrix->nRows(); i++)
+        {
+            unsigned int offsetcol;
+            unsigned int offsetcolout = 0;
+            for (unsigned int j = 0; j < matrix->nCols(); j++)
+            {
+                auto curblock = matrix->block(i,j);
+                unsigned int curRows = curblock->nRows();
+                unsigned int curCols = curblock->nCols();
+
+                unsigned int curCurRows;
+                unsigned int curCurCols;
+
+                offsetrow = offsetrowout;
+                for (unsigned int ii = 0; ii < curRows; ii++)
+                {
+                    offsetcol = offsetcolout;
+                    for (unsigned int jj = 0; jj < curCols; jj++)
+                    {
+                        auto curmatrix = curblock->block(ii,jj);
+                        curCurRows = curmatrix->nRows();
+                        curCurCols = curmatrix->nCols();
+
+                        if (curmatrix->data())
+                        {
+                            for (unsigned int iii = 0; iii < curCurRows; iii++)
+                            {
+                                for (unsigned int jjj = 0; jjj < curCurCols; jjj++)
+                                {
+                                    (*inMatrix)(iii + offsetrow, jjj + offsetcol) =
+                                                  (*spcast<DENSEMATRIX>(curmatrix->data()))(iii,jjj);
+                                }
+                            }
+                        }
+                        offsetcol += curCurCols;
+                    }
+                    offsetrow += curCurRows;
+                }
+                offsetcolout += ncolsout[j];
+            }
+            offsetrowout += nrowsout[i];
+        }
+
+        retMatrix->setMatrix(inMatrix);
+    }
+    else
+        throw new Exception("blockMatrixToDenseMatrix is only implemented for level <= 2");
+
+    return retMatrix;
+}
+
 shp<aVector>
 getBlockVector(const shp<VECTOREPETRA>& vector, const BlockMaps& maps)
 {
@@ -290,6 +454,70 @@ getEpetraVector(const shp<aVector>& vector, const BlockMaps& maps)
         }
     }
     return retVec;
+}
+
+shp<DenseVector>
+blockVectorToDenseVector(shp<BlockVector> vector)
+{
+    shp<DenseVector> retVector(new DenseVector());
+
+    if (vector->level() == 1)
+    {
+        std::vector<unsigned int> nrows(vector->nRows());
+
+        unsigned int totalrows = 0;
+        for (unsigned int i = 0; i < vector->nRows(); i++)
+        {
+            nrows[i] = vector->block(i)->nRows();
+            totalrows += nrows[i];
+        }
+
+        std::shared_ptr<DENSEVECTOR> inVector(new DENSEVECTOR(totalrows));
+
+        unsigned int offset = 0;
+        for (unsigned int i = 0; i < vector->nRows(); i++)
+        {
+            for (unsigned int ii = 0; ii < nrows[i]; ii++)
+                (*inVector)(ii + offset) = vector->block(i)->operator()(ii);
+
+            offset += nrows[i];
+        }
+        retVector->setVector(inVector);
+    }
+    else if (vector->level() == 2)
+    {
+        std::vector<unsigned int> nrowsout;
+        std::vector<unsigned int> nrows;
+
+        unsigned int totalrows = 0;
+        for (unsigned int i = 0; i < vector->nRows(); i++)
+        {
+            unsigned int totrows = 0;
+            for (unsigned int ii = 0; ii < vector->block(i)->nRows(); ii++)
+            {
+                totrows += vector->block(i)->block(ii)->nRows();
+                nrows.push_back(vector->block(i)->block(ii)->nRows());
+            }
+            nrowsout.push_back(totrows);
+            totalrows += totrows;
+        }
+        std::shared_ptr<DENSEVECTOR> inVector(new DENSEVECTOR(totalrows));
+
+        unsigned int offset = 0;
+        for (unsigned int i = 0; i < vector->nRows(); i++)
+        {
+            for (unsigned int ii = 0; ii < vector->block(i)->nRows(); ii++)
+            {
+                for (unsigned int iii = 0; iii < vector->block(i)->block(ii)->nRows(); iii++)
+                {
+                    (*inVector)(iii + offset) = vector->block(i)->block(ii)->operator()(iii);
+                }
+                offset += vector->block(i)->block(ii)->nRows();
+            }
+        }
+        retVector->setVector(inVector);
+    }
+    return retVector;
 }
 
 }

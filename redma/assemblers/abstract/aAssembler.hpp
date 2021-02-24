@@ -135,10 +135,10 @@ public:
      */
     virtual shp<FESPACE> getFEspace(unsigned int index) const {return nullptr;}
 
-    /*! \brief Getter for the finite element s corresponding to the Dirichlet bcs (e.g., in the
+    /*! \brief Getter for the finite element space corresponding to the Dirichlet bcs (e.g., in the
      *         Stokes equations, the finite element s of the velocity).
      *
-     * \return Shared pointer to desired finite element s.
+     * \return Shared pointer to desired finite element space.
      */
     virtual inline shp<FESPACE> getFESpaceBCs() const {return nullptr;}
 

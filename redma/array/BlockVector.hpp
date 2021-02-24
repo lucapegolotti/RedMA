@@ -63,9 +63,11 @@ public:
 
     bool globalTypeIs(Datatype type);
 
+    unsigned int level();
+
     shp<BlockVector> convertInnerTo(Datatype type, shp<Epetra_Comm> comm = nullptr);
 
-    shp<aVector> block(const unsigned int& iblock) const;
+    shp<aVector> block(const unsigned int& iblock) const override;
 
     shp<BlockVector> getSubvector(const unsigned int& ibegin, const unsigned int& iend) const;
 

@@ -350,7 +350,6 @@ addContributionRhs(const double& time, shp<BlockVector> rhs,
     shp<aAssembler> assemblerChild = M_interface.M_assemblerChild;
 
     shp<aVector> tempResFather;
-
     // we have (-1) because we are solving H un+1 = F(.) and coupling is in F
     tempResFather = M_fatherBT->multiplyByVector(sol->block(nPrimalBlocks + interfaceID));
     tempResFather->multiplyByScalar(-1.0);

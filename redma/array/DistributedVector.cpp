@@ -54,7 +54,7 @@ void
 DistributedVector::
 dump(std::string namefile) const
 {
-    throw new Exception("Dump not implemented for DistributedVector");
+    M_vector->spy(namefile);
 }
 
 void
