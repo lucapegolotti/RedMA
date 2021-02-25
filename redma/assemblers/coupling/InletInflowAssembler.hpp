@@ -36,7 +36,7 @@ public:
     InletInflowAssembler(const DataContainer& data,
                          const Interface& interface);
 
-    /* \brief Add coupling contribution to a right-hand side.
+    /*! \brief Add coupling contribution to a right-hand side.
     *
     * \param time Current time (needed in derived classes).
     * \param rhs Shared pointer to the right-hand side.
@@ -48,7 +48,7 @@ public:
                                     shp<BlockVector> sol,
                                     const unsigned int& nPrimalBlocks) override;
 
-    /* \brief Add coupling contribution to the jacobian right-hand side.
+    /*! \brief Add coupling contribution to the jacobian right-hand side.
     *
     * \param time Current time (needed in derived classes).
     * \param jac Shared pointer to the jacobian of the right-hand side.

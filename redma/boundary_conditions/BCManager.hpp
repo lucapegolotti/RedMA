@@ -29,30 +29,36 @@
 #include <redma/boundary_conditions/WindkesselModel.hpp>
 
 #include <lifev/core/fem/BCHandler.hpp>
+#include <lifev/core/array/VectorSmall.hpp>
+#include <lifev/core/array/MatrixSmall.hpp>
 
 namespace RedMA
 {
 
 class BCManager
 {
-    typedef aTimeMarchingAlgorithm  TimeMarchingAlgorithm;
+    typedef aTimeMarchingAlgorithm    TimeMarchingAlgorithm;
+
+    typedef LifeV::VectorSmall<3>     Vector3D;
+    typedef LifeV::MatrixSmall<3,3>   Matrix3D;
+
 public:
     BCManager(const DataContainer& datafile, shp<TreeNode> treeNode);
 
     void applyDirichletBCs(const double& time, BlockVector& input,
                            shp<FESPACE> fespace, const unsigned int& index,
-                           const bool& ringOnly = false) const;
+                           const bool& ringOnly = false);
 
     void apply0DirichletBCs(BlockVector& input,
                             shp<FESPACE> fespace,
                             const unsigned int& index,
-                            const bool& ringOnly = false) const;
+                            const bool& ringOnly = false);
 
     void apply0DirichletMatrix(BlockMatrix& input,
                                shp<FESPACE> fespace,
                                const unsigned int& index,
                                const double& diagCoefficient,
-                               const bool& ringOnly = false) const;
+                               const bool& ringOnly = false);
 
     void applyInflowDirichletBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag = false) const;
 
@@ -65,11 +71,11 @@ public:
 
     void postProcess();
 
-    static shp<VECTOREPETRA> computeBoundaryIndicator(shp<FESPACE> fespace, int flag);
-
     inline bool useStrongDirichlet() const {return M_strongDirichlet;}
 
     inline std::string getInletBCType() const {return M_inletBCType;}
+
+    static shp<VECTOREPETRA> computeBoundaryIndicator(shp<FESPACE> fespace, const int& flag);
 
     static double fZero(const double& t, const double& x, const double& y,
                         const double& z, const unsigned int& i);
@@ -83,18 +89,34 @@ public:
 
 private:
     static double poiseuilleInflow(const double& t, const double& x, const double& y,
-                                  const double& z, const unsigned int& i,
-                                  const GeometricFace& face,
-                                  const std::function<double(double)> inflow,
-                                  const double& coefficient);
+                                   const double& z, const unsigned int& i,
+                                   const GeometricFace& face,
+                                   const std::function<double(double)> inflow,
+                                   const double& coefficient);
 
     static double neumannInflow(const double& t, const double& x, const double& y,
                                 const double& z, const unsigned int& i,
                                 std::function<double(double)> inflowLaw);
 
+    Matrix3D computeRotationMatrix(Vector3D vec, const unsigned int& index = 2) const;
+
+    std::map<unsigned int, Matrix3D> computeRotationMatrices() const;
+
+    void computeGlobalRotationMatrix(shp<FESPACE> fespace);
+
+    void shiftToNormalTangentialCoordSystem(shp<MATRIXEPETRA> mat, shp<VECTOREPETRA> vec,
+                                            shp<FESPACE> fespace);
+
+    void shiftToCartesianCoordSystem(shp<MATRIXEPETRA> mat, shp<VECTOREPETRA> vec,
+                                     shp<FESPACE> fespace);
+
+    shp<VECTOREPETRA> computeRingsIndicator(shp<FESPACE> fespace) const;
+
     void checkInflowLaw();
 
     shp<LifeV::BCHandler> createBCHandler0Dirichlet(const bool& ringOnly = false) const;
+
+    shp<LifeV::BCHandler> createBCHandler0DirichletRing() const;
 
     void addInletBC(shp<LifeV::BCHandler> bcs,
                     const bool& ringOnly = false,
@@ -111,9 +133,12 @@ private:
     double                                           M_coefficientInflow;
 
     unsigned int                                     M_inletFlag;
+    std::vector<unsigned int>                        M_outletFlags;
     unsigned int                                     M_wallFlag;
     unsigned int                                     M_inletRingFlag;
     unsigned int                                     M_outletRingFlag;
+
+    shp<MATRIXEPETRA>                                M_globalRotationMatrix;
 
     // key is the outlet index (more than one for bifurcations)
     std::map<unsigned int, shp<WindkesselModel>>     M_models;

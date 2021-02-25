@@ -171,15 +171,16 @@ namespace RedMA {
     solve() {
 
         if (!M_constantFlag) {
+
+            CoutRedirecter ct;
+            ct.redirect();
+
             // Finalizing linear solver setup
             M_linearSolver.setOperator(M_stiffness);
             M_linearSolver.setPreconditioner(M_preconditioner);
             M_linearSolver.setRightHandSide(M_rhs);
 
             // Computing the solution
-            CoutRedirecter ct;
-            ct.redirect();
-
             M_linearSolver.solve(M_thickness);
 
             printlog(CYAN, ct.restore(), false);
@@ -189,7 +190,6 @@ namespace RedMA {
             shp<VECTOREPETRA> tmp;
             tmp.reset(new VECTOREPETRA(M_fespace->map(), LifeV::Unique));
             tmp->zero();
-            std::cout<<"I am here!"<<std::endl;
             *tmp += 1.0;
             *tmp *= (2.0 * M_R_in * M_thicknessProportion);
             *M_thickness += *tmp;

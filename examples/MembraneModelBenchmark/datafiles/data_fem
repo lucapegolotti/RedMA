@@ -11,13 +11,13 @@ outputdir = rb_solutions
 [../]
 
 [assembler]
-	type = navierstokes_membrane
-	stabilization = none
+	type = navierstokessupg_membrane
+	stabilization = supg
 [../]
 
 [bc_conditions]
-    inlet_bc_type = neumann
-    generate_inflow = 0  # use 0 with Neumann BCs and 1 with Dirichlet BCs
+    inlet_bc_type = dirichlet
+    generate_inflow = 1  # use 0 with Neumann BCs and 1 with Dirichlet BCs
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 	coefficientinflow = 1.000552724487405
@@ -96,7 +96,7 @@ outputdir = rb_solutions
 [../]
 
 [fluid]
-	velocity_order = P2
+	velocity_order = P1
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1.06
@@ -111,7 +111,7 @@ outputdir = rb_solutions
 	density	     = 1.2
 	transverse_shear_coefficient = 0.8333
 	flag = 10
-	constant_thickness = 1
+	constant_thickness = 0
 	[./external_wall]
 		elastic = 0
 		plastic = 0
@@ -125,7 +125,7 @@ outputdir = rb_solutions
 	extrapolation_order = 2
 	t0ramp = 0
 	t0 = 0
-	T = 0.05
+	T = 0.1
 	dt = 0.0005
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt

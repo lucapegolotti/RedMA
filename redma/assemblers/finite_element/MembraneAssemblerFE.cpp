@@ -79,6 +79,9 @@ namespace RedMA {
         if (!M_exporter)
             StokesAssemblerFE::setExporter();
 
+        CoutRedirecter ct1;
+        ct1.redirect();
+
         // setting thickness to 0 in the interior of the domain
         shp<VECTOREPETRA> boundaryIndicator = BCManager::computeBoundaryIndicator(M_pressureFESpace,
                                                                                   M_wallFlag);
@@ -89,13 +92,15 @@ namespace RedMA {
                                 "thickness", M_pressureFESpace,
                                 thickness, 0.0);
 
-        CoutRedirecter ct;
-        ct.redirect();
+        printlog(CYAN, ct1.restore(), false);
+
+        CoutRedirecter ct2;
+        ct2.redirect();
 
         double t0 = M_dataContainer("time_discretization/t0", 0.0);
         M_exporter->postProcess(t0);
 
-        printlog(CYAN, ct.restore());
+        printlog(CYAN, ct2.restore());
     }
 
     shp<aMatrix>
