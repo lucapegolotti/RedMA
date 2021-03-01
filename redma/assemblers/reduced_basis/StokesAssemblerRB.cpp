@@ -5,10 +5,9 @@ namespace RedMA
 
 StokesAssemblerRB::
 StokesAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode) :
-  aAssemblerRB(data, treeNode),
-  StokesModel(data,treeNode)
+  aAssemblerRB(data, treeNode)
 {
-    this->M_bcManager.reset(new BCManager(data, treeNode));
+    M_feStokesAssembler.reset(new StokesAssemblerFE(data, treeNode));
     M_name = "StokesAssemblerRB";
     M_nComponents = 2;
 }
@@ -24,16 +23,7 @@ setup()
     msg += this->M_name;
     msg += "] initializing ...";
     printlog(YELLOW, msg, this->M_data.getVerbose());
-    initializeFEspaces();
-    M_mass = spcast<BlockMatrix>(assembleReducedMass(M_bcManager)); // #1
-    M_stiffness = spcast<BlockMatrix>(assembleReducedStiffness(M_bcManager)); // #2
-    M_divergence = spcast<BlockMatrix>(assembleReducedDivergence(M_bcManager)); // #3
-    assembleFlowRateVectors();
-    // assembleFlowRateJacobians();
-
-    setExporter();
-
-    // initializePythonStructures();
+    M_feStokesAssembler->setup();
 
     msg = "done, in ";
     msg += std::to_string(chrono.diff());
@@ -82,58 +72,6 @@ getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
     return retMat;
 }
 
-void
-StokesAssemblerRB::
-initializeFEspaces()
-{
-    initializeVelocityFESpace(M_comm);
-    initializePressureFESpace(M_comm);
-}
-
-void
-StokesAssemblerRB::
-setExporter()
-{
-    std::string outputName = "block";
-    outputName += std::to_string(aAssembler::M_treeNode->M_ID);
-
-    std::string outdir = this->M_data("exporter/outdir", "solutions/");
-    fs::create_directory(outdir);
-
-    std::string format = this->M_data("exporter/type", "hdf5");
-    if (!std::strcmp(format.c_str(), "hdf5"))
-        M_exporter.reset(new LifeV::ExporterHDF5<MESH>(this->M_data.getDatafile(),
-                                                       outputName));
-    else
-        M_exporter.reset(new LifeV::ExporterVTK<MESH>(this->M_data.getDatafile(),
-                                                      outputName));
-    M_exporter->setMeshProcId(M_velocityFESpace->mesh(), this->M_comm->MyPID());
-
-    M_velocityExporter.reset(new VECTOREPETRA(M_velocityFESpace->map(),
-                                              M_exporter->mapType()));
-
-    M_pressureExporter.reset(new VECTOREPETRA(M_pressureFESpace->map(),
-                                              M_exporter->mapType()));
-
-    M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
-                         "velocity", M_velocityFESpace, M_velocityExporter, 0.0);
-
-    M_exporter->addVariable(LifeV::ExporterData<MESH>::ScalarField,
-                         "pressure", M_pressureFESpace, M_pressureExporter, 0.0);
-
-    bool exportWSS = this->M_data("exporter/export_wss", 1);
-    if (exportWSS)
-    {
-        M_WSSExporter.reset(new VECTOREPETRA(M_velocityFESpace->map(),
-                                             M_exporter->mapType()));
-
-        M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
-                                "WSS", M_velocityFESpace, M_WSSExporter, 0.0);
-    }
-
-    M_exporter->setPostDir(outdir);
-}
-
 std::vector<shp<aMatrix>>
 StokesAssemblerRB::
 getMatrices() const
@@ -158,14 +96,14 @@ void
 StokesAssemblerRB::
 applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
 {
-    // throw new Exception("Method not implemented for RB");
+    throw new Exception("Method not implemented for RB");
 }
 
 void
 StokesAssemblerRB::
 applyDirichletBCs(const double& time, shp<aVector> vector) const
 {
-    // throw new Exception("Method not implemented for RB");
+    throw new Exception("Method not implemented for RB");
 }
 
 void
@@ -179,37 +117,25 @@ void
 StokesAssemblerRB::
 apply0DirichletBCs(shp<aVector> vector) const
 {
-    // throw new Exception("Method not implemented for RB");
+    throw new Exception("Method not implemented for RB");
 }
 
 void
 StokesAssemblerRB::
 exportSolution(const double& t, const shp<aVector>& sol)
 {
-    auto solBlck = convert<BlockVector>(sol);
-    std::ofstream outfile("rbcoefs/block" + std::to_string(StokesModel::M_treeNode->M_ID) + "t" + std::to_string(t) + ".txt");
-    std::string str2write = spcast<DenseVector>(solBlck->block(0))->getString(',') + "\n";
+    std::ofstream outfile("rbcoefs/block" + std::to_string(M_treeNode->M_ID) + "t" + std::to_string(t) + ".txt");
+    std::string str2write = spcast<DenseVector>(sol->block(0))->getString(',') + "\n";
     outfile.write(str2write.c_str(), str2write.size());
     outfile.close();
-    unsigned int id = StokesModel::M_treeNode->M_ID;
 
-    *M_velocityExporter = *M_bases->reconstructFEFunction(solBlck->block(0), 0, id);
-    *M_pressureExporter = *M_bases->reconstructFEFunction(solBlck->block(1), 1, id);
+    unsigned int id = M_treeNode->M_ID;
 
-    bool exportWSS = this->M_data("exporter/export_wss", 1);
-    if (exportWSS)
-        computeWallShearStress(M_velocityExporter, M_WSSExporter, M_comm);
+    shp<BlockVector> solBlock(new BlockVector(2));
+    solBlock->setBlock(0,wrap(M_bases->reconstructFEFunction(sol->block(0), 0, id)));
+    solBlock->setBlock(1,wrap(M_bases->reconstructFEFunction(sol->block(1), 1, id)));
 
-    // BlockVector<VectorEp> solCopy(2);
-    // solCopy.block(0).data() = M_velocityExporter;
-    // computeFlowRates(solCopy, true);
-
-    exportNorms(t, M_velocityExporter, M_pressureExporter);
-
-    CoutRedirecter ct;
-    ct.redirect();
-    M_exporter->postProcess(t);
-    printlog(CYAN, ct.restore());
+    M_feStokesAssembler->exportSolution(t, solBlock);
 }
 
 shp<aVector>
@@ -242,11 +168,11 @@ getLifting(const double& time) const
     shp<BlockVector> liftingFE(new BlockVector(2));
     // velocity
     shp<DistributedVector> ucomp(new DistributedVector());
-    ucomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_velocityFESpace->map(),LifeV::Unique)));
+    ucomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_feStokesAssembler->getFEspace(0)->map(),LifeV::Unique)));
     ucomp->multiplyByScalar(0);
 
     shp<DistributedVector> pcomp(new DistributedVector());
-    pcomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_pressureFESpace->map(),LifeV::Unique)));
+    pcomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_feStokesAssembler->getFEspace(0)->map(),LifeV::Unique)));
     pcomp->multiplyByScalar(0);
 
     liftingFE->setBlock(0,ucomp);
@@ -268,7 +194,7 @@ RBsetup()
 
     // scale with piola
     unsigned int indexField = 0;
-    M_bases->scaleBasisWithPiola(0, StokesModel::M_treeNode->M_ID, [=](shp<VECTOREPETRA> vector)
+    M_bases->scaleBasisWithPiola(0, M_treeNode->M_ID, [=](shp<VECTOREPETRA> vector)
     {
         shp<BlockVector> vectorWrap(new BlockVector(2));
 
@@ -370,16 +296,17 @@ RBsetup()
         // BlockMatrix<MatrixEp> fullStiffness = assembleReducedStiffness(nullptr);
         // BlockMatrix<MatrixEp> fullDivergence = assembleReducedDivergence(nullptr);
 
-        unsigned int id = StokesModel::M_treeNode->M_ID;
+        unsigned int id = M_treeNode->M_ID;
 
         M_reducedMass.reset(new BlockMatrix(2,2));
         M_reducedStiffness.reset(new BlockMatrix(2,2));
         M_reducedDivergence.reset(new BlockMatrix(2,2));
 
-        M_reducedMass->setBlock(0,0,M_bases->matrixProject(M_mass->block(0,0), 0, 0, id));
-        M_reducedStiffness->setBlock(0,0,M_bases->matrixProject(M_stiffness->block(0,0), 0, 0, id));
-        M_reducedDivergence->setBlock(0,1,M_bases->matrixProject(M_divergence->block(0,1), 0, 1, id));
-        M_reducedDivergence->setBlock(1,0,M_bases->matrixProject(M_divergence->block(1,0), 1, 0, id));
+        auto matrices = M_feStokesAssembler->getMatrices();
+        M_reducedMass->setBlock(0,0,M_bases->matrixProject(matrices[0]->block(0,0), 0, 0, id));
+        M_reducedStiffness->setBlock(0,0,M_bases->matrixProject(matrices[1]->block(0,0), 0, 0, id));
+        M_reducedDivergence->setBlock(0,1,M_bases->matrixProject(matrices[2]->block(0,1), 0, 1, id));
+        M_reducedDivergence->setBlock(1,0,M_bases->matrixProject(matrices[2]->block(1,0), 1, 0, id));
 
         // M_mass.block(0,0) = M_bases->matrixProject(fullMass.block(0,0), 0, 0, id);
         // M_stiffness.block(0,0) = M_bases->matrixProject(fullStiffness.block(0,0), 0, 0, id);
@@ -405,7 +332,7 @@ StokesAssemblerRB::
 setRBBases(shp<RBBasesManager> rbManager)
 {
     // std::string mdeimdir = this->M_data("rb/online/mdeim/directory", "mdeims");
-    std::string meshName = StokesModel::M_treeNode->M_block->getMeshName();
+    std::string meshName = M_treeNode->M_block->getMeshName();
     unsigned int dashpos = meshName.find("/");
     unsigned int formatpos = meshName.find(".mesh");
     std::string actualName = meshName.substr(dashpos + 1,
@@ -413,8 +340,8 @@ setRBBases(shp<RBBasesManager> rbManager)
 
     // beware that at this point the rb bases have not been loaded yet
     M_bases = rbManager->getRBBases(actualName);
-    M_bases->setFESpace(M_velocityFESpace, 0);
-    M_bases->setFESpace(M_pressureFESpace, 1);
+    M_bases->setFESpace(M_feStokesAssembler->getFEspace(0), 0);
+    M_bases->setFESpace(M_feStokesAssembler->getFEspace(1), 1);
 }
 
 shp<aVector>
@@ -425,7 +352,7 @@ convertFunctionRBtoFEM(shp<aVector> rbSolution) const
 
     shp<BlockVector> retVec(new BlockVector(2));
 
-    unsigned int id = StokesModel::M_treeNode->M_ID;
+    unsigned int id = M_treeNode->M_ID;
 
     if (rbSolutionBlck->block(0)->data())
     {
@@ -450,145 +377,7 @@ void
 StokesAssemblerRB::
 applyPiola(shp<aVector> solution, bool inverse)
 {
-    // std::string msg = "[";
-    // msg += this->M_name;
-    // msg += "] apply Piola\n";
-    // printlog(YELLOW, msg, this->M_data.getVerbose());
-
-    using namespace LifeV;
-    using namespace ExpressionAssembly;
-
-    auto defAssembler = this->M_defaultAssemblers->
-                        getDefaultAssembler(aAssembler::M_treeNode->M_block->getMeshName());
-
-    // auto refDivergence = defAssembler->assembleMatrix(2);
-    // SHP(MatrixEpetra<double>) B(new MatrixEpetra<double>(M_pressureFESpace->map()));
-    //
-    // integrate(elements(M_velocityFESpaceETA->mesh()),
-    //          M_pressureFESpace->qr(),
-    //          M_pressureFESpaceETA,
-    //          M_velocityFESpaceETA,
-    //          phi_i * div(phi_j)
-    //      ) >> B;
-    //
-    // B->globalAssemble(M_velocityFESpace->mapPtr(),
-    //                   M_pressureFESpace->mapPtr());
-    //
-    // FEMATRIX Bwrap;
-    // Bwrap.data() = B;
-    //
-    // FEVECTOR res1 = Bwrap * solution.block(0);
-    //
-    // std::cout << this->M_treeNode->M_block->getMeshName() << std::endl << std::flush;
-    // std::cout << "norm 1 = " << res1.norm2() << std::endl << std::flush;
-    //
-    // FEVECTOR res2 = refDivergence.block(1,0) * solution.block(0);
-    //
-    // std::cout << "norm 2 = " << res2.norm2() << std::endl << std::flush;
-
-    auto defVelocityFESpace = defAssembler->getFEspace(0);
-
-    auto velocity = spcast<VECTOREPETRA>(convert<BlockVector>(solution)->block(0)->data());
-
-    Epetra_Map epetraMap = velocity->epetraMap();
-    unsigned int numElements = epetraMap.NumMyElements() / 3;
-
-    // find xs ys and zs of mesh
-    if (M_xs == nullptr)
-    {
-        M_xs.reset(new VECTOREPETRA(defVelocityFESpace->map()));
-
-        defVelocityFESpace->interpolate([](const double& t,
-                                           const double& x,
-                                           const double& y,
-                                           const double& z,
-                                           const unsigned int & i) {return x;},
-                                           *M_xs, 0.0);
-    }
-
-    if (M_ys == nullptr)
-    {
-        M_ys.reset(new VECTOREPETRA(defVelocityFESpace->map()));
-
-        defVelocityFESpace->interpolate([](const double& t,
-                                           const double& x,
-                                           const double& y,
-                                           const double& z,
-                                           const unsigned int & i) {return y;},
-                                           *M_ys, 0.0);
-    }
-
-    if (M_zs == nullptr)
-    {
-        M_zs.reset(new VECTOREPETRA(defVelocityFESpace->map()));
-
-        defVelocityFESpace->interpolate([](const double& t,
-                                           const double& x,
-                                           const double& y,
-                                           const double& z,
-                                           const unsigned int & i) {return z;},
-                                           *M_zs, 0.0);
-    }
-
-    LifeV::MatrixSmall<3,3>* transformationMatrix;
-    double determinant;
-    if (inverse)
-        transformationMatrix = new LifeV::MatrixSmall<3,3>();
-
-    for (unsigned int dof = 0; dof < numElements; dof++)
-    {
-        double& x = M_xs->operator[](dof);
-        double& y = M_ys->operator[](dof);
-        double& z = M_zs->operator[](dof);
-
-        auto jacobian = aAssembler::M_treeNode->M_block->computeJacobianGlobalTransformation(x, y, z);
-
-        double xx = x, yy = y, zz = z;
-
-        aAssembler::M_treeNode->M_block->globalTransf(xx, yy, zz);
-
-        double& a = jacobian(0,0);
-        double& b = jacobian(0,1);
-        double& c = jacobian(0,2);
-        double& d = jacobian(1,0);
-        double& e = jacobian(1,1);
-        double& f = jacobian(1,2);
-        double& g = jacobian(2,0);
-        double& h = jacobian(2,1);
-        double& i = jacobian(2,2);
-
-        determinant = std::abs(a*e*i - a*f*h - b*d*i + b*f*g + c*d*h - c*e*g);
-
-        if (inverse)
-        {
-            aAssembler::M_treeNode->M_block->matrixInverse(jacobian, transformationMatrix);
-            determinant = 1.0/determinant;
-        }
-        else
-            transformationMatrix = &jacobian;
-
-        LifeV::VectorSmall<3> curU;
-        curU(0) = velocity->operator[](dof);
-        curU(1) = velocity->operator[](dof + numElements);
-        curU(2) = velocity->operator[](dof + numElements * 2);
-
-        LifeV::VectorSmall<3> res;
-        res = 1./determinant * (*transformationMatrix) * curU;
-
-        velocity->operator[](dof) = res(0);
-        velocity->operator[](dof + numElements) = res(1);
-        velocity->operator[](dof + numElements * 2) = res(2);
-    }
-
-    // res1 = Bwrap * solution.block(0);
-    // std::cout << "norm 1 = " << res1.norm2() << std::endl << std::flush;
-    // res2 = refDivergence.block(1,0) * solution.block(0);
-    // std::cout << "norm 2 = " << res2.norm2() << std::endl << std::flush;
-
-    if (inverse)
-        delete transformationMatrix;
-
-    // defAssembler->exportSolution(0.0, solution);
+    M_feStokesAssembler->applyPiola(solution, inverse);
 }
 
 }

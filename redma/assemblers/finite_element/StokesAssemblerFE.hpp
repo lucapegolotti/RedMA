@@ -19,7 +19,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/assemblers/abstract/aAssemblerFE.hpp>
-#include <redma/assemblers/models/StokesModel.hpp>
+// #include <redma/assemblers/models/StokesModel.hpp>
 
 namespace RedMA
 {
@@ -27,7 +27,7 @@ namespace RedMA
 /*! \brief Finite element assembler of the Stokes problem.
  *
  */
-class StokesAssemblerFE : public aAssemblerFE, public StokesModel
+class StokesAssemblerFE : public aAssemblerFE
 {
 public:
     /*! \brief Constructor taking a datafile and a TreeNode as argument.
@@ -158,6 +158,8 @@ public:
 
     virtual shp<FESPACE> getFEspace(unsigned int index) const override;
 
+    shp<ETFESPACE3> getVelocityETFEspace() const {return M_velocityFESpaceETA;}
+
     virtual std::vector<shp<aMatrix>> getMatrices() const override;
 
     virtual shp<aMatrix> assembleMatrix(const unsigned int& index) override;
@@ -174,13 +176,90 @@ public:
 
     void addNeumannBCs(double time, shp<aVector> sol, shp<aVector> rhs);
 
+    void setVelocityOrder(std::string velocityOrder) {M_velocityOrder = velocityOrder;}
+
+    void setPressureOrder(std::string pressureOrder) {M_pressureOrder = pressureOrder;}
+
+    // void addNeumannBCs(shp<aVector>& input, const double& time,
+    //                    const shp<aVector>& sol);
+
+    shp<aMatrix> assembleStiffness(shp<BCManager> bcManager);
+
+    shp<aMatrix> assembleMass(shp<BCManager> bcManager);
+
+    shp<aMatrix> assembleDivergence(shp<BCManager> bcManager);
+
+    std::map<unsigned int, double> computeFlowRates(shp<aVector> sol,
+                                                    bool verbose = false);
+
+    // these are int_{Gamma_N} phi_i * n inlets (just to check that it is preserved)
+    // and outlets (for boundary conditions)
+    void assembleFlowRateVectors();
+
+    // compute the jacobian of int_{Gamma_N}(int_{Gamma_N} u_i * n)phi_j
+    void assembleFlowRateJacobians(shp<BCManager> bcManager);
+
+    shp<VECTOREPETRA> assembleFlowRateVector(const GeometricFace& face);
+
+    shp<MATRIXEPETRA> assembleFlowRateJacobian(const GeometricFace& face);
+
+    void addBackFlowStabilization(shp<aVector>& input,
+                                  shp<aVector> sol,
+                                  const unsigned int& faceFlag);
+
+    void exportNorms(double t, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure);
+
+    void initializePythonStructures();
+
+    void computeWallShearStress(shp<VECTOREPETRA> velocity,
+                                shp<VECTOREPETRA> WSS,
+                                EPETRACOMM comm);
+
+    void applyDirichletBCsMatrix(shp<BCManager> bcManager,
+                                  shp<aMatrix> matrix, double diagCoeff);
+
+    void initializeVelocityFESpace(EPETRACOMM comm);
+
+    void initializePressureFESpace(EPETRACOMM comm);
+
+    shp<aVector> getForcingTerm(const double& time) const;
+
+    inline double getDensity() {return M_density;}
+
+    inline double getViscosity() {return M_viscosity;}
+
 protected:
+    shp<BlockVector> buildZeroVector() const;
+
     shp<LifeV::Exporter<MESH>>                        M_exporter;
     shp<VECTOREPETRA>                                 M_velocityExporter;
     shp<VECTOREPETRA>                                 M_WSSExporter;
     shp<VECTOREPETRA>                                 M_pressureExporter;
     std::string                                       M_name;
     shp<BlockVector>                                  M_extrapolatedSolution;
+    shp<BlockMatrix>                                  M_mass;
+    shp<BlockMatrix>                                  M_stiffness;
+    shp<BlockMatrix>                                  M_divergence;
+    shp<FESPACE>                                      M_velocityFESpace;
+    shp<FESPACE>                                      M_pressureFESpace;
+    shp<ETFESPACE3>                                   M_velocityFESpaceETA;
+    shp<ETFESPACE1>                                   M_pressureFESpaceETA;
+    double                                            M_density;
+    double                                            M_viscosity;
+    shp<MATRIXEPETRA>                                 M_massWall;
+    shp<SparseMatrix>                                 M_massVelocity;
+    shp<SparseMatrix>                                 M_massPressure;
+    // first index is face flag
+    std::map<unsigned int, shp<VECTOREPETRA>>         M_flowRateVectors;
+    std::map<unsigned int, shp<BlockMatrix>>          M_flowRateJacobians;
+
+    std::string                                       M_velocityOrder;
+    std::string                                       M_pressureOrder;
+    shp<RBBases>                                      M_bases;
+
+    shp<VECTOREPETRA>                                 M_xs;
+    shp<VECTOREPETRA>                                 M_ys;
+    shp<VECTOREPETRA>                                 M_zs;
 };
 
 }

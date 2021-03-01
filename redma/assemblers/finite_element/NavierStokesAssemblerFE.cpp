@@ -8,7 +8,6 @@ NavierStokesAssemblerFE::
 NavierStokesAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode,
                         std::string stabilizationName) :
   StokesAssemblerFE(data,treeNode),
-  NavierStokesModel(data,treeNode),
   M_stabilizationName(stabilizationName)
 {
     // if we use a stabilization we use P1P1 by default

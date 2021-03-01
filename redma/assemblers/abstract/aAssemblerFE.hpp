@@ -65,6 +65,10 @@ public:
      * \return Shared pointer to aVector of the FE lifting.
      */
     virtual shp<aVector> getFELifting(const double& time) const = 0;
+
+    /// Virtual setup of the exporter.
+    virtual void setExporter() = 0;
+
 };
 
 }

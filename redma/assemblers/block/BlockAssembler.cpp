@@ -21,22 +21,6 @@ checkStabTerm(const shp<aVector>& sol) const
     //     as->checkStabilizationTerm(sol, M_primalAssemblers.size());
 }
 
-void
-BlockAssembler::
-setExporter()
-{
-    for (auto as: M_primalAssemblers)
-        as.second->setExporter();
-}
-
-void
-BlockAssembler::
-initializeFEspaces()
-{
-    for (auto as: M_primalAssemblers)
-        as.second->initializeFEspaces();
-}
-
 shp<aVector>
 BlockAssembler::
 getLifting(const double& time) const

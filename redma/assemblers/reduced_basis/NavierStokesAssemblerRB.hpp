@@ -19,24 +19,23 @@
 
 #include <redma/assemblers/abstract/aAssemblerFE.hpp>
 #include <redma/assemblers/reduced_basis/StokesAssemblerRB.hpp>
-#include <redma/assemblers/models/NavierStokesModel.hpp>
 #include <redma/assemblers/abstract/aAssemblerRB.hpp>
 #include <redma/reduced_basis/RBBases.hpp>
 
 namespace RedMA
 {
 
-class NavierStokesAssemblerRB : public StokesAssemblerRB, public NavierStokesModel
+class NavierStokesAssemblerRB : public StokesAssemblerRB
 {
 public:
     NavierStokesAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode);
 
     void addConvectiveMatrixRightHandSide(shp<aVector> sol,
-                                          shp<aMatrix> mat) override;
+                                          shp<aMatrix> mat);
 
     void addConvectiveTermJacobianRightHandSide(shp<aVector> sol,
                                                 shp<aVector> lifting,
-                                                shp<aMatrix> mat) override;
+                                                shp<aMatrix> mat);
 
     shp<aVector> getRightHandSide(const double& time,
                                   const shp<aVector>& sol) override;
