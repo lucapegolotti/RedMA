@@ -33,24 +33,7 @@ setup()
                                                     this->M_pressureFESpaceETA));
         M_stabilization->setDensityAndViscosity(this->M_density, this->M_viscosity);
     }
-    // else if (!std::strcmp(stabilizationType.c_str(),"vms"))
-    // {
-    //     M_stabilization.reset(new VMSStabilization(this->M_data,
-    //                                                this->M_velocityFESpace,
-    //                                                this->M_pressureFESpace,
-    //                                                this->M_velocityFESpaceETA,
-    //                                                this->M_pressureFESpaceETA));
-    //     M_stabilization->setDensityAndViscosity(this->M_density, this->M_viscosity);
-    // }
-    // else if (!std::strcmp(stabilizationType.c_str(),"hf"))
-    // {
-    //     M_stabilization.reset(new HFStabilization(this->M_data,
-    //                                               this->M_velocityFESpace,
-    //                                               this->M_pressureFESpace,
-    //                                               this->M_velocityFESpaceETA,
-    //                                               this->M_pressureFESpaceETA));
-    //     M_stabilization->setDensityAndViscosity(this->M_density, this->M_viscosity);
-    // }
+
     else if (!std::strcmp(M_stabilizationName.c_str(),""))
     {
 
@@ -92,46 +75,22 @@ addConvectiveTermJacobianRightHandSide(shp<aVector> sol, shp<aVector> lifting,
     using namespace ExpressionAssembly;
 
     shp<VECTOREPETRA> velocityHandler = spcast<VECTOREPETRA>(convert<BlockVector>(sol)->block(0)->data());
-    // shp<VECTOREPETRA> liftingHandler = spcast<VECTOREPETRA>(lifting->block(0)->data());
 
     shp<MATRIXEPETRA>  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
     shp<VECTOREPETRA>  velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
-    // shp<VECTOREPETRA>  liftingRepeated(new VECTOREPETRA(*liftingHandler, Repeated));
 
-    // if the extrapolation is null (e.g. first step), the matrix is singular.
-    // Hence we solve the non linear problem for the first step
-    // if (M_extrapolatedSolution.norm2() > 1e-15)
-    // {
-    //     integrate(elements(M_velocityFESpaceETA->mesh()),
-    //                M_velocityFESpace->qr(),
-    //                M_velocityFESpaceETA,
-    //                M_velocityFESpaceETA,
-    //                value(this->M_density) *
-    //                dot(
-    //                (
-    //                value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j) +
-    //                value(M_velocityFESpaceETA , *liftingRepeated) * grad(phi_j)
-    //                ),
-    //                phi_i)
-    //              ) >> convectiveMatrix;
-    // }
-    // else
-    // {
-        integrate(elements(M_velocityFESpaceETA->mesh()),
-                   M_velocityFESpace->qr(),
-                   M_velocityFESpaceETA,
-                   M_velocityFESpaceETA,
-                   value(this->M_density) *
-                   dot(
-                   (
-                   value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j) +
-                   phi_j * grad(M_velocityFESpaceETA , *velocityRepeated)
-                   // +
-                   // value(M_velocityFESpaceETA , *liftingRepeated) * grad(phi_j)
-                   ),
-                   phi_i)
-                 ) >> convectiveMatrix;
-    // }
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+               M_velocityFESpace->qr(),
+               M_velocityFESpaceETA,
+               M_velocityFESpaceETA,
+               value(this->M_density) *
+               dot(
+               (
+               value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j) +
+               phi_j * grad(M_velocityFESpaceETA , *velocityRepeated)
+               ),
+               phi_i)
+             ) >> convectiveMatrix;
     convectiveMatrix->globalAssemble();
     *spcast<MATRIXEPETRA>(convert<BlockMatrix>(mat)->block(0,0)->data()) -= *convectiveMatrix;
 }
@@ -144,11 +103,8 @@ getMass(const double& time, const shp<aVector>& sol)
     retMat->deepCopy(this->M_mass);
     if (M_stabilization)
     {
-        // if (M_extrapolatedSolution.norm2() < 1e-15)
         retMat->add(M_stabilization->getMass(convert<BlockVector>(sol),
                                              convert<BlockVector>(this->getForcingTerm(time))));
-        // else
-        //retMat += M_stabilization->getMass(M_extrapolatedSolution, this->getForcingTerm(time));
 
         this->M_bcManager->apply0DirichletMatrix(*retMat, this->getFESpaceBCs(),
                                                  this->getComponentBCs(), 1.0);
@@ -186,14 +142,9 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
     systemMatrix->add(M_divergence);
     systemMatrix->multiplyByScalar(-1.0);
 
-    // if (this->M_extrapolatedSolution.nRows() > 0 && this->M_extrapolatedSolution.norm2() > 1e-15)
-    //     this->addConvectiveMatrixRightHandSide(this->M_extrapolatedSolution, systemMatrix);
-    // else
     this->addConvectiveMatrixRightHandSide(sol, systemMatrix);
 
     shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
-    // int a;
-    // std::cin >> a;
 
     addNeumannBCs(time, sol, retVec);
 
@@ -202,14 +153,6 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
 
     if (M_stabilization)
     {
-        // if (this->M_extrapolatedSolution.norm2() > 1e-15)
-        // {
-        //     throw new Exception("Stabilization is not supported with extrapolation");
-        //
-        //     retVec -= M_stabilization->getResidual(M_extrapolatedSolution,
-        //                                            this->getForcingTerm(time));
-        // }
-        // else
         shp<BlockVector> residual = M_stabilization->getResidual(spcast<BlockVector>(sol),
                                                                  spcast<BlockVector>(this->getForcingTerm(time)));
         residual->multiplyByScalar(-1);
@@ -226,10 +169,6 @@ getJacobianRightHandSide(const double& time,
 {
     shp<aMatrix> retMat = StokesAssemblerFE::getJacobianRightHandSide(time, sol);
 
-    // if (this->M_extrapolatedSolution.nRows() > 0 && this->M_extrapolatedSolution.norm2() > 1e-15)
-    //     this->addConvectiveTermJacobianRightHandSide(this->M_extrapolatedSolution,
-    //                                                  this->getZeroVector(), retMat);
-    // else
     this->addConvectiveTermJacobianRightHandSide(sol, this->getZeroVector(), retMat);
 
     if (M_stabilization)

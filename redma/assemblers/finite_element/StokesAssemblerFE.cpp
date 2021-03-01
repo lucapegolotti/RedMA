@@ -361,16 +361,10 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
                 applyDirichletBCsMatrix(normWrap, 1.0);
             }
 
-            // M_massVelocity->setMatrix(Nu);
             retMat->setMatrix(Nu);
-        // }
-        // else
-        //     retMat = M_massVelocity;
     }
     else
     {
-        // if (!M_massPressure.data())
-        // {
             shp<MATRIXEPETRA> Np(new MATRIXEPETRA(M_pressureFESpace->map()));
 
             integrate(elements(M_pressureFESpaceETA->mesh()),
@@ -382,11 +376,7 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
 
             Np->globalAssemble();
 
-            // M_massPressure->setMatrix(Np);
             retMat->setMatrix(Np);
-        // }
-        // else
-        //     retMat = M_massPressure;
     }
 
     return retMat;
@@ -398,24 +388,6 @@ getConstraintMatrix()
 {
     return M_divergence->block(0,1);
 }
-
-// void
-// StokesAssemblerFE::
-// setMDEIMs(shp<MDEIMManager> mdeimManager)
-// {
-//    // std::string mdeimdir = this->M_data("rb/online/mdeim/directory", "mdeims");
-//    //     // std::string meshName = this->M_treeNode->M_block->getMeshName();
-//    //     // unsigned int dashpos = meshName.find("/");
-//    //     // unsigned int formatpos = meshName.find(".mesh");
-//    //     // std::string actualName = meshName.substr(dashpos + 1,
-//    //     //                                          formatpos - dashpos - 1);
-//    //     //
-//    //     // auto mdeims = mdeimManager->getMDEIMS(actualName);
-//    //     //
-//    //     // M_mdeimMass = mdeims[0];
-//    //     // M_mdeimStiffness = mdeims[1];
-//    //     // M_mdeimDivergence = mdeims[2];
-// }
 
 void
 StokesAssemblerFE::
@@ -441,31 +413,6 @@ applyPiola(shp<aVector> solution, bool inverse)
 
     if (defAssembler)
     {
-        // auto refDivergence = defAssembler->assembleMatrix(2);
-        // SHP(MatrixEpetra<double>) B(new MatrixEpetra<double>(M_pressureFESpace->map()));
-        //
-        // integrate(elements(M_velocityFESpaceETA->mesh()),
-        //          M_pressureFESpace->qr(),
-        //          M_pressureFESpaceETA,
-        //          M_velocityFESpaceETA,
-        //          phi_i * div(phi_j)
-        //      ) >> B;
-        //
-        // B->globalAssemble(M_velocityFESpace->mapPtr(),
-        //                   M_pressureFESpace->mapPtr());
-        //
-        // FEMATRIX Bwrap;
-        // Bwrap.data() = B;
-        //
-        // FEVECTOR res1 = Bwrap * solution.block(0);
-        //
-        // std::cout << this->M_treeNode->M_block->getMeshName() << std::endl << std::flush;
-        // std::cout << "norm 1 = " << res1.norm2() << std::endl << std::flush;
-        //
-        // FEVECTOR res2 = refDivergence.block(1,0) * solution.block(0);
-        //
-        // std::cout << "norm 2 = " << res2.norm2() << std::endl << std::flush;
-
         auto defVelocityFESpace = defAssembler->getFEspace(0);
 
         auto velocity = spcast<VECTOREPETRA>(convert<BlockVector>(solution)->block(0)->data());
@@ -561,15 +508,9 @@ applyPiola(shp<aVector> solution, bool inverse)
             velocity->operator[](dof + numElements * 2) = res(2);
         }
 
-        // res1 = Bwrap * solution.block(0);
-        // std::cout << "norm 1 = " << res1.norm2() << std::endl << std::flush;
-        // res2 = refDivergence.block(1,0) * solution.block(0);
-        // std::cout << "norm 2 = " << res2.norm2() << std::endl << std::flush;
-
         if (inverse)
             delete transformationMatrix;
     }
-    // defAssembler->exportSolution(0.0, solution);
 }
 
 shp<aVector>
@@ -594,57 +535,26 @@ assembleStiffness(shp<BCManager> bcManager)
 
     shp<MATRIXEPETRA> A(new MATRIXEPETRA(M_velocityFESpace->map()));
 
-    // if (structure)
-    if (0)
+    if (useFullStrain)
     {
-        // unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
-        // unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
-        //
-        // if (useFullStrain)
-        // {
-        //     integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-        //               M_velocityFESpace->qr(),
-        //               M_velocityFESpaceETA,
-        //               M_velocityFESpaceETA,
-        //               value(0.5 * M_viscosity) *
-        //               dot(grad(phi_i) + transpose(grad(phi_i)),
-        //               grad(phi_j) + transpose(grad(phi_j)))
-        //           ) >> A;
-        // }
-        // else
-        // {
-        //     integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-        //               M_velocityFESpace->qr(),
-        //               M_velocityFESpaceETA,
-        //               M_velocityFESpaceETA,
-        //               value(M_viscosity) *
-        //               dot(grad(phi_i),grad(phi_j))
-        //           ) >> A;
-        // }
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                  M_velocityFESpace->qr(),
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  value(0.5 * M_viscosity) *
+                  dot(grad(phi_i) + transpose(grad(phi_i)),
+                  grad(phi_j) + transpose(grad(phi_j)))
+              ) >> A;
     }
     else
     {
-        if (useFullStrain)
-        {
-            integrate(elements(M_velocityFESpaceETA->mesh()),
-                      M_velocityFESpace->qr(),
-                      M_velocityFESpaceETA,
-                      M_velocityFESpaceETA,
-                      value(0.5 * M_viscosity) *
-                      dot(grad(phi_i) + transpose(grad(phi_i)),
-                      grad(phi_j) + transpose(grad(phi_j)))
-                  ) >> A;
-        }
-        else
-        {
-            integrate(elements(M_velocityFESpaceETA->mesh()),
-                      M_velocityFESpace->qr(),
-                      M_velocityFESpaceETA,
-                      M_velocityFESpaceETA,
-                      value(M_viscosity) *
-                      dot(grad(phi_i),grad(phi_j))
-                  ) >> A;
-        }
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                  M_velocityFESpace->qr(),
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  value(M_viscosity) *
+                  dot(grad(phi_i),grad(phi_j))
+              ) >> A;
     }
     A->globalAssemble();
 
@@ -667,28 +577,12 @@ assembleMass(shp<BCManager> bcManager)
     shp<BlockMatrix> mass(new BlockMatrix(2,2));
     shp<MATRIXEPETRA> M(new MATRIXEPETRA(M_velocityFESpace->map()));
 
-    // if (structure)
-    if (0)
-    {
-        // unsigned int numVolumes = (*structure)(0,0)->numReducedElements;
-        // unsigned int* volumes = (*structure)(0,0)->reducedElements.data();
-        // integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-        //           M_velocityFESpace->qr(),
-        //           M_velocityFESpaceETA,
-        //           M_velocityFESpaceETA,
-        //           value(M_density) * dot(phi_i, phi_j)
-        //       ) >> M;
-
-    }
-    else
-    {
-        integrate(elements(M_velocityFESpaceETA->mesh()),
-                  M_velocityFESpace->qr(),
-                  M_velocityFESpaceETA,
-                  M_velocityFESpaceETA,
-                  value(M_density) * dot(phi_i, phi_j)
-              ) >> M;
-    }
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+          M_velocityFESpace->qr(),
+          M_velocityFESpaceETA,
+          M_velocityFESpaceETA,
+          value(M_density) * dot(phi_i, phi_j)
+    ) >> M;
     M->globalAssemble();
     shp<SparseMatrix> Mwrapper(new SparseMatrix);
     Mwrapper->setData(M);
@@ -709,54 +603,24 @@ assembleDivergence(shp<BCManager> bcManager)
 
     shp<MATRIXEPETRA> BT(new MATRIXEPETRA(this->M_velocityFESpace->map()));
 
-    // if (structure)
-    if (0)
-    {
-        // unsigned int numVolumes = (*structure)(0,1)->numReducedElements;
-        // unsigned int* volumes = (*structure)(0,1)->reducedElements.data();
-        // integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-        //           M_velocityFESpace->qr(),
-        //           M_velocityFESpaceETA,
-        //           M_pressureFESpaceETA,
-        //           value(-1.0) * phi_j * div(phi_i)
-        //       ) >> BT;
-    }
-    else
-    {
-        integrate(elements(M_velocityFESpaceETA->mesh()),
-                  M_velocityFESpace->qr(),
-                  M_velocityFESpaceETA,
-                  M_pressureFESpaceETA,
-                  value(-1.0) * phi_j * div(phi_i)
-              ) >> BT;
-    }
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+              M_velocityFESpace->qr(),
+              M_velocityFESpaceETA,
+              M_pressureFESpaceETA,
+              value(-1.0) * phi_j * div(phi_i)
+          ) >> BT;
 
     BT->globalAssemble(M_pressureFESpace->mapPtr(),
                        M_velocityFESpace->mapPtr());
 
     shp<MATRIXEPETRA> B(new MATRIXEPETRA(M_pressureFESpace->map()));
 
-    // if (structure)
-    if (0)
-    {
-        // unsigned int numVolumes = (*structure)(1,0)->numReducedElements;
-        // unsigned int* volumes = (*structure)(1,0)->reducedElements.data();
-        // integrate(elements(M_velocityFESpaceETA->mesh(), 0, numVolumes, volumes, true),
-        //          M_pressureFESpace->qr(),
-        //          M_pressureFESpaceETA,
-        //          M_velocityFESpaceETA,
-        //          phi_i * div(phi_j)
-        //      ) >> B;
-    }
-    else
-    {
-        integrate(elements(M_velocityFESpaceETA->mesh()),
-                 M_pressureFESpace->qr(),
-                 M_pressureFESpaceETA,
-                 M_velocityFESpaceETA,
-                 phi_i * div(phi_j)
-             ) >> B;
-    }
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+             M_pressureFESpace->qr(),
+             M_pressureFESpaceETA,
+             M_velocityFESpaceETA,
+             phi_i * div(phi_j)
+         ) >> B;
     B->globalAssemble(M_velocityFESpace->mapPtr(),
                       M_pressureFESpace->mapPtr());
 
@@ -782,8 +646,6 @@ assembleFlowRateVectors()
     if (M_treeNode->isInletNode())
     {
         auto face = M_treeNode->M_block->getInlet();
-        // std::cout << "\nInlet normal\n" << std::endl;
-        // face.print();
         M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face);
     }
 
@@ -800,16 +662,6 @@ void
 StokesAssemblerFE::
 assembleFlowRateJacobians(shp<BCManager> bcManager)
 {
-    // assemble inflow flow rate vector
-    // if (M_treeNode->isInletNode())
-    // {
-    //     auto face = M_treeNode->M_block->getInlet();
-    //     M_flowRateJacobians[face.M_flag]->resize(2,2);
-    //     M_flowRateJacobians[face.M_flag]->block(0,0)->setData(assembleFlowRateJacobian(face));
-    //
-    //     applyDirichletBCsMatrix(bcManager,M_flowRateJacobians[face.M_flag], 0.0);
-    // }
-
     if (M_treeNode->isOutletNode())
     {
         auto faces = M_treeNode->M_block->getOutlets();
@@ -1072,13 +924,6 @@ computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
               M_velocityFESpaceETA,
               value(M_viscosity) *
               dot(
-             //  (dot(grad(M_velocityFESpaceETA, *velocityRepeated) +
-             //  transpose(grad(M_velocityFESpaceETA, *velocityRepeated)),Nface)
-             // //  -
-             // // dot(dot(grad(M_velocityFESpaceETA, *velocityRepeated) +
-             // //  transpose(grad(M_velocityFESpaceETA, *velocityRepeated))
-             // //  ,Nface),Nface) * Nface
-             // )
              (grad(M_velocityFESpaceETA, *velocityRepeated) +
              transpose(grad(M_velocityFESpaceETA, *velocityRepeated))) * Nface
              -
