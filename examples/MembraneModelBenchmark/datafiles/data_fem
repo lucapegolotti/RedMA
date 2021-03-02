@@ -22,6 +22,7 @@ outputdir = rb_solutions
 	inflowfile = datafiles/inflow.txt
 	coefficientinflow = 1.000552724487405
 	numoutletbcs = 0
+	ring_constraint = normal # type of homogeneous BC imposed at I/O rings
 [../]
 
 [rb]

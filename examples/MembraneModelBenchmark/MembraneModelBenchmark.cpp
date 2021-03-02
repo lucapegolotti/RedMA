@@ -20,6 +20,11 @@
 
 using namespace RedMA;
 
+double inflowDirichlet(double t)
+{
+    return 1.0;
+}
+
 double inflowNeumann(double t)
 {
     const double T = 3e-3;
@@ -29,7 +34,7 @@ double inflowNeumann(double t)
     {
         return -0.5 * (1.0 - std::cos(omega * t) ) * Pmax;
     }
-    return 0;
+    return 0.0;
 }
 
 
@@ -51,7 +56,14 @@ int main(int argc, char **argv)
     DataContainer data;
     data.setDatafile("datafiles/data_fem");
     data.setVerbose(comm->MyPID() == 0);
-    data.setInflow(inflowNeumann);
+
+    if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet"))
+        data.setInflow(inflowDirichlet);
+    else if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "neumann"))
+        data.setInflow(inflowNeumann);
+    else
+        throw new Exception("Unrecognized inlet BC type!");
+
     std::string outdir = "solution_fem_reference/";
     data.setValueString("exporter/outdir", outdir);
     data.finalize();

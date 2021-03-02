@@ -256,10 +256,10 @@ setExporter()
                                               M_exporter->mapType()));
 
     M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
-                         "velocity", M_velocityFESpace, M_velocityExporter, 0.0);
+                            "velocity", M_velocityFESpace, M_velocityExporter, 0.0);
 
     M_exporter->addVariable(LifeV::ExporterData<MESH>::ScalarField,
-                         "pressure", M_pressureFESpace, M_pressureExporter, 0.0);
+                            "pressure", M_pressureFESpace, M_pressureExporter, 0.0);
 
     bool exportWSS = this->M_data("exporter/export_wss", 1);
     if (exportWSS)

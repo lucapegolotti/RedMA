@@ -112,6 +112,8 @@ private:
 
     shp<VECTOREPETRA> computeRingsIndicator(shp<FESPACE> fespace) const;
 
+    std::pair<Vector3D, Vector3D> computeTangentVersors(const Vector3D& normal) const;
+
     void checkInflowLaw();
 
     shp<LifeV::BCHandler> createBCHandler0Dirichlet(const bool& ringOnly = false) const;
@@ -128,6 +130,7 @@ private:
     DataContainer                                    M_data;
 
     std::string                                      M_inletBCType;
+    std::string                                      M_ringConstraint;
     std::function<double(double)>                    M_inflow;
     bool                                             M_strongDirichlet;
     double                                           M_coefficientInflow;

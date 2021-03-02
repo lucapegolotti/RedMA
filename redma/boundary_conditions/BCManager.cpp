@@ -14,6 +14,8 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
     M_strongDirichlet = std::strcmp(data("bc_conditions/inletdirichlet", "weak").c_str(),"strong") == 0;
     M_coefficientInflow = data("bc_conditions/coefficientinflow", 1.0);
 
+    M_ringConstraint = data("bc_conditions/ring_constraint", "normal");
+
     if (M_treeNode->isOutletNode())
         this->parseOutflowNeumannData();
     if (M_treeNode->isInletNode())
@@ -100,8 +102,6 @@ addInletBC(shp<LifeV::BCHandler> bcs, const bool& ringOnly, const bool& zeroFlag
 {
     if (M_treeNode->isInletNode())
     {
-        LifeV::BCFunctionBase zeroFunction(fZero);
-
         if (!std::strcmp(M_inletBCType.c_str(), "dirichlet"))
             // imposing an inflow velocity profile
             this->applyInflowDirichletBCs(bcs, zeroFlag);
@@ -113,7 +113,9 @@ addInletBC(shp<LifeV::BCHandler> bcs, const bool& ringOnly, const bool& zeroFlag
         else
             throw new Exception("Selected inflow BCs not implemented!");
 
-        /*if (!ringOnly) {
+         /*LifeV::BCFunctionBase zeroFunction(fZero);
+
+        if (!ringOnly) {
             bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
                        LifeV::Full, zeroFunction, 3);
         }
@@ -121,10 +123,10 @@ addInletBC(shp<LifeV::BCHandler> bcs, const bool& ringOnly, const bool& zeroFlag
             bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
                        LifeV::Full, zeroFunction, 3);
 
-            *//*std::vector <LifeV::ID> compz (1);
+            std::vector <LifeV::ID> compz (1);
             compz[0] = 2;
             bcs->addBC("InletRingZ", M_inletRingFlag, LifeV::EssentialEdges,
-                       LifeV::Component, zeroFunction, compz);*//*
+                       LifeV::Component, zeroFunction, compz);
         }*/
     }
 }
@@ -150,28 +152,22 @@ applyDirichletBCs(const double& time, BlockVector& input,
 
     if (ringOnly)
     {
-        std::cout<<"DBC: 1"<<std::endl;
-
         shp<LifeV::BCHandler> bcsRing = createBCHandler0DirichletRing();
         bcsRing->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
-        std::cout<<"DBC: 2"<<std::endl;
+        bool shiftReferenceSystem = (!index);
 
-        // shift to (t1,t2,n) reference system
-        this->shiftToNormalTangentialCoordSystem(nullptr, curVec, fespace);
+        if (shiftReferenceSystem && (!std::strcmp(M_ringConstraint.c_str(), "normal")))
+            // shift to (t1,t2,n) reference system
+            this->shiftToNormalTangentialCoordSystem(nullptr, curVec, fespace);
 
-        std::cout<<"DBC: 3"<<std::endl;
-
-        // apply proper ring BCs
+        // apply proper ring BCs (either normal or full)
         bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
-                *bcsRing, fespace->feBd(), 0.0, 0.0);
+                    *bcsRing, fespace->feBd(), 0.0, 0.0);
 
-        std::cout<<"DBC: 4"<<std::endl;
-
-        // shift back to (x,y,z) reference system
-        this->shiftToCartesianCoordSystem(nullptr, curVec, fespace);
-
-        std::cout<<"DBC: 5"<<std::endl;
+        if (shiftReferenceSystem && (!std::strcmp(M_ringConstraint.c_str(), "normal")))
+            // shift back to (x,y,z) reference system
+            this->shiftToCartesianCoordSystem(nullptr, curVec, fespace);
     }
 }
 
@@ -203,26 +199,25 @@ apply0DirichletMatrix(BlockMatrix& input,
                            fespace->dof(), *bcs, fespace->feBd(),
                            (j == index) * diagCoefficient, 0.0);
 
-            if (ringOnly && !index && !j)
+            if (ringOnly)
             {
-                std::cout<<"DBC0_mat: 1"<<std::endl;
+                shp<LifeV::BCHandler> bcsRing = createBCHandler0DirichletRing();
+                bcsRing->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
-                // shift to (t1,t2,n) reference system
-                this->shiftToNormalTangentialCoordSystem(curMatrix, nullptr, fespace);
+                bool shiftReferenceSystem = (!index) && (!j);
 
-                std::cout<<"DBC0_mat: 2"<<std::endl;
+                if (shiftReferenceSystem && (!std::strcmp(M_ringConstraint.c_str(), "normal")))
+                    // shift to (t1,t2,n) reference system
+                    this->shiftToNormalTangentialCoordSystem(curMatrix, nullptr, fespace);
 
                 // apply BCs
                 bcManageMatrix(*curMatrix, *fespace->mesh(),
-                               fespace->dof(), *bcs, fespace->feBd(),
+                               fespace->dof(), *bcsRing, fespace->feBd(),
                                (j == index) * diagCoefficient, 0.0);
 
-                std::cout<<"DBC0_mat: 3"<<std::endl;
-
-                // shift back to in (x,y,z) reference system
-                this->shiftToCartesianCoordSystem(curMatrix, nullptr, fespace);
-
-                std::cout<<"DBC0_mat: 4"<<std::endl;
+                if (shiftReferenceSystem && (!std::strcmp(M_ringConstraint.c_str(), "normal")))
+                    // shift back to in (x,y,z) reference system
+                    this->shiftToCartesianCoordSystem(curMatrix, nullptr, fespace);
             }
 
             curMatrix->globalAssemble(domainMap, rangeMap);
@@ -250,28 +245,22 @@ apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
 
     if (ringOnly)
     {
-        std::cout<<"DBC0: 1"<<std::endl;
-
         shp<LifeV::BCHandler> bcsRing = createBCHandler0DirichletRing();
         bcsRing->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
-        std::cout<<"DBC0: 2"<<std::endl;
+        bool shiftReferenceSystem = (!index);
 
-        // shift to (t1,t2,n) reference system
-        this->shiftToNormalTangentialCoordSystem(nullptr, curVec, fespace);
+        if (shiftReferenceSystem && (!std::strcmp(M_ringConstraint.c_str(), "normal")))
+            // shift to (t1,t2,n) reference system
+            this->shiftToNormalTangentialCoordSystem(nullptr, curVec, fespace);
 
-        std::cout<<"DBC0: 3"<<std::endl;
-
-        // apply proper ring BCs
+        // apply proper ring BCs (either normal or full)
         bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
                     *bcsRing, fespace->feBd(), 0.0, 0.0);
 
-        std::cout<<"DBC0: 4"<<std::endl;
-
-        // shift back to (x,y,z) reference system
-        this->shiftToCartesianCoordSystem(nullptr, curVec, fespace);
-
-        std::cout<<"DBC0: 5"<<std::endl;
+        if (shiftReferenceSystem && (!std::strcmp(M_ringConstraint.c_str(), "normal")))
+            // shift back to (x,y,z) reference system
+            this->shiftToCartesianCoordSystem(nullptr, curVec, fespace);
     }
 }
 
@@ -287,32 +276,6 @@ createBCHandler0Dirichlet(const bool& ringOnly) const
     if (!ringOnly)
         bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
                    LifeV::Full, zeroFunction, 3);
-    /*else {
-        *//*std::vector <LifeV::ID> compz (1);
-        compz[0] = 2;*//*
-
-        if (M_treeNode->isInletNode()) {
-             bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
-                          LifeV::Full, zeroFunction, 3);
-
-            // TODO: generalize for a generic inlet orientation
-            *//*bcs->addBC("InletRingZ", M_inletRingFlag, LifeV::EssentialEdges,
-                       LifeV::Component, zeroFunction, compz);*//*
-        }
-
-        if (M_treeNode->isOutletNode()) {
-            // this imposes the BC at all outlets, as the outlet ring flag is the same
-            // for all outlets; thus outlet building blocks MUST be tubes!!
-
-            bcs->addBC("OutletRing", M_outletRingFlag, LifeV::EssentialEdges,
-                         LifeV::Full, zeroFunction, 3);
-
-            // TODO: generalize for a generic outlet orientation
-            *//*bcs->addBC("OutletRingZ", M_outletRingFlag, LifeV::EssentialEdges,
-                       LifeV::Component, zeroFunction, compz);*//*
-        }
-    }*/
-
     return bcs;
 }
 
@@ -326,22 +289,35 @@ createBCHandler0DirichletRing() const
     bcs.reset(new LifeV::BCHandler);
 
     std::vector <LifeV::ID> compz (1);
-        compz[0] = 2;
+    compz[0] = 2;
 
-    if (M_treeNode->isInletNode()) {
-        /*bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
-                   LifeV::Full, zeroFunction, 3);*/
+    if (!std::strcmp(M_ringConstraint.c_str(), "normal")) {
+        if (M_treeNode->isInletNode()) {
+            bcs->addBC("InletRingZ", M_inletRingFlag, LifeV::EssentialEdges,
+                       LifeV::Component, zeroFunction, compz);
+        }
 
-        bcs->addBC("InletRingZ", M_inletRingFlag, LifeV::EssentialEdges,
-                   LifeV::Component, zeroFunction, compz);
+        if (M_treeNode->isOutletNode()) {
+            bcs->addBC("OutletRingZ", M_outletRingFlag, LifeV::EssentialEdges,
+                       LifeV::Component, zeroFunction, compz);
+        }
     }
+    else if (!std::strcmp(M_ringConstraint.c_str(), "full"))
+    {
+        if (M_treeNode->isInletNode()) {
+            bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
+                       LifeV::Full, zeroFunction, 3);
+        }
 
-    if (M_treeNode->isOutletNode()) {
-        /*bcs->addBC("OutletRing", M_outletRingFlag, LifeV::EssentialEdges,
-                   LifeV::Full, zeroFunction, 3);*/
-
-        bcs->addBC("OutletRingZ", M_outletRingFlag, LifeV::EssentialEdges,
-                   LifeV::Component, zeroFunction, compz);
+        if (M_treeNode->isOutletNode()) {
+            bcs->addBC("OutletRing", M_outletRingFlag, LifeV::EssentialEdges,
+                       LifeV::Full, zeroFunction, 3);
+        }
+    }
+    else
+    {
+        throw new Exception("Unrecognized type of ring constraint!"
+                            "Recognized types: {'normal', 'full'}");
     }
 
     return bcs;
@@ -511,52 +487,96 @@ computeRotationMatrix(Vector3D vec, const unsigned int& index) const
                  this->M_data.getVerbose());
 
     Matrix3D mat;
-    Vector3D vec1;
-    Vector3D vec2;
 
-    // initialize vec1 and vec2 as orthogonal to vec
-    vec1[0] = vec[1]; vec1[1] = -vec[0]; vec1[2] = 0.0;
-    vec2[0] = vec[2]; vec2[1] = 0.0; vec2[2] = -vec[0];
-
-    Vector3D ones(1.0);
-    if (std::abs(vec1.norm()) <= 1e-10)
-        vec1 = ones - vec - vec2;
-    else if (std::abs(vec2.norm()) <= 1e-10)
-        vec2 = ones - vec - vec1;
-
-    // Gram-Schmidt (simplified as vec1 and vec2 are already orthogonal to vec)
-    vec1.normalize();
-    vec2 -= vec1 * (vec2.dot(vec1));
-    vec2.normalize();
+    std::pair<Vector3D, Vector3D> tangents = this->computeTangentVersors(vec);
 
     // assign the prescribed normalized vector to the prescribed column
-    mat[index][0] = vec[0];
-    mat[index][1] = vec[1];
-    mat[index][2] = vec[2];
+    mat[0][index] = vec[0];
+    mat[1][index] = vec[1];
+    mat[2][index] = vec[2];
 
     if (index != 0) {
-        mat[0][0] = vec1[0];
-        mat[0][1] = vec1[1];
-        mat[0][2] = vec1[2];
+        mat[0][0] = tangents.first[0];
+        mat[1][0] = tangents.first[1];
+        mat[2][0] = tangents.first[2];
     }
     else {
-        mat[1][0] = vec1[0];
-        mat[1][1] = vec1[1];
-        mat[1][2] = vec1[2];
+        mat[0][1] = tangents.first[0];
+        mat[1][1] = tangents.first[1];
+        mat[2][1] = tangents.first[2];
     }
 
     if (index != 2) {
-        mat[2][0] = vec2[0];
-        mat[2][1] = vec2[1];
-        mat[2][2] = vec2[2];
+        mat[0][2] = tangents.second[0];
+        mat[1][2] = tangents.second[1];
+        mat[2][2] = tangents.second[2];
     }
     else {
-        mat[1][0] = vec2[0];
-        mat[1][1] = vec2[1];
-        mat[1][2] = vec2[2];
+        mat[0][1] = tangents.second[0];
+        mat[1][1] = tangents.second[1];
+        mat[2][1] = tangents.second[2];
     }
 
     return mat;
+}
+
+std::pair<LifeV::VectorSmall<3>, LifeV::VectorSmall<3>>
+BCManager::
+computeTangentVersors(const Vector3D& normal) const
+{
+    Vector3D t1;
+    Vector3D t2;
+    std::pair<Vector3D, Vector3D> res;
+
+    double nx = normal[0];
+    double ny = normal[1];
+    double nz = normal[2];
+
+    double nx2 = std::sqrt(normal[1] * normal[1] + normal[2] * normal[2]);
+    double ny2 = std::sqrt(normal[0] * normal[0] + normal[2] * normal[2]);
+    double nz2 = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
+
+    if ((nx2 >= ny2) && (nx2 >= nz2))
+    {
+        //We create t1
+        t1[0] = 0;
+        t1[1] = nz / nx2;
+        t1[2] = -ny / nx2;
+
+        //We create t2
+        t2[0] = -nx2;
+        t2[1] = nx * ny / nx2;
+        t2[2] = nx * nz / nx2;
+    }
+    else if ((ny2 >= nx2) && (ny2 >= nz2))
+    {
+        //We create t1
+        t1[0] = -nz / ny2;
+        t1[1] = 0;
+        t1[2] = nx / ny2;
+
+        //We create t2
+        t2[0] = nx * ny / ny2;
+        t2[1] = -ny2;
+        t2[2] = ny * nz / ny2;
+    }
+    else
+    {
+        //We create t1
+        t1[0] = ny / nz2;
+        t1[1] = -nx / nz2;
+        t1[2] = 0;
+
+        //We create t2
+        t2[0] = nx * nz / nz2;
+        t2[1] = ny * nz / nz2;
+        t2[2] = -nz2;
+    }
+
+    res.first = t1;
+    res.second = t2;
+
+    return res;
 }
 
 std::map<unsigned int, LifeV::MatrixSmall<3,3>>
@@ -614,7 +634,7 @@ computeRingsIndicator(shp<FESPACE> fespace) const
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
     bcManageRhs(*ringsIndicator, *fespace->mesh(), fespace->dof(),
-            *bcs, fespace->feBd(), 1.0, 0.0);
+                *bcs, fespace->feBd(), 1.0, 0.0);
 
     return ringsIndicator;
 }
@@ -711,10 +731,6 @@ computeGlobalRotationMatrix(shp<FESPACE> fespace)
 
     for (unsigned int n = 0; n < 3; n++)
         delete[] values[n];
-
-    /*auto domainMap = M_globalRotationMatrix->domainMapPtr();
-    auto rangeMap = M_globalRotationMatrix->rangeMapPtr();
-    M_globalRotationMatrix->globalAssemble(domainMap, rangeMap);*/
 
     M_globalRotationMatrix->globalAssemble();
 }
