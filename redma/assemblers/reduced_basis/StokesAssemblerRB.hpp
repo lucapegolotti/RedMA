@@ -25,7 +25,7 @@
 namespace RedMA
 {
 
-class StokesAssemblerRB : public aAssemblerRB, public StokesModel
+class StokesAssemblerRB : public aAssemblerRB
 {
 public:
     StokesAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode);
@@ -53,20 +53,16 @@ public:
 
     virtual shp<aVector> getLifting(const double& time) const override;
 
-    void initializeFEspaces() override;
-
-    void setExporter() override;
-
     virtual inline shp<FESPACE> getFESpaceBCs() const override
     {
-        return this->M_velocityFESpace;
+        return M_feStokesAssembler->getFESpaceBCs();
     }
 
     virtual inline unsigned int getComponentBCs() const override {return 0;}
 
     virtual inline shp<ETFESPACE3> getETFESpaceCoupling() const override
     {
-        return this->M_velocityFESpaceETA;
+        return M_feStokesAssembler->getETFESpaceCoupling();
     }
 
     // virtual inline shp<ETFESPACE1> getETFESpaceSecondary() const override
@@ -111,6 +107,7 @@ protected:
     shp<BlockMatrix>                                  M_reducedMass;
     shp<BlockMatrix>                                  M_reducedDivergence;
     shp<BlockMatrix>                                  M_reducedStiffness;
+    shp<StokesAssemblerFE>                            M_feStokesAssembler;
 };
 
 }

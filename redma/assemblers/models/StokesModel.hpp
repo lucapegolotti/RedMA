@@ -38,91 +38,10 @@ class StokesModel
 public:
     StokesModel(const DataContainer& data, shp<TreeNode> treeNode);
 
-    shp<aVector> getForcingTerm(const double& time) const;
-
-    void addNeumannBCs(shp<aVector>& input, const double& time,
-                       const shp<aVector>& sol);
-
-    shp<aMatrix> assembleReducedStiffness(shp<BCManager> bcManager);
-
-    shp<aMatrix> assembleReducedMass(shp<BCManager> bcManager);
-
-    shp<aMatrix> assembleReducedDivergence(shp<BCManager> bcManager);
-
-    std::map<unsigned int, double> computeFlowRates(shp<aVector> sol,
-                                                    bool verbose = false);
-
-    // these are int_{Gamma_N} phi_i * n inlets (just to check that it is preserved)
-    // and outlets (for boundary conditions)
-    void assembleFlowRateVectors();
-
-    // compute the jacobian of int_{Gamma_N}(int_{Gamma_N} u_i * n)phi_j
-    void assembleFlowRateJacobians(shp<BCManager> bcManager);
-
-    shp<VECTOREPETRA> assembleFlowRateVector(const GeometricFace& face);
-
-    shp<MATRIXEPETRA> assembleFlowRateJacobian(const GeometricFace& face);
-
-    void addBackFlowStabilization(shp<aVector>& input,
-                                  shp<aVector> sol,
-                                  const unsigned int& faceFlag);
-
-    void exportNorms(double t, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure);
-
-    void initializePythonStructures();
-
-    void computeWallShearStress(shp<VECTOREPETRA> velocity,
-                                shp<VECTOREPETRA> WSS,
-                                EPETRACOMM comm);
-
-    void applyDirichletBCsMatrix(shp<BCManager> bcManager,
-                                  shp<aMatrix> matrix, double diagCoeff);
-
-    void initializeVelocityFESpace(EPETRACOMM comm);
-
-    void initializePressureFESpace(EPETRACOMM comm);
-
-    void setVelocityOrder(std::string velocityOrder) {M_velocityOrder = velocityOrder;}
-
-    void setPressureOrder(std::string pressureOrder) {M_pressureOrder = pressureOrder;}
-
 protected:
 
     shp<BlockVector> buildZeroVector() const;
 
-    std::string                                       M_name;
-    DataContainer                                     M_dataContainer;
-    shp<TreeNode>                                     M_treeNode;
-    shp<BlockMatrix>                                  M_mass;
-    shp<BlockMatrix>                                  M_stiffness;
-    shp<BlockMatrix>                                  M_divergence;
-    shp<FESPACE>                                      M_velocityFESpace;
-    shp<FESPACE>                                      M_pressureFESpace;
-    shp<ETFESPACE3>                                   M_velocityFESpaceETA;
-    shp<ETFESPACE1>                                   M_pressureFESpaceETA;
-    double                                            M_density;
-    double                                            M_viscosity;
-    shp<MATRIXEPETRA>                                 M_massWall;
-    shp<SparseMatrix>                                 M_massVelocity;
-    shp<SparseMatrix>                                 M_massPressure;
-    // first index is face flag
-    std::map<unsigned int, shp<VECTOREPETRA>>         M_flowRateVectors;
-    std::map<unsigned int, shp<BlockMatrix>>          M_flowRateJacobians;
-
-    std::string                                       M_velocityOrder;
-    std::string                                       M_pressureOrder;
-
-    // rb structures
-    // shp<BlockMDEIM>                                   M_mdeimMass;
-    // shp<BlockMDEIM>                                   M_mdeimStiffness;
-    // shp<BlockMDEIM>                                   M_mdeimDivergence;
-    shp<RBBases>                                      M_bases;
-    // PyObject*                                      M_pFunc;
-    // PyObject*                                      M_pModule;
-
-    shp<VECTOREPETRA>                                 M_xs;
-    shp<VECTOREPETRA>                                 M_ys;
-    shp<VECTOREPETRA>                                 M_zs;
 };
 
 }

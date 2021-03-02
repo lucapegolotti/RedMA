@@ -191,9 +191,6 @@ public:
      */
     inline shp<BCManager> getBCManager() const {return M_bcManager;}
 
-    /// Virtual setup of the exporter.
-    virtual void setExporter() = 0;
-
     /*! \brief Virtual method to apply Dirichlet bcs to a matrix.
      *
      * \param matrix The matrix to which the bcs must be applied.
@@ -246,8 +243,8 @@ public:
 
     /*! \brief Initializer for the finite element spaces.
      *
-     * Not implemented for aAssembler. It must be overloaded by the local assemblers
-     * (but not the block one).
+     * Not implemented for aAssembler. It must be overloaded by the local finite
+     * element assemblers (but not the block one).
      */
     virtual void initializeFEspaces() {};
 

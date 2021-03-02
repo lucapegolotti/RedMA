@@ -5,12 +5,15 @@ namespace RedMA
 
 StokesAssemblerFE::
 StokesAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode) :
-  aAssemblerFE(data, treeNode),
-  StokesModel(data, treeNode)
+  aAssemblerFE(data, treeNode)
 {
     this->M_bcManager.reset(new BCManager(data, treeNode));
     M_name = "StokesAssemblerFE";
     M_nComponents = 2;
+    M_density = data("fluid/density", 1.0);
+    M_viscosity = data("fluid/viscosity", 0.035);
+    M_velocityOrder = data("fluid/velocity_order", "P2");
+    M_pressureOrder = data("fluid/pressure_order", "P1");
 }
 
 void
@@ -25,9 +28,9 @@ setup()
     msg += "] initializing ...";
     printlog(YELLOW, msg, this->M_data.getVerbose());
     initializeFEspaces();
-    M_mass = spcast<BlockMatrix>(assembleReducedMass(M_bcManager)); // #1
-    M_stiffness = spcast<BlockMatrix>(assembleReducedStiffness(M_bcManager)); // #2
-    M_divergence = spcast<BlockMatrix>(assembleReducedDivergence(M_bcManager)); // #3
+    M_mass = spcast<BlockMatrix>(assembleMass(M_bcManager)); // #1
+    M_stiffness = spcast<BlockMatrix>(assembleStiffness(M_bcManager)); // #2
+    M_divergence = spcast<BlockMatrix>(assembleDivergence(M_bcManager)); // #3
 
     assembleFlowRateVectors();
     // assembleFlowRateJacobians(this->M_bcManager);
@@ -55,8 +58,8 @@ StokesAssemblerFE::
 exportSolution(const double& t, const shp<aVector>& sol)
 {
     auto solBlck = convert<BlockVector>(sol);
-    *M_velocityExporter = *static_cast<VECTOREPETRA*>(solBlck->block(0)->data().get());
-    *M_pressureExporter = *static_cast<VECTOREPETRA*>(solBlck->block(1)->data().get());
+    *M_velocityExporter = *spcast<VECTOREPETRA>(solBlck->block(0)->data());
+    *M_pressureExporter = *spcast<VECTOREPETRA>(solBlck->block(1)->data());
 
     bool exportWSS = this->M_data("exporter/export_wss", 1);
     if (exportWSS)
@@ -64,9 +67,9 @@ exportSolution(const double& t, const shp<aVector>& sol)
 
     shp<BlockVector> solCopy(new BlockVector(2));
     solCopy->block(0)->setData(M_velocityExporter);
-    StokesAssemblerFE::computeFlowRates(solCopy, true);
+    computeFlowRates(solCopy, true);
 
-    StokesModel::exportNorms(t, M_velocityExporter, M_pressureExporter);
+    exportNorms(t, M_velocityExporter, M_pressureExporter);
 
     CoutRedirecter ct;
     ct.redirect();
@@ -310,15 +313,15 @@ assembleMatrix(const unsigned int& index)
 {
     if (index == 0)
     {
-        return assembleReducedMass(M_bcManager);
+        return assembleMass(M_bcManager);
     }
     else if (index == 1)
     {
-        return assembleReducedStiffness(M_bcManager);
+        return assembleStiffness(M_bcManager);
     }
     else if (index == 2)
     {
-        return assembleReducedDivergence(M_bcManager);
+        return assembleDivergence(M_bcManager);
     }
 }
 
@@ -358,16 +361,10 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
                 applyDirichletBCsMatrix(normWrap, 1.0);
             }
 
-            // M_massVelocity->setMatrix(Nu);
             retMat->setMatrix(Nu);
-        // }
-        // else
-        //     retMat = M_massVelocity;
     }
     else
     {
-        // if (!M_massPressure.data())
-        // {
             shp<MATRIXEPETRA> Np(new MATRIXEPETRA(M_pressureFESpace->map()));
 
             integrate(elements(M_pressureFESpaceETA->mesh()),
@@ -379,11 +376,7 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
 
             Np->globalAssemble();
 
-            // M_massPressure->setMatrix(Np);
             retMat->setMatrix(Np);
-        // }
-        // else
-        //     retMat = M_massPressure;
     }
 
     return retMat;
@@ -395,24 +388,6 @@ getConstraintMatrix()
 {
     return M_divergence->block(0,1);
 }
-
-// void
-// StokesAssemblerFE::
-// setMDEIMs(shp<MDEIMManager> mdeimManager)
-// {
-//    // std::string mdeimdir = this->M_data("rb/online/mdeim/directory", "mdeims");
-//    //     // std::string meshName = this->M_treeNode->M_block->getMeshName();
-//    //     // unsigned int dashpos = meshName.find("/");
-//    //     // unsigned int formatpos = meshName.find(".mesh");
-//    //     // std::string actualName = meshName.substr(dashpos + 1,
-//    //     //                                          formatpos - dashpos - 1);
-//    //     //
-//    //     // auto mdeims = mdeimManager->getMDEIMS(actualName);
-//    //     //
-//    //     // M_mdeimMass = mdeims[0];
-//    //     // M_mdeimStiffness = mdeims[1];
-//    //     // M_mdeimDivergence = mdeims[2];
-// }
 
 void
 StokesAssemblerFE::
@@ -438,31 +413,6 @@ applyPiola(shp<aVector> solution, bool inverse)
 
     if (defAssembler)
     {
-        // auto refDivergence = defAssembler->assembleMatrix(2);
-        // SHP(MatrixEpetra<double>) B(new MatrixEpetra<double>(M_pressureFESpace->map()));
-        //
-        // integrate(elements(M_velocityFESpaceETA->mesh()),
-        //          M_pressureFESpace->qr(),
-        //          M_pressureFESpaceETA,
-        //          M_velocityFESpaceETA,
-        //          phi_i * div(phi_j)
-        //      ) >> B;
-        //
-        // B->globalAssemble(M_velocityFESpace->mapPtr(),
-        //                   M_pressureFESpace->mapPtr());
-        //
-        // FEMATRIX Bwrap;
-        // Bwrap.data() = B;
-        //
-        // FEVECTOR res1 = Bwrap * solution.block(0);
-        //
-        // std::cout << this->M_treeNode->M_block->getMeshName() << std::endl << std::flush;
-        // std::cout << "norm 1 = " << res1.norm2() << std::endl << std::flush;
-        //
-        // FEVECTOR res2 = refDivergence.block(1,0) * solution.block(0);
-        //
-        // std::cout << "norm 2 = " << res2.norm2() << std::endl << std::flush;
-
         auto defVelocityFESpace = defAssembler->getFEspace(0);
 
         auto velocity = spcast<VECTOREPETRA>(convert<BlockVector>(solution)->block(0)->data());
@@ -558,15 +508,504 @@ applyPiola(shp<aVector> solution, bool inverse)
             velocity->operator[](dof + numElements * 2) = res(2);
         }
 
-        // res1 = Bwrap * solution.block(0);
-        // std::cout << "norm 1 = " << res1.norm2() << std::endl << std::flush;
-        // res2 = refDivergence.block(1,0) * solution.block(0);
-        // std::cout << "norm 2 = " << res2.norm2() << std::endl << std::flush;
-
         if (inverse)
             delete transformationMatrix;
     }
-    // defAssembler->exportSolution(0.0, solution);
+}
+
+shp<aVector>
+StokesAssemblerFE::
+getForcingTerm(const double& time) const
+{
+    // we don't consider forcing terms for the moment
+    return buildZeroVector();
+}
+
+
+shp<aMatrix>
+StokesAssemblerFE::
+assembleStiffness(shp<BCManager> bcManager)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    shp<BlockMatrix> stiffness(new BlockMatrix(2,2));
+
+    bool useFullStrain = M_data("fluid/use_strain", true);
+
+    shp<MATRIXEPETRA> A(new MATRIXEPETRA(M_velocityFESpace->map()));
+
+    if (useFullStrain)
+    {
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                  M_velocityFESpace->qr(),
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  value(0.5 * M_viscosity) *
+                  dot(grad(phi_i) + transpose(grad(phi_i)),
+                  grad(phi_j) + transpose(grad(phi_j)))
+              ) >> A;
+    }
+    else
+    {
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                  M_velocityFESpace->qr(),
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  value(M_viscosity) *
+                  dot(grad(phi_i),grad(phi_j))
+              ) >> A;
+    }
+    A->globalAssemble();
+
+    shp<SparseMatrix> Awrapper(new SparseMatrix);
+    Awrapper->setData(A);
+    stiffness->setBlock(0,0,Awrapper);
+
+    bcManager->apply0DirichletMatrix(*stiffness, M_velocityFESpace, 0, 0.0);
+
+    return stiffness;
+}
+
+shp<aMatrix>
+StokesAssemblerFE::
+assembleMass(shp<BCManager> bcManager)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    shp<BlockMatrix> mass(new BlockMatrix(2,2));
+    shp<MATRIXEPETRA> M(new MATRIXEPETRA(M_velocityFESpace->map()));
+
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+          M_velocityFESpace->qr(),
+          M_velocityFESpaceETA,
+          M_velocityFESpaceETA,
+          value(M_density) * dot(phi_i, phi_j)
+    ) >> M;
+    M->globalAssemble();
+    shp<SparseMatrix> Mwrapper(new SparseMatrix);
+    Mwrapper->setData(M);
+    mass->setBlock(0,0,Mwrapper);
+    bcManager->apply0DirichletMatrix(*mass, M_velocityFESpace, 0, 1.0);
+
+    return mass;
+}
+
+shp<aMatrix>
+StokesAssemblerFE::
+assembleDivergence(shp<BCManager> bcManager)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    shp<BlockMatrix> divergence(new BlockMatrix(2,2));
+
+    shp<MATRIXEPETRA> BT(new MATRIXEPETRA(this->M_velocityFESpace->map()));
+
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+              M_velocityFESpace->qr(),
+              M_velocityFESpaceETA,
+              M_pressureFESpaceETA,
+              value(-1.0) * phi_j * div(phi_i)
+          ) >> BT;
+
+    BT->globalAssemble(M_pressureFESpace->mapPtr(),
+                       M_velocityFESpace->mapPtr());
+
+    shp<MATRIXEPETRA> B(new MATRIXEPETRA(M_pressureFESpace->map()));
+
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+             M_pressureFESpace->qr(),
+             M_pressureFESpaceETA,
+             M_velocityFESpaceETA,
+             phi_i * div(phi_j)
+         ) >> B;
+    B->globalAssemble(M_velocityFESpace->mapPtr(),
+                      M_pressureFESpace->mapPtr());
+
+    shp<SparseMatrix> BTwrapper(new SparseMatrix);
+    BTwrapper->setData(BT);
+
+    shp<SparseMatrix> Bwrapper(new SparseMatrix);
+    Bwrapper->setData(B);
+
+    divergence->setBlock(0,1,BTwrapper);
+    divergence->setBlock(1,0,Bwrapper);
+
+    bcManager->apply0DirichletMatrix(*divergence, M_velocityFESpace, 0, 0.0);
+
+    return divergence;
+}
+
+void
+StokesAssemblerFE::
+assembleFlowRateVectors()
+{
+    // assemble inflow flow rate vector
+    if (M_treeNode->isInletNode())
+    {
+        auto face = M_treeNode->M_block->getInlet();
+        M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face);
+    }
+
+    if (M_treeNode->isOutletNode())
+    {
+        auto faces = M_treeNode->M_block->getOutlets();
+
+        for (auto face : faces)
+            M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face);
+    }
+}
+
+void
+StokesAssemblerFE::
+assembleFlowRateJacobians(shp<BCManager> bcManager)
+{
+    if (M_treeNode->isOutletNode())
+    {
+        auto faces = M_treeNode->M_block->getOutlets();
+
+        for (auto face : faces)
+        {
+            shp<BlockMatrix> newJacobian(new BlockMatrix(2,2));
+            shp<SparseMatrix> jacWrapper(new SparseMatrix());
+            jacWrapper->setMatrix(assembleFlowRateJacobian(face));
+
+            newJacobian->setBlock(0,0,jacWrapper);
+
+            applyDirichletBCsMatrix(bcManager,newJacobian, 0.0);
+
+            M_flowRateJacobians[face.M_flag] = newJacobian;
+
+        }
+    }
+}
+
+void
+StokesAssemblerFE::
+applyDirichletBCsMatrix(shp<BCManager> bcManager,
+                         shp<aMatrix> matrix, double diagCoeff)
+{
+    auto matrixConverted = spcast<BlockMatrix>(matrix);
+    bcManager->apply0DirichletMatrix(*matrixConverted, M_velocityFESpace,
+                                     0, diagCoeff);
+}
+
+std::map<unsigned int, double>
+StokesAssemblerFE::
+computeFlowRates(shp<aVector> sol, bool verbose)
+{
+    auto solBlck = convert<BlockVector>(sol);
+
+    std::string msg;
+    std::map<unsigned int, double> flowRates;
+    if (M_treeNode->isInletNode())
+    {
+        auto face = M_treeNode->M_block->getInlet();
+
+        flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(solBlck->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
+        std::string msg = "[";
+        msg += "StokesAssemblerFE";
+        msg += "]  inflow rate = ";
+        msg += std::to_string(flowRates[face.M_flag]);
+        msg += "\n";
+        printlog(YELLOW, msg, verbose);
+    }
+
+    if (this->M_treeNode->isOutletNode())
+    {
+        auto faces = this->M_treeNode->M_block->getOutlets();
+
+        for (auto face : faces)
+        {
+            flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(solBlck->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
+            std::string msg = "[";
+            msg += "StokesAssemblerFE";
+            msg += "]  outflow rate = ";
+            msg += std::to_string(flowRates[face.M_flag]);
+            msg += "\n";
+            printlog(YELLOW, msg, verbose);
+        }
+    }
+
+    return flowRates;
+}
+
+shp<VECTOREPETRA>
+StokesAssemblerFE::
+assembleFlowRateVector(const GeometricFace& face)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    shp<VECTOREPETRA> flowRateVectorRepeated;
+    flowRateVectorRepeated.reset(new VECTOREPETRA(M_velocityFESpace->map(),
+                                                  Repeated));
+
+    QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
+
+    integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
+              myBDQR,
+              M_velocityFESpaceETA,
+              dot(phi_i, Nface)
+          ) >> flowRateVectorRepeated;
+
+    flowRateVectorRepeated->globalAssemble();
+
+    shp<VECTOREPETRA> flowRateVector(new VECTOREPETRA(*flowRateVectorRepeated,
+                                                      Unique));
+    return flowRateVector;
+}
+
+shp<MATRIXEPETRA>
+StokesAssemblerFE::
+assembleFlowRateJacobian(const GeometricFace& face)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    const double dropTolerance(2.0 * std::numeric_limits<double>::min());
+
+    shp<MAPEPETRA> rangeMap = M_flowRateVectors[face.M_flag]->mapPtr();
+    EPETRACOMM comm = rangeMap->commPtr();
+
+
+    Epetra_Map epetraMap = M_flowRateVectors[face.M_flag]->epetraMap();
+    unsigned int numElements = epetraMap.NumMyElements();
+    unsigned int numGlobalElements = epetraMap.NumGlobalElements();
+
+    // this should be optimized
+    shp<MATRIXEPETRA> flowRateJacobian;
+    flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map(), numGlobalElements, false));
+
+    // compute outer product of flowrate vector with itself
+    for (unsigned int j = 0; j < numGlobalElements; j++)
+    {
+        double myvaluecol = 0;
+
+        if (M_flowRateVectors[face.M_flag]->isGlobalIDPresent(j))
+            myvaluecol = M_flowRateVectors[face.M_flag]->operator[](j);
+
+        double valuecol = 0;
+        comm->SumAll(&myvaluecol, &valuecol, 1);
+
+        if (std::abs(valuecol) > dropTolerance)
+        {
+            for (unsigned int i = 0; i < numElements; i++)
+            {
+                unsigned int gdof = epetraMap.GID(i);
+                if (M_flowRateVectors[face.M_flag]->isGlobalIDPresent(gdof))
+                {
+                    double valuerow = M_flowRateVectors[face.M_flag]->operator[](gdof);
+                    if (std::abs(valuerow * valuecol) > dropTolerance)
+                    {
+                        flowRateJacobian->addToCoefficient(gdof, j, valuerow * valuecol);
+                    }
+                }
+            }
+        }
+
+    }
+
+    comm->Barrier();
+
+    flowRateJacobian->globalAssemble();
+
+    return flowRateJacobian;
+}
+
+void
+StokesAssemblerFE::
+addBackFlowStabilization(shp<aVector>& input,
+                         shp<aVector> sol,
+                         const unsigned int& faceFlag)
+{
+    // using namespace LifeV;
+    // using namespace ExpressionAssembly;
+    //
+    // shp<VECTOREPETRA> vn(new VECTOREPETRA(*sol.block(0).data()));
+    //
+    // *vn *= *M_flowRateVectors[faceFlag];
+    //
+    // shp<VECTOREPETRA> absvn(new VECTOREPETRA(*vn));
+    // absvn->abs();
+    //
+    // *vn -= *absvn;
+    // *vn /= 2.0;
+    //
+    // *vn *= *sol.block(0).data();
+    //
+    // shp<VECTOREPETRA> vnRepeated(new VECTOREPETRA(*vn, Repeated));
+    // shp<VECTOREPETRA> backflowStabRepeated(new VECTOREPETRA(vn->mapPtr(), Repeated));
+    //
+    // QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
+    //
+    // integrate(boundary(M_velocityFESpaceETA->mesh(), faceFlag),
+    //           myBDQR,
+    //           M_velocityFESpaceETA,
+    //           dot(value(M_velocityFESpaceETA, *vnRepeated), phi_i)
+    //       ) >> backflowStabRepeated;
+    //
+    // backflowStabRepeated->globalAssemble();
+    //
+    // *backflowStabRepeated *= 0.2 * M_density;
+    //
+    // shp<VECTOREPETRA> backflowStab(new VECTOREPETRA(*backflowStabRepeated, Unique));
+    //
+    // *input.block(0).data() += *backflowStab;
+}
+
+void
+StokesAssemblerFE::
+exportNorms(double t, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure)
+{
+    bool exportNorms = M_data("exporter/exportnorms", true);
+
+    if (exportNorms)
+    {
+        std::string outputName = M_data("exporter/outdir", "solutions/") + "block";
+        outputName += std::to_string(this->M_treeNode->M_ID);
+        outputName += "_norm.txt";
+        std::ofstream filename(outputName, std::ios_base::app);
+        filename << t << ",";
+        filename << M_velocityFESpace->h1Norm(*velocity) << ",";
+        filename << M_pressureFESpace->l2Norm(*pressure) << "\n";
+    }
+}
+
+void
+StokesAssemblerFE::
+initializePythonStructures()
+{
+    // setenv("PYTHONPATH",".",1);
+
+    // Py_Initialize();
+    // PyObject* pName = PyUnicode_DecodeFSDefault("test");
+
+    // M_pModule = PyImport_Import(pName);
+    // Py_DECREF(pName);
+
+    // M_pFunc = PyObject_GetAttrString(M_pModule, "evaluate_model");
+}
+
+void
+StokesAssemblerFE::
+computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
+                       EPETRACOMM comm)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
+
+    unsigned int wallFlag = M_treeNode->M_block->wallFlag();
+    if (M_massWall == nullptr)
+    {
+        M_massWall.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
+
+        integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
+                  myBDQR,
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  dot(phi_i, phi_j)
+              ) >> M_massWall;
+        M_massWall->globalAssemble();
+    }
+
+    WSS->zero();
+
+    shp<VECTOREPETRA> velocityRepeated(new VECTOREPETRA(*velocity,
+                                                         Repeated));
+    shp<VECTOREPETRA> weakWSSRepeated(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
+
+    integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
+              myBDQR,
+              M_velocityFESpaceETA,
+              value(M_viscosity) *
+              dot(
+             (grad(M_velocityFESpaceETA, *velocityRepeated) +
+             transpose(grad(M_velocityFESpaceETA, *velocityRepeated))) * Nface
+             -
+             dot(
+             (grad(M_velocityFESpaceETA, *velocityRepeated) +
+             transpose(grad(M_velocityFESpaceETA, *velocityRepeated))) * Nface,
+             Nface
+             ) * Nface,
+             phi_i)
+             ) >> weakWSSRepeated;
+
+    weakWSSRepeated->globalAssemble();
+    shp<VECTOREPETRA> weakWSSUnique(new VECTOREPETRA(*weakWSSRepeated, Unique));
+
+    LinearSolver linearSolver(comm);
+    linearSolver.setOperator(M_massWall);
+
+    Teuchos::RCP<Teuchos::ParameterList> aztecList =
+                                    Teuchos::rcp(new Teuchos::ParameterList);
+    aztecList = Teuchos::getParametersFromXmlFile("datafiles/SolverParamList.xml");
+    linearSolver.setParameters(*aztecList);
+
+    typedef LifeV::PreconditionerML         precML_type;
+    typedef shp<precML_type>    precMLPtr_type;
+    precML_type * precRawPtr;
+    precRawPtr = new precML_type;
+
+    GetPot dummyDatafile;
+    precRawPtr->setDataFromGetPot(dummyDatafile, "precMLL");
+    shp<LifeV::Preconditioner> precPtr;
+    precPtr.reset(precRawPtr);
+
+    linearSolver.setPreconditioner(precPtr);
+    linearSolver.setRightHandSide(weakWSSUnique);
+    linearSolver.solve(WSS);
+}
+
+void
+StokesAssemblerFE::
+initializeVelocityFESpace(EPETRACOMM comm)
+{
+    // initialize fespace velocity
+    M_velocityFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
+                            M_velocityOrder, 3, comm));
+
+    M_velocityFESpaceETA.reset(new ETFESPACE3(M_velocityFESpace->mesh(),
+                                           &(M_velocityFESpace->refFE()),
+                                             comm));
+
+}
+
+
+void
+StokesAssemblerFE::
+initializePressureFESpace(EPETRACOMM comm)
+{
+    // initialize fespace pressure
+    M_pressureFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
+                                       M_pressureOrder, 1, comm));
+    M_pressureFESpaceETA.reset(new ETFESPACE1(M_pressureFESpace->mesh(),
+                                           &(M_pressureFESpace->refFE()),
+                                             comm));
+}
+
+shp<BlockVector>
+StokesAssemblerFE::
+buildZeroVector() const
+{
+    shp<VECTOREPETRA> uComp(new VECTOREPETRA(M_velocityFESpace->map(),
+                                             LifeV::Unique));
+    uComp->zero();
+    shp<VECTOREPETRA> pComp(new VECTOREPETRA(M_pressureFESpace->map(),
+                                             LifeV::Unique));
+
+    pComp->zero();
+
+    shp<BlockVector> retVec(new BlockVector(2));
+
+    retVec->setBlock(0,wrap(uComp));
+    retVec->setBlock(1,wrap(pComp));
+
+    return retVec;
 }
 
 }
