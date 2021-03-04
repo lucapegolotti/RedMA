@@ -874,20 +874,20 @@ exportNorms(double t, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure)
     }
 }
 
-void
-StokesAssemblerFE::
-initializePythonStructures()
-{
-    // setenv("PYTHONPATH",".",1);
-
-    // Py_Initialize();
-    // PyObject* pName = PyUnicode_DecodeFSDefault("test");
-
-    // M_pModule = PyImport_Import(pName);
-    // Py_DECREF(pName);
-
-    // M_pFunc = PyObject_GetAttrString(M_pModule, "evaluate_model");
-}
+// void
+// StokesAssemblerFE::
+// initializePythonStructures()
+// {
+//     // setenv("PYTHONPATH",".",1);
+//
+//     // Py_Initialize();
+//     // PyObject* pName = PyUnicode_DecodeFSDefault("test");
+//
+//     // M_pModule = PyImport_Import(pName);
+//     // Py_DECREF(pName);
+//
+//     // M_pFunc = PyObject_GetAttrString(M_pModule, "evaluate_model");
+// }
 
 void
 StokesAssemblerFE::
