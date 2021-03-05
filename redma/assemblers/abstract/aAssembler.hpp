@@ -189,7 +189,7 @@ public:
      *
      * \return Shared pointer to the BCManager.
      */
-    inline shp<BCManager> getBCManager() const {return M_bcManager;}
+    inline virtual shp<BCManager> getBCManager() const {return M_bcManager;}
 
     /*! \brief Virtual method to apply Dirichlet bcs to a matrix.
      *

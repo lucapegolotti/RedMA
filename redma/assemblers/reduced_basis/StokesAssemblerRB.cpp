@@ -89,35 +89,35 @@ shp<aMatrix>
 StokesAssemblerRB::
 assembleMatrix(const unsigned int& index)
 {
-    throw new Exception("assembleMatrix not implemented for StokesAssemblerRB");
+    // throw new Exception("assembleMatrix not implemented for StokesAssemblerRB");
 }
 
 void
 StokesAssemblerRB::
 applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
 {
-    throw new Exception("Method not implemented for RB");
+    // throw new Exception("Method not implemented for RB");
 }
 
 void
 StokesAssemblerRB::
 applyDirichletBCs(const double& time, shp<aVector> vector) const
 {
-    throw new Exception("Method not implemented for RB");
+    // throw new Exception("Method not implemented for RB");
 }
 
 void
 StokesAssemblerRB::
 postProcess(const double& t, const shp<aVector>& sol)
 {
-    M_bcManager->postProcess();
+    getBCManager()->postProcess();
 }
 
 void
 StokesAssemblerRB::
 apply0DirichletBCs(shp<aVector> vector) const
 {
-    throw new Exception("Method not implemented for RB");
+    // throw new Exception("Method not implemented for RB");
 }
 
 void
@@ -178,8 +178,8 @@ getLifting(const double& time) const
     liftingFE->setBlock(0,ucomp);
     liftingFE->setBlock(1,pcomp);
 
-    this->M_bcManager->applyDirichletBCs(time, *liftingFE, this->getFESpaceBCs(),
-                                         this->getComponentBCs());
+    getBCManager()->applyDirichletBCs(time, *liftingFE, this->getFESpaceBCs(),
+                                      this->getComponentBCs());
 
     // shp<aVector> lifting = M_bases->leftProject(liftingFE, StokesModel::M_treeNode->M_ID);
     return liftingFE;
@@ -206,118 +206,26 @@ RBsetup()
         applyPiola(vectorWrap, false);
     });
 
-    // // restrict rb matrices
-    // if (M_data("rb/online/usemdeim", true))
-    // {
-    //     std::vector<unsigned int> selectorsU = M_bases->getSelectors(0);
-    //     std::vector<unsigned int> selectorsP = M_bases->getSelectors(1);
-    //
-    //     // this is the case when we do not choose to keep all the vectors in the basis
-    //     if (selectorsU.size() > 0)
-    //     {
-    //         unsigned int Nu = selectorsU.size();
-    //         unsigned int Np = selectorsP.size();
-    //
-    //         // restrict mass
-    //         SHP(DENSEMATRIX) restrictedMass(new DENSEMATRIX(Nu,Nu));
-    //
-    //         unsigned int inew = 0;
-    //         for (auto i : selectorsU)
-    //         {
-    //             unsigned int jnew = 0;
-    //             for (auto j : selectorsU)
-    //             {
-    //                 (*restrictedMass)(inew,jnew) = (*M_mass.block(0,0).data())(i,j);
-    //                 jnew++;
-    //             }
-    //             inew++;
-    //         }
-    //
-    //         M_mass.block(0,0).data() = restrictedMass;
-    //
-    //         // restrict stiffness
-    //         SHP(DENSEMATRIX) restrictedStiffness(new DENSEMATRIX(Nu,Nu));
-    //
-    //         inew = 0;
-    //         for (auto i : selectorsU)
-    //         {
-    //             unsigned int jnew = 0;
-    //             for (auto j : selectorsU)
-    //             {
-    //                 (*restrictedStiffness)(inew,jnew) = (*M_stiffness.block(0,0).data())(i,j);
-    //                 jnew++;
-    //             }
-    //             inew++;
-    //         }
-    //
-    //         M_stiffness.block(0,0).data() = restrictedStiffness;
-    //
-    //         // restrict divergence
-    //         SHP(DENSEMATRIX) restrictedBT(new DENSEMATRIX(Nu,Np));
-    //
-    //         inew = 0;
-    //         for (auto i : selectorsU)
-    //         {
-    //             unsigned int jnew = 0;
-    //             for (auto j : selectorsP)
-    //             {
-    //                 (*restrictedBT)(inew,jnew) = (*M_divergence.block(0,1).data())(i,j);
-    //                 jnew++;
-    //             }
-    //             inew++;
-    //         }
-    //
-    //         M_divergence.block(0,1).data() = restrictedBT;
-    //
-    //         SHP(DENSEMATRIX) restrictedB(new DENSEMATRIX(Np,Nu));
-    //
-    //         inew = 0;
-    //         for (auto i : selectorsP)
-    //         {
-    //             unsigned int jnew = 0;
-    //             for (auto j : selectorsU)
-    //             {
-    //                 (*restrictedB)(inew,jnew) = (*M_divergence.block(1,0).data())(i,j);
-    //                 jnew++;
-    //             }
-    //             inew++;
-    //         }
-    //
-    //         M_divergence.block(1,0).data() = restrictedB;
-    //     }
-    // }
-    // else
-    {
-        printlog(YELLOW, "[StokesAssembler] NOT using MDEIM: assembling and projecting matrices\t", M_data.getVerbose());
-        Chrono chrono;
-        chrono.start();
+    printlog(YELLOW, "[StokesAssembler] assembling and projecting matrices\t", M_data.getVerbose());
+    Chrono chrono;
+    chrono.start();
 
-        // BlockMatrix<MatrixEp> fullMass = assembleReducedMass(nullptr);
-        // BlockMatrix<MatrixEp> fullStiffness = assembleReducedStiffness(nullptr);
-        // BlockMatrix<MatrixEp> fullDivergence = assembleReducedDivergence(nullptr);
+    unsigned int id = M_treeNode->M_ID;
 
-        unsigned int id = M_treeNode->M_ID;
+    M_reducedMass.reset(new BlockMatrix(2,2));
+    M_reducedStiffness.reset(new BlockMatrix(2,2));
+    M_reducedDivergence.reset(new BlockMatrix(2,2));
 
-        M_reducedMass.reset(new BlockMatrix(2,2));
-        M_reducedStiffness.reset(new BlockMatrix(2,2));
-        M_reducedDivergence.reset(new BlockMatrix(2,2));
+    auto matrices = M_feStokesAssembler->getMatrices();
+    M_reducedMass->setBlock(0,0,M_bases->matrixProject(matrices[0]->block(0,0), 0, 0, id));
+    M_reducedStiffness->setBlock(0,0,M_bases->matrixProject(matrices[1]->block(0,0), 0, 0, id));
+    M_reducedDivergence->setBlock(0,1,M_bases->matrixProject(matrices[2]->block(0,1), 0, 1, id));
+    M_reducedDivergence->setBlock(1,0,M_bases->matrixProject(matrices[2]->block(1,0), 1, 0, id));
 
-        auto matrices = M_feStokesAssembler->getMatrices();
-        M_reducedMass->setBlock(0,0,M_bases->matrixProject(matrices[0]->block(0,0), 0, 0, id));
-        M_reducedStiffness->setBlock(0,0,M_bases->matrixProject(matrices[1]->block(0,0), 0, 0, id));
-        M_reducedDivergence->setBlock(0,1,M_bases->matrixProject(matrices[2]->block(0,1), 0, 1, id));
-        M_reducedDivergence->setBlock(1,0,M_bases->matrixProject(matrices[2]->block(1,0), 1, 0, id));
-
-        // M_mass.block(0,0) = M_bases->matrixProject(fullMass.block(0,0), 0, 0, id);
-        // M_stiffness.block(0,0) = M_bases->matrixProject(fullStiffness.block(0,0), 0, 0, id);
-        // M_divergence.block(0,1) = M_bases->matrixProject(fullDivergence.block(0,1), 0, 1, id);
-        // M_divergence.block(1,0) = M_bases->matrixProject(fullDivergence.block(1,0), 1, 0, id);
-
-        std::string msg = "done, in ";
-        msg += std::to_string(chrono.diff());
-        msg += " seconds\n";
-        printlog(YELLOW, msg, this->M_data.getVerbose());
-    }
+    std::string msg = "done, in ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(YELLOW, msg, this->M_data.getVerbose());
 }
 
 shp<RBBases>
@@ -378,6 +286,14 @@ StokesAssemblerRB::
 applyPiola(shp<aVector> solution, bool inverse)
 {
     M_feStokesAssembler->applyPiola(solution, inverse);
+}
+
+void
+StokesAssemblerRB::
+setDefaultAssemblers(shp<DefaultAssemblersLibrary> defAssemblers)
+{
+    M_defaultAssemblers = defAssemblers;
+    M_feStokesAssembler->setDefaultAssemblers(defAssemblers);
 }
 
 }

@@ -321,12 +321,15 @@ buildCouplingMatrices(shp<AssemblerType> assembler, const GeometricFace& face,
 
     bfs = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet);
 
+
     std::vector<shp<DistributedVector>> couplingVectors;
     couplingVectors = buildCouplingVectors(bfs, face, assembler);
+
 
     matrixT->resize(assembler->getNumComponents(),1);
     matrix->resize(1,assembler->getNumComponents());
     // we assume that the first field is the one to be coupled
+
     shp<SparseMatrix> couplingMatrix(new SparseMatrix(couplingVectors));
     matrixT->setBlock(0,0,couplingMatrix);
     matrix->setBlock(0,0,couplingMatrix->transpose());
@@ -335,7 +338,6 @@ buildCouplingMatrices(shp<AssemblerType> assembler, const GeometricFace& face,
                                                      assembler->getFESpaceBCs(),
                                                      assembler->getComponentBCs(),
                                                      0.0);
-
 }
 
 void

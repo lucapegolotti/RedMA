@@ -108,6 +108,7 @@ apply0DirichletMatrix(BlockMatrix& input,
     {
         if (!input.block(index, j)->isZero())
         {
+            std::cout << "Applying bcs to " << index << " " << j << std::endl << std::flush;
             shp<MATRIXEPETRA> curMatrix = spcast<MATRIXEPETRA>(input.block(index, j)->data());
             auto domainMap = curMatrix->domainMapPtr();
             auto rangeMap = curMatrix->rangeMapPtr();

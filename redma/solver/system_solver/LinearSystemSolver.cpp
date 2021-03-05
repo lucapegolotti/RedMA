@@ -251,7 +251,7 @@ solveDense(const BM& matrix, const BV& rhs, BV& sol)
         monolithicSolver.SetMatrix(*spcast<DENSEMATRIX>(matrixCollapsed->data()));
         // std::cout << "code = " << monolithicSolver.Factor() << std::endl << std::flush;
         monolithicSolver.SetVectors(*solCollapsedDense, *spcast<DENSEVECTOR>(rhsCollapsed->data()));
-        // std::cout << "code = " << monolithicSolver.Solve() << std::endl << std::flush;
+        std::cout << "code = " << monolithicSolver.Solve() << std::endl << std::flush;
         // std::cout << spcast<DENSEMATRIX>(matrixCollapsed->data())->NormInf() << std::endl << std::flush;
 
         // we need to recast the solCollapsed into a block vector with the same structure

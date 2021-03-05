@@ -31,7 +31,6 @@ setup()
     M_mass = spcast<BlockMatrix>(assembleMass(M_bcManager)); // #1
     M_stiffness = spcast<BlockMatrix>(assembleStiffness(M_bcManager)); // #2
     M_divergence = spcast<BlockMatrix>(assembleDivergence(M_bcManager)); // #3
-
     assembleFlowRateVectors();
     // assembleFlowRateJacobians(this->M_bcManager);
 
@@ -352,13 +351,13 @@ getNorm(const unsigned int& fieldIndex, bool bcs)
             if (bcs)
             {
                 shp<BlockMatrix> normWrap(new BlockMatrix(1,1));
-                normWrap->block(0,0)->data() = Nu;
+                normWrap->setBlock(0,0,wrap(Nu));
 
                 // note. Applying bcs does not change the norm if Dirichlet bcs are
                 // homogeneous (=> lifting) or imposed weakly. Here we impose bcs
                 // in order to have the correct conditions in the computation of the
                 // supremizers (we have to solve a linear system..)
-                applyDirichletBCsMatrix(normWrap, 1.0);
+                M_bcManager->apply0DirichletMatrix(*normWrap, M_velocityFESpace, 0, 1.0);
             }
 
             retMat->setMatrix(Nu);
@@ -409,7 +408,7 @@ applyPiola(shp<aVector> solution, bool inverse)
     using namespace ExpressionAssembly;
 
     auto defAssembler = this->M_defaultAssemblers->
-                        getDefaultAssembler(aAssembler::M_treeNode->M_block->getMeshName());
+                        getDefaultAssembler(M_treeNode->M_block->getMeshName());
 
     if (defAssembler)
     {
@@ -563,7 +562,6 @@ assembleStiffness(shp<BCManager> bcManager)
     stiffness->setBlock(0,0,Awrapper);
 
     bcManager->apply0DirichletMatrix(*stiffness, M_velocityFESpace, 0, 0.0);
-
     return stiffness;
 }
 

@@ -120,9 +120,9 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
         shp<BlockVector> nonLinearTermVec(new BlockVector(2));
         nonLinearTermVec->setBlock(0,nonLinearTermWrap);
 
-        M_bcManager->apply0DirichletBCs(*nonLinearTermVec,
-                                        getFESpaceBCs(),
-                                        getComponentBCs());
+        getBCManager()->apply0DirichletBCs(*nonLinearTermVec,
+                                           getFESpaceBCs(),
+                                           getComponentBCs());
 
         M_nonLinearTerm = M_bases->leftProject(nonLinearTermVec, ID());
     }
@@ -224,9 +224,9 @@ RBsetup()
                 shp<BlockVector> nonLinearTermVec(new BlockVector(2));
                 nonLinearTermVec->setBlock(0,nonLinearTermWrap);
 
-                M_bcManager->apply0DirichletBCs(*nonLinearTermVec,
-                                                getFESpaceBCs(),
-                                                getComponentBCs());
+                getBCManager()->apply0DirichletBCs(*nonLinearTermVec,
+                                                   getFESpaceBCs(),
+                                                   getComponentBCs());
                 M_nonLinearTermsDecomposition[i][j] = M_bases->leftProject(nonLinearTermVec, ID());
             }
         }
