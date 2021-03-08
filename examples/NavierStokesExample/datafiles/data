@@ -11,17 +11,18 @@ outputdir = rb_solutions
 [../]
 
 [assembler]
-	type = navierstokes_membrane
-	stabilization = none
+	type = navierstokes
+	stabilization = supg
 [../]
 
 [bc_conditions]
-    inlet_bc_type = neumann
-    generate_inflow = 0  # use 0 with Neumann BCs and 1 with Dirichlet BCs
+    inlet_bc_type = dirichlet
+    generate_inflow = 1  # use 0 with Neumann BCs and 1 with Dirichlet BCs
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 	coefficientinflow = 1.000552724487405
 	numoutletbcs = 0
+	ring_constraint = full # type of homogeneous BC imposed at I/O rings
 [../]
 
 [rb]
@@ -96,7 +97,7 @@ outputdir = rb_solutions
 [../]
 
 [fluid]
-	velocity_order = P2
+	velocity_order = P1
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1.06
@@ -104,15 +105,16 @@ outputdir = rb_solutions
 
 [structure]
 	time_integration_order = 3
-	poisson      = 0.30
+	poisson      = 0.45
 	num_young    = 1
-	young    	 = 3.e+6
+	young    	 = 4.07e+6
 	thickness    = 0.1
 	density	     = 1.2
 	flag = 10
+	constant_thickness = 1
 	[./external_wall]
-		elastic = 5e4
-		plastic = 5e3
+		elastic = 0
+		plastic = 0
 	[../]
 [../]
 
@@ -123,8 +125,8 @@ outputdir = rb_solutions
 	extrapolation_order = 2
 	t0ramp = 0
 	t0 = 0
-	T = 0.05
-	dt = 0.0005
+	T = 0.1
+	dt = 0.0002
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
 [../]

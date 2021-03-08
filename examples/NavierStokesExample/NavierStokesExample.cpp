@@ -61,7 +61,8 @@ int main(int argc, char **argv)
     else if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "neumann"))
         data.setInflow(inflowNeumann);
     else
-        throw new Exception("Unrecognized inlet BC type!");
+        throw new Exception("Unrecognized inlet BC type! "
+                            "Available types: {dirichlet, neumann}.");
 
     std::string outdir = "solution_fem_reference/";
     data.setValueString("exporter/outdir", outdir);
