@@ -317,9 +317,9 @@ computeFlowRates(shp<aVector> sol, bool verbose)
         auto face = M_treeNode->M_block->getInlet();
 
         flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(solBlck->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
-        std::string msg = "[";
+        msg = "[";
         msg += "StokesModel";
-        msg += "]  inflow rate = ";
+        msg += "]  inflow rate =   ";
         msg += std::to_string(flowRates[face.M_flag]);
         msg += "\n";
         printlog(YELLOW, msg, verbose);
@@ -329,15 +329,19 @@ computeFlowRates(shp<aVector> sol, bool verbose)
     {
         auto faces = this->M_treeNode->M_block->getOutlets();
 
+        unsigned int cnt = 1;
         for (auto face : faces)
         {
             flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(solBlck->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
-            std::string msg = "[";
+            msg = "[";
             msg += "StokesModel";
-            msg += "]  outflow rate = ";
+            msg += "]  outflow ";
+            msg += std::to_string(cnt);
+            msg += " rate = ";
             msg += std::to_string(flowRates[face.M_flag]);
             msg += "\n";
             printlog(YELLOW, msg, verbose);
+            cnt += 1;
         }
     }
 

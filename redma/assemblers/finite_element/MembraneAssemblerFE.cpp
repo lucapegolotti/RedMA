@@ -60,7 +60,8 @@ namespace RedMA {
         double poisson = this->M_dataContainer("structure/poisson", 0.30);
         double young = this->M_dataContainer("structure/young", 4e6);
 
-        M_lameI = (young * poisson) / ((1. - 2 * poisson) * (1. + poisson));
+        // this is not exactly Lame1 (i.e. lambda), but it is the coefficient appearing in the membrane model
+        M_lameI = (young * poisson) / ((1. - poisson) * (1. + poisson));
         M_lameII = young / (2. * (1. + poisson));
 
     }

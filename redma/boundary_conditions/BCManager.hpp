@@ -64,6 +64,8 @@ public:
 
     void applyInflowNeumannBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag = false) const;
 
+    void applyOutflowNeumannBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag = true) const;
+
     double getOutflowNeumannBC(const double& time, const double& flag, const double& rate);
 
     // actually derivative wrt to flowrate
@@ -139,7 +141,7 @@ private:
     std::vector<unsigned int>                        M_outletFlags;
     unsigned int                                     M_wallFlag;
     unsigned int                                     M_inletRingFlag;
-    unsigned int                                     M_outletRingFlag;
+    std::vector<unsigned int>                        M_outletRingFlags;
 
     shp<MATRIXEPETRA>                                M_globalRotationMatrix;
 

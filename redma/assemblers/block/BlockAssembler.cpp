@@ -438,12 +438,19 @@ setup()
             {
                 unsigned int otherID = (*itVector)->M_ID;
                 shp<InnerAssembler> childAssembler = M_primalAssemblers[otherID];
+
+                if (spcast<StokesAssemblerFE>(fatherAssembler)->hasNoSlipBCs() !=
+                    spcast<StokesAssemblerFE>(childAssembler)->hasNoSlipBCs())
+                    throw new Exception("Father and Child assemblers MUST have the same "
+                                        "type of BCs at the vessel wall!");
+
                 Interface newInterface(fatherAssembler, myID,
                                        childAssembler, otherID,
                                        interfaceID);
                 newInterface.M_indexOutlet = countChildren;
                 shp<InterfaceAssembler> inAssembler;
-                inAssembler.reset(new InterfaceAssembler(this->M_data, newInterface));
+                inAssembler.reset(new InterfaceAssembler(this->M_data, newInterface,
+                                                           spcast<StokesAssemblerFE>(fatherAssembler)->hasNoSlipBCs()));
                 M_dualAssemblers.push_back(inAssembler);
                 interfaceID++;
             }
@@ -462,7 +469,8 @@ setup()
                                                interfaceID);
 
         shp<InterfaceAssembler> inletInAssembler;
-        inletInAssembler.reset(new InletInflowAssembler(this->M_data, newInterface));
+        inletInAssembler.reset(new InletInflowAssembler(this->M_data, newInterface,
+                                                        spcast<StokesAssemblerFE>(inletAssembler)->hasNoSlipBCs()));
 
         M_dualAssemblers.push_back(inletInAssembler);
         interfaceID++;

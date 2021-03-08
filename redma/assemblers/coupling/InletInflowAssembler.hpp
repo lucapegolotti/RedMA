@@ -32,9 +32,11 @@ public:
      *
      * \param data The DataContainer of the problem.
      * \param interface The interface.
+     * \param addNoSlipBC True in no-slip BCs at the vessel wall are desired (default)
      */
     InletInflowAssembler(const DataContainer& data,
-                         const Interface& interface);
+                         const Interface& interface,
+                         const bool& addNoSlipBC = true);
 
     /*! \brief Add coupling contribution to a right-hand side.
     *

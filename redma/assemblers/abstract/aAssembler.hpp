@@ -282,6 +282,12 @@ public:
      */
     virtual void setRBBases(shp<RBBasesManager> rbManager) {}
 
+    /*! \brief Getter for the no-slip BCs at the lateral wall.
+     *
+     * \return True if no-slip BC at the lateral wall are imposed.
+     */
+    // virtual inline bool hasNoSlipBCs() const = 0;
+
 protected:
     DataContainer                           M_data;
     shp<TreeNode>                           M_treeNode;

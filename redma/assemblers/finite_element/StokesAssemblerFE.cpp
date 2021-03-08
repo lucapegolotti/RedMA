@@ -135,18 +135,16 @@ addNeumannBCs(double time, shp<aVector> sol, shp<aVector> rhs)
 
     if (aAssembler::M_treeNode->isOutletNode())
     {
-        auto flowRates = computeFlowRates(sol, true);
+        auto flowRates = this->computeFlowRates(sol, true);
+        for (auto rate : flowRates) {
+            if (rate.first != aAssembler::M_treeNode->M_block->getInlet().M_flag) {
+                double P = this->M_bcManager->getOutflowNeumannBC(time, rate.first, rate.second);
 
-        for (auto rate : flowRates)
-        {
-            double P = this->M_bcManager->getOutflowNeumannBC(time, rate.first, rate.second);
+                shp<VECTOREPETRA> flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
+                *flowRateCopy *= P;
 
-            shp<VECTOREPETRA> flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
-            *flowRateCopy *= P;
-
-            *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;
-
-            // *spcast<VECTOREPETRA>(rhs.block(0)->data()) += *flowRateCopy;
+                *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;
+            }
         }
     }
 }
@@ -164,15 +162,17 @@ getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
     if (aAssembler::M_treeNode->isOutletNode())
     {
         auto flowRates = computeFlowRates(sol);
-
         for (auto rate : flowRates)
         {
-            double dhdQ = this->M_bcManager->getOutflowNeumannJacobian(time, rate.first, rate.second);
-            shp<BlockMatrix> curjac(new BlockMatrix(2,2));
-            curjac->deepCopy(M_flowRateJacobians[rate.first]);
-            curjac->multiplyByScalar(dhdQ);
+            if (rate.first != aAssembler::M_treeNode->M_block->getInlet().M_flag)
+            {
+                double dhdQ = this->M_bcManager->getOutflowNeumannJacobian(time, rate.first, rate.second);
+                shp<BlockMatrix> curjac(new BlockMatrix(2,2));
+                curjac->deepCopy(M_flowRateJacobians[rate.first]);
+                curjac->multiplyByScalar(dhdQ);
 
-            retMat->add(curjac);
+                retMat->add(curjac);
+            }
         }
     }
 

@@ -81,16 +81,20 @@ public:
     /*! \brief Constructor taking a DataContainer as argument.
      *
      * \param data The DataContainer of the problem.
+     * \param addNoSlipBC True in no-slip BCs at the vessel wall are desired (default)
      */
-    InterfaceAssembler(const DataContainer& data);
+    InterfaceAssembler(const DataContainer& data,
+                       const bool& addNoSlipBC = true);
 
     /*! \brief Constructor taking a DataContainer and an Interface as arguments.
      *
      * \param data The DataContainer of the problem.
      * \param interface The interface.
+     * \param addNoSlipBC True in no-slip BCs at the vessel wall are desired (default)
      */
     InterfaceAssembler(const DataContainer& data,
-                       const Interface& interface);
+                       const Interface& interface,
+                       const bool& addNoSlipBC = true);
 
     /// Default empty destructor.
     virtual ~InterfaceAssembler() {}
@@ -127,13 +131,13 @@ public:
                                   const GeometricFace& face,
                                   shp<BlockMatrix> matrix);
 
-    /*! \brief Build Epetra map for the Lagrange multiplier space.
+    /*! \brief Build Epetra map for the Lagrange multiplier space [Not implemented at the moment!].
      *
      * \param bfs Shared pointer to the BasisFunctionFunctor.
      */
     void buildMapLagrange(shp<BasisFunctionFunctor> bfs);
 
-    /* \brief Add coupling contribution to a right-hand side.
+    /*! \brief Add coupling contribution to a right-hand side.
      *
      * \param time Current time (needed in derived classes).
      * \param rhs Shared pointer to the right-hand side.
@@ -145,7 +149,7 @@ public:
                                     shp<BlockVector> sol,
                                     const unsigned int& nPrimalBlocks);
 
-    /* \brief Add coupling contribution to the jacobian right-hand side.
+    /*! \brief Add coupling contribution to the jacobian right-hand side.
      *
      * \param time Current time (needed in derived classes).
      * \param jac Shared pointer to the jacobian of the right-hand side.
@@ -163,13 +167,13 @@ public:
      */
     inline Interface getInterface() const {return M_interface;};
 
-    /* \brief Getter for the zero-vector.
+    /*! \brief Getter for the zero-vector.
      *
      * \return Shared pointer to BlockVector containing the zero vector.
      */
     shp<BlockVector> getZeroVector() const;
 
-    /* \brief Check norm of the stabilization term.
+    /*! \brief Check norm of the stabilization term.
      *
      * \param Shared pointer to the solution.
      * \param nPrimalBlocks Number of primal blocks in the problem.
@@ -248,6 +252,7 @@ protected:
     shp<const LifeV::MapEpetra>            M_mapLagrange;
     double                                 M_stabilizationCoupling;
     bool                                   M_isInlet;
+    bool                                   M_addNoSlipBC;
 };
 
 }

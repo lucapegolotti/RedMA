@@ -58,17 +58,13 @@ public:
 
     void setExporter() override;
 
-    virtual inline shp<FESPACE> getFESpaceBCs() const override
-    {
-        return this->M_velocityFESpace;
-    }
+    virtual inline shp<FESPACE> getFESpaceBCs() const override {return this->M_velocityFESpace;}
 
     virtual inline unsigned int getComponentBCs() const override {return 0;}
 
-    virtual inline shp<ETFESPACE3> getETFESpaceCoupling() const override
-    {
-        return this->M_velocityFESpaceETA;
-    }
+    virtual inline shp<ETFESPACE3> getETFESpaceCoupling() const override {return this->M_velocityFESpaceETA;}
+
+    virtual inline bool hasNoSlipBCs() const {return M_addNoSlipBC;}
 
     void applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
 

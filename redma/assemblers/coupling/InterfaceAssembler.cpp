@@ -9,46 +9,6 @@ generateQuadratureRule(std::string tag) const
 {
     using namespace LifeV;
 
-  //   0.33333333333333331       0.33333333333333331
-  // 2.06349616025259287E-002  0.48968251919873701
-  // 0.48968251919873701       2.06349616025259287E-002
-  // 0.48968251919873701       0.48968251919873701
-  // 0.12582081701412900       0.43708959149293553
-  // 0.43708959149293553       0.12582081701412900
-  // 0.43708959149293553       0.43708959149293553
-  // 0.62359292876193562       0.18820353561903219
-  // 0.18820353561903219       0.62359292876193562
-  // 0.18820353561903219       0.18820353561903219
-  // 0.91054097321109406       4.47295133944529688E-002
-  // 4.47295133944529688E-002  0.91054097321109406
-  // 4.47295133944529688E-002  4.47295133944529688E-002
-  // 0.74119859878449801       3.68384120547362581E-002
-  // 0.74119859878449801       0.22196298916076573
-  // 3.68384120547362581E-002  0.74119859878449801
-  // 3.68384120547362581E-002  0.22196298916076573
-  // 0.22196298916076573       0.74119859878449801
-  // 0.22196298916076573       3.68384120547362581E-002
-
-  // 9.71357962827961025E-002
-  // 3.13347002271398278E-002
-  // 3.13347002271398278E-002
-  // 3.13347002271398278E-002
-  // 7.78275410047754301E-002
-  // 7.78275410047754301E-002
-  // 7.78275410047754301E-002
-  // 7.96477389272090969E-002
-  // 7.96477389272090969E-002
-  // 7.96477389272090969E-002
-  // 2.55776756586981006E-002
-  // 2.55776756586981006E-002
-  // 2.55776756586981006E-002
-  // 4.32835393772893970E-002
-  // 4.32835393772893970E-002
-  // 4.32835393772893970E-002
-  // 4.32835393772893970E-002
-  // 4.32835393772893970E-002
-  // 4.32835393772893970E-002
-
     shp<QuadratureRule> customRule;
     if (!std::strcmp(tag.c_str(),"STRANG10"))
     {
@@ -216,18 +176,22 @@ Interface(shp<AssemblerType> assemblerFather, const int& indexFather,
 }
 
 InterfaceAssembler::
-InterfaceAssembler(const DataContainer& data) :
+InterfaceAssembler(const DataContainer& data,
+                   const bool& addNoSlipBC) :
   M_data(data),
-  M_isInlet(false)
+  M_isInlet(false),
+  M_addNoSlipBC(addNoSlipBC)
 {
 }
 
 InterfaceAssembler::
 InterfaceAssembler(const DataContainer& data,
-                   const Interface& interface) :
+                   const Interface& interface,
+                   const bool& addNoSlipBC) :
   M_data(data),
   M_interface(interface),
-  M_isInlet(false)
+  M_isInlet(false),
+  M_addNoSlipBC(addNoSlipBC)
 {
     if (M_interface.M_indexFather == -1 || M_interface.M_indexChild == -1)
         M_isInlet = true;
@@ -334,8 +298,7 @@ buildCouplingMatrices(shp<AssemblerType> assembler, const GeometricFace& face,
     assembler->getBCManager()->apply0DirichletMatrix(*matrixT,
                                                      assembler->getFESpaceBCs(),
                                                      assembler->getComponentBCs(),
-                                                     0.0);
-
+                                                     0.0, !(M_addNoSlipBC));
 }
 
 void
@@ -363,11 +326,13 @@ addContributionRhs(const double& time, shp<BlockVector> rhs,
     // no need to apply bcs as matrices have already bcs in them
     // assemblerFather->getBCManager()->apply0DirichletBCs(rhs.block(fatherID),
     //                                                     assemblerFather->getFESpaceBCs(),
-    //                                                     assemblerFather->getComponentBCs());
+    //                                                     assemblerFather->getComponentBCs(),
+    //                                                     !(M_addNoSlipBC));
     //
     // assemblerChild->getBCManager()->apply0DirichletBCs(rhs.block(childID),
     //                                                    assemblerChild->getFESpaceBCs(),
-    //                                                    assemblerChild->getComponentBCs());
+    //                                                    assemblerChild->getComponentBCs(),
+    //                                                    !(M_addNoSlipBC));
 
     tempResFather = M_fatherB->multiplyByVector(sol->block(fatherID));
     tempResFather->multiplyByScalar(-1.0);
@@ -562,6 +527,13 @@ buildStabilizationMatrix(shp<AssemblerType> assembler,
     // M_identity.resize(1,1);
     //
     // M_identity.block(0,0).shallowCopy(MatrixEp(stabVectorsLagrange));
+}
+
+void
+InterfaceAssembler::
+buildMapLagrange(shp<BasisFunctionFunctor> bfs)
+{
+    // NOT IMPLEMENTED
 }
 
 }

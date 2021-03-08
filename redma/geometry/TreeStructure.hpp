@@ -37,15 +37,19 @@ namespace RedMA
 
 class TreeNode
 {
+private:
+    typedef LifeV::VectorSmall<3>          Vector3D;
 public:
     TreeNode(shp<BuildingBlock> block, unsigned int id);
 
-    bool isOutletNode();
+    bool isOutletNode() const;
 
-    bool isInletNode();
+    bool isInletNode() const;
 
-    std::vector<shp<TreeNode> > M_children;
-    shp<BuildingBlock>          M_block;
+    std::vector<GeometricFace> getOutlets() const;
+
+    std::vector<shp<TreeNode>>              M_children;
+    shp<BuildingBlock>                      M_block;
     unsigned int                            M_ID;
     unsigned int                            M_depth;
     unsigned int                            M_nChildren;

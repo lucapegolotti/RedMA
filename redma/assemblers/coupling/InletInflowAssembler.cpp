@@ -5,8 +5,9 @@ namespace RedMA
 
 InletInflowAssembler::
 InletInflowAssembler(const DataContainer& data,
-                     const Interface& interface) :
-  InterfaceAssembler(data, interface)
+                     const Interface& interface,
+                     const bool& addNoSlipBC) :
+  InterfaceAssembler(data, interface, addNoSlipBC)
 {
 }
 

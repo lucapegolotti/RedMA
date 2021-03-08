@@ -59,7 +59,7 @@ namespace RedMA {
         else
         {
             // If the thickness is chosen as constant, then the reference radius is the average
-            // between the inlet radius and the average of the outlet radia.
+            // between the inlet radius and the average of the outlets radia.
             double R_out_mean = (std::accumulate(std::begin(R_out), std::end(R_out), 0.0)) / (R_out.size());
             M_R_in = 0.5 * (R_in + R_out_mean);
         }
