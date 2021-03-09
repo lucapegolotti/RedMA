@@ -490,18 +490,15 @@ matrixProject(MatrixEp matrix, unsigned int basisIndexRow,
     if (matrix.data())
     {
         // Vrow' A Vcol
-
         // compute A Vcol
         auto rangeMap = matrix.data()->rangeMapPtr();
         auto domainMap = getEnrichedBasisMatrices(basisIndexCol, ID, false).data()->domainMapPtr();
 
         SHP(MATRIXEPETRA) auxMatrix(new MATRIXEPETRA(*rangeMap));
-
         matrix.data()->multiply(false, *getEnrichedBasisMatrices(basisIndexCol, ID, false).data(),
                                 false, *auxMatrix);
 
         auxMatrix->globalAssemble(domainMap, rangeMap);
-
         rangeMap = getEnrichedBasisMatrices(basisIndexRow, ID, false).data()->domainMapPtr();
 
         SHP(MATRIXEPETRA) innerMatrix(new MATRIXEPETRA(*rangeMap));
@@ -598,14 +595,14 @@ getEnrichedBasisMatrices(const unsigned int& index, const unsigned int& ID,
 {
     if (!transpose)
     {
-        if (~M_enrichedBasesMatricesMap[index][ID].isNull())
+        if (!M_enrichedBasesMatricesMap[index][ID].isNull())
             return M_enrichedBasesMatricesMap[index][ID];
 
         return M_enrichedBasesMatrices[index];
     }
     else
     {
-        if (~M_enrichedBasesMatricesTransposedMap[index][ID].isNull())
+        if (!M_enrichedBasesMatricesTransposedMap[index][ID].isNull())
             return M_enrichedBasesMatricesTransposedMap[index][ID];
 
         return M_enrichedBasesMatricesTransposed[index];

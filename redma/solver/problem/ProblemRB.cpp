@@ -9,7 +9,8 @@ ProblemRB(const DataContainer& data, EPETRACOMM comm, bool doSetup) :
   M_geometryParser(data.getDatafile(),
                    data("geometric_structure/xmlfile","tree.xml"),
                    comm, data.getVerbose()),
-  M_storeSolutions(false)
+  M_storeSolutions(false),
+  M_comm(comm)
 {
     M_tree = M_geometryParser.getTree();
 
@@ -29,8 +30,10 @@ setup()
 
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();
-
-    M_assembler.reset(new BAssembler(M_data, M_tree));
+    
+    M_defaultAssemblers.reset(new DefaultAssemblersLibrary<FEVECTOR COMMA FEMATRIX>
+                              (M_data, M_tree.getMeshListNames(), M_comm));
+    M_assembler.reset(new BAssembler(M_data, M_tree, M_defaultAssemblers));
     M_TMAlgorithm = TimeMarchingAlgorithmFactory<BV, BM>(M_data, M_assembler);
     printlog(MAGENTA, "done\n", M_data.getVerbose());
 }

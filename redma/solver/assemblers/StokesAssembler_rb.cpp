@@ -274,11 +274,9 @@ RBsetup()
         printlog(YELLOW, "[StokesAssembler] NOT using MDEIM: assembling and projecting matrices\t", M_data.getVerbose());
         Chrono chrono;
         chrono.start();
-
         BlockMatrix<MatrixEp> fullMass = assembleReducedMass(nullptr);
         BlockMatrix<MatrixEp> fullStiffness = assembleReducedStiffness(nullptr);
         BlockMatrix<MatrixEp> fullDivergence = assembleReducedDivergence(nullptr);
-
         unsigned int id = M_treeNode->M_ID;
 
         M_mass.block(0,0) = M_bases->matrixProject(fullMass.block(0,0), 0, 0, id);
