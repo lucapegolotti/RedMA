@@ -25,7 +25,7 @@
 namespace RedMA
 {
 
-class StokesAssemblerRB : public aAssemblerRB, public StokesModel
+class StokesAssemblerRB : public aAssemblerRB
 {
 public:
     StokesAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode);
@@ -53,26 +53,17 @@ public:
 
     virtual shp<aVector> getLifting(const double& time) const override;
 
-    void initializeFEspaces() override;
-
-    void setExporter() override;
-
     virtual inline shp<FESPACE> getFESpaceBCs() const override
     {
-        return this->M_velocityFESpace;
+        return M_feStokesAssembler->getFESpaceBCs();
     }
 
     virtual inline unsigned int getComponentBCs() const override {return 0;}
 
     virtual inline shp<ETFESPACE3> getETFESpaceCoupling() const override
     {
-        return this->M_velocityFESpaceETA;
+        return M_feStokesAssembler->getETFESpaceCoupling();
     }
-
-    // virtual inline shp<ETFESPACE1> getETFESpaceSecondary() const override
-    // {
-    //     return this->M_pressureFESpaceETA;
-    // }
 
     void applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
 
@@ -80,13 +71,14 @@ public:
 
     void applyDirichletBCs(const double& time, shp<aVector> vector) const override;
 
-    virtual inline shp<FESPACE> getFEspace(unsigned int index) const override {}
+    virtual inline shp<FESPACE> getFEspace(unsigned int index) const override
+    {
+        return M_feStokesAssembler->getFEspace(index);
+    }
 
     virtual std::vector<shp<aMatrix>> getMatrices() const override;
 
     virtual shp<aMatrix> assembleMatrix(const unsigned int& index) override;
-
-    // virtual void setMDEIMs(shp<MDEIMManager> mdeimManager) override {throw new Exception("setMDEIMs method not implemented for RB");}
 
     void setExtrapolatedSolution(const shp<aVector>& exSol) override {throw new Exception("setExtrapolatedSolution method not implemented for RB");}
 
@@ -100,6 +92,13 @@ public:
 
     virtual shp<aVector> convertFunctionRBtoFEM(shp<aVector> rbSolution) const override;
 
+    virtual void setDefaultAssemblers(shp<DefaultAssemblersLibrary> defAssemblers) override;
+
+    inline virtual shp<BCManager> getBCManager() const override
+    {
+        return M_feStokesAssembler->getBCManager();
+    }
+
 protected:
     shp<LifeV::Exporter<MESH>>                        M_exporter;
     shp<VECTOREPETRA>                                 M_velocityExporter;
@@ -111,6 +110,7 @@ protected:
     shp<BlockMatrix>                                  M_reducedMass;
     shp<BlockMatrix>                                  M_reducedDivergence;
     shp<BlockMatrix>                                  M_reducedStiffness;
+    shp<StokesAssemblerFE>                            M_feStokesAssembler;
 };
 
 }

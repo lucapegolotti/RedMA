@@ -47,6 +47,11 @@ public:
 
     inline unsigned int nRows() const {return M_nRows;}
 
+    virtual shp<aVector> block(const unsigned int& row) const
+    {
+        throw new Exception("block(row) function not overloaded!");
+    }
+
 protected:
     unsigned int        M_nRows;
 };

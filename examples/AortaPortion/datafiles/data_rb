@@ -62,7 +62,7 @@ outputdir = rb_solutions
 	[../]
 	[./online]
 		usemdeim = false
-		monolithicSolve = false
+		monolithicSolve = true
 		recomputeSchur = false
 		approximatenonlinearterm = 0
 		[./basis]
@@ -70,7 +70,8 @@ outputdir = rb_solutions
 			podtol_field0 = 1e-1
 			podtol_field1 = 1e-5
 			useprimalsupremizers = 1
-			usedualsupremizers = 0
+			usedualsupremizers = 1
+			numberdualsupremizers = 30
 		[../]
 		[./mdeim]
 			loadfullbasis   = true
@@ -140,8 +141,8 @@ outputdir = rb_solutions
 
 [coupling]
 	type                = chebyshev
-	nMax                = 5
+	nMax                = 2
 	stab_coefficient	= 1e-16
 	check_stabterm		= true
-	nfcts_weak_dirichlet = 5
+	nfcts_weak_dirichlet = 2
 [../]

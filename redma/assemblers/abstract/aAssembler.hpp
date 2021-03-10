@@ -36,7 +36,7 @@ namespace RedMA
  * This class takes care of the assembly of the structures related to a particular
  * discretized PDE. We recall that we consider PDEs of the form
  *  \f[
- *    \Large M(u) \dot{u} = F(t,u),
+ *    M(u) \dot{u} = F(t,u),
  *  \f]
  * where \f$M\f$ is the mass matrix, \f$u\f$ is the solution and \f$F\f$ is the right-hand side.
  */
@@ -137,10 +137,10 @@ public:
      */
     virtual inline shp<FESPACE> getFEspace(unsigned int index) const {return nullptr;}
 
-    /*! \brief Getter for the finite element s corresponding to the Dirichlet bcs (e.g., in the
+    /*! \brief Getter for the finite element space corresponding to the Dirichlet bcs (e.g., in the
      *         Stokes equations, the finite element s of the velocity).
      *
-     * \return Shared pointer to desired finite element s.
+     * \return Shared pointer to desired finite element space.
      */
     virtual inline shp<FESPACE> getFESpaceBCs() const {return nullptr;}
 
@@ -208,7 +208,9 @@ public:
      */
     virtual void apply0DirichletBCs(shp<aVector> vector) const = 0;
 
-    /*! \brief Virtual method to apply homogeneous Dirichlet bcs to a vector.
+    /*! \brief Virtual method to apply Dirichlet bcs to a vector.
+     *
+     * The boundary condtion is evaluated at the time provided as input.
      *
      * \param time Current time.
      * \param vector The vector to which the bcs must be applied.
@@ -233,12 +235,6 @@ public:
      */
     virtual shp<aMatrix> assembleMatrix(const unsigned int& index) {return shp<aMatrix>();}
 
-    // /*! \brief Setter for MDEIMs manager.
-    //  *
-    //  *  Currently not supported.
-    //  */
-    // virtual void setMDEIMs(shp<MDEIMManager> mdeimManager) {}
-
     /*! \brief Get nonlinear part of the right-hand side (when applicable).
      *
      * \return Shared pointer to aVector of the nonlinear term.
@@ -247,8 +243,8 @@ public:
 
     /*! \brief Initializer for the finite element spaces.
      *
-     * Not implemented for aAssembler. It must be overloaded by the local assemblers
-     * (but not the block one).
+     * Not implemented for aAssembler. It must be overloaded by the local finite
+     * element assemblers (but not the block one).
      */
     virtual void initializeFEspaces() {};
 

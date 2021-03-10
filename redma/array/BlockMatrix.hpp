@@ -70,7 +70,7 @@ public:
 
     void resize(const unsigned int& nRows, const unsigned int& nCols);
 
-    shp<aMatrix> block(const unsigned int& iblock, const unsigned int& jblock) const;
+    shp<aMatrix> block(const unsigned int& iblock, const unsigned int& jblock) const override;
 
     void setBlock(const unsigned int& iblock, const unsigned int& jblock,
                   shp<aMatrix> matrix);

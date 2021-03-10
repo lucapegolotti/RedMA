@@ -6,8 +6,7 @@ namespace RedMA
 
 NavierStokesAssemblerRB::
 NavierStokesAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode) :
-  StokesAssemblerRB(data,treeNode),
-  NavierStokesModel(data,treeNode)
+  StokesAssemblerRB(data,treeNode)
 {
     M_name = "NavierStokesAssemblerRB";
     M_exactJacobian = M_data("rb/online/exactjacobian",0);
@@ -35,26 +34,26 @@ addConvectiveTermJacobianRightHandSide(shp<aVector> sol, shp<aVector> lifting,
     using namespace ExpressionAssembly;
 
     shp<VECTOREPETRA>  velocityHandler;
-    velocityHandler = M_bases->reconstructFEFunction(convert<BlockVector>(sol)->block(0), 0, StokesModel::M_treeNode->M_ID);
+    velocityHandler = M_bases->reconstructFEFunction(convert<BlockVector>(sol)->block(0), 0, M_treeNode->M_ID);
 
     // shp<VECTOREPETRA>  liftingHandler;
     // liftingHandler = M_bases->reconstructFEFunction(lifting->block(0), 0, StokesModel::M_treeNode->M_ID);
 
-    shp<MATRIXEPETRA>  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
+    shp<MATRIXEPETRA>  convectiveMatrix(new MATRIXEPETRA(M_feStokesAssembler->getFEspace(0)->map()));
     shp<VECTOREPETRA>  velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
     // shp<VECTOREPETRA>  liftingRepeated(new VECTOREPETRA(*liftingHandler, Repeated));
 
-    integrate(elements(M_velocityFESpaceETA->mesh()),
-               M_velocityFESpace->qr(),
-               M_velocityFESpaceETA,
-               M_velocityFESpaceETA,
-               value(this->M_density) *
+    shp<ETFESPACE3> velocityFESpaceETA = M_feStokesAssembler->getVelocityETFEspace();
+    double density = M_feStokesAssembler->getDensity();
+    integrate(elements(velocityFESpaceETA->mesh()),
+               M_feStokesAssembler->getFEspace(0)->qr(),
+               velocityFESpaceETA,
+               velocityFESpaceETA,
+               value(density) *
                dot(
                (
-               value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j) +
-               phi_j * grad(M_velocityFESpaceETA , *velocityRepeated)
-               // +
-               // value(M_velocityFESpaceETA , *liftingRepeated) * grad(phi_j)
+               value(velocityFESpaceETA , *velocityRepeated) * grad(phi_j) +
+               phi_j * grad(velocityFESpaceETA , *velocityRepeated)
                ),
                phi_i)
              ) >> convectiveMatrix;
@@ -64,7 +63,7 @@ addConvectiveTermJacobianRightHandSide(shp<aVector> sol, shp<aVector> lifting,
     shp<SparseMatrix> matrixWrap(new SparseMatrix());
     matrixWrap->setMatrix(convectiveMatrix);
 
-    unsigned int id = StokesModel::M_treeNode->M_ID;
+    unsigned int id = M_treeNode->M_ID;
     auto projectedMat = M_bases->matrixProject(matrixWrap, 0, 0, id);
 
     projectedMat->multiplyByScalar(-1);
@@ -97,17 +96,19 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
 
     if (!approximatenonlinearterm)
     {
-        shp<VECTOREPETRA>  nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
+        shp<VECTOREPETRA>  nonLinearTerm(new VECTOREPETRA(M_feStokesAssembler->getFEspace(0)->map()));
         shp<VECTOREPETRA>  velocityReconstructed;
 
-        velocityReconstructed = M_bases->reconstructFEFunction(solBlck->block(0), 0, StokesModel::M_treeNode->M_ID);
+        velocityReconstructed = M_bases->reconstructFEFunction(solBlck->block(0), 0, M_treeNode->M_ID);
 
-        integrate(elements(M_velocityFESpaceETA->mesh()),
-                   M_velocityFESpace->qr(),
-                   M_velocityFESpaceETA,
-                   value(this->M_density) *
-                   dot(value(M_velocityFESpaceETA , *velocityReconstructed) *
-                       grad(M_velocityFESpaceETA , *velocityReconstructed),
+        shp<ETFESPACE3> velocityFESpaceETA = M_feStokesAssembler->getVelocityETFEspace();
+        double density = M_feStokesAssembler->getDensity();
+        integrate(elements(velocityFESpaceETA->mesh()),
+                   M_feStokesAssembler->getFEspace(0)->qr(),
+                   velocityFESpaceETA,
+                   value(density) *
+                   dot(value(velocityFESpaceETA , *velocityReconstructed) *
+                        grad(velocityFESpaceETA , *velocityReconstructed),
                    phi_i)
                  ) >> nonLinearTerm;
 
@@ -119,9 +120,9 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
         shp<BlockVector> nonLinearTermVec(new BlockVector(2));
         nonLinearTermVec->setBlock(0,nonLinearTermWrap);
 
-        M_bcManager->apply0DirichletBCs(*nonLinearTermVec,
-                                        getFESpaceBCs(),
-                                        getComponentBCs());
+        getBCManager()->apply0DirichletBCs(*nonLinearTermVec,
+                                           getFESpaceBCs(),
+                                           getComponentBCs());
 
         M_nonLinearTerm = M_bases->leftProject(nonLinearTermVec, ID());
     }
@@ -184,15 +185,15 @@ RBsetup()
         Chrono chrono;
         chrono.start();
 
-        auto velocityBasis = M_bases->getEnrichedBasis(0, StokesModel::M_treeNode->M_ID);
+        auto velocityBasis = M_bases->getEnrichedBasis(0, M_treeNode->M_ID);
 
         int nterms = M_data("rb/online/numbernonlinearterms", 20);
 
         if (nterms == -1)
             nterms = velocityBasis.size();
 
-        shp<MATRIXEPETRA> nonLinearMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
-        shp<VECTOREPETRA> nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
+        shp<MATRIXEPETRA> nonLinearMatrix(new MATRIXEPETRA(M_feStokesAssembler->getFEspace(0)->map()));
+        shp<VECTOREPETRA> nonLinearTerm(new VECTOREPETRA(M_feStokesAssembler->getFEspace(0)->map()));
 
         M_nonLinearTermsDecomposition.resize(nterms);
         for (unsigned int i = 0; i < nterms; i++)
@@ -200,12 +201,14 @@ RBsetup()
             M_nonLinearTermsDecomposition[i].resize(nterms);
             nonLinearMatrix->zero();
 
-            integrate(elements(M_velocityFESpaceETA->mesh()),
-                       M_velocityFESpace->qr(),
-                       M_velocityFESpaceETA,
-                       M_velocityFESpaceETA,
-                       value(this->M_density) *
-                       dot(value(M_velocityFESpaceETA , *velocityBasis[i]) * grad(phi_j),
+            shp<ETFESPACE3> velocityFESpaceETA = M_feStokesAssembler->getVelocityETFEspace();
+            double density = M_feStokesAssembler->getDensity();
+            integrate(elements(velocityFESpaceETA->mesh()),
+                       M_feStokesAssembler->getFEspace(0)->qr(),
+                       velocityFESpaceETA,
+                       velocityFESpaceETA,
+                       value(density) *
+                       dot(value(velocityFESpaceETA , *velocityBasis[i]) * grad(phi_j),
                        phi_i)
                      ) >> nonLinearMatrix;
 
@@ -221,9 +224,9 @@ RBsetup()
                 shp<BlockVector> nonLinearTermVec(new BlockVector(2));
                 nonLinearTermVec->setBlock(0,nonLinearTermWrap);
 
-                M_bcManager->apply0DirichletBCs(*nonLinearTermVec,
-                                                getFESpaceBCs(),
-                                                getComponentBCs());
+                getBCManager()->apply0DirichletBCs(*nonLinearTermVec,
+                                                   getFESpaceBCs(),
+                                                   getComponentBCs());
                 M_nonLinearTermsDecomposition[i][j] = M_bases->leftProject(nonLinearTermVec, ID());
             }
         }

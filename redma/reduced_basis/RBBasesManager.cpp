@@ -30,16 +30,20 @@ load()
     {
         std::string curdir = basisdir + "/" + idmeshpair.second;
 
-        // count number of fields
-        unsigned int numFields = 0;
-        while (fs::exists(curdir + "/svd" + std::to_string(numFields) + ".txt"))
-            numFields++;
+        if (fs::exists(curdir))
+        {
+            // count number of fields
 
-        shp<RBBases> newBases(new RBBases(M_data, M_comm));
-        newBases->setNumberOfFields(numFields);
-        newBases->setPath(curdir);
-        newBases->loadSingularValues();
-        M_bases[idmeshpair.second] = newBases;
+            unsigned int numFields = 0;
+            while (fs::exists(curdir + "/svd" + std::to_string(numFields) + ".txt"))
+                numFields++;
+
+            shp<RBBases> newBases(new RBBases(M_data, M_comm));
+            newBases->setNumberOfFields(numFields);
+            newBases->setPath(curdir);
+            newBases->loadSingularValues();
+            M_bases[idmeshpair.second] = newBases;
+        }
     }
 
     msg = "done, in ";
@@ -59,7 +63,9 @@ loadBases()
     printlog(YELLOW, msg, this->M_data.getVerbose());
 
     for (auto& bases : M_bases)
+    {
         bases.second->loadBases();
+    }
 
     msg = "done, in ";
     msg += std::to_string(chrono.diff());

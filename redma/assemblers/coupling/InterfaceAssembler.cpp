@@ -283,12 +283,15 @@ buildCouplingMatrices(shp<AssemblerType> assembler, const GeometricFace& face,
 
     bfs = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet);
 
+
     std::vector<shp<DistributedVector>> couplingVectors;
     couplingVectors = buildCouplingVectors(bfs, face, assembler);
+
 
     matrixT->resize(assembler->getNumComponents(),1);
     matrix->resize(1,assembler->getNumComponents());
     // we assume that the first field is the one to be coupled
+
     shp<SparseMatrix> couplingMatrix(new SparseMatrix(couplingVectors));
     matrixT->setBlock(0,0,couplingMatrix);
     matrix->setBlock(0,0,couplingMatrix->transpose());
@@ -311,7 +314,6 @@ addContributionRhs(const double& time, shp<BlockVector> rhs,
     shp<aAssembler> assemblerChild = M_interface.M_assemblerChild;
 
     shp<aVector> tempResFather;
-
     // we have (-1) because we are solving H un+1 = F(.) and coupling is in F
     tempResFather = M_fatherBT->multiplyByVector(sol->block(nPrimalBlocks + interfaceID));
     tempResFather->multiplyByScalar(-1.0);

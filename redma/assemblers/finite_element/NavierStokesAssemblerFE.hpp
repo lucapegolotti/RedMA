@@ -18,13 +18,12 @@
 #define NAVIERSTOKESASSEMBLERFE_HPP
 
 #include <redma/assemblers/finite_element/StokesAssemblerFE.hpp>
-#include <redma/assemblers/models/NavierStokesModel.hpp>
 #include <redma/assemblers/finite_element/SUPGStabilization.hpp>
 
 namespace RedMA
 {
 
-class NavierStokesAssemblerFE : public StokesAssemblerFE, public NavierStokesModel
+class NavierStokesAssemblerFE : public StokesAssemblerFE
 {
 public:
     NavierStokesAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode,
@@ -33,11 +32,11 @@ public:
     void setup() override;
 
     void addConvectiveMatrixRightHandSide(shp<aVector> sol,
-                                          shp<aMatrix> mat) override;
+                                          shp<aMatrix> mat);
 
     void addConvectiveTermJacobianRightHandSide(shp<aVector> sol,
                                                 shp<aVector> lifting,
-                                                shp<aMatrix> mat) override;
+                                                shp<aMatrix> mat);
 
     shp<aMatrix> getMass(const double& time,
                          const shp<aVector>& sol) override;

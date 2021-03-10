@@ -25,7 +25,7 @@ DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>&
                 // the finite element spaces
                 defTreeNode->M_block->setAssemblerType("stokes");
                 defTreeNode->M_block->setDiscretizationMethod("fem");
-                shp<AssemblerType> defAssembler = AssemblerFactory(M_data, defTreeNode);
+                shp<aAssembler> defAssembler = AssemblerFactory(M_data, defTreeNode);
                 defAssembler->initializeFEspaces();
                 // defAssembler->setup();
                 M_assemblersMap[mesh]= defAssembler;

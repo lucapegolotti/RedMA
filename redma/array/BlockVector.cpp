@@ -152,7 +152,15 @@ add(shp<aVector> other)
         {
             if (otherVector && !otherVector->block(i)->isZero())
             {
-                block(i)->add(otherVector->block(i));
+                if (otherVector->block(i)->type() == DISTRIBUTED &&
+                    block(i)->type() == DENSE)
+                {
+                    shp<DistributedVector> asDistributed = convert<DistributedVector>(otherVector->block(i));
+                    shp<DenseVector> asDense = asDistributed->toDenseVectorPtr();
+                    block(i)->add(asDense);
+                }
+                else
+                    block(i)->add(otherVector->block(i));
             }
         }
         else
@@ -292,6 +300,18 @@ norm2() const
     }
 
     return sqrt(ret);
+}
+
+unsigned int
+BlockVector::
+level()
+{
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        if (block(i)->type() == BLOCK)
+            return convert<BlockVector>(block(i))->level() + 1;
+    }
+    return 1;
 }
 
 }

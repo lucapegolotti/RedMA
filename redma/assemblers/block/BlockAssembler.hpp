@@ -178,9 +178,6 @@ public:
      */
     virtual void applyDirichletBCs(const double& time, shp<aVector> vector) const override;
 
-    /// Set exporter (set exporters in all the subdomains).
-    virtual void setExporter() override;
-
     /*! \brief Check the magnitude of the stabilization term for the coupling.
      *
      * Currently not implemented.
@@ -252,8 +249,6 @@ public:
      */
     virtual void applyPiola(shp<aVector> solution, bool inverse) override;
 
-    /// Initialize all the finite element spaces in the primal assemblers.
-    virtual void initializeFEspaces() override;
 
     /*! Setter fot the default assemblers.
      *

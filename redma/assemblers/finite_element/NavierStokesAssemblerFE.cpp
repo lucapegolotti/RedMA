@@ -8,7 +8,6 @@ NavierStokesAssemblerFE::
 NavierStokesAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode,
                         std::string stabilizationName) :
   StokesAssemblerFE(data,treeNode),
-  NavierStokesModel(data,treeNode),
   M_stabilizationName(stabilizationName)
 {
     // if we use a stabilization we use P1P1 by default
@@ -37,30 +36,6 @@ setup()
                                                     this->M_pressureFESpaceETA));
         M_stabilization->setDensityAndViscosity(this->M_density, this->M_viscosity);
     }
-    // else if (!std::strcmp(stabilizationType.c_str(),"vms"))
-    // {
-    //    printlog(WHITE, "[NavierStokesAssemblerFE] Setting up VMS stabilization...\n",
-    //             this->M_dataContainer.getVerbose());
-    //
-    //     M_stabilization.reset(new VMSStabilization(this->M_data,
-    //                                                this->M_velocityFESpace,
-    //                                                this->M_pressureFESpace,
-    //                                                this->M_velocityFESpaceETA,
-    //                                                this->M_pressureFESpaceETA));
-    //     M_stabilization->setDensityAndViscosity(this->M_density, this->M_viscosity);
-    // }
-    // else if (!std::strcmp(stabilizationType.c_str(),"hf"))
-    // {
-    //    printlog(WHITE, "[NavierStokesAssemblerFE] Setting up HF stabilization...\n",
-    //             this->M_dataContainer.getVerbose());
-    //
-    //     M_stabilization.reset(new HFStabilization(this->M_data,
-    //                                               this->M_velocityFESpace,
-    //                                               this->M_pressureFESpace,
-    //                                               this->M_velocityFESpaceETA,
-    //                                               this->M_pressureFESpaceETA));
-    //     M_stabilization->setDensityAndViscosity(this->M_density, this->M_viscosity);
-    // }
     else if (!std::strcmp(M_stabilizationName.c_str(),""))
     {
         printlog(WHITE, "[NavierStokesAssemblerFE] Proceeding without stabilization...\n",
@@ -104,46 +79,22 @@ addConvectiveTermJacobianRightHandSide(shp<aVector> sol, shp<aVector> lifting,
     using namespace ExpressionAssembly;
 
     shp<VECTOREPETRA> velocityHandler = spcast<VECTOREPETRA>(convert<BlockVector>(sol)->block(0)->data());
-    // shp<VECTOREPETRA> liftingHandler = spcast<VECTOREPETRA>(lifting->block(0)->data());
 
     shp<MATRIXEPETRA>  convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
     shp<VECTOREPETRA>  velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
-    // shp<VECTOREPETRA>  liftingRepeated(new VECTOREPETRA(*liftingHandler, Repeated));
 
-    // if the extrapolation is null (e.g. first step), the matrix is singular.
-    // Hence we solve the non linear problem for the first step
-    // if (M_extrapolatedSolution.norm2() > 1e-15)
-    // {
-    //     integrate(elements(M_velocityFESpaceETA->mesh()),
-    //                M_velocityFESpace->qr(),
-    //                M_velocityFESpaceETA,
-    //                M_velocityFESpaceETA,
-    //                value(this->M_density) *
-    //                dot(
-    //                (
-    //                value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j) +
-    //                value(M_velocityFESpaceETA , *liftingRepeated) * grad(phi_j)
-    //                ),
-    //                phi_i)
-    //              ) >> convectiveMatrix;
-    // }
-    // else
-    // {
-        integrate(elements(M_velocityFESpaceETA->mesh()),
-                   M_velocityFESpace->qr(),
-                   M_velocityFESpaceETA,
-                   M_velocityFESpaceETA,
-                   value(this->M_density) *
-                   dot(
-                   (
-                   value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j) +
-                   phi_j * grad(M_velocityFESpaceETA , *velocityRepeated)
-                   // +
-                   // value(M_velocityFESpaceETA , *liftingRepeated) * grad(phi_j)
-                   ),
-                   phi_i)
-                 ) >> convectiveMatrix;
-    // }
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+               M_velocityFESpace->qr(),
+               M_velocityFESpaceETA,
+               M_velocityFESpaceETA,
+               value(this->M_density) *
+               dot(
+               (
+               value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j) +
+               phi_j * grad(M_velocityFESpaceETA , *velocityRepeated)
+               ),
+               phi_i)
+             ) >> convectiveMatrix;
     convectiveMatrix->globalAssemble();
     *spcast<MATRIXEPETRA>(convert<BlockMatrix>(mat)->block(0,0)->data()) -= *convectiveMatrix;
 }
@@ -156,11 +107,8 @@ getMass(const double& time, const shp<aVector>& sol)
     retMat->deepCopy(this->M_mass);
     if (M_stabilization)
     {
-        // if (M_extrapolatedSolution.norm2() < 1e-15)
         retMat->add(M_stabilization->getMass(convert<BlockVector>(sol),
                                              convert<BlockVector>(this->getForcingTerm(time))));
-        // else
-        //retMat += M_stabilization->getMass(M_extrapolatedSolution, this->getForcingTerm(time));
 
         this->M_bcManager->apply0DirichletMatrix(*retMat, this->getFESpaceBCs(),
                                                  this->getComponentBCs(), 1.0,

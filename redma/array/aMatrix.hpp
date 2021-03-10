@@ -46,9 +46,16 @@ public:
 
     virtual shp<aMatrix> transpose() const = 0;
 
+    virtual void dump(std::string filename) const = 0;
+
     inline unsigned int nRows() const {return M_nRows;}
 
     inline unsigned int nCols() const {return M_nCols;}
+
+    virtual shp<aMatrix> block(const unsigned int& row, const unsigned int& col) const
+    {
+        throw new Exception("block(row,col) function not overloaded!");
+    }
 
 protected:
 
