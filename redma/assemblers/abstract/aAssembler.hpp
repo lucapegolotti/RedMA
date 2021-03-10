@@ -189,7 +189,7 @@ public:
      *
      * \return Shared pointer to the BCManager.
      */
-    inline shp<BCManager> getBCManager() const {return M_bcManager;}
+    virtual inline shp<BCManager> getBCManager() const {return M_bcManager;}
 
     /*! \brief Virtual setup of the exporter.
      */

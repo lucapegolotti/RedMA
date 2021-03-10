@@ -73,6 +73,7 @@ public:
      * \param sol Current solution.
      */
     virtual void postProcess(const double& time,
+                             const double& dt,
                              const shp<aVector>& sol) override;
 
     /*! \brief Virtual getter for mass matrix.
@@ -296,7 +297,7 @@ public:
      *
      * \param bcManager A BCManager for the application of the boundary conditions.
      */
-    shp<aMatrix> assembleStiffness(shp<BCManager> bcManager);
+    virtual shp<aMatrix> assembleStiffness(shp<BCManager> bcManager);
 
     /*! \brief Assemble the mass matrix.
      *
@@ -310,7 +311,7 @@ public:
      *
      * \param bcManager A BCManager for the application of the boundary conditions.
      */
-    shp<aMatrix> assembleMass(shp<BCManager> bcManager);
+    virtual shp<aMatrix> assembleMass(shp<BCManager> bcManager);
 
     /*! \brief Assemble the divergence matrix.
      *
@@ -389,8 +390,6 @@ public:
      * \param pressure Current pressure.
      */
     void exportNorms(double time, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure);
-
-    // void initializePythonStructures();
 
     /*! \brief Compute the wall shear stress given the velocity.
      *
@@ -475,6 +474,8 @@ protected:
     shp<VECTOREPETRA>                                 M_xs;
     shp<VECTOREPETRA>                                 M_ys;
     shp<VECTOREPETRA>                                 M_zs;
+
+    bool                                              M_addNoSlipBC;
 };
 
 }

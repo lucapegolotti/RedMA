@@ -109,6 +109,14 @@ getZeroVector() const
 
 void
 BlockAssembler::
+setExporter()
+{
+    for (auto as: M_primalAssemblers)
+        as.second->setExporter();
+}
+
+void
+BlockAssembler::
 exportSolution(const double& t, const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)

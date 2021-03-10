@@ -122,6 +122,13 @@ apply0DirichletBCs(shp<aVector> vector) const
 
 void
 StokesAssemblerRB::
+setExporter()
+{
+    this->M_feStokesAssembler->setExporter();
+}
+
+void
+StokesAssemblerRB::
 exportSolution(const double& t, const shp<aVector>& sol)
 {
     std::ofstream outfile("rbcoefs/block" + std::to_string(M_treeNode->M_ID) + "t" + std::to_string(t) + ".txt");

@@ -58,8 +58,8 @@ namespace RedMA {
     void
     MembraneAssemblerFE::
     computeLameConstants() {
-        double poisson = this->M_dataContainer("structure/poisson", 0.30);
-        double young = this->M_dataContainer("structure/young", 4e6);
+        double poisson = this->M_data("structure/poisson", 0.30);
+        double young = this->M_data("structure/young", 4e6);
 
         // this is not exactly Lame1 (i.e. lambda), but it is the coefficient appearing in the membrane model
         M_lameI = (young * poisson) / ((1. - poisson) * (1. + poisson));
@@ -71,7 +71,7 @@ namespace RedMA {
     MembraneAssemblerFE::
     computeThickness()
     {
-        StokesModel::M_treeNode->M_block->computeMembraneThickness();
+        this->M_treeNode->M_block->computeMembraneThickness();
     }
 
     void
@@ -81,7 +81,7 @@ namespace RedMA {
         if (!M_exporter)
             StokesAssemblerFE::setExporter();
 
-        double t0 = M_dataContainer("time_discretization/t0", 0.0);
+        double t0 = M_data("time_discretization/t0", 0.0);
 
         CoutRedirecter ct1;
         ct1.redirect();
@@ -90,7 +90,7 @@ namespace RedMA {
         std::vector<unsigned int> flags = M_bcManager->getWallFlags(true);
         shp<VECTOREPETRA> boundaryIndicator = M_bcManager->computeBoundaryIndicator(M_pressureFESpace,
                                                                                   flags);
-        shp<VECTOREPETRA> thickness = StokesModel::M_treeNode->M_block->getMembraneThickness();
+        shp<VECTOREPETRA> thickness = this->M_treeNode->M_block->getMembraneThickness();
         *thickness *= (*boundaryIndicator);
 
         M_exporter->addVariable(LifeV::ExporterData<MESH>::ScalarField,
@@ -118,7 +118,7 @@ namespace RedMA {
 
         LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
 
-        shp<VECTOREPETRA> thickness = StokesModel::M_treeNode->M_block->getMembraneThickness();
+        shp<VECTOREPETRA> thickness = this->M_treeNode->M_block->getMembraneThickness();
         shp<VECTOREPETRA>  thicknessRepeated(new VECTOREPETRA(*thickness, LifeV::Repeated));
 
         shp<MATRIXEPETRA> BM(new MATRIXEPETRA(M_velocityFESpace->map()));
@@ -174,10 +174,10 @@ namespace RedMA {
 
     shp<aMatrix>
     MembraneAssemblerFE::
-    assembleReducedMass(shp<BCManager> bcManager) {
+    assembleMass(shp<BCManager> bcManager) {
         using namespace LifeV::ExpressionAssembly;
 
-        shp<aMatrix> mass = NavierStokesAssemblerFE::assembleReducedMass(bcManager);
+        shp<aMatrix> mass = NavierStokesAssemblerFE::assembleMass(bcManager);
 
         M_boundaryMass.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
         M_boundaryMass->deepCopy(this->assembleBoundaryMass(M_bcManager));
@@ -201,7 +201,7 @@ namespace RedMA {
 
         LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
 
-        shp<VECTOREPETRA> thickness = StokesModel::M_treeNode->M_block->getMembraneThickness();
+        shp<VECTOREPETRA> thickness = this->M_treeNode->M_block->getMembraneThickness();
         shp<VECTOREPETRA>  thicknessRepeated(new VECTOREPETRA(*thickness, LifeV::Repeated));
 
         LifeV::MatrixSmall<3, 3> Eye;
@@ -245,17 +245,17 @@ namespace RedMA {
 
     shp<aMatrix>
     MembraneAssemblerFE::
-    assembleReducedStiffness(shp<BCManager> bcManager) {
+    assembleStiffness(shp<BCManager> bcManager) {
         using namespace LifeV::ExpressionAssembly;
 
-        shp<aMatrix> stiffness = NavierStokesAssemblerFE::assembleReducedStiffness(bcManager);
+        shp<aMatrix> stiffness = NavierStokesAssemblerFE::assembleStiffness(bcManager);
 
         if (!(M_TMA_Displacements)){
             M_TMA_Displacements = TimeMarchingAlgorithmFactory(this->M_data, this->getZeroVector());
             M_TMA_Displacements->setComm(this->M_comm);
         }
 
-        double  dt = this->M_dataContainer("time_discretization/dt", 0.01);
+        double  dt = this->M_data("time_discretization/dt", 0.01);
         double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
 
         M_boundaryStiffness.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
@@ -281,7 +281,7 @@ namespace RedMA {
         }
 
         // computing external wall contribution involved as velocity mass matrix in system matrix
-        double  dt = this->M_dataContainer("time_discretization/dt", 0.01);
+        double  dt = this->M_data("time_discretization/dt", 0.01);
         double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
 
         shp<BlockMatrix> wallMatrix(new BlockMatrix(this->M_nComponents,
@@ -319,7 +319,7 @@ namespace RedMA {
         shp<aMatrix> retMat = NavierStokesAssemblerFE::getJacobianRightHandSide(time, sol);
 
         // adding external wall contribution involved as velocity mass matrix in system matrix
-        double  dt = this->M_dataContainer("time_discretization/dt", 0.01);
+        double  dt = this->M_data("time_discretization/dt", 0.01);
         double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
 
         shp<BlockMatrix> wallMatrix(new BlockMatrix(this->M_nComponents,
@@ -345,7 +345,7 @@ namespace RedMA {
         NavierStokesAssemblerFE::postProcess(t, dt, sol);
 
         printlog(YELLOW, "[MembraneAssemblerFE] Updating displacements field ...\n",
-                 this->M_dataContainer.getVerbose());
+                 this->M_data.getVerbose());
 
         shp<BlockVector> currDisplacement(new BlockVector(this->M_nComponents));
         currDisplacement->deepCopy(M_TMA_Displacements->simpleAdvance(dt, convert<BlockVector>(sol)));

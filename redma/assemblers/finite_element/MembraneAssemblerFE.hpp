@@ -35,13 +35,13 @@ public:
 
     void setup() override;
 
-    shp<aMatrix> assembleReducedMass(shp<BCManager> bcManager) override;
+    shp<aMatrix> assembleMass(shp<BCManager> bcManager) override;
 
     shp<aMatrix> assembleBoundaryMass(shp<BCManager> bcManager, bool verbose = false);
 
     shp<aMatrix> assembleWallBoundaryMass(shp<BCManager> bcManager, bool verbose = false);
 
-    shp<aMatrix> assembleReducedStiffness(shp<BCManager> bcManager) override;
+    shp<aMatrix> assembleStiffness(shp<BCManager> bcManager) override;
 
     shp<aMatrix> assembleBoundaryStiffness(shp<BCManager> bcManager, bool verbose = false);
 

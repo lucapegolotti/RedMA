@@ -178,6 +178,11 @@ public:
      */
     virtual void applyDirichletBCs(const double& time, shp<aVector> vector) const override;
 
+    /*! \brief Set the solution exporter in all the subdomains
+     *
+     */
+    virtual void setExporter() override;
+
     /*! \brief Check the magnitude of the stabilization term for the coupling.
      *
      * Currently not implemented.

@@ -14,6 +14,7 @@ StokesAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode) :
     M_viscosity = data("fluid/viscosity", 0.035);
     M_velocityOrder = data("fluid/velocity_order", "P2");
     M_pressureOrder = data("fluid/pressure_order", "P1");
+    M_addNoSlipBC = true;
 }
 
 void
@@ -585,7 +586,7 @@ assembleStiffness(shp<BCManager> bcManager)
     Awrapper->setData(A);
     stiffness->setBlock(0,0,Awrapper);
 
-    bcManager->apply0DirichletMatrix(*stiffness, M_velocityFESpace, 0, 0.0);
+    bcManager->apply0DirichletMatrix(*stiffness, M_velocityFESpace, 0, 0.0, !(this->M_addNoSlipBC));
     return stiffness;
 }
 
@@ -609,7 +610,7 @@ assembleMass(shp<BCManager> bcManager)
     shp<SparseMatrix> Mwrapper(new SparseMatrix);
     Mwrapper->setData(M);
     mass->setBlock(0,0,Mwrapper);
-    bcManager->apply0DirichletMatrix(*mass, M_velocityFESpace, 0, 1.0);
+    bcManager->apply0DirichletMatrix(*mass, M_velocityFESpace, 0, 1.0, !(this->M_addNoSlipBC));
 
     return mass;
 }
@@ -655,7 +656,7 @@ assembleDivergence(shp<BCManager> bcManager)
     divergence->setBlock(0,1,BTwrapper);
     divergence->setBlock(1,0,Bwrapper);
 
-    bcManager->apply0DirichletMatrix(*divergence, M_velocityFESpace, 0, 0.0);
+    bcManager->apply0DirichletMatrix(*divergence, M_velocityFESpace, 0, 0.0, !(this->M_addNoSlipBC));
 
     return divergence;
 }
@@ -711,7 +712,7 @@ applyDirichletBCsMatrix(shp<BCManager> bcManager,
 {
     auto matrixConverted = spcast<BlockMatrix>(matrix);
     bcManager->apply0DirichletMatrix(*matrixConverted, M_velocityFESpace,
-                                     0, diagCoeff);
+                                     0, diagCoeff, !(this->M_addNoSlipBC));
 }
 
 std::map<unsigned int, double>
@@ -921,7 +922,7 @@ computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
 
     QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
 
-    unsigned int wallFlag = M_treeNode->M_block->wallFlag();
+    unsigned int wallFlag = M_treeNode->M_block->getWallFlag();
     if (M_massWall == nullptr)
     {
         M_massWall.reset(new MATRIXEPETRA(M_velocityFESpace->map()));

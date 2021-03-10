@@ -94,10 +94,12 @@ public:
 
     virtual void setDefaultAssemblers(shp<DefaultAssemblersLibrary> defAssemblers) override;
 
-    inline virtual shp<BCManager> getBCManager() const override
+    virtual inline shp<BCManager> getBCManager() const override
     {
         return M_feStokesAssembler->getBCManager();
     }
+
+    virtual void setExporter() override;
 
 protected:
     shp<LifeV::Exporter<MESH>>                        M_exporter;
