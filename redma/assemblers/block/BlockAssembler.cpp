@@ -204,7 +204,7 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
     for (auto as: M_primalAssemblers)
     {
         unsigned int ind = as.first;
-        rhs->setBlock(ind,as.second->getRightHandSide(time, convert<BlockVector>(sol)->block(ind)));
+        rhs->setBlock(ind, as.second->getRightHandSide(time, convert<BlockVector>(sol)->block(ind)));
     }
 
     // add interface contributions

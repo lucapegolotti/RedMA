@@ -43,7 +43,8 @@ namespace RedMA {
 
         NavierStokesAssemblerFE::setup();
 
-        M_boundaryIndicator = BCManager::computeBoundaryIndicator(M_velocityFESpace, M_wallFlag);
+        std::vector<unsigned int> flags = M_bcManager->getWallFlags(true);
+        M_boundaryIndicator = M_bcManager->computeBoundaryIndicator(M_velocityFESpace, flags);
 
         if (!(M_TMA_Displacements)){
             M_TMA_Displacements = TimeMarchingAlgorithmFactory(this->M_data, this->getZeroVector());
@@ -86,8 +87,9 @@ namespace RedMA {
         ct1.redirect();
 
         // setting thickness to 0 in the interior of the domain
-        shp<VECTOREPETRA> boundaryIndicator = BCManager::computeBoundaryIndicator(M_pressureFESpace,
-                                                                                  M_wallFlag);
+        std::vector<unsigned int> flags = M_bcManager->getWallFlags(true);
+        shp<VECTOREPETRA> boundaryIndicator = M_bcManager->computeBoundaryIndicator(M_pressureFESpace,
+                                                                                  flags);
         shp<VECTOREPETRA> thickness = StokesModel::M_treeNode->M_block->getMembraneThickness();
         *thickness *= (*boundaryIndicator);
 

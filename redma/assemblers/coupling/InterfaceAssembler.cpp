@@ -52,19 +52,19 @@ generateQuadratureRule(std::string tag) const
         customRule->addPoint(p9);
 
         QuadraturePoint p10(0.312865496004875,0.638444188569809,0,
-                           0.077113760890257/2);
+                            0.077113760890257/2);
         customRule->addPoint(p10);
 
         QuadraturePoint p11(0.312865496004875,0.048690315425316,0,
-                           0.077113760890257/2);
+                            0.077113760890257/2);
         customRule->addPoint(p11);
 
         QuadraturePoint p12(0.048690315425316,0.638444188569809,0,
-                           0.077113760890257/2);
+                            0.077113760890257/2);
         customRule->addPoint(p12);
 
         QuadraturePoint p13(0.048690315425316,0.312865496004875,0,
-                           0.077113760890257/2);
+                            0.077113760890257/2);
         customRule->addPoint(p13);
     }
     else if (!std::strcmp(tag.c_str(),"TOMS612_19"))
@@ -109,45 +109,43 @@ generateQuadratureRule(std::string tag) const
         customRule->addPoint(p9);
 
         QuadraturePoint p10(0.18820353561903219,0.18820353561903219,0,
-                           7.96477389272090969e-2/2);
+                            7.96477389272090969e-2/2);
         customRule->addPoint(p10);
 
         QuadraturePoint p11(0.91054097321109406,4.47295133944529688e-2,0,
-                           2.55776756586981006e-2/2);
+                            2.55776756586981006e-2/2);
         customRule->addPoint(p11);
 
         QuadraturePoint p12(4.47295133944529688e-2,0.91054097321109406,0,
-                           2.55776756586981006e-2/2);
+                            2.55776756586981006e-2/2);
         customRule->addPoint(p12);
 
         QuadraturePoint p13(4.47295133944529688e-2,4.47295133944529688e-2,0,
-                           2.55776756586981006e-2/2);
+                            2.55776756586981006e-2/2);
         customRule->addPoint(p13);
 
-        //
-
         QuadraturePoint p14(0.74119859878449801,3.68384120547362581e-2,0,
-                           4.32835393772893970e-2/2);
+                            4.32835393772893970e-2/2);
         customRule->addPoint(p14);
 
         QuadraturePoint p15(0.74119859878449801,0.22196298916076573,0,
-                           4.32835393772893970e-2/2);
+                            4.32835393772893970e-2/2);
         customRule->addPoint(p15);
 
         QuadraturePoint p16(3.6838412054736258e-2,0.74119859878449801,0,
-                           4.32835393772893970e-2/2);
+                            4.32835393772893970e-2/2);
         customRule->addPoint(p1);
 
         QuadraturePoint p17(3.68384120547362581e-2,0.22196298916076573,0,
-                           4.32835393772893970e-2/2);
+                            4.32835393772893970e-2/2);
         customRule->addPoint(p17);
 
         QuadraturePoint p18(0.22196298916076573,0.74119859878449801,0,
-                           4.32835393772893970e-2/2);
+                            4.32835393772893970e-2/2);
         customRule->addPoint(p18);
 
         QuadraturePoint p19(0.22196298916076573,3.68384120547362581e-2,0,
-                           4.32835393772893970e-2/2);
+                            4.32835393772893970e-2/2);
         customRule->addPoint(p19);
     }
     else

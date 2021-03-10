@@ -77,7 +77,9 @@ public:
 
     inline std::string getInletBCType() const {return M_inletBCType;}
 
-    static shp<VECTOREPETRA> computeBoundaryIndicator(shp<FESPACE> fespace, const int& flag);
+    std::vector<unsigned int> getWallFlags(const bool& withRings = true) const;
+
+    shp<VECTOREPETRA> computeBoundaryIndicator(shp<FESPACE> fespace, const std::vector<unsigned int> flags) const;
 
     static double fZero(const double& t, const double& x, const double& y,
                         const double& z, const unsigned int& i);
@@ -139,9 +141,11 @@ private:
 
     unsigned int                                     M_inletFlag;
     std::vector<unsigned int>                        M_outletFlags;
+    std::vector<unsigned int>                        M_trueOutletFlags;
     unsigned int                                     M_wallFlag;
     unsigned int                                     M_inletRingFlag;
     std::vector<unsigned int>                        M_outletRingFlags;
+    std::vector<unsigned int>                        M_trueOutletRingFlags;
 
     shp<MATRIXEPETRA>                                M_globalRotationMatrix;
 

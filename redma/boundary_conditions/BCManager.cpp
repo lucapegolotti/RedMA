@@ -23,12 +23,19 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
 
     M_inletFlag = treeNode->M_block->getInlet().M_flag;
     for(auto out_face : treeNode->M_block->getOutlets())
+        // these are all the outlets, even the ones with children in the block structure!
         M_outletFlags.push_back(out_face.M_flag);
+    for(auto out_face : treeNode->getOutlets())
+        // these are the "true" outlets, i.e. faces without children!
+        M_trueOutletFlags.push_back(out_face.M_flag);
     M_wallFlag = treeNode->M_block->getWallFlag();
     M_inletRingFlag = treeNode->M_block->getInlet().M_ringFlag;
-    for (auto out_face : treeNode->getOutlets())
-        // these are the "real" outlets, i.e. faces without children!
+    for (auto out_face : treeNode->M_block->getOutlets())
+        // these are all the outlets, even the ones with children in the block structure!
         M_outletRingFlags.push_back(out_face.M_ringFlag);
+    for (auto out_face : treeNode->getOutlets())
+        // these are the "true" outlets, i.e. faces without children!
+        M_trueOutletRingFlags.push_back(out_face.M_ringFlag);
 }
 
 void
@@ -330,7 +337,7 @@ createBCHandler0DirichletRing() const
 
         if (M_treeNode->isOutletNode())
         {
-            for(const unsigned int& ringFlag : M_outletRingFlags)
+            for(const unsigned int& ringFlag : M_trueOutletRingFlags)
                 bcs->addBC("OutletRingZ", ringFlag, LifeV::EssentialEdges,
                            LifeV::Component, zeroFunction, compz);
         }
@@ -345,7 +352,7 @@ createBCHandler0DirichletRing() const
 
         if (M_treeNode->isOutletNode())
         {
-            for(const unsigned int& ringFlag : M_outletRingFlags)
+            for(const unsigned int& ringFlag : M_trueOutletRingFlags)
                 bcs->addBC("OutletRing", ringFlag, LifeV::EssentialEdges,
                            LifeV::Full, zeroFunction, 3);
         }
@@ -463,9 +470,25 @@ postProcess()
         windkessel.second->shiftSolutions();
 }
 
+std::vector<unsigned int>
+BCManager::
+getWallFlags(const bool& withRings) const
+{
+    std::vector<unsigned int> flags;
+
+    flags.push_back(M_wallFlag);
+    if (withRings)
+    {
+        flags.push_back(M_inletRingFlag);
+        flags.insert(std::end(flags), std::begin(M_outletRingFlags), std::end(M_outletRingFlags));
+    }
+
+    return flags;
+}
+
 shp<VECTOREPETRA>
 BCManager::
-computeBoundaryIndicator(shp<FESPACE> fespace, const int& flag)
+computeBoundaryIndicator(shp<FESPACE> fespace, const std::vector<unsigned int> flags) const
 {
     shp<VECTOREPETRA> boundaryIndicator(new VECTOREPETRA(fespace->map()));
     boundaryIndicator->zero();
@@ -475,7 +498,15 @@ computeBoundaryIndicator(shp<FESPACE> fespace, const int& flag)
     shp<LifeV::BCHandler> bcs;
     bcs.reset(new LifeV::BCHandler);
 
-    bcs->addBC("BC", flag, LifeV::Essential, LifeV::Full, oneFunction, 3);
+    for (unsigned int flag : flags)
+    {
+        if ((flag == M_inletFlag) || (flag == M_wallFlag) ||
+            (std::find(M_outletFlags.begin(), M_outletFlags.end(), flag) != M_outletFlags.end()))
+            bcs->addBC("BC", flag, LifeV::Essential, LifeV::Full, oneFunction, 3);
+        else if ((flag == M_inletRingFlag) ||
+                 (std::find(M_outletRingFlags.begin(), M_outletRingFlags.end(), flag) != M_outletRingFlags.end()))
+            bcs->addBC("BC", flag, LifeV::EssentialEdges, LifeV::Full, oneFunction, 3);
+    }
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -666,7 +697,7 @@ computeRingsIndicator(shp<FESPACE> fespace) const
         FUN outletFlag;
         LifeV::BCFunctionBase outletFunction;
 
-        for(unsigned int ringFlag : M_outletRingFlags)
+        for(unsigned int ringFlag : M_trueOutletRingFlags)
         {
             outletFlag = std::bind(constantFunction,
                                    std::placeholders::_1,
@@ -747,8 +778,8 @@ computeGlobalRotationMatrix(shp<FESPACE> fespace)
             flag = M_inletRingFlag;
         else
         {
-            auto it = std::find(M_outletRingFlags.begin(), M_outletRingFlags.end(), (*ringsIndicator)[id]);
-            if (it != M_outletRingFlags.end())
+            auto it = std::find(M_trueOutletRingFlags.begin(), M_trueOutletRingFlags.end(), (*ringsIndicator)[id]);
+            if (it != M_trueOutletRingFlags.end())
                 flag = *it;
             else
                 flag = 999;
