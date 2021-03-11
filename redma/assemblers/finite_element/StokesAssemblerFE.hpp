@@ -43,7 +43,6 @@ namespace RedMA
  *
  * Indices of the components: velocity = 0, pressure = 1.
  * Indices of the matrices: mass = 0, stiffness = 1, divergence = 2.
- *
  */
 class StokesAssemblerFE : public aAssemblerFE
 {
@@ -53,7 +52,8 @@ public:
      * \param datafile The datafile.
      * \param datafile The TreeNode encoding the physical domain.
      */
-    StokesAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode);
+    StokesAssemblerFE(const DataContainer& data,
+                      shp<TreeNode> treeNode);
 
     /// Virtual setup function.
     virtual void setup() override;
@@ -145,7 +145,7 @@ public:
     /*! \brief Getter for the finite element space corresponding to the Dirichlet bcs,
      * i.e., the velocity finite element space.
      *
-     * \return Shared pointer to desired finite element space.
+     * \return Shared pointer to the desired finite element space.
      */
     virtual inline shp<FESPACE> getFESpaceBCs() const override
     {
@@ -172,7 +172,8 @@ public:
      * \param matrix The matrix to which the bcs must be applied.
      * \param diagCoeff Coefficient to put in the diagonal of the matrix.
      */
-    void applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
+    void applyDirichletBCsMatrix(shp<aMatrix> matrix,
+                                 double diagCoeff) const override;
 
     /*! \brief Virtual method to apply homogeneous Dirichlet bcs to a vector.
      *
@@ -187,7 +188,8 @@ public:
      * \param time Current time.
      * \param vector The vector to which the bcs must be applied.
      */
-    void applyDirichletBCs(const double& time, shp<aVector> vector) const override;
+    void applyDirichletBCs(const double& time,
+                           shp<aVector> vector) const override;
 
     /*! \brief Getter for the finite element space corresponding to a specific component.
      *
@@ -225,7 +227,8 @@ public:
      * \param bcs If true, Dirichlet boundary conditions are applied (only to velocity).
      * \return Shared pointer to the norm matrix.
      */
-    virtual shp<aMatrix> getNorm(const unsigned int& fieldIndex, bool bcs = true) override;
+    virtual shp<aMatrix> getNorm(const unsigned int& fieldIndex,
+                                 bool bcs = true) override;
 
     /*! \brief Getter for the constraint matrix.
      *
@@ -247,7 +250,8 @@ public:
      * \param solution Shared pointer to aVector to transform.
      * \param inverse If true, inverse of Piola transformation is applied.
      */
-    virtual void applyPiola(shp<aVector> solution, bool inverse) override;
+    virtual void applyPiola(shp<aVector> solution,
+                            bool inverse) override;
 
     /*! \brief Add Neumann BCs to a vector.
      *
@@ -257,7 +261,8 @@ public:
      * \param sol The current solution.
      * \param rhs The vector to which the boundary conditions must be applied.
      */
-    void addNeumannBCs(double time, shp<aVector> sol, shp<aVector> rhs);
+    void addNeumannBCs(double time, shp<aVector> sol,
+                       shp<aVector> rhs);
 
     /*! \brief Setter for the velocity finite element order (e.g., "P2")
      *
@@ -381,7 +386,9 @@ public:
      * \param velocity Current velocity.
      * \param pressure Current pressure.
      */
-    void exportNorms(double time, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure);
+    void exportNorms(double time,
+                     shp<VECTOREPETRA> velocity,
+                     shp<VECTOREPETRA> pressure);
 
     // void initializePythonStructures();
 

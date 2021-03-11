@@ -55,7 +55,8 @@ public:
      * \param datafile The TreeNode encoding the physical domain.
      * \param stabilizationName Name of the stabilization.
      */
-    NavierStokesAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode,
+    NavierStokesAssemblerFE(const DataContainer& data,
+                            shp<TreeNode> treeNode,
                             std::string stabilizationName = "");
 
     /*! \brief Virtual setup function.
@@ -78,7 +79,8 @@ public:
      * \param sol The current solution.
      * \param mat The matrix to be modified.
      */
-    void addConvectiveMatrix(shp<aVector> sol, shp<aMatrix> mat);
+    void addConvectiveMatrix(shp<aVector> sol,
+                             shp<aMatrix> mat);
 
 
     /*! \brief Add Jacobian of convective matrix to an input matrix.
@@ -86,8 +88,8 @@ public:
      * \param sol The current solution.
      * \param mat The matrix to be modified.
      */
-    void addConvectiveTermJacobianRightHandSide(shp<aVector> sol,
-                                                shp<aMatrix> mat);
+    void addConvectiveTermJacobian(shp<aVector> sol,
+                                   shp<aMatrix> mat);
 
     /*! \brief Virtual getter for mass matrix.
      *

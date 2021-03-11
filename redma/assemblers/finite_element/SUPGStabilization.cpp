@@ -18,7 +18,8 @@ SUPGStabilization(const DataContainer& data,
 
 shp<BlockMatrix>
 SUPGStabilization::
-getMass(shp<BlockVector> sol, shp<BlockVector> rhs)
+getMass(shp<BlockVector> sol,
+        shp<BlockVector> rhs)
 {
     using namespace LifeV;
     using namespace LifeV::ExpressionAssembly;
@@ -87,7 +88,8 @@ getMass(shp<BlockVector> sol, shp<BlockVector> rhs)
 
 shp<BlockMatrix>
 SUPGStabilization::
-getMassJacobian(shp<BlockVector> sol, shp<BlockVector> rhs)
+getMassJacobian(shp<BlockVector> sol,
+                shp<BlockVector> rhs)
 {
     using namespace LifeV;
     using namespace LifeV::ExpressionAssembly;
@@ -149,7 +151,8 @@ getMassJacobian(shp<BlockVector> sol, shp<BlockVector> rhs)
 
 shp<BlockMatrix>
 SUPGStabilization::
-getJacobian(shp<BlockVector> sol, shp<BlockVector> rhs)
+getJacobian(shp<BlockVector> sol,
+            shp<BlockVector> rhs)
 {
     using namespace LifeV;
     using namespace LifeV::ExpressionAssembly;

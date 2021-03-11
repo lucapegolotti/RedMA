@@ -5,7 +5,8 @@ namespace RedMA
 
 
 NavierStokesAssemblerRB::
-NavierStokesAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode) :
+NavierStokesAssemblerRB(const DataContainer& data,
+                        shp<TreeNode> treeNode) :
   StokesAssemblerRB(data,treeNode)
 {
     M_name = "NavierStokesAssemblerRB";
@@ -14,15 +15,8 @@ NavierStokesAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode) :
 
 void
 NavierStokesAssemblerRB::
-addConvectiveMatrixRightHandSide(shp<aVector> sol, shp<aMatrix> mat)
-{
-    // note: the jacobian is not consistent but we do this for efficiency
-}
-
-void
-NavierStokesAssemblerRB::
-addConvectiveTermJacobianRightHandSide(shp<aVector> sol, shp<aVector> lifting,
-                                       shp<aMatrix> mat)
+addConvectiveTermJacobian(shp<aVector> sol,
+                          shp<aMatrix> mat)
 {
     Chrono chrono;
     chrono.start();
@@ -73,7 +67,8 @@ addConvectiveTermJacobianRightHandSide(shp<aVector> sol, shp<aVector> lifting,
 
 shp<aVector>
 NavierStokesAssemblerRB::
-getRightHandSide(const double& time, const shp<aVector>& sol)
+getRightHandSide(const double& time,
+                 const shp<aVector>& sol)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -159,7 +154,7 @@ getJacobianRightHandSide(const double& time,
     shp<aMatrix> jac = StokesAssemblerRB::getJacobianRightHandSide(time,sol);
 
     if (M_exactJacobian)
-        addConvectiveTermJacobianRightHandSide(sol, nullptr, jac);
+        addConvectiveTermJacobian(sol, jac);
 
     return jac;
 }

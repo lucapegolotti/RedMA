@@ -4,7 +4,8 @@ namespace RedMA
 {
 //
 BlockAssembler::
-BlockAssembler(const DataContainer& data, const TreeStructure& tree,
+BlockAssembler(const DataContainer& data,
+               const TreeStructure& tree,
                shp<DefaultAssemblers> defAssemblers) :
   aAssembler(data),
   M_tree(tree)
@@ -44,7 +45,8 @@ setDefaultAssemblers(shp<DefaultAssemblers> defAssemblers)
 
 void
 BlockAssembler::
-applyPiola(shp<aVector> solution, bool inverse)
+applyPiola(shp<aVector> solution,
+           bool inverse)
 {
     unsigned int count = 0;
     for (auto as : M_primalAssemblers)
@@ -58,7 +60,8 @@ applyPiola(shp<aVector> solution, bool inverse)
 
 void
 BlockAssembler::
-applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
+applyDirichletBCsMatrix(shp<aMatrix> matrix,
+                        double diagCoeff) const
 {
     for (auto as : M_primalAssemblers)
         as.second->applyDirichletBCsMatrix(
@@ -80,7 +83,8 @@ apply0DirichletBCs(shp<aVector> initialGuess) const
 
 void
 BlockAssembler::
-applyDirichletBCs(const double& time, shp<aVector> initialGuess) const
+applyDirichletBCs(const double& time,
+                  shp<aVector> initialGuess) const
 {
     for (auto as : M_primalAssemblers)
         as.second->applyDirichletBCs(time,
@@ -110,7 +114,8 @@ getZeroVector() const
 
 void
 BlockAssembler::
-exportSolution(const double& t, const shp<aVector>& sol)
+exportSolution(const double& t,
+               const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)
         as.second->exportSolution(t,
@@ -141,7 +146,8 @@ setExtrapolatedSolution(const shp<aVector>& exSol)
 
 void
 BlockAssembler::
-postProcess(const double& t, const shp<aVector>& sol)
+postProcess(const double& t,
+            const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)
         as.second->postProcess(t, convert<BlockVector>(sol)->block(as.first));
@@ -152,7 +158,8 @@ postProcess(const double& t, const shp<aVector>& sol)
 
 shp<aMatrix>
 BlockAssembler::
-getMass(const double& time, const shp<aVector>& sol)
+getMass(const double& time,
+        const shp<aVector>& sol)
 {
     shp<BlockMatrix> mass(new BlockMatrix(M_numberBlocks, M_numberBlocks));
 
@@ -167,7 +174,8 @@ getMass(const double& time, const shp<aVector>& sol)
 
 shp<aMatrix>
 BlockAssembler::
-getMassJacobian(const double& time, const shp<aVector>& sol)
+getMassJacobian(const double& time,
+                const shp<aVector>& sol)
 {
     shp<BlockMatrix> massJacobian(new BlockMatrix(M_numberBlocks, M_numberBlocks));
 
@@ -182,7 +190,8 @@ getMassJacobian(const double& time, const shp<aVector>& sol)
 
 shp<aVector>
 BlockAssembler::
-getRightHandSide(const double& time, const shp<aVector>& sol)
+getRightHandSide(const double& time,
+                 const shp<aVector>& sol)
 {
     shp<BlockVector> rhs(new BlockVector(M_numberBlocks));
 
@@ -249,7 +258,8 @@ getNonLinearTerm()
 
 shp<aMatrix>
 BlockAssembler::
-getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
+getJacobianRightHandSide(const double& time,
+                         const shp<aVector>& sol)
 {
     shp<BlockMatrix> jac(new BlockMatrix(M_numberBlocks, M_numberBlocks));
 

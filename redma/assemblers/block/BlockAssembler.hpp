@@ -52,7 +52,8 @@ public:
      * \param tree Geometric tree.
      * \param Default assemblers for the building blocks in the reference configuration.
      */
-    BlockAssembler(const DataContainer& data, const TreeStructure& tree,
+    BlockAssembler(const DataContainer& data,
+                   const TreeStructure& tree,
                    shp<DefaultAssemblers> defAssemblers = nullptr);
 
     /*! \brief Setup method.
@@ -157,7 +158,8 @@ public:
      * \param matrix The matrix to modify.
      * \param diagCoeff diagonal coefficient.
      */
-    virtual void applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
+    virtual void applyDirichletBCsMatrix(shp<aMatrix> matrix,
+                                         double diagCoeff) const override;
 
     /*! \brief Apply homogeneous Dirichlet bcs to a vector.
      *
@@ -174,7 +176,8 @@ public:
      * \param time Current time
      * \param vector Shared pointer to the vector to modify.
      */
-    virtual void applyDirichletBCs(const double& time, shp<aVector> vector) const override;
+    virtual void applyDirichletBCs(const double& time,
+                                   shp<aVector> vector) const override;
 
     /*! \brief Check the magnitude of the stabilization term for the coupling.
      *
@@ -213,7 +216,8 @@ public:
      * \param comm MPI Communicator.
      * \return Shared pointer to the converted vector.
      */
-    shp<aVector> convertFunctionRBtoFEM(shp<aVector> rbFunction, EPETRACOMM comm) const;
+    shp<aVector> convertFunctionRBtoFEM(shp<aVector> rbFunction,
+                                        EPETRACOMM comm) const;
 
     /*! \brief Set extrapolated solution.
      *
@@ -245,8 +249,8 @@ public:
      * \param solution Shared pointer to GlobalVector to transform.
      * \param inverse If true, inverse of Piola transformation is applied.
      */
-    virtual void applyPiola(shp<aVector> solution, bool inverse) override;
-
+    virtual void applyPiola(shp<aVector> solution,
+                            bool inverse) override;
 
     /*! Setter fot the default assemblers.
      *
@@ -272,7 +276,6 @@ protected:
     std::map<unsigned int, shp<aAssembler>>                       M_primalAssemblers;
     std::vector<shp<InterfaceAssembler>>                          M_dualAssemblers;
     unsigned int                                                  M_numberBlocks;
-    // shp<MDEIMManager>                                             M_mdeimManager;
     shp<RBBasesManager>                                           M_basesManager;
 };
 

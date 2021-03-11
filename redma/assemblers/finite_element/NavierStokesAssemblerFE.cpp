@@ -5,7 +5,8 @@ namespace RedMA
 
 
 NavierStokesAssemblerFE::
-NavierStokesAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode,
+NavierStokesAssemblerFE(const DataContainer& data,
+                        shp<TreeNode> treeNode,
                         std::string stabilizationName) :
   StokesAssemblerFE(data,treeNode),
   M_stabilizationName(stabilizationName)
@@ -44,7 +45,8 @@ setup()
 
 void
 NavierStokesAssemblerFE::
-addConvectiveMatrix(shp<aVector> sol, shp<aMatrix> mat)
+addConvectiveMatrix(shp<aVector> sol,
+                    shp<aMatrix> mat)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -68,7 +70,8 @@ addConvectiveMatrix(shp<aVector> sol, shp<aMatrix> mat)
 
 void
 NavierStokesAssemblerFE::
-addConvectiveTermJacobian(shp<aVector> sol, shp<aMatrix> mat)
+addConvectiveTermJacobian(shp<aVector> sol,
+                          shp<aMatrix> mat)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -96,7 +99,8 @@ addConvectiveTermJacobian(shp<aVector> sol, shp<aMatrix> mat)
 
 shp<aMatrix>
 NavierStokesAssemblerFE::
-getMass(const double& time, const shp<aVector>& sol)
+getMass(const double& time,
+        const shp<aVector>& sol)
 {
     shp<BlockMatrix> retMat(new BlockMatrix(0,0));
     retMat->deepCopy(this->M_mass);
@@ -114,7 +118,8 @@ getMass(const double& time, const shp<aVector>& sol)
 
 shp<aMatrix>
 NavierStokesAssemblerFE::
-getMassJacobian(const double& time, const shp<aVector>& sol)
+getMassJacobian(const double& time,
+                const shp<aVector>& sol)
 {
     shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
     if (M_stabilization)
@@ -132,7 +137,8 @@ getMassJacobian(const double& time, const shp<aVector>& sol)
 
 shp<aVector>
 NavierStokesAssemblerFE::
-getRightHandSide(const double& time, const shp<aVector>& sol)
+getRightHandSide(const double& time,
+                 const shp<aVector>& sol)
 {
     shp<BlockMatrix> systemMatrix(new BlockMatrix(this->M_nComponents,
                                                   this->M_nComponents));
