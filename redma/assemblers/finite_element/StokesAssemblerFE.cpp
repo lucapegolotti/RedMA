@@ -399,11 +399,6 @@ void
 StokesAssemblerFE::
 applyPiola(shp<aVector> solution, bool inverse)
 {
-    std::string msg = "[";
-    msg += this->M_name;
-    msg += "] apply Piola\n";
-    printlog(YELLOW, msg, this->M_data.getVerbose());
-
     using namespace LifeV;
     using namespace ExpressionAssembly;
 

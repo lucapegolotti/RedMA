@@ -16,19 +16,11 @@ void
 StokesAssemblerRB::
 setup()
 {
-    Chrono chrono;
-    chrono.start();
-
     std::string msg = "[";
     msg += this->M_name;
-    msg += "] initializing ...";
+    msg += "] initializing internal FE assembler";
     printlog(YELLOW, msg, this->M_data.getVerbose());
     M_feStokesAssembler->setup();
-
-    msg = "done, in ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(YELLOW, msg, this->M_data.getVerbose());
 }
 
 shp<aMatrix>
@@ -194,6 +186,9 @@ RBsetup()
 
     // scale with piola
     unsigned int indexField = 0;
+    printlog(YELLOW, "[StokesAssembler] applying Piola transformation\t", M_data.getVerbose());
+    Chrono chrono;
+    chrono.start();
     M_bases->scaleBasisWithPiola(0, M_treeNode->M_ID, [=](shp<VECTOREPETRA> vector)
     {
         shp<BlockVector> vectorWrap(new BlockVector(2));
@@ -205,9 +200,12 @@ RBsetup()
 
         applyPiola(vectorWrap, false);
     });
+    std::string msg = "done, in ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(YELLOW, msg, this->M_data.getVerbose());
 
     printlog(YELLOW, "[StokesAssembler] assembling and projecting matrices\t", M_data.getVerbose());
-    Chrono chrono;
     chrono.start();
 
     unsigned int id = M_treeNode->M_ID;
@@ -222,7 +220,7 @@ RBsetup()
     M_reducedDivergence->setBlock(0,1,M_bases->matrixProject(matrices[2]->block(0,1), 0, 1, id));
     M_reducedDivergence->setBlock(1,0,M_bases->matrixProject(matrices[2]->block(1,0), 1, 0, id));
 
-    std::string msg = "done, in ";
+    msg = "done, in ";
     msg += std::to_string(chrono.diff());
     msg += " seconds\n";
     printlog(YELLOW, msg, this->M_data.getVerbose());

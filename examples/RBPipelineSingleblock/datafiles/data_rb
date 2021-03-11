@@ -64,13 +64,13 @@ outputdir = rb_solutions
 		monolithicSolve = true
 		recomputeSchur = false
 		approximatenonlinearterm = 0
+		numbernonlinearterms = 30
 		[./basis]
 			directory = basis
-			podtol_field0 = 1e-1
+			podtol_field0 = 1e-4
 			podtol_field1 = 1e-5
 			useprimalsupremizers = 1
-			usedualsupremizers = 1
-			numberdualsupremizers = 30
+			usedualsupremizers = 0
 		[../]
 		[./mdeim]
 			loadfullbasis   = true
@@ -86,7 +86,6 @@ outputdir = rb_solutions
 	approxshur 	   = SIMPLE
 	innertol   	   = 0.5
 	recomputeevery = 20
-	thresholdsize  = 5000
 [../]
 
 [newton_method]
@@ -132,15 +131,15 @@ outputdir = rb_solutions
 	type       = hdf5
 	multimesh  = false
 	start      = 0
-	save_every = 1
+	save_every = -1
 	filename   = tube
 	exportnorms = true
 [../]
 
 [coupling]
 	type                = chebyshev
-	nMax                = 2
+	nMax                = 5
 	stab_coefficient	= 1e-16
 	check_stabterm		= true
-	nfcts_weak_dirichlet = 2
+	nfcts_weak_dirichlet = 5
 [../]

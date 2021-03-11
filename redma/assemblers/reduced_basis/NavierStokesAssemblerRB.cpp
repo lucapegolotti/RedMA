@@ -36,12 +36,8 @@ addConvectiveTermJacobianRightHandSide(shp<aVector> sol, shp<aVector> lifting,
     shp<VECTOREPETRA>  velocityHandler;
     velocityHandler = M_bases->reconstructFEFunction(convert<BlockVector>(sol)->block(0), 0, M_treeNode->M_ID);
 
-    // shp<VECTOREPETRA>  liftingHandler;
-    // liftingHandler = M_bases->reconstructFEFunction(lifting->block(0), 0, StokesModel::M_treeNode->M_ID);
-
     shp<MATRIXEPETRA>  convectiveMatrix(new MATRIXEPETRA(M_feStokesAssembler->getFEspace(0)->map()));
     shp<VECTOREPETRA>  velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
-    // shp<VECTOREPETRA>  liftingRepeated(new VECTOREPETRA(*liftingHandler, Repeated));
 
     shp<ETFESPACE3> velocityFESpaceETA = M_feStokesAssembler->getVelocityETFEspace();
     double density = M_feStokesAssembler->getDensity();
@@ -144,8 +140,6 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
     }
 
     M_nonLinearTerm->multiplyByScalar(-1);
-    // this->addNeumannBCs(retVec, time, sol);
-    // retVec->add(M_nonLinearTerm);
     retVec->block(0)->add(M_nonLinearTerm->block(0));
     M_nonLinearTerm->multiplyByScalar(-1);
 
@@ -229,6 +223,7 @@ RBsetup()
                                                    getComponentBCs());
                 M_nonLinearTermsDecomposition[i][j] = M_bases->leftProject(nonLinearTermVec, ID());
             }
+            M_nonLinearTerm.reset(new BlockVector(0));
         }
 
         std::string msg = "done, in ";
