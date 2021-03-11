@@ -49,26 +49,66 @@
 namespace RedMA
 {
 
+/*! \brief Abstract class for the stabilization of the Navier-Stokes equations.
+ */
 class NavierStokesStabilization
 {
 public:
+    /*! \brief Constructor.
+     *
+     * \param data A DataContainer object.
+     * \param fespaceVelocity Finite element space for the velocity.
+     * \param fespacePressure Finite element space for the pressure.
+     * \param etfespaceVelocity ETA finite element space for the velocity.
+     * \param etfespacePressure ETA finite element space for the pressure.
+     */
     NavierStokesStabilization(const DataContainer& data,
                               shp<FESPACE> fespaceVelocity,
                               shp<FESPACE> fespacePressure,
                               shp<ETFESPACE3> etfespaceVelocity,
                               shp<ETFESPACE1> etfespacePressure);
 
-    void setDensityAndViscosity(const double& density, const double& viscosity);
+    /*! \brief Setter for the density and the velocity.
+     *
+     * \param density The value of the density.
+     * \param viscosity The value of the viscosity.
+     */
+    void setDensityAndViscosity(const double& density,
+                                const double& viscosity);
 
+    /*! \brief Assemble and get the mass.
+     *
+     * \param sol The solution.
+     * \param rhs The right hand side.
+     * \return The desired matrix.
+     */
     virtual shp<BlockMatrix> getMass(shp<BlockVector> sol,
                                      shp<BlockVector> rhs) = 0;
 
-    virtual shp<BlockMatrix> getMassJac(shp<BlockVector> sol,
-                                        shp<BlockVector> rhs) = 0;
+    /*! \brief Assemble and get the mass Jacobian.
+     *
+     * \param sol The solution.
+     * \param rhs The right hand side.
+     * \return The desired matrix.
+     */
+    virtual shp<BlockMatrix> getMassJacobian(shp<BlockVector> sol,
+                                             shp<BlockVector> rhs) = 0;
 
-    virtual shp<BlockMatrix> getJac(shp<BlockVector> sol,
-                                    shp<BlockVector> rhs) = 0;
+    /*! \brief Assemble and get the Jacobian.
+     *
+     * \param sol The solution.
+     * \param rhs The right hand side.
+     * \return The desired matrix.
+     */
+    virtual shp<BlockMatrix> getJacobian(shp<BlockVector> sol,
+                                         shp<BlockVector> rhs) = 0;
 
+    /*! \brief Assemble and get the residual.
+     *
+     * \param sol The solution.
+     * \param rhs The right hand side.
+     * \return The desired vector.
+     */
     virtual shp<BlockVector> getResidual(shp<BlockVector> sol,
                                          shp<BlockVector> rhs) = 0;
 

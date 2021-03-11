@@ -44,7 +44,7 @@ setup()
 
 void
 NavierStokesAssemblerFE::
-addConvectiveMatrixRightHandSide(shp<aVector> sol, shp<aMatrix> mat)
+addConvectiveMatrix(shp<aVector> sol, shp<aMatrix> mat)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -68,8 +68,7 @@ addConvectiveMatrixRightHandSide(shp<aVector> sol, shp<aMatrix> mat)
 
 void
 NavierStokesAssemblerFE::
-addConvectiveTermJacobianRightHandSide(shp<aVector> sol, shp<aVector> lifting,
-                                       shp<aMatrix> mat)
+addConvectiveTermJacobian(shp<aVector> sol, shp<aMatrix> mat)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -120,8 +119,8 @@ getMassJacobian(const double& time, const shp<aVector>& sol)
     shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
     if (M_stabilization)
     {
-        retMat->add(M_stabilization->getMassJac(spcast<BlockVector>(sol),
-                                                spcast<BlockVector>(this->getForcingTerm(time))));
+        retMat->add(M_stabilization->getMassJacobian(spcast<BlockVector>(sol),
+                                                     spcast<BlockVector>(this->getForcingTerm(time))));
         // we do it here because matrices from stabilization have no bcs
         this->M_bcManager->apply0DirichletMatrix(*retMat, this->getFESpaceBCs(),
                                                  this->getComponentBCs(), 0.0);
@@ -142,7 +141,7 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
     systemMatrix->add(M_divergence);
     systemMatrix->multiplyByScalar(-1.0);
 
-    this->addConvectiveMatrixRightHandSide(sol, systemMatrix);
+    this->addConvectiveMatrix(sol, systemMatrix);
 
     shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
 
@@ -169,12 +168,12 @@ getJacobianRightHandSide(const double& time,
 {
     shp<aMatrix> retMat = StokesAssemblerFE::getJacobianRightHandSide(time, sol);
 
-    this->addConvectiveTermJacobianRightHandSide(sol, this->getZeroVector(), retMat);
+    this->addConvectiveTermJacobian(sol, retMat);
 
     if (M_stabilization)
     {
-        shp<BlockMatrix> stabJac = M_stabilization->getJac(spcast<BlockVector>(sol),
-                                                           spcast<BlockVector>(this->getForcingTerm(time)));
+        shp<BlockMatrix> stabJac = M_stabilization->getJacobian(spcast<BlockVector>(sol),
+                                                                spcast<BlockVector>(this->getForcingTerm(time)));
         stabJac->multiplyByScalar(-1);
         retMat->add(stabJac);
     }

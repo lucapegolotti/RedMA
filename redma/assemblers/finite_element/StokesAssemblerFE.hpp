@@ -19,7 +19,6 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/assemblers/abstract/aAssemblerFE.hpp>
-// #include <redma/assemblers/models/StokesModel.hpp>
 
 namespace RedMA
 {
@@ -29,8 +28,8 @@ namespace RedMA
  * The equations are defined, for every \f$(x,t)\in \Omega\f$, as
  *
  * \f{eqnarray*}{
-        \rho \dot{u}-\nabla \cdot \sigma(u,p) &= f, \\
-          \nabla \cdot u = 0,
+ *        \rho \dot{u}-\nabla \cdot \sigma(u,p) &= f, \\
+ *        \nabla \cdot u &= 0,
  * \f}
  * where \f$u\f$ and \f$p\f$ are velocity and pressure of the fluid,
  * \f[
@@ -49,7 +48,7 @@ namespace RedMA
 class StokesAssemblerFE : public aAssemblerFE
 {
 public:
-    /*! \brief Constructor taking a datafile and a TreeNode as argument.
+    /*! \brief Constructor taking a datafile and a TreeNode as arguments.
      *
      * \param datafile The datafile.
      * \param datafile The TreeNode encoding the physical domain.
@@ -84,11 +83,11 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;
 
-    /*! \brief Virtual getter for mass matrix jacobian.
+    /*! \brief Virtual getter for mass matrix Jacobian.
      *
      * \param time Current time.
      * \param sol Current solution.
-     * \return Shared pointer to aMatrix of the mass matrix jacobian.
+     * \return Shared pointer to aMatrix of the mass matrix Jacobian.
      */
     virtual shp<aMatrix> getMassJacobian(const double& time,
                                          const shp<aVector>& sol) override;
@@ -106,7 +105,7 @@ public:
      *
      * \param time Current time.
      * \param sol Current solution.
-     * \return Shared pointer to aMatrix of the right-hand side jacobian.
+     * \return Shared pointer to aMatrix of the right-hand side Jacobian.
      */
     virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
                                                   const shp<aVector>& sol) override;
@@ -334,7 +333,7 @@ public:
      */
     void assembleFlowRateVectors();
 
-    /*! \brief Compute the jacobians of the vectors computed in computeFlowRates.
+    /*! \brief Compute the Jacobians of the vectors computed in computeFlowRates.
      *
      * Attention: this function is expensive.
      */
@@ -355,7 +354,7 @@ public:
      */
     shp<VECTOREPETRA> assembleFlowRateVector(const GeometricFace& face);
 
-    /*! \brief Assemble jacobian of the vector computed in assembleFlowRateVector.
+    /*! \brief Assemble Jacobian of the vector computed in assembleFlowRateVector.
      *
      * \param face The face.
      * \return Shared pointer to the vector.
