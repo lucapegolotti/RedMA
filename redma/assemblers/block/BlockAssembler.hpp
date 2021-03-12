@@ -52,7 +52,8 @@ public:
      * \param tree Geometric tree.
      * \param Default assemblers for the building blocks in the reference configuration.
      */
-    BlockAssembler(const DataContainer& data, const TreeStructure& tree,
+    BlockAssembler(const DataContainer& data,
+                   const TreeStructure& tree,
                    shp<DefaultAssemblers> defAssemblers = nullptr);
 
     /*! \brief Setup method.
@@ -159,7 +160,8 @@ public:
      * \param matrix The matrix to modify.
      * \param diagCoeff diagonal coefficient.
      */
-    virtual void applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
+    virtual void applyDirichletBCsMatrix(shp<aMatrix> matrix,
+                                         double diagCoeff) const override;
 
     /*! \brief Apply homogeneous Dirichlet bcs to a vector.
      *
@@ -220,7 +222,8 @@ public:
      * \param comm MPI Communicator.
      * \return Shared pointer to the converted vector.
      */
-    shp<aVector> convertFunctionRBtoFEM(shp<aVector> rbFunction, EPETRACOMM comm) const;
+    shp<aVector> convertFunctionRBtoFEM(shp<aVector> rbFunction,
+                                        EPETRACOMM comm) const;
 
     /*! \brief Set extrapolated solution.
      *
@@ -254,7 +257,6 @@ public:
      */
     virtual void applyPiola(shp<aVector> solution, bool inverse) override;
 
-
     /*! Setter fot the default assemblers.
      *
      * \param Shared pointer to the default assemblers.
@@ -279,7 +281,6 @@ protected:
     std::map<unsigned int, shp<aAssembler>>                       M_primalAssemblers;
     std::vector<shp<InterfaceAssembler>>                          M_dualAssemblers;
     unsigned int                                                  M_numberBlocks;
-    // shp<MDEIMManager>                                            M_mdeimManager;
     shp<RBBasesManager>                                           M_basesManager;
 };
 

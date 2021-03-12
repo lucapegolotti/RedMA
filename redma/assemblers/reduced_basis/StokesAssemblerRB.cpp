@@ -16,31 +16,25 @@ void
 StokesAssemblerRB::
 setup()
 {
-    Chrono chrono;
-    chrono.start();
-
     std::string msg = "[";
     msg += this->M_name;
-    msg += "] initializing ...";
+    msg += "] initializing internal FE assembler";
     printlog(YELLOW, msg, this->M_data.getVerbose());
     M_FEAssembler->setup();
-
-    msg = "done, in ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(YELLOW, msg, this->M_data.getVerbose());
 }
 
 shp<aMatrix>
 StokesAssemblerRB::
-getMass(const double& time, const shp<aVector>& sol)
+getMass(const double& time,
+        const shp<aVector>& sol)
 {
     return M_reducedMass;
 }
 
 shp<aMatrix>
 StokesAssemblerRB::
-getMassJacobian(const double& time, const shp<aVector>& sol)
+getMassJacobian(const double& time,
+                const shp<aVector>& sol)
 {
     shp<BlockMatrix> retMat(new BlockMatrix(2,2));
     return retMat;
@@ -48,7 +42,8 @@ getMassJacobian(const double& time, const shp<aVector>& sol)
 
 shp<aVector>
 StokesAssemblerRB::
-getRightHandSide(const double& time, const shp<aVector>& sol)
+getRightHandSide(const double& time,
+                 const shp<aVector>& sol)
 {
     shp<BlockMatrix> systemMatrix(new BlockMatrix(this->M_nComponents,
                                                   this->M_nComponents));
@@ -61,9 +56,11 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
 
 shp<aMatrix>
 StokesAssemblerRB::
-getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
+getJacobianRightHandSide(const double& time,
+                         const shp<aVector>& sol)
 {
-    shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+    shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,
+                                            this->M_nComponents));
 
     retMat->add(M_reducedStiffness);
     retMat->add(M_reducedDivergence);
@@ -94,14 +91,16 @@ assembleMatrix(const unsigned int& index)
 
 void
 StokesAssemblerRB::
-applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
+applyDirichletBCsMatrix(shp<aMatrix> matrix,
+                        double diagCoeff) const
 {
     // throw new Exception("Method not implemented for RB");
 }
 
 void
 StokesAssemblerRB::
-applyDirichletBCs(const double& time, shp<aVector> vector) const
+applyDirichletBCs(const double& time,
+                  shp<aVector> vector) const
 {
     // throw new Exception("Method not implemented for RB");
 }
@@ -129,7 +128,8 @@ setExporter()
 
 void
 StokesAssemblerRB::
-exportSolution(const double& t, const shp<aVector>& sol)
+exportSolution(const double& t, 
+               const shp<aVector>& sol)
 {
     std::ofstream outfile("rbcoefs/block" + std::to_string(M_treeNode->M_ID) + "t" + std::to_string(t) + ".txt");
     std::string str2write = spcast<DenseVector>(sol->block(0))->getString(',') + "\n";
@@ -172,24 +172,7 @@ shp<aVector>
 StokesAssemblerRB::
 getLifting(const double& time) const
 {
-    shp<BlockVector> liftingFE(new BlockVector(2));
-    // velocity
-    shp<DistributedVector> ucomp(new DistributedVector());
-    ucomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_FEAssembler->getFEspace(0)->map(),LifeV::Unique)));
-    ucomp->multiplyByScalar(0);
-
-    shp<DistributedVector> pcomp(new DistributedVector());
-    pcomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_FEAssembler->getFEspace(0)->map(),LifeV::Unique)));
-    pcomp->multiplyByScalar(0);
-
-    liftingFE->setBlock(0,ucomp);
-    liftingFE->setBlock(1,pcomp);
-
-    getBCManager()->applyDirichletBCs(time, *liftingFE, this->getFESpaceBCs(),
-                                      this->getComponentBCs());
-
-    // shp<aVector> lifting = M_bases->leftProject(liftingFE, StokesModel::M_treeNode->M_ID);
-    return liftingFE;
+    return M_FEAssembler->getLifting(time);
 }
 
 void
@@ -199,7 +182,11 @@ RBsetup()
     if (M_bases == nullptr)
         throw new Exception("RB bases have not been set yet");
 
-    // scale bases with Piola transformation
+    // scale bases with piola transformation
+    unsigned int indexField = 0;
+    printlog(YELLOW, "[StokesAssembler] applying Piola transformation\t", M_data.getVerbose());
+    Chrono chrono;
+    chrono.start();
     M_bases->scaleBasisWithPiola(0, M_treeNode->M_ID, [=](shp<VECTOREPETRA> vector)
     {
         shp<BlockVector> vectorWrap(new BlockVector(2));
@@ -211,9 +198,12 @@ RBsetup()
 
         applyPiola(vectorWrap, false);
     });
+    std::string msg = "done, in ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(YELLOW, msg, this->M_data.getVerbose());
 
     printlog(YELLOW, "[StokesAssembler] assembling and projecting matrices\t", M_data.getVerbose());
-    Chrono chrono;
     chrono.start();
 
     unsigned int id = M_treeNode->M_ID;
@@ -228,7 +218,7 @@ RBsetup()
     M_reducedDivergence->setBlock(0,1,M_bases->matrixProject(matrices[2]->block(0,1), 0, 1, id));
     M_reducedDivergence->setBlock(1,0,M_bases->matrixProject(matrices[2]->block(1,0), 1, 0, id));
 
-    std::string msg = "done, in ";
+    msg = "done, in ";
     msg += std::to_string(chrono.diff());
     msg += " seconds\n";
     printlog(YELLOW, msg, this->M_data.getVerbose());
@@ -289,7 +279,8 @@ convertFunctionRBtoFEM(shp<aVector> rbSolution) const
 
 void
 StokesAssemblerRB::
-applyPiola(shp<aVector> solution, bool inverse)
+applyPiola(shp<aVector> solution,
+           bool inverse)
 {
     M_FEAssembler->applyPiola(solution, inverse);
 }

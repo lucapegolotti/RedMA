@@ -35,7 +35,8 @@ NavierStokesStabilization(const DataContainer& data,
 
 void
 NavierStokesStabilization::
-setDensityAndViscosity(const double& density, const double& viscosity)
+setDensityAndViscosity(const double& density,
+                       const double& viscosity)
 {
     M_density = density;
     M_viscosity = viscosity;

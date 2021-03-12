@@ -39,7 +39,8 @@ public:
      * \param datafile The datafile.
      * \param datafile The TreeNode encoding the physical domain.
      */
-    aAssemblerRB(const DataContainer& datafile, shp<TreeNode> node) :
+    aAssemblerRB(const DataContainer& datafile,
+                 shp<TreeNode> node) :
       aAssembler(datafile, node)
     {}
 

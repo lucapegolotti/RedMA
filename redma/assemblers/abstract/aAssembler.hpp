@@ -58,7 +58,8 @@ public:
      * \param datafile The datafile.
      * \param datafile The TreeNode encoding the physical domain.
      */
-    aAssembler(const DataContainer& datafile, shp<TreeNode> node);
+    aAssembler(const DataContainer& datafile,
+               shp<TreeNode> node);
 
     /// Virtual setup function.
     virtual void setup() = 0;
@@ -200,7 +201,8 @@ public:
      * \param matrix The matrix to which the bcs must be applied.
      * \param diagCoeff Coefficient to put in the diagonal of the matrix.
      */
-    virtual void applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const = 0;
+    virtual void applyDirichletBCsMatrix(shp<aMatrix> matrix,
+                                         double diagCoeff) const = 0;
 
     /*! \brief Virtual method to apply homogeneous Dirichlet bcs to a vector.
      *
@@ -215,7 +217,8 @@ public:
      * \param time Current time.
      * \param vector The vector to which the bcs must be applied.
      */
-    virtual void applyDirichletBCs(const double& time, shp<aVector> vector) const = 0;
+    virtual void applyDirichletBCs(const double& time,
+                                   shp<aVector> vector) const = 0;
 
     /*! \brief Applies the piola transformation (or its inverse) to a vector.
      *
@@ -224,8 +227,8 @@ public:
      * \param solution Shared pointer to aVector to transform.
      * \param inverse If true, inverse of Piola transformation is applied.
      */
-    virtual void applyPiola(shp<aVector> solution, bool inverse) = 0;
-
+    virtual void applyPiola(shp<aVector> solution,
+                            bool inverse) = 0;
 
     /*! \brief Assemble matrix corresponding to specific index.
      *
@@ -250,7 +253,7 @@ public:
 
     /*! \brief Setter for the default assemblers.
      *
-     * \param Shared pointer to the DefaultAssemblers.
+     * \param Shared pointer to the DefaultAssemblersLibrary.
      */
     virtual void setDefaultAssemblers(shp<DefaultAssemblers> defAssemblers)
     {

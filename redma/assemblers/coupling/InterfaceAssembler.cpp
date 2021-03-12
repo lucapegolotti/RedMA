@@ -161,8 +161,10 @@ Interface()
 }
 
 Interface::
-Interface(shp<AssemblerType> assemblerFather, const int& indexFather,
-          shp<AssemblerType> assemblerChild, const int& indexChild,
+Interface(shp<AssemblerType> assemblerFather,
+          const int& indexFather,
+          shp<AssemblerType> assemblerChild,
+          const int& indexChild,
           const unsigned int& interfaceID) :
   M_assemblerFather(assemblerFather),
   M_indexFather(indexFather),
@@ -276,8 +278,10 @@ buildCouplingVectors(shp<BasisFunctionFunctor> bfs,
 
 void
 InterfaceAssembler::
-buildCouplingMatrices(shp<AssemblerType> assembler, const GeometricFace& face,
-                      shp<BlockMatrix> matrixT, shp<BlockMatrix> matrix)
+buildCouplingMatrices(shp<AssemblerType> assembler,
+                      const GeometricFace& face,
+                      shp<BlockMatrix> matrixT,
+                      shp<BlockMatrix> matrix)
 {
     shp<BasisFunctionFunctor> bfs;
 
@@ -304,8 +308,10 @@ buildCouplingMatrices(shp<AssemblerType> assembler, const GeometricFace& face,
 
 void
 InterfaceAssembler::
-addContributionRhs(const double& time, shp<BlockVector> rhs,
-                   shp<BlockVector> sol, const unsigned int& nPrimalBlocks)
+addContributionRhs(const double& time,
+                   shp<BlockVector> rhs,
+                   shp<BlockVector> sol,
+                   const unsigned int& nPrimalBlocks)
 {
     unsigned int fatherID = M_interface.M_indexFather;
     unsigned int childID = M_interface.M_indexChild;
@@ -323,17 +329,6 @@ addContributionRhs(const double& time, shp<BlockVector> rhs,
     tempResChild->multiplyByScalar(-1.0);
     rhs->block(childID)->add(tempResChild);
 
-    // no need to apply bcs as matrices have already bcs in them
-    // assemblerFather->getBCManager()->apply0DirichletBCs(rhs.block(fatherID),
-    //                                                     assemblerFather->getFESpaceBCs(),
-    //                                                     assemblerFather->getComponentBCs(),
-    //                                                     !(M_addNoSlipBC));
-    //
-    // assemblerChild->getBCManager()->apply0DirichletBCs(rhs.block(childID),
-    //                                                    assemblerChild->getFESpaceBCs(),
-    //                                                    assemblerChild->getComponentBCs(),
-    //                                                    !(M_addNoSlipBC));
-
     tempResFather = M_fatherB->multiplyByVector(sol->block(fatherID));
     tempResFather->multiplyByScalar(-1.0);
     if (rhs->block(nPrimalBlocks + interfaceID)->isZero())
@@ -347,20 +342,12 @@ addContributionRhs(const double& time, shp<BlockVector> rhs,
         rhs->setBlock(nPrimalBlocks + interfaceID,tempResChild);
     else
         rhs->block(nPrimalBlocks + interfaceID)->add(tempResChild);
-
-    // if (M_stabilizationCoupling > THRESHOLDSTAB)
-    // {
-    //     rhs.block(nPrimalBlocks + interfaceID) -= (M_stabFather * sol.block(fatherID)) * (0.5 * M_stabilizationCoupling);
-    //     rhs.block(nPrimalBlocks + interfaceID) -= (M_stabChild * sol.block(childID)) * (0.5 * M_stabilizationCoupling);
-    //
-    //     rhs.block(nPrimalBlocks + interfaceID) -=
-    //     sol.block(nPrimalBlocks + interfaceID) * M_stabilizationCoupling;
-    // }
 }
 
 double
 InterfaceAssembler::
-checkStabilizationTerm(const shp<BlockVector>& sol, const unsigned int& nPrimalBlocks)
+checkStabilizationTerm(const shp<BlockVector>& sol,
+                       const unsigned int& nPrimalBlocks)
 {
     // if (M_stabilizationCoupling > THRESHOLDSTAB &&
     //     M_interface.M_assemblerFather && M_interface.M_assemblerChild)
@@ -396,8 +383,10 @@ checkStabilizationTerm(const shp<BlockVector>& sol, const unsigned int& nPrimalB
 
 void
 InterfaceAssembler::
-addContributionJacobianRhs(const double& time, shp<BlockMatrix> jac,
-                           shp<BlockVector> sol, const unsigned int& nPrimalBlocks)
+addContributionJacobianRhs(const double& time,
+                           shp<BlockMatrix> jac,
+                           shp<BlockVector> sol,
+                           const unsigned int& nPrimalBlocks)
 {
     unsigned int fatherID = M_interface.M_indexFather;
     unsigned int childID = M_interface.M_indexChild;
@@ -409,23 +398,11 @@ addContributionJacobianRhs(const double& time, shp<BlockMatrix> jac,
     jac->setBlock(childID, nPrimalBlocks + interfaceID, shp<BlockMatrix>(M_childBT->clone()));
     jac->setBlock(nPrimalBlocks + interfaceID, fatherID, shp<BlockMatrix>(M_fatherB->clone()));
     jac->setBlock(nPrimalBlocks + interfaceID, childID, shp<BlockMatrix>(M_childB->clone()));
-    // jac->block(fatherID, nPrimalBlocks + interfaceID)->deepCopy(M_fatherBT);
-    //jac->block(childID,  nPrimalBlocks + interfaceID)->deepCopy(M_childBT);
-    // jac->block(nPrimalBlocks + interfaceID, fatherID)->deepCopy(M_fatherB);
-    // jac->block(nPrimalBlocks + interfaceID,  childID)->deepCopy(M_childB);
 
     jac->block(fatherID, nPrimalBlocks + interfaceID)->multiplyByScalar(-1);
     jac->block(childID,  nPrimalBlocks + interfaceID)->multiplyByScalar(-1);
     jac->block(nPrimalBlocks + interfaceID, fatherID)->multiplyByScalar(-1);
     jac->block(nPrimalBlocks + interfaceID,  childID)->multiplyByScalar(-1);
-
-    // if (M_stabilizationCoupling > THRESHOLDSTAB)
-    // {
-    //     jac.block(nPrimalBlocks + interfaceID, fatherID) += (M_stabFather * (-0.5 * M_stabilizationCoupling));
-    //     jac.block(nPrimalBlocks + interfaceID,  childID) += (M_stabChild * (-0.5 * M_stabilizationCoupling));
-    //
-    //     jac.block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID).deepCopy(M_identity * (-1.0 * M_stabilizationCoupling));
-    // }
 }
 
 shp<BlockVector>
@@ -436,7 +413,6 @@ getZeroVector() const
 
     shp<VECTOREPETRA> zeroVec(new VECTOREPETRA(*M_mapLagrange, LifeV::Unique));
     zeroVec->zero();
-    // *zeroVec += 1;
 
     retVector->setBlock(0,wrap(zeroVec));
     return retVector;
@@ -459,7 +435,6 @@ buildCouplingMatrices()
         if (M_stabilizationCoupling > THRESHOLDSTAB)
         {
             buildStabilizationMatrix(asFather, outlet, M_stabFather);
-            // M_stabFather *= 0.5;
         }
 
         M_mapLagrange = spcast<MATRIXEPETRA>(M_fatherBT->block(0,0)->data())->domainMapPtr();

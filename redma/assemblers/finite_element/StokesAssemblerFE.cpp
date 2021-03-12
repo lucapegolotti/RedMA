@@ -4,7 +4,8 @@ namespace RedMA
 {
 
 StokesAssemblerFE::
-StokesAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode) :
+StokesAssemblerFE(const DataContainer& data,
+                  shp<TreeNode> treeNode) :
   aAssemblerFE(data, treeNode)
 {
     this->M_bcManager.reset(new BCManager(data, treeNode));
@@ -55,7 +56,8 @@ postProcess(const double& t, const double &dt, const shp<aVector>& sol)
 
 void
 StokesAssemblerFE::
-exportSolution(const double& t, const shp<aVector>& sol)
+exportSolution(const double& t,
+               const shp<aVector>& sol)
 {
     auto solBlck = convert<BlockVector>(sol);
     *M_velocityExporter = *spcast<VECTOREPETRA>(solBlck->block(0)->data());
@@ -79,16 +81,19 @@ exportSolution(const double& t, const shp<aVector>& sol)
 
 shp<aMatrix>
 StokesAssemblerFE::
-getMass(const double& time, const shp<aVector>& sol)
+getMass(const double& time,
+        const shp<aVector>& sol)
 {
     return M_mass;
 }
 
 shp<aMatrix>
 StokesAssemblerFE::
-getMassJacobian(const double& time, const shp<aVector>& sol)
+getMassJacobian(const double& time,
+                const shp<aVector>& sol)
 {
-    shp<aMatrix> retMat(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+    shp<aMatrix> retMat(new BlockMatrix(this->M_nComponents,
+                                        this->M_nComponents));
     return retMat;
 }
 
@@ -116,7 +121,9 @@ getRightHandSide(const double& time,
 
 void
 StokesAssemblerFE::
-addNeumannBCs(double time, shp<aVector> sol, shp<aVector> rhs)
+addNeumannBCs(double time,
+              shp<aVector> sol,
+              shp<aVector> rhs)
 {
     if (aAssembler::M_treeNode->isInletNode())
     {
@@ -139,8 +146,11 @@ addNeumannBCs(double time, shp<aVector> sol, shp<aVector> rhs)
     if (aAssembler::M_treeNode->isOutletNode())
     {
         auto flowRates = this->computeFlowRates(sol, true);
-        for (auto rate : flowRates) {
-            if (rate.first != aAssembler::M_treeNode->M_block->getInlet().M_flag) {
+
+        for (auto rate : flowRates) 
+        {
+            if (rate.first != aAssembler::M_treeNode->M_block->getInlet().M_flag) 
+            {
                 double P = this->M_bcManager->getOutflowNeumannBC(time, rate.first, rate.second);
 
                 shp<VECTOREPETRA> flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
@@ -154,9 +164,11 @@ addNeumannBCs(double time, shp<aVector> sol, shp<aVector> rhs)
 
 shp<aMatrix>
 StokesAssemblerFE::
-getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
+getJacobianRightHandSide(const double& time,
+                         const shp<aVector>& sol)
 {
-    shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+    shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,
+                                            this->M_nComponents));
 
     retMat->add(M_stiffness);
     retMat->add(M_divergence);
@@ -165,6 +177,7 @@ getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
     if (aAssembler::M_treeNode->isOutletNode())
     {
         auto flowRates = computeFlowRates(sol);
+        
         for (auto rate : flowRates)
         {
             if (rate.first != aAssembler::M_treeNode->M_block->getInlet().M_flag)
@@ -200,11 +213,13 @@ getFELifting(const double& time) const
     shp<BlockVector> lifting(new BlockVector(2));
     // velocity
     shp<DistributedVector> ucomp(new DistributedVector());
-    ucomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_velocityFESpace->map(),LifeV::Unique)));
+    ucomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_velocityFESpace->map(),
+                                                      LifeV::Unique)));
     ucomp->multiplyByScalar(0);
 
     shp<DistributedVector> pcomp(new DistributedVector());
-    pcomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_pressureFESpace->map(),LifeV::Unique)));
+    pcomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_pressureFESpace->map(),
+                                                      LifeV::Unique)));
     pcomp->multiplyByScalar(0);
 
     lifting->setBlock(0, ucomp);
@@ -279,7 +294,8 @@ setExporter()
 
 void
 StokesAssemblerFE::
-applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
+applyDirichletBCsMatrix(shp<aMatrix> matrix,
+                        double diagCoeff) const
 {
     auto matrixConverted = spcast<BlockMatrix>(matrix);
     this->M_bcManager->apply0DirichletMatrix(*matrixConverted, getFESpaceBCs(),
@@ -299,7 +315,8 @@ apply0DirichletBCs(shp<aVector> vector) const
 
 void
 StokesAssemblerFE::
-applyDirichletBCs(const double& time, shp<aVector> vector) const
+applyDirichletBCs(const double& time,
+                  shp<aVector> vector) const
 {
     auto vectorConverted = spcast<BlockVector>(vector);
     this->M_bcManager->applyDirichletBCs(time, *vectorConverted, getFESpaceBCs(),
@@ -351,7 +368,8 @@ assembleMatrix(const unsigned int& index)
 
 shp<aMatrix>
 StokesAssemblerFE::
-getNorm(const unsigned int& fieldIndex, bool bcs)
+getNorm(const unsigned int& fieldIndex,
+        bool bcs)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -422,13 +440,9 @@ setExtrapolatedSolution(const shp<aVector>& exSol)
 
 void
 StokesAssemblerFE::
-applyPiola(shp<aVector> solution, bool inverse)
+applyPiola(shp<aVector> solution,
+           bool inverse)
 {
-    std::string msg = "[";
-    msg += this->M_name;
-    msg += "] apply Piola\n";
-    printlog(YELLOW, msg, this->M_data.getVerbose());
-
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
@@ -513,7 +527,8 @@ applyPiola(shp<aVector> solution, bool inverse)
 
             if (inverse)
             {
-                aAssembler::M_treeNode->M_block->matrixInverse(jacobian, transformationMatrix);
+                aAssembler::M_treeNode->M_block->matrixInverse(jacobian,
+                                                               transformationMatrix);
                 determinant = 1.0/determinant;
             }
             else
@@ -727,7 +742,7 @@ computeFlowRates(shp<aVector> sol, bool verbose)
     {
         auto face = M_treeNode->M_block->getInlet();
 
-        flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(solBlck->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
+        flowRates[face.M_flag] = spcast<VECTOREPETRA>(solBlck->block(0)->data())->dot(*M_flowRateVectors[face.M_flag]);
         std::string msg = "[";
         msg += "StokesAssemblerFE";
         msg += "]  inflow rate = ";
@@ -742,7 +757,7 @@ computeFlowRates(shp<aVector> sol, bool verbose)
 
         for (auto face : faces)
         {
-            flowRates[face.M_flag] = static_cast<VECTOREPETRA*>(solBlck->block(0)->data().get())->dot(*M_flowRateVectors[face.M_flag]);
+            flowRates[face.M_flag] = spcast<VECTOREPETRA>(solBlck->block(0)->data())->dot(*M_flowRateVectors[face.M_flag]);
             std::string msg = "[";
             msg += "StokesAssemblerFE";
             msg += "]  outflow rate = ";
@@ -800,7 +815,9 @@ assembleFlowRateJacobian(const GeometricFace& face)
 
     // this should be optimized
     shp<MATRIXEPETRA> flowRateJacobian;
-    flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map(), numGlobalElements, false));
+    flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map(),
+                                            numGlobalElements,
+                                            false));
 
     // compute outer product of flowrate vector with itself
     for (unsigned int j = 0; j < numGlobalElements; j++)
@@ -940,7 +957,8 @@ computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
 
     shp<VECTOREPETRA> velocityRepeated(new VECTOREPETRA(*velocity,
                                                          Repeated));
-    shp<VECTOREPETRA> weakWSSRepeated(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
+    shp<VECTOREPETRA> weakWSSRepeated(new VECTOREPETRA(M_velocityFESpace->map(),
+                                                       Repeated));
 
     integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
               myBDQR,

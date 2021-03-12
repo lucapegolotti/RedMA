@@ -19,7 +19,6 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/assemblers/abstract/aAssemblerFE.hpp>
-// #include <redma/assemblers/models/StokesModel.hpp>
 
 namespace RedMA
 {
@@ -29,8 +28,8 @@ namespace RedMA
  * The equations are defined, for every \f$(x,t)\in \Omega\f$, as
  *
  * \f{eqnarray*}{
-        \rho \dot{u}-\nabla \cdot \sigma(u,p) &= f, \\
-          \nabla \cdot u = 0,
+ *        \rho \dot{u}-\nabla \cdot \sigma(u,p) &= f, \\
+ *        \nabla \cdot u &= 0,
  * \f}
  * where \f$u\f$ and \f$p\f$ are velocity and pressure of the fluid,
  * \f[
@@ -44,17 +43,17 @@ namespace RedMA
  *
  * Indices of the components: velocity = 0, pressure = 1.
  * Indices of the matrices: mass = 0, stiffness = 1, divergence = 2.
- *
  */
 class StokesAssemblerFE : public aAssemblerFE
 {
 public:
-    /*! \brief Constructor taking a datafile and a TreeNode as argument.
+    /*! \brief Constructor taking a datafile and a TreeNode as arguments.
      *
      * \param datafile The datafile.
      * \param datafile The TreeNode encoding the physical domain.
      */
-    StokesAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode);
+    StokesAssemblerFE(const DataContainer& data,
+                      shp<TreeNode> treeNode);
 
     /// Virtual setup function.
     virtual void setup() override;
@@ -85,11 +84,11 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;
 
-    /*! \brief Virtual getter for mass matrix jacobian.
+    /*! \brief Virtual getter for mass matrix Jacobian.
      *
      * \param time Current time.
      * \param sol Current solution.
-     * \return Shared pointer to aMatrix of the mass matrix jacobian.
+     * \return Shared pointer to aMatrix of the mass matrix Jacobian.
      */
     virtual shp<aMatrix> getMassJacobian(const double& time,
                                          const shp<aVector>& sol) override;
@@ -107,7 +106,7 @@ public:
      *
      * \param time Current time.
      * \param sol Current solution.
-     * \return Shared pointer to aMatrix of the right-hand side jacobian.
+     * \return Shared pointer to aMatrix of the right-hand side Jacobian.
      */
     virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
                                                   const shp<aVector>& sol) override;
@@ -147,7 +146,7 @@ public:
     /*! \brief Getter for the finite element space corresponding to the Dirichlet bcs,
      * i.e., the velocity finite element space.
      *
-     * \return Shared pointer to desired finite element space.
+     * \return Shared pointer to the desired finite element space.
      */
     virtual inline shp<FESPACE> getFESpaceBCs() const override
     {
@@ -180,7 +179,8 @@ public:
      * \param matrix The matrix to which the bcs must be applied.
      * \param diagCoeff Coefficient to put in the diagonal of the matrix.
      */
-    void applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
+    void applyDirichletBCsMatrix(shp<aMatrix> matrix,
+                                 double diagCoeff) const override;
 
     /*! \brief Virtual method to apply homogeneous Dirichlet bcs to a vector.
      *
@@ -195,7 +195,8 @@ public:
      * \param time Current time.
      * \param vector The vector to which the bcs must be applied.
      */
-    void applyDirichletBCs(const double& time, shp<aVector> vector) const override;
+    void applyDirichletBCs(const double& time,
+                           shp<aVector> vector) const override;
 
     /*! \brief Getter for the finite element space corresponding to a specific component.
      *
@@ -233,7 +234,8 @@ public:
      * \param bcs If true, Dirichlet boundary conditions are applied (only to velocity).
      * \return Shared pointer to the norm matrix.
      */
-    virtual shp<aMatrix> getNorm(const unsigned int& fieldIndex, bool bcs = true) override;
+    virtual shp<aMatrix> getNorm(const unsigned int& fieldIndex,
+                                 bool bcs = true) override;
 
     /*! \brief Getter for the constraint matrix.
      *
@@ -255,7 +257,8 @@ public:
      * \param solution Shared pointer to aVector to transform.
      * \param inverse If true, inverse of Piola transformation is applied.
      */
-    virtual void applyPiola(shp<aVector> solution, bool inverse) override;
+    virtual void applyPiola(shp<aVector> solution,
+                            bool inverse) override;
 
     /*! \brief Add Neumann BCs to a vector.
      *

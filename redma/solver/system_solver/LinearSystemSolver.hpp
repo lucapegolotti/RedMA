@@ -46,8 +46,6 @@ class LinearSystemSolver
 public:
     LinearSystemSolver(const DataContainer& datafile);
 
-    // I don't provide  a generic implementation of this method but only
-    // (template) specializations in the cpp
     void solve(const BM& matrix, const BV& rhs, BV& sol);
 
     void buildPreconditioner(const BM& matrix);
@@ -59,9 +57,9 @@ public:
 private:
 
     // only required for dense computation
-    void computeSchurComplementDense(const BM& matrix);
-
-    void solveDense(const BM& matrix, const BV& rhs, BV& sol);
+    // void computeSchurComplementDense(const BM& matrix);
+    //
+    // void solveDense(const BM& matrix, const BV& rhs, BV& sol);
 
     void convertVectorType(const shp<BlockMatrix>& matrix,
                            const shp<DenseVector>& vector,
