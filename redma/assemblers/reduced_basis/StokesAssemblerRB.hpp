@@ -55,14 +55,14 @@ public:
 
     virtual inline shp<FESPACE> getFESpaceBCs() const override
     {
-        return M_feStokesAssembler->getFESpaceBCs();
+        return M_FEAssembler->getFESpaceBCs();
     }
 
     virtual inline unsigned int getComponentBCs() const override {return 0;}
 
     virtual inline shp<ETFESPACE3> getETFESpaceCoupling() const override
     {
-        return M_feStokesAssembler->getETFESpaceCoupling();
+        return M_FEAssembler->getETFESpaceCoupling();
     }
 
     void applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const override;
@@ -73,7 +73,7 @@ public:
 
     virtual inline shp<FESPACE> getFEspace(unsigned int index) const override
     {
-        return M_feStokesAssembler->getFEspace(index);
+        return M_FEAssembler->getFEspace(index);
     }
 
     virtual std::vector<shp<aMatrix>> getMatrices() const override;
@@ -96,23 +96,39 @@ public:
 
     virtual inline shp<BCManager> getBCManager() const override
     {
-        return M_feStokesAssembler->getBCManager();
+        return M_FEAssembler->getBCManager();
     }
 
     virtual void setExporter() override;
 
 protected:
+
+    inline void replaceFEAssembler(shp<StokesAssemblerFE> assembler) {M_FEAssembler = assembler;}
+
+    inline shp<StokesAssemblerFE> getFEAssembler() {return M_FEAssembler;}
+
+    template<class T>
+    shp<T> getFEAssemblerAs()
+    {
+        return std::dynamic_pointer_cast<T>(M_FEAssembler);
+    }
+
     shp<LifeV::Exporter<MESH>>                        M_exporter;
     shp<VECTOREPETRA>                                 M_velocityExporter;
     shp<VECTOREPETRA>                                 M_WSSExporter;
     shp<VECTOREPETRA>                                 M_pressureExporter;
+
     std::string                                       M_name;
+
     shp<BlockVector>                                  M_extrapolatedSolution;
+
     shp<RBBases>                                      M_bases;
+
     shp<BlockMatrix>                                  M_reducedMass;
     shp<BlockMatrix>                                  M_reducedDivergence;
     shp<BlockMatrix>                                  M_reducedStiffness;
-    shp<StokesAssemblerFE>                            M_feStokesAssembler;
+
+    shp<StokesAssemblerFE>                            M_FEAssembler;
 };
 
 }

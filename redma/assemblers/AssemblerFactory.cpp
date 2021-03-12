@@ -46,6 +46,10 @@ AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode)
         {
             ret.reset(new MembraneAssemblerFE(data, treeNode));
         }
+        else if (!std::strcmp(method.c_str(),"rb"))
+        {
+            ret.reset(new MembraneAssemblerRB(data, treeNode));
+        }
     }
     else if (!std::strcmp(assemblerType.c_str(),"navierstokessupg_membrane"))
     {

@@ -23,7 +23,8 @@
 #include <redma/assemblers/reduced_basis/StokesAssemblerRB.hpp>
 #include <redma/assemblers/finite_element/NavierStokesAssemblerFE.hpp>
 #include <redma/assemblers/reduced_basis/NavierStokesAssemblerRB.hpp>
-#include <redma/assemblers//finite_element//MembraneAssemblerFE.hpp>
+#include <redma/assemblers/finite_element//MembraneAssemblerFE.hpp>
+#include <redma/assemblers/reduced_basis/MembraneAssemblerRB.hpp>
 
 #include <redma/utils/Exception.hpp>
 #include <redma/geometry/BuildingBlock.hpp>

@@ -57,8 +57,9 @@ namespace RedMA {
 
     void
     MembraneAssemblerFE::
-    computeLameConstants() {
-        double poisson = this->M_data("structure/poisson", 0.30);
+    computeLameConstants()
+    {
+        double poisson = this->M_data("structure/poisson", 0.45);
         double young = this->M_data("structure/young", 4e6);
 
         // this is not exactly Lame1 (i.e. lambda), but it is the coefficient appearing in the membrane model
@@ -282,6 +283,7 @@ namespace RedMA {
 
         // computing external wall contribution involved as velocity mass matrix in system matrix
         double  dt = this->M_data("time_discretization/dt", 0.01);
+        // TODO: here we can find a way of not making any interaction with the time marching scheme!
         double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
 
         shp<BlockMatrix> wallMatrix(new BlockMatrix(this->M_nComponents,
@@ -320,6 +322,7 @@ namespace RedMA {
 
         // adding external wall contribution involved as velocity mass matrix in system matrix
         double  dt = this->M_data("time_discretization/dt", 0.01);
+        // TODO: here we can find a way of not making any interaction with the time marching scheme!
         double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
 
         shp<BlockMatrix> wallMatrix(new BlockMatrix(this->M_nComponents,
@@ -368,6 +371,29 @@ namespace RedMA {
 
         M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
                                 "displacement", M_velocityFESpace, M_displacementExporter, 0.0);
+    }
+
+    std::vector<shp<aMatrix>>
+    MembraneAssemblerFE::
+    getBoundaryMatrices() const
+    {
+        std::vector<shp<aMatrix>> retVec;
+
+        retVec.push_back((M_boundaryMass));
+        retVec.push_back((M_boundaryStiffness));
+        retVec.push_back(M_wallBoundaryMass);
+
+        return retVec;
+    }
+
+    void
+    MembraneAssemblerFE::
+    setDisplacementExporter(shp<LifeV::VectorEpetra> displacement)
+    {
+        if (M_displacementExporter == nullptr)
+            this->setExporter();
+
+        *M_displacementExporter = *displacement;
     }
 
 }  // namespace RedMA

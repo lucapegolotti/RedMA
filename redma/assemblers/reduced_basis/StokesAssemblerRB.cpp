@@ -7,7 +7,7 @@ StokesAssemblerRB::
 StokesAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode) :
   aAssemblerRB(data, treeNode)
 {
-    M_feStokesAssembler.reset(new StokesAssemblerFE(data, treeNode));
+    M_FEAssembler.reset(new StokesAssemblerFE(data, treeNode));
     M_name = "StokesAssemblerRB";
     M_nComponents = 2;
 }
@@ -23,7 +23,7 @@ setup()
     msg += this->M_name;
     msg += "] initializing ...";
     printlog(YELLOW, msg, this->M_data.getVerbose());
-    M_feStokesAssembler->setup();
+    M_FEAssembler->setup();
 
     msg = "done, in ";
     msg += std::to_string(chrono.diff());
@@ -124,7 +124,7 @@ void
 StokesAssemblerRB::
 setExporter()
 {
-    this->M_feStokesAssembler->setExporter();
+    this->M_FEAssembler->setExporter();
 }
 
 void
@@ -142,7 +142,7 @@ exportSolution(const double& t, const shp<aVector>& sol)
     solBlock->setBlock(0,wrap(M_bases->reconstructFEFunction(sol->block(0), 0, id)));
     solBlock->setBlock(1,wrap(M_bases->reconstructFEFunction(sol->block(1), 1, id)));
 
-    M_feStokesAssembler->exportSolution(t, solBlock);
+    M_FEAssembler->exportSolution(t, solBlock);
 }
 
 shp<aVector>
@@ -175,11 +175,11 @@ getLifting(const double& time) const
     shp<BlockVector> liftingFE(new BlockVector(2));
     // velocity
     shp<DistributedVector> ucomp(new DistributedVector());
-    ucomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_feStokesAssembler->getFEspace(0)->map(),LifeV::Unique)));
+    ucomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_FEAssembler->getFEspace(0)->map(),LifeV::Unique)));
     ucomp->multiplyByScalar(0);
 
     shp<DistributedVector> pcomp(new DistributedVector());
-    pcomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_feStokesAssembler->getFEspace(0)->map(),LifeV::Unique)));
+    pcomp->setData(shp<VECTOREPETRA>(new VECTOREPETRA(M_FEAssembler->getFEspace(0)->map(),LifeV::Unique)));
     pcomp->multiplyByScalar(0);
 
     liftingFE->setBlock(0,ucomp);
@@ -199,8 +199,7 @@ RBsetup()
     if (M_bases == nullptr)
         throw new Exception("RB bases have not been set yet");
 
-    // scale with piola
-    unsigned int indexField = 0;
+    // scale bases with Piola transformation
     M_bases->scaleBasisWithPiola(0, M_treeNode->M_ID, [=](shp<VECTOREPETRA> vector)
     {
         shp<BlockVector> vectorWrap(new BlockVector(2));
@@ -223,7 +222,7 @@ RBsetup()
     M_reducedStiffness.reset(new BlockMatrix(2,2));
     M_reducedDivergence.reset(new BlockMatrix(2,2));
 
-    auto matrices = M_feStokesAssembler->getMatrices();
+    auto matrices = M_FEAssembler->getMatrices();
     M_reducedMass->setBlock(0,0,M_bases->matrixProject(matrices[0]->block(0,0), 0, 0, id));
     M_reducedStiffness->setBlock(0,0,M_bases->matrixProject(matrices[1]->block(0,0), 0, 0, id));
     M_reducedDivergence->setBlock(0,1,M_bases->matrixProject(matrices[2]->block(0,1), 0, 1, id));
@@ -255,8 +254,8 @@ setRBBases(shp<RBBasesManager> rbManager)
 
     // beware that at this point the rb bases have not been loaded yet
     M_bases = rbManager->getRBBases(actualName);
-    M_bases->setFESpace(M_feStokesAssembler->getFEspace(0), 0);
-    M_bases->setFESpace(M_feStokesAssembler->getFEspace(1), 1);
+    M_bases->setFESpace(M_FEAssembler->getFEspace(0), 0);
+    M_bases->setFESpace(M_FEAssembler->getFEspace(1), 1);
 }
 
 shp<aVector>
@@ -292,7 +291,7 @@ void
 StokesAssemblerRB::
 applyPiola(shp<aVector> solution, bool inverse)
 {
-    M_feStokesAssembler->applyPiola(solution, inverse);
+    M_FEAssembler->applyPiola(solution, inverse);
 }
 
 void
@@ -300,7 +299,7 @@ StokesAssemblerRB::
 setDefaultAssemblers(shp<DefaultAssemblersLibrary> defAssemblers)
 {
     M_defaultAssemblers = defAssemblers;
-    M_feStokesAssembler->setDefaultAssemblers(defAssemblers);
+    M_FEAssembler->setDefaultAssemblers(defAssemblers);
 }
 
 }

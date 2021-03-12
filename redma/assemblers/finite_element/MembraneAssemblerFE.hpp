@@ -51,9 +51,19 @@ public:
     shp<aMatrix> getJacobianRightHandSide(const double& time,
                                           const shp<aVector>& sol) override;
 
+    std::vector<shp<aMatrix>> getBoundaryMatrices() const;
+
     void postProcess(const double& t, const double &dt, const shp<aVector>& sol) override;
 
     void setExporter() override;
+
+    void setDisplacementExporter(shp<VECTOREPETRA> displacement);
+
+    inline double getWallElasticity() const {return M_wall_elasticity;}
+
+    inline double getWallViscoelasticity() const {return M_wall_viscoelasticity;}
+
+    inline shp<VECTOREPETRA> getBoundaryIndicator() const {return M_boundaryIndicator;}
 
 protected:
 
