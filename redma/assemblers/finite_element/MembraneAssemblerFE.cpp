@@ -344,11 +344,13 @@ namespace RedMA {
 
     void
     MembraneAssemblerFE::
-    postProcess(const double &t, const double &dt, const shp<aVector> &sol) {
-        NavierStokesAssemblerFE::postProcess(t, dt, sol);
+    postProcess(const double &t, const shp<aVector> &sol) {
+        NavierStokesAssemblerFE::postProcess(t, sol);
 
         printlog(YELLOW, "[MembraneAssemblerFE] Updating displacements field ...\n",
                  this->M_data.getVerbose());
+
+        double  dt = this->M_data("time_discretization/dt", 0.01);
 
         shp<BlockVector> currDisplacement(new BlockVector(this->M_nComponents));
         currDisplacement->deepCopy(M_TMA_Displacements->simpleAdvance(dt, convert<BlockVector>(sol)));

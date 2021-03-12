@@ -53,7 +53,7 @@ public:
 
     std::vector<shp<aMatrix>> getBoundaryMatrices() const;
 
-    void postProcess(const double& t, const double &dt, const shp<aVector>& sol) override;
+    void postProcess(const double& t, const shp<aVector>& sol) override;
 
     void setExporter() override;
 

@@ -75,11 +75,9 @@ public:
     /*! Virtual postProcess functions (to be called at the end of the timestep).
      *
      * \param t Current time.
-     * \param dt Time step.
      * \param sol Current solution.
      */
     virtual void postProcess(const double& t,
-                             const double& dt,
                              const shp<aVector>& sol) = 0;
 
     /*! \brief Virtual getter for mass matrix.

@@ -152,10 +152,10 @@ setExtrapolatedSolution(const shp<aVector>& exSol)
 
 void
 BlockAssembler::
-postProcess(const double& t, const double &dt, const shp<aVector>& sol)
+postProcess(const double& t, const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)
-        as.second->postProcess(t, dt, convert<BlockVector>(sol)->block(as.first));
+        as.second->postProcess(t, convert<BlockVector>(sol)->block(as.first));
 
     if (this->M_data("coupling/check_stabterm", false))
         checkStabTerm(sol);

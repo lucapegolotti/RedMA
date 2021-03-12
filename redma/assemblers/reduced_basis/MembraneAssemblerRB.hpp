@@ -36,7 +36,7 @@ namespace RedMA {
         shp<aMatrix> getJacobianRightHandSide(const double& time,
                                               const shp<aVector>& sol) override;
 
-        void postProcess(const double& t, const double &dt, const shp<aVector>& sol) override;
+        void postProcess(const double& t, const shp<aVector>& sol) override;
 
     protected:
 

@@ -72,7 +72,6 @@ public:
      * \param sol Current solution.
      */
     virtual void postProcess(const double& time,
-                             const double& dt,
                              const shp<aVector>& sol) override;
 
     /*! \brief Virtual getter for mass matrix.

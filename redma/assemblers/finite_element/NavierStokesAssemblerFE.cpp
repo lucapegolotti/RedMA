@@ -37,15 +37,10 @@ setup()
                                                     this->M_pressureFESpaceETA));
         M_stabilization->setDensityAndViscosity(this->M_density, this->M_viscosity);
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> de1a7ab9e7da2b957f6be563558df647bea5b226
     else if (!std::strcmp(M_stabilizationName.c_str(),""))
     {
         printlog(WHITE, "[NavierStokesAssemblerFE] Proceeding without stabilization...\n",
                  this->M_data.getVerbose());
-
     }
     else
         throw new Exception("Type of stabilization not implemented!");

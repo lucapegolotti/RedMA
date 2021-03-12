@@ -63,6 +63,10 @@ public:
      */
     virtual void setup() override;
 
+    /*! \brief Virtual setup of the exporter.
+     */
+    virtual void setExporter() override;
+
     /*! Virtual export solution.
      *
      * \param time Current time.
@@ -73,12 +77,9 @@ public:
 
     /*! Virtual postProcess functions (to be called at the end of the timestep).
      *
-     * \param time Current time.
-     * \param dt Time step
      * \param sol Current solution.
      */
     virtual void postProcess(const double& t,
-                             const double& dt,
                              const shp<aVector>& sol) override;
 
     /*! \brief Virtual getter for mass matrix.
@@ -261,7 +262,7 @@ public:
      */
     virtual shp<aVector> convertFunctionRBtoFEM(shp<aVector> rbSolution) const override;
 
-    /* \brief Setter for the default assemblers.
+    /*! \brief Setter for the default assemblers.
      *
      * \param Shared pointer to the DefaultAssemblersLibrary.
      */
@@ -278,10 +279,23 @@ public:
 
 protected:
 
+    /*! \brief Replacer (i.e. setter) method for the underlying FE assembler
+     *
+     * \param assembler StokesAssemblerFE to be set as internal FE assembler
+     */
     inline void replaceFEAssembler(shp<StokesAssemblerFE> assembler) {M_FEAssembler = assembler;}
 
+    /*! \brief Getter method for the internal FE assembler
+     *
+     * \return Shared pointer to the internal StokesAssemblerFE FE assembler
+     */
     inline shp<StokesAssemblerFE> getFEAssembler() {return M_FEAssembler;}
 
+    /*! \brief Getter method for the internal FE assembler, dynamically casted to a shared pointer to class T
+     *
+     * \tparam T: FE assembler, being StokesAssemblerFE or a derived class
+     * \return Shared pointer to the internal FE assembler, casted as a shared pointer to class T
+     */
     template<class T>
     shp<T> getFEAssemblerAs()
     {

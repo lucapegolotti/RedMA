@@ -107,7 +107,7 @@ applyDirichletBCs(const double& time,
 
 void
 StokesAssemblerRB::
-postProcess(const double& t, const double &dt, const shp<aVector>& sol)
+postProcess(const double& t, const shp<aVector>& sol)
 {
     getBCManager()->postProcess();
 }
