@@ -70,10 +70,10 @@ outputdir = rb_solutions
 		numbernonlinearterms = 30
 		[./basis]
 			directory = basis
-			podtol_field0 = 1e-4
-			podtol_field1 = 1e-5
+			podtol_field0 = 1e-2
+			podtol_field1 = 1e-3
 			useprimalsupremizers = 1
-			usedualsupremizers = 0
+			usedualsupremizers = 1
 		[../]
 		[./mdeim]
 			loadfullbasis   = true

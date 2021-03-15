@@ -277,6 +277,12 @@ public:
         return M_FEAssembler->getBCManager();
     }
 
+    /*! \brief Getter method for the internal FE assembler
+     *
+     * \return Shared pointer to the internal StokesAssemblerFE FE assembler
+     */
+    inline shp<StokesAssemblerFE> getFEAssembler() {return M_FEAssembler;}
+
 protected:
 
     /*! \brief Replacer (i.e. setter) method for the underlying FE assembler
@@ -284,12 +290,6 @@ protected:
      * \param assembler StokesAssemblerFE to be set as internal FE assembler
      */
     inline void replaceFEAssembler(shp<StokesAssemblerFE> assembler) {M_FEAssembler = assembler;}
-
-    /*! \brief Getter method for the internal FE assembler
-     *
-     * \return Shared pointer to the internal StokesAssemblerFE FE assembler
-     */
-    inline shp<StokesAssemblerFE> getFEAssembler() {return M_FEAssembler;}
 
     /*! \brief Getter method for the internal FE assembler, dynamically casted to a shared pointer to class T
      *

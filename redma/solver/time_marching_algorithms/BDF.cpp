@@ -247,18 +247,18 @@ simpleAdvance(const double &dt, const shp<BlockVector> &sol)
     retVec->deepCopy(sol);
     retVec->multiplyByScalar(dt * M_rhsCoeff);
 
-    shp<DistributedVector> oldSteps(new DistributedVector());
-    oldSteps->deepCopy(M_prevSolutions[0]->block(0));
-    oldSteps->multiplyByScalar(M_coefficients[0]);
+    shp<BlockVector> oldSteps(new BlockVector(2));
+    oldSteps->deepCopy(M_prevSolutions[0]);
+    oldSteps->block(0)->multiplyByScalar(M_coefficients[0]);
 
     for (unsigned int i = 1; i < M_order; i++) {
         M_prevSolutions[i]->multiplyByScalar(M_coefficients[i]);
-        oldSteps->add(M_prevSolutions[i]->block(0));
+        oldSteps->block(0)->add(M_prevSolutions[i]->block(0));
         M_prevSolutions[i]->multiplyByScalar(1.0 / M_coefficients[i]);
     }
-    oldSteps->multiplyByScalar(-1.0);
+    oldSteps->block(0)->multiplyByScalar(-1.0);
 
-    retVec->block(0)->add(oldSteps);
+    retVec->block(0)->add(oldSteps->block(0));
 
     return retVec;
 }

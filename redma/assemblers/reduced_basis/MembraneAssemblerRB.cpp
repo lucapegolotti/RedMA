@@ -35,6 +35,11 @@ namespace RedMA{
 
         unsigned int id = M_treeNode->M_ID;
 
+        printlog(YELLOW, "[MembraneAssemblerRB] assembling and projecting boundary matrices",
+                 this->M_data.getVerbose());
+        Chrono chrono;
+        chrono.start();
+
         M_reducedBoundaryMass.reset(new BlockMatrix(2,2));
         M_reducedBoundaryStiffness.reset(new BlockMatrix(2,2));
         M_reducedWallBoundaryMass.reset(new BlockMatrix(2,2));
@@ -46,6 +51,11 @@ namespace RedMA{
                                                                        0, 0, id));
         M_reducedWallBoundaryMass->setBlock(0,0,M_bases->matrixProject(matrices[2]->block(0,0),
                                                                        0, 0, id));
+
+        std::string msg = "done, in ";
+        msg += std::to_string(chrono.diff());
+        msg += " seconds\n";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
 
         if (!(M_TMA_Displacements)){
             M_TMA_Displacements = TimeMarchingAlgorithmFactory(this->M_data, this->getZeroVector());
@@ -64,7 +74,7 @@ namespace RedMA{
 
         shp<BlockVector> solBlck = convert<BlockVector>(sol);
 
-        std::string msg = "[MembraneAssemblerRB] computing rhs ...";
+        std::string msg = "[MembraneAssemblerRB] computing right-hand side term ...";
         printlog(YELLOW, msg, this->M_data.getVerbose());
 
         shp<BlockVector> retVec = convert<BlockVector>(NavierStokesAssemblerRB::getRightHandSide(time,sol));
@@ -113,6 +123,12 @@ namespace RedMA{
     MembraneAssemblerRB::
     getJacobianRightHandSide(const double &time, const shp<aVector> &sol)
     {
+        Chrono chrono;
+        chrono.start();
+
+        std::string msg = "[MembraneAssemblerRB] computing right-hand side jacobian ...";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
+
         shp<aMatrix> retMat = NavierStokesAssemblerRB::getJacobianRightHandSide(time, sol);
 
         // adding external wall contribution involved as velocity mass matrix in system matrix
@@ -129,6 +145,11 @@ namespace RedMA{
 
         retMat->add(wallMatrix);
 
+        msg = "done, in ";
+        msg += std::to_string(chrono.diff());
+        msg += " seconds\n";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
+
         return retMat;
     }
 
@@ -138,7 +159,7 @@ namespace RedMA{
     {
         StokesAssemblerRB::postProcess(t, sol);
 
-        printlog(YELLOW, "[MembraneAssemblerFE] Updating displacements field ...\n",
+        printlog(YELLOW, "[MembraneAssemblerRB] Updating displacements field ...\n",
                  this->M_data.getVerbose());
 
         unsigned int id = M_treeNode->M_ID;
@@ -156,4 +177,4 @@ namespace RedMA{
         M_TMA_Displacements->shiftSolutions(currDisplacement);
     }
 
-};
+}

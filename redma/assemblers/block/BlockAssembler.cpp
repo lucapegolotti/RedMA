@@ -353,7 +353,6 @@ setup()
     {
         NodesVector children = it->second->M_children;
 
-        unsigned int countOutlet = 0;
         unsigned int myID = it->second->M_ID;
 
         shp<InnerAssembler> fatherAssembler = M_primalAssemblers[myID];
@@ -397,8 +396,10 @@ setup()
                                                interfaceID);
 
         shp<InterfaceAssembler> inletInAssembler;
-        inletInAssembler.reset(new InletInflowAssembler(this->M_data, newInterface,
-                                                        spcast<StokesAssemblerFE>(inletAssembler)->hasNoSlipBCs()));
+        bool inletPrimalIsFE = !(std::strcmp(inletAssembler->getTreeNode()->M_block->getDiscretizationMethod().c_str(), "fem"));
+        bool hasNoSlipBCs = (inletPrimalIsFE) ? ((spcast<StokesAssemblerFE>(inletAssembler))->hasNoSlipBCs()) :
+                            (spcast<StokesAssemblerFE>(spcast<StokesAssemblerRB>(inletAssembler)->getFEAssembler())->hasNoSlipBCs());
+        inletInAssembler.reset(new InletInflowAssembler(this->M_data, newInterface, hasNoSlipBCs));
 
         M_dualAssemblers.push_back(inletInAssembler);
         interfaceID++;

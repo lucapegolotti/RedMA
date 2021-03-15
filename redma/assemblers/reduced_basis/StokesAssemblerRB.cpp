@@ -18,7 +18,7 @@ setup()
 {
     std::string msg = "[";
     msg += this->M_name;
-    msg += "] initializing internal FE assembler";
+    msg += "] initializing internal FE assembler...";
     printlog(YELLOW, msg, this->M_data.getVerbose());
     M_FEAssembler->setup();
 }
@@ -184,7 +184,7 @@ RBsetup()
 
     // scale bases with piola transformation
     unsigned int indexField = 0;
-    printlog(YELLOW, "[StokesAssembler] applying Piola transformation\t", M_data.getVerbose());
+    printlog(YELLOW, "[StokesAssemblerRB] applying Piola transformation\t", M_data.getVerbose());
     Chrono chrono;
     chrono.start();
     M_bases->scaleBasisWithPiola(0, M_treeNode->M_ID, [=](shp<VECTOREPETRA> vector)
@@ -203,7 +203,7 @@ RBsetup()
     msg += " seconds\n";
     printlog(YELLOW, msg, this->M_data.getVerbose());
 
-    printlog(YELLOW, "[StokesAssembler] assembling and projecting matrices\t", M_data.getVerbose());
+    printlog(YELLOW, "[StokesAssemblerRB] assembling and projecting matrices\t", M_data.getVerbose());
     chrono.start();
 
     unsigned int id = M_treeNode->M_ID;

@@ -78,8 +78,11 @@ getRightHandSide(const double& time,
 
     auto solBlck = convert<BlockVector>(sol);
 
-    std::string msg = "[NavierStokesAssemblerRB] computing rhs ...";
-    printlog(YELLOW, msg, this->M_data.getVerbose());
+    if (!std::strcmp((this->M_name).c_str(), "NavierStokesAssemblerRB"))
+    {
+        std::string msg = "[NavierStokesAssemblerRB] computing right-hand side term ...";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
+    }
 
     shp<BlockVector> retVec = convert<BlockVector>(StokesAssemblerRB::getRightHandSide(time,sol));
 
@@ -138,10 +141,13 @@ getRightHandSide(const double& time,
     retVec->block(0)->add(M_nonLinearTerm->block(0));
     M_nonLinearTerm->multiplyByScalar(-1);
 
-    msg = "done, in ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(YELLOW, msg, this->M_data.getVerbose());
+    if (!std::strcmp((this->M_name).c_str(), "NavierStokesAssemblerRB"))
+    {
+        std::string msg = "done, in ";
+        msg += std::to_string(chrono.diff());
+        msg += " seconds\n";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
+    }
 
     return retVec;
 }
@@ -151,10 +157,27 @@ NavierStokesAssemblerRB::
 getJacobianRightHandSide(const double& time,
                          const shp<aVector>& sol)
 {
+    Chrono chrono;
+    chrono.start();
+
+    if (!std::strcmp((this->M_name).c_str(), "NavierStokesAssemblerRB"))
+    {
+        std::string msg = "[NavierStokesAssemblerRB] computing right-hand side jacobian ...";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
+    }
+
     shp<aMatrix> jac = StokesAssemblerRB::getJacobianRightHandSide(time,sol);
 
     if (M_exactJacobian)
         addConvectiveTermJacobian(sol, jac);
+
+    if (!std::strcmp((this->M_name).c_str(), "NavierStokesAssemblerRB"))
+    {
+        std::string msg = "done, in ";
+        msg += std::to_string(chrono.diff());
+        msg += " seconds\n";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
+    }
 
     return jac;
 }
