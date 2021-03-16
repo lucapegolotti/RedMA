@@ -18,8 +18,7 @@ setDatafile(const std::string& datafile)
 
 void
 DataContainer::
-setInflow(const std::function<double(double)>& inflow)
-{
+setInflow(const std::function<double(double)>& inflow) {
     M_inflow = inflow;
 }
 

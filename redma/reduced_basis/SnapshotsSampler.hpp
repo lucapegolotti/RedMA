@@ -23,6 +23,8 @@
 
 #include <redma/geometry/GeometryPrinter.hpp>
 
+#include <cmath>
+
 namespace RedMA
 {
 
@@ -31,13 +33,15 @@ class SnapshotsSampler
 public:
     SnapshotsSampler(const DataContainer& data, EPETRACOMM comm);
 
-    void takeSnapshots();
+    void takeSnapshots(DataContainer data);
 
     void dumpSnapshots(GlobalProblem& problem, std::string outdir);
 
     void transformSnapshotsWithPiola(std::string snapshotsDir,
                                      unsigned int fieldIndex,
                                      unsigned int maxSnapshot);
+
+    double *inflowSnapshots(double a_min, double a_max, double c_min, double c_max);
 
 private:
     DataContainer       M_data;

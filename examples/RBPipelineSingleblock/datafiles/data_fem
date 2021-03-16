@@ -25,6 +25,7 @@ outputdir = rb_solutions
 [rb]
 	[./offline]
 		[./snapshots]
+		    param_type           = geometric
 			number 			     = 50
 			bound 			     = 0.2
 			take_every 		     = 8

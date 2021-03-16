@@ -54,7 +54,7 @@ public:
      *
      * \param datafile Name of the datafile to be opened (usually, "data")
      */
-    void setInflow(const std::function<double(double)>& inflow);
+    void setInflow(const std::function<double(double)>& inflow) ;
 
     /*! \brief Setter for the distal pressure.
      *
@@ -196,6 +196,8 @@ protected:
     std::function<double(double)>                         M_ramp;
     std::map<unsigned int, std::function<double(double)>> M_distalPressures;
     bool                                                  M_verbose;
+
+    //void setInflow(const std::function<double(double, double, double)> &inflow);
 };
 
 }
