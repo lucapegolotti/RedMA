@@ -9,7 +9,6 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
   M_treeNode(treeNode)
 {
     M_inflow = data.getInflow();
-    M_strongDirichlet = std::strcmp(data("bc_conditions/inletdirichlet", "weak").c_str(),"strong") == 0;
     M_coefficientInflow = data("bc_conditions/coefficientinflow", 1.0);
     parseNeumannData();
     M_inletFlag = treeNode->M_block->getInlet().M_flag;
@@ -22,19 +21,19 @@ void
 BCManager::
 parseNeumannData()
 {
-    unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
-
-    for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
-    {
-        std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
-
-        unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
-        if (M_treeNode->M_ID == blockindex)
-        {
-            unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
-            M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
-        }
-    }
+    // unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
+    //
+    // for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
+    // {
+    //     std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
+    //
+    //     unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
+    //     if (M_treeNode->M_ID == blockindex)
+    //     {
+    //         unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
+    //         M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
+    //     }
+    // }
 }
 
 void
@@ -97,8 +96,8 @@ apply0DirichletMatrix(BlockMatrix& input,
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet();
 
-    if (M_strongDirichlet)
-        addInletBC(bcs, fZero2);
+    // if (M_strongDirichlet)
+    //     addInletBC(bcs, fZero2);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -126,8 +125,8 @@ apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet();
 
-    if (M_strongDirichlet)
-        addInletBC(bcs, fZero2);
+    // if (M_strongDirichlet)
+    //     addInletBC(bcs, fZero2);
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -191,30 +190,30 @@ double
 BCManager::
 getNeumannBc(const double& time, const double& flag, const double& rate)
 {
-    auto it = M_models.find(flag);
-    if (it == M_models.end())
-        return 0.0;
-
-    return -M_models[flag]->getNeumannCondition(time, rate);
+    // auto it = M_models.find(flag);
+    // if (it == M_models.end())
+    //     return 0.0;
+    //
+    // return -M_models[flag]->getNeumannCondition(time, rate);
 }
 
 double
 BCManager::
 getNeumannJacobian(const double& time, const double& flag, const double& rate)
 {
-    auto it = M_models.find(flag);
-    if (it == M_models.end())
-        return 0.0;
-
-    return -M_models[flag]->getNeumannJacobian(time, rate);
+    // auto it = M_models.find(flag);
+    // if (it == M_models.end())
+    //     return 0.0;
+    //
+    // return -M_models[flag]->getNeumannJacobian(time, rate);
 }
 
 void
 BCManager::
 postProcess()
 {
-    for (auto windkessel : M_models)
-        windkessel.second->shiftSolutions();
+    // for (auto windkessel : M_models)
+    //     windkessel.second->shiftSolutions();
 }
 
 double

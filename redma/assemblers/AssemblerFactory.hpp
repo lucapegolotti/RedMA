@@ -30,6 +30,7 @@
 namespace RedMA
 {
 
+/// \brief Factory to create assemblers.
 shp<aAssembler>
 AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode);
 
