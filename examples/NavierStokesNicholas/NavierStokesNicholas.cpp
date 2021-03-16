@@ -34,12 +34,9 @@ int main(int argc, char **argv)
     DataContainer data;
     data.setDatafile("datafiles/data_fem");
     data.setVerbose(comm->MyPID() == 0);
-    data.finalize();
 
     SnapshotsSampler sampler(data, comm);
-    sampler.takeSnapshots(data);
+    sampler.takeSnapshots();
 
     return 0;
 }
-
-

@@ -3,11 +3,11 @@
 namespace RedMA
 
 {
+
 double inflow(double t, double a, double c)
 {
     return c*sin(a*t);
 }
-
 
 SnapshotsSampler::
 SnapshotsSampler(const DataContainer& data, EPETRACOMM comm) :
@@ -18,7 +18,7 @@ SnapshotsSampler(const DataContainer& data, EPETRACOMM comm) :
 
 void
 SnapshotsSampler::
-takeSnapshots(DataContainer data)
+takeSnapshots()
 {
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
     std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
@@ -37,6 +37,18 @@ takeSnapshots(DataContainer data)
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
 
+        if (!std::strcmp(param_type.c_str(), "inflow"))
+        {
+            double param[] = {M_data("rb/offline/snapshots/a_min", 0.0),
+                              M_data("rb/offline/snapshots/a_max", 1.0),
+                              M_data("rb/offline/snapshots/c_min", 0.0),
+                              M_data("rb/offline/snapshots/c_max", 1.0)};
+            auto vec = inflowSnapshots(param[0], param[1], param[2], param[3]);
+            M_data.setInflow(std::bind(inflow,
+                                       std::placeholders::_1,
+                                       vec[0],vec[1]));
+        }
+
         GlobalProblem problem(M_data, M_comm, false);
 
         // this is to allow taking the snapshots at the end of the simulation from
@@ -45,19 +57,9 @@ takeSnapshots(DataContainer data)
 
         fs::create_directory(curdir);
 
-        if (param_type != "geometric") {
+        if (!std::strcmp(param_type.c_str(), "geometric"))
             problem.getTree().randomSampleAroundOriginalValue(bound);
-        }
-        else {
-            double param[] = {M_data("rb/offline/snapshots/a_min", 0.0),
-                              M_data("rb/offline/snapshots/a_max", 1.0),
-                              M_data("rb/offline/snapshots/c_min", 0.0),
-                              M_data("rb/offline/snapshots/c_max", 1.0)};
-            const double *vec = inflowSnapshots(param[0], param[1], param[2], param[3]);
-            data.setInflow(std::bind(inflow,
-                                     std::placeholders::_1,
-                                     vec[0],vec[1]));
-        }
+
         problem.setup();
 
         if (!problem.isFEProblem())
@@ -242,14 +244,16 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
     }
 }
 
-double *
+std::vector<double>
 SnapshotsSampler::
-inflowSnapshots(double a_min = 0.0, double a_max = 1.0, double c_min = 0.0, double c_max = 1.0) {
+inflowSnapshots(double a_min = 0.0, double a_max = 1.0, double c_min = 0.0, double c_max = 1.0)
+{
     std::default_random_engine generator;
     std::uniform_real_distribution<double> distribution_a(a_min,a_max);
     std::uniform_real_distribution<double> distribution_c(c_min,c_max);
-    double vec[2] = {distribution_a(generator), distribution_c(generator)};
-
+    std::vector<double> vec(2);
+    vec[0] = distribution_a(generator);
+    vec[1] = distribution_c(generator);
     return vec;
 }
 

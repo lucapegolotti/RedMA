@@ -33,7 +33,7 @@ class SnapshotsSampler
 public:
     SnapshotsSampler(const DataContainer& data, EPETRACOMM comm);
 
-    void takeSnapshots(DataContainer data);
+    void takeSnapshots();
 
     void dumpSnapshots(GlobalProblem& problem, std::string outdir);
 
@@ -41,7 +41,7 @@ public:
                                      unsigned int fieldIndex,
                                      unsigned int maxSnapshot);
 
-    double *inflowSnapshots(double a_min, double a_max, double c_min, double c_max);
+    std::vector<double> inflowSnapshots(double a_min, double a_max, double c_min, double c_max);
 
 private:
     DataContainer       M_data;
