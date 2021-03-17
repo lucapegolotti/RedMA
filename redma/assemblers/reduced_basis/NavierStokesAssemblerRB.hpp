@@ -88,7 +88,7 @@ public:
     shp<aMatrix> getJacobianRightHandSide(const double& time,
                                           const shp<aVector>& sol) override;
 
-    /*! \brief Perform setup for RB method.
+    /*! \brief Perform the setup for the RB method.
      *
      * Callback to RBsetup in StokesAssemblerRB. Additionally, if specified in
      * the datafile, we assemble vectors of the form

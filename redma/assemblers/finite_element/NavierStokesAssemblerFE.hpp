@@ -49,7 +49,7 @@ class NavierStokesAssemblerFE : public StokesAssemblerFE
 {
 public:
     /*! \brief Constructor taking a datafile, a TreeNode, and a string describing
-     * a stabilization  as arguments.
+     * a stabilization as arguments.
      *
      * \param datafile The datafile.
      * \param datafile The TreeNode encoding the physical domain.

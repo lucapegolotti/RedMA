@@ -305,11 +305,12 @@ public:
      *
      * The mass matrix is defined as
      *
-     *  \f[
+     * \f[
      *    M_{ij} = \int_{\Omega} \rho \varphi_j^h \cdot \varphi_i^h
-     *  \f]
+     * \f]
      *
-     * where \f$\rho\f$ is the fluid density and \f$\varphi_i^h\f$ are the finite element basis functions of the velocity.
+     * where \f$\rho\f$ is the fluid density and \f$\varphi_i^h\f$ are the finite
+     * element basis functions of the velocity.
      *
      * \param bcManager A BCManager for the application of the boundary conditions.
      */
