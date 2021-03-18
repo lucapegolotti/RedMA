@@ -60,7 +60,7 @@ operator()(const Vector3D& pos)
     unsigned int indexTheta = M_auxIndicesTheta[M_index];
     unsigned int indexRadial = M_auxIndicesRadial[M_index];
 
-    // we arbitrarily scale the basis functions in order to enduce an ordering
+    // we arbitrarily scale the basis functions in order to induce an ordering
     // in the POD
     double scale = 1; // 1./ (std::pow(2, indexTheta + indexRadial));
     double returnVal =

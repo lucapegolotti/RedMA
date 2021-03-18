@@ -15,7 +15,7 @@ DummyBasisFunction::return_Type
 DummyBasisFunction::
 operator()(const Vector3D& pos)
 {
-    throw Exception("Dummy basis function should not be used!");
+    // throw Exception("Dummy basis function should not be used!");
     return 0.0;
 }
 
