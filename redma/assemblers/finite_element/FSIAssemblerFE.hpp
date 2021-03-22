@@ -35,6 +35,8 @@ namespace RedMA
 
       void addForcingTerm(const shp<aVector> & rhs  ) const;
 
+      void postProcess(const double& time, const shp<aVector>& sol) override;
+
   protected:
         void                                              computeLameConstants();
 

@@ -24,10 +24,11 @@ namespace RedMA
   FSIAssemblerFE::setup(){
       NavierStokesAssemblerFE::setup();
       //initialize BDF with the initial displacement??
-      M_TMAlgorithm->setComm(M_comm,this->getZeroVector());
+      M_TMAlgorithm->setComm(M_comm);
       //M_TMAlgorithm->setup();
       this->computeLameConstants();
       this->getBoundaryStiffnessMatrix();
+
   }
   void
   FSIAssemblerFE::
@@ -75,12 +76,14 @@ namespace RedMA
     FSIAssemblerFE::
     getMass(const double& time, const shp<aVector>& sol)
     {
+        shp<BlockMatrix> M_massCopy(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+        M_massCopy->deepCopy(M_mass);
+        this->addFSIMassMatrix(M_massCopy);
+        this->M_bcManager->apply0DirichletMatrix(*M_massCopy, this->getFESpaceBCs(),
+                                                 this->getComponentBCs(), 1.0);
 
-        this->addFSIMassMatrix(M_mass);
-        this->M_bcManager->apply0DirichletMatrix(*M_mass, this->getFESpaceBCs(),
-                                                     this->getComponentBCs(), 1.0);
         printlog(YELLOW, "[FSI]Mass matrix assembled ...\n", this->M_data.getVerbose());
-        return M_mass;
+        return M_massCopy;
     }
 
     void
@@ -159,4 +162,12 @@ namespace RedMA
 
         return retMat;
     }
+    void
+    FSIAssemblerFE::
+    postProcess(const double& time, const shp<aVector>& sol)  {
+        NavierStokesAssemblerFE::postProcess(time, sol);
+
+        
+    }
+
 }
