@@ -152,5 +152,16 @@ shiftSolutions(const shp<aVector>& sol)
     // M_prevDerivative = computeDerivative(sol, dt);
     // M_prevSolution = sol;
 }
+double
+GeneralizedAlphaMethod::
+getCoefficientExtrapolation() {
+
+}
+shp<aVector>
+GeneralizedAlphaMethod::
+getPreviousContribution() {
+
+}
+
 
 }

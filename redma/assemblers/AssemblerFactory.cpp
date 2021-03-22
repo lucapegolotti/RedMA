@@ -48,6 +48,24 @@ AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode)
             ret.reset(new NavierStokesAssemblerFE(data, treeNode, "supg"));
         }
     }
+    else if (!std::strcmp(assemblerType.c_str(),"navierstokesfsi"))
+    {
+    	if (!std::strcmp(method.c_str(),"fem"))
+        {
+            ret.reset(new FSIAssemblerFE(data, treeNode));
+        }
+        else if (!std::strcmp(method.c_str(),"rb"))
+        {
+            //to do
+        }
+    }
+    else if (!std::strcmp(assemblerType.c_str(),"navierstokesfsisupg"))
+    {
+        if (!std::strcmp(method.c_str(),"fem"))
+        {
+            ret.reset(new FSIAssemblerFE(data, treeNode, "supg"));
+        }
+    }
     else
         throw new Exception("Specified assembler is not implemented!");
 

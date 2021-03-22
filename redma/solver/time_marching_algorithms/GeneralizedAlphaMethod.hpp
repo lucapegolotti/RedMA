@@ -48,6 +48,9 @@ public:
     virtual shp<aVector> advance(const double& time, double& dt, int& status) override;
 
     virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1, double& dt) override;
+    virtual double getCoefficientExtrapolation() override;
+
+    virtual shp<aVector> getPreviousContribution() override;
 
     virtual void shiftSolutions(const shp<aVector>& sol) override;
 

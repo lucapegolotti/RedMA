@@ -49,6 +49,9 @@ public:
 
     virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1,
                                            double& dt) override;
+    virtual double getCoefficientExtrapolation() override;
+
+    virtual shp<aVector> getPreviousContribution() override;
 
     shp<aVector> computeExtrapolatedSolution();
 

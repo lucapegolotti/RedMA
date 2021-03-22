@@ -145,14 +145,16 @@ createBCHandler0Dirichlet() const
 
     shp<LifeV::BCHandler> bcs;
     bcs.reset(new LifeV::BCHandler);
-
-    bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
-               LifeV::Full, zeroFunction, 3);
-    // bcs->addBC("InletRing", M_wallFlag, LifeV::EssentialEdges,
-    //            LifeV::Full, zeroFunction, 3);
-    // bcs->addBC("OutletRing", M_wallFlag, LifeV::EssentialEdges,
-    //            LifeV::Full, zeroFunction, 3);
-
+    if (0) {//
+        bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
+                   LifeV::Full, zeroFunction, 3);
+    }
+    else{
+     bcs->addBC("InletRing", M_inletRing, LifeV::EssentialEdges, //flag ring
+                LifeV::Full, zeroFunction, 3);
+     bcs->addBC("OutletRing", M_outletRing, LifeV::EssentialEdges,
+                LifeV::Full, zeroFunction, 3);
+    }
     return bcs;
 }
 

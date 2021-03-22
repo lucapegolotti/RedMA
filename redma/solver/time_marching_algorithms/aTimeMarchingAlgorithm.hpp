@@ -52,6 +52,8 @@ public:
 
     void dumpSolverStatistics(std::vector<SolverStatistics> statistics,
                               const double& t) const;
+    virtual double getCoefficientExtrapolation() =0;
+    virtual shp<aVector> getPreviousContribution()=0;
 
     void setComm(EPETRACOMM comm) {M_comm = comm; M_systemSolver.setComm(comm);}
 
