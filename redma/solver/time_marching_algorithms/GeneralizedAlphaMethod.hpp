@@ -51,7 +51,7 @@ public:
     virtual double getCoefficientExtrapolation() override;
 
     virtual shp<aVector> getPreviousContribution() override;
-
+    virtual shp<aVector> advanceDisp(const double &dt, const shp<BlockVector> &sol) override ;
     virtual void shiftSolutions(const shp<aVector>& sol) override;
 
 protected:

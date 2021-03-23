@@ -54,6 +54,7 @@ public:
                               const double& t) const;
     virtual double getCoefficientExtrapolation() =0;
     virtual shp<aVector> getPreviousContribution()=0;
+    virtual shp<aVector> advanceDisp(const double &dt, const shp<BlockVector> &sol)=0;
 
     void setComm(EPETRACOMM comm) {M_comm = comm; M_systemSolver.setComm(comm);}
 

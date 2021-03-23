@@ -7,8 +7,9 @@ namespace RedMA
 {
   FSIAssemblerFE::
   FSIAssemblerFE(const DataContainer& data, shp<TreeNode> treeNode,std::string stabilizationName):
-                          NavierStokesAssemblerFE(data, treeNode, stabilizationName),M_TMAlgorithm(TimeMarchingAlgorithmFactory(data)),
-                                                                                                   M_BoundaryStiffness(new BlockMatrix(this->M_nComponents,this->M_nComponents)){
+                          NavierStokesAssemblerFE(data, treeNode, stabilizationName),M_BoundaryStiffness(new BlockMatrix(this->M_nComponents,this->M_nComponents))
+                          ,M_TMAlgorithm(TimeMarchingAlgorithmFactory(data)){
+
 
   }
   void
@@ -25,7 +26,7 @@ namespace RedMA
       NavierStokesAssemblerFE::setup();
       //initialize BDF with the initial displacement??
       M_TMAlgorithm->setComm(M_comm);
-      //M_TMAlgorithm->setup();
+      M_TMAlgorithm->setup(this->getZeroVector());
       this->computeLameConstants();
       this->getBoundaryStiffnessMatrix();
 
@@ -55,6 +56,7 @@ namespace RedMA
         M_boundaryMass->globalAssemble();
         *spcast<MATRIXEPETRA>(convert<BlockMatrix>(mat)->block(0,0)->data()) += *M_boundaryMass;
 
+
     }
     shp<aVector>
     FSIAssemblerFE::
@@ -63,13 +65,13 @@ namespace RedMA
         shp<aVector> rhs(NavierStokesAssemblerFE::getRightHandSide(time, sol));
 
 
-        //shp<aVector> retVec(M_BoundaryStiffness->multiplyByVector(sol));
+        shp<aVector> retVec(M_BoundaryStiffness->multiplyByVector(sol));
 
-        //this->addForcingTerm(retVec);
-        //retVec->add(rhs);
+        this->addForcingTerm(retVec);
+        retVec->add(rhs);
 
-        //return retVec;
-        return rhs;
+        return retVec;
+        //return rhs;
 
     }
     shp<aMatrix>
@@ -77,14 +79,16 @@ namespace RedMA
     getMass(const double& time, const shp<aVector>& sol)
     {
         shp<BlockMatrix> M_massCopy(new BlockMatrix(this->M_nComponents,this->M_nComponents));
-        M_massCopy->deepCopy(M_mass);
-        this->addFSIMassMatrix(M_massCopy);
-        this->M_bcManager->apply0DirichletMatrix(*M_massCopy, this->getFESpaceBCs(),
-                                                 this->getComponentBCs(), 1.0);
+        M_massCopy->deepCopy(NavierStokesAssemblerFE::
+                             getMass(time, sol));
+        //this->addFSIMassMatrix(M_massCopy);
+        this->M_bcManager->apply0DirichletMatrix(*M_massCopy,this->getFESpaceBCs(),this->getComponentBCs(), 1.0);
 
         printlog(YELLOW, "[FSI]Mass matrix assembled ...\n", this->M_data.getVerbose());
         return M_massCopy;
+
     }
+
 
     void
     FSIAssemblerFE::
@@ -106,9 +110,6 @@ namespace RedMA
             Eye[2][2] = 1;
             unsigned int wallFlag = M_data("structure/flag", 10);
 
-            // not so nice: we rely on the datafile because dt has not been set yet
-            // in the extrapolator. I might think of another solution if using
-            // adapativity in time
             double dt = M_data("time_discretization/dt", 0.01);
 
             integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
@@ -142,7 +143,7 @@ namespace RedMA
     {
 
         shp<aVector> rhsDisplacement(M_TMAlgorithm->getPreviousContribution()); //guardare segno
-        //problemi con aggiornamento della soluzione
+
 
         rhs->add(spcast<BlockMatrix>(M_BoundaryStiffness)->multiplyByVector(rhsDisplacement));
 
@@ -155,10 +156,10 @@ namespace RedMA
     {
         shp<aMatrix> retMat = NavierStokesAssemblerFE::getJacobianRightHandSide(time, sol);
 
-        //retMat->add(M_BoundaryStiffness);
+        retMat->add(M_BoundaryStiffness);
 
 
-        //this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(retMat), this->getFESpaceBCs(),this->getComponentBCs(), 0.0);
+        this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(retMat), this->getFESpaceBCs(),this->getComponentBCs(), 0.0);
 
         return retMat;
     }
@@ -166,7 +167,15 @@ namespace RedMA
     FSIAssemblerFE::
     postProcess(const double& time, const shp<aVector>& sol)  {
         NavierStokesAssemblerFE::postProcess(time, sol);
+        printlog(YELLOW, "[FSI] Updating displacements field ...\n",
+                 this->M_data.getVerbose());
 
+        double  dt = this->M_data("time_discretization/dt", 0.01);
+
+        shp<BlockVector> Displacement(new BlockVector(this->M_nComponents));
+        Displacement->deepCopy(M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol)));
+
+        M_TMAlgorithm->shiftSolutions(Displacement);
         
     }
 

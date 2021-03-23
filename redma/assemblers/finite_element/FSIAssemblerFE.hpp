@@ -44,6 +44,7 @@ namespace RedMA
         shp<BlockMatrix>                                  M_BoundaryStiffness;
         double                                            M_lameI;
         double                                            M_lameII;
+        shp<FSIAssemblerFE>                                 pointer;
         shp<aTimeMarchingAlgorithm>                       M_TMAlgorithm;
 
 

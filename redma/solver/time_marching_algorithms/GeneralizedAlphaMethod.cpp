@@ -162,6 +162,10 @@ GeneralizedAlphaMethod::
 getPreviousContribution() {
 
 }
+shp<aVector>
+GeneralizedAlphaMethod::
+advanceDisp(const double &dt, const shp<BlockVector> &sol) {
 
+}
 
 }

@@ -25,6 +25,7 @@ namespace RedMA {
             this->M_systemSolver.isLinearProblem();
     }
 
+
     void
     BDF::
     setup(const shp <aVector> &zeroVector) {
@@ -213,4 +214,28 @@ namespace RedMA {
         }
         return prevContribution;
     }
+    shp<aVector>
+    BDF::
+    advanceDisp(const double &dt, const shp<BlockVector> &sol) {
+        typedef shp <BlockVector> BV;
+        shp<BlockVector> retVec(new BlockVector(2));
+
+
+        retVec->deepCopy(sol);
+        retVec->multiplyByScalar(dt * M_rhsCoeff);
+        shp<BlockVector> oldDisp(new BlockVector(2));
+
+        unsigned int count = 0;
+        for (BV vec : M_prevSolutions) {
+            BV vecCopy(new BlockVector(2));
+
+            (vecCopy)->deepCopy(M_prevSolutions[count]);
+            vecCopy->multiplyByScalar(M_coefficients[count]);
+            oldDisp->add(vecCopy);
+            count++;
+        }
+
+        retVec->block(0)->add(oldDisp->block(0));
+    }
+
 }

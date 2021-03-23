@@ -52,6 +52,7 @@ public:
     virtual double getCoefficientExtrapolation() override;
 
     virtual shp<aVector> getPreviousContribution() override;
+    virtual shp<aVector> advanceDisp(const double &dt, const shp<BlockVector> &sol) override ;
 
     shp<aVector> computeExtrapolatedSolution();
 
