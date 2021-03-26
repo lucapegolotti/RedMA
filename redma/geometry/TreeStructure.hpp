@@ -46,6 +46,8 @@ public:
 
     bool isInletNode() const;
 
+    bool isExtremalNode() const;
+
     std::vector<GeometricFace> getOutlets() const;
 
     std::vector<shp<TreeNode>>              M_children;

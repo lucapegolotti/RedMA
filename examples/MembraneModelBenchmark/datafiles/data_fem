@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/pipe1.xml
+	xmlfile = geometries/tree2.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -22,7 +22,7 @@ outputdir = rb_solutions
 	inflowfile = datafiles/inflow.txt
 	coefficientinflow = 1.000552724487405
 	numoutletbcs = 0
-	ring_constraint = full # type of homogeneous BC imposed at I/O rings
+	ring_constraint = normal # type of homogeneous BC imposed at I/O rings
 [../]
 
 [rb]
@@ -126,7 +126,7 @@ outputdir = rb_solutions
 	extrapolation_order = 2
 	t0ramp = 0
 	t0 = 0
-	T = 0.1
+	T = 0.05
 	dt = 0.00025
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
@@ -144,8 +144,8 @@ outputdir = rb_solutions
 
 [coupling]
 	type                = chebyshev
-	nMax                = 5
+	nMax                = 15
 	stab_coefficient	= 1e-16
 	check_stabterm		= true
-	nfcts_weak_dirichlet = 5
+	nfcts_weak_dirichlet = 10
 [../]

@@ -35,7 +35,7 @@ def create_dir(name):
 
 
 def generate_basis(index, nsnaps, norm_matrix, tol):
-    print("===== COMPUTING BASIS FIELD " + str(index) + " ====",flush=True)
+    print("===== COMPUTING BASIS FIELD " + str(index) + " ====", flush=True)
 
     if use_custom_norms:
         factor = cholesky(norm_matrix)

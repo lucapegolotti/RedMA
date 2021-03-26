@@ -155,6 +155,62 @@ generateQuadratureRule(std::string tag) const
     return customRule;
 }
 
+/*shp<LifeV::QuadratureRule>
+InterfaceAssembler::
+generate1DQuadratureRule(std::string tag) const
+{
+    using namespace LifeV;
+
+    shp<QuadratureRule> customRule;
+    if (!std::strcmp(tag.c_str(),"CC_09"))
+    {
+        // rule taken from https://people.sc.fsu.edu/~jburkardt/datasets/quadrature_rules_clenshaw_curtis/quadrature_rules_clenshaw_curtis.html
+        customRule.reset(new QuadratureRule("CC_09",LINE, 3,
+                                              8, 0));
+
+        QuadraturePoint p1(0.000000000000000,0.,0,
+                           0.007936507936508);
+        customRule->addPoint(p1);
+
+        QuadraturePoint p2(0.038060233744357,0.,0,
+                           0.073109324608009);
+        customRule->addPoint(p2);
+
+        QuadraturePoint p3(0.146446609406726,0.,0,
+                           0.13968253968254);
+        customRule->addPoint(p3);
+
+        QuadraturePoint p4(0.308658283817455,0.,0,
+                           0.180858929360245);
+        customRule->addPoint(p4);
+
+        QuadraturePoint p5(0.500000000000000,0.,0,
+                           0.196825396825397);
+        customRule->addPoint(p5);
+
+        QuadraturePoint p6(0.691341716182545,0.,0,
+                           0.180858929360245);
+        customRule->addPoint(p6);
+
+        QuadraturePoint p7(0.853553390593274,0.,0,
+                           0.13968253968254);
+        customRule->addPoint(p7);
+
+        QuadraturePoint p8(0.961939766255643,0.,0,
+                           0.073109324608009);
+        customRule->addPoint(p8);
+
+        QuadraturePoint p9(1.000000000000000,0.,0,
+                           0.007936507936508);
+        customRule->addPoint(p9);
+    }
+    else
+    {
+        throw new Exception("Quadrature rule " + tag + " not implemented!");
+    }
+    return customRule;
+}*/
+
 Interface::
 Interface()
 {
@@ -232,11 +288,8 @@ buildCouplingVectors(shp<BasisFunctionFunctor> bfs,
     using namespace ExpressionAssembly;
 
     QuadratureBoundary boundaryQuadRule(buildTetraBDQR
-                                       (*generateQuadratureRule("STRANG10")));
+                                        (*generateQuadratureRule("STRANG10")));
 
-    // QuadratureBoundary boundaryQuadRule(buildTetraBDQR
-    //                                     (*generateQuadratureRule("TOMS612_19")));
-    // QuadratureBoundary boundaryQuadRule (buildTetraBDQR(quadRuleTria7pt));
 
     unsigned int nBasisFunctions = bfs->getNumBasisFunctions();
 
@@ -248,10 +301,11 @@ buildCouplingVectors(shp<BasisFunctionFunctor> bfs,
     unsigned int faceFlag = face.M_flag;
 
     unsigned int count = 0;
+    LifeV::VectorSmall<3> versor;
+
     // this must be changed for scalar problems (e.g. laplacian)
     for (unsigned int dim = 0; dim < 3; dim++)
     {
-        LifeV::VectorSmall<3> versor;
         versor[0] = 0.;
         versor[1] = 0.;
         versor[2] = 0.;
@@ -262,13 +316,16 @@ buildCouplingVectors(shp<BasisFunctionFunctor> bfs,
             shp<VECTOREPETRA> currentMode(new VECTOREPETRA(map, LifeV::Repeated));
 
             bfs->setIndex(i);
+            couplingVectors[count].reset(new DistributedVector());
+
             integrate(boundary(mesh, faceFlag),
                       boundaryQuadRule,
                       etfespace,
                       eval(bfs, X) * dot(versor, phi_i)
                   ) >> currentMode;
-            couplingVectors[count].reset(new DistributedVector());
+
             couplingVectors[count]->setData(currentMode);
+
             count++;
         }
     }
@@ -287,10 +344,8 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
 
     bfs = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet);
 
-
     std::vector<shp<DistributedVector>> couplingVectors;
     couplingVectors = buildCouplingVectors(bfs, face, assembler);
-
 
     matrixT->resize(assembler->getNumComponents(),1);
     matrix->resize(1,assembler->getNumComponents());
@@ -392,8 +447,7 @@ addContributionJacobianRhs(const double& time,
     unsigned int childID = M_interface.M_indexChild;
     unsigned int interfaceID = M_interface.M_ID;
 
-    // hard copy, otherwise we flip the sign of the matrices every time this
-    // function is called
+    // hard copy, otherwise we flip the sign of the matrices every time this function is called
     jac->setBlock(fatherID, nPrimalBlocks + interfaceID, shp<BlockMatrix>(M_fatherBT->clone()));
     jac->setBlock(childID, nPrimalBlocks + interfaceID, shp<BlockMatrix>(M_childBT->clone()));
     jac->setBlock(nPrimalBlocks + interfaceID, fatherID, shp<BlockMatrix>(M_fatherB->clone()));

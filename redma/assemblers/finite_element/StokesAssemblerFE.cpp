@@ -29,10 +29,13 @@ setup()
     msg += this->M_name;
     msg += "] initializing ...";
     printlog(YELLOW, msg, this->M_data.getVerbose());
+
     initializeFEspaces();
+
     M_mass = spcast<BlockMatrix>(assembleMass(M_bcManager)); // #1
     M_stiffness = spcast<BlockMatrix>(assembleStiffness(M_bcManager)); // #2
     M_divergence = spcast<BlockMatrix>(assembleDivergence(M_bcManager)); // #3
+
     assembleFlowRateVectors();
     // assembleFlowRateJacobians(this->M_bcManager);
 
@@ -595,11 +598,9 @@ assembleStiffness(shp<BCManager> bcManager)
                   dot(grad(phi_i),grad(phi_j))
               ) >> A;
     }
-    A->globalAssemble();
 
-    shp<SparseMatrix> Awrapper(new SparseMatrix);
-    Awrapper->setData(A);
-    stiffness->setBlock(0,0,Awrapper);
+    A->globalAssemble();
+    stiffness->setBlock(0,0, wrap(A));
 
     bcManager->apply0DirichletMatrix(*stiffness, M_velocityFESpace, 0, 0.0, !(this->M_addNoSlipBC));
     return stiffness;
@@ -612,8 +613,12 @@ assembleMass(shp<BCManager> bcManager)
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
+    std::cout<<"I am here 1"<<std::endl<<std::flush;
+
     shp<BlockMatrix> mass(new BlockMatrix(2,2));
     shp<MATRIXEPETRA> M(new MATRIXEPETRA(M_velocityFESpace->map()));
+
+    std::cout<<"I am here 2"<<std::endl<<std::flush;
 
     integrate(elements(M_velocityFESpaceETA->mesh()),
           M_velocityFESpace->qr(),
@@ -621,11 +626,17 @@ assembleMass(shp<BCManager> bcManager)
           M_velocityFESpaceETA,
           value(M_density) * dot(phi_i, phi_j)
     ) >> M;
+
+    std::cout<<"I am here 3"<<std::endl<<std::flush;
+
     M->globalAssemble();
-    shp<SparseMatrix> Mwrapper(new SparseMatrix);
-    Mwrapper->setData(M);
-    mass->setBlock(0,0,Mwrapper);
+    mass->setBlock(0,0, wrap(M));
+
+    std::cout<<"I am here 4"<<std::endl<<std::flush;
+
     bcManager->apply0DirichletMatrix(*mass, M_velocityFESpace, 0, 1.0, !(this->M_addNoSlipBC));
+
+    std::cout<<"I am here 5"<<std::endl<<std::flush;
 
     return mass;
 }
@@ -662,14 +673,8 @@ assembleDivergence(shp<BCManager> bcManager)
     B->globalAssemble(M_velocityFESpace->mapPtr(),
                       M_pressureFESpace->mapPtr());
 
-    shp<SparseMatrix> BTwrapper(new SparseMatrix);
-    BTwrapper->setData(BT);
-
-    shp<SparseMatrix> Bwrapper(new SparseMatrix);
-    Bwrapper->setData(B);
-
-    divergence->setBlock(0,1,BTwrapper);
-    divergence->setBlock(1,0,Bwrapper);
+    divergence->setBlock(0,1, wrap(BT));
+    divergence->setBlock(1,0, wrap(B));
 
     bcManager->apply0DirichletMatrix(*divergence, M_velocityFESpace, 0, 0.0, !(this->M_addNoSlipBC));
 

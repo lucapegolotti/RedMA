@@ -32,6 +32,13 @@ isInletNode() const
     return false;
 }
 
+bool
+TreeNode::
+isExtremalNode() const
+{
+    return (this->isInletNode() || this->isOutletNode());
+}
+
 std::vector<GeometricFace>
 TreeNode::
 getOutlets() const

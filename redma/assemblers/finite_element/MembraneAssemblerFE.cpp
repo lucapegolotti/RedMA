@@ -115,7 +115,8 @@ namespace RedMA {
 
         shp<BlockMatrix> boundaryMass(new BlockMatrix(this->M_nComponents, this->M_nComponents));
 
-        printlog(YELLOW, "Assembling boundary mass matrix ...\n", verbose);
+        printlog(YELLOW, "[MembraneAssemblerFE] Assembling boundary mass matrix ...\n",
+                 verbose);
 
         LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
 
@@ -131,11 +132,9 @@ namespace RedMA {
                   value(M_pressureFESpaceETA, *thicknessRepeated) *
                   dot(phi_i, phi_j)
         ) >> BM;
-        BM->globalAssemble();
 
-        shp<SparseMatrix> Mwrapper(new SparseMatrix);
-        Mwrapper->setData(BM);
-        boundaryMass->setBlock(0, 0, Mwrapper);
+        BM->globalAssemble();
+        boundaryMass->setBlock(0, 0, wrap(BM));
 
         bcManager->apply0DirichletMatrix(*boundaryMass, M_velocityFESpace, 0, 0.0, !(M_addNoSlipBC));
 
@@ -149,7 +148,8 @@ namespace RedMA {
 
         shp<BlockMatrix> wallBoundaryMass(new BlockMatrix(this->M_nComponents, this->M_nComponents));
 
-        printlog(YELLOW, "Assembling boundary mass matrix ...\n", verbose);
+        printlog(YELLOW, "[MembraneAssemblerFE] Assembling wall boundary mass matrix ...\n",
+                 verbose);
 
         LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
 
@@ -161,11 +161,9 @@ namespace RedMA {
                   M_velocityFESpaceETA,
                   dot(phi_i, phi_j)
         ) >> WBM;
-        WBM->globalAssemble();
 
-        shp<SparseMatrix> Mwrapper(new SparseMatrix);
-        Mwrapper->setData(WBM);
-        wallBoundaryMass->setBlock(0, 0, Mwrapper);
+        WBM->globalAssemble();
+        wallBoundaryMass->setBlock(0, 0, wrap(WBM));
 
         bcManager->apply0DirichletMatrix(*wallBoundaryMass, M_velocityFESpace,
                                          0, 0.0, !(M_addNoSlipBC));
@@ -198,7 +196,8 @@ namespace RedMA {
 
         shp<BlockMatrix> boundaryStiffness(new BlockMatrix(this->M_nComponents, this->M_nComponents));
 
-        printlog(YELLOW, "Assembling boundary stiffness matrix ...\n", verbose);
+        printlog(YELLOW, "[MembraneAssemblerFE] Assembling boundary stiffness matrix ...\n",
+                 verbose);
 
         LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
 
@@ -233,11 +232,9 @@ namespace RedMA {
                           (grad(phi_i) - grad(phi_i) * outerProduct(Nface, Nface)))
                                                                     )
         ) >> BS;
-        BS->globalAssemble();
 
-        shp<SparseMatrix> Awrapper(new SparseMatrix);
-        Awrapper->setData(BS);
-        boundaryStiffness->setBlock(0, 0, Awrapper);
+        BS->globalAssemble();
+        boundaryStiffness->setBlock(0, 0, wrap(BS));
 
         bcManager->apply0DirichletMatrix(*boundaryStiffness, M_velocityFESpace, 0, 0.0, !(M_addNoSlipBC));
 

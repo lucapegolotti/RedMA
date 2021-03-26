@@ -1,0 +1,60 @@
+<buildingblock type="tube" assembler="navierstokessupg_membrane" method="fem" refinement="h0.10" d="1" L="1" outlet="1">
+    <L_ratio>1</L_ratio>
+    <Rout_ratio>0.86968840170102057</Rout_ratio>
+    <alpha>3.0639172368996475</alpha>
+    <alpha_axis>5.3778377615761865</alpha_axis>
+    <bend>1.0566188615169043</bend>
+    <bx>0.59746213491216904</bx>
+    <by>3.1759210014886681</by>
+    <bz>-8.9584013577898389</bz>
+    <rotation_axis_x>-0.43762273075374652</rotation_axis_x>
+    <rotation_axis_y>-0.89915868762284334</rotation_axis_y>
+    <rotation_axis_z>-0</rotation_axis_z>
+    <scale>1.4324166082620979</scale>
+    <use_linear_elasticity>0</use_linear_elasticity>
+    <buildingblock type="tube" assembler="navierstokessupg_membrane" method="fem" refinement="h0.10" d="1" L="1" outlet="1">
+        <L_ratio>1</L_ratio>
+        <Rout_ratio>1.2841432611652173</Rout_ratio>
+        <alpha>2.0996976727888033</alpha>
+        <alpha_axis>1.2769640190125113</alpha_axis>
+        <bend>0.26937604892467565</bend>
+        <bx>0.35064660878162063</bx>
+        <by>2.5470958030896957</by>
+        <bz>-10.146487085138903</bz>
+        <rotation_axis_x>0.959856033145986</rotation_axis_x>
+        <rotation_axis_y>-0.28049312938689197</rotation_axis_y>
+        <rotation_axis_z>0</rotation_axis_z>
+        <scale>1.2457561106094608</scale>
+        <use_linear_elasticity>0</use_linear_elasticity>
+        <buildingblock type="tube" assembler="navierstokessupg_membrane" method="fem" refinement="h0.10" d="1" L="3" outlet="1">
+            <L_ratio>1</L_ratio>
+            <Rout_ratio>0.8150406311962477</Rout_ratio>
+            <alpha>1.8691670736432147</alpha>
+            <alpha_axis>-0.36163453490102859</alpha_axis>
+            <bend>0.60612797021538867</bend>
+            <bx>-0.054646516053811489</bx>
+            <by>1.4850901976086375</by>
+            <bz>-10.646915116144415</bz>
+            <rotation_axis_x>0.90600207293162194</rotation_axis_x>
+            <rotation_axis_y>-0.42327324961967966</rotation_axis_y>
+            <rotation_axis_z>0</rotation_axis_z>
+            <scale>1.5997293144945302</scale>
+            <use_linear_elasticity>0</use_linear_elasticity>
+            <buildingblock type="tube" assembler="navierstokessupg_membrane" method="fem" refinement="h0.10" d="1" L="2" outlet="1">
+                <L_ratio>1</L_ratio>
+                <Rout_ratio>0.82274415858988592</Rout_ratio>
+                <alpha>2.2545574143296929</alpha>
+                <alpha_axis>-0.25068484885958053</alpha_axis>
+                <bend>1.2445846736820658</bend>
+                <bx>-2.6453179692078126</bx>
+                <by>-1.7353889161728686</by>
+                <bz>-12.938763160765303</bz>
+                <rotation_axis_x>0.56085772952549706</rotation_axis_x>
+                <rotation_axis_y>-0.82791219777915126</rotation_axis_y>
+                <rotation_axis_z>0</rotation_axis_z>
+                <scale>1.3038443902287624</scale>
+                <use_linear_elasticity>0</use_linear_elasticity>
+            </buildingblock>
+        </buildingblock>
+    </buildingblock>
+</buildingblock>

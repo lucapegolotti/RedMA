@@ -185,7 +185,7 @@ applyDirichletBCs(const double& time, BlockVector& input,
         bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
                     *bcs, fespace->feBd(), 1.0, time);
 
-    if (ringOnly)
+    if (ringOnly && (M_treeNode->isExtremalNode()))
     {
         shp<LifeV::BCHandler> bcsRing = createBCHandler0DirichletRing();
         bcsRing->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
@@ -235,7 +235,7 @@ apply0DirichletMatrix(BlockMatrix& input,
                            fespace->dof(), *bcs, fespace->feBd(),
                            (j == index) * diagCoefficient, 0.0);
 
-            if (ringOnly)
+            if (ringOnly && (M_treeNode->isExtremalNode()))
             {
                 shp<LifeV::BCHandler> bcsRing = createBCHandler0DirichletRing();
                 bcsRing->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
@@ -280,7 +280,7 @@ apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
         bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
                     *bcs, fespace->feBd(), 0.0, 0.0);
 
-    if (ringOnly)
+    if (ringOnly && (M_treeNode->isExtremalNode()))
     {
         shp<LifeV::BCHandler> bcsRing = createBCHandler0DirichletRing();
         bcsRing->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
