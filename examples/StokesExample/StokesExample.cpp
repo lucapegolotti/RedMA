@@ -20,9 +20,21 @@
 
 using namespace RedMA;
 
-double inflow(double t)
+double inflowDirichlet(double t)
 {
     return 1;
+}
+
+double inflowNeumann(double t)
+{
+    const double T = 3e-3;
+    const double omega = 2.0 * M_PI / T;
+    const double Pmax = 13300.0;
+    if (t <= T)
+    {
+        return -0.5 * (1.0 - std::cos(omega * t) ) * Pmax;
+    }
+    return 0;
 }
 
 int main(int argc, char **argv)
@@ -34,14 +46,49 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
+    Chrono chrono;
+    chrono.start();
+
+    std::string msg = "Starting chrono...\n";
+    printlog(MAGENTA, msg, true);
+
     DataContainer data;
     data.setDatafile("datafiles/data");
-    data.setInflow(inflow);
     data.setVerbose(comm->MyPID() == 0);
 
-    GlobalProblem femProblem(data, comm);
+    if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet"))
+        data.setInflow(inflowDirichlet);
+    else if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "neumann"))
+        data.setInflow(inflowNeumann);
+    else
+        throw new Exception("Unrecognized inlet BC type! "
+                            "Available types: {dirichlet, neumann}.");
 
+    std::string solutionDir = "solutions";
+    if (!fs::exists(solutionDir))
+        fs::create_directory(solutionDir);
+
+    unsigned int solutionIndex = 0;
+    std::string curSolutionDir = solutionDir + "/solution" + std::to_string(solutionIndex) + "/";
+    while (fs::exists(curSolutionDir))
+    {
+        solutionIndex++;
+        curSolutionDir = solutionDir + "/solution" + std::to_string(solutionIndex) + "/";
+    }
+
+    msg = "Saving the solution at " + curSolutionDir + "\n";
+    printlog(MAGENTA, msg, true);
+
+    data.setValueString("exporter/outdir", curSolutionDir);
+    data.finalize();
+
+    GlobalProblem femProblem(data, comm);
     femProblem.solve();
+
+    msg = "Total time =  ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(MAGENTA, msg, true);
 
     return 0;
 }

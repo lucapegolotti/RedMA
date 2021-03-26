@@ -64,8 +64,22 @@ int main(int argc, char **argv)
     else
         throw new Exception("Unrecognized inlet BC type!");
 
-    std::string outdir = "solution_fem_reference/";
-    data.setValueString("exporter/outdir", outdir);
+    std::string solutionDir = "solutions";
+    if (!fs::exists(solutionDir))
+        fs::create_directory(solutionDir);
+
+    unsigned int solutionIndex = 0;
+    std::string curSolutionDir = solutionDir + "/solution" + std::to_string(solutionIndex) + "/";
+    while (fs::exists(curSolutionDir))
+    {
+        solutionIndex++;
+        curSolutionDir = solutionDir + "/solution" + std::to_string(solutionIndex) + "/";
+    }
+
+    msg = "Saving the solution at " + curSolutionDir + "\n";
+    printlog(MAGENTA, msg, true);
+
+    data.setValueString("exporter/outdir", curSolutionDir);
     data.finalize();
 
     GlobalProblem globalProblem(data, comm);
