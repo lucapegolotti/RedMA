@@ -613,12 +613,8 @@ assembleMass(shp<BCManager> bcManager)
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    std::cout<<"I am here 1"<<std::endl<<std::flush;
-
     shp<BlockMatrix> mass(new BlockMatrix(2,2));
     shp<MATRIXEPETRA> M(new MATRIXEPETRA(M_velocityFESpace->map()));
-
-    std::cout<<"I am here 2"<<std::endl<<std::flush;
 
     integrate(elements(M_velocityFESpaceETA->mesh()),
           M_velocityFESpace->qr(),
@@ -627,16 +623,10 @@ assembleMass(shp<BCManager> bcManager)
           value(M_density) * dot(phi_i, phi_j)
     ) >> M;
 
-    std::cout<<"I am here 3"<<std::endl<<std::flush;
-
     M->globalAssemble();
     mass->setBlock(0,0, wrap(M));
 
-    std::cout<<"I am here 4"<<std::endl<<std::flush;
-
     bcManager->apply0DirichletMatrix(*mass, M_velocityFESpace, 0, 1.0, !(this->M_addNoSlipBC));
-
-    std::cout<<"I am here 5"<<std::endl<<std::flush;
 
     return mass;
 }
