@@ -36,15 +36,17 @@ namespace RedMA
       void addForcingTerm(const shp<aVector> & rhs  ) const;
 
       void postProcess(const double& time, const shp<aVector>& sol) override;
+      void setExporterDisplacement();
 
   protected:
         void                                              computeLameConstants();
 
-        //shp<MATRIXEPETRA>                                 M_BoundaryStiffness;
+        shp<VECTOREPETRA>                                 M_displacementExporter;
+
         shp<BlockMatrix>                                  M_BoundaryStiffness;
         double                                            M_lameI;
         double                                            M_lameII;
-        shp<FSIAssemblerFE>                                 pointer;
+
         shp<aTimeMarchingAlgorithm>                       M_TMAlgorithm;
 
 

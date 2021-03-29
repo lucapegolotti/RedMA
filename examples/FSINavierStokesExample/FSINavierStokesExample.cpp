@@ -22,7 +22,9 @@ using namespace RedMA;
 
 double inflow(double t)
 {
-    return 1;
+    //return (t<0.02)*(1.0 - std::cos((t) * M_PI / (0.02 )) / 2.0)+(t>=0.02);
+    //return (t<0.02)*t+ (t>0.02)*0.02 ;
+     return 1;
 }
 
 int main(int argc, char **argv)

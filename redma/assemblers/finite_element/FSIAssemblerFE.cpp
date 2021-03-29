@@ -29,7 +29,7 @@ namespace RedMA
       M_TMAlgorithm->setup(this->getZeroVector());
       this->computeLameConstants();
       this->getBoundaryStiffnessMatrix();
-
+      //this->setExporterDisplacement();
   }
   void
   FSIAssemblerFE::
@@ -76,12 +76,12 @@ namespace RedMA
     }
     shp<aMatrix>
     FSIAssemblerFE::
-    getMass(const double& time, const shp<aVector>& sol)
+    getMass(const double& time, const shp<aVector>& sol)//M_mass modificata nel setup una voltasola
     {
         shp<BlockMatrix> M_massCopy(new BlockMatrix(this->M_nComponents,this->M_nComponents));
         M_massCopy->deepCopy(NavierStokesAssemblerFE::
                              getMass(time, sol));
-        //this->addFSIMassMatrix(M_massCopy);
+        this->addFSIMassMatrix(M_massCopy);
         this->M_bcManager->apply0DirichletMatrix(*M_massCopy,this->getFESpaceBCs(),this->getComponentBCs(), 1.0);
 
         printlog(YELLOW, "[FSI]Mass matrix assembled ...\n", this->M_data.getVerbose());
@@ -176,7 +176,17 @@ namespace RedMA
         Displacement->deepCopy(M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol)));
 
         M_TMAlgorithm->shiftSolutions(Displacement);
+
+        //*M_displacementExporter = *spcast<VECTOREPETRA>(Displacement->block(0)->data());
         
     }
+    void
+    FSIAssemblerFE::
+    setExporterDisplacement() {
 
+        printlog(GREEN, "[FSI] Preparing to export solution...\n",
+                 this->M_data.getVerbose());
+        M_displacementExporter.reset(new VECTOREPETRA(M_velocityFESpace->map(),M_exporter->mapType()));
+        M_exporter->addVariable(LifeV::ExporterData<MESH >::VectorField, "displacement", M_velocityFESpace,M_displacementExporter, 0.0);
+    }
 }

@@ -227,7 +227,7 @@ namespace RedMA {
 
         unsigned int count = 0;
         for (BV vec : M_prevSolutions) {
-            BV vecCopy(new BlockVector(2));
+            BV vecCopy(new BlockVector(2));//distrvect
 
             (vecCopy)->deepCopy(M_prevSolutions[count]);
             vecCopy->multiplyByScalar(M_coefficients[count]);
