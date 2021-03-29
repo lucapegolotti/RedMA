@@ -29,7 +29,12 @@ namespace RedMA
       M_TMAlgorithm->setup(this->getZeroVector());
       this->computeLameConstants();
       this->getBoundaryStiffnessMatrix();
-      //this->setExporterDisplacement();
+
+      this->addFSIMassMatrix(M_mass);
+      this->M_bcManager->apply0DirichletMatrix(*M_mass,this->getFESpaceBCs(),this->getComponentBCs(), 1.0);
+
+      printlog(YELLOW, "[FSI]Mass matrix assembled ...\n", this->M_data.getVerbose());
+      this->setExporterDisplacement();
   }
   void
   FSIAssemblerFE::
@@ -78,14 +83,27 @@ namespace RedMA
     FSIAssemblerFE::
     getMass(const double& time, const shp<aVector>& sol)//M_mass modificata nel setup una voltasola
     {
-        shp<BlockMatrix> M_massCopy(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+        /*shp<BlockMatrix> M_massCopy(new BlockMatrix(this->M_nComponents,this->M_nComponents));
         M_massCopy->deepCopy(NavierStokesAssemblerFE::
                              getMass(time, sol));
         this->addFSIMassMatrix(M_massCopy);
         this->M_bcManager->apply0DirichletMatrix(*M_massCopy,this->getFESpaceBCs(),this->getComponentBCs(), 1.0);
 
         printlog(YELLOW, "[FSI]Mass matrix assembled ...\n", this->M_data.getVerbose());
-        return M_massCopy;
+        return M_massCopy;*/
+        shp<BlockMatrix> retMat(new BlockMatrix(0,0));
+        retMat->deepCopy(this->M_mass);
+        if (M_stabilization)
+        {
+            retMat->add(M_stabilization->getMass(convert<BlockVector>(sol),
+                                                 convert<BlockVector>(this->getForcingTerm(time))));
+
+            this->M_bcManager->apply0DirichletMatrix(*retMat, this->getFESpaceBCs(),
+                                                     this->getComponentBCs(), 1.0);
+        }
+
+        return retMat;
+
 
     }
 
@@ -163,6 +181,7 @@ namespace RedMA
 
         return retMat;
     }
+
     void
     FSIAssemblerFE::
     postProcess(const double& time, const shp<aVector>& sol)  {
@@ -173,12 +192,17 @@ namespace RedMA
         double  dt = this->M_data("time_discretization/dt", 0.01);
 
         shp<BlockVector> Displacement(new BlockVector(this->M_nComponents));
+        M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol));
+        printlog(YELLOW, "[FSI] Updating displacements field ...\n",
+                 this->M_data.getVerbose());
+
         Displacement->deepCopy(M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol)));
+        printlog(YELLOW, "[FSI] Updating displacements field ...\n",
+                 this->M_data.getVerbose());
 
         M_TMAlgorithm->shiftSolutions(Displacement);
-
         //*M_displacementExporter = *spcast<VECTOREPETRA>(Displacement->block(0)->data());
-        
+
     }
     void
     FSIAssemblerFE::

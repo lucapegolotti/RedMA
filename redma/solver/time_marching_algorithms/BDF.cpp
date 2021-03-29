@@ -236,6 +236,7 @@ namespace RedMA {
         }
 
         retVec->block(0)->add(oldDisp->block(0));
+        return retVec;
     }
 
 }
