@@ -193,15 +193,13 @@ namespace RedMA
 
         shp<BlockVector> Displacement(new BlockVector(this->M_nComponents));
         M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol));
-        printlog(YELLOW, "[FSI] Updating displacements field ...\n",
-                 this->M_data.getVerbose());
+
 
         Displacement->deepCopy(M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol)));
-        printlog(YELLOW, "[FSI] Updating displacements field ...\n",
-                 this->M_data.getVerbose());
+
 
         M_TMAlgorithm->shiftSolutions(Displacement);
-        //*M_displacementExporter = *spcast<VECTOREPETRA>(Displacement->block(0)->data());
+        *M_displacementExporter = *spcast<VECTOREPETRA>(Displacement->block(0)->data());
 
     }
     void

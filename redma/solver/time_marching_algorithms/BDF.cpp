@@ -208,7 +208,7 @@ namespace RedMA {
         for (BV vec : M_prevSolutions) {
             BV vecCopy(new BlockVector(0));
             vecCopy->deepCopy(M_prevSolutions[count]);
-            vecCopy->multiplyByScalar(-M_coefficients[count]);
+            vecCopy->multiplyByScalar(M_coefficients[count]);
             prevContribution->add(vecCopy);
             count++;
         }
@@ -230,7 +230,7 @@ namespace RedMA {
             BV vecCopy(new BlockVector(2));//distrvect
 
             (vecCopy)->deepCopy(M_prevSolutions[count]);
-            vecCopy->multiplyByScalar(M_coefficients[count]);
+            vecCopy->multiplyByScalar(-M_coefficients[count]);
             oldDisp->add(vecCopy);
             count++;
         }
