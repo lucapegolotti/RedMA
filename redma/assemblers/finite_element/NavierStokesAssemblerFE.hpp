@@ -91,7 +91,7 @@ public:
     void addConvectiveTermJacobian(shp<aVector> sol,
                                    shp<aMatrix> mat);
 
-    /*! \brief Virtual getter for mass matrix.
+    /*! \brief Getter for mass matrix.
      *
      * See StokesAssemblerFE for the definition of the mass matrix.
      *
@@ -102,7 +102,7 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;
 
-    /*! \brief Virtual getter for mass matrix Jacobian.
+    /*! \brief Getter for mass matrix Jacobian.
      *
      * \param time Current time.
      * \param sol Current solution.
@@ -111,7 +111,7 @@ public:
     virtual shp<aMatrix> getMassJacobian(const double& time,
                                          const shp<aVector>& sol) override;
 
-    /*! \brief Virtual getter for right-hand side.
+    /*! \brief Getter for right-hand side.
      *
      * \param time Current time.
      * \param sol Current solution.
@@ -120,7 +120,7 @@ public:
     virtual shp<aVector> getRightHandSide(const double& time,
                                           const shp<aVector>& sol) override;
 
-    /*! \brief Virtual getter for Jacobian of the right-hand side.
+    /*! \brief Getter for Jacobian of the right-hand side.
      *
      * \param time Current time.
      * \param sol Current solution.

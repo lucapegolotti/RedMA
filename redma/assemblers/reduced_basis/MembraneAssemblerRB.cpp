@@ -19,11 +19,11 @@
 namespace RedMA{
 
     MembraneAssemblerRB::
-    MembraneAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode):
-        NavierStokesAssemblerRB(data, treeNode)
+    MembraneAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode,
+                        std::string stabilizationName):
+        NavierStokesAssemblerRB(data, treeNode, stabilizationName)
     {
-        // SUPG stabilization is not implemented in the RB framework!!
-        replaceFEAssembler(std::make_shared<MembraneAssemblerFE>(data, treeNode, ""));
+        replaceFEAssembler(std::make_shared<MembraneAssemblerFE>(data, treeNode, stabilizationName));
         M_name = "MembraneAssemblerRB";
     }
 

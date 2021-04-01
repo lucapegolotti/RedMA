@@ -36,7 +36,8 @@ StokesAssemblerRB::
 getMassJacobian(const double& time,
                 const shp<aVector>& sol)
 {
-    shp<BlockMatrix> retMat(new BlockMatrix(2,2));
+    shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,
+                                              this->M_nComponents));
     return retMat;
 }
 
@@ -291,6 +292,24 @@ setDefaultAssemblers(shp<DefaultAssemblersLibrary> defAssemblers)
 {
     M_defaultAssemblers = defAssemblers;
     M_FEAssembler->setDefaultAssemblers(defAssemblers);
+}
+
+shp<BlockVector>
+StokesAssemblerRB::
+reconstructFESolution(shp<BlockVector> sol) const
+{
+    shp<VECTOREPETRA>  velocityHandlerSol;
+    shp<VECTOREPETRA>  pressureHandlerSol;
+    velocityHandlerSol = M_bases->reconstructFEFunction(convert<BlockVector>(sol)->block(0),
+                                                        0, ID());
+    pressureHandlerSol = M_bases->reconstructFEFunction(convert<BlockVector>(sol)->block(1),
+                                                        1, ID());
+
+    shp<BlockVector> solFEM(new BlockVector(this->M_nComponents));
+    solFEM->setBlock(0, wrap(velocityHandlerSol));
+    solFEM->setBlock(1, wrap(pressureHandlerSol));
+
+    return solFEM;
 }
 
 }

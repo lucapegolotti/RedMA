@@ -22,10 +22,10 @@
 namespace RedMA
 {
 
-/*! \brief Abstract class for the stabilization of the Navier-Stokes equations.
+/*! \brief Class for the stabilization of the Navier-Stokes equations with SUPG method.
  *
  * We refer e.g. to "Parallel Algorithms for the Solution of Large-Scale
- * Fluid-Structure Interaction Problems in Hemodynamics" by Forti D. for the
+ * Fluid-Structure Interaction Problems in Haemodynamics" by Forti D. for the
  * implementation details.
  */
 class SUPGStabilization : public NavierStokesStabilization

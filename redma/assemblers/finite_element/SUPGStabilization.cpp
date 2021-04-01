@@ -65,23 +65,11 @@ getMass(shp<BlockVector> sol,
 
     mass11->globalAssemble();
 
-    shp<SparseMatrix> mass00wrap(new SparseMatrix());
-    mass00wrap->setMatrix(mass00);
-
-    shp<SparseMatrix> mass10wrap(new SparseMatrix());
-    mass10wrap->setMatrix(mass10);
-
-    shp<SparseMatrix> mass01wrap(new SparseMatrix());
-    mass01wrap->setMatrix(mass01);
-
-    shp<SparseMatrix> mass11wrap(new SparseMatrix());
-    mass11wrap->setMatrix(mass11);
-
     M_mass.reset(new BlockMatrix(2,2));
-    M_mass->setBlock(0,0,mass00wrap);
-    M_mass->setBlock(0,1,mass01wrap);
-    M_mass->setBlock(1,0,mass10wrap);
-    M_mass->setBlock(1,1,mass11wrap);
+    M_mass->setBlock(0,0, wrap(mass00));
+    M_mass->setBlock(0,1, wrap(mass01));
+    M_mass->setBlock(1,0, wrap(mass10));
+    M_mass->setBlock(1,1, wrap(mass11));
 
     return M_mass;
 }
@@ -128,23 +116,11 @@ getMassJacobian(shp<BlockVector> sol,
 
     massjac11->globalAssemble();
 
-    shp<SparseMatrix> massJac00wrap(new SparseMatrix());
-    massJac00wrap->setMatrix(massjac00);
-
-    shp<SparseMatrix> massJac10wrap(new SparseMatrix());
-    massJac10wrap->setMatrix(massjac10);
-
-    shp<SparseMatrix> massJac01wrap(new SparseMatrix());
-    massJac01wrap->setMatrix(massjac01);
-
-    shp<SparseMatrix> massJac11wrap(new SparseMatrix());
-    massJac11wrap->setMatrix(massjac11);
-
     M_massJac.reset(new BlockMatrix(2,2));
-    M_massJac->setBlock(0,0,massJac00wrap);
-    M_massJac->setBlock(0,1,massJac01wrap);
-    M_massJac->setBlock(1,0,massJac10wrap);
-    M_massJac->setBlock(1,1,massJac11wrap);
+    M_massJac->setBlock(0,0, wrap(massjac00));
+    M_massJac->setBlock(0,1, wrap(massjac01));
+    M_massJac->setBlock(1,0, wrap(massjac10));
+    M_massJac->setBlock(1,1, wrap(massjac11));
 
     return M_massJac;
 }
@@ -214,24 +190,12 @@ getJacobian(shp<BlockVector> sol,
 
     jac11->globalAssemble();
 
-    shp<SparseMatrix> jac00wrap(new SparseMatrix());
-    jac00wrap->setMatrix(jac00);
-
-    shp<SparseMatrix> jac10wrap(new SparseMatrix());
-    jac10wrap->setMatrix(jac10);
-
-    shp<SparseMatrix> jac01wrap(new SparseMatrix());
-    jac01wrap->setMatrix(jac01);
-
-    shp<SparseMatrix> jac11wrap(new SparseMatrix());
-    jac11wrap->setMatrix(jac11);
-
     M_jac.reset(new BlockMatrix(2,2));
     M_jac->resize(2,2);
-    M_jac->setBlock(0,0,jac00wrap);
-    M_jac->setBlock(0,1,jac01wrap);
-    M_jac->setBlock(1,0,jac10wrap);
-    M_jac->setBlock(1,1,jac11wrap);
+    M_jac->setBlock(0,0, wrap(jac00));
+    M_jac->setBlock(0,1, wrap(jac01));
+    M_jac->setBlock(1,0, wrap(jac10));
+    M_jac->setBlock(1,1, wrap(jac11));
 
     return M_jac;
 }
@@ -274,18 +238,11 @@ getResidual(shp<BlockVector> sol,
     respressrep->globalAssemble();
     shp<VECTOREPETRA> respress(new VECTOREPETRA(*respressrep, Unique));
 
-    shp<DistributedVector> comp0(new DistributedVector());
-    comp0->setVector(resvel);
-
-    shp<DistributedVector> comp1(new DistributedVector());
-    comp1->setVector(respress);
-
     shp<BlockVector> retVec(new BlockVector(2));
-    retVec->setBlock(0,comp0);
-    retVec->setBlock(1,comp1);
+    retVec->setBlock(0, wrap(resvel));
+    retVec->setBlock(1, wrap(respress));
 
     return retVec;
 }
-
 
 }  // namespace RedMA

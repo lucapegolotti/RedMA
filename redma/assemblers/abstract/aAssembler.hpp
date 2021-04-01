@@ -262,7 +262,7 @@ public:
      *
      * \return Index of the tree node.
      */
-    inline unsigned int ID() {return M_treeNode->M_ID;}
+    inline unsigned int ID() const {return M_treeNode->M_ID;}
 
     /// Perform the setup necessary to RB method.
     virtual void RBsetup() {}

@@ -283,6 +283,14 @@ public:
      */
     inline shp<StokesAssemblerFE> getFEAssembler() {return M_FEAssembler;}
 
+    /*! \brief Function that reconstructs the FE solution from the RB one, considering both
+     * velocity and pressure fields
+     *
+     * @param sol The RB vector to be reconstructed in the FE domain
+     * @return The FE vector computed by reconstructing the RB solution
+     */
+    shp<BlockVector> reconstructFESolution(shp<BlockVector> sol) const;
+
 protected:
 
     /*! \brief Replacer (i.e. setter) method for the underlying FE assembler

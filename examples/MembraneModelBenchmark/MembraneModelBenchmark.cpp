@@ -85,6 +85,9 @@ int main(int argc, char **argv)
     GlobalProblem globalProblem(data, comm);
     globalProblem.solve();
 
+    msg = "Saved the solution at " + curSolutionDir + "\n";
+    printlog(MAGENTA, msg, true);
+
     msg = "Total time =  ";
     msg += std::to_string(chrono.diff());
     msg += " seconds\n";

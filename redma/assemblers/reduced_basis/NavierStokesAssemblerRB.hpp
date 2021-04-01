@@ -20,6 +20,8 @@
 #include <redma/assemblers/abstract/aAssemblerFE.hpp>
 #include <redma/assemblers/reduced_basis/StokesAssemblerRB.hpp>
 #include <redma/assemblers/abstract/aAssemblerRB.hpp>
+#include <redma/assemblers/finite_element/SUPGStabilization.hpp>
+
 #include <redma/reduced_basis/RBBases.hpp>
 
 namespace RedMA
@@ -53,10 +55,48 @@ public:
     /*! \brief Constructor taking a datafile and a TreeNode as arguments.
      *
      * \param datafile The datafile.
-     * \param datafile The TreeNode encoding the physical domain.
+     * \param treeNode The TreeNode encoding the physical domain.
+     * \param stabilizationName The name of the stabilization method. Default value is "",
+     * which means no stabilization.
      */
     NavierStokesAssemblerRB(const DataContainer& data,
-                            shp<TreeNode> treeNode);
+                            shp<TreeNode> treeNode,
+                            std::string stabilizationName = "");
+
+    /*! \brief Perform the setup for the RB method.
+     *
+     * Callback to RBsetup in StokesAssemblerRB. Additionally, if specified in
+     * the datafile, we assemble vectors of the form
+     *
+     *  \f[
+     *    \{c(u)_i\}_{jk} = \int_{\Omega} \rho [(\xi_j^h \cdot \nabla)\xi_k^h] \varphi_i^h,
+     *  \f]
+     *
+     * where \f$\rho\f$ is the density of the fluid, \f$\xi_j^h\f$ are the
+     * reduced basis functions of the velocity, and \f$\\varphi_i^h\f$ are the
+     * finite element basis functions of the velocity.
+     */
+    virtual void RBsetup() override;
+
+    /*! \brief Getter for the reduced mass matrix.
+     *
+     * See StokesAssemblerRB for the definition of the mass matrix.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     * \return Shared pointer to aMatrix of the mass matrix.
+     */
+    virtual shp<aMatrix> getMass(const double& time,
+                                 const shp<aVector>& sol) override;
+
+    /*! \brief Getter for reduced mass matrix Jacobian.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     * \return Shared pointer to aMatrix of the reduced mass matrix Jacobian.
+     */
+    virtual shp<aMatrix> getMassJacobian(const double& time,
+                                         const shp<aVector>& sol) override;
 
     /*! \brief Add Jacobian of convective matrix to an input matrix.
      *
@@ -88,25 +128,13 @@ public:
     shp<aMatrix> getJacobianRightHandSide(const double& time,
                                           const shp<aVector>& sol) override;
 
-    /*! \brief Perform the setup for the RB method.
-     *
-     * Callback to RBsetup in StokesAssemblerRB. Additionally, if specified in
-     * the datafile, we assemble vectors of the form
-     *
-     *  \f[
-     *    \{c(u)_i\}_{jk} = \int_{\Omega} \rho [(\xi_j^h \cdot \nabla)\xi_k^h] \varphi_i^h,
-     *  \f]
-     *
-     * where \f$\rho\f$ is the density of the fluid, \f$\xi_j^h\f$ are the
-     * reduced basis functions of the velocity, and \f$\\varphi_i^h\f$ are the
-     * finite element basis functions of the velocity.
-     */
-    virtual void RBsetup() override;
-
 protected:
     std::vector<std::vector<shp<BlockVector>>>       M_nonLinearTermsDecomposition;
     shp<BlockVector>                                 M_nonLinearTerm;
     bool                                             M_exactJacobian;
+
+    shp<NavierStokesStabilization>                   M_stabilization;
+    std::string                                      M_stabilizationName;
 };
 
 }

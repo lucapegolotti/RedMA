@@ -204,11 +204,17 @@ public:
      */
     virtual shp<FESPACE> getFEspace(unsigned int index) const override;
 
-    /*! \brief Getter for the ETA finite element space associated with the velocity.
+    /*! \brief Getter for the ETA finite element space associated with velocity.
      *
      * \return Shared pointer to the desired ETA finite element space.
      */
     shp<ETFESPACE3> getVelocityETFEspace() const {return M_velocityFESpaceETA;}
+
+    /*! \brief Getter for the ETA finite element space associated with pressure.
+    *
+    * \return Shared pointer to the desired ETA finite element space.
+    */
+    shp<ETFESPACE1> getPressureETFEspace() const {return M_pressureFESpaceETA;}
 
     /*! \brief Getter for a vector containing the mass, stiffness and divergence matrix
      *  (in order).

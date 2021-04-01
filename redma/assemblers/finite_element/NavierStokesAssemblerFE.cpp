@@ -3,7 +3,6 @@
 namespace RedMA
 {
 
-
 NavierStokesAssemblerFE::
 NavierStokesAssemblerFE(const DataContainer& data,
                         shp<TreeNode> treeNode,
@@ -11,7 +10,7 @@ NavierStokesAssemblerFE(const DataContainer& data,
   StokesAssemblerFE(data,treeNode),
   M_stabilizationName(stabilizationName)
 {
-    // if we use a stabilization we use P1P1 by default
+    // if we use a stabilization we use P1-P1 by default
     if (std::strcmp(M_stabilizationName.c_str(),""))
     {
         setVelocityOrder("P1");
@@ -43,7 +42,7 @@ setup()
                  this->M_data.getVerbose());
     }
     else
-        throw new Exception("Type of stabilization not implemented!");
+        throw new Exception("Stabilization " + M_stabilizationName + " is not implemented!");
 }
 
 void
@@ -105,8 +104,9 @@ NavierStokesAssemblerFE::
 getMass(const double& time,
         const shp<aVector>& sol)
 {
-    shp<BlockMatrix> retMat(new BlockMatrix(0,0));
+    shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
     retMat->deepCopy(this->M_mass);
+
     if (M_stabilization)
     {
         retMat->add(M_stabilization->getMass(convert<BlockVector>(sol),
@@ -126,6 +126,7 @@ getMassJacobian(const double& time,
                 const shp<aVector>& sol)
 {
     shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+
     if (M_stabilization)
     {
         retMat->add(M_stabilization->getMassJacobian(spcast<BlockVector>(sol),

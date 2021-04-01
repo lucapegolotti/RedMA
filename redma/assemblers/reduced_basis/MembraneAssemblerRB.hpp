@@ -69,8 +69,11 @@ public:
      *
      * \param datafile The datafile.
      * \param datafile The TreeNode encoding the physical domain.
+     * \param stabilizationName The name of the stabilization
      */
-    MembraneAssemblerRB(const DataContainer &data, shp<TreeNode> treeNode);
+    MembraneAssemblerRB(const DataContainer &data,
+                        shp<TreeNode> treeNode,
+                        std::string stabilizationName = "");
 
     /*! \brief Perform the setup for the RB method.
      *
