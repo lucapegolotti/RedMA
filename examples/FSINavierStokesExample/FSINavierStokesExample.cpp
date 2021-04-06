@@ -37,10 +37,10 @@ int main(int argc, char **argv)
 #endif
 
     DataContainer data;
-    data.setDatafile("datafiles/data");
-    data.setInflow(inflow);
+    data.setDatafile("datafiles/data_fem");
+    //data.setInflow(inflow);
     data.setVerbose(comm->MyPID() == 0);
-
+    data.finalize();
     GlobalProblem femProblem(data, comm);
 
     femProblem.solve();
