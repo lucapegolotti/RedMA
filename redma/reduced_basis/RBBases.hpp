@@ -27,7 +27,7 @@
 namespace RedMA
 {
 
-/*! \brief Class handling the reduced basis.
+/*! \brief Class handling a reduced basis.
  */
 class RBBases
 {

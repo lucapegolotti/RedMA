@@ -34,6 +34,7 @@
 namespace RedMA
 {
 
+/// Preconditioner for a saddle point problem.
 class SaddlePointPreconditioner : public PreconditionerOperator
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
@@ -45,24 +46,22 @@ class SaddlePointPreconditioner : public PreconditionerOperator
     typedef LifeV::Operators::ApproximatedInvertibleRowMatrix        ApproxInv;
 
 public:
-    SaddlePointPreconditioner(const DataContainer& data, const BM& matrix);
+    /*! \brief Constructor.
+     *
+     * \param data The DataContainer of the problem.
+     * \param matrix Shared pointer to the matrix.
+     */
+    SaddlePointPreconditioner(const DataContainer& data,
+                              const BM& matrix);
 
+    /*! \brief Apply the approximated inverse to a vector.
+     *
+     * \param X Vector to which the inverse must be applied.
+     * \param Y Result.
+     * \return Return code; 0 if successful.
+     */
     virtual int ApplyInverse(const super::vector_Type& X,
                              super::vector_Type& Y) const override;
-
-    void allocateInnerPreconditioners(const BM& primalMatrix);
-
-    void allocateInverseSolvers(const BM& primalMatrix);
-
-    void allocateApproximatedInverses(const BM& primalMatrix);
-
-    void setSolverOptions();
-
-
-    void computeSchurComplement(const BM& A, const BM& BT,
-                                const BM& B, const BM& C);
-
-    void setup(const BM& matrix, bool doComputeSchurComplement = true);
 
 private:
     void computeAm1BT(const BM& A, const BM& BT);
@@ -78,6 +77,20 @@ private:
     void applyEveryAm1BT(const VECTOREPETRA& X, VECTOREPETRA &Y) const;
 
     void findSmallBlocks(const BM& primalMatrix);
+
+    void allocateInnerPreconditioners(const BM& primalMatrix);
+
+    void allocateInverseSolvers(const BM& primalMatrix);
+
+    void allocateApproximatedInverses(const BM& primalMatrix);
+
+    void setSolverOptions();
+
+
+    void computeSchurComplement(const BM& A, const BM& BT,
+                                const BM& B, const BM& C);
+
+    void setup(const BM& matrix, bool doComputeSchurComplement = true);
 
     DataContainer                                        M_data;
     BM                                                   M_matrix;
