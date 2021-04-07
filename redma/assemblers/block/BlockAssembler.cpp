@@ -317,7 +317,7 @@ setup()
     }
 
     M_basesManager.reset(new RBBasesManager(M_data, M_comm, getIDMeshTypeMap()));
-    M_basesManager->load();
+    M_basesManager->loadSingularValues();
 
     for (auto& primalas : M_primalAssemblers)
     {

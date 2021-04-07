@@ -45,18 +45,26 @@
 namespace RedMA
 {
 
+/*! \brief Class for generating the finite element matrices necessary to the
+ * offline phase of the reduced basis method.
+ */
 class MatricesGenerator
 {
     typedef aAssembler                                      AssemblerType;
     typedef std::vector<std::vector<shp<VECTOREPETRA>>>     VectorFunctions;
     typedef std::pair<shp<AssemblerType>, VectorFunctions>  AssemblerSnapshotPair;
 public:
-    MatricesGenerator(const DataContainer& data, EPETRACOMM comm);
+    /*! \brief Constructor.
+     *
+     * \param data A DataContainer.
+     * \param comm The MPI Communicator.
+     */
+    MatricesGenerator(const DataContainer& data,
+                      EPETRACOMM comm);
 
-    void generateBasis();
-
-    // use this method when you want to only dump the matrices in order to compute
-    // for example the basis with matlab
+    /*! \brief Generate matrices related to problem (the one specified in the
+     * geometry file).
+     */
     void generate();
 
 private:
