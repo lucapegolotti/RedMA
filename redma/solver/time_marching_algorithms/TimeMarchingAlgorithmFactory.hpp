@@ -21,7 +21,6 @@
 #include <redma/solver/time_marching_algorithms/aTimeMarchingAlgorithm.hpp>
 #include <redma/solver/time_marching_algorithms/aFunctionProvider.hpp>
 #include <redma/solver/time_marching_algorithms/BDF.hpp>
-#include <redma/solver/time_marching_algorithms/GeneralizedAlphaMethod.hpp>
 // #include <redma/solver/time_marching_algorithms/GeneralizedAlphaMethod1stOrderPressure.hpp>
 #include <redma/utils/Exception.hpp>
 #include <redma/problem/DataContainer.hpp>
@@ -31,10 +30,21 @@
 namespace RedMA
 {
 
+/*! \brief Factory to create time marching schemes.
+ *
+ * \param data The DataContainer of the problem.
+ * \return Shared pointer to the time marching algorithm.
+ */
 shp<aTimeMarchingAlgorithm>
 TimeMarchingAlgorithmFactory(const DataContainer& data);
 
 
+/*! \brief Factory to create time marching schemes.
+ *
+ * \param data The DataContainer of the problem.
+ * \param funProvider Shared pointer to the function provider.
+ * \return Shared pointer to the time marching algorithm.
+ */
 shp<aTimeMarchingAlgorithm>
 TimeMarchingAlgorithmFactory(const DataContainer& data,
                              shp<aFunctionProvider> funProvider);

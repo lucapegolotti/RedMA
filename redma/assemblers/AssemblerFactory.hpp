@@ -30,9 +30,15 @@
 namespace RedMA
 {
 
-/// \brief Factory to create assemblers.
+/*! \brief Factory to create assemblers.
+ *
+ * \param data The DataContainer of the problem.
+ * \param treeNode Shared pointer to the tree node.
+ * \return Shared pointer to the abstract assembler.
+ */
 shp<aAssembler>
-AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode);
+AssemblerFactory(const DataContainer& data,
+                 shp<TreeNode> treeNode);
 
 }
 
