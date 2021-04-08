@@ -25,47 +25,127 @@
 namespace RedMA
 {
 
+/// Wrapper of a double.
 class Double : public aVector, public aMatrix
 {
 public:
+
+    /// Default constructor.
     Double();
 
+    /*! \brief Addition operator.
+     *
+     * The compatibility of the input is checked internally.
+     *
+     * \param other The double to add.
+     */
     virtual void add(shp<aMatrix> other) override;
 
+    /*! \brief Multiplication by scalar operator.
+     *
+     * \param coeff The coefficient to multiply.
+     */
     virtual void multiplyByScalar(const double& coeff) override;
 
+    /*! \brief Multiplication by another Double.
+     *
+     * The compatibility of the input is checked internally.
+     *
+     * \param other Shared pointer to the Double to multiply.
+     * \return vector Shared pointer to the output.
+     */
     virtual shp<aVector> multiplyByVector(shp<aVector> vector) override;
 
+    /*! \brief Multiplication by another Double.
+     *
+     * The compatibility of the input is checked internally.
+     *
+     * \param other Shared pointer to the Double to multiply.
+     * \return vector Shared pointer to the output.
+     */
     virtual shp<aMatrix> multiplyByMatrix(shp<aMatrix> other) override;
 
+    /// This method is not implemented.
     virtual void dump(std::string namefile) const override;
 
+    /*! \brief Return true if the internal double is zero.
+     *
+     * \return True if the internal double is zero.
+     */
     virtual bool isZero() const override;
 
+    /// This method is not implemented.
     virtual aDataWrapper* clone() const override;
 
+    /*! \brief Returns the value of the double regardless of the input.
+     *
+     * \param index This parameter is not used.
+     */
     virtual double operator()(unsigned int index) override;
 
+    /*! \brief Addition operator.
+     *
+     * The compatibility of the input is checked internally.
+     *
+     * \param other The double to add.
+     */
     virtual void add(shp<aVector> other) override;
 
+    /*! \brief Shallow copy.
+     *
+     * The compatibility of the input is checked internally.
+     * The shared pointer to the data of the argument is copied.
+     *
+     * \param other Shared pointer to another Double.
+     */
     virtual void shallowCopy(shp<aDataWrapper> other) override;
 
+    /*! \brief Deep copy.
+     *
+     * The compatibility of the input is checked internally.
+     * The data of the argument is copied.
+     *
+     * \param other Shared pointer to another Double.
+     */
     virtual void deepCopy(shp<aDataWrapper> other) override;
 
+    /// This method is not implemented.
     virtual std::string getString(const char& delimiter) const override;
 
+    /*! \brief Returns the absolute value of the double.
+     *
+     * \return The absolute value of the double.
+     */
     virtual double norm2() const override;
 
+    /*! \brief Setter for the internal double.
+     *
+     * \param data The double.
+     */
     void setValue(double data) {M_double = data;}
 
+    /*! \brief Getter for the internal double.
+     *
+     * \return The internal double.
+     */
     double getValue() {return M_double;}
 
+    /*! \brief Getter for the type.
+     *
+     * \return Returns DOUBLE.
+     */
     virtual Datatype type() const override {return DOUBLE;}
 
+    /*! \brief Returns a shared pointer containing the double.
+     *
+     * \return The shared pointer to the double.
+     */
     virtual shp<void> data() const override;
 
+    /// Method not implemented.
     virtual void setData(shp<void>) override {};
 
+    /// Method not implemented.
     virtual shp<aMatrix> transpose() const override {return nullptr;};
 
 private:

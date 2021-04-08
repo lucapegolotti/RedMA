@@ -35,52 +35,160 @@
 namespace RedMA
 {
 
+/// Wrapper of a sparse matrix.
 class SparseMatrix : public aMatrix
 {
 public:
+
+    /// Default constructor.
     SparseMatrix();
 
+    /*! \brief Constructor.
+     *
+     * Build a sparse matrix out of a vector of distributed vectors.
+     *
+     * \param Vector of distributed vectors.
+     */
     SparseMatrix(std::vector<shp<DistributedVector>> columnVectors);
 
+    /*! \brief Constructor.
+     *
+     * Build a sparse matrix out of a vector of epetra vectors.
+     *
+     * \param Vector of vector epetra.
+     */
     SparseMatrix(const std::vector<shp<VECTOREPETRA>>& columnVectors);
 
+    /*! \brief Addition operator.
+     *
+     * The compatibility of the input is checked internally.
+     *
+     * \param other The matrix to add.
+     */
     virtual void add(shp<aMatrix> other) override;
 
+    /*! \brief Multiplication by scalar operator.
+     *
+     * \param coeff The coefficient to multiply.
+     */
     virtual void multiplyByScalar(const double& coeff) override;
 
+    /*! \brief Multiplication by matrix operator.
+     *
+     * The compatibility of the input is checked internally.
+     *
+     * \param other Shared pointer to the matrix to multiply.
+     * \return vector Shared pointer to the output matrix.
+     */
     virtual shp<aMatrix> multiplyByMatrix(shp<aMatrix> other) override;
 
+    /*! \brief Transpose operator.
+     *
+     * \return Transposed matrix.
+     */
     virtual shp<aMatrix> transpose() const override;
 
+    /*! \brief Multiplication by vector operator.
+     *
+     * The compatibility of the input is checked internally.
+     *
+     * \param other Shared pointer to the vector to multiply.
+     * \return vector Shared pointer to the output vector.
+     */
     virtual shp<aVector> multiplyByVector(shp<aVector> vector) override;
 
+    /*! \brief Shallow copy.
+     *
+     * The compatibility of the input is checked internally.
+     * The shared pointer to the data of the argument is copied.
+     *
+     * \param other Shared pointer to another SparseMatrix.
+     */
     virtual void shallowCopy(shp<aDataWrapper> other) override;
 
+    /*! \brief Deep copy.
+     *
+     * The compatibility of the input is checked internally.
+     * The data of the argument is copied.
+     *
+     * \param other Shared pointer to another SparseMatrix.
+     */
     virtual void deepCopy(shp<aDataWrapper> other) override;
 
+    /*! \brief Returns true if the internal matrix is not set.
+     *
+     * \return True the internal matrix is not set.
+     */
     virtual bool isZero() const override;
 
+    /*! \brief Clones the dense matrix.
+     *
+     * \return Raw pointer to a copy of the sparse matrix.
+     */
     virtual SparseMatrix* clone() const override;
 
+    /*! \brief Getter for the data.
+     *
+     * \return Shared pointer to the data.
+     */
     virtual shp<void> data() const override;
 
+    /*! \brief Setter for the data.
+     *
+     * \param data Shared pointer to the data.
+     */
     virtual void setData(shp<void> data) override;
 
+    /*! \brief Save content of the SparseMatrix to file.
+     *
+     * \param namefile Name of the output file.
+     */
     virtual void dump(std::string namefile) const override;
 
+    /*! \brief Getter for the type.
+     *
+     * \return Returns SPARSE.
+     */
     virtual Datatype type() const override {return SPARSE;}
 
+    /*! \brief Convert a DenseMatrix to a SparseMatrix.
+     *
+     *
+     * \param denseMatrix Shared pointer to the DenseMatrix.
+     * \param comm The MPI Communicator.
+     * \return Shared pointer to the SparseMatrix.
+     */
     static shp<SparseMatrix> convertDenseMatrix(shp<DenseMatrix> denseMatrix,
                                                 shp<Epetra_Comm> comm);
 
+    /*! \brief Convert to dense matrix.
+     *
+     * \return The DenseMatrix.
+     */
     DenseMatrix toDenseMatrix() const;
 
+    /*! \brief Convert to a shared pointer of DenseMatrix type.
+     *
+     * \return The shared pointer to DenseMatrix.
+     */
     shp<DenseMatrix> toDenseMatrixPtr() const;
 
+    /*! \brief Set internal matrix.
+     *
+     * \param matrix shared pointer to an Epetra Matrix.
+     */
     void setMatrix(shp<MATRIXEPETRA> matrix);
 
+    /*! \brief Get the internal matrix.
+     *
+     * \return Shared pointer to the internal Epetra Matrix.
+     */
     shp<MATRIXEPETRA> getMatrix();
 
+    /*! \brief Getter for the MPI Communicator.
+     *
+     * \return The MPI Communicator.
+     */
     shp<Epetra_Comm> commPtr() {return M_matrix->rangeMapPtr()->commPtr();}
 
 private:
