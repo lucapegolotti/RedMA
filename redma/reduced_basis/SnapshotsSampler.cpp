@@ -4,14 +4,10 @@ namespace RedMA
 
 {
 
-double inflow(double t, double a, double c)
-{
-    return c*sin(a*t);
-}
-
 SnapshotsSampler::
-SnapshotsSampler(const DataContainer& data, EPETRACOMM comm) :
+SnapshotsSampler(const DataContainer& data, const std::function<double(double,double,double)>& inflow, EPETRACOMM comm) :
   M_data(data),
+  M_inflow(inflow),
   M_comm(comm)
 {
 }
@@ -28,6 +24,7 @@ takeSnapshots()
 
     unsigned int nSnapshots = M_data("rb/offline/snapshots/number", 10);
     double bound = M_data("rb/offline/snapshots/bound", 0.2);
+    std::vector<double> array_params;
 
     for (unsigned int i = 0; i < nSnapshots; i++)
     {
@@ -43,8 +40,11 @@ takeSnapshots()
                               M_data("rb/offline/snapshots/a_max", 1.0),
                               M_data("rb/offline/snapshots/c_min", 0.0),
                               M_data("rb/offline/snapshots/c_max", 1.0)};
+
             auto vec = inflowSnapshots(param[0], param[1], param[2], param[3]);
-            M_data.setInflow(std::bind(inflow,
+            array_params = vec;
+
+            M_data.setInflow(std::bind(M_inflow,
                                        std::placeholders::_1,
                                        vec[0],vec[1]));
         }
@@ -70,14 +70,16 @@ takeSnapshots()
         printer.saveToFile(problem.getTree(), filename, M_comm);
 
         problem.solve();
-        dumpSnapshots(problem, curdir);
+        dumpSnapshots(problem, curdir, array_params);
     }
+
 }
 
 void
 SnapshotsSampler::
 dumpSnapshots(GlobalProblem& problem,
-              std::string outdir)
+              std::string outdir,
+              const std::vector<double> array_params = {})
 {
     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
     auto solutions = problem.getSolutions();
@@ -141,6 +143,19 @@ dumpSnapshots(GlobalProblem& problem,
                     reynoldsfile << std::to_string(curReynolds) << std::endl;
             }
             reynoldsfile.close();
+        }
+
+
+        if (!array_params.empty())
+        {
+            std::ofstream file("coeffile.txt");
+
+            for (double i : array_params)
+            {
+                file << std::fixed << std::setprecision(3) << i << std::endl;
+            }
+
+            file.close();
         }
     }
 }

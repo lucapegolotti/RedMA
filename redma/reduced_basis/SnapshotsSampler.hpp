@@ -24,6 +24,8 @@
 #include <redma/geometry/GeometryPrinter.hpp>
 
 #include <cmath>
+#include <iomanip>
+#include <fstream>
 
 namespace RedMA
 {
@@ -31,11 +33,11 @@ namespace RedMA
 class SnapshotsSampler
 {
 public:
-    SnapshotsSampler(const DataContainer& data, EPETRACOMM comm);
+    SnapshotsSampler(const DataContainer& data, const std::function<double(double,double,double)>& inflow, EPETRACOMM comm);
 
     void takeSnapshots();
 
-    void dumpSnapshots(GlobalProblem& problem, std::string outdir);
+    void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double> array_params);
 
     void transformSnapshotsWithPiola(std::string snapshotsDir,
                                      unsigned int fieldIndex,
@@ -44,8 +46,9 @@ public:
     std::vector<double> inflowSnapshots(double a_min, double a_max, double c_min, double c_max);
 
 private:
-    DataContainer       M_data;
-    EPETRACOMM          M_comm;
+    DataContainer                                       M_data;
+    const std::function<double(double,double,double)>   M_inflow;
+    EPETRACOMM                                          M_comm;
 };
 
 }  // namespace RedMA
