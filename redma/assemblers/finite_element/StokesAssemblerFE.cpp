@@ -707,22 +707,12 @@ assembleFlowRateJacobians(shp<BCManager> bcManager)
 
             newJacobian->setBlock(0,0,jacWrapper);
 
-            applyDirichletBCsMatrix(bcManager,newJacobian, 0.0);
+            applyDirichletBCsMatrix(newJacobian, 0.0);
 
             M_flowRateJacobians[face.M_flag] = newJacobian;
 
         }
     }
-}
-
-void
-StokesAssemblerFE::
-applyDirichletBCsMatrix(shp<BCManager> bcManager,
-                         shp<aMatrix> matrix, double diagCoeff)
-{
-    auto matrixConverted = spcast<BlockMatrix>(matrix);
-    bcManager->apply0DirichletMatrix(*matrixConverted, M_velocityFESpace,
-                                     0, diagCoeff, !(this->M_addNoSlipBC));
 }
 
 std::map<unsigned int, double>
@@ -1031,15 +1021,15 @@ buildZeroVector() const
     shp<VECTOREPETRA> uComp(new VECTOREPETRA(M_velocityFESpace->map(),
                                              LifeV::Unique));
     uComp->zero();
+
     shp<VECTOREPETRA> pComp(new VECTOREPETRA(M_pressureFESpace->map(),
                                              LifeV::Unique));
-
     pComp->zero();
 
     shp<BlockVector> retVec(new BlockVector(2));
 
-    retVec->setBlock(0,wrap(uComp));
-    retVec->setBlock(1,wrap(pComp));
+    retVec->setBlock(0, wrap(uComp));
+    retVec->setBlock(1, wrap(pComp));
 
     return retVec;
 }

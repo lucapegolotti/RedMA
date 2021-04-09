@@ -147,22 +147,6 @@ addInletBC(shp<LifeV::BCHandler> bcs, const bool& ringOnly, const bool& zeroFlag
 
         else
             throw new Exception("Selected inflow BCs not implemented!");
-
-         /*LifeV::BCFunctionBase zeroFunction(fZero);
-
-        if (!ringOnly) {
-            bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
-                       LifeV::Full, zeroFunction, 3);
-        }
-        else {
-            bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
-                       LifeV::Full, zeroFunction, 3);
-
-            std::vector <LifeV::ID> compz (1);
-            compz[0] = 2;
-            bcs->addBC("InletRingZ", M_inletRingFlag, LifeV::EssentialEdges,
-                       LifeV::Component, zeroFunction, compz);
-        }*/
     }
 }
 
@@ -177,13 +161,15 @@ applyDirichletBCs(const double& time, BlockVector& input,
     if (!std::strcmp(M_inletBCType.c_str(), "dirichlet"))
         addInletBC(bcs, ringOnly);
 
-    bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
-
     shp<VECTOREPETRA> curVec(spcast<VECTOREPETRA>(input.block(index)->data()));
 
-    if (curVec)
+    if ((bcs->size()) && (curVec))
+    {
+        bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
+
         bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
                     *bcs, fespace->feBd(), 1.0, time);
+    }
 
     if (ringOnly && (M_treeNode->isExtremalNode()))
     {
@@ -219,7 +205,8 @@ apply0DirichletMatrix(BlockMatrix& input,
     if ((!std::strcmp(M_inletBCType.c_str(), "dirichlet")) && (M_strongDirichlet))
         addInletBC(bcs, ringOnly, true);
 
-    bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
+    if (bcs->size())
+        bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
     unsigned int nRows = input.nRows();
     unsigned int nCols = input.nCols();
@@ -231,9 +218,10 @@ apply0DirichletMatrix(BlockMatrix& input,
             auto domainMap = curMatrix->domainMapPtr();
             auto rangeMap = curMatrix->rangeMapPtr();
 
-            bcManageMatrix(*curMatrix, *fespace->mesh(),
-                           fespace->dof(), *bcs, fespace->feBd(),
-                           (j == index) * diagCoefficient, 0.0);
+            if ((bcs->size()) && (curMatrix))
+                bcManageMatrix(*curMatrix, *fespace->mesh(),
+                               fespace->dof(), *bcs, fespace->feBd(),
+                               (j == index) * diagCoefficient, 0.0);
 
             if (ringOnly && (M_treeNode->isExtremalNode()))
             {
@@ -273,12 +261,15 @@ apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
     if ((!std::strcmp(M_inletBCType.c_str(), "dirichlet")) && (M_strongDirichlet))
         addInletBC(bcs, ringOnly, true);
 
-    bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
-
     shp<VECTOREPETRA> curVec(spcast<VECTOREPETRA>(input.block(index)->data()));
-    if (curVec)
+
+    if ((bcs->size()) && (curVec))
+    {
+        bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
+
         bcManageRhs(*curVec, *fespace->mesh(), fespace->dof(),
                     *bcs, fespace->feBd(), 0.0, 0.0);
+    }
 
     if (ringOnly && (M_treeNode->isExtremalNode()))
     {

@@ -70,7 +70,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
             std::ostringstream streamOb;
             streamOb << err / initialError;
 
-            msg = "[SystemSolver] Newtons algorithm,";
+            msg = "[SystemSolver] Newton's algorithm,";
             msg += " rel error = " + streamOb.str();
             streamOb.str("");
             streamOb.clear();
@@ -87,16 +87,12 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
                 incr->multiplyByScalar(0.0);
                 BM curJac = jac(sol);
                 M_linearSystemSolver.setComm(M_comm);
-                // std::cout << 1 << std::endl << std::flush;
+
                 M_linearSystemSolver.solve(curJac, curFun, incr);
                 M_solverStatistics.push_back(M_linearSystemSolver.getSolverStatistics());
-                // std::cout << 2 << std::endl << std::flush;
             }
-            // std::cout << 3 << std::endl << std::flush;
             incr->multiplyByScalar(-1.0);
-            // std::cout << 4 << std::endl << std::flush;
             sol->add(incr);
-            // std::cout << 5 << std::endl << std::flush;
             count++;
 
             curFun = fun(sol);
@@ -112,7 +108,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
             streamOb << err / initialError;
 
-            msg = "[SystemSolver] Newtons algorithm, failed";
+            msg = "[SystemSolver] Newton's algorithm, failed";
             msg += " rel error = " + streamOb.str();
             streamOb.str("");
             streamOb.clear();
@@ -129,7 +125,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
             streamOb << err / initialError;
 
-            msg = "[SystemSolver] Newtons algorithm converged,";
+            msg = "[SystemSolver] Newton's algorithm converged,";
             msg += " rel error = " + streamOb.str();
             streamOb.str("");
             streamOb.clear();

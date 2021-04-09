@@ -125,7 +125,8 @@ NavierStokesAssemblerFE::
 getMassJacobian(const double& time,
                 const shp<aVector>& sol)
 {
-    shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+    shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,
+                                            this->M_nComponents));
 
     if (M_stabilization)
     {

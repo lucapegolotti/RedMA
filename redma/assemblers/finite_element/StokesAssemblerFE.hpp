@@ -178,14 +178,14 @@ public:
      * \param matrix The matrix to which the bcs must be applied.
      * \param diagCoeff Coefficient to put in the diagonal of the matrix.
      */
-    void applyDirichletBCsMatrix(shp<aMatrix> matrix,
-                                 double diagCoeff) const override;
+    virtual void applyDirichletBCsMatrix(shp<aMatrix> matrix,
+                                         double diagCoeff) const override;
 
     /*! \brief Virtual method to apply homogeneous Dirichlet bcs to a vector.
      *
      * \param vector The vector to which the bcs must be applied.
      */
-    void apply0DirichletBCs(shp<aVector> vector) const override;
+    virtual void apply0DirichletBCs(shp<aVector> vector) const override;
 
     /*! \brief Virtual method to apply Dirichlet bcs to a vector.
      *
@@ -194,8 +194,8 @@ public:
      * \param time Current time.
      * \param vector The vector to which the bcs must be applied.
      */
-    void applyDirichletBCs(const double& time,
-                           shp<aVector> vector) const override;
+    virtual void applyDirichletBCs(const double& time,
+                                   shp<aVector> vector) const override;
 
     /*! \brief Getter for the finite element space corresponding to a specific component.
      *
@@ -409,16 +409,6 @@ public:
     void computeWallShearStress(shp<VECTOREPETRA> velocity,
                                 shp<VECTOREPETRA> WSS,
                                 EPETRACOMM comm);
-
-    /*! \brief Apply Dirichlet boundary conditions to a matrix.
-     *
-     * \param bcManager The BCManager.
-     * \param matrix The matrix to modify.
-     * \param diagCoeff Diagonal coefficient to place in the diagonal.
-     */
-    void applyDirichletBCsMatrix(shp<BCManager> bcManager,
-                                 shp<aMatrix> matrix,
-                                 double diagCoeff);
 
     /*! \brief Initialize the finite element space of the velocity.
      *

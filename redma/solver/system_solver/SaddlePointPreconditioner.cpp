@@ -43,9 +43,6 @@ setup(const BM& matrix, bool doComputeSchurComplement)
     {
         while (nPrimal < nBlocks && matrix->block(0,nPrimal)->isZero())
             nPrimal++;
-
-        /*if (nPrimal == nBlocks)
-            throw new Exception("The system does not have a saddle point structure");*/
     }
     unsigned int nDual = nBlocks - nPrimal;
     M_nPrimalBlocks = nPrimal;

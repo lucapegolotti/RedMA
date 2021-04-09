@@ -645,7 +645,6 @@ reconstructFEFunction(shp<aVector> rbSolution, unsigned int index,
         rbSolutionDistributed = spcast<DistributedVector>(rbSolution);
     }
 
-
     shp<DistributedVector> res = spcast<DistributedVector>(getEnrichedBasisMatrices(index, ID, false)->multiplyByVector(rbSolutionDistributed));
 
     return spcast<VECTOREPETRA>(res->data());

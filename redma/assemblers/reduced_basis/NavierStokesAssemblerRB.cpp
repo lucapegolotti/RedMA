@@ -11,13 +11,15 @@ NavierStokesAssemblerRB(const DataContainer& data,
   M_stabilizationName(stabilizationName)
 {
     M_name = "NavierStokesAssemblerRB";
-    M_exactJacobian = M_data("rb/online/exactjacobian",0);
+    M_exactJacobian = M_data("rb/online/exactjacobian",false);
 
-    // if we use a stabilization we use P1-P1 by default
+    // if we use a stabilization we use P1-P1 by default and exact jacobian
     if (std::strcmp(M_stabilizationName.c_str(),""))
     {
         M_FEAssembler->setVelocityOrder("P1");
         M_FEAssembler->setPressureOrder("P1");
+
+        M_exactJacobian = true;
     }
 }
 
@@ -43,7 +45,7 @@ RBsetup()
         if (nterms == -1)
             nterms = velocityBasis.size();
 
-        shp<MATRIXEPETRA> nonLinearMatrix(new MATRIXEPETRA(M_FEAssembler->getFEspace(0)->map()));
+        shp<MATRIXEPETRA > nonLinearMatrix(new MATRIXEPETRA(M_FEAssembler->getFEspace(0)->map()));
         shp<VECTOREPETRA> nonLinearTerm(new VECTOREPETRA(M_FEAssembler->getFEspace(0)->map()));
 
         M_nonLinearTermsDecomposition.resize(nterms);
@@ -52,14 +54,14 @@ RBsetup()
             M_nonLinearTermsDecomposition[i].resize(nterms);
             nonLinearMatrix->zero();
 
-            shp<ETFESPACE3> velocityFESpaceETA = M_FEAssembler->getVelocityETFEspace();
+            shp<ETFESPACE3 > velocityFESpaceETA = M_FEAssembler->getVelocityETFEspace();
             double density = M_FEAssembler->getDensity();
             integrate(elements(velocityFESpaceETA->mesh()),
                       M_FEAssembler->getFEspace(0)->qr(),
                       velocityFESpaceETA,
                       velocityFESpaceETA,
                       value(density) *
-                      dot(value(velocityFESpaceETA , *velocityBasis[i]) * grad(phi_j),
+                      dot(value(velocityFESpaceETA, *velocityBasis[i]) * grad(phi_j),
                           phi_i)
             ) >> nonLinearMatrix;
 
@@ -72,41 +74,39 @@ RBsetup()
                 shp<BlockVector> nonLinearTermVec(new BlockVector(2));
                 nonLinearTermVec->setBlock(0, wrap(nonLinearTerm));
 
-                getBCManager()->apply0DirichletBCs(*nonLinearTermVec,
-                                                   getFESpaceBCs(),
-                                                   getComponentBCs(),
-                                                   !(this->M_FEAssembler->hasNoSlipBCs()));
+                this->M_FEAssembler->apply0DirichletBCs(nonLinearTermVec);
+
                 M_nonLinearTermsDecomposition[i][j] = M_bases->leftProject(nonLinearTermVec, ID());
             }
             M_nonLinearTerm.reset(new BlockVector(0));
         }
-
-        if (!std::strcmp(M_stabilizationName.c_str(), "supg"))
-        {
-            printlog(WHITE, "[NavierStokesAssemblerRB] Setting up SUPG stabilization...\n",
-                     this->M_data.getVerbose());
-
-            M_stabilization.reset(new SUPGStabilization(this->M_data,
-                                                        this->M_FEAssembler->getFEspace(0),
-                                                        this->M_FEAssembler->getFEspace(1),
-                                                        this->M_FEAssembler->getVelocityETFEspace(),
-                                                        this->M_FEAssembler->getPressureETFEspace()));
-            M_stabilization->setDensityAndViscosity(this->M_FEAssembler->getDensity(),
-                                                    this->M_FEAssembler->getViscosity());
-        }
-        else if (!std::strcmp(M_stabilizationName.c_str(),""))
-        {
-            printlog(WHITE, "[NavierStokesAssemblerRB] Proceeding without stabilization...\n",
-                     this->M_data.getVerbose());
-        }
-        else
-            throw new Exception("Stabilization " + M_stabilizationName + " is not implemented!");
 
         std::string msg = "done, in ";
         msg += std::to_string(chrono.diff());
         msg += " seconds\n";
         printlog(YELLOW, msg, this->M_data.getVerbose());
     }
+
+    if (!std::strcmp(M_stabilizationName.c_str(), "supg"))
+    {
+        printlog(WHITE, "[NavierStokesAssemblerRB] Setting up SUPG stabilization...\n",
+                 this->M_data.getVerbose());
+
+        M_stabilization.reset(new SUPGStabilization(this->M_data,
+                                                    this->M_FEAssembler->getFEspace(0),
+                                                    this->M_FEAssembler->getFEspace(1),
+                                                    this->M_FEAssembler->getVelocityETFEspace(),
+                                                    this->M_FEAssembler->getPressureETFEspace()));
+        M_stabilization->setDensityAndViscosity(this->M_FEAssembler->getDensity(),
+                                                this->M_FEAssembler->getViscosity());
+    }
+    else if (!std::strcmp(M_stabilizationName.c_str(),""))
+    {
+        printlog(WHITE, "[NavierStokesAssemblerRB] Proceeding without stabilization...\n",
+                 this->M_data.getVerbose());
+    }
+    else
+        throw new Exception("Stabilization " + M_stabilizationName + " is not implemented!");
 }
 
 shp<aMatrix>
@@ -122,20 +122,21 @@ getMass(const double& time,
 //  As basic step, it will be beneficial to store the FEM-reconstructed solution and rhs term
 //  in the class, so that they do not have to be recomputed when the mass, mass jacobian, rhs and
 //  rhs jacobian are assembled. However, it is necessary to store multiple terms (because of the
-//  time-marching) and to update them at every Netwon iteration.
+//  time-marching) and to update them at every Newton iteration.
 
     if (M_stabilization)
     {
         shp<BlockVector> solFEM = this->reconstructFESolution(convert<BlockVector>(sol));
-        shp<BlockVector> rhsFEM = this->reconstructFESolution(convert<BlockVector>(this->M_FEAssembler->getForcingTerm(time)));
+        shp<BlockVector> rhsFEM = convert<BlockVector>(this->M_FEAssembler->getForcingTerm(time));
 
-        shp<BlockMatrix> stabMat = M_stabilization->getMass(solFEM, rhsFEM);
+        shp<BlockMatrix> stabMatFEM = M_stabilization->getMass(solFEM, rhsFEM);
+        this->M_FEAssembler->applyDirichletBCsMatrix(stabMatFEM, 0.0);
 
-        this->M_bcManager->apply0DirichletMatrix(*stabMat, this->getFESpaceBCs(),
-                                                 this->getComponentBCs(), 0.0,
-                                                 !(this->M_FEAssembler->hasNoSlipBCs()));
+        auto stabMat00 = M_bases->matrixProject(stabMatFEM->block(0,0), 0, 0, ID());
+        auto stabMat10 = M_bases->matrixProject(stabMatFEM->block(1,0), 1, 0, ID());
 
-        retMat->add(M_bases->matrixProject(stabMat, 0, 0, ID()));
+        retMat->block(0,0)->add(stabMat00);
+        retMat->block(1,0)->add(stabMat10);
     }
 
     return retMat;
@@ -152,15 +153,14 @@ getMassJacobian(const double& time,
     if (M_stabilization)
     {
         shp<BlockVector> solFEM = this->reconstructFESolution(convert<BlockVector>(sol));
-        shp<BlockVector> rhsFEM = this->reconstructFESolution(convert<BlockVector>(this->M_FEAssembler->getForcingTerm(time)));
+        shp<BlockVector> rhsFEM = convert<BlockVector>(this->M_FEAssembler->getForcingTerm(time));
 
-        shp<BlockMatrix> stabMat = M_stabilization->getMassJacobian(solFEM, rhsFEM);
+        shp<BlockMatrix> stabJacFEM = M_stabilization->getMassJacobian(solFEM, rhsFEM);
+        this->M_FEAssembler->applyDirichletBCsMatrix(stabJacFEM, 0.0);
 
-        this->M_bcManager->apply0DirichletMatrix(*stabMat, this->getFESpaceBCs(),
-                                                 this->getComponentBCs(), 0.0,
-                                                 !(this->M_FEAssembler->hasNoSlipBCs()));
+        auto stabJac00 = M_bases->matrixProject(stabJacFEM->block(0,0), 0, 0, ID());
 
-        retMat->add(M_bases->matrixProject(stabMat, 0, 0, ID()));
+        retMat->block(0,0)->add(stabJac00);
     }
 
     return retMat;
@@ -174,14 +174,19 @@ addConvectiveTermJacobian(shp<aVector> sol,
     Chrono chrono;
     chrono.start();
 
-    std::string msg = "[NavierStokesAssemblerRB] computing Jacobian rhs ...";
-    printlog(YELLOW, msg, this->M_data.getVerbose());
-
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
     shp<VECTOREPETRA>  velocityHandler;
-    velocityHandler = M_bases->reconstructFEFunction(convert<BlockVector>(sol)->block(0), 0, ID());
+    bool solIsFEM = (3*M_FEAssembler->getFEspace(0)->dof().numTotalDof() ==
+                     spcast<VECTOREPETRA>(convert<BlockVector>(sol)->block(0)->data())->size())
+                     &&
+                    (M_FEAssembler->getFEspace(1)->dof().numTotalDof() ==
+                     spcast<VECTOREPETRA>(convert<BlockVector>(sol)->block(1)->data())->size());
+    if (!solIsFEM)
+        velocityHandler = M_bases->reconstructFEFunction(convert<BlockVector>(sol)->block(0), 0, ID());
+    else
+        velocityHandler.reset(new VECTOREPETRA(*spcast<VECTOREPETRA>(convert<BlockVector>(sol)->block(0)->data())));
 
     shp<MATRIXEPETRA>  convectiveMatrix(new MATRIXEPETRA(M_FEAssembler->getFEspace(0)->map()));
     shp<VECTOREPETRA>  velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
@@ -203,16 +208,10 @@ addConvectiveTermJacobian(shp<aVector> sol,
 
     convectiveMatrix->globalAssemble();
 
-    unsigned int id = M_treeNode->M_ID;
-    auto projectedMat = M_bases->matrixProject(wrap(convectiveMatrix), 0, 0, id);
+    auto projectedMat = M_bases->matrixProject(wrap(convectiveMatrix), 0, 0, ID());
 
     projectedMat->multiplyByScalar(-1);
     convert<BlockMatrix>(mat)->block(0,0)->add(projectedMat);
-
-    msg = "done, in ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(YELLOW, msg, this->M_data.getVerbose());
 }
 
 shp<aVector>
@@ -261,10 +260,7 @@ getRightHandSide(const double& time,
         shp<BlockVector> nonLinearTermVec(new BlockVector(2));
         nonLinearTermVec->setBlock(0, wrap(nonLinearTerm));
 
-        getBCManager()->apply0DirichletBCs(*nonLinearTermVec,
-                                           getFESpaceBCs(),
-                                           getComponentBCs(),
-                                           !(this->M_FEAssembler->hasNoSlipBCs()));
+        this->M_FEAssembler->apply0DirichletBCs(nonLinearTermVec);
 
         M_nonLinearTerm = M_bases->leftProject(nonLinearTermVec, ID());
     }
@@ -292,10 +288,13 @@ getRightHandSide(const double& time,
     if (M_stabilization)
     {
         shp<BlockVector> solFEM = this->reconstructFESolution(convert<BlockVector>(sol));
-        shp<BlockVector> rhsFEM = this->reconstructFESolution(convert<BlockVector>(this->M_FEAssembler->getForcingTerm(time)));
+        shp<BlockVector> rhsFEM = convert<BlockVector>(this->M_FEAssembler->getForcingTerm(time));
 
         shp<BlockVector> residual = M_stabilization->getResidual(solFEM, rhsFEM);
-        residual->multiplyByScalar(-1.);
+        residual->multiplyByScalar(-1.0);
+
+        residual = M_bases->leftProject(residual, ID());
+
         retVec->add(residual);
     }
 
@@ -325,18 +324,33 @@ getJacobianRightHandSide(const double& time,
     }
 
     shp<aMatrix> jac = StokesAssemblerRB::getJacobianRightHandSide(time,sol);
+    shp<BlockVector> solFEM;
 
     if (M_exactJacobian)
-        addConvectiveTermJacobian(sol, jac);
+    {
+        solFEM = this->reconstructFESolution(convert<BlockVector>(sol));
+        addConvectiveTermJacobian(solFEM, jac);
+    }
 
     if (M_stabilization)
     {
-        shp<BlockVector> solFEM = this->reconstructFESolution(convert<BlockVector>(sol));
-        shp<BlockVector> rhsFEM = this->reconstructFESolution(convert<BlockVector>(this->M_FEAssembler->getForcingTerm(time)));
+        if (!solFEM)
+            solFEM = this->reconstructFESolution(convert<BlockVector>(sol));
+        shp<BlockVector> rhsFEM = convert<BlockVector>(this->M_FEAssembler->getForcingTerm(time));
 
-        shp<BlockMatrix> stabJac = M_stabilization->getJacobian(solFEM, rhsFEM);
-        stabJac->multiplyByScalar(-1);
-        jac->add(stabJac);
+        shp<BlockMatrix> stabJacFEM = M_stabilization->getJacobian(solFEM, rhsFEM);
+        stabJacFEM->multiplyByScalar(-1.0);
+        this->M_FEAssembler->applyDirichletBCsMatrix(stabJacFEM, 0.0);
+
+        auto stabJac00 = M_bases->matrixProject(stabJacFEM->block(0,0), 0, 0, ID());
+        auto stabJac01 = M_bases->matrixProject(stabJacFEM->block(0,1), 0, 1, ID());
+        auto stabJac10 = M_bases->matrixProject(stabJacFEM->block(1,0), 1, 0, ID());
+        auto stabJac11 = M_bases->matrixProject(stabJacFEM->block(1,1), 1, 1, ID());
+
+        jac->block(0,0)->add(stabJac00);
+        jac->block(0,1)->add(stabJac01);
+        jac->block(1,0)->add(stabJac10);
+        jac->block(1,1)->add(stabJac11);
     }
 
     if (!std::strcmp((this->M_name).c_str(), "NavierStokesAssemblerRB"))

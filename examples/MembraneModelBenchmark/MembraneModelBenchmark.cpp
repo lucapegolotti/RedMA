@@ -76,8 +76,16 @@ int main(int argc, char **argv)
         curSolutionDir = solutionDir + "/solution" + std::to_string(solutionIndex) + "/";
     }
 
-    msg = "Saving the solution at " + curSolutionDir + "\n";
-    printlog(MAGENTA, msg, true);
+    if (solutionIndex >= 1000){
+        msg = "Cannot store more than 1000 solutions!\n";
+        printlog(RED, msg, true);
+        exit(1);
+    }
+    else {
+        fs::create_directory(curSolutionDir);
+        msg = "Saving the solution at " + curSolutionDir + "\n";
+        printlog(MAGENTA, msg, true);
+    }
 
     data.setValueString("exporter/outdir", curSolutionDir);
     data.finalize();

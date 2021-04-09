@@ -56,8 +56,8 @@ public:
 
 private:
 
-    /*// only required for dense computation
-    void computeSchurComplementDense(const BM& matrix);
+    // only required for dense computation
+/*    void computeSchurComplementDense(const BM& matrix);
 
     void solveDense(const BM& matrix, const BV& rhs, BV& sol);
 
@@ -65,8 +65,8 @@ private:
                            const shp<DenseVector>& vector,
                            shp<BlockVector>& targetVector);*/
 
-    /*// only required for dense computation
-    std::vector<shp<Epetra_SerialDenseSolver>>      M_solversAs;
+    // only required for dense computation
+    /*std::vector<shp<Epetra_SerialDenseSolver>>      M_solversAs;
     Epetra_SerialDenseSolver                        M_schurSolver;
     std::vector<shp<DenseMatrix>>                   M_collapsedAs;
     shp<DenseMatrix>                                M_schurComplementColl;*/
