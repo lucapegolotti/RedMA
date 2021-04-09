@@ -493,7 +493,6 @@ matrixProject(shp<aMatrix> matrix,
     if (matrix->data())
     {
         // Vrow' A Vcol
-
         // compute A Vcol
         auto rangeMap = spcast<MATRIXEPETRA>(matrix->data())->rangeMapPtr();
         auto domainMap = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexCol, ID, false)->data())->domainMapPtr();
