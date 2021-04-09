@@ -53,7 +53,7 @@ print() const
 }
 
 BuildingBlock::
-BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
+BuildingBlock(EPETRACOMM comm, std::string refinement, bool verbose) :
   M_comm(comm),
   M_refinement(refinement),
   M_verbose(verbose),
@@ -88,7 +88,7 @@ BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
 
 void
 BuildingBlock::
-setDatafile(const GetPot& datafile)
+setDatafile(const DataContainer& datafile)
 {
     M_datafile = datafile;
 }
@@ -132,7 +132,7 @@ getParametersMap()
     return M_parametersHandler.getParametersMap();
 }
 
-int
+void
 BuildingBlock::
 readMesh(std::string meshdir)
 {
@@ -159,8 +159,6 @@ readMesh(std::string meshdir)
 
     // printlog(CYAN, ct.restore(), M_verbose);
     printlog(MAGENTA, "done\n", M_verbose);
-
-    return 0;
 }
 
 std::string
@@ -548,7 +546,6 @@ applyGlobalTransformation(bool transformMesh)
 {
     applyNonAffineTransformation(transformMesh);
     applyAffineTransformation(transformMesh);
-    M_outlets[0].print();
 }
 
 void

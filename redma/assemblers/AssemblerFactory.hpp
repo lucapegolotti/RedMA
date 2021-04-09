@@ -24,7 +24,7 @@
 #include <redma/assemblers/finite_element/NavierStokesAssemblerFE.hpp>
 #include <redma/assemblers/reduced_basis/NavierStokesAssemblerRB.hpp>
 #include <redma/utils/Exception.hpp>
-#include <redma/geometry/BuildingBlock.hpp>
+#include <redma/geometry/building_blocks/BuildingBlock.hpp>
 #include <redma/problem/DataContainer.hpp>
 
 namespace RedMA

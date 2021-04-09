@@ -25,10 +25,10 @@
 #include <redma/assemblers/coupling/InterfaceAssembler.hpp>
 
 #include <redma/geometry/TreeStructure.hpp>
-#include <redma/geometry/BuildingBlock.hpp>
+#include <redma/geometry/building_blocks/BuildingBlock.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
-#include <redma/geometry/Tube.hpp>
-#include <redma/geometry/BifurcationSymmetric.hpp>
+#include <redma/geometry/building_blocks/Tube.hpp>
+#include <redma/geometry/building_blocks/BifurcationSymmetric.hpp>
 
 #include <redma/reduced_basis/RBBases.hpp>
 

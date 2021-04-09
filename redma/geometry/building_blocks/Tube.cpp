@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 Tube::
-Tube(commPtr_Type comm, std::string refinement, bool verbose,
+Tube(EPETRACOMM comm, std::string refinement, bool verbose,
      int diameter, int length, bool randomizable) :
   BuildingBlock(comm, refinement, verbose),
   M_length(length),
@@ -316,15 +316,6 @@ computeJacobianNonAffineScaling(const double& x, const double& y, const double& 
 {    // 15 is the length of the tube
     double curRatio = 1. - (1. - outRadiusRatio) * z / L;
     double curRatioDer = - (1. - outRadiusRatio) / L;
-    // M_jacobianScaling(0,0) = curRatio;
-    // M_jacobianScaling(0,1) = 0;
-    // M_jacobianScaling(0,2) = x * curRatioDer;
-    // M_jacobianScaling(1,0) = 0;
-    // M_jacobianScaling(1,1) = curRatio;
-    // M_jacobianScaling(1,2) = y * curRatioDer;
-    // M_jacobianScaling(2,0) = 0;
-    // M_jacobianScaling(2,1) = 0;
-    // M_jacobianScaling(2,2) = lengthRatio;
 
     M_jacobianScaling(0,0) = curRatio;
     M_jacobianScaling(0,1) = 0;
@@ -335,34 +326,6 @@ computeJacobianNonAffineScaling(const double& x, const double& y, const double& 
     M_jacobianScaling(2,0) = 0;
     M_jacobianScaling(2,1) = 0;
     M_jacobianScaling(2,2) = lengthRatio;
-
-    // std::cout << M_jacobianScaling << std::endl << std::flush;
-    //
-    // const double h = 1e-8;
-    // Vector3D coor;
-    // coor(0) = x;
-    // coor(1) = y;
-    // coor(2) = z;
-    // scalingFunction(coor(0),coor(1),coor(2),lengthRatio,outRadiusRatio,L);
-    // for (int i = 0; i < 3; i++)
-    // {
-    //     for (int j = 0; j < 3; j++)
-    //     {
-    //         Vector3D coor2;
-    //         coor2(0) = x;
-    //         coor2(1) = y;
-    //         coor2(2) = z;
-    //
-    //         Vector3D inc;
-    //         inc(j) = h;
-    //         coor2 = coor2 + inc;
-    //
-    //         scalingFunction(coor2(0),coor2(1),coor2(2),lengthRatio,outRadiusRatio,L);
-    //         std::cout << (coor2(i) - coor(i))/h << " " << std::flush;
-    //         M_jacobianScaling(i,j) = (coor2(i) - coor(i))/h;
-    //     }
-    //     std::cout << "\n" << std::flush;
-    // }
 
     return M_jacobianScaling;
 }
@@ -401,35 +364,6 @@ computeJacobianBend(const double& x, const double& y, const double& z,
         M_jacobianBending(2,1) = 0;
         M_jacobianBending(2,2) = 1.0;
     }
-
-    // std::cout << M_jacobianBending << std::endl << std::flush;
-    //
-    // const double h = 1e-8;
-    // Vector3D coor;
-    // coor(0) = x;
-    // coor(1) = y;
-    // coor(2) = z;
-    // bendFunctionAnalytic(coor(0),coor(1),coor(2),M_parametersHandler["bend"],M_parametersHandler["L_ratio"] * M_outletCenterRef[2]);
-    // for (int i = 0; i < 3; i++)
-    // {
-    //     for (int j = 0; j < 3; j++)
-    //     {
-    //         Vector3D coor2;
-    //         coor2(0) = x;
-    //         coor2(1) = y;
-    //         coor2(2) = z;
-    //
-    //         Vector3D inc;
-    //         inc(j) = h;
-    //         coor2 = coor2 + inc;
-    //
-    //         bendFunctionAnalytic(coor2(0),coor2(1),coor2(2),M_parametersHandler["bend"],M_parametersHandler["L_ratio"] * M_outletCenterRef[2]);
-    //         std::cout << (coor2(i) - coor(i))/h << " " << std::flush;
-    //         M_jacobianBending(i,j) = (coor2(i) - coor(i))/h;
-    //     }
-    //     std::cout << "\n" << std::flush;
-    // }
-
 
     return M_jacobianBending;
 }

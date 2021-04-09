@@ -21,7 +21,7 @@
 
 #include <lifev/core/array/VectorSmall.hpp>
 
-#include <redma/geometry/BuildingBlock.hpp>
+#include <redma/geometry/building_blocks/BuildingBlock.hpp>
 
 namespace RedMA
 {

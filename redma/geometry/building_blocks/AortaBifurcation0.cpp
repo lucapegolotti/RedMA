@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 AortaBifurcation0::
-AortaBifurcation0(commPtr_Type comm, std::string refinement,
+AortaBifurcation0(EPETRACOMM comm, std::string refinement,
                   std::string name, bool verbose) :
   BuildingBlock(comm, "normal", verbose)
 {

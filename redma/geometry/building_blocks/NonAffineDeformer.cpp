@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 NonAffineDeformer::
-NonAffineDeformer(meshPtr_Type mesh, commPtr_Type comm, bool verbose) :
+NonAffineDeformer(meshPtr_Type mesh, EPETRACOMM comm, bool verbose) :
   M_mesh(mesh),
   M_comm(comm),
   M_verbose(verbose)

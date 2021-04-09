@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 BifurcationSymmetric::
-BifurcationSymmetric(commPtr_Type comm, std::string refinement,
+BifurcationSymmetric(EPETRACOMM comm, std::string refinement,
                      bool verbose, int angle, bool randomizable) :
   BuildingBlock(comm, refinement, verbose),
   M_angle(angle)

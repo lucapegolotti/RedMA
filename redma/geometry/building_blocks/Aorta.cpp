@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 Aorta::
-Aorta(commPtr_Type comm, std::string name, bool verbose) :
+Aorta(EPETRACOMM comm, std::string name, bool verbose) :
   BuildingBlock(comm, "normal", verbose)
 {
     M_name = name;

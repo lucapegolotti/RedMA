@@ -4,8 +4,8 @@ namespace RedMA
 {
 
 GeometryParser::
-GeometryParser(const GetPot& datafile, std::string fileName,
-               commPtr_Type comm, bool verbose) :
+GeometryParser(const DataContainer& datafile, std::string fileName,
+               EPETRACOMM comm, bool verbose) :
   M_comm(comm),
   M_datafile(datafile),
   M_verbose(verbose),

@@ -36,32 +36,57 @@
 namespace RedMA
 {
 
+/*! \brief Class to deform a mesh by solving a linear elasticity problem.
+ *
+ * The boundary conditions are imposed such that specific portions of the
+ * boundary are moved in a desired position. In these regions, we impose
+ * Dirichlet boundary conditions.
+ */
 class NonAffineDeformer
 {
     typedef LifeV::RegionMesh<LifeV::LinearTetra>          mesh_Type;
-    typedef shp<mesh_Type>                     meshPtr_Type;
-    typedef shp<Epetra_Comm>                   commPtr_Type;
+    typedef shp<mesh_Type>                                 meshPtr_Type;
     typedef LifeV::MapEpetra                               map_Type;
-    typedef shp<map_Type>                      mapPtr_Type;
+    typedef shp<map_Type>                                  mapPtr_Type;
     typedef LifeV::FESpace<mesh_Type, map_Type>            fespace_Type;
-    typedef shp<fespace_Type>                  fespacePtr_Type;
+    typedef shp<fespace_Type>                              fespacePtr_Type;
     typedef LifeV::ETFESpace< mesh_Type, map_Type, 3, 3 >  fespaceETA_Type;
-    typedef shp<fespaceETA_Type>               fespaceETAPtr_Type;
+    typedef shp<fespaceETA_Type>                           fespaceETAPtr_Type;
     typedef LifeV::MatrixEpetra<LifeV::Real>               matrix_Type;
-    typedef shp<matrix_Type>                   matrixPtr_Type;
-    typedef shp<LifeV::BCHandler>              bcPtr_Type;
+    typedef shp<matrix_Type>                               matrixPtr_Type;
+    typedef shp<LifeV::BCHandler>                          bcPtr_Type;
     typedef LifeV::VectorEpetra                            vector_Type;
-    typedef shp<vector_Type>                   vectorPtr_Type;
+    typedef shp<vector_Type>                               vectorPtr_Type;
 
 
 public:
-    NonAffineDeformer(meshPtr_Type mesh, commPtr_Type comm,
+
+    /*! \brief Constructor.
+     *
+     * \param mesh The mesh to transform.
+     * \param comm The MPI Communicator.
+     * \param verbose If true, output is pushed to standard output.
+     */
+    NonAffineDeformer(meshPtr_Type mesh,
+                      EPETRACOMM comm,
                       bool verbose = false);
 
+    /*! \brief Set the file with the linear solver data.
+     *
+     * \param filename The name of the file.
+     */
     void setXMLsolver(std::string filename);
 
+    /*! \brief Apply boundary conditions to the linear system.
+     *
+     * \param bcs The boundary conditions.
+     */
     void applyBCs(bcPtr_Type bcs);
 
+    /*! \brief Deform the mesh.
+     *
+     * \param transformer The mesh transformer.
+     */
     void deformMesh(LifeV::MeshUtility::MeshTransformer<mesh_Type>& transformer);
 
 private:
@@ -69,17 +94,17 @@ private:
 
     vectorPtr_Type solveSystem();
 
-    meshPtr_Type M_mesh;
-    commPtr_Type M_comm;
-    bool M_verbose;
+    meshPtr_Type            M_mesh;
+    EPETRACOMM              M_comm;
+    bool                    M_verbose;
 
-    fespacePtr_Type M_fespace;
-    fespaceETAPtr_Type M_fespaceETA;
+    fespacePtr_Type         M_fespace;
+    fespaceETAPtr_Type      M_fespaceETA;
 
-    matrixPtr_Type M_stiffness;
-    vectorPtr_Type M_rhs;
+    matrixPtr_Type          M_stiffness;
+    vectorPtr_Type          M_rhs;
 
-    std::string M_XMLsolver;
+    std::string             M_XMLsolver;
 };
 
 }  // namespace RedMA

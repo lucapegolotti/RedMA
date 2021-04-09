@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     if (argc > 1)
         nSub = std::atoi(argv[1]);
 
-    GetPot dummydata;
+    DataContainer dummydata;
 
     // TreeStructure tree(true);
     // tree.createRandom(nSub, comm);

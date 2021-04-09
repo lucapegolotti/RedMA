@@ -63,6 +63,14 @@ public:
     virtual int ApplyInverse(const super::vector_Type& X,
                              super::vector_Type& Y) const override;
 
+    /*! \brief Setup method.
+     *
+     * \param The matrix.
+     * \param If true, compute the Schur complement based on the input matrix.
+     */
+    void setup(const BM& matrix,
+               bool doComputeSchurComplement = true);
+
 private:
     void computeAm1BT(const BM& A, const BM& BT);
 
@@ -89,8 +97,6 @@ private:
 
     void computeSchurComplement(const BM& A, const BM& BT,
                                 const BM& B, const BM& C);
-
-    void setup(const BM& matrix, bool doComputeSchurComplement = true);
 
     DataContainer                                        M_data;
     BM                                                   M_matrix;

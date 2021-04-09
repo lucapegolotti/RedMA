@@ -17,6 +17,7 @@
 #ifndef SEGMENTATIONSMERGER_HPP
 #define SEGMENTATIONSMERGER_HPP
 
+#include <redma/RedMA.hpp>
 #include <redma/geometry/SegmentationParser.hpp>
 #include <redma/geometry/TreeStructure.hpp>
 
@@ -25,27 +26,54 @@
 namespace RedMA
 {
 
+/*! \brief Merger of multiple SegmentationParsers.
+ *
+ * At the moment, we support only two segmentations.
+ */
 class SegmentationsMerger
 {
-    typedef LifeV::VectorSmall<3>                          Vector3D;
-    typedef GeometricFace                                  Contour;
-    typedef shp<Epetra_Comm>                   commPtr_Type;
-    typedef LifeV::MatrixSmall<3,3>                        Matrix3D;
-    typedef shp<SegmentationParser>            SegmentationParserPtr;
+    typedef LifeV::VectorSmall<3>                      Vector3D;
+    typedef GeometricFace                              Contour;
+    typedef LifeV::MatrixSmall<3,3>                    Matrix3D;
+    typedef shp<SegmentationParser>                    SegmentationParserPtr;
 
 public:
-    SegmentationsMerger(const GetPot& datafile,
-                        commPtr_Type comm, bool verbose);
 
+    /*! \brief Constructor.
+     *
+     * \param The DataContainer of the problem.
+     * \param comm The MPI Communicator.
+     * \param verbose If true, output is printed to standard output.
+     */
+    SegmentationsMerger(const DataContainer& datafile,
+                        EPETRACOMM comm,
+                        bool verbose);
+
+    /*! \brief Merge multiple SegmentationParsers.
+     *
+     * \param parsers The shared pointers SegmentationParsers.
+     * \return A TreeStructure.
+     */
     TreeStructure merge(std::vector<SegmentationParserPtr> parsers);
 
+    /*! \brief Merge two segmentations.
+     *
+     * \param segmentationFather Father segmentation.
+     * \param segmentationChild Child segmentation.
+     * \param outputTree Resulting tree.
+     */
     void mergeTwoSegmentations(SegmentationParserPtr segmentationFather,
                                SegmentationParserPtr segmentationChild,
                                TreeStructure& outputTree);
 
+    /*! \brief Returns connectivity matrix of the segmentations.
+     *
+     * The connectivity matrix is 1 in (i,j) if the ith segmentation is the
+     * father of the jth one.
+     *
+     * \return The connectivity matrix.
+     */
     bool** getConnectivity();
-
-    void deallocateConnectivity(bool** connectivity, unsigned int size);
 
 private:
     double findClosestPoint(const Vector3D& targetPoint,
@@ -92,12 +120,14 @@ private:
                         double lambda,
                         const double tol, const unsigned int nMax);
 
-    GetPot       M_datafile;
-    commPtr_Type M_comm;
-    bool         M_verbose;
-    double       M_constCenters;
-    double       M_constNormals;
-    double       M_constRadius;
+    void deallocateConnectivity(bool** connectivity, unsigned int size);
+
+    DataContainer       M_datafile;
+    EPETRACOMM          M_comm;
+    bool                M_verbose;
+    double              M_constCenters;
+    double              M_constNormals;
+    double              M_constRadius;
 };
 
 }  // namespace RedMA
