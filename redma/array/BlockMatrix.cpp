@@ -444,4 +444,22 @@ level()
     return 1;
 }
 
+double
+BlockMatrix::
+normInf()
+{
+    double norm = 0;
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        for (unsigned int j = 0; j < nCols(); j++)
+        {
+            if (block(i,j) && !block(i,j)->isZero())
+            {
+                norm = block(i,j)->normInf() > norm ? block(i,j)->normInf() : norm;
+            }
+        }
+    }
+    return norm;
+}
+
 }

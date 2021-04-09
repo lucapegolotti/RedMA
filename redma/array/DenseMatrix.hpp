@@ -148,6 +148,12 @@ public:
      */
     shp<DENSEMATRIX> getMatrix();
 
+    /*! \brief Compute norm inf of the matrix.
+     *
+     * \return The infinite norm.
+     */
+    virtual double normInf() override {return M_matrix->NormInf();};
+
 private:
 
     shp<DENSEMATRIX>        M_matrix;

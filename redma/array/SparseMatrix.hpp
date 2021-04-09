@@ -191,6 +191,12 @@ public:
      */
     shp<Epetra_Comm> commPtr() {return M_matrix->rangeMapPtr()->commPtr();}
 
+    /*! \brief Compute norm inf of the matrix.
+     *
+     * \return The infinite norm.
+     */
+    virtual double normInf() override {return M_matrix->normInf();};
+
 private:
     shp<MATRIXEPETRA>           M_matrix;
 };

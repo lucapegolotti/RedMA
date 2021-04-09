@@ -148,6 +148,12 @@ public:
     /// Method not implemented.
     virtual shp<aMatrix> transpose() const override {return nullptr;};
 
+    /*! \brief Compute norm inf of the double.
+     *
+     * \return The infinite norm.
+     */
+    virtual double normInf() override {return std::abs(M_double);}
+
 private:
     double  M_double;
 };

@@ -23,12 +23,12 @@
 
 using namespace RedMA;
 
-shp<Epetra_Comm> generateComm()
+EPETRACOMM generateComm()
 {
     #ifdef HAVE_MPI
-    shp<Epetra_Comm> comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    EPETRACOMM comm (new Epetra_MpiComm(MPI_COMM_WORLD));
     #else
-    shp<Epetra_Comm> comm(new Epetra_SerialComm ());
+    EPETRACOMM comm(new Epetra_SerialComm ());
     #endif
     return comm;
 }

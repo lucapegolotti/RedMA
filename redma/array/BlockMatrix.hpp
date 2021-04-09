@@ -237,6 +237,12 @@ public:
         throw new Exception("setData undefined for BlockMatrix");
     };
 
+    /*! \brief Compute norm inf of the matrix.
+     *
+     * \return The infinite norm.
+     */
+    virtual double normInf() override;
+
 protected:
 
     shp<Epetra_Comm>              M_comm;

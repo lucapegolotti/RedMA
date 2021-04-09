@@ -89,6 +89,12 @@ public:
      */
     inline unsigned int nCols() const {return M_nCols;}
 
+    /*! \brief Compute norm inf of the matrix.
+     *
+     * \return The infinite norm.
+     */
+    virtual double normInf() = 0;
+
     /*! \brief Getter for a block.
      *
      * This function only makes sense in case of block matrices, but is included
