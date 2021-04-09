@@ -105,10 +105,10 @@ applyNonAffineTransformation(bool transformMesh)
     printlog(MAGENTA, "[" + M_name +
                     " BuildingBlock] applying non affine transformation ...\n",
                     M_verbose);
-    shp<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
+    shp<LifeV::MeshUtility::MeshTransformer<MESH> > transformer;
 
     if (transformMesh)
-        transformer.reset(new LifeV::MeshUtility::MeshTransformer<mesh_Type>(*M_mesh));
+        transformer.reset(new LifeV::MeshUtility::MeshTransformer<MESH>(*M_mesh));
 
     nonAffineScaling(M_parametersHandler["L_ratio"],
                      M_parametersHandler["Rout_ratio"],

@@ -140,7 +140,7 @@ readMesh(std::string meshdir)
                     " BuildingBlock] reading mesh ...\n",
                     M_verbose);
 
-    meshPtr_Type fullMesh(new mesh_Type(M_comm));
+    shp<MESH> fullMesh(new MESH(M_comm));
     LifeV::MeshData meshData;
     GetPot meshDatafile(meshdir + M_datafileName);
     meshDatafile.set("mesh/mesh_file", M_meshName.c_str());
@@ -148,13 +148,13 @@ readMesh(std::string meshdir)
     meshData.setMeshDir(meshdir);
     LifeV::readMesh(*fullMesh,meshData);
 
-    LifeV::MeshPartitioner<mesh_Type> meshPart(fullMesh, M_comm);
+    LifeV::MeshPartitioner<MESH> meshPart(fullMesh, M_comm);
 
     // small trick to redirect std cout
     // CoutRedirecter ct;
     // ct.redirect();
     // meshPart.doPartition(fullMesh, M_comm);
-    M_mesh.reset(new mesh_Type(M_comm));
+    M_mesh.reset(new MESH(M_comm));
     M_mesh = meshPart.meshPartition();
 
     // printlog(CYAN, ct.restore(), M_verbose);
@@ -264,7 +264,7 @@ applyAffineTransformation(bool transformMesh)
         throw Exception(errorMsg);
     }
 
-    shp<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
+    shp<LifeV::MeshUtility::MeshTransformer<MESH> > transformer;
 
     if (transformMesh)
         transformer.reset(new Transformer(*M_mesh));
@@ -464,14 +464,14 @@ dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
     fs::create_directory(outdir);
 
     GetPot exporterDatafile(meshdir + M_datafileName);
-    LifeV::ExporterVTK<mesh_Type> exporter(exporterDatafile, outputName);
+    LifeV::ExporterVTK<MESH> exporter(exporterDatafile, outputName);
     exporter.setMeshProcId(M_mesh, M_comm->MyPID());
 
-    FESpacePtr_Type dummyFespace(new FESpace_Type(M_mesh, "P1", 3, M_comm));
-    vectorPtr_Type zero(new vector_Type(dummyFespace->map()) );
+    shp<FESPACE> dummyFespace(new FESPACE(M_mesh, "P1", 3, M_comm));
+    shp<VECTOREPETRA> zero(new VECTOREPETRA(dummyFespace->map()) );
     zero->zero();
 
-    exporter.addVariable(LifeV::ExporterData<mesh_Type>::ScalarField, "z",
+    exporter.addVariable(LifeV::ExporterData<MESH>::ScalarField, "z",
                          dummyFespace, zero, 0);
     exporter.setPostDir(outdir);
 
@@ -555,7 +555,7 @@ setIsChild(bool isChild)
     M_isChild = isChild;
 }
 
-BuildingBlock::meshPtr_Type
+shp<MESH>
 BuildingBlock::
 getMesh()
 {

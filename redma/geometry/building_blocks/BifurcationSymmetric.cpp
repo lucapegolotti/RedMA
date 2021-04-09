@@ -264,7 +264,7 @@ applyNonAffineTransformation(bool transformMesh)
                     " BuildingBlock] applying non affine transformation ...\n",
                     M_verbose);
 
-    shp<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
+    shp<LifeV::MeshUtility::MeshTransformer<MESH> > transformer;
     if (transformMesh)
         transformer.reset(new Transformer(*M_mesh));
 

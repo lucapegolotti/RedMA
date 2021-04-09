@@ -98,18 +98,11 @@ public:
 class BuildingBlock
 {
 protected:
-    typedef LifeV::RegionMesh<LifeV::LinearTetra>           mesh_Type;
-    typedef shp<mesh_Type>                                  meshPtr_Type;
-    typedef LifeV::MapEpetra                                map_Type;
-    typedef shp<map_Type>                                   mapPtr_Type;
+
     typedef LifeV::VectorSmall<3>                           Vector3D;
     typedef LifeV::MatrixSmall<3,3>                         Matrix3D;
-    typedef LifeV::ExporterVTK<mesh_Type>                   Exporter;
-    typedef LifeV::FESpace<mesh_Type, map_Type>             FESpace_Type;
-    typedef shp<FESpace_Type>                               FESpacePtr_Type;
-    typedef LifeV::VectorEpetra                             vector_Type;
-    typedef shp<vector_Type>                                vectorPtr_Type;
-    typedef LifeV::MeshUtility::MeshTransformer<mesh_Type>  Transformer;
+    typedef LifeV::ExporterVTK<MESH>                        Exporter;
+    typedef LifeV::MeshUtility::MeshTransformer<MESH>       Transformer;
     typedef shp<GeometricParameter>                         GeometricParameterPtr;
 
 public:
@@ -236,7 +229,7 @@ public:
      *
      * \retrun Shared pointer to the mesh.
      */
-    meshPtr_Type getMesh();
+    shp<MESH> getMesh();
 
     /*! \brief Set the datafile.
      *
@@ -419,7 +412,7 @@ protected:
 
     std::string                     M_refinement;
     std::string                     M_meshName;
-    meshPtr_Type                    M_mesh;
+    shp<MESH>                       M_mesh;
 
     Matrix3D                        M_R;
     Matrix3D                        M_Raxis;
