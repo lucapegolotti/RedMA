@@ -59,6 +59,8 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
 
     // rhs->block(nPrimalBlocks + interfaceID) -= this->M_childB * sol.block(childID);
     temp = this->M_childBfe->multiplyByVector(assemblerChild->getLifting(time));
+    temp->multiplyByScalar(1.0/M_data.getInflow()(time));
+    temp->dump("couplingRHS");
 
     if (assemblerChild->getRBBases())
         temp = assemblerChild->getRBBases()->projectOnLagrangeSpace(spcast<BlockVector>(temp));

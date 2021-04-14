@@ -11,7 +11,7 @@ outputdir = rb_solutions
 [../]
 
 [assembler]
-	type = navierstokes
+	type = stokes
 	stabilization = none
 [../]
 
