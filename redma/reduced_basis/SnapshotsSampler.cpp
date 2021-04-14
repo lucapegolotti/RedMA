@@ -146,7 +146,7 @@ dumpSnapshots(GlobalProblem& problem,
 
         if (!array_params.empty())
         {
-            std::ofstream file("coeffile.txt");
+            std::ofstream file(meshtypedir + "/coeffile.txt", std::ios_base::app);
 
             for (double i : array_params)
             {

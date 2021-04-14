@@ -46,9 +46,9 @@ public:
     std::vector<double> inflowSnapshots(double a_min, double a_max, double c_min, double c_max);
 
 private:
-    DataContainer       M_data;
+    DataContainer                                       M_data;
     const std::function<double(double,double,double)>   M_inflow;
-    EPETRACOMM          M_comm;
+    EPETRACOMM                                          M_comm;
 };
 
 }  // namespace RedMA

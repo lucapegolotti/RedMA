@@ -11,7 +11,7 @@ outputdir = rb_solutions
 [../]
 
 [assembler]
-	type = navierstokes
+	type = stokes
 	stabilization = none
 [../]
 
@@ -25,7 +25,7 @@ outputdir = rb_solutions
 [rb]
 	[./offline]
 		[./snapshots]
-		    	param_type           = inflow
+		    param_type           = inflow
 			number 			     = 50
 			bound 			     = 0.2
 			take_every 		     = 8
