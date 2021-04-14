@@ -112,7 +112,7 @@ dumpSnapshots(GlobalProblem& problem,
                 auto solBlck = convert<DistributedVector>(convert<BlockVector>(convert<BlockVector>(sol)->block(idmeshtype.first))->block(0));
                 double Umax = solBlck->maxMagnitude3D();
                 auto tNode = problem.getBlockAssembler()->block(0)->getTreeNode();
-                double D = 2 * tNode->M_block->getInlet().M_radius;
+                double D = 2 * tNode->M_block->getInlet(0).M_radius;
                 double curReynolds = Umax * density * D / viscosity;
 
                 if (M_comm->MyPID() == 0)

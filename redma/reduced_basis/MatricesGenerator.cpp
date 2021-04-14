@@ -68,7 +68,7 @@ generate()
 
         // create list of faces
         std::vector<GeometricFace> faces = buildingBlock->getOutlets();
-        faces.push_back(buildingBlock->getInlet());
+        faces.push_back(buildingBlock->getInlet(0));
 
         for (auto face : faces)
         {

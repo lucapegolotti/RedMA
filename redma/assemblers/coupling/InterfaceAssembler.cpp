@@ -447,7 +447,7 @@ buildCouplingMatrices()
     auto asChild = M_interface.M_assemblerChild;
     if (asChild)
     {
-        GeometricFace inlet = asChild->getTreeNode()->M_block->getInlet();
+        GeometricFace inlet = asChild->getTreeNode()->M_block->getInlet(0);
         // I invert the normal of the face such that it is the same as the outlet
         inlet.M_normal *= (-1.);
 

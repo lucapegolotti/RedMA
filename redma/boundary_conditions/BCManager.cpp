@@ -8,10 +8,10 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
   M_data(data),
   M_treeNode(treeNode)
 {
-    M_inflow = data.getInflow();
+    M_inflows = M_data.getInflows();
     M_coefficientInflow = data("bc_conditions/coefficientinflow", 1.0);
     parseNeumannData();
-    M_inletFlag = treeNode->M_block->getInlet().M_flag;
+
     M_wallFlag = treeNode->M_block->wallFlag();
     M_inletRing = 30;
     M_outletRing = 31;
@@ -38,7 +38,8 @@ parseNeumannData()
 
 void
 BCManager::
-addInletBC(shp<LifeV::BCHandler> bcs, std::function<double(double)> law) const
+addInletBC(shp<LifeV::BCHandler> bcs, const Law& law,
+           GeometricFace inlet) const
 {
     if (M_treeNode->isInletNode())
     {
@@ -50,12 +51,12 @@ addInletBC(shp<LifeV::BCHandler> bcs, std::function<double(double)> law) const
                              std::placeholders::_3,
                              std::placeholders::_4,
                              std::placeholders::_5,
-                             M_treeNode->M_block->getInlet(),
+                             inlet,
                              law,
                              M_coefficientInflow);
 
         LifeV::BCFunctionBase inflowFunction(foo);
-        bcs->addBC("Inlet", M_inletFlag, LifeV::Essential, LifeV::Full,
+        bcs->addBC("Inlet", inlet.M_flag, LifeV::Essential, LifeV::Full,
                    inflowFunction, 3);
         bcs->addBC("Wall", M_wallFlag, LifeV::Essential,
                    LifeV::Full, zeroFunction, 3);
@@ -69,7 +70,17 @@ applyDirichletBCs(const double& time, BlockVector& input,
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet();
 
-    addInletBC(bcs, M_inflow);
+    if (M_inflows.find(0) != M_inflows.end())
+    {
+        Law inflow = M_inflows.find(0)->second;
+        addInletBC(bcs, inflow, M_treeNode->M_block->getInlet(0));
+    }
+    else
+    {
+        auto inlets = M_treeNode->M_block->getInlets();
+        for (auto inlet : inlets)
+            addInletBC(bcs, M_inflows.find(inlet.M_flag)->second, inlet);
+    }
 
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
@@ -159,7 +170,7 @@ double
 BCManager::
 poiseuille(const double& t, const double& x, const double& y,
           const double& z, const unsigned int& i,
-          const GeometricFace& face, const std::function<double(double)> inflow,
+          const GeometricFace& face, const Law inflow,
           const double& coefficient)
 {
     typedef LifeV::VectorSmall<3>   Vector3D;

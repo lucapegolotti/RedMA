@@ -145,7 +145,7 @@ mergeTwoSegmentations(SegmentationParserPtr segmentationFather,
     int maxTubeLength = M_datafile("segmentation_merger/maxtubelength", 3);
 
     // forward parent until bifurcation
-    Contour inletBifurcation = bifurcation->getInlet();
+    Contour inletBifurcation = bifurcation->getInlet(0);
     TreeStructure inBranch = segmentationFather->createTreeForward(2, nullptr,
                                                              &inletBifurcation);
 
@@ -504,7 +504,7 @@ computeLoss(shp<BifurcationSymmetric> bifurcation,
     double M_constNormals = 1.0;
     double M_constRadius = 2.0;
 
-    Contour inlet = bifurcation->getInlet();
+    Contour inlet = bifurcation->getInlet(0);
     Contour outlet1 = bifurcation->getOutlet(0);
     Contour outlet2 = bifurcation->getOutlet(1);
 

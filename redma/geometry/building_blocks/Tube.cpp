@@ -60,7 +60,8 @@ resetInletOutlets()
     GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef, 1, 30);
     GeometricFace outlet(M_outletCenterRef, M_outletNormalRef, M_outletRadiusRef, 2, 31);
 
-    M_inlet = inlet;
+    M_inlets.clear();
+    M_inlets.push_back(inlet);
     M_outlets.clear();
     M_outlets.push_back(outlet);
 }
@@ -165,7 +166,7 @@ bend(const double& bendAngle, shp<Transformer> transformer, bool transformMesh)
         {
             using namespace std::placeholders;
 
-            Vector3D rotationCenter = M_inlet.M_center;
+            Vector3D rotationCenter = M_inlets[0].M_center;
             Matrix3D rotationMatrix = computeRotationMatrix(1, bendAngle);
 
             auto foo = std::bind(bendFunction,

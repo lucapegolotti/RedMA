@@ -18,9 +18,10 @@ setDatafile(const std::string& datafile)
 
 void
 DataContainer::
-setInflow(const std::function<double(double)>& inflow)
+setInflow(const std::function<double(double)>& inflow,
+          unsigned int flag)
 {
-    M_inflow = inflow;
+    M_inflows[flag] = inflow;
 }
 
 std::function<double(double)>
@@ -118,20 +119,27 @@ void
 DataContainer::
 finalize()
 {
-    if (!M_inflow)
+    if (M_inflows.size() == 0)
     {
         generateRamp();
-        generateInflow();
+
+        int ninlets = (*M_datafile)("bc_conditions/number_inlets", -1);
+        if (ninlets == -1)
+            generateInflow();
+        else
+        {
+            throw new Exception("This case still needs to be implemented!");
+        }
     }
 }
 
 void
 DataContainer::
-generateInflow()
+generateInflow(unsigned int flag)
 {
     auto flowValues = parseInflow();
 
-    linearInterpolation(flowValues, M_inflow);
+    linearInterpolation(flowValues, M_inflows[flag]);
 }
 
 void
@@ -185,10 +193,19 @@ linearInterpolation(const std::vector<std::pair<double,double>>& values,
 
 std::vector<std::pair<double, double>>
 DataContainer::
-parseInflow()
+parseInflow(unsigned int flag)
 {
-    std::ifstream inflowfile((*M_datafile)("bc_conditions/inflowfile",
-                                           "datafiles/inflow.txt"));
+    std::ifstream inflowfile;
+
+    if (flag == 0)
+        inflowfile.open((*M_datafile)("bc_conditions/inflowfile", "datafiles/inflow.txt"));
+    else
+    {
+        std::string filename = "bc_conditions/inflowfile" + std::to_string(flag);
+        std::string defaultval = "datafiles/inflow" + std::to_string(flag) + ".txt";
+        inflowfile.open((*M_datafile)(filename.c_str(), defaultval.c_str()));
+    }
+
     std::vector<std::pair<double, double>> flowValues;
     if (inflowfile.is_open())
     {

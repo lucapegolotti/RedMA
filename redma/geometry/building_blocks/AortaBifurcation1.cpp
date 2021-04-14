@@ -56,7 +56,8 @@ resetInletOutlets()
     GeometricFace outlet1(M_outletCenterRef1, M_outletNormalRef1, M_outletRadiusRef1, 3, -1);
     GeometricFace outlet2(M_outletCenterRef2, M_outletNormalRef2, M_outletRadiusRef2, 4, -1);
 
-    M_inlet = inlet;
+    M_inlets.clear();
+    M_inlets.push_back(inlet);
     M_outlets.clear();
     M_outlets.push_back(outlet1);
     M_outlets.push_back(outlet2);

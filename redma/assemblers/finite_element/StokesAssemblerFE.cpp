@@ -666,8 +666,10 @@ assembleFlowRateVectors()
     // assemble inflow flow rate vector
     if (M_treeNode->isInletNode())
     {
-        auto face = M_treeNode->M_block->getInlet();
-        M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face);
+        auto faces = M_treeNode->M_block->getInlets();
+
+        for (auto face : faces)
+            M_flowRateVectors[face.M_flag] = assembleFlowRateVector(face);
     }
 
     if (M_treeNode->isOutletNode())
@@ -726,15 +728,18 @@ computeFlowRates(shp<aVector> sol, bool verbose)
     std::map<unsigned int, double> flowRates;
     if (M_treeNode->isInletNode())
     {
-        auto face = M_treeNode->M_block->getInlet();
+        auto faces = M_treeNode->M_block->getInlets();
 
-        flowRates[face.M_flag] = spcast<VECTOREPETRA>(solBlck->block(0)->data())->dot(*M_flowRateVectors[face.M_flag]);
-        std::string msg = "[";
-        msg += "StokesAssemblerFE";
-        msg += "]  inflow rate = ";
-        msg += std::to_string(flowRates[face.M_flag]);
-        msg += "\n";
-        printlog(YELLOW, msg, verbose);
+        for (auto face : faces)
+        {
+            flowRates[face.M_flag] = spcast<VECTOREPETRA>(solBlck->block(0)->data())->dot(*M_flowRateVectors[face.M_flag]);
+            std::string msg = "[";
+            msg += "StokesAssemblerFE";
+            msg += "]  inflow rate = ";
+            msg += std::to_string(flowRates[face.M_flag]);
+            msg += "\n";
+            printlog(YELLOW, msg, verbose);
+        }
     }
 
     if (this->M_treeNode->isOutletNode())

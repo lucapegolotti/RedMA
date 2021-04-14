@@ -35,7 +35,8 @@ namespace RedMA
  */
 class BCManager
 {
-    typedef aTimeMarchingAlgorithm  TimeMarchingAlgorithm;
+    typedef aTimeMarchingAlgorithm                  TimeMarchingAlgorithm;
+    typedef std::function<double(double)>           Law;
 public:
 
     /*! \brief Constructor accepting a datafile and a TreeNode.
@@ -115,7 +116,7 @@ private:
                              const double& z,
                              const unsigned int& i,
                              const GeometricFace& face,
-                             const std::function<double(double)> inflow,
+                             const Law inflow,
                              const double& coefficient);
 
     static double fZero(const double& t,
@@ -136,16 +137,17 @@ private:
     shp<LifeV::BCHandler> createBCHandler0Dirichlet() const;
 
     void addInletBC(shp<LifeV::BCHandler> bcs,
-                    std::function<double(double)> law) const;
+                    const Law& law,
+                    GeometricFace inlet) const;
 
     void parseNeumannData();
 
     shp<TreeNode>                                    M_treeNode;
     DataContainer                                    M_data;
-    std::function<double(double)>                    M_inflow;
-    std::function<double(double)>                    M_inflowDt;
+    std::map<unsigned int, Law>                      M_inflows;
+    std::map<unsigned int, Law>                      M_inflowsDt;
 
-    unsigned int                                     M_inletFlag;
+    std::vector<unsigned int>                        M_inletFlags;
     unsigned int                                     M_wallFlag;
     unsigned int                                     M_inletRing;
     unsigned int                                     M_outletRing;

@@ -371,18 +371,22 @@ applyAffineTransformation(bool transformMesh)
         printlog(GREEN, "done\n", M_verbose);
     }
 
-    applyAffineTransformationGeometricFace(M_inlet,M_R,M_translation,M_scale);
+    for (std::vector<GeometricFace>::iterator it = M_inlets.begin();
+         it != M_inlets.end(); it++)
+    {
+        applyAffineTransformationGeometricFace(*it, M_R, M_translation, M_scale);
+    }
     for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
          it != M_outlets.end(); it++)
     {
-        applyAffineTransformationGeometricFace(*it, M_R, M_translation,M_scale);
+        applyAffineTransformationGeometricFace(*it, M_R, M_translation, M_scale);
     }
 
-    // Handle rotation along the axis of the inlet
+    // Handle rotation along the axis of the inlet 0
     double angle = M_parametersHandler["alpha_axis"];
 
-    M_Raxis = computeRotationMatrix(M_inlet.M_normal, angle);
-    Vector3D transZero = M_inlet.M_center - M_Raxis * M_inlet.M_center;
+    M_Raxis = computeRotationMatrix(M_inlets[0].M_normal, angle);
+    Vector3D transZero = M_inlets[0].M_center - M_Raxis * M_inlets[0].M_center;
 
     auto foo = std::bind(rotationFunction,
                          std::placeholders::_1,
@@ -490,10 +494,23 @@ getOutlet(unsigned int outletIndex) const
     if (outletIndex >= M_outlets.size())
     {
         std::string msg = "Requesting access to outlet that does not exist!";
-        throw Exception(msg);
+        throw new Exception(msg);
     }
 
     return M_outlets[outletIndex];
+}
+
+GeometricFace
+BuildingBlock::
+getInlet(unsigned int inletIndex) const
+{
+    if (inletIndex >= M_inlets.size())
+    {
+        std::string msg = "Requesting access to inlet that does not exist!";
+        throw new Exception(msg);
+    }
+
+    return M_inlets[inletIndex];
 }
 
 std::vector<GeometricFace>
@@ -503,11 +520,11 @@ getOutlets() const
     return M_outlets;
 }
 
-GeometricFace
+std::vector<GeometricFace>
 BuildingBlock::
-getInlet() const
+getInlets() const
 {
-    return M_inlet;
+    return M_inlets;
 }
 
 void
@@ -516,12 +533,12 @@ mapChildInletToParentOutlet(GeometricFace parentOutlet)
 {
     M_isChild = true;
 
-    Vector3D iNormal = -1 * M_inlet.M_normal;
+    Vector3D iNormal = -1 * M_inlets[0].M_normal;
     Vector3D oNormal = parentOutlet.M_normal;
-    Vector3D iCenter = M_inlet.M_center;
+    Vector3D iCenter = M_inlets[0].M_center;
     Vector3D oCenter = parentOutlet.M_center;
 
-    M_inletScale = parentOutlet.M_radius / M_inlet.M_radius;
+    M_inletScale = parentOutlet.M_radius / M_inlets[0].M_radius;
 
     M_inletTranslation = oCenter - iCenter;
 

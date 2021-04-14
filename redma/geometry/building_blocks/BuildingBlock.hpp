@@ -207,11 +207,18 @@ public:
      */
     std::vector<GeometricFace> getOutlets() const;
 
+    /*! \brief Get an inlet.
+     *
+     * \param indexInlet The index of the inlet.
+     * \return The geometric face.
+     */
+    GeometricFace getInlet(unsigned int indexFace) const;
+
     /*! \brief Get the inlet.
      *
      * \return The geometric face.
      */
-    GeometricFace getInlet() const;
+    std::vector<GeometricFace> getInlets() const;
 
     /*! \brief Set the affine transformation such that the inlet matches a face.
      *
@@ -423,7 +430,7 @@ protected:
 
     std::string                     M_datafileName;
 
-    GeometricFace                   M_inlet;
+    std::vector<GeometricFace>      M_inlets;
     std::vector<GeometricFace>      M_outlets;
 
     bool                            M_isChild;
