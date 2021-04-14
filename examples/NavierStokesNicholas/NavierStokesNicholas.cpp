@@ -18,9 +18,15 @@
 #include <redma/problem/GlobalProblem.hpp>
 #include <redma/problem/DataContainer.hpp>
 
+#include <redma/reduced_basis/MatricesGenerator.hpp>
 #include <redma/reduced_basis/SnapshotsSampler.hpp>
 
 using namespace RedMA;
+
+double inflow(double t, double a, double c)
+{
+    return c*sin(a*t);
+}
 
 int main(int argc, char **argv)
 {
@@ -35,7 +41,10 @@ int main(int argc, char **argv)
     data.setDatafile("datafiles/data_fem");
     data.setVerbose(comm->MyPID() == 0);
 
-    SnapshotsSampler sampler(data, comm);
+    // MatricesGenerator generator(data, comm);
+    // generator.generate();
+
+    SnapshotsSampler sampler(data, inflow, comm);
     sampler.takeSnapshots();
 
     return 0;

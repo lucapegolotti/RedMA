@@ -4,14 +4,10 @@ namespace RedMA
 
 {
 
-double inflow(double t, double a, double c)
-{
-    return c*sin(a*t);
-}
-
 SnapshotsSampler::
-SnapshotsSampler(const DataContainer& data, EPETRACOMM comm) :
+SnapshotsSampler(const DataContainer& data, const std::function<double(double,double,double)>& inflow, EPETRACOMM comm) :
   M_data(data),
+  M_inflow(inflow),
   M_comm(comm)
 {
 }
@@ -28,11 +24,12 @@ takeSnapshots()
 
     unsigned int nSnapshots = M_data("rb/offline/snapshots/number", 10);
     double bound = M_data("rb/offline/snapshots/bound", 0.2);
+    std::vector<double> array_params;
 
     for (unsigned int i = 0; i < nSnapshots; i++)
     {
         unsigned int paramIndex = 0;
-        // we find the first parameter index available
+        
         while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
@@ -43,16 +40,17 @@ takeSnapshots()
                               M_data("rb/offline/snapshots/a_max", 1.0),
                               M_data("rb/offline/snapshots/c_min", 0.0),
                               M_data("rb/offline/snapshots/c_max", 1.0)};
+
             auto vec = inflowSnapshots(param[0], param[1], param[2], param[3]);
-            M_data.setInflow(std::bind(inflow,
+            array_params = vec;
+
+            M_data.setInflow(std::bind(M_inflow,
                                        std::placeholders::_1,
                                        vec[0],vec[1]));
         }
 
         GlobalProblem problem(M_data, M_comm, false);
 
-        // this is to allow taking the snapshots at the end of the simulation from
-        // the fem problem
         problem.doStoreSolutions();
 
         fs::create_directory(curdir);
@@ -70,14 +68,16 @@ takeSnapshots()
         printer.saveToFile(problem.getTree(), filename, M_comm);
 
         problem.solve();
-        dumpSnapshots(problem, curdir);
+        dumpSnapshots(problem, curdir, array_params);
     }
+
 }
 
 void
 SnapshotsSampler::
 dumpSnapshots(GlobalProblem& problem,
-              std::string outdir)
+              std::string outdir,
+              const std::vector<double> array_params = {})
 {
     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
     auto solutions = problem.getSolutions();
@@ -142,6 +142,19 @@ dumpSnapshots(GlobalProblem& problem,
             }
             reynoldsfile.close();
         }
+
+
+        if (!array_params.empty())
+        {
+            std::ofstream file("coeffile.txt");
+
+            for (double i : array_params)
+            {
+                file << std::fixed << std::setprecision(3) << i << std::endl;
+            }
+
+            file.close();
+        }
     }
 }
 
@@ -151,7 +164,6 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
                             unsigned int fieldIndex,
                             unsigned int maxSnapshot)
 {
-    // using namespace boost::filesystem;
 
     std::ios_base::openmode omode = std::ios_base::app;
 
@@ -168,7 +180,6 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
 
             auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
 
-            // for each mesh type, assemblers sharing that mesh
             std::map<std::string, std::vector<unsigned int>> meshTypeNumber;
 
             for (auto m : IDmeshTypeMap)
@@ -258,3 +269,4 @@ inflowSnapshots(double a_min = 0.0, double a_max = 1.0, double c_min = 0.0, doub
 }
 
 }  // namespace RedMA
+
