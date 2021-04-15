@@ -60,7 +60,10 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
     // rhs->block(nPrimalBlocks + interfaceID) -= this->M_childB * sol.block(childID);
     temp = this->M_childBfe->multiplyByVector(assemblerChild->getLifting(time));
     temp->multiplyByScalar(1.0/M_data.getInflow()(time));
-    temp->dump("couplingRHS");
+    temp->block(0)->dump("couplingRHS");
+    // std::shared_ptr<DistributedVector> to_dump = convert<DistributedVector>(temp);
+    // std::shared_ptr<DistributedVector> to_dump = spcast<DistributedVector>(temp);
+    // to_dump->dump("couplingRHS");
 
     if (assemblerChild->getRBBases())
         temp = assemblerChild->getRBBases()->projectOnLagrangeSpace(spcast<BlockVector>(temp));
