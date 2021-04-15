@@ -29,7 +29,7 @@ takeSnapshots()
     for (unsigned int i = 0; i < nSnapshots; i++)
     {
         unsigned int paramIndex = 0;
-        // we find the first parameter index available
+        
         while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
@@ -51,8 +51,6 @@ takeSnapshots()
 
         GlobalProblem problem(M_data, M_comm, false);
 
-        // this is to allow taking the snapshots at the end of the simulation from
-        // the fem problem
         problem.doStoreSolutions();
 
         fs::create_directory(curdir);
@@ -166,7 +164,6 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
                             unsigned int fieldIndex,
                             unsigned int maxSnapshot)
 {
-    // using namespace boost::filesystem;
 
     std::ios_base::openmode omode = std::ios_base::app;
 
@@ -183,7 +180,6 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
 
             auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
 
-            // for each mesh type, assemblers sharing that mesh
             std::map<std::string, std::vector<unsigned int>> meshTypeNumber;
 
             for (auto m : IDmeshTypeMap)
@@ -273,3 +269,4 @@ inflowSnapshots(double a_min = 0.0, double a_max = 1.0, double c_min = 0.0, doub
 }
 
 }  // namespace RedMA
+
