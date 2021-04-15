@@ -33,7 +33,7 @@ public:
      * \param name The name of the mesh.
      * \param verbose If true, output is pushed to standard output.
      */
-    Aorta(EPETRACOMM comm,
+    Bypass(EPETRACOMM comm,
           std::string name = "bypass",
           bool verbose = false);
 

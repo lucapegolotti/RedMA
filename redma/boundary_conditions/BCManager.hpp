@@ -152,7 +152,7 @@ private:
     unsigned int                                     M_inletRing;
     unsigned int                                     M_outletRing;
 
-    double                                           M_coefficientInflow;
+    std::map<unsigned int, double>                   M_coefficientsInflow;
 };
 
 }

@@ -41,9 +41,9 @@ Bypass(EPETRACOMM comm, std::string name, bool verbose) :
     M_outletNormalRef[1] = 0.1600235;
     M_outletNormalRef[2] = 0.94885246;
 
-    M_inletRadiusRef1 = 0.3346954415343999;
-    M_inletRadiusRef2 = 0.261379989834431;
-    M_outletRadiusRef2 = 0.2410752046049147;
+    M_inletRadiusRef1 = 0.33609344929489127;
+    M_inletRadiusRef2 = 0.2661432021360946;
+    M_outletRadiusRef = 0.24480087734232522;
 
     M_wallFlag = 200;
 
@@ -55,7 +55,7 @@ Bypass::
 resetInletOutlets()
 {
     GeometricFace inlet1(M_inletCenterRef1, M_inletNormalRef1, M_inletRadiusRef1, 2, 20);
-    GeometricFace inlet2(M_inletCenterRef2, M_inletNormalRef, M_inletRadiusRef2, 3, 30);
+    GeometricFace inlet2(M_inletCenterRef2, M_inletNormalRef2, M_inletRadiusRef2, 3, 30);
     GeometricFace outlet(M_outletCenterRef, M_outletNormalRef, M_outletRadiusRef, 4, 40);
 
     M_inlets.clear();

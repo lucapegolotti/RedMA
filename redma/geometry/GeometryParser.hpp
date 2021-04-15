@@ -27,6 +27,7 @@
 #include <redma/geometry/building_blocks/Tube.hpp>
 #include <redma/geometry/building_blocks/BifurcationSymmetric.hpp>
 #include <redma/geometry/building_blocks/Aorta.hpp>
+#include <redma/geometry/building_blocks/Bypass.hpp>
 #include <redma/geometry/building_blocks/AortaBifurcation0.hpp>
 #include <redma/geometry/building_blocks/AortaBifurcation1.hpp>
 #include <redma/geometry/TreeStructure.hpp>
