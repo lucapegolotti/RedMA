@@ -81,6 +81,8 @@ dumpSnapshots(GlobalProblem& problem,
 {
     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
     auto solutions = problem.getSolutions();
+    auto M_mass = problem.getBlockAssembler()->assembleMatrix(0);
+    auto M_stiffness = problem.getBlockAssembler()->assembleMatrix(1);
 
     unsigned int takeEvery = M_data("rb/offline/snapshots/take_every", 5);
     bool binary = M_data("rb/offline/snapshots/dumpbinary", true);
@@ -91,6 +93,9 @@ dumpSnapshots(GlobalProblem& problem,
     std::ios_base::openmode omode = std::ios_base::app;
     if (binary)
         omode = omode | std::ios::binary;
+
+    M_mass->dump("M_mass");
+    M_stiffness->dump("M_stiffness");
 
     for (auto sol : solutions)
         problem.getBlockAssembler()->applyPiola(sol, true);
