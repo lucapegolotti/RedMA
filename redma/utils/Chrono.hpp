@@ -25,11 +25,17 @@
 namespace RedMA
 {
 
+/// Class to measure elapsed time.
 class Chrono
 {
 public:
+    /// Start the timer.
     void start();
 
+    /*! \brief Compute difference between current and start time.
+     *
+     * \return The elapsed time.
+     */
     double diff();
 
 private:

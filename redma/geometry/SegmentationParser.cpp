@@ -4,8 +4,11 @@ namespace RedMA
 {
 
 SegmentationParser::
-SegmentationParser(const GetPot& datafile, commPtr_Type comm, std::string pthName,
-                   std::string ctgrName, std::string interpolationMethod,
+SegmentationParser(const DataContainer& datafile,
+                   EPETRACOMM comm,
+                   std::string pthName,
+                   std::string ctgrName,
+                   std::string interpolationMethod,
                    bool verbose) :
   M_datafile(datafile),
   M_comm(comm),
@@ -287,7 +290,6 @@ traverseSegmentation(std::string ctgrName)
 TreeStructure
 SegmentationParser::
 createTreeForward(const int& lengthTubes,
-                  const double& constVector, const double& constNormal,
                   Contour* initialContourPtr,
                   Contour* finalContourPtr)
 {

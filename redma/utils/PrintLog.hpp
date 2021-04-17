@@ -24,20 +24,33 @@
 namespace RedMA
 {
 
+/// Color type.
 enum Color {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE};
 
-extern void printlog(Color outColor, std::string text, bool verbose = true, bool useHierarchy = true);
+/// Print function.
+extern void printlog(Color outColor,
+                     std::string text,
+                     bool verbose = true,
+                     bool useHierarchy = true);
 
+/// Convert input to string.
 template<typename T>
 extern std::string to_string(const T& n);
 
-extern void printlog(Color outColor, int num, bool verbose = true, bool useHierarchy = true);
+/// Print function.
+extern void printlog(Color outColor,
+                     int num,
+                     bool verbose = true,
+                     bool useHierarchy = true);
 
+/// Class allowing to suppress standard output.
 class CoutRedirecter
 {
 public:
+    /// Redirect output.
     void redirect();
 
+    /// Restore output to standard.
     std::string restore();
 
 private:

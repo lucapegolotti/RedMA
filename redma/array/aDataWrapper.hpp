@@ -27,26 +27,68 @@
 namespace RedMA
 {
 
+/*! \brief Abstract class for a data wrapper.
+ *
+ * The data is stored as shared pointer.
+ */
 class aDataWrapper
 {
 public:
 
+    /// Virtual distructor.
     virtual ~aDataWrapper() {}
 
+    /*! \brief Getter for the internal type.
+     *
+     * \return The internal Datatype.
+     */
     virtual Datatype type() const = 0;
 
+    /*! \brief Getter for the data.
+     *
+     * \return Shared pointer to the data.
+     */
     virtual shp<void> data() const = 0;
 
+    /*! \brief Setter for the data.
+     *
+     * \param data Shared pointer to the data.
+     */
     virtual void setData(shp<void> data) = 0;
 
+    /*! \brief Returns true if the data container is zero.
+     *
+     * The functions returns true even if the data is not set.
+     * \return True if the data is zero or not set.
+     */
     virtual bool isZero() const = 0;
 
+    /*! \brief Clones the wrapper
+     *
+     * \return Raw pointer to a copy of the wrapper.
+     */
     virtual aDataWrapper* clone() const = 0;
 
+    /*! \brief Shallow copy.
+     *
+     * The shared pointer to the data of the argument is copied.
+     *
+     * \param other Shared pointer to another aDataWrapper.
+     */
     virtual void shallowCopy(shp<aDataWrapper> other) = 0;
 
+    /*! \brief Deep copy.
+     *
+     * The data of the argument is copied.
+     *
+     * \param other Shared pointer to another aDataWrapper.
+     */
     virtual void deepCopy(shp<aDataWrapper> other) = 0;
 
+    /*! \brief Save content of the wrapper to file.
+     *
+     * \param namefile Name of the output file.
+     */
     virtual void dump(std::string namefile) const = 0;
 };
 

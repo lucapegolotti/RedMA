@@ -31,6 +31,7 @@
 namespace RedMA
 {
 
+/// Helper structure holding statistics about the solver.
 struct SolverStatistics
 {
     double M_precSetupTime;
@@ -38,30 +39,50 @@ struct SolverStatistics
     double M_solveTime;
 };
 
+/// Linear system solver.
 class LinearSystemSolver
 {
     typedef shp<aVector>               BV;
     typedef shp<aMatrix>               BM;
 
 public:
+    /*! \brief Constructor.
+     *
+     * \param datafile The DataContainer of the problem.
+     */
     LinearSystemSolver(const DataContainer& datafile);
 
-    // I don't provide  a generic implementation of this method but only
-    // (template) specializations in the cpp
-    void solve(const BM& matrix, const BV& rhs, BV& sol);
+    /*! \brief Solve method.
+     *
+     * \param matrix Shared pointer to the matrix.
+     * \param rhs Shared pointer to the right-hand side.
+     * \param sol Shared pointer to the solution.
+     */
+    void solve(const BM& matrix,
+               const BV& rhs,
+               BV& sol);
 
+    /*! \brief Build the problem preconditioner.
+     *
+     * \param matrix Shared pointer to the matrix.
+     */
     void buildPreconditioner(const BM& matrix);
 
+    /*! \brief Getter for the solver statistics.
+     *
+     * \return The solver statistics.
+     */
     SolverStatistics getSolverStatistics() const {return M_statistics;}
 
+    /// Setter for the MPI Communicator.
     void setComm(EPETRACOMM comm) {M_comm = comm;}
 
 private:
 
     // only required for dense computation
-    void computeSchurComplementDense(const BM& matrix);
-
-    void solveDense(const BM& matrix, const BV& rhs, BV& sol);
+    // void computeSchurComplementDense(const BM& matrix);
+    //
+    // void solveDense(const BM& matrix, const BV& rhs, BV& sol);
 
     void convertVectorType(const shp<BlockMatrix>& matrix,
                            const shp<DenseVector>& vector,

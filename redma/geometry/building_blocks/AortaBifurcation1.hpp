@@ -17,30 +17,67 @@
 #ifndef AORTABIFURCATION1_HPP
 #define AORTABIFURCATION1_HPP
 
-#include <redma/geometry/BuildingBlock.hpp>
-#include <redma/geometry/NonAffineDeformer.hpp>
+#include <redma/geometry/building_blocks/BuildingBlock.hpp>
+#include <redma/geometry/building_blocks/NonAffineDeformer.hpp>
 
 namespace RedMA
 {
 
+/// Building block of a bifurcation in the aorta.
 class AortaBifurcation1 : public BuildingBlock
 {
 public:
-    AortaBifurcation1(commPtr_Type comm, std::string refinement,
+
+    /*! \brief Default constructor.
+     *
+     * \param comm The MPI Communicator.
+     * \param refinement The refinement.
+     * \param name The name of the mesh.
+     * \param verbose If true, output is pushed to standard output.
+     */
+    AortaBifurcation1(EPETRACOMM comm,
+                      std::string refinement,
                       std::string name = "aortabif1",
                       bool verbose = false);
 
+    /*! \brief Return the expected number of children.
+     *
+     * \return The expected number of children (2).
+     */
     virtual inline unsigned int expectedNumberOfChildren() override
     {
         return 2;
     }
 
+    /*! \brief Apply nonaffine transformation.
+     *
+     * This function does not do anything.
+     *
+     * \param transformMesh If true, the mesh is modified and transformed.
+     */
     virtual void applyNonAffineTransformation(bool transformMesh) override;
 
+    /*! \brief Get building blocks dependent parameters.
+     *
+     * This function does not do anything.
+     *
+     * \param index Index of the parameter.
+     * \return The parameter name.
+     */
     std::string getOptionalParameter(unsigned int index) override;
 
+    /// Set the inlet and outlets.
     void resetInletOutlets() override;
 
+    /*! \brief Compute the Jacobian non affine transformation.
+     *
+     * This function does not do anything.
+     *
+     * \param x First component of the point in which the Jacobian must be computed.
+     * \param y Second component of the point in which the Jacobian must be computed.
+     * \param z Third component of the point in which the Jacobian must be computed.
+     * \return The Jacobian matrix.
+     */
     virtual Matrix3D computeJacobianNonAffineTransformation(const double& x,
                                                             const double& y,
                                                             const double& z) override {};

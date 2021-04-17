@@ -24,14 +24,36 @@
 namespace RedMA
 {
 
+/*! \brief A Zernike polynomial basis function.
+ *
+ * For the definition of the function, we refer, e.g., to
+ * https://en.wikipedia.org/wiki/Zernike_polynomials.
+ */
 class ZernikeBasisFunction : public BasisFunctionFunctor
 {
 public:
+    /*! \brief Constructor.
+     *
+     * Parameter nMax is the largest n in de set (the largest of the two indices
+     * of Zernike polynomials).
+     *
+     * \param face the GeometricFace.
+     * \param nMax Number of frequencies in the theta direction.
+     */
     ZernikeBasisFunction(const GeometricFace& face,
                          unsigned int nMax);
 
+    /*! \brief Evaluation operator.
+     *
+     * \param pos Position where the function has to be evaluated.
+     * \return Value of the basis function.
+     */
     return_Type operator()(const Vector3D& pos) override;
 
+    /* \brief Set the index of the current basis function.
+     *
+     * \param index The index.
+     */
     virtual void setIndex(const unsigned int& index) override;
 
 private:

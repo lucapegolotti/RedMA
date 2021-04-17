@@ -26,16 +26,35 @@
 namespace RedMA
 {
 
+/*! \brief Basis functions defined on Chebyshev polynomials.
+ *
+ * For the definition of the functions, we refer, e.g., to
+ * https://arxiv.org/pdf/1701.02709.pdf (formula 3.8).
+ */
 class ChebyshevBasisFunction : public BasisFunctionFunctor
 {
 public:
+    /*! \brief Constructor.
+     *
+     * Parameter nMax is the largest n in the set (the largest of the two indices
+     * of the polynomials).
+     *
+     * \param face the GeometricFace.
+     * \param nMax Number of frequencies in the theta direction.
+     */
     ChebyshevBasisFunction(const GeometricFace& face,
                            unsigned int nMax);
 
+    /*! \brief Evaluation operator.
+     *
+     * \param pos Position where the function has to be evaluated.
+     * \return Value of the basis function.
+     */
     return_Type operator()(const Vector3D& pos) override;
 
 private:
-    double chebyshevU(const double& x, const unsigned int& n);
+    double chebyshevU(const double& x,
+                      const unsigned int& n);
 
     unsigned int                              M_nMax;
     std::vector<int>                          M_ks;

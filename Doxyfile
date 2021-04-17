@@ -168,7 +168,8 @@ FILE_PATTERNS          = *.c \
 RECURSIVE              = YES
 EXCLUDE                =
 EXCLUDE_SYMLINKS       = NO
-EXCLUDE_PATTERNS       =
+EXCLUDE_PATTERNS       = *.m \
+                         */unmaintained/*
 EXCLUDE_SYMBOLS        =
 EXAMPLE_PATH           =
 EXAMPLE_PATTERNS       = *
@@ -249,7 +250,7 @@ HTML_FORMULA_FORMAT    = png
 FORMULA_FONTSIZE       = 15
 FORMULA_TRANSPARENT    = YES
 FORMULA_MACROFILE      =
-USE_MATHJAX            = NO
+USE_MATHJAX            = YES
 MATHJAX_FORMAT         = HTML-CSS
 MATHJAX_RELPATH        = https://cdn.jsdelivr.net/npm/mathjax@2
 MATHJAX_EXTENSIONS     =
@@ -266,7 +267,7 @@ EXTRA_SEARCH_MAPPINGS  =
 #---------------------------------------------------------------------------
 GENERATE_LATEX         = YES
 LATEX_OUTPUT           = latex
-LATEX_CMD_NAME         =
+LATEX_CMD_NAME         = latex
 MAKEINDEX_CMD_NAME     = makeindex
 LATEX_MAKEINDEX_CMD    = makeindex
 COMPACT_LATEX          = NO

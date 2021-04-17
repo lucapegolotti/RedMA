@@ -25,12 +25,22 @@
 namespace RedMA
 {
 
+/// Template functor of a generic function.
 template <class InputType, class OutputType>
 class FunctionFunctor
 {
 public:
+    /*! \brief Constructor.
+     *
+     * \param fct The internal function.
+     */
     FunctionFunctor(std::function<OutputType(InputType)> fct) : M_function(fct) {}
 
+    /*! \brief Evaluation operator.
+     *
+     * \param input Input at which the functor must be evaluated.
+     * \return Value of the function.
+     */
     inline OutputType operator()(const InputType& input) const
     {
         return M_function(input);

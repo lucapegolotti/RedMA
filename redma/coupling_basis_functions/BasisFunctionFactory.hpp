@@ -21,7 +21,7 @@
 
 #include <redma/RedMA.hpp>
 
-#include <redma/geometry/BuildingBlock.hpp>
+#include <redma/geometry/building_blocks/BuildingBlock.hpp>
 
 #include <redma/coupling_basis_functions/BasisFunctionFunctor.hpp>
 #include <redma/coupling_basis_functions/DummyBasisFunction.hpp>
@@ -34,8 +34,11 @@
 namespace RedMA
 {
 
+/// \brief Factory for BasisFunctionFunctor.
 shp<BasisFunctionFunctor>
-BasisFunctionFactory(const GetPot& datafile, GeometricFace inlet, bool isBoundary = false);
+BasisFunctionFactory(const GetPot& datafile,
+                     GeometricFace inlet,
+                     bool isBoundary = false);
 
 }  // namespace RedMA
 

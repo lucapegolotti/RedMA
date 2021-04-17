@@ -6,7 +6,7 @@ namespace RedMA
 GlobalProblem::
 GlobalProblem(const DataContainer& data, EPETRACOMM comm, bool doSetup) :
   aProblem(data),
-  M_geometryParser(data.getDatafile(),
+  M_geometryParser(data,
                    data("geometric_structure/xmlfile","tree.xml"),
                    comm, data.getVerbose()),
   M_storeSolutions(false),
@@ -35,10 +35,10 @@ setup()
     // uncomment this to dump tree after it has been read
     // M_tree.dump("tree/","../../../meshes/");
 
-    // create default assemblers. These are needed when we need the map from
+    // create default assemblers. These are needed when we require the map from
     // the reference configuration to the deformed one (e.g., for Piola)
     M_defaultAssemblers.reset(new DefaultAssemblersLibrary
-                              (M_data, M_tree.getMeshListNames(), M_comm));
+                             (M_data, M_tree.getMeshListNames(), M_comm));
 
     // create block assembler
     M_assembler.reset(new BAssembler(M_data, M_tree, M_defaultAssemblers));

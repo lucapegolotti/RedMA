@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 BifurcationSymmetric::
-BifurcationSymmetric(commPtr_Type comm, std::string refinement,
+BifurcationSymmetric(EPETRACOMM comm, std::string refinement,
                      bool verbose, int angle, bool randomizable) :
   BuildingBlock(comm, refinement, verbose),
   M_angle(angle)
@@ -103,8 +103,8 @@ resetInletOutlets()
     GeometricFace outlet1(M_outlet1CenterRef, M_outlet1NormalRef, M_outlet1RadiusRef, 2);
     GeometricFace outlet2(M_outlet2CenterRef, M_outlet2NormalRef, M_outlet2RadiusRef, 3);
 
-    M_inlet = inlet;
-
+    M_inlets.clear();
+    M_inlets.push_back(inlet);
     M_outlets.clear();
     M_outlets.push_back(outlet1);
     M_outlets.push_back(outlet2);
@@ -264,7 +264,7 @@ applyNonAffineTransformation(bool transformMesh)
                     " BuildingBlock] applying non affine transformation ...\n",
                     M_verbose);
 
-    shp<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
+    shp<LifeV::MeshUtility::MeshTransformer<MESH> > transformer;
     if (transformMesh)
         transformer.reset(new Transformer(*M_mesh));
 

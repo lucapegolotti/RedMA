@@ -39,7 +39,8 @@ public:
      * \param datafile The datafile.
      * \param datafile The TreeNode encoding the physical domain.
      */
-    aAssemblerFE(const DataContainer& datafile, shp<TreeNode> node) :
+    aAssemblerFE(const DataContainer& datafile,
+                 shp<TreeNode> node) :
       aAssembler(datafile, node)
     {}
 
@@ -49,7 +50,8 @@ public:
      * \param bcs If true, applies bcs to the norm matrix.
      * \return Shared pointer to aMatrix of the desired norm.
      */
-    virtual shp<aMatrix> getNorm(const unsigned int& fieldIndex, bool bcs = true) {return shp<SparseMatrix>();}
+    virtual shp<aMatrix> getNorm(const unsigned int& fieldIndex,
+                                 bool bcs = true) {return shp<SparseMatrix>();}
 
     /*! \brief Getter for the constraint matrix (e.g., divergence matrix in Stokes).
      *

@@ -29,33 +29,77 @@
 namespace RedMA
 {
 
+/// An abstract time marching algorithm.
 class aTimeMarchingAlgorithm
 {
     typedef aFunctionProvider         FunProvider;
 public:
 
+    /*! \brief Constructor.
+     *
+     * \param datafile The DataContainer of the problem.
+     */
     aTimeMarchingAlgorithm(const DataContainer& datafile);
 
+    /*! \brief Constructor.
+     *
+     * \param datafile The DataContainer of the problem.
+     * \param funProvider The function provider.
+     */
     aTimeMarchingAlgorithm(const DataContainer& datafile,
                            shp<FunProvider> funProvider);
 
+    /*! \brief Virtual setup function.
+     *
+     * \param zeroVector Shared pointer to a zero vector.
+     */
     virtual void setup(const shp<aVector>& zeroVector) = 0;
 
-    virtual shp<aVector> advance(const double& time, double& dt,
-                                int& status) = 0;
+    /*! \brief Virtual advance function.
+     *
+     * \param time The time.
+     * \param dt The timestep size.
+     * \param status Return code; 0 if successful.
+     */
+    virtual shp<aVector> advance(const double& time,
+                                 double& dt,
+                                 int& status) = 0;
 
-    // compute derivative of u at tn+1 given its value
+    /*! \brief Compute derivative of a function.
+     *
+     * \param solnp1 Solution at time n+1.
+     * \param dt Timestep size.
+     * \return Shared pointer to the derivative.
+     */
     virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1,
                                           double& dt) = 0;
 
+    /*! \brief Shift previous solutions given the new one.
+     *
+     * \param Shared pointer to the new solution.
+     */
     virtual void shiftSolutions(const shp<aVector>& sol) = 0;
 
+    /*! \brief Dump solver statistics to file.
+     *
+     * \param Vector of solver statistics.
+     * \param time The time.
+     */
     void dumpSolverStatistics(std::vector<SolverStatistics> statistics,
-                              const double& t) const;
+                              const double& time) const;
+
     virtual double getCoefficientExtrapolation() =0;
     virtual shp<aVector> getPreviousContribution()=0;
     virtual shp<aVector> advanceDisp(const double &dt, const shp<BlockVector> &sol)=0;
     virtual shp<aVector> getPreviousSolution()=0;
+
+
+
+    /*! \brief Setter for the MPI Communicator.
+     *
+     * \param Shared pointer to the MPI Communicator.
+     */
+
     void setComm(EPETRACOMM comm) {M_comm = comm; M_systemSolver.setComm(comm);}
 
 protected:

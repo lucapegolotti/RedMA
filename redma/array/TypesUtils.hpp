@@ -25,6 +25,7 @@
 namespace RedMA
 {
 
+/// Convert a class to another type, if possible.
 template <class DType, class ContainerType>
 shp<DType> convert(shp<ContainerType> container)
 {

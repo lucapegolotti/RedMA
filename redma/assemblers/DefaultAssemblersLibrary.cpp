@@ -27,7 +27,6 @@ DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>&
                 defTreeNode->M_block->setDiscretizationMethod("fem");
                 shp<aAssembler> defAssembler = AssemblerFactory(M_data, defTreeNode);
                 defAssembler->initializeFEspaces();
-                // defAssembler->setup();
                 M_assemblersMap[mesh]= defAssembler;
                 M_count++;
             }

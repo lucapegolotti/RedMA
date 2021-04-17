@@ -25,12 +25,16 @@
 namespace RedMA
 {
 
+// Wrap a raw dense matrix into its wrapper.
 shp<DenseMatrix> wrap(shp<DENSEMATRIX> matrix);
 
+// Wrap a raw dense vector into its wrapper.
 shp<DenseVector> wrap(shp<DENSEVECTOR> vector);
 
+// Wrap a raw sparse matrix into its wrapper.
 shp<SparseMatrix> wrap(shp<MATRIXEPETRA> matrix);
 
+// Wrap a raw distributed matrix into its wrapper.
 shp<DistributedVector> wrap(shp<VECTOREPETRA> vector);
 
 }

@@ -4,7 +4,8 @@ namespace RedMA
 {
 //
 BlockAssembler::
-BlockAssembler(const DataContainer& data, const TreeStructure& tree,
+BlockAssembler(const DataContainer& data,
+               const TreeStructure& tree,
                shp<DefaultAssemblers> defAssemblers) :
   aAssembler(data),
   M_tree(tree)
@@ -44,7 +45,8 @@ setDefaultAssemblers(shp<DefaultAssemblers> defAssemblers)
 
 void
 BlockAssembler::
-applyPiola(shp<aVector> solution, bool inverse)
+applyPiola(shp<aVector> solution,
+           bool inverse)
 {
     unsigned int count = 0;
     for (auto as : M_primalAssemblers)
@@ -58,7 +60,8 @@ applyPiola(shp<aVector> solution, bool inverse)
 
 void
 BlockAssembler::
-applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const
+applyDirichletBCsMatrix(shp<aMatrix> matrix,
+                        double diagCoeff) const
 {
     for (auto as : M_primalAssemblers)
         as.second->applyDirichletBCsMatrix(
@@ -80,7 +83,8 @@ apply0DirichletBCs(shp<aVector> initialGuess) const
 
 void
 BlockAssembler::
-applyDirichletBCs(const double& time, shp<aVector> initialGuess) const
+applyDirichletBCs(const double& time,
+                  shp<aVector> initialGuess) const
 {
     for (auto as : M_primalAssemblers)
         as.second->applyDirichletBCs(time,
@@ -110,7 +114,8 @@ getZeroVector() const
 
 void
 BlockAssembler::
-exportSolution(const double& t, const shp<aVector>& sol)
+exportSolution(const double& t,
+               const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)
         as.second->exportSolution(t,
@@ -141,7 +146,8 @@ setExtrapolatedSolution(const shp<aVector>& exSol)
 
 void
 BlockAssembler::
-postProcess(const double& t, const shp<aVector>& sol)
+postProcess(const double& t,
+            const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)
         as.second->postProcess(t, convert<BlockVector>(sol)->block(as.first));
@@ -152,7 +158,8 @@ postProcess(const double& t, const shp<aVector>& sol)
 
 shp<aMatrix>
 BlockAssembler::
-getMass(const double& time, const shp<aVector>& sol)
+getMass(const double& time,
+        const shp<aVector>& sol)
 {
     shp<BlockMatrix> mass(new BlockMatrix(M_numberBlocks, M_numberBlocks));
 
@@ -167,7 +174,8 @@ getMass(const double& time, const shp<aVector>& sol)
 
 shp<aMatrix>
 BlockAssembler::
-getMassJacobian(const double& time, const shp<aVector>& sol)
+getMassJacobian(const double& time,
+                const shp<aVector>& sol)
 {
     shp<BlockMatrix> massJacobian(new BlockMatrix(M_numberBlocks, M_numberBlocks));
 
@@ -182,7 +190,8 @@ getMassJacobian(const double& time, const shp<aVector>& sol)
 
 shp<aVector>
 BlockAssembler::
-getRightHandSide(const double& time, const shp<aVector>& sol)
+getRightHandSide(const double& time,
+                 const shp<aVector>& sol)
 {
     shp<BlockVector> rhs(new BlockVector(M_numberBlocks));
 
@@ -249,7 +258,8 @@ getNonLinearTerm()
 
 shp<aMatrix>
 BlockAssembler::
-getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
+getJacobianRightHandSide(const double& time,
+                         const shp<aVector>& sol)
 {
     shp<BlockMatrix> jac(new BlockMatrix(M_numberBlocks, M_numberBlocks));
 
@@ -285,78 +295,6 @@ getIDMeshTypeMap() const
     return retMap;
 }
 
-// void
-// BlockAssembler::
-// setup()
-// {
-//     typedef std::map<unsigned int, shp<TreeNode)>         NodesMap;
-//     typedef aAssembler                                    InnerAssembler;
-//     typedef std::vector<shp<TreeNode)>                    NodesVector;
-//
-//     printlog(GREEN, "[BlockAssembler] initializing block assembler ... \n", this->M_data.getVerbose());
-//
-//     NodesMap nodesMap = M_tree.getNodesMap();
-//     // allocate assemblers
-//     for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
-//     {
-//         shp<InnerAssembler) newAssembler;
-//         newAssembler = AssemblerFactory(this->M_data, it->second);
-//         newAssembler->setup();
-//         M_primalAssemblers[it->second->M_ID] = newAssembler;
-//     }
-//     // allocate interface assemblers
-//     unsigned int interfaceID = 0;
-//     for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
-//     {
-//         NodesVector children = it->second->M_children;
-//
-//         unsigned int countOutlet = 0;
-//         unsigned int myID = it->second->M_ID;
-//
-//         shp<InnerAssembler) fatherAssembler = M_primalAssemblers[myID];
-//
-//         unsigned int countChildren = 0;
-//         for (NodesVector::iterator itVector = children.begin();
-//              itVector != children.end(); itVector++)
-//         {
-//             if (*itVector)
-//             {
-//                 unsigned int otherID = (*itVector)->M_ID;
-//                 shp<InnerAssembler) childAssembler = M_primalAssemblers[otherID];
-//                 Interface newInterface(fatherAssembler, myID,
-//                                        childAssembler, otherID,
-//                                        interfaceID);
-//                 newInterface.M_indexOutlet = countChildren;
-//                 shp<InterfaceAssembler) inAssembler;
-//                 inAssembler.reset(new InterfaceAssembler(this->M_data, newInterface));
-//                 M_dualAssemblers.push_back(inAssembler);
-//                 interfaceID++;
-//             }
-//             countChildren++;
-//         }
-//     }
-//
-//     if (!std::strcmp(this->M_data("bc_conditions/inletdirichlet", "weak").c_str(),"weak"))
-//     {
-//         shp<InnerAssembler) inletAssembler = M_primalAssemblers[0];
-//
-//         // we set the inlet to child such that we are consistent with the normal orientation
-//         // with respect to flow direction
-//         Interface newInterface(nullptr, -1, inletAssembler, 0,
-//                                                interfaceID);
-//
-//         shp<InterfaceAssembler) inletInAssembler;
-//         inletInAssembler.reset(new InletInflowAssembler(this->M_data, newInterface));
-//
-//         M_dualAssemblers.push_back(inletInAssembler);
-//         interfaceID++;
-//     }
-//
-//     M_numberBlocks = M_primalAssemblers.size() + M_dualAssemblers.size();
-//
-//     printlog(GREEN, "done\n", this->M_data.getVerbose());
-// }
-
 void
 BlockAssembler::
 setup()
@@ -379,7 +317,7 @@ setup()
     }
 
     M_basesManager.reset(new RBBasesManager(M_data, M_comm, getIDMeshTypeMap()));
-    M_basesManager->load();
+    M_basesManager->loadSingularValues();
 
     for (auto& primalas : M_primalAssemblers)
     {
