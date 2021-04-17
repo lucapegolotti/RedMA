@@ -55,6 +55,7 @@ public:
     virtual shp<aVector> advanceDisp(const double &dt, const shp<BlockVector> &sol) override ;
 
     shp<aVector> computeExtrapolatedSolution();
+    virtual shp<aVector> getPreviousSolution() override;
 
 protected:
     std::vector<shp<BlockVector>>            M_prevSolutions;

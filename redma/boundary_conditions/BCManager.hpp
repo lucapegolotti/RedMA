@@ -56,7 +56,7 @@ public:
     double getNeumannJacobian(const double& time, const double& flag, const double& rate);
 
     void postProcess();
-
+    shp<VECTOREPETRA> computeBoundaryIndicator(shp<FESPACE> fespace) const;
     inline bool useStrongDirichlet() const {return M_strongDirichlet;}
 
 private:
@@ -77,9 +77,11 @@ private:
 
     shp<LifeV::BCHandler> createBCHandler0Dirichlet() const;
 
+
     void addInletBC(shp<LifeV::BCHandler> bcs,
                     std::function<double(double)> law) const;
-
+    static double fOne(const double& t, const double& x, const double& y,
+                       const double& z, const unsigned int& i);
     void parseNeumannData();
 
     shp<TreeNode>                                    M_treeNode;
@@ -92,6 +94,9 @@ private:
     unsigned int                                     M_wallFlag;
     unsigned int                                     M_inletRing;
     unsigned int                                     M_outletRing;
+
+
+
 
     // key is the outlet index (more than one for bifurcations)
     std::map<unsigned int,shp<WindkesselModel>>      M_models;

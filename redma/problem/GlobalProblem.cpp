@@ -69,6 +69,7 @@ solve()
     unsigned int count = 0;
     while (T - t > dt/2)
     {
+
         if (t < t0)
         {
             std::string msg = "[GlobalProblem] solving ramp"
@@ -95,7 +96,9 @@ solve()
             M_solutions.push_back(M_solution);
             M_timestepsSolutions.push_back(t);
         }
-        if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
+        if (abs(t-dt)<dt/2)
+            M_assembler->exportSolution(t-dt, M_TMAlgorithm->getPreviousSolution());
+        if ( saveEvery > 0 && count % saveEvery == 0)
             M_assembler->exportSolution(t, M_solution);
 
         M_assembler->postProcess(t, M_solution);

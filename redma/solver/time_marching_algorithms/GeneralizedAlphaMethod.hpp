@@ -53,6 +53,7 @@ public:
     virtual shp<aVector> getPreviousContribution() override;
     virtual shp<aVector> advanceDisp(const double &dt, const shp<BlockVector> &sol) override ;
     virtual void shiftSolutions(const shp<aVector>& sol) override;
+    virtual shp<aVector> getPreviousSolution() override;
 
 protected:
     shp<aVector> computesolnp1(shp<aVector> dersol, const double& dt);

@@ -239,4 +239,11 @@ namespace RedMA {
         return retVec;
     }
 
+    shp<aVector>
+    BDF::getPreviousSolution(){
+        return   M_prevSolutions.end()[-2];
+    }
+
+
+
 }

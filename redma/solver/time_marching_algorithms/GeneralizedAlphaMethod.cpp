@@ -167,5 +167,10 @@ GeneralizedAlphaMethod::
 advanceDisp(const double &dt, const shp<BlockVector> &sol) {
 
 }
+shp<aVector>
+GeneralizedAlphaMethod::
+getPreviousSolution() {
+
+}
 
 }

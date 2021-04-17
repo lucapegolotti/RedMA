@@ -34,7 +34,10 @@ namespace RedMA
       this->M_bcManager->apply0DirichletMatrix(*M_mass,this->getFESpaceBCs(),this->getComponentBCs(), 1.0);
 
       printlog(YELLOW, "[FSI]Mass matrix assembled ...\n", this->M_data.getVerbose());
+
+      M_boundaryIndicator = M_bcManager->computeBoundaryIndicator(M_velocityFESpace);
       this->setExporterDisplacement();
+
   }
   void
   FSIAssemblerFE::
@@ -71,9 +74,13 @@ namespace RedMA
 
 
         shp<aVector> retVec(M_BoundaryStiffness->multiplyByVector(sol));
-
+        double  dt = this->M_data("time_discretization/dt", 0.01);
+        retVec->multiplyByScalar(-dt * M_TMAlgorithm->getCoefficientExtrapolation());
         this->addForcingTerm(retVec);
         retVec->add(rhs);
+
+        this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec), this->getFESpaceBCs(),
+                                              this->getComponentBCs());
 
         return retVec;
         //return rhs;
@@ -134,7 +141,7 @@ namespace RedMA
                       myBDQR,
                       M_velocityFESpaceETA,
                       M_velocityFESpaceETA,
-                      -dt * M_TMAlgorithm->getCoefficientExtrapolation() * (
+                      (
                               2 * M_lameII *
                               0.5 * dot(
                                       (grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface))
@@ -174,9 +181,12 @@ namespace RedMA
     {
         shp<aMatrix> retMat = NavierStokesAssemblerFE::getJacobianRightHandSide(time, sol);
 
-        retMat->add(M_BoundaryStiffness);
+        shp<BlockMatrix> retMatcopy(new BlockMatrix(0,0));
+        retMatcopy->deepCopy(this->M_BoundaryStiffness);
 
-
+        double  dt = this->M_data("time_discretization/dt", 0.01);
+        retMatcopy->multiplyByScalar(-dt * M_TMAlgorithm->getCoefficientExtrapolation());
+        retMat->add(retMatcopy);
         this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(retMat), this->getFESpaceBCs(),this->getComponentBCs(), 0.0);
 
         return retMat;
@@ -200,6 +210,7 @@ namespace RedMA
 
         M_TMAlgorithm->shiftSolutions(Displacement);
         *M_displacementExporter = *spcast<VECTOREPETRA>(Displacement->block(0)->data());
+        *M_displacementExporter *= (*M_boundaryIndicator);
 
     }
     void

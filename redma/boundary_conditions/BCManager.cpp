@@ -16,6 +16,9 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
     M_wallFlag = treeNode->M_block->wallFlag();
     M_inletRing = 30;
     M_outletRing = 31;
+
+
+
 }
 
 void
@@ -234,5 +237,38 @@ constantFunction(const double& t, const double& x, const double& y,
 {
     return K;
 }
+
+
+    double
+    BCManager::
+    fOne(const double& t, const double& x, const double& y,
+         const double& z, const unsigned int& i)
+    {
+        return 1.0;
+    }
+
+    shp<VECTOREPETRA>
+    BCManager::
+    computeBoundaryIndicator(shp<FESPACE> fespace) const
+    {
+
+        shp<VECTOREPETRA> boundaryIndicator(new VECTOREPETRA(fespace->map()));
+        boundaryIndicator->zero();
+
+        LifeV::BCFunctionBase oneFunction(fOne);
+
+        shp<LifeV::BCHandler> bcs;
+        bcs.reset(new LifeV::BCHandler);
+
+
+        bcs->addBC("BC", M_wallFlag, LifeV::Essential, LifeV::Full, oneFunction, 3);
+
+        bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
+
+        bcManageRhs(*boundaryIndicator, *fespace->mesh(), fespace->dof(),
+                    *bcs, fespace->feBd(), 1.0, 0.0);
+
+        return boundaryIndicator;
+    }
 
 }

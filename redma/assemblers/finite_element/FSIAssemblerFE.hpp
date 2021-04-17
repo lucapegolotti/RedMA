@@ -43,6 +43,8 @@ namespace RedMA
 
         shp<VECTOREPETRA>                                 M_displacementExporter;
 
+        shp<VECTOREPETRA>                                M_boundaryIndicator;
+
         shp<BlockMatrix>                                  M_BoundaryStiffness;
         double                                            M_lameI;
         double                                            M_lameII;
