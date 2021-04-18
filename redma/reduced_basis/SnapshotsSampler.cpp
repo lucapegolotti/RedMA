@@ -105,7 +105,8 @@ dumpSnapshots(GlobalProblem& problem,
         std::string meshtypedir = outdir + "/" + idmeshtype.second;
         fs::create_directory(meshtypedir);
 
-        unsigned int nfields = solutions[0]->block(idmeshtype.first)->nRows();
+        //unsigned int nfields = solutions[0]->block(idmeshtype.first)->nRows();
+        unsigned int nfields = 3;
 
         for (unsigned int i = 0; i < nfields; i++)
         {
