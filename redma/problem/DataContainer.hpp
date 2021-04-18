@@ -177,13 +177,9 @@ public:
     double evaluateRamp(double time);
 
 protected:
-    /// Parse inflow from file.
-    std::vector<std::pair<double,double>> parseInflow(unsigned int flag = 0);
+    std::vector<std::pair<double,double>> parseInflow(std::string filename);
 
-    /*! \brief Generate M_inflow by calling parseInflow and then linearInterpolation
-     *         on the discrete values.
-     */
-    void generateInflow(unsigned int flag = 0);
+    void generateInflow(unsigned int flag, std::string inputfilename);
 
     /*! \brief Generate ramp based on the values specified in the time_discretization
      * section of M_datafile.

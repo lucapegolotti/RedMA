@@ -158,7 +158,8 @@ generateQuadratureRule(std::string tag) const
 }
 
 Interface::
-Interface()
+Interface() :
+  M_inletIndex(0)
 {
 }
 
@@ -172,9 +173,9 @@ Interface(shp<AssemblerType> assemblerFather,
   M_indexFather(indexFather),
   M_assemblerChild(assemblerChild),
   M_indexChild(indexChild),
-  M_ID(interfaceID)
+  M_ID(interfaceID),
+  M_inletIndex(0)
 {
-
 }
 
 InterfaceAssembler::
@@ -447,7 +448,7 @@ buildCouplingMatrices()
     auto asChild = M_interface.M_assemblerChild;
     if (asChild)
     {
-        GeometricFace inlet = asChild->getTreeNode()->M_block->getInlet(0);
+        GeometricFace inlet = asChild->getTreeNode()->M_block->getInlet(M_interface.M_inletIndex);
         // I invert the normal of the face such that it is the same as the outlet
         inlet.M_normal *= (-1.);
 

@@ -371,16 +371,22 @@ setup()
     {
         shp<InnerAssembler> inletAssembler = M_primalAssemblers[0];
 
-        // we set the inlet to child such that we are consistent with the normal orientation
-        // with respect to flow direction
-        Interface newInterface(nullptr, -1, inletAssembler, 0,
-                                               interfaceID);
+        unsigned int ninlets = inletAssembler->getTreeNode()->M_block->getInlets().size();
 
-        shp<InterfaceAssembler> inletInAssembler;
-        inletInAssembler.reset(new InletInflowAssembler(this->M_data, newInterface));
+        for (unsigned int i = 0; i < ninlets; i++)
+        {
+            // we set the inlet to child such that we are consistent with the normal orientation
+            // with respect to flow direction
+            Interface newInterface(nullptr, -1, inletAssembler, 0,
+                                                   interfaceID);
+            newInterface.M_inletIndex = i;
 
-        M_dualAssemblers.push_back(inletInAssembler);
-        interfaceID++;
+            shp<InterfaceAssembler> inletInAssembler;
+            inletInAssembler.reset(new InletInflowAssembler(this->M_data, newInterface));
+
+            M_dualAssemblers.push_back(inletInAssembler);
+            interfaceID++;
+        }
     }
 
     M_numberBlocks = M_primalAssemblers.size() + M_dualAssemblers.size();

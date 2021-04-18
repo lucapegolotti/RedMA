@@ -123,21 +123,34 @@ finalize()
     {
         generateRamp();
 
-        int ninlets = (*M_datafile)("bc_conditions/number_inlets", -1);
+        int ninlets = (*M_datafile)("bc_conditions/numinletbcs", -1);
         if (ninlets == -1)
-            generateInflow();
+        {
+            std::string inputfile = (*M_datafile)("bc_conditions/inflowfile",
+                                         "datafiles/inflow.txt");
+            generateInflow(0, inputfile);
+        }
         else
         {
-            throw new Exception("This case still needs to be implemented!");
+            for (unsigned int i = 0; i < ninlets; i++)
+            {
+                std::string path = "bc_conditions/inlet" + std::to_string(i);
+                std::string arg1 = path + "/flag";
+                unsigned int curflag = (*M_datafile)(arg1.c_str(), 0);
+                arg1 = path + "/inflowfile";
+                std::string arg2 = "datafiles/inflow" + std::to_string(i) + ".txt";
+                std::string inputfile = (*M_datafile)(arg1.c_str(),arg2.c_str());
+                generateInflow(curflag, inputfile);
+            }
         }
     }
 }
 
 void
 DataContainer::
-generateInflow(unsigned int flag)
+generateInflow(unsigned int flag, std::string inputfilename)
 {
-    auto flowValues = parseInflow();
+    auto flowValues = parseInflow(inputfilename);
 
     linearInterpolation(flowValues, M_inflows[flag]);
 }
@@ -193,18 +206,11 @@ linearInterpolation(const std::vector<std::pair<double,double>>& values,
 
 std::vector<std::pair<double, double>>
 DataContainer::
-parseInflow(unsigned int flag)
+parseInflow(std::string filename)
 {
     std::ifstream inflowfile;
+    inflowfile.open(filename);
 
-    if (flag == 0)
-        inflowfile.open((*M_datafile)("bc_conditions/inflowfile", "datafiles/inflow.txt"));
-    else
-    {
-        std::string filename = "bc_conditions/inflowfile" + std::to_string(flag);
-        std::string defaultval = "datafiles/inflow" + std::to_string(flag) + ".txt";
-        inflowfile.open((*M_datafile)(filename.c_str(), defaultval.c_str()));
-    }
 
     std::vector<std::pair<double, double>> flowValues;
     if (inflowfile.is_open())

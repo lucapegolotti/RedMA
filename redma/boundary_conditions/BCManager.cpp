@@ -9,7 +9,19 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
   M_treeNode(treeNode)
 {
     M_inflows = M_data.getInflows();
-    M_coefficientInflow = data("bc_conditions/coefficientinflow", 1.0);
+    if (M_inflows.size() > 1)
+    {
+        for (int indexInflow = 0; indexInflow < M_inflows.size(); indexInflow++)
+        {
+            std::string path = "bc_conditions/inlet" + std::to_string(indexInflow);
+            unsigned int curflag = data(path + "/flag", 0);
+            if (M_inflows.find(curflag) == M_inflows.end())
+                throw new Exception("Invalid bc_conditions/inlet*/flag in datafile!");
+            M_coefficientsInflow[curflag] = data(path + "/coefficient", 1.0);
+        }
+    }
+    else
+        M_coefficientsInflow[M_inflows.begin()->first] = data("bc_conditions/coefficientinflow", 1.0);
     parseNeumannData();
 
     M_wallFlag = treeNode->M_block->wallFlag();
@@ -56,7 +68,7 @@ addInletBC(shp<LifeV::BCHandler> bcs, const Law& law,
                              std::placeholders::_5,
                              inlet,
                              law,
-                             M_coefficientInflow);
+                             M_coefficientsInflow.find(inlet.M_flag)->second);
 
         LifeV::BCFunctionBase inflowFunction(foo);
         bcs->addBC("Inlet", inlet.M_flag, LifeV::Essential, LifeV::Full,
@@ -76,15 +88,19 @@ applyDirichletBCs(const double& time, BlockVector& input,
     if (M_inflows.find(0) != M_inflows.end())
     {
         Law inflow = M_inflows.find(0)->second;
-        addInletBC(bcs, inflow, M_treeNode->M_block->getInlet(0));
     }
     else
     {
         auto inlets = M_treeNode->M_block->getInlets();
         for (auto inlet : inlets)
-            addInletBC(bcs, M_inflows.find(inlet.M_flag)->second, inlet);
-    }
+        {
+            if (M_inflows.find(inlet.M_flag) == M_inflows.end())
+                throw new Exception("Inlet with flag " + std::to_string(inlet.M_flag) +
+                                    " was not set an inflowrate!");
 
+            addInletBC(bcs, M_inflows.find(inlet.M_flag)->second, inlet);
+        }
+    }
     bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
     shp<VECTOREPETRA> curVec(spcast<VECTOREPETRA>(input.block(index)->data()));

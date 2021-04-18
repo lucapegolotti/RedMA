@@ -160,10 +160,9 @@ private:
     unsigned int                                     M_inletRing;
     unsigned int                                     M_outletRing;
 
-    // key is the outlet index (more than one for bifurcations)
-    //std::map<unsigned int,shp<WindkesselModel>>      M_models;
 
-    double                                           M_coefficientInflow;
+    std::map<unsigned int, double>                   M_coefficientsInflow;
+
 };
 
 }
