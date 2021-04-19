@@ -26,16 +26,16 @@ outputdir = rb_solutions
 	[./offline]
 		[./snapshots]
 		    param_type           = inflow
-			number 			     = 50
+			number 			     = 1
 			bound 			     = 0.2
 			take_every 		     = 8
 			dumpbinary 		     = true
 			computereynolds      = true
 			seed 			     = 1234
 			a_min = 1
-			a_max = 2
+			a_max = 10
 			c_min = 1
-			c_max = 2
+			c_max = 10
 		[../]
 		[./basis]
 			directory  = basis

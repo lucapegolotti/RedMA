@@ -97,16 +97,15 @@ dumpSnapshots(GlobalProblem& problem,
     M_mass->dump("M_mass");
     M_stiffness->dump("M_stiffness");
 
-    for (auto sol : solutions)
-        problem.getBlockAssembler()->applyPiola(sol, true);
+    //for (auto sol : solutions)
+    //    problem.getBlockAssembler()->applyPiola(sol, true);
 
     for (auto idmeshtype : IDmeshTypeMap)
     {
         std::string meshtypedir = outdir + "/" + idmeshtype.second;
         fs::create_directory(meshtypedir);
 
-        //unsigned int nfields = solutions[0]->block(idmeshtype.first)->nRows();
-        unsigned int nfields = 3;
+        unsigned int nfields = solutions[0]->block(idmeshtype.first)->nRows();
 
         for (unsigned int i = 0; i < nfields; i++)
         {
@@ -162,6 +161,26 @@ dumpSnapshots(GlobalProblem& problem,
             file.close();
         }
     }
+
+    std::string outfilename = outdir + "/lagmult.snap";
+
+    std::ofstream outfile;
+    outfile.open(outfilename, omode);
+    unsigned int count = 0;
+    for (auto sol : solutions)
+    {
+        auto solBlck = convert<DistributedVector>(convert<BlockVector>(convert<BlockVector>(sol)->block(1))->block(0));
+        if (count % takeEvery == 0)
+        {
+            std::string str2write = solBlck->getString(',') + "\n";
+            if (M_comm->MyPID() == 0)
+                outfile.write(str2write.c_str(), str2write.size());
+        }
+
+        count++;
+    }
+    outfile.close();
+
 }
 
 void
