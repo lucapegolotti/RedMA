@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/tree2.xml
+	xmlfile = geometries/tree_fem.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -105,7 +105,7 @@ outputdir = rb_solutions
 
 [structure]
 	time_integration_order = 3
-	poisson      = 0.45
+	poisson      = 0.5
 	num_young    = 1
 	young    	 = 4.07e+6
 	thickness    = 0.1
@@ -124,7 +124,7 @@ outputdir = rb_solutions
 	rhoinf = 0.5
 	order = 2
 	extrapolation_order = 2
-	t0ramp = 0
+	t0ramp = -0.01
 	t0 = 0
 	T = 0.05
 	dt = 0.00025
@@ -144,7 +144,7 @@ outputdir = rb_solutions
 
 [coupling]
 	type                = chebyshev
-	nMax                = 15
+	nMax                = 5
 	stab_coefficient	= 1e-16
 	check_stabterm		= true
 	nfcts_weak_dirichlet = 10

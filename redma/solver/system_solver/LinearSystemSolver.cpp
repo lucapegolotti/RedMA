@@ -42,6 +42,9 @@ solve(const BM& matrix, const BV& rhs, BV& sol)
     if(!convert<BlockVector>(rhsSparse)->globalTypeIs(DISTRIBUTED))
         rhsSparse = convert<BlockVector>(rhsSparse)->convertInnerTo(DISTRIBUTED, M_comm);
 
+    //  blockMatrixToSparseMatrix(convert<BlockMatrix>(matrixSparse))->dump("matrixFEM");
+    // blockVectorToDenseVector(convert<BlockVector>(rhsSparse))->dump("rhsFEM");
+
     if (!M_maps)
         M_maps.reset(new BlockMaps(convert<BlockMatrix>(matrixSparse)));
     else
@@ -95,7 +98,7 @@ buildPreconditioner(const BM& matrix)
     M_statistics.M_precSetupTime = M_prec->getSetupTime();
 }
 
-/*void
+void
 LinearSystemSolver::
 computeSchurComplementDense(const BM& matrix)
 {
@@ -194,9 +197,9 @@ computeSchurComplementDense(const BM& matrix)
                     M_solversAs[i]->SetVectors(*resVector, *curVector);
                     M_solversAs[i]->Solve();
 
-                    *//*std::cout<<spcast<DENSEMATRIX>(M_collapsedAs[i]->data())->NormInf()<<std::endl<<std::flush;
+                    /*std::cout<<spcast<DENSEMATRIX>(M_collapsedAs[i]->data())->NormInf()<<std::endl<<std::flush;
                     std::cout<<curVector->NormInf()<<std::endl<<std::flush;
-                    std::cout<<resVector->NormInf()<<std::endl<<std::flush;*//*
+                    std::cout<<resVector->NormInf()<<std::endl<<std::flush;*/
 
                     shp<DENSEVECTOR> a(new DENSEVECTOR(currows));
                     spcast<DENSEMATRIX>(collapsedA->data())->Multiply(false, *resVector, *a);
@@ -239,9 +242,9 @@ computeSchurComplementDense(const BM& matrix)
 
     M_schurComplementColl = blockMatrixToDenseMatrix(schurComplement);
     M_schurSolver.SetMatrix(*spcast<DENSEMATRIX>(M_schurComplementColl->data()));
-}*/
+}
 
-/*void
+void
 LinearSystemSolver::
 solveDense(const BM& matrix, const BV& rhs, BV& sol)
 {
@@ -257,7 +260,7 @@ solveDense(const BM& matrix, const BV& rhs, BV& sol)
          Epetra_SerialDenseSolver monolithicSolver;
 
          shp<DenseVector> rhsCollapsed = blockVectorToDenseVector(convert<BlockVector>(rhs));
-         rhsCollapsed->dump("rhs");
+         // rhsCollapsed->dump("rhs");
 
          msg = " size of linear system = ";
          msg += std::to_string(rhsCollapsed->nRows());
@@ -267,7 +270,7 @@ solveDense(const BM& matrix, const BV& rhs, BV& sol)
          convert<BlockMatrix>(matrix)->printPattern();
          shp<DenseMatrix> matrixCollapsed = blockMatrixToDenseMatrix(convert<BlockMatrix>(matrix));
          DENSEVECTOR solCollapsedDense(rhsCollapsed->nRows());
-         matrixCollapsed->dump("matrix");
+         // matrixCollapsed->dump("matrix");
          // std::cout << "matrixCollapsed " << spcast<DENSEMATRIX>(matrixCollapsed->data())->NormInf() << std::endl << std::flush;
          // std::cout << "rhsCollapsed " << spcast<DENSEVECTOR>(rhsCollapsed->data())->NormInf() << std::endl << std::flush;
          // std::cout << "nRows " << rhsCollapsed->nRows() << std::endl << std::flush;
@@ -282,14 +285,14 @@ solveDense(const BM& matrix, const BV& rhs, BV& sol)
          // std::cout << "code = " << monolithicSolver.Factor() << std::endl << std::flush;
 
          monolithicSolver.SetVectors(solCollapsedDense, vv);
-         //std::cout << "code = " << monolithicSolver.Solve() << std::endl << std::flush;
+         std::cout << "Solver Status: " << monolithicSolver.Solve() << std::endl << std::flush;
          // std::cout << spcast<DENSEMATRIX>(matrixCollapsed->data())->NormInf() << std::endl << std::flush;
-         //std::cout << "solCollapsed " << solCollapsedDense.NormInf() << std::endl << std::flush;
+         // std::cout << "solCollapsed " << solCollapsedDense.NormInf() << std::endl << std::flush;
 
          exit(1);
 
-         // // we need to recast the solCollapsed into a block vector with the same structure
-         // // as the matrix
+         // we need to recast the solCollapsed into a block vector with the same structure
+         // as the matrix
          // std::cout << "sol norm = " << sol->norm2() << std::endl << std::flush;
          // shp<BlockVector> solBV = convert<BlockVector>(sol);
          // std::cout << "sol norm = " << solCollapsedDense->Norm2() << std::endl << std::flush;
@@ -301,7 +304,6 @@ solveDense(const BM& matrix, const BV& rhs, BV& sol)
          // aux->multiplyByScalar(-1);
          // aux->add(rhs);
          // std::cout << "residual = " << aux->norm2() << std::endl << std::flush;
-         // exit(1);
      }
      else
      {
@@ -424,9 +426,9 @@ solveDense(const BM& matrix, const BV& rhs, BV& sol)
      msg += std::to_string(chrono.diff());
      msg += " seconds\n";
      printlog(YELLOW, msg, this->M_data.getVerbose());
- }*/
+ }
 
-/*void
+void
 LinearSystemSolver::
 convertVectorType(const shp<BlockMatrix>& matrix,
                const shp<DenseVector>& vector,
@@ -450,7 +452,7 @@ convertVectorType(const shp<BlockMatrix>& matrix,
      }
      targetVector->setBlock(i, iVector);
     }
-}*/
+}
 
 }
 

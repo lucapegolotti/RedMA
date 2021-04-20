@@ -133,8 +133,8 @@ private:
     DataContainer                                                     M_data;
     EPETRACOMM                                                        M_comm;
     std::vector<std::vector<shp<VECTOREPETRA>>>                       M_bases;
-    std::vector<shp<SparseMatrix>>                                             M_enrichedBasesMatrices;
-    std::vector<shp<SparseMatrix>>                                             M_enrichedBasesMatricesTransposed;
+    std::vector<shp<SparseMatrix>>                                    M_enrichedBasesMatrices;
+    std::vector<shp<SparseMatrix>>                                    M_enrichedBasesMatricesTransposed;
     // this is a grid because the row indicates the field to be augmented (velocity)
     // and the column indicates the constraining field (pressure)
     GridVectors                                                       M_primalSupremizers;
@@ -153,8 +153,8 @@ private:
     // when we rescale with piola)
     std::map<unsigned int,std::map<unsigned int,
                           std::vector<shp<VECTOREPETRA>>>>            M_enrichedBasesMap;
-    std::map<unsigned int,std::map<unsigned int,shp<SparseMatrix>>>            M_enrichedBasesMatricesMap;
-    std::map<unsigned int,std::map<unsigned int,shp<SparseMatrix>>>            M_enrichedBasesMatricesTransposedMap;
+    std::map<unsigned int,std::map<unsigned int,shp<SparseMatrix>>>   M_enrichedBasesMatricesMap;
+    std::map<unsigned int,std::map<unsigned int,shp<SparseMatrix>>>   M_enrichedBasesMatricesTransposedMap;
 };
 
 }  // namespace RedMA

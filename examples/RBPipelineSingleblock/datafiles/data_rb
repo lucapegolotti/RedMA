@@ -64,14 +64,14 @@ outputdir = rb_solutions
 	[../]
 	[./online]
 		usemdeim = false
-		monolithicSolve = false
+		monolithicSolve = true
 		recomputeSchur = false
 		approximatenonlinearterm = 0
 		numbernonlinearterms = 30
 		[./basis]
 			directory = basis
-			podtol_field0 = 1e-4
-			podtol_field1 = 1e-4
+			podtol_field0 = 1e-3
+			podtol_field1 = 1e-3
 			useprimalsupremizers = 0
 			usedualsupremizers = 0
 		[../]

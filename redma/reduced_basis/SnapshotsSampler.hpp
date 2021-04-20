@@ -31,7 +31,7 @@ class SnapshotsSampler
 public:
     SnapshotsSampler(const DataContainer& data, EPETRACOMM comm);
 
-    void takeSnapshots();
+    void takeSnapshots(const unsigned int& Nstart = 0);
 
     void dumpSnapshots(GlobalProblem& problem, std::string outdir);
 

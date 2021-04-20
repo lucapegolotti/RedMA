@@ -12,7 +12,7 @@ ChebyshevBasisFunction(const GeometricFace& face,
     M_nMax = nMax;
     M_R = face.M_radius;
 
-    for (int n = 0; n <= nMax; n++)
+    for (int n = 0; n <= M_nMax; n++)
     {
         for (int k = 0; k <= n; k++)
         {

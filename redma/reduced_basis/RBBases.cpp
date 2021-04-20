@@ -166,7 +166,7 @@ loadBases()
             }
         }
 
-        // load bases
+        // load dual supremizers
         for (unsigned int i = 0; i < M_numFields; i++)
         {
             addVectorsFromFile(M_path + "/dual_supremizers" + std::to_string(i) + ".basis",
@@ -184,6 +184,8 @@ loadBases()
             shp<SparseMatrix> curBasisMatrix(new SparseMatrix(curBasis));
             M_enrichedBasesMatrices.push_back(curBasisMatrix);
             M_enrichedBasesMatricesTransposed.push_back(spcast<SparseMatrix>(curBasisMatrix->transpose()));
+            
+            // curBasisMatrix->dump("Basis_"+std::to_string(i));
         }
 
         print();
