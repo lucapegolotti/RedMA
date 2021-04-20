@@ -314,7 +314,8 @@ dump(std::string filename) const
     {
         for (unsigned int j = 0; j < nCols(); j++)
         {
-            M_matrixGrid(i,j)->dump(filename + "block_" + std::to_string(i) + "_" + std::to_string(j));
+            if (!M_matrixGrid(i,j)->isZero())
+                M_matrixGrid(i,j)->dump(filename + "_block_" + std::to_string(i) + "_" + std::to_string(j));
         }
     }
 }
