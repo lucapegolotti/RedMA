@@ -252,7 +252,6 @@ setup()
     M_childB.reset(new BlockMatrix(0,0));
     buildCouplingMatrices();
     M_childBT->dump("couplingBT");
-    //M_fatherB->dump("couplingB");
 
     std::string msg = "done, in ";
     msg += std::to_string(chrono.diff());
