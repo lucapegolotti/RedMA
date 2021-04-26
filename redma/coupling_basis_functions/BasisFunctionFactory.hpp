@@ -28,6 +28,7 @@
 #include <redma/coupling_basis_functions/ChebyshevBasisFunction.hpp>
 #include <redma/coupling_basis_functions/FourierBasisFunction.hpp>
 #include <redma/coupling_basis_functions/ZernikeBasisFunction.hpp>
+#include <redma/coupling_basis_functions/FourierRingBasisFunction.hpp>
 
 #include <redma/utils/Exception.hpp>
 
@@ -35,7 +36,8 @@ namespace RedMA
 {
 
 shp<BasisFunctionFunctor>
-BasisFunctionFactory(const GetPot& datafile, GeometricFace inlet, bool isBoundary = false);
+BasisFunctionFactory(const GetPot& datafile, GeometricFace inlet,
+                     bool isBoundary = false, bool isRing = false);
 
 }  // namespace RedMA
 

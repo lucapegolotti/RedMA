@@ -90,8 +90,6 @@ void
 MatricesGenerator::
 createDefaultAssemblers()
 {
-    // using namespace boost::filesystem;
-
     std::string snapshotsdir = M_data("rb/offline/snapshots/directory", "snapshots");
 
     if (!fs::exists(snapshotsdir))
@@ -133,7 +131,6 @@ createDefaultAssemblers()
                 }
             }
         }
-
         i++;
     }
     printlog(MAGENTA, "done\n", M_data.getVerbose());
@@ -151,8 +148,6 @@ generateDefaultTreeNode(const std::string& nameMesh)
     {
         throw new Exception("MatricesGenerator: this branch must still be implemented");
     }
-
-    return nullptr;
 }
 
 shp<TreeNode>

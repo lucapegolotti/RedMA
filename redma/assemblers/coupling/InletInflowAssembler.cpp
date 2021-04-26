@@ -18,7 +18,6 @@ addContributionJacobianRhs(const double& time,
                            shp<BlockVector> sol,
                            const unsigned int& nPrimalBlocks)
 {
-    unsigned int fatherID = this->M_interface.M_indexFather;
     unsigned int childID = this->M_interface.M_indexChild;
     unsigned int interfaceID = this->M_interface.M_ID;
 

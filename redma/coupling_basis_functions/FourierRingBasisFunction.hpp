@@ -14,34 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef FOURIERBASISFUNCTION_HPP
-#define FOURIERBASISFUNCTION_HPP
+#ifndef FOURIERRINGBASISFUNCTION_HPP
+#define FOURIERRINGBASISFUNCTION_HPP
 
 #include <redma/coupling_basis_functions/BasisFunctionFunctor.hpp>
 
-namespace RedMA
-{
+namespace RedMA {
 
-class FourierBasisFunction : public BasisFunctionFunctor
+class FourierRingBasisFunction : public BasisFunctionFunctor
 {
 public:
-    FourierBasisFunction(const GeometricFace& face,
-                         unsigned int nFrequenciesTheta,
-                         unsigned int nFrequenciesRadial);
+    FourierRingBasisFunction(const GeometricFace& face,
+                             int nFrequenciesTheta);
 
     return_Type operator()(const Vector3D& pos);
 
 private:
-    unsigned int                M_nFrequenciesTheta;
-    unsigned int                M_nFrequenciesRadial;
+    int                         M_nFrequenciesTheta;
     std::vector<double>         M_thetaFreq;
-    std::vector<double>         M_radialFreq;
     std::vector<double>         M_thetaPhase;
-    std::vector<double>         M_radialPhase;
     std::vector<unsigned int>   M_auxIndicesTheta;
-    std::vector<unsigned int>   M_auxIndicesRadial;
+
+    double                      M_sigmaRadial;
 };
 
-}  // namespace RedMA
+} // Namespace RedMA
 
-#endif  // FOURIERBASISFUNCTION_HPP
+
+#endif // FOURIERRINGBASISFUNCTION_HPP

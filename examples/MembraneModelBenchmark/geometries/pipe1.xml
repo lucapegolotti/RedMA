@@ -10,6 +10,6 @@
     <rotation_axis_x>0</rotation_axis_x>
     <rotation_axis_y>0</rotation_axis_y>
     <rotation_axis_z>0</rotation_axis_z>
-    <scale>1</scale>
+    <scale>2</scale>
     <use_linear_elasticity>0</use_linear_elasticity>
 </buildingblock>

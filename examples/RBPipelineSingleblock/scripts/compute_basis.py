@@ -128,10 +128,12 @@ norm_pressure_nobcs = read_matrix(matrix_dir + '/' + mesh_name + '/norm1_nobcs.m
 if generate_velocity:
     U = generate_basis(0, nsnapshots, norm_velocity_nobcs, tol_velocity)
 else:
+    print("===== IMPORTING BASIS FIELD 0 ====", flush=True)
     U = np.genfromtxt(out_dir + '/' + mesh_name + '/field0.basis', delimiter=',').T
 if generate_pressure:
     P = generate_basis(1, nsnapshots, norm_pressure_nobcs, tol_pressure)
 else:
+    print("===== IMPORTING BASIS FIELD 1 ====", flush=True)
     P = np.genfromtxt(out_dir + '/' + mesh_name + '/field1.basis', delimiter=',').T
 
 if generate_primal_supremizers:
@@ -166,8 +168,10 @@ if generate_primal_supremizers:
     np.savetxt(out_dir + '/' + mesh_name + '/primal_supremizers_0_1.basis', supr_primal.T, fmt='%.16g', delimiter=',')
 elif generate_dual_supremizers:
     try:
+        print("===== IMPORTING PRIMAL SUPREMIZERS ====", flush=True)
         supr_primal = np.genfromtxt(out_dir + '/' + mesh_name + '/primal_supremizers_0_1.basis', delimiter=',').T
     except (FileNotFoundError, OSError):
+        print("===== PRIMAL SUPREMIZERS IMPORT FAILED ====", flush=True)
         supr_primal = np.zeros(0)
 
 if generate_dual_supremizers:

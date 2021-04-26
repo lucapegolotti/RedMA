@@ -155,62 +155,6 @@ generateQuadratureRule(std::string tag) const
     return customRule;
 }
 
-/*shp<LifeV::QuadratureRule>
-InterfaceAssembler::
-generate1DQuadratureRule(std::string tag) const
-{
-    using namespace LifeV;
-
-    shp<QuadratureRule> customRule;
-    if (!std::strcmp(tag.c_str(),"CC_09"))
-    {
-        // rule taken from https://people.sc.fsu.edu/~jburkardt/datasets/quadrature_rules_clenshaw_curtis/quadrature_rules_clenshaw_curtis.html
-        customRule.reset(new QuadratureRule("CC_09",LINE, 3,
-                                              8, 0));
-
-        QuadraturePoint p1(0.000000000000000,0.,0,
-                           0.007936507936508);
-        customRule->addPoint(p1);
-
-        QuadraturePoint p2(0.038060233744357,0.,0,
-                           0.073109324608009);
-        customRule->addPoint(p2);
-
-        QuadraturePoint p3(0.146446609406726,0.,0,
-                           0.13968253968254);
-        customRule->addPoint(p3);
-
-        QuadraturePoint p4(0.308658283817455,0.,0,
-                           0.180858929360245);
-        customRule->addPoint(p4);
-
-        QuadraturePoint p5(0.500000000000000,0.,0,
-                           0.196825396825397);
-        customRule->addPoint(p5);
-
-        QuadraturePoint p6(0.691341716182545,0.,0,
-                           0.180858929360245);
-        customRule->addPoint(p6);
-
-        QuadraturePoint p7(0.853553390593274,0.,0,
-                           0.13968253968254);
-        customRule->addPoint(p7);
-
-        QuadraturePoint p8(0.961939766255643,0.,0,
-                           0.073109324608009);
-        customRule->addPoint(p8);
-
-        QuadraturePoint p9(1.000000000000000,0.,0,
-                           0.007936507936508);
-        customRule->addPoint(p9);
-    }
-    else
-    {
-        throw new Exception("Quadrature rule " + tag + " not implemented!");
-    }
-    return customRule;
-}*/
-
 Interface::
 Interface()
 {
@@ -290,7 +234,6 @@ buildCouplingVectors(shp<BasisFunctionFunctor> bfs,
     QuadratureBoundary boundaryQuadRule(buildTetraBDQR
                                         (*generateQuadratureRule("STRANG10")));
 
-
     unsigned int nBasisFunctions = bfs->getNumBasisFunctions();
 
     std::vector<shp<DistributedVector>> couplingVectors(3 * nBasisFunctions);
@@ -306,11 +249,9 @@ buildCouplingVectors(shp<BasisFunctionFunctor> bfs,
     // this must be changed for scalar problems (e.g. laplacian)
     for (unsigned int dim = 0; dim < 3; dim++)
     {
-        versor[0] = 0.;
-        versor[1] = 0.;
-        versor[2] = 0.;
-
+        versor *= 0.;
         versor[dim] = 1.;
+
         for (unsigned int i = 0; i < nBasisFunctions; i++)
         {
             shp<VECTOREPETRA> currentMode(new VECTOREPETRA(map, LifeV::Repeated));
@@ -342,19 +283,30 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
 {
     shp<BasisFunctionFunctor> bfs;
 
-    bfs = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet);
+    matrixT->resize(assembler->getNumComponents(),1);
+    matrix->resize(1, assembler->getNumComponents());
+
+    // 1) add disk basis functions
+    bfs = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet, false);
 
     std::vector<shp<DistributedVector>> couplingVectors;
     couplingVectors = buildCouplingVectors(bfs, face, assembler);
 
-    matrixT->resize(assembler->getNumComponents(),1);
-    matrix->resize(1,assembler->getNumComponents());
-    // we assume that the first field is the one to be coupled
+    // 2) add extra basis function on the disk ring, if necessary
+    bfs = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet, true);
 
+    std::vector<shp<DistributedVector>> ringCouplingVectors;
+    ringCouplingVectors = buildCouplingVectors(bfs, face, assembler);
+
+    couplingVectors.insert(couplingVectors.end(),
+                           ringCouplingVectors.begin(), ringCouplingVectors.end());
+
+    // assembling coupling matrices
     shp<SparseMatrix> couplingMatrix(new SparseMatrix(couplingVectors));
     matrixT->setBlock(0,0,couplingMatrix);
     matrix->setBlock(0,0,couplingMatrix->transpose());
 
+    // imposing BCs on the transpose coupling matrix only
     assembler->getBCManager()->apply0DirichletMatrix(*matrixT,
                                                      assembler->getFESpaceBCs(),
                                                      assembler->getComponentBCs(),
