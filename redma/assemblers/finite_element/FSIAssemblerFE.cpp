@@ -39,6 +39,7 @@ namespace RedMA
       this->setExporterDisplacement();
 
   }
+
   void
   FSIAssemblerFE::
   addFSIMassMatrix(shp<aMatrix> mat)
@@ -114,7 +115,10 @@ namespace RedMA
 
     }
 
-
+    shp<BlockMatrix> FSIAssemblerFE::
+    returnBoundaryStiffness()const{
+      return M_BoundaryStiffness;
+  }
     void
     FSIAssemblerFE::
     getBoundaryStiffnessMatrix() const
@@ -160,7 +164,6 @@ namespace RedMA
                                                      this->getComponentBCs(), 0.0);
 
 
-
     }
     void
     FSIAssemblerFE::
@@ -202,7 +205,7 @@ namespace RedMA
         double  dt = this->M_data("time_discretization/dt", 0.01);
 
         shp<BlockVector> Displacement(new BlockVector(this->M_nComponents));
-        M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol));
+        M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol));//?????
 
 
         Displacement->deepCopy(M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol)));

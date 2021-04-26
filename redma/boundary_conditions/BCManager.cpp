@@ -25,8 +25,13 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
     parseNeumannData();
 
     M_wallFlag = treeNode->M_block->wallFlag();
-    M_inletRing = 30;
-    M_outletRing = 31;
+    //M_inletRing = 30;
+    //M_outletRing = 31;
+    for(auto in_face: treeNode->M_block->getInlets())  //dubbi che funzioni con più blocchi
+        M_inletRing.push_back(in_face.M_diskFlag);
+    for (auto out_face:treeNode->M_block->getOutlets())
+        M_outletRing.push_back(out_face.M_diskFlag);
+
 
 
 
@@ -179,9 +184,11 @@ createBCHandler0Dirichlet() const
                    LifeV::Full, zeroFunction, 3);
     }
     else{
-     bcs->addBC("InletRing", M_inletRing, LifeV::EssentialEdges, //flag ring
+        for (auto in_face: M_inletRing)
+            bcs->addBC("InletRing", in_face, LifeV::EssentialEdges, //flag ring
                 LifeV::Full, zeroFunction, 3);
-     bcs->addBC("OutletRing", M_outletRing, LifeV::EssentialEdges,
+        for (auto out_face:M_outletRing)
+            bcs->addBC("OutletRing", out_face, LifeV::EssentialEdges,
                 LifeV::Full, zeroFunction, 3);
     }
     return bcs;

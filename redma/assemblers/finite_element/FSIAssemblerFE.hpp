@@ -34,7 +34,7 @@ namespace RedMA
                                             const shp<aVector>& sol) override;
 
       void addForcingTerm(const shp<aVector> & rhs  ) const;
-
+      shp<BlockMatrix> returnBoundaryStiffness()const;
       void postProcess(const double& time, const shp<aVector>& sol) override;
       void setExporterDisplacement();
 

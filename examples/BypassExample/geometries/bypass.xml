@@ -1,4 +1,4 @@
-<buildingblock type="bypass" assembler="navierstokessupg" method="fem">
+<buildingblock type="bypass" assembler="navierstokesfsi" method="fem">
     <L_ratio>1</L_ratio>
     <Rout_ratio>1</Rout_ratio>
     <alpha_axis>0</alpha_axis>

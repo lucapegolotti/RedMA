@@ -157,8 +157,8 @@ private:
 
     std::vector<unsigned int>                        M_inletFlags;
     unsigned int                                     M_wallFlag;
-    unsigned int                                     M_inletRing;
-    unsigned int                                     M_outletRing;
+    std::vector<unsigned int>                        M_inletRing;
+    std::vector<unsigned int>                        M_outletRing;
 
 
     std::map<unsigned int, double>                   M_coefficientsInflow;

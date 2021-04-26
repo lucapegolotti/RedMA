@@ -57,7 +57,7 @@ AssemblerFactory(const DataContainer& data,
         }
         else if (!std::strcmp(method.c_str(),"rb"))
         {
-            //to do
+            ret.reset(new FSIAssemblerRB(data, treeNode));
         }
     }
     else if (!std::strcmp(assemblerType.c_str(),"navierstokesfsisupg"))

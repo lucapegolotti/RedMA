@@ -9,7 +9,7 @@ Bypass(EPETRACOMM comm, std::string name, bool verbose) :
 {
     M_name = name;
     M_datafileName = "data_mesh";
-    M_meshName = "others/bypass_coarse.mesh";
+    M_meshName = "others/bypass_coarse_fluid.mesh";
 
     // center of inlet (reference configuration)
     M_inletCenterRef1[0] = -7.06006787;
