@@ -26,6 +26,7 @@
 #include <cmath>
 #include <iomanip>
 #include <fstream>
+#include <random>
 
 namespace RedMA
 {

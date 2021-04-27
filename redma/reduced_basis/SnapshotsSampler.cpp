@@ -285,12 +285,13 @@ std::vector<double>
 SnapshotsSampler::
 inflowSnapshots(double a_min = 0.0, double a_max = 1.0, double c_min = 0.0, double c_max = 1.0)
 {
-    std::default_random_engine generator;
-    std::uniform_real_distribution<double> distribution_a(a_min,a_max);
-    std::uniform_real_distribution<double> distribution_c(c_min,c_max);
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_real_distribution<> distribution_a(a_min, a_max);
+    std::uniform_real_distribution<> distribution_c(c_min, c_max);
     std::vector<double> vec(2);
-    vec[0] = distribution_a(generator);
-    vec[1] = distribution_c(generator);
+    vec[0] = distribution_a(gen);
+    vec[1] = distribution_c(gen);
     return vec;
 }
 
