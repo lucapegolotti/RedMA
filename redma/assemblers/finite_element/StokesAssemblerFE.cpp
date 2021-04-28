@@ -380,48 +380,48 @@ getNorm(const unsigned int& fieldIndex,
     shp<SparseMatrix> retMat(new SparseMatrix);
     if (fieldIndex == 0)
     {
-        // if (!M_massVelocity.data())
-        // {
-            shp<MATRIXEPETRA> Nu(new MATRIXEPETRA(M_velocityFESpace->map()));
+        shp<MATRIXEPETRA> Nu(new MATRIXEPETRA(M_velocityFESpace->map()));
 
-            integrate(elements(M_velocityFESpaceETA->mesh()),
-                      M_velocityFESpace->qr(),
-                      M_velocityFESpaceETA,
-                      M_velocityFESpaceETA,
-                      dot(phi_i, phi_j) +
-                      dot(grad(phi_i),grad(phi_j))
-                  ) >> Nu;
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                  M_velocityFESpace->qr(),
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  dot(phi_i, phi_j) +
+                  dot(grad(phi_i),grad(phi_j))
+              ) >> Nu;
 
-            Nu->globalAssemble();
+        Nu->globalAssemble();
 
-            if (bcs)
-            {
-                shp<BlockMatrix> normWrap(new BlockMatrix(1,1));
-                normWrap->setBlock(0,0,wrap(Nu));
+        if (bcs)
+        {
+            shp<BlockMatrix> normWrap(new BlockMatrix(1,1));
+            normWrap->setBlock(0,0,wrap(Nu));
 
-                // note. Applying bcs does not change the norm if Dirichlet bcs are
-                // homogeneous (=> lifting) or imposed weakly. Here we impose bcs
-                // in order to have the correct conditions in the computation of the
-                // supremizers (we have to solve a linear system..)
-                M_bcManager->apply0DirichletMatrix(*normWrap, M_velocityFESpace, 0, 1.0);
-            }
+            // Note: applying bcs does not change the norm if Dirichlet bcs are
+            // homogeneous (=> lifting) or imposed weakly. Here we impose bcs
+            // in order to have the correct conditions in the computation of the
+            // supremizers (we have to solve a linear system...)
+            M_bcManager->apply0DirichletMatrix(*normWrap, M_velocityFESpace,
+                                               0, 1.0,
+                                               !(this->M_addNoSlipBC));
+        }
 
-            retMat->setMatrix(Nu);
+        retMat->setMatrix(Nu);
     }
     else
     {
-            shp<MATRIXEPETRA> Np(new MATRIXEPETRA(M_pressureFESpace->map()));
+        shp<MATRIXEPETRA> Np(new MATRIXEPETRA(M_pressureFESpace->map()));
 
-            integrate(elements(M_pressureFESpaceETA->mesh()),
-                      M_pressureFESpace->qr(),
-                      M_pressureFESpaceETA,
-                      M_pressureFESpaceETA,
-                      phi_i * phi_j
-                  ) >> Np;
+        integrate(elements(M_pressureFESpaceETA->mesh()),
+                  M_pressureFESpace->qr(),
+                  M_pressureFESpaceETA,
+                  M_pressureFESpaceETA,
+                  phi_i * phi_j
+              ) >> Np;
 
-            Np->globalAssemble();
+        Np->globalAssemble();
 
-            retMat->setMatrix(Np);
+        retMat->setMatrix(Np);
     }
 
     return retMat;
@@ -602,7 +602,9 @@ assembleStiffness(shp<BCManager> bcManager)
     A->globalAssemble();
     stiffness->setBlock(0,0, wrap(A));
 
-    bcManager->apply0DirichletMatrix(*stiffness, M_velocityFESpace, 0, 0.0, !(this->M_addNoSlipBC));
+    bcManager->apply0DirichletMatrix(*stiffness, M_velocityFESpace,
+                                     0, 0.0,
+                                     !(this->M_addNoSlipBC));
     return stiffness;
 }
 
@@ -626,7 +628,9 @@ assembleMass(shp<BCManager> bcManager)
     M->globalAssemble();
     mass->setBlock(0,0, wrap(M));
 
-    bcManager->apply0DirichletMatrix(*mass, M_velocityFESpace, 0, 1.0, !(this->M_addNoSlipBC));
+    bcManager->apply0DirichletMatrix(*mass, M_velocityFESpace,
+                                     0, 1.0,
+                                     !(this->M_addNoSlipBC));
 
     return mass;
 }
@@ -666,7 +670,9 @@ assembleDivergence(shp<BCManager> bcManager)
     divergence->setBlock(0,1, wrap(BT));
     divergence->setBlock(1,0, wrap(B));
 
-    bcManager->apply0DirichletMatrix(*divergence, M_velocityFESpace, 0, 0.0, !(this->M_addNoSlipBC));
+    bcManager->apply0DirichletMatrix(*divergence, M_velocityFESpace,
+                                     0, 0.0,
+                                     !(this->M_addNoSlipBC));
 
     return divergence;
 }

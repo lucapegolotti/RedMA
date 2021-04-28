@@ -82,8 +82,6 @@ namespace RedMA {
         if (!M_exporter)
             StokesAssemblerFE::setExporter();
 
-        double t0 = M_data("time_discretization/t0", 0.0);
-
         CoutRedirecter ct1;
         ct1.redirect();
 
@@ -100,12 +98,13 @@ namespace RedMA {
 
         printlog(CYAN, ct1.restore(), false);
 
-        CoutRedirecter ct2;
+        /*CoutRedirecter ct2;
         ct2.redirect();
 
+        double t0 = M_data("time_discretization/t0", 0.0);
         M_exporter->postProcess(t0);
 
-        printlog(CYAN, ct2.restore());
+        printlog(CYAN, ct2.restore());*/
     }
 
     shp<aMatrix>

@@ -11,8 +11,8 @@ outputdir = rb_solutions
 [../]
 
 [assembler]
-	type = navierstokessupg_membrane
-	stabilization = supg
+	type = navierstokes_membrane
+	stabilization = none
 [../]
 
 [bc_conditions]
@@ -72,8 +72,8 @@ outputdir = rb_solutions
 			directory = basis
 			podtol_field0 = 1e-3
 			podtol_field1 = 1e-3
-			useprimalsupremizers = 0
-			usedualsupremizers = 0
+			useprimalsupremizers = 1
+			usedualsupremizers = 1
 		[../]
 		[./mdeim]
 			loadfullbasis   = true
@@ -97,7 +97,7 @@ outputdir = rb_solutions
 [../]
 
 [fluid]
-	velocity_order = P1
+	velocity_order = P2
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1.06
@@ -126,7 +126,7 @@ outputdir = rb_solutions
 	extrapolation_order = 2
 	t0ramp = -0.01
 	t0 = 0
-	T = 0.05
+	T = 0.1
 	dt = 0.00025
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt

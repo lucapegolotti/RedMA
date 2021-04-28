@@ -171,7 +171,6 @@ loadBases()
         {
             addVectorsFromFile(M_path + "/dual_supremizers" + std::to_string(i) + ".basis",
                                M_dualSupremizers[i], i);
-
         }
 
         for (unsigned i = 0; i < M_numFields; i++)

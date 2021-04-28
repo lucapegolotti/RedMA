@@ -49,8 +49,8 @@ generate()
     }
 
     // dump matrices for supremizers
-    unsigned int field2augment = M_data("rb/offline/basis/primal_supremizers/field2augment", 0);
-    unsigned int limitingfield = M_data("rb/offline/basis/primal_supremizers/limitingfield", 1);
+    // unsigned int field2augment = M_data("rb/offline/basis/primal_supremizers/field2augment", 0);
+    // unsigned int limitingfield = M_data("rb/offline/basis/primal_supremizers/limitingfield", 1);
 
     for (auto& meshas : M_meshASPairMap)
     {
@@ -58,7 +58,7 @@ generate()
         convert<SparseMatrix>(constraintMatrix)->dump(outdir + "/" + meshas.first + "/primalConstraint");
     }
 
-    field2augment = M_data("rb/offline/basis/dual_supremizers/field2augment", 0);
+    // field2augment = M_data("rb/offline/basis/dual_supremizers/field2augment", 0);
 
     for (auto& meshas : M_meshASPairMap)
     {
