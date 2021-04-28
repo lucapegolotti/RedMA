@@ -397,6 +397,12 @@ applyAffineTransformation(bool transformMesh)
     if (transformMesh)
         transformer->transformMesh(foo);
 
+    for (std::vector<GeometricFace>::iterator it = M_inlets.begin();
+         it != M_inlets.end(); it++)
+    {
+        applyAffineTransformationGeometricFace(*it, M_Raxis, transZero, 1.0);
+    }
+
     for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
          it != M_outlets.end(); it++)
     {

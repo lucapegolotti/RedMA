@@ -68,6 +68,7 @@ takeSnapshots()
         double dalpha=1.0/nSnapshots;
         double alpha=0;
         for (unsigned int i = 0; i < nSnapshots; i++) {
+            alpha = 0.50;
             if (analyticInflow) {
                 auto inflow1_alpha([alpha, this](double t) {
                     return alpha * inflow1(t);
@@ -87,7 +88,7 @@ takeSnapshots()
             problem.doStoreSolutions();
 
             fs::create_directory(curdir);
-            problem.getTree().randomSampleAroundOriginalValue(bound);
+            // problem.getTree().randomSampleAroundOriginalValue(bound);
             problem.setup();
 
             if (!problem.isFEProblem())
