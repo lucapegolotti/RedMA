@@ -124,8 +124,11 @@ dumpSnapshots(GlobalProblem& problem,
     if (binary)
         omode = omode | std::ios::binary;
 
-    for (auto sol : solutions)
-        problem.getBlockAssembler()->applyPiola(sol, true);
+    if (geometry)
+    {
+        for (auto sol : solutions)
+            problem.getBlockAssembler()->applyPiola(sol, true);
+    }
 
     for (auto idmeshtype : IDmeshTypeMap)
     {
