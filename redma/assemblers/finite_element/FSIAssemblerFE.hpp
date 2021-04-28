@@ -37,6 +37,7 @@ namespace RedMA
       shp<BlockMatrix> returnBoundaryStiffness()const;
       void postProcess(const double& time, const shp<aVector>& sol) override;
       void setExporterDisplacement();
+      shp<VECTOREPETRA> getBoundaryIndicator();
 
   protected:
         void                                              computeLameConstants();

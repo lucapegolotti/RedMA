@@ -96,8 +96,8 @@ solve()
             M_solutions.push_back(M_solution);
             M_timestepsSolutions.push_back(t);
         }
-        if (abs(t-dt)<dt/2)
-            M_assembler->exportSolution(t-dt, M_TMAlgorithm->getPreviousSolution());
+        if ( abs(t-t0ramp-dt)<dt/2)
+            M_assembler->exportSolution(t0ramp, M_TMAlgorithm->getPreviousSolution());
         if ( saveEvery > 0 && count % saveEvery == 0)
             M_assembler->exportSolution(t, M_solution);
 

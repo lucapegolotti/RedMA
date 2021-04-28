@@ -22,12 +22,14 @@ using namespace RedMA;
 
 double inflow2(double t)
 {
-    return 1;
+    //return 1;
+    return (t<0.02)*(1.0 - std::cos((t) * M_PI / (0.02 )) )/ 2.0 +(t>=0.02);
 }
 
 double inflow3(double t)
 {
-    return 1;
+    //return 1;
+    return (t<0.02)*(1.0 - std::cos((t) * M_PI / (0.02 )) )/ 2.0 +(t>=0.02);
 }
 
 int main(int argc, char **argv)

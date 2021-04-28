@@ -16,7 +16,7 @@
 
 #ifndef SNAPSHOTSSAMPLER_HPP
 #define SNAPSHOTSSAMPLER_HPP
-
+#include <functional>
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/problem/GlobalProblem.hpp>
@@ -25,7 +25,7 @@
 
 namespace RedMA
 {
-
+    typedef std::function<double(double)> myFunctionType;
 /// Class handling the generation of the snapshots.
 class SnapshotsSampler
 {
@@ -36,7 +36,10 @@ public:
      * \param comm A MPI Communicator.
      */
     SnapshotsSampler(const DataContainer& data,
-                     EPETRACOMM comm);
+                     EPETRACOMM comm,bool geo);
+    SnapshotsSampler(const DataContainer& data,
+                     EPETRACOMM comm,bool geo,myFunctionType inflow_1,myFunctionType inflow_2);
+
 
     /// Take the snapshots.
     void takeSnapshots();
@@ -52,6 +55,10 @@ public:
 private:
     DataContainer       M_data;
     EPETRACOMM          M_comm;
+    bool                geometry;
+    bool                analyticInflow;
+    std::function<double(double)> inflow1;
+    std::function<double(double)> inflow2;
 };
 
 }  // namespace RedMA

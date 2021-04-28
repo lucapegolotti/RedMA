@@ -18,6 +18,7 @@ namespace RedMA
 
         M_name = "FSIAssemblerRB";
         M_exactJacobian = M_data("rb/online/exactjacobian",0);
+
     }
 
     shp<aVector>
@@ -41,7 +42,7 @@ namespace RedMA
         this->addForcingTermreduced(rhs);
         retVec->add(rhs);
 
-        //this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec), this->getFESpaceBCs(),this->getComponentBCs());
+        this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec), this->getFESpaceBCs(),this->getComponentBCs());
 
         msg = "done, in ";
         msg += std::to_string(chrono.diff());
@@ -73,7 +74,7 @@ namespace RedMA
             double  dt = this->M_data("time_discretization/dt", 0.01);
             retMatcopy->multiplyByScalar(-dt * M_TMAlgorithm->getCoefficientExtrapolation());
             jac->add(retMatcopy);
-            //this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(retMat), this->getFESpaceBCs(),this->getComponentBCs(), 0.0);
+            this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(jac), this->getFESpaceBCs(),this->getComponentBCs(), 0.0);
         }
 
         return jac;
@@ -85,12 +86,14 @@ namespace RedMA
     {
         printlog(YELLOW, "[FSIAssembler] assembling and projecting boundary stiffness matrix \t", M_data.getVerbose());
         NavierStokesAssemblerRB::RBsetup();
+        M_FSIAssembler->setup();
         M_TMAlgorithm->setComm(M_comm);
         M_TMAlgorithm->setup(this->getZeroVector());
         unsigned int id=M_treeNode->M_ID;
         auto BoundaryStiffness=M_FSIAssembler->returnBoundaryStiffness();
         M_BoundaryStiffnessreduced->setBlock(0,0,M_bases->matrixProject(BoundaryStiffness->block(0,0),0,0,id));
-
+        this->addFSIMassMatrix(M_reducedMass);
+        this->M_bcManager->apply0DirichletMatrix(*M_reducedMass,this->getFESpaceBCs(),this->getComponentBCs(), 1.0);
     }
 
     void
@@ -108,10 +111,53 @@ namespace RedMA
 
         Displacement->deepCopy(M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol)));
         shp<VECTOREPETRA> exportedDisplacement = M_bases->reconstructFEFunction(Displacement->block(0), 0, id);
-
+        *exportedDisplacement*= *(this->M_FSIAssembler->getBoundaryIndicator());
         M_TMAlgorithm->shiftSolutions(Displacement);
         //*M_displacementExporter = *spcast<VECTOREPETRA>(Displacement->block(0)->data());
         //*M_displacementExporter *= (*M_boundaryIndicator);
+
+
+    }
+    void
+    FSIAssemblerRB::
+    addFSIMassMatrix(shp<aMatrix> mat)
+    {
+        Chrono chrono;
+        chrono.start();
+
+        std::string msg = "[FSIAssemblerRB] computing boundary mass ...";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
+        using namespace LifeV;
+        using namespace ExpressionAssembly;
+
+
+        LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt)); //not sure if updated, there is another way
+        shp<MATRIXEPETRA> M_boundaryMass(new MATRIXEPETRA(M_feStokesAssembler->getFEspace(0)->map()));
+        shp<ETFESPACE3> velocityFESpaceETA = M_feStokesAssembler->getVelocityETFEspace();
+        double density = M_feStokesAssembler->getDensity();
+        double thickness = M_data("structure/thickness", 0.1);
+        unsigned int wallFlag = M_data("structure/flag", 10);
+        integrate(boundary(velocityFESpaceETA->mesh(), wallFlag),
+                  myBDQR,
+                  velocityFESpaceETA,
+                  velocityFESpaceETA,
+                  value(density * thickness) * dot (phi_i, phi_j)
+        ) >> M_boundaryMass;
+
+        M_boundaryMass->globalAssemble();
+
+        shp<SparseMatrix> matrixWrap(new SparseMatrix());
+        matrixWrap->setMatrix(M_boundaryMass);
+
+        unsigned int id = M_treeNode->M_ID;
+        auto projectedMat = M_bases->matrixProject(matrixWrap, 0, 0, id);
+        convert<BlockMatrix>(mat)->block(0,0)->add(projectedMat);
+
+        msg = "done, in ";
+        msg += std::to_string(chrono.diff());
+        msg += " seconds\n";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
+
 
 
     }

@@ -23,9 +23,10 @@ namespace RedMA {
         shp <aMatrix> getJacobianRightHandSide(const double &time,
                                                const shp <aVector> &sol) override;
 
-        void
-        addForcingTermreduced(const shp <aVector> &rhs) const;
+        void addForcingTermreduced(const shp <aVector> &rhs) const;
 
+
+        void addFSIMassMatrix(shp<aMatrix> mat);
         virtual void RBsetup() override;
 
         void postProcess(const double &time, const shp <aVector> &sol) override;

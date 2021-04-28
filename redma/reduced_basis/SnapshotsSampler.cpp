@@ -4,11 +4,23 @@ namespace RedMA
 {
 
 SnapshotsSampler::
-SnapshotsSampler(const DataContainer& data, EPETRACOMM comm) :
+SnapshotsSampler(const DataContainer& data, EPETRACOMM comm, bool geo) :
   M_data(data),
-  M_comm(comm)
+  M_comm(comm),
+  geometry(geo)
 {
 }
+
+
+SnapshotsSampler::
+SnapshotsSampler(const DataContainer& data, EPETRACOMM comm, bool geo ,myFunctionType inflow_1, myFunctionType inflow_2) :
+    M_data(data),
+    M_comm(comm),
+    geometry(geo),
+    analyticInflow(true),
+    inflow1(inflow_1),inflow2(inflow_2)
+    {
+    }
 
 void
 SnapshotsSampler::
@@ -20,37 +32,78 @@ takeSnapshots()
     GeometryPrinter printer;
 
     unsigned int nSnapshots = M_data("rb/offline/snapshots/number", 10);
-    double bound = M_data("rb/offline/snapshots/bound", 0.2);
 
+    double bound = M_data("rb/offline/snapshots/bound", 0.2);
+    if(geometry){
     for (unsigned int i = 0; i < nSnapshots; i++)
     {
-        unsigned int paramIndex = 0;
+
+
+            unsigned int paramIndex = 0;
         // we find the first parameter index available
-        while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
-            paramIndex++;
-        std::string curdir = outdir + "/param" + std::to_string(paramIndex);
+            while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
+                paramIndex++;
 
-        GlobalProblem problem(M_data, M_comm, false);
+            std::string curdir = outdir + "/param" + std::to_string(paramIndex);
+            GlobalProblem problem(M_data, M_comm, false);
+            // this is to allow taking the snapshots at the end of the simulation from
+            // the fem problem
+            problem.doStoreSolutions();
 
-        // this is to allow taking the snapshots at the end of the simulation from
-        // the fem problem
-        problem.doStoreSolutions();
+            fs::create_directory(curdir);
+            problem.getTree().randomSampleAroundOriginalValue(bound);
+            problem.setup();
 
-        fs::create_directory(curdir);
-        problem.getTree().randomSampleAroundOriginalValue(bound);
-        problem.setup();
+            if (!problem.isFEProblem())
+                throw new Exception("The tree must be composed of only FE nodes to "
+                                    "sample the snapshots!");
 
-        if (!problem.isFEProblem())
-            throw new Exception("The tree must be composed of only FE nodes to "
-                                "sample the snapshots!");
+            std::string filename = curdir + "/tree.xml";
+            printer.saveToFile(problem.getTree(), filename, M_comm);
 
-        std::string filename = curdir + "/tree.xml";
-        printer.saveToFile(problem.getTree(), filename, M_comm);
+            problem.solve();
+            dumpSnapshots(problem, curdir);}
 
-        problem.solve();
-        dumpSnapshots(problem, curdir);
-    }
+        }else {
+        double dalpha=1.0/nSnapshots;
+        double alpha=0;
+        for (unsigned int i = 0; i < nSnapshots; i++) {
+            if (analyticInflow) {
+                auto inflow1_alpha([alpha, this](double t) {
+                    return alpha * inflow1(t);
+                });
+                auto inflow2_alpha([alpha, this](double t) {
+                    return (1 - alpha) * inflow2(t);
+                });
+                M_data.setInflow(inflow1_alpha, 2);
+                M_data.setInflow(inflow2_alpha, 3);
+            } else {
+
+            }
+            std::string curdir = outdir + "/param" + std::to_string(alpha);
+            GlobalProblem problem(M_data, M_comm, false);
+            // this is to allow taking the snapshots at the end of the simulation from
+            // the fem problem
+            problem.doStoreSolutions();
+
+            fs::create_directory(curdir);
+            problem.getTree().randomSampleAroundOriginalValue(bound);
+            problem.setup();
+
+            if (!problem.isFEProblem())
+                throw new Exception("The tree must be composed of only FE nodes to "
+                                    "sample the snapshots!");
+
+            std::string filename = curdir + "/tree.xml";
+            printer.saveToFile(problem.getTree(), filename, M_comm);
+
+            problem.solve();
+            dumpSnapshots(problem, curdir);
+            alpha += dalpha;}
+        }
 }
+
+
 
 void
 SnapshotsSampler::

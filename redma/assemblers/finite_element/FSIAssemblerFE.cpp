@@ -39,6 +39,11 @@ namespace RedMA
       this->setExporterDisplacement();
 
   }
+  shp<VECTOREPETRA>
+  FSIAssemblerFE::
+  getBoundaryIndicator(){
+      return M_boundaryIndicator;
+  }
 
   void
   FSIAssemblerFE::
@@ -205,7 +210,7 @@ namespace RedMA
         double  dt = this->M_data("time_discretization/dt", 0.01);
 
         shp<BlockVector> Displacement(new BlockVector(this->M_nComponents));
-        M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol));//?????
+        //M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol));//?????
 
 
         Displacement->deepCopy(M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol)));
