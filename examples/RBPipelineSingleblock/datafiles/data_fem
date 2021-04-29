@@ -11,8 +11,8 @@ outputdir = rb_solutions
 [../]
 
 [assembler]
-	type = navierstokes_membrane
-	stabilization = none
+	type = navierstokessupg
+	stabilization = supg
 [../]
 
 [bc_conditions]
@@ -97,7 +97,7 @@ outputdir = rb_solutions
 [../]
 
 [fluid]
-	velocity_order = P2
+	velocity_order = P1
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1.06
@@ -124,9 +124,9 @@ outputdir = rb_solutions
 	rhoinf = 0.5
 	order = 2
 	extrapolation_order = 2
-	t0ramp = -0.01
+	t0ramp = -0.005
 	t0 = 0
-	T = 0.1
+	T = 0.05
 	dt = 0.00025
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
@@ -144,8 +144,10 @@ outputdir = rb_solutions
 
 [coupling]
 	type                = chebyshev
-	nMax                = 5
+	nMax                = 10
 	stab_coefficient	= 1e-16
 	check_stabterm		= true
 	nfcts_weak_dirichlet = 10
+	frequencies_theta_ring = -1
+	frequencies_theta_ring_weak_dirichlet = -1
 [../]

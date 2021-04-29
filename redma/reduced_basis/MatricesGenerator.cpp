@@ -49,16 +49,11 @@ generate()
     }
 
     // dump matrices for supremizers
-    // unsigned int field2augment = M_data("rb/offline/basis/primal_supremizers/field2augment", 0);
-    // unsigned int limitingfield = M_data("rb/offline/basis/primal_supremizers/limitingfield", 1);
-
     for (auto& meshas : M_meshASPairMap)
     {
         auto constraintMatrix = spcast<aAssemblerFE>(meshas.second.first)->getConstraintMatrix();
         convert<SparseMatrix>(constraintMatrix)->dump(outdir + "/" + meshas.first + "/primalConstraint");
     }
-
-    // field2augment = M_data("rb/offline/basis/dual_supremizers/field2augment", 0);
 
     for (auto& meshas : M_meshASPairMap)
     {
@@ -78,8 +73,7 @@ generate()
                                                      face,
                                                      constraintMatrixBlock,
                                                      constraintMatrixDummyBlock);
-            // we assume that the first block is the one to be coupled
-            // (as in interface assembler)
+            // we assume that the first block is the one to be coupled (as in interface assembler)
             auto constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
             constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraint" + std::to_string(face.M_flag));
         }
@@ -146,7 +140,7 @@ generateDefaultTreeNode(const std::string& nameMesh)
         return generateDefaultSymmetricBifurcation(nameMesh);
     else
     {
-        throw new Exception("MatricesGenerator: this branch must still be implemented");
+        throw new Exception("[MatricesGenerator]: this branch must still be implemented");
     }
 }
 
@@ -158,11 +152,12 @@ generateDefaultTube(const std::string& nameMesh)
     unsigned int length = std::atoi(nameMesh.substr(7,8).c_str());
     std::string refinement = nameMesh.substr(9);
 
+    std::string assemblerType = M_data("assembler/type", "navierstokes");
+
     shp<Tube> defaultTube(new Tube(M_comm, refinement, false, diameter, length));
     defaultTube->readMesh();
     defaultTube->setDiscretizationMethod("fem");
-    // not very general
-    defaultTube->setAssemblerType("navierstokes");
+    defaultTube->setAssemblerType(assemblerType);
 
     shp<TreeNode> treeNode(new TreeNode(defaultTube, 1234));
 
@@ -176,11 +171,12 @@ generateDefaultSymmetricBifurcation(const std::string& nameMesh)
     unsigned int alpha = std::atoi(nameMesh.substr(13,15).c_str());
     std::string refinement = nameMesh.substr(17);
 
+    std::string assemblerType = M_data("assembler/type", "navierstokes");
+
     shp<BifurcationSymmetric> defaultBifurcation(new BifurcationSymmetric(M_comm, refinement, false, alpha));
     defaultBifurcation->readMesh();
     defaultBifurcation->setDiscretizationMethod("fem");
-    // not very general
-    defaultBifurcation->setAssemblerType("navierstokes");
+    defaultBifurcation->setAssemblerType(assemblerType);
 
     shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234));
 

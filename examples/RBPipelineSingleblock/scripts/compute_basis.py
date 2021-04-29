@@ -12,7 +12,7 @@ build_directory = "../"
 mesh_name = sys.argv[1]  # 'tube_1x1_h0.08'
 out_dir = build_directory + 'basis/'
 matrix_dir = build_directory + 'matrices/'
-tol_velocity = 1e-5
+tol_velocity = 1e-4
 tol_pressure = 1e-5
 
 generate_velocity = True
@@ -21,10 +21,13 @@ generate_primal_supremizers = True
 generate_dual_supremizers = True
 generate_supremizers = generate_primal_supremizers or generate_dual_supremizers
 
-# this is the maximum number of snapshots we want to process
-nsnapshots = 200
+single_block_flag = True  # True if the simulation is performed on a single block only
+weak_dirichlet_inflow = True  # True if the BC at the inlet is a Dirichlet BC with weak imposition via multipliers
 
-# if true, we normalize with respect to custom norms
+# this is the maximum number of snapshots we want to process
+n_snapshots = 200
+
+# if True, we normalize with respect to custom norms; else we use standard l2-norm
 use_custom_norms = True
 
 
@@ -126,12 +129,12 @@ norm_velocity_nobcs = read_matrix(matrix_dir + '/' + mesh_name + '/norm0_nobcs.m
 norm_pressure_nobcs = read_matrix(matrix_dir + '/' + mesh_name + '/norm1_nobcs.m') if use_custom_norms else None
 
 if generate_velocity:
-    U = generate_basis(0, nsnapshots, norm_velocity_nobcs, tol_velocity)
+    U = generate_basis(0, n_snapshots, norm_velocity_nobcs, tol_velocity)
 else:
     print("===== IMPORTING BASIS FIELD 0 ====", flush=True)
     U = np.genfromtxt(out_dir + '/' + mesh_name + '/field0.basis', delimiter=',').T
 if generate_pressure:
-    P = generate_basis(1, nsnapshots, norm_pressure_nobcs, tol_pressure)
+    P = generate_basis(1, n_snapshots, norm_pressure_nobcs, tol_pressure)
 else:
     print("===== IMPORTING BASIS FIELD 1 ====", flush=True)
     P = np.genfromtxt(out_dir + '/' + mesh_name + '/field1.basis', delimiter=',').T
@@ -177,27 +180,21 @@ elif generate_dual_supremizers:
 if generate_dual_supremizers:
     print("===== COMPUTING DUAL SUPREMIZERS ====", flush=True)
 
-    constraint_matrix1 = read_matrix(matrix_dir + '/' + mesh_name + '/dualConstraint1.m', csc_matrix)
-    constraint_matrix2 = read_matrix(matrix_dir + '/' + mesh_name + '/dualConstraint2.m', csc_matrix)
-    if mesh_name == 'bif_alpha50_0.10':
-        constraint_matrix3 = read_matrix(matrix_dir + '/' + mesh_name + '/dualConstraint3.m', csc_matrix)
+    constraint_matrices = []
 
-    # pad constraintMatrices
-    pad1 = csc_matrix((U.shape[0] - constraint_matrix1.shape[0], constraint_matrix1.shape[1]))
-    pad2 = csc_matrix((U.shape[0] - constraint_matrix2.shape[0], constraint_matrix2.shape[1]))
-    if mesh_name == 'bif_sym_alpha50_0.10':
-        pad3 = csc_matrix((U.shape[0] - constraint_matrix3.shape[0], constraint_matrix3.shape[1]))
+    if weak_dirichlet_inflow:
+        constraint_matrices.append(read_matrix(matrix_dir + '/' + mesh_name + '/dualConstraint1.m', csc_matrix))  # inflow
 
-    constraint_matrix1 = scipy.sparse.vstack([constraint_matrix1, pad1])
-    constraint_matrix2 = scipy.sparse.vstack([constraint_matrix2, pad2])
-    if mesh_name == 'bif_sym_alpha50_0.10':
-        constraint_matrix3 = scipy.sparse.vstack([constraint_matrix3, pad3])
+    if not single_block_flag:
+        constraint_matrices.append(read_matrix(matrix_dir + '/' + mesh_name + '/dualConstraint2.m', csc_matrix))  # outflow 1
+        if mesh_name == 'bif_sym_alpha50_0.10':
+            constraint_matrices.append(read_matrix(matrix_dir + '/' + mesh_name + '/dualConstraint3.m', csc_matrix))  # outflow 2
 
-    if mesh_name != 'bif_sym_alpha50_0.10':
-        global_constraint = csr_matrix(scipy.sparse.hstack([constraint_matrix1, constraint_matrix2]))
-    else:
-        global_constraint = csr_matrix(scipy.sparse.hstack([constraint_matrix1, constraint_matrix2,
-                                                            constraint_matrix3]))
+    for constraint_matrix in constraint_matrices:
+        pad = csc_matrix((U.shape[0] - constraint_matrix.shape[0], constraint_matrix.shape[1]))
+        constraint_matrix = scipy.sparse.vstack([constraint_matrix, pad])
+
+    global_constraint = csr_matrix(scipy.sparse.hstack([constraint_matrix for constraint_matrix in constraint_matrices]))
     global_constraint[dir_indices] = 0
 
     print(global_constraint.shape)
