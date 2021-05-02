@@ -38,7 +38,7 @@ public:
     SnapshotsSampler(const DataContainer& data,
                      EPETRACOMM comm,bool geo);
     SnapshotsSampler(const DataContainer& data,
-                     EPETRACOMM comm,bool geo,myFunctionType inflow_1,myFunctionType inflow_2);
+                     EPETRACOMM comm,bool geo,myFunctionType inflow_1,myFunctionType inflow_2, double index_, double index_max_);
 
 
     /// Take the snapshots.
@@ -59,6 +59,8 @@ private:
     bool                analyticInflow;
     std::function<double(double)> inflow1;
     std::function<double(double)> inflow2;
+    double     index;
+    double     index_max;
 };
 
 }  // namespace RedMA

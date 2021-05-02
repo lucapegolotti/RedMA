@@ -13,12 +13,14 @@ SnapshotsSampler(const DataContainer& data, EPETRACOMM comm, bool geo) :
 
 
 SnapshotsSampler::
-SnapshotsSampler(const DataContainer& data, EPETRACOMM comm, bool geo ,myFunctionType inflow_1, myFunctionType inflow_2) :
+SnapshotsSampler(const DataContainer& data, EPETRACOMM comm, bool geo ,myFunctionType inflow_1, myFunctionType inflow_2,
+                 double index_,double index_max_) :
     M_data(data),
     M_comm(comm),
     geometry(geo),
     analyticInflow(true),
-    inflow1(inflow_1),inflow2(inflow_2)
+    inflow1(inflow_1),inflow2(inflow_2),
+    index(index_),index_max(index_max_)
     {
     }
 
@@ -65,44 +67,44 @@ takeSnapshots()
             dumpSnapshots(problem, curdir);}
 
         }else {
-        double dalpha=1.0/nSnapshots;
-        double alpha=0;
-        for (unsigned int i = 0; i < nSnapshots; i++) {
-            alpha = 0.50;
-            if (analyticInflow) {
-                auto inflow1_alpha([alpha, this](double t) {
-                    return alpha * inflow1(t);
-                });
-                auto inflow2_alpha([alpha, this](double t) {
-                    return (1 - alpha) * inflow2(t);
-                });
-                M_data.setInflow(inflow1_alpha, 2);
-                M_data.setInflow(inflow2_alpha, 3);
-            } else {
 
-            }
-            std::string curdir = outdir + "/param" + std::to_string(alpha);
-            GlobalProblem problem(M_data, M_comm, false);
-            // this is to allow taking the snapshots at the end of the simulation from
-            // the fem problem
-            problem.doStoreSolutions();
 
-            fs::create_directory(curdir);
-            // problem.getTree().randomSampleAroundOriginalValue(bound);
-            problem.setup();
+        double alpha_min=0;
+        double alpha_max=1;
+        double index_min=1;
+        double alpha=alpha_min+(index-index_min-1)/(index_max-index_min-1)*(alpha_max-alpha_min);
+        if (analyticInflow) {
+            auto inflow1_alpha([alpha, this](double t) {
+                return alpha * inflow1(t);
+             });
+             auto inflow2_alpha([alpha, this](double t) {
+                return (1 - alpha) * inflow2(t);
+            });
+            M_data.setInflow(inflow1_alpha, 2);
+            M_data.setInflow(inflow2_alpha, 3);
+        } else {
 
-            if (!problem.isFEProblem())
-                throw new Exception("The tree must be composed of only FE nodes to "
+        }
+         std::string curdir = outdir + "/param" + std::to_string(alpha);
+        GlobalProblem problem(M_data, M_comm, false);
+        // this is to allow taking the snapshots at the end of the simulation from
+        // the fem problem
+        problem.doStoreSolutions();
+
+        fs::create_directory(curdir);
+        // problem.getTree().randomSampleAroundOriginalValue(bound);
+        problem.setup();
+
+        if (!problem.isFEProblem())
+            throw new Exception("The tree must be composed of only FE nodes to "
                                     "sample the snapshots!");
 
-            std::string filename = curdir + "/tree.xml";
-            printer.saveToFile(problem.getTree(), filename, M_comm);
+        std::string filename = curdir + "/tree.xml";
+        printer.saveToFile(problem.getTree(), filename, M_comm);
 
-            problem.solve();
-            dumpSnapshots(problem, curdir);
-            alpha += dalpha;}
-        }
-}
+        problem.solve();
+        dumpSnapshots(problem, curdir);}
+    }
 
 
 
