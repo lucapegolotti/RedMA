@@ -36,9 +36,9 @@ public:
      * \param comm A MPI Communicator.
      */
     SnapshotsSampler(const DataContainer& data,
-                     EPETRACOMM comm,bool geo);
+                     EPETRACOMM comm);
     SnapshotsSampler(const DataContainer& data,
-                     EPETRACOMM comm,bool geo,myFunctionType inflow_1,myFunctionType inflow_2, double index_, double index_max_);
+                     EPETRACOMM comm,myFunctionType inflow_1,myFunctionType inflow_2, double index_, double index_max_);
 
 
     /// Take the snapshots.

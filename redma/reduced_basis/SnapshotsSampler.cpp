@@ -4,20 +4,20 @@ namespace RedMA
 {
 
 SnapshotsSampler::
-SnapshotsSampler(const DataContainer& data, EPETRACOMM comm, bool geo) :
+SnapshotsSampler(const DataContainer& data, EPETRACOMM comm) :
   M_data(data),
   M_comm(comm),
-  geometry(geo)
+  geometry(true)
 {
 }
 
 
 SnapshotsSampler::
-SnapshotsSampler(const DataContainer& data, EPETRACOMM comm, bool geo ,myFunctionType inflow_1, myFunctionType inflow_2,
+SnapshotsSampler(const DataContainer& data, EPETRACOMM comm ,myFunctionType inflow_1, myFunctionType inflow_2,
                  double index_,double index_max_) :
     M_data(data),
     M_comm(comm),
-    geometry(geo),
+    geometry(false),
     analyticInflow(true),
     inflow1(inflow_1),inflow2(inflow_2),
     index(index_),index_max(index_max_)

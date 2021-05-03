@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     if (argc==3){
         double index=atof(argv[1]);
         double index_max=atof(argv[2]);
-        SnapshotsSampler sampler(data, comm,0,inflow2,inflow3,index,index_max);
+        SnapshotsSampler sampler(data, comm,inflow2,inflow3,index,index_max);
         sampler.takeSnapshots();
     }
 
