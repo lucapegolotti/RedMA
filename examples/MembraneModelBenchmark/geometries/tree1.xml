@@ -10,7 +10,7 @@
     <rotation_axis_x>0</rotation_axis_x>
     <rotation_axis_y>0</rotation_axis_y>
     <rotation_axis_z>0</rotation_axis_z>
-    <scale>1</scale>
+    <scale>2</scale>
     <use_linear_elasticity>0</use_linear_elasticity>
         <buildingblock type="tube" assembler="navierstokessupg_membrane" method="fem" refinement="h0.12" d="1" L="2" outlet="1">
             <L_ratio>1</L_ratio>
@@ -24,7 +24,7 @@
             <rotation_axis_x>0</rotation_axis_x>
             <rotation_axis_y>0</rotation_axis_y>
             <rotation_axis_z>0</rotation_axis_z>
-            <scale>1</scale>
+            <scale>2</scale>
             <use_linear_elasticity>0</use_linear_elasticity>
         </buildingblock>
 </buildingblock>

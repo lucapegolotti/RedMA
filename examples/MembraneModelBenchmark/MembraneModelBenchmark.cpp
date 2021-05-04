@@ -76,8 +76,8 @@ int main(int argc, char **argv)
         curSolutionDir = solutionDir + "/solution" + std::to_string(solutionIndex) + "/";
     }
 
-    if (solutionIndex >= 1000){
-        msg = "Cannot store more than 1000 solutions!\n";
+    if (solutionIndex >= 100){
+        msg = "Cannot store more than 100 solutions!\n";
         printlog(RED, msg, true);
         exit(1);
     }

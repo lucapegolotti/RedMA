@@ -11,8 +11,8 @@ outputdir = rb_solutions
 [../]
 
 [assembler]
-	type = navierstokessupg
-	stabilization =supg
+	type = navierstokes_membrane
+	stabilization = none
 [../]
 
 [bc_conditions]
@@ -64,7 +64,7 @@ outputdir = rb_solutions
 	[../]
 	[./online]
 		usemdeim = false
-		monolithicSolve = true
+		monolithicSolve = false
 		recomputeSchur = false
 		approximatenonlinearterm = 0
 		numbernonlinearterms = 30
@@ -97,7 +97,7 @@ outputdir = rb_solutions
 [../]
 
 [fluid]
-	velocity_order = P1
+	velocity_order = P2
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1.06
@@ -124,9 +124,9 @@ outputdir = rb_solutions
 	rhoinf = 0.5
 	order = 2
 	extrapolation_order = 2
-	t0ramp = -0.005
+	t0ramp = -0.01
 	t0 = 0
-	T = 0.05
+	T = 0.1
 	dt = 0.00025
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
@@ -148,6 +148,6 @@ outputdir = rb_solutions
 	stab_coefficient	= 1e-16
 	check_stabterm		= true
 	nfcts_weak_dirichlet = 10
-    frequencies_theta_ring = -1
-    frequencies_theta_ring_weak_dirichlet = -1
+	frequencies_theta_ring = -1
+	frequencies_theta_ring_weak_dirichlet = -1
 [../]

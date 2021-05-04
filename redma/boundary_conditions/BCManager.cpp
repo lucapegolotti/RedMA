@@ -25,16 +25,18 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
     for(auto out_face : treeNode->M_block->getOutlets())
         // these are all the outlets, even the ones with children in the block structure!
         M_outletFlags.push_back(out_face.M_flag);
-    for(auto out_face : treeNode->getOutlets())
+    for(auto out_face : treeNode->getOutlets())  // TODO change here!
+    // for(auto out_face : treeNode->M_block->getOutlets())
         // these are the "true" outlets, i.e. faces without children!
         M_trueOutletFlags.push_back(out_face.M_flag);
     M_wallFlag = treeNode->M_block->getWallFlag();
     M_inletRingFlag = treeNode->M_block->getInlet().M_ringFlag;
     for (auto out_face : treeNode->M_block->getOutlets())
-        // these are all the outlets, even the ones with children in the block structure!
+        // these are all the ring outlets, even the ones with children in the block structure!
         M_outletRingFlags.push_back(out_face.M_ringFlag);
-    for (auto out_face : treeNode->getOutlets())
-        // these are the "true" outlets, i.e. faces without children!
+    for (auto out_face : treeNode->getOutlets()) // TODO change here!
+    // for (auto out_face : treeNode->M_block->getOutlets())
+        // these are the "true" ring outlets, i.e. rings of faces without children!
         M_trueOutletRingFlags.push_back(out_face.M_ringFlag);
 }
 
@@ -113,8 +115,8 @@ applyOutflowNeumannBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag) const
     if (zeroFlag)
         outflowLaw = std::function<double(double)>([](double t){return 0.0;});
     else
-        // TODO: set an outflow function is non-homo Neumann outflow BCs wish to be imposed!
-        outflowLaw = std::function<double(double)>([](double t){return 0.0;});
+        // TODO: set an outflow function if non-homogeneous Neumann outflow BCs wish to be imposed!
+        outflowLaw = std::function<double(double)>([](double t){return 1.0;});
 
     auto outflowBoundaryCondition = std::bind(neumannInflow,
                                               std::placeholders::_1,
@@ -171,7 +173,8 @@ applyDirichletBCs(const double& time, BlockVector& input,
                     *bcs, fespace->feBd(), 1.0, time);
     }
 
-    if (ringOnly && (M_treeNode->isExtremalNode()))
+    if (ringOnly && (M_treeNode->isExtremalNode()))  // TODO change here!
+    // if (ringOnly)
     {
         shp<LifeV::BCHandler> bcsRing = createBCHandler0DirichletRing();
         bcsRing->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
@@ -223,7 +226,8 @@ apply0DirichletMatrix(BlockMatrix& input,
                                fespace->dof(), *bcs, fespace->feBd(),
                                (j == index) * diagCoefficient, 0.0);
 
-            if (ringOnly && (M_treeNode->isExtremalNode()))
+            if (ringOnly && (M_treeNode->isExtremalNode()))  // TODO change here!
+            // if (ringOnly)
             {
                 shp<LifeV::BCHandler> bcsRing = createBCHandler0DirichletRing();
                 bcsRing->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
@@ -271,7 +275,8 @@ apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
                     *bcs, fespace->feBd(), 0.0, 0.0);
     }
 
-    if (ringOnly && (M_treeNode->isExtremalNode()))
+    if (ringOnly && (M_treeNode->isExtremalNode()))  // TODO change here!
+    // if (ringOnly)
     {
         shp<LifeV::BCHandler> bcsRing = createBCHandler0DirichletRing();
         bcsRing->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
@@ -320,13 +325,15 @@ createBCHandler0DirichletRing() const
     compz[0] = 2;
 
     if (!std::strcmp(M_ringConstraint.c_str(), "normal")) {
-        if (M_treeNode->isInletNode())
+        if (M_treeNode->isInletNode())  // TODO change here!
+        // if (true)
         {
             bcs->addBC("InletRingZ", M_inletRingFlag, LifeV::EssentialEdges,
                        LifeV::Component, zeroFunction, compz);
         }
 
-        if (M_treeNode->isOutletNode())
+        if (M_treeNode->isOutletNode())  // TODO change here!
+        // if (true)
         {
             for(const unsigned int& ringFlag : M_trueOutletRingFlags)
                 bcs->addBC("OutletRingZ", ringFlag, LifeV::EssentialEdges,
@@ -335,13 +342,15 @@ createBCHandler0DirichletRing() const
     }
     else if (!std::strcmp(M_ringConstraint.c_str(), "full"))
     {
-        if (M_treeNode->isInletNode())
+        if (M_treeNode->isInletNode())  // TODO change here!
+        // if (true)
         {
             bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
                        LifeV::Full, zeroFunction, 3);
         }
 
-        if (M_treeNode->isOutletNode())
+        if (M_treeNode->isOutletNode())  // TODO change here!
+        // if (true)
         {
             for(const unsigned int& ringFlag : M_trueOutletRingFlags)
                 bcs->addBC("OutletRing", ringFlag, LifeV::EssentialEdges,
@@ -665,7 +674,8 @@ computeRingsIndicator(shp<FESPACE> fespace) const
     shp<VECTOREPETRA> ringsIndicator(new VECTOREPETRA(fespace->map()));
     ringsIndicator->zero();
 
-    if (M_treeNode->isInletNode())
+    if (M_treeNode->isInletNode())  // TODO change here!
+    // if (true)
     {
         FUN inletFlag = std::bind(constantFunction,
                                   std::placeholders::_1,
@@ -683,7 +693,8 @@ computeRingsIndicator(shp<FESPACE> fespace) const
     std::string baseBCName = "OutletRing_";
     std::string BCName;
 
-    if (M_treeNode->isOutletNode())
+    if (M_treeNode->isOutletNode())  // TODO change here!
+    // if (true)
     {
         FUN outletFlag;
         LifeV::BCFunctionBase outletFunction;
@@ -818,7 +829,8 @@ BCManager::
 shiftToNormalTangentialCoordSystem(shp<MATRIXEPETRA> mat, shp<VECTOREPETRA> vec,
                                    shp<FESPACE> fespace)
 {
-    if ((fespace) && ((M_treeNode->isInletNode()) || (M_treeNode->isOutletNode())))
+    if ((fespace) && ((M_treeNode->isInletNode()) || (M_treeNode->isOutletNode())))  // TODO change here!
+    // if (fespace)
         this->computeGlobalRotationMatrix(fespace);
 
     unsigned int nDOF = fespace->dof().numTotalDof();
@@ -875,7 +887,8 @@ BCManager::
 shiftToCartesianCoordSystem(shp<MATRIXEPETRA> mat, shp<VECTOREPETRA> vec,
                             shp<FESPACE> fespace)
 {
-    if ((fespace) && ((M_treeNode->isInletNode()) || (M_treeNode->isOutletNode())))
+    if ((fespace) && ((M_treeNode->isInletNode()) || (M_treeNode->isOutletNode())))  // TODO change here!
+    // if (fespace)
         this->computeGlobalRotationMatrix(fespace);
 
     unsigned int nDOF = fespace->dof().numTotalDof();

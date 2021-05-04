@@ -506,8 +506,8 @@ matrixProject(shp<aMatrix> matrix, unsigned int basisIndexRow,
 
         rangeMap = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, false)->data())->domainMapPtr();
 
-        spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, false)->data())->spy("basis_" + std::to_string(basisIndexRow));
-        spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexCol, ID, false)->data())->spy("basis_" + std::to_string(basisIndexCol));
+        // spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, false)->data())->spy("basis_" + std::to_string(basisIndexRow));
+        // spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexCol, ID, false)->data())->spy("basis_" + std::to_string(basisIndexCol));
 
         shp<MATRIXEPETRA> innerMatrix(new MATRIXEPETRA(*rangeMap));
 

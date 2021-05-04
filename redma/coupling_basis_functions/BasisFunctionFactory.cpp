@@ -14,9 +14,9 @@ BasisFunctionFactory(const GetPot& datafile,
 
     if (isRing)
     {
-        unsigned int frequenciesTheta = datafile("coupling/frequencies_theta_ring", 1);
+        int frequenciesTheta = datafile("coupling/frequencies_theta_ring", -1);
         if (isBoundary)
-            frequenciesTheta = datafile("coupling/frequencies_theta_ring_weak_dirichlet", 1);
+            frequenciesTheta = datafile("coupling/frequencies_theta_ring_weak_dirichlet", -1);
 
         basisFunction.reset(new FourierRingBasisFunction(inlet,
                                                          frequenciesTheta));

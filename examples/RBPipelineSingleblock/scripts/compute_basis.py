@@ -12,6 +12,7 @@ build_directory = "../"
 mesh_name = sys.argv[1]  # 'tube_1x1_h0.08'
 out_dir = build_directory + 'basis/'
 matrix_dir = build_directory + 'matrices/'
+snapshots_dir = build_directory + 'snapshots/'
 tol_velocity = 1e-4
 tol_pressure = 1e-5
 
@@ -48,10 +49,10 @@ def generate_basis(index, nsnaps, norm_matrix, tol):
     count = 0
     print("reading snapshots ...", flush=True)
     for i in range(nsnaps):
-        fname = build_directory + 'snapshots/param' + str(i) + '/' + mesh_name + '/field' + str(index) + '.snap'
+        fname = snapshots_dir + '/param' + str(i) + '/' + mesh_name + '/field' + str(index) + '.snap'
         if os.path.isfile(fname):
             count = count + 1
-            print('\t snapshotfile: ' + fname, flush=True)
+            print('\t snapshot file: ' + fname, flush=True)
             cur_data = np.genfromtxt(fname, delimiter=',')
             if snap is False:
                 snap = cur_data.T
@@ -190,9 +191,9 @@ if generate_dual_supremizers:
         if mesh_name == 'bif_sym_alpha50_0.10':
             constraint_matrices.append(read_matrix(matrix_dir + '/' + mesh_name + '/dualConstraint3.m', csc_matrix))  # outflow 2
 
-    for constraint_matrix in constraint_matrices:
-        pad = csc_matrix((U.shape[0] - constraint_matrix.shape[0], constraint_matrix.shape[1]))
-        constraint_matrix = scipy.sparse.vstack([constraint_matrix, pad])
+    for idx in range(len(constraint_matrices)):
+        pad = csc_matrix((U.shape[0] - constraint_matrices[idx].shape[0], constraint_matrices[idx].shape[1]))
+        constraint_matrices[idx] = scipy.sparse.vstack([constraint_matrices[idx], pad])
 
     global_constraint = csr_matrix(scipy.sparse.hstack([constraint_matrix for constraint_matrix in constraint_matrices]))
     global_constraint[dir_indices] = 0

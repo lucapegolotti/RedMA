@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/tree3.xml
+	xmlfile = geometries/tree1.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -126,7 +126,7 @@ outputdir = rb_solutions
 	extrapolation_order = 2
 	t0ramp = 0
 	t0 = 0
-	T = 0.01
+	T = 0.025
 	dt = 0.00025
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
@@ -148,6 +148,6 @@ outputdir = rb_solutions
 	stab_coefficient	= 1e-16
 	check_stabterm		= true
 	nfcts_weak_dirichlet = 5
-	frequencies_theta_ring = 2
-	frequencies_theta_ring_weak_dirichlet = 2
+	frequencies_theta_ring = -1
+	frequencies_theta_ring_weak_dirichlet = -1
 [../]
