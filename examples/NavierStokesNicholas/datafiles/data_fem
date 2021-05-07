@@ -32,10 +32,10 @@ outputdir = rb_solutions
 			dumpbinary 		     = true
 			computereynolds      = true
 			seed 			     = 1234
-			a_min = 1
-			a_max = 10
-			c_min = 1
-			c_max = 10
+			c_min = 0.1
+			c_max = 0.3
+			a_min = 4
+			a_max = 8
 		[../]
 		[./basis]
 			directory  = basis
