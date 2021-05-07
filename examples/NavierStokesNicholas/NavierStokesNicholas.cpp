@@ -18,6 +18,8 @@
 #include <redma/problem/GlobalProblem.hpp>
 #include <redma/problem/DataContainer.hpp>
 
+#include <cmath>
+
 #include <redma/reduced_basis/MatricesGenerator.hpp>
 #include <redma/reduced_basis/SnapshotsSampler.hpp>
 
@@ -25,7 +27,8 @@ using namespace RedMA;
 
 double inflow(double t, double a, double c)
 {
-    return c*sin(a*t);
+    double T = 0.3;
+    return sin(2*M_PI*t/T) + c*sin(2*M_PI*a*t/T);
 }
 
 int main(int argc, char **argv)
