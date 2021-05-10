@@ -202,8 +202,8 @@ poiseuille(const double& t, const double& x, const double& y,
     const double maxU = inflow(t) * 2.0 / (M_PI * R * R);
     double inflowNorm = maxU * (1.0 - (r * r)/(R * R));
 
-    if (inflow(t) < 0)
-        inflowNorm = inflowNorm < 0 ? inflowNorm : 0;
+    //if (inflow(t) < 0)
+    //    inflowNorm = inflowNorm < 0 ? inflowNorm : 0;
 
     inflowNorm = inflowNorm > 0 ? inflowNorm : 0;
 
