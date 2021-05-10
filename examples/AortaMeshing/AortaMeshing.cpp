@@ -38,34 +38,28 @@ int main(int argc, char **argv)
     shp<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    GetPot datafile("datafiles/data");
+    DataContainer datafile;
+    datafile.setDatafile("datafiles/data");
 
     SegmentationsMerger merger(datafile,comm,true);
 
     shp<SegmentationParser> sp1(new SegmentationParser(datafile, comm,
                 "datafiles/aorta.pth", "datafiles/aorta_segs_final.ctgr", "linear", true));
 
-    double constCenters = datafile("segmentation_parser/const_centers", 2.0);
-    double constNormal = datafile("segmentation_parser/const_normals", 1.0);
-
     auto contours = sp1->getContours();
-
-    std::cout << "contours = " << contours.size() << std::endl << std::flush;
 
     std::vector<GeometricFace> cuts;
     // contours[std::atoi(argv[1])].print();
 
 
-    TreeStructure tree1 = sp1->createTreeForward(1, constCenters, constNormal,
-                                                nullptr, &contours[80]);
+    TreeStructure tree1 = sp1->createTreeForward(1, nullptr, &contours[80]);
 
     cuts.push_back(contours[80]);
 
     GeometryPrinter printer;
     printer.saveToFile(tree1, "tree_aorta1.xml", comm);
 
-    TreeStructure tree2 = sp1->createTreeForward(3, constCenters, constNormal,
-                                                &contours[111], nullptr);
+    TreeStructure tree2 = sp1->createTreeForward(3, &contours[111], nullptr);
 
     cuts.push_back(contours[111]);
 
@@ -75,8 +69,7 @@ int main(int argc, char **argv)
                 "datafiles/subclavian.pth", "datafiles/subclavian_segs_final.ctgr", "linear", true));
 
     contours = sp2->getContours();
-    TreeStructure tree_subclavian = sp2->createTreeForward(2, constCenters, constNormal,
-                                                           &contours[30], nullptr);
+    TreeStructure tree_subclavian = sp2->createTreeForward(2, &contours[30], nullptr);
 
     cuts.push_back(contours[30]);
 
@@ -89,8 +82,7 @@ int main(int argc, char **argv)
                 "datafiles/Lt-carotid.pth", "datafiles/Lt-carotid_segs_final.ctgr", "linear", true));
 
     contours = sp3->getContours();
-    TreeStructure tree_ltcarotid = sp3->createTreeForward(2, constCenters, constNormal,
-                                                           &contours[26], nullptr);
+    TreeStructure tree_ltcarotid = sp3->createTreeForward(2, &contours[26], nullptr);
 
     cuts.push_back(contours[26]);
 
@@ -98,8 +90,7 @@ int main(int argc, char **argv)
                "datafiles/btrunk.pth", "datafiles/btrunk_segs_final.ctgr", "linear", true));
 
     contours = sp4->getContours();
-    TreeStructure tree_btrunk = sp4->createTreeForward(2, constCenters, constNormal,
-                                                          &contours[26], &contours[64]);
+    TreeStructure tree_btrunk = sp4->createTreeForward(2, &contours[26], &contours[64]);
 
     cuts.push_back(contours[26]);
     cuts.push_back(contours[64]);
@@ -113,8 +104,7 @@ int main(int argc, char **argv)
                "datafiles/rt-carotid.pth", "datafiles/rt-carotid_segs_final.ctgr", "linear", true));
 
     contours = sp5->getContours();
-    TreeStructure tree_rtcarotid = sp5->createTreeForward(2, constCenters, constNormal,
-                                                          &contours[80], nullptr);
+    TreeStructure tree_rtcarotid = sp5->createTreeForward(2, &contours[80], nullptr);
 
     cuts.push_back(contours[80]);
 

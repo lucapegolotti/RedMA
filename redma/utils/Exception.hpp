@@ -23,30 +23,42 @@
 namespace RedMA
 {
 
+/// Class for a generic exception.
 class Exception: public std::exception
 {
 public:
+    /*! \brief Constructor.
+     *
+     * \param message The message to be displayed.
+     */
     explicit Exception(const char* message) :
       M_msg(message)
     {
         printMsg();
     }
 
+    /*! \brief Constructor.
+     *
+     * \param message The message to be displayed.
+     */
     explicit Exception(const std::string& message) :
       M_msg(message)
     {
         printMsg();
     }
 
+    /// Destructor.
     virtual ~Exception() throw ()
     {
     }
 
+    /// Overloaded what() method, simply returning the stored message.
     virtual const char* what() const throw ()
     {
        return M_msg.c_str();
     }
 
+    /// Print the message to screen.
     void printMsg()
     {
         std::string msg = "\n[Exception] ";

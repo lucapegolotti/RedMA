@@ -22,24 +22,63 @@
 namespace RedMA
 {
 
+/*! \brief Abstract class for the stabilization of the Navier-Stokes equations.
+ *
+ * We refer e.g. to "Parallel Algorithms for the Solution of Large-Scale
+ * Fluid-Structure Interaction Problems in Hemodynamics" by Forti D. for the
+ * implementation details.
+ */
 class SUPGStabilization : public NavierStokesStabilization
 {
 public:
+    /*! \brief Constructor.
+     *
+     * \param data A DataContainer object.
+     * \param fespaceVelocity Finite element space for the velocity.
+     * \param fespacePressure Finite element space for the pressure.
+     * \param etfespaceVelocity ETA finite element space for the velocity.
+     * \param etfespacePressure ETA finite element space for the pressure.
+     */
     SUPGStabilization(const DataContainer& data,
                       shp<FESPACE> fespaceVelocity,
                       shp<FESPACE> fespacePressure,
                       shp<ETFESPACE3> etfespaceVelocity,
                       shp<ETFESPACE1> etfespacePressure);
 
+
+    /*! \brief Assemble and get the mass.
+     *
+     * \param sol The solution.
+     * \param rhs The right hand side.
+     * \return The desired matrix.
+     */
     virtual shp<BlockMatrix> getMass(shp<BlockVector> sol,
                                      shp<BlockVector> rhs) override;
 
-    virtual shp<BlockMatrix> getMassJac(shp<BlockVector> sol,
-                                        shp<BlockVector> rhs) override;
+    /*! \brief Assemble and get the mass Jacobian.
+     *
+     * \param sol The solution.
+     * \param rhs The right hand side.
+     * \return The desired matrix.
+     */
+    virtual shp<BlockMatrix> getMassJacobian(shp<BlockVector> sol,
+                                            shp<BlockVector> rhs) override;
 
-    virtual shp<BlockMatrix> getJac(shp<BlockVector> sol,
-                                    shp<BlockVector> rhs) override;
+    /*! \brief Assemble and get the Jacobian.
+     *
+     * \param sol The solution.
+     * \param rhs The right hand side.
+     * \return The desired matrix.
+     */
+    virtual shp<BlockMatrix> getJacobian(shp<BlockVector> sol,
+                                         shp<BlockVector> rhs) override;
 
+    /*! \brief Assemble and get the residual.
+     *
+     * \param sol The solution.
+     * \param rhs The right hand side.
+     * \return The desired vector.
+     */
     virtual shp<BlockVector> getResidual(shp<BlockVector> sol,
                                          shp<BlockVector> rhs) override;
 

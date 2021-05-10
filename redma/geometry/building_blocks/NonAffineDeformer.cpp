@@ -4,7 +4,7 @@ namespace RedMA
 {
 
 NonAffineDeformer::
-NonAffineDeformer(meshPtr_Type mesh, commPtr_Type comm, bool verbose) :
+NonAffineDeformer(shp<MESH> mesh, EPETRACOMM comm, bool verbose) :
   M_mesh(mesh),
   M_comm(comm),
   M_verbose(verbose)
@@ -13,14 +13,14 @@ NonAffineDeformer(meshPtr_Type mesh, commPtr_Type comm, bool verbose) :
     const double young = 100;// 3e6;
     const double poisson = 0.3;
 
-    M_fespace.reset(new fespace_Type(M_mesh, "P1", 3, M_comm));
-	M_fespaceETA.reset(new fespaceETA_Type(M_fespace->mesh(),
-                                         &(M_fespace->refFE()), M_comm));
+    M_fespace.reset(new FESPACE(M_mesh, "P1", 3, M_comm));
+	M_fespaceETA.reset(new ETFESPACE3(M_fespace->mesh(),
+                                     &(M_fespace->refFE()), M_comm));
 
-    M_stiffness.reset(new matrix_Type(M_fespace->map()));
+    M_stiffness.reset(new MATRIXEPETRA(M_fespace->map()));
     assembleStiffness(young, poisson);
 
-    M_rhs.reset(new vector_Type(M_fespace->map(), LifeV::Unique));
+    M_rhs.reset(new VECTOREPETRA(M_fespace->map(), LifeV::Unique));
     M_rhs->zero();
 }
 
@@ -45,7 +45,7 @@ assembleStiffness(const double young, const double poisson)
 
 void
 NonAffineDeformer::
-applyBCs(bcPtr_Type bcs)
+applyBCs(shp<LifeV::BCHandler> bcs)
 {
     bcs->bcUpdate(*M_fespace->mesh(), M_fespace->feBd(), M_fespace->dof());
 
@@ -55,19 +55,19 @@ applyBCs(bcPtr_Type bcs)
 
 void
 NonAffineDeformer::
-deformMesh(LifeV::MeshUtility::MeshTransformer<mesh_Type>& transformer)
+deformMesh(LifeV::MeshUtility::MeshTransformer<MESH>& transformer)
 {
-    vectorPtr_Type displacement = solveSystem();
+    shp<VECTOREPETRA> displacement = solveSystem();
     transformer.moveMesh(*displacement,  M_fespace->dof().numTotalDof());
 }
 
-NonAffineDeformer::vectorPtr_Type
+shp<VECTOREPETRA>
 NonAffineDeformer::
 solveSystem()
 {
-    vectorPtr_Type solution;
+    shp<VECTOREPETRA> solution;
     // reset solution vector
-    solution.reset(new vector_Type(M_fespace->map(), LifeV::Unique));
+    solution.reset(new VECTOREPETRA(M_fespace->map(), LifeV::Unique));
     solution->zero();
 
     // solver part
@@ -80,7 +80,7 @@ solveSystem()
     linearSolver.setParameters(*aztecList);
 
     typedef LifeV::PreconditionerML         precML_type;
-    typedef shp<precML_type>    precMLPtr_type;
+    typedef shp<precML_type>                precMLPtr_type;
     precML_type * precRawPtr;
     precRawPtr = new precML_type;
     // we set to look for the "fake" precMLL entry in order to set the

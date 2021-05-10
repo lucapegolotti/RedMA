@@ -31,11 +31,13 @@
 namespace RedMA
 {
 
+/// Class handling the generation of the snapshots.
 class SnapshotsSampler
 {
 public:
     SnapshotsSampler(const DataContainer& data, const std::function<double(double,double,double)>& inflow, EPETRACOMM comm);
 
+    /// Take the snapshots.
     void takeSnapshots();
 
     void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double> array_params);

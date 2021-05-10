@@ -22,7 +22,7 @@ using namespace RedMA;
 
 double inflow(double t)
 {
-    return 1;
+    return t;
 }
 
 int main(int argc, char **argv)

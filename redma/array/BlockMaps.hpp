@@ -29,15 +29,31 @@
 namespace RedMA
 {
 
+/// Class for handling the dimensions of blocks in block structures.
 class BlockMaps
 {
 public:
+    /// Default constructor.
     BlockMaps() {}
 
+    /*! \brief Constructor.
+     *
+     * Internally, we call the method createFromBlockMatrix.
+     * \param The input matrix.
+     */
     BlockMaps(shp<BlockMatrix> matrix) {createFromBlockMatrix(matrix);}
 
+    /*! \brief Constructs block maps from an input matrix.
+     *
+     * \param The input matrix.
+     */
     void createFromBlockMatrix(shp<BlockMatrix> matrix);
 
+
+    /*! \brief Updates the internal collapsed matrix.
+     *
+     * \param The input matrix.
+     */
     void updateCollapsedMatrix(shp<BlockMatrix> matrix);
 
     shp<BlockMatrix>                 M_collapsedMatrix;
@@ -53,21 +69,35 @@ public:
     std::vector<unsigned int>        M_dimensionsColsBlock;
 };
 
+/* Given a block matrix, this method returns a "flattened" block matrix in which
+ * each block is a non block structure. It also returns the vectors of dimensions
+ * of rows and columns.
+ */
 shp<BlockMatrix> collapseBlocks(shp<BlockMatrix> matrix,
                                 std::vector<unsigned int>& dimensionsRowsBlock,
                                 std::vector<unsigned int>& dimensionsColsBlock);
 
+// Converts a block matrix to a sparse one.
 shp<SparseMatrix> blockMatrixToSparseMatrix(shp<BlockMatrix> matrix);
 
+// Converts a dense matrix to a sparse one.
 shp<SparseMatrix> denseMatrixToSparseMatrix(shp<DenseMatrix> matrix);
 
+// Converts a block matrix to a dense one.
 shp<DenseMatrix> blockMatrixToDenseMatrix(shp<BlockMatrix> matrix);
 
+// Converts a block vector to a dense one.
 shp<DenseVector> blockVectorToDenseVector(shp<BlockVector> vector);
 
+/* Given an input block vector and the corresponding maps, this function returns
+ * a monolithic epetra vector.
+ */
 shp<VECTOREPETRA> getEpetraVector(const shp<aVector>& vector,
                                   const BlockMaps& maps);
 
+/* Given an input epetra vector and block maps, this function returns
+ * a block vector with row dimensions corresponding to the input maps.
+ */
 shp<aVector> getBlockVector(const shp<VECTOREPETRA>& vector,
                             const BlockMaps& maps);
 }

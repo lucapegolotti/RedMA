@@ -21,45 +21,63 @@
 #include <string>
 #include <tinyxml2.h>
 
-#include <redma/utils/PrintLog.hpp>
-#include <redma/geometry/BuildingBlock.hpp>
-#include <redma/geometry/Tube.hpp>
-#include <redma/geometry/BifurcationSymmetric.hpp>
-#include <redma/geometry/Aorta.hpp>
-#include <redma/geometry/AortaBifurcation0.hpp>
-#include <redma/geometry/AortaBifurcation1.hpp>
-#include <redma/geometry/TreeStructure.hpp>
+#include <redma/RedMA.hpp>
 
-#include <Epetra_SerialComm.h>
-#include <Epetra_MpiComm.h>
+#include <redma/geometry/building_blocks/BuildingBlock.hpp>
+#include <redma/geometry/building_blocks/Tube.hpp>
+#include <redma/geometry/building_blocks/BifurcationSymmetric.hpp>
+#include <redma/geometry/building_blocks/Aorta.hpp>
+#include <redma/geometry/building_blocks/Bypass.hpp>
+#include <redma/geometry/building_blocks/AortaBifurcation0.hpp>
+#include <redma/geometry/building_blocks/AortaBifurcation1.hpp>
+#include <redma/geometry/TreeStructure.hpp>
 
 namespace RedMA
 {
 
+/// Generator of a TreeStructure given an input file.
 class GeometryParser
 {
-    typedef shp<Epetra_Comm>  commPtr_Type;
     typedef shp<BuildingBlock>  BuildingBlockPtr;
     typedef tinyxml2::XMLElement  XMLEl;
 
 public:
-    GeometryParser(const GetPot& datfile, std::string fileName,
-                   commPtr_Type comm, bool verbose);
 
+    /*! \brief Constructor.
+     *
+     * \param datafile A datafile.
+     * \param fileName The geometry file.
+     * \param comm The MPI Communicator
+     */
+    GeometryParser(const DataContainer& datafile,
+                   std::string fileName,
+                   EPETRACOMM comm,
+                   bool verbose);
+
+    /*! \brief Traverse XML file.
+     *
+     * \param curElement Current XMLElement
+     *
+     */
     void traverseXML(XMLEl* curElement,
                      unsigned int IDfather);
 
+    /*! \brief Return reference to the TreeStructure.
+     *
+     * \return Reference to the TreeStructure.
+     */
     TreeStructure& getTree();
 
 private:
-    BuildingBlockPtr parseElement(const XMLEl* element, unsigned int& outletParent);
+    BuildingBlockPtr parseElement(const XMLEl* element,
+                                  unsigned int& outletParent);
 
-    commPtr_Type M_comm;
-    TreeStructure M_tree;
-    GetPot  M_datafile;
-    bool M_verbose;
-    int M_maxNumBlocks;
-    unsigned int M_numBlocks;
+    EPETRACOMM          M_comm;
+    TreeStructure       M_tree;
+    DataContainer       M_datafile;
+    bool                M_verbose;
+    int                 M_maxNumBlocks;
+    unsigned int        M_numBlocks;
 };
 
 }  // namespace RedMA

@@ -30,29 +30,63 @@
 namespace RedMA
 {
 
+/*! \brief Backward Differentiation Formula.
+ *
+ * See https://en.wikipedia.org/wiki/Backward_differentiation_formula.
+ */
 class BDF : public aTimeMarchingAlgorithm
 {
     typedef aFunctionProvider      FunProvider;
 
 public:
-
+    /*! \brief Constructor.
+     *
+     * \param datafile The DataContainer of the problem.
+     */
     BDF(const DataContainer& data);
 
-    BDF(const DataContainer& data, shp<FunProvider> funProvider);
+    /*! \brief Constructor.
+     *
+     * \param datafile The DataContainer of the problem.
+     * \param funProvider The function provider.
+     */
+    BDF(const DataContainer& data,
+        shp<FunProvider> funProvider);
 
+    /*! \brief Setup function.
+     *
+     * \param zeroVector Shared pointer to a zero vector.
+     */
     virtual void setup(const shp<aVector>& zeroVector) override;
 
-    virtual shp<aVector> advance(const double& time, double& dt,
-                                              int& status) override;
+    /*! \brief Advance function.
+     *
+     * \param time The time.
+     * \param dt The timestep size.
+     * \param status Return code; 0 if successful.
+     */
+    virtual shp<aVector> advance(const double& time,
+                                 double& dt,
+                                 int& status) override;
 
+    /*! \brief Shift previous solutions given the new one.
+     *
+     * \param Shared pointer to the new solution.
+     */
     virtual void shiftSolutions(const shp<aVector>& sol) override;
 
+    /*! \brief Compute derivative of a function.
+     *
+     * \param solnp1 Solution at time n+1.
+     * \param dt Timestep size.
+     * \return Shared pointer to the derivative.
+     */
     virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1,
                                            double& dt) override;
 
+protected:
     shp<aVector> computeExtrapolatedSolution();
 
-protected:
     std::vector<shp<BlockVector>>            M_prevSolutions;
     std::vector<double>                      M_coefficients;
     unsigned int                             M_order;

@@ -24,16 +24,32 @@
 namespace RedMA
 {
 
+/// Manager class for multiple reduced bases.
 class RBBasesManager
 {
 public:
-    RBBasesManager(const DataContainer& dataContainer, EPETRACOMM comm,
-                 std::map<unsigned int, std::string> idmeshmap);
+    /*! \brief Constructor.
+     *
+     * \param dataContainer A DataContainer.
+     * \param comm A MPI Communicator.
+     * \param idmeshmap A std map with key = ID (of building block), value = meshname.
+     */
+    RBBasesManager(const DataContainer& dataContainer,
+                   EPETRACOMM comm,
+                   std::map<unsigned int, std::string> idmeshmap);
 
-    void load();
+    /// Load the singular values from file
+    void loadSingularValues();
 
+    /// Load the reduced bases from file.
     void loadBases();
 
+    /*! \brief Get reduced bases associated with a mesh.
+     *
+     * \param dataContainer A DataContainer.
+     * \param comm A MPI Communicator.
+     * \param idmeshmap A std map with key = ID (of building block), value = meshname.
+     */
     shp<RBBases> getRBBases(std::string meshName);
 
 private:

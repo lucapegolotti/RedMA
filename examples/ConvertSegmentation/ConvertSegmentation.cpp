@@ -38,7 +38,8 @@ int main(int argc, char **argv)
     shp<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    GetPot datafile("datafiles/data");
+    DataContainer datafile;
+    datafile.setDatafile("datafiles/data");
 
     SegmentationsMerger merger(datafile,comm,true);
 
