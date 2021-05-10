@@ -4,7 +4,9 @@ namespace RedMA
 {
 
 SegmentationsMerger::
-SegmentationsMerger(const GetPot& datafile, commPtr_Type comm, bool verbose) :
+SegmentationsMerger(const DataContainer& datafile,
+                    EPETRACOMM comm,
+                    bool verbose) :
   M_datafile(datafile),
   M_comm(comm),
   M_verbose(verbose)
@@ -143,10 +145,9 @@ mergeTwoSegmentations(SegmentationParserPtr segmentationFather,
     int maxTubeLength = M_datafile("segmentation_merger/maxtubelength", 3);
 
     // forward parent until bifurcation
-    Contour inletBifurcation = bifurcation->getInlet();
-    TreeStructure inBranch = segmentationFather->createTreeForward(2, 1.0, 1.0,
-                                                                   nullptr,
-                                                            &inletBifurcation);
+    Contour inletBifurcation = bifurcation->getInlet(0);
+    TreeStructure inBranch = segmentationFather->createTreeForward(2, nullptr,
+                                                             &inletBifurcation);
 
     unsigned int idLastElement = inBranch.getNodesMap().size()-1;
 
@@ -178,13 +179,13 @@ mergeTwoSegmentations(SegmentationParserPtr segmentationFather,
     TreeStructure otherBranch;
     if (dist1 < dist2)
     {
-        outBranch = segmentationFather->createTreeForward(maxTubeLength, 1.0, 1.0, &outlet1, nullptr);
-        otherBranch = segmentationChild->createTreeForward(maxTubeLength, 1.0, 1.0, &outlet2, nullptr);
+        outBranch = segmentationFather->createTreeForward(maxTubeLength, &outlet1, nullptr);
+        otherBranch = segmentationChild->createTreeForward(maxTubeLength, &outlet2, nullptr);
     }
     else
     {
-        outBranch = segmentationChild->createTreeForward(maxTubeLength, 1.0, 1.0, &outlet1, nullptr);
-        otherBranch = segmentationFather->createTreeForward(maxTubeLength, 1.0, 1.0, &outlet2, nullptr);
+        outBranch = segmentationChild->createTreeForward(maxTubeLength, &outlet1, nullptr);
+        otherBranch = segmentationFather->createTreeForward(maxTubeLength, &outlet2, nullptr);
     }
 
     outBranch.traverseAndDeformGeometries(false);
@@ -503,7 +504,7 @@ computeLoss(shp<BifurcationSymmetric> bifurcation,
     double M_constNormals = 1.0;
     double M_constRadius = 2.0;
 
-    Contour inlet = bifurcation->getInlet();
+    Contour inlet = bifurcation->getInlet(0);
     Contour outlet1 = bifurcation->getOutlet(0);
     Contour outlet2 = bifurcation->getOutlet(1);
 

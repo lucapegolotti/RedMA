@@ -36,7 +36,7 @@ namespace RedMA
  * This class takes care of the assembly of the structures related to a particular
  * discretized PDE. We recall that we consider PDEs of the form
  *  \f[
- *    \Large M(u) \dot{u} = F(t,u),
+ *    M(u) \dot{u} = F(t,u),
  *  \f]
  * where \f$M\f$ is the mass matrix, \f$u\f$ is the solution and \f$F\f$ is the right-hand side.
  */
@@ -58,7 +58,8 @@ public:
      * \param datafile The datafile.
      * \param datafile The TreeNode encoding the physical domain.
      */
-    aAssembler(const DataContainer& datafile, shp<TreeNode> node);
+    aAssembler(const DataContainer& datafile,
+               shp<TreeNode> node);
 
     /// Virtual setup function.
     virtual void setup() = 0;
@@ -189,14 +190,15 @@ public:
      *
      * \return Shared pointer to the BCManager.
      */
-    inline shp<BCManager> getBCManager() const {return M_bcManager;}
+    inline virtual shp<BCManager> getBCManager() const {return M_bcManager;}
 
     /*! \brief Virtual method to apply Dirichlet bcs to a matrix.
      *
      * \param matrix The matrix to which the bcs must be applied.
      * \param diagCoeff Coefficient to put in the diagonal of the matrix.
      */
-    virtual void applyDirichletBCsMatrix(shp<aMatrix> matrix, double diagCoeff) const = 0;
+    virtual void applyDirichletBCsMatrix(shp<aMatrix> matrix,
+                                         double diagCoeff) const = 0;
 
     /*! \brief Virtual method to apply homogeneous Dirichlet bcs to a vector.
      *
@@ -204,12 +206,15 @@ public:
      */
     virtual void apply0DirichletBCs(shp<aVector> vector) const = 0;
 
-    /*! \brief Virtual method to apply homogeneous Dirichlet bcs to a vector.
+    /*! \brief Virtual method to apply Dirichlet bcs to a vector.
+     *
+     * The boundary condtion is evaluated at the time provided as input.
      *
      * \param time Current time.
      * \param vector The vector to which the bcs must be applied.
      */
-    virtual void applyDirichletBCs(const double& time, shp<aVector> vector) const = 0;
+    virtual void applyDirichletBCs(const double& time,
+                                   shp<aVector> vector) const = 0;
 
     /*! \brief Applies the piola transformation (or its inverse) to a vector.
      *
@@ -218,8 +223,8 @@ public:
      * \param solution Shared pointer to aVector to transform.
      * \param inverse If true, inverse of Piola transformation is applied.
      */
-    virtual void applyPiola(shp<aVector> solution, bool inverse) = 0;
-
+    virtual void applyPiola(shp<aVector> solution,
+                            bool inverse) = 0;
 
     /*! \brief Assemble matrix corresponding to specific index.
      *
@@ -228,12 +233,6 @@ public:
      * \return The assembled matrix.
      */
     virtual shp<aMatrix> assembleMatrix(const unsigned int& index) {return shp<aMatrix>();}
-
-    // /*! \brief Setter for MDEIMs manager.
-    //  *
-    //  *  Currently not supported.
-    //  */
-    // virtual void setMDEIMs(shp<MDEIMManager> mdeimManager) {}
 
     /*! \brief Get nonlinear part of the right-hand side (when applicable).
      *
@@ -250,7 +249,7 @@ public:
 
     /* \brief Setter for the default assemblers.
      *
-     * \param Shared pointer to the DefaultAssemblers.
+     * \param Shared pointer to the DefaultAssemblersLibrary.
      */
     virtual void setDefaultAssemblers(shp<DefaultAssemblers> defAssemblers)
     {

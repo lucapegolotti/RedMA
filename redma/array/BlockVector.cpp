@@ -56,29 +56,6 @@ globalTypeIs(Datatype type)
     return true;
 }
 
-void
-BlockVector::
-copyPattern(shp<BlockVector> other, bool verbose)
-{
-    throw new Exception("This function does not work");
-    for (unsigned int i = 0; i < nRows(); i++)
-    {
-        if (block(i)->type() == BLOCK)
-        {
-            convert<BlockVector>(block(i))->copyPattern(convert<BlockVector>(other->block(i)),false);
-        }
-        else if (block(i)->type() != other->block(i)->type())
-        {
-            if (other->block(i)->type() == DENSE && block(i)->type() == DISTRIBUTED)
-            {
-                setBlock(i,convert<DistributedVector>(block(i))->toDenseVectorPtr());
-            }
-            else
-                throw new Exception("copyPattern: case not implemented");
-        }
-    }
-}
-
 shp<BlockVector>
 BlockVector::
 convertInnerTo(Datatype type, shp<Epetra_Comm> comm)

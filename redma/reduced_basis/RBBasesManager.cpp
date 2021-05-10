@@ -14,7 +14,7 @@ RBBasesManager(const DataContainer& dataContainer, EPETRACOMM comm,
 
 void
 RBBasesManager::
-load()
+loadSingularValues()
 {
     Chrono chrono;
     chrono.start();

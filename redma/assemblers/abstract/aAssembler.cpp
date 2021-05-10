@@ -11,7 +11,8 @@ aAssembler(const DataContainer& data) :
 }
 
 aAssembler::
-aAssembler(const DataContainer& data, shp<TreeNode> treeNode) :
+aAssembler(const DataContainer& data,
+           shp<TreeNode> treeNode) :
   M_data(data),
   M_treeNode(treeNode),
   M_comm(treeNode->M_block->getComm()),

@@ -27,12 +27,26 @@
 namespace RedMA
 {
 
+/*! \brief A dummy basis function used for testing.
+ *
+ * The function returns 0.
+ */
 class DummyBasisFunction : public BasisFunctionFunctor
 {
 public:
+    /*! \brief Constructor taking a GeometricFace.
+     *
+     * \param face The GeometricFace where the basis functions are defined.
+     * \param type The name of the basis functions.
+     */
     DummyBasisFunction(const GeometricFace& face,
                        std::string type);
 
+    /*! \brief Evaluation operator.
+     *
+     * \param pos Position where the function has to be evaluated.
+     * \return Value of the basis function, i.e., 0.
+     */
     return_Type operator()(const Vector3D& pos) override;
 };
 

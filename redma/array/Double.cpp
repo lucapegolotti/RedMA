@@ -57,7 +57,7 @@ void
 Double::
 dump(std::string namefile) const
 {
-
+    throw new Exception("Method dump not implemented for Double!");
 }
 
 bool
@@ -107,7 +107,7 @@ std::string
 Double::
 getString(const char& delimiter) const
 {
-
+    throw new Exception("Method getString not implemented for Double!");
 }
 
 double
@@ -122,9 +122,6 @@ Double::
 clone() const
 {
     throw new Exception("Method clone not implemented for Double!");
-    // Double* retDouble = new Double();
-    // retDouble->setValue(M_double);
-    // return retDouble;
 }
 
 shp<void>

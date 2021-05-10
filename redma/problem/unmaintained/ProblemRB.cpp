@@ -9,7 +9,8 @@ ProblemRB(const DataContainer& data, EPETRACOMM comm, bool doSetup) :
   M_geometryParser(data.getDatafile(),
                    data("geometric_structure/xmlfile","tree.xml"),
                    comm, data.getVerbose()),
-  M_storeSolutions(false)
+  M_storeSolutions(false),
+  M_comm(comm)
 {
     M_tree = M_geometryParser.getTree();
 
@@ -29,9 +30,17 @@ setup()
 
     M_tree.readMeshes(geometriesDir);
     M_tree.traverseAndDeformGeometries();
+<<<<<<< HEAD:redma/problem/unmaintained/ProblemRB.cpp
 
     M_assembler.reset(new BAssembler(M_data, M_tree));
     M_TMAlgorithm = TimeMarchingAlgorithmFactory(M_data, M_assembler);
+=======
+    
+    M_defaultAssemblers.reset(new DefaultAssemblersLibrary<FEVECTOR COMMA FEMATRIX>
+                              (M_data, M_tree.getMeshListNames(), M_comm));
+    M_assembler.reset(new BAssembler(M_data, M_tree, M_defaultAssemblers));
+    M_TMAlgorithm = TimeMarchingAlgorithmFactory<BV, BM>(M_data, M_assembler);
+>>>>>>> 0ecf011a67aa78a3a98bee8ef5b5c7734d646d73:redma/solver/problem/ProblemRB.cpp
     printlog(MAGENTA, "done\n", M_data.getVerbose());
 }
 

@@ -14,36 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef STOKESMODEL_HPP
-#define STOKESMODEL_HPP
-
 #include <redma/RedMA.hpp>
-#include <redma/assemblers/abstract/aAssembler.hpp>
-#include <redma/array/DistributedVector.hpp>
-#include <redma/array/SparseMatrix.hpp>
-#include <redma/geometry/BuildingBlock.hpp>
+#include <redma/problem/DataContainer.hpp>
+#include <redma/reduced_basis/MatricesGenerator.hpp>
 
-// #include <redma/reduced_basis/BlockMDEIM.hpp>
+using namespace RedMA;
 
-#include <lifev/eta/expression/Integrate.hpp>
-#include <lifev/core/filter/Exporter.hpp>
-#include <lifev/core/filter/ExporterVTK.hpp>
-#include <lifev/core/filter/ExporterHDF5.hpp>
 
-namespace RedMA
+int main(int argc, char **argv)
 {
+    #ifdef HAVE_MPI
+    MPI_Init (nullptr, nullptr);
+    EPETRACOMM comm (new Epetra_MpiComm(MPI_COMM_WORLD));
+    #else
+    EPETRACOMM comm(new Epetra_SerialComm());
+    #endif
 
-class StokesModel
-{
-public:
-    StokesModel(const DataContainer& data, shp<TreeNode> treeNode);
+    DataContainer data;
+    data.setDatafile("datafiles/data_fem");
+    data.setVerbose(comm->MyPID() == 0);
+    data.finalize();
 
-protected:
+    MatricesGenerator generator(data, comm);
+    generator.generate();
 
-    shp<BlockVector> buildZeroVector() const;
-
-};
-
+    return 0;
 }
-
-#endif // STOKESMODEL_HPP

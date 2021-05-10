@@ -30,18 +30,49 @@ class aAssembler;
 shp<aAssembler>
 AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode);
 
+/*! \brief Class to handle a set of default (i.e., defined on reference
+ *   building blocks) assemblers.
+ */
 class DefaultAssemblersLibrary
 {
     typedef aAssembler   AssemblerType;
 public:
-    DefaultAssemblersLibrary(const DataContainer& data, const std::set<std::string>& meshes, EPETRACOMM comm);
+    /*! \brief Constructor.
+     *
+     * \param data A DataContainer.
+     * \param meshes Set of mesh names.
+     * \param comm MPI Communicator.
+     */
+    DefaultAssemblersLibrary(const DataContainer& data,
+                             const std::set<std::string>& meshes,
+                             EPETRACOMM comm);
 
+    /*! \brief Generate a tree node for a given mesh.
+     *
+     * \param nameMesh Name of the mesh.
+     * \return Shared pointer to the TreeNode.
+     */
     shp<TreeNode> generateDefaultTreeNode(const std::string& nameMesh);
 
+    /*! \brief Generate a tree node corresponding to a tube.
+     *
+     * \param nameMesh Name of the mesh.
+     * \return Shared pointer to the TreeNode.
+     */
     shp<TreeNode> generateDefaultTube(const std::string& nameMesh);
 
+    /*! \brief Generate a tree node corresponding to a symmetric bifurcation.
+     *
+     * \param nameMesh Name of the mesh.
+     * \return Shared pointer to the TreeNode.
+     */
     shp<TreeNode> generateDefaultSymmetricBifurcation(const std::string& nameMesh);
 
+    /*! \brief Getter for a given default assembler.
+     *
+     * \param nameMesh Name of the mesh.
+     * \return Shared pointer desired assembler.
+     */
     shp<AssemblerType> getDefaultAssembler(const std::string& namemesh);
 
 private:

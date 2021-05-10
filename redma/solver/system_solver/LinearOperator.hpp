@@ -31,36 +31,64 @@
 namespace RedMA
 {
 
+/*! \brief Linear operator.
+ *
+ * Some methods in this class have an empty implementation, due to
+ * the inheritance from LifeV::Operators::LinearOperatorAlgebra.
+ */
 class LinearOperator : public LifeV::Operators::LinearOperatorAlgebra
 {
     typedef LifeV::Operators::LinearOperatorAlgebra         super;
-    typedef shp<aVector>                                BV;
-    typedef shp<aMatrix>                                BM;
+    typedef shp<aVector>                                    BV;
+    typedef shp<aMatrix>                                    BM;
 
 public:
-    LinearOperator(const BM& matrix, shp<BlockMaps> maps);
+    /*! \brief Constructor.
+     *
+     * \param matrix Shared pointer to the matrix of the operator.
+     * \param maps Shared pointer to the block maps.
+     */
+    LinearOperator(const BM& matrix,
+                   shp<BlockMaps> maps);
 
-    // I provide null implementation of virtual methods
-    // only to be able to instantiate class
+    /// Method not implemented.
     virtual int SetUseTranspose(bool UseTranspose) override {}
 
-    virtual int Apply(const super::vector_Type& X, super::vector_Type& Y) const override;
+    /*! \brief Apply the linear operator to a vector.
+     *
+     * \param X Vector to which the operator must be applied.
+     * \param Y Result.
+     * \return Return code; 0 if successful.
+     */
+    virtual int Apply(const super::vector_Type& X,
+                      super::vector_Type& Y) const override;
 
+    /// Method not implemented.
     virtual int ApplyInverse(const super::vector_Type& X,
                              super::vector_Type& Y) const override {return -1;}
 
+    /// Method not implemented.
     virtual double NormInf() const override {return -1;}
 
+    /// Method not implemented.
     virtual const char * Label() const override {}
 
+    /// Method not implemented.
     virtual bool UseTranspose() const override {return false;}
 
+    /// Method not implemented.
     virtual bool HasNormInf() const override {return false;}
 
+    /*! \brief Getter for the MPI Communicator.
+     *
+     * \return Shared pointer to the MPI Communicator.
+     */
     virtual const super::comm_Type& Comm() const override {return *M_comm;};
 
+    /// Method not implemented.
     virtual const super::map_Type& OperatorDomainMap() const override {}
 
+    /// Method not implemented.
     virtual const super::map_Type& OperatorRangeMap() const override {}
 
 private:

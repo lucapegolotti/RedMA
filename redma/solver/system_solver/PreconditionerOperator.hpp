@@ -31,6 +31,11 @@
 namespace RedMA
 {
 
+/*! \brief Linear operator.
+ *
+ * Some methods in this class have an empty implementation, due to
+ * the inheritance from LifeV::Operators::LinearOperatorAlgebra.
+ */
 class PreconditionerOperator : public LifeV::Operators::LinearOperatorAlgebra
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
@@ -38,32 +43,53 @@ class PreconditionerOperator : public LifeV::Operators::LinearOperatorAlgebra
     typedef BlockMatrix                                              BM;
 
 public:
+    /// Empty constructor.
     PreconditionerOperator();
 
-    // I provide null implementation of virtual methods
-    // only to be able to instantiate class
+    /// Method not implemented.
     virtual int SetUseTranspose(bool UseTranspose) override {}
 
+    /// Method not implemented.
     virtual int Apply(const super::vector_Type& X,
                       super::vector_Type& Y) const override {};
 
+    /*! \brief Apply the approximated inverse to a vector.
+     *
+     * \param X Vector to which the inverse must be applied.
+     * \param Y Result.
+     * \return Return code; 0 if successful.
+     */
     virtual int ApplyInverse(const super::vector_Type& X,
                              super::vector_Type& Y) const override = 0;
 
+    /// Method not implemented.
     virtual double NormInf() const override {return -1;}
 
+    /// Method not implemented.
     virtual const char * Label() const override {}
 
+    /// Method not implemented.
     virtual bool UseTranspose() const override {return false;}
 
+    /// Method not implemented.
     virtual bool HasNormInf() const override {return false;}
 
+    /*! \brief Getter for the MPI Communicator.
+     *
+     * \return Shared pointer to the MPI Communicator.
+     */
     virtual const super::comm_Type& Comm() const override {return *M_comm;};
 
+    /// Method not implemented.
     virtual const super::map_Type& OperatorDomainMap() const override {}
 
+    /// Method not implemented.
     virtual const super::map_Type& OperatorRangeMap() const override {}
 
+    /*! \brief Getter for setup time.
+     *
+     * \return The setup time.
+     */
     inline double getSetupTime() const {return M_setupTime;}
 
 protected:
