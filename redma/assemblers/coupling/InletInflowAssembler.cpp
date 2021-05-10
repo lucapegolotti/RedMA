@@ -61,7 +61,7 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
     temp = this->M_childBfe->multiplyByVector(assemblerChild->getLifting(time));
     temp->multiplyByScalar(1.0/M_data.getInflow()(time));
     temp->block(0)->dump("couplingRHS");
-
+    temp->multiplyByScalar(M_data.getInflow()(time));
     // std::shared_ptr<DistributedVector> to_dump = convert<DistributedVector>(temp);
     // std::shared_ptr<DistributedVector> to_dump = spcast<DistributedVector>(temp);
     // to_dump->dump("couplingRHS");
