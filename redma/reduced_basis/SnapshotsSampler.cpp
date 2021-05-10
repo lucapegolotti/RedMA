@@ -59,6 +59,9 @@ takeSnapshots()
             problem.getTree().randomSampleAroundOriginalValue(bound);
 
         problem.setup();
+        auto M_divergence = problem.getBlockAssembler()->block(0)->assembleMatrix(2);
+        M_divergence->block(0,1)->dump("M_divergence01");
+        M_divergence->block(1,0)->dump("M_divergence10");
 
         if (!problem.isFEProblem())
             throw new Exception("The tree must be composed of only FE nodes to "
@@ -84,6 +87,7 @@ dumpSnapshots(GlobalProblem& problem,
 
     auto M_mass = problem.getBlockAssembler()->block(0)->assembleMatrix(0);
     auto M_stiffness = problem.getBlockAssembler()->block(0)->assembleMatrix(1);
+    auto M_divergence = problem.getBlockAssembler()->block(0)->assembleMatrix(2);
 
     unsigned int takeEvery = M_data("rb/offline/snapshots/take_every", 5);
     bool binary = M_data("rb/offline/snapshots/dumpbinary", true);
@@ -97,6 +101,7 @@ dumpSnapshots(GlobalProblem& problem,
 
     M_mass->block(0,0)->dump("M_mass");
     M_stiffness->block(0,0)->dump("M_stiffness");
+    M_divergence->block(0,0)->dump("M_divergence");
 
     //for (auto sol : solutions)
     //    problem.getBlockAssembler()->applyPiola(sol, true);
