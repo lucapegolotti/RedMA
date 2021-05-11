@@ -25,17 +25,24 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
     parseNeumannData();
 
     M_wallFlag = treeNode->M_block->wallFlag();
-    //M_inletRing = 30;
-    //M_outletRing = 31;
+    //M_inletRing.push_back(30);
+    //M_outletRing.push_back(31);
     if (M_treeNode->isOutletNode()){
 
-        for (auto out_face:treeNode->M_block->getOutlets())
+        for (auto out_face:treeNode->M_block->getOutlets()) {
             M_outletRing.push_back(out_face.M_diskFlag);
+            std::string msg = "[BCManager-outlet] " + std::to_string(out_face.M_diskFlag);
+            printlog(MAGENTA, msg, M_data.getVerbose());
+
+        }
     }
     if (M_treeNode->isInletNode()){
 
-        for(auto in_face: treeNode->M_block->getInlets())  //dubbi che funzioni con più blocchi
+        for(auto in_face: treeNode->M_block->getInlets()) { //dubbi che funzioni con più blocchi
             M_inletRing.push_back(in_face.M_diskFlag);
+            std::string msg = "[BCManager-inlet] " + std::to_string(in_face.M_diskFlag);
+            printlog(MAGENTA, msg, M_data.getVerbose());
+        }
     }
 
 

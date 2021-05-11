@@ -85,7 +85,7 @@ takeSnapshots()
         } else {
 
         }
-         std::string curdir = outdir + "/param" + std::to_string(alpha);
+         std::string curdir = outdir + "/param" + std::to_string(index);
         GlobalProblem problem(M_data, M_comm, false);
         // this is to allow taking the snapshots at the end of the simulation from
         // the fem problem
