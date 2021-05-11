@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 
     DataContainer data;
 
-    data.setDatafile("datafiles/data_fem");
+    data.setDatafile("datafiles/data");
 
     data.setVerbose(comm->MyPID() == 0);
     data.finalize();

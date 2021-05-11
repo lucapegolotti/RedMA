@@ -371,7 +371,9 @@ setup()
     {
         shp<InnerAssembler> inletAssembler = M_primalAssemblers[0];
 
+
         unsigned int ninlets = inletAssembler->getTreeNode()->M_block->getInlets().size();
+
 
         for (unsigned int i = 0; i < ninlets; i++)
         {
