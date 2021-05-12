@@ -21,7 +21,7 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
         }
     }
     else
-        M_coefficientsInflow[M_inflows.begin()->first] = data("bc_conditions/coefficientinflow", 1.0);
+        M_coefficientsInflow[M_treeNode->M_block->getInlet(0).M_flag] = data("bc_conditions/coefficientinflow", 1.0);
     parseNeumannData();
 
     M_wallFlag = treeNode->M_block->wallFlag();
@@ -106,9 +106,7 @@ applyDirichletBCs(const double& time, BlockVector& input,
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet();
 
     if (M_inflows.find(0) != M_inflows.end())
-    {
-        Law inflow = M_inflows.find(0)->second;
-    }
+        addInletBC(bcs, M_inflows.find(0)->second, M_treeNode->M_block->getInlet(0));
     else
     {
         auto inlets = M_treeNode->M_block->getInlets();
