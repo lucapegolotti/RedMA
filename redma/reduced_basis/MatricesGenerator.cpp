@@ -145,16 +145,29 @@ shp<TreeNode>
 MatricesGenerator::
 generateDefaultTreeNode(const std::string& nameMesh)
 {
+    std::cout<<nameMesh<<std::endl;
     if (nameMesh.find("tube") != std::string::npos)
         return generateDefaultTube(nameMesh);
-    else if (nameMesh.find("bifurcation_symmetric"))
+    else if (nameMesh.find("bifurcation_symmetric")!= std::string::npos)
         return generateDefaultSymmetricBifurcation(nameMesh);
+    else if (nameMesh.find("bypass_coarse_fluid")!=std::string::npos)
+        return generateDefaultBypass(nameMesh);
     else
     {
         throw new Exception("MatricesGenerator: this branch must still be implemented");
     }
 
     return nullptr;
+}
+    shp<TreeNode>
+    MatricesGenerator::
+    generateDefaultBypass(const std::string& nameMesh){
+    shp<Bypass> defaultBypass(new Bypass(M_comm, "bypass", false));
+    defaultBypass->readMesh();
+    defaultBypass->setDiscretizationMethod("fem");
+    defaultBypass->setAssemblerType("navierstokesfsi");
+    shp<TreeNode> treeNode(new TreeNode(defaultBypass, 1234));
+    return treeNode;
 }
 
 shp<TreeNode>

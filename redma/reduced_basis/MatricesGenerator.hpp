@@ -28,6 +28,7 @@
 #include <redma/geometry/building_blocks/BuildingBlock.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
 #include <redma/geometry/building_blocks/Tube.hpp>
+#include <redma/geometry/building_blocks/Bypass.hpp>
 #include <redma/geometry/building_blocks/BifurcationSymmetric.hpp>
 
 #include <redma/reduced_basis/RBBases.hpp>
@@ -73,6 +74,7 @@ private:
     shp<TreeNode> generateDefaultTreeNode(const std::string& nameMesh);
 
     shp<TreeNode> generateDefaultTube(const std::string& nameMesh);
+    shp<TreeNode> generateDefaultBypass(const std::string& nameMesh);
 
     shp<TreeNode> generateDefaultSymmetricBifurcation(const std::string& nameMesh);
 
