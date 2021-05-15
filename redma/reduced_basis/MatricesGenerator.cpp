@@ -100,10 +100,11 @@ createDefaultAssemblers()
         throw new Exception("Snapshots directory has not been generated yet!");
 
     std::string paramdir = snapshotsdir + "/param";
-    unsigned int i = 0;
+    double i = 1;
     // we loop over the folders with the parameters
     while (fs::exists(paramdir + std::to_string(i)))
     {
+
         fs::directory_iterator end_it;
         for (fs::directory_iterator it(paramdir + std::to_string(i)); it != end_it; it++)
         {
