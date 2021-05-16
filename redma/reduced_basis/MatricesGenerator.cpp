@@ -68,10 +68,13 @@ generate()
 
         // create list of faces
         std::vector<GeometricFace> faces = buildingBlock->getOutlets();
+        for (auto i: faces)
+            std::cout<< i.M_flag<<std::endl;
         //faces.push_back(buildingBlock->getInlet(0)); //mettere tutti inlet
         std::vector<GeometricFace> inl=buildingBlock->getInlets();
         faces.insert(faces.end(), inl.begin(), inl.end());
-
+        for (auto i: faces)
+            std::cout<< i.M_flag<<std::endl;
         for (auto face : faces)
         {
             shp<BlockMatrix> constraintMatrixBlock(new BlockMatrix(0,0));
@@ -146,7 +149,7 @@ shp<TreeNode>
 MatricesGenerator::
 generateDefaultTreeNode(const std::string& nameMesh)
 {
-    std::cout<<nameMesh<<std::endl;
+    //std::cout<<nameMesh<<std::endl;
     if (nameMesh.find("tube") != std::string::npos)
         return generateDefaultTube(nameMesh);
     else if (nameMesh.find("bifurcation_symmetric")!= std::string::npos)

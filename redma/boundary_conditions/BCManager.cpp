@@ -31,8 +31,8 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
 
         for (auto out_face:treeNode->M_block->getOutlets()) {
             M_outletRing.push_back(out_face.M_diskFlag);
-            std::string msg = "[BCManager-outlet] " + std::to_string(out_face.M_diskFlag);
-            printlog(MAGENTA, msg, M_data.getVerbose());
+            //std::string msg = "[BCManager-outlet] " + std::to_string(out_face.M_diskFlag);
+            //printlog(MAGENTA, msg, M_data.getVerbose());
 
         }
     }

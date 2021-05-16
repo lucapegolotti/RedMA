@@ -45,7 +45,7 @@ def generate_basis(index, nsnaps, norm_matrix, tol):
     count = 0
     print("reading snapshots ...",flush=True)
     for i in range(nsnaps):
-        fname = build_directory + 'snapshots/param' + str(i) + '/' + mesh_name + '/field' + str(index) + '.snap'
+        fname = build_directory + 'snapshots/param' + str(i)+'.000000' + '/' + mesh_name + '/field' + str(index) + '.snap'
         if os.path.isfile(fname):
             count = count + 1
             print('\t snapshotfile: ' + fname,flush=True)
@@ -57,6 +57,7 @@ def generate_basis(index, nsnaps, norm_matrix, tol):
 
     print("Number of read snapshots = " + str(count),flush=False)
     print("\n")
+    print(str(snap))
     print('Size of snapshots matrix = ' + str(snap.shape),flush=True)
     # snaps =  factor.solve_L(factor.apply_P(snap),use_LDLt_decomposition=False)
     if use_custom_norms:
@@ -158,26 +159,28 @@ else:
 if generate_dual_supremizers:
     print("===== COMPUTING DUAL SUPREMIZERS ====",flush=True)
 
-    constraint_matrix1 = read_matrix(matrix_dir+'/'+mesh_name+'/dualConstraint1.m',csc_matrix)
+    #constraint_matrix1 = read_matrix(matrix_dir+'/'+mesh_name+'/dualConstraint1.m',csc_matrix)
     constraint_matrix2 = read_matrix(matrix_dir+'/'+mesh_name+'/dualConstraint2.m',csc_matrix)
-    if mesh_name == 'bif_alpha50_0.10':
-        constraint_matrix3 = read_matrix(matrix_dir+'/'+mesh_name+'/dualConstraint3.m',csc_matrix)
-
+    #if mesh_name == 'bif_alpha50_0.10':
+    #    constraint_matrix3 = read_matrix(matrix_dir+'/'+mesh_name+'/dualConstraint3.m',csc_matrix)
+    constraint_matrix3 = read_matrix(matrix_dir+'/'+mesh_name+'/dualConstraint3.m',csc_matrix)
     # pad constraintMatrices
-    pad1 = csc_matrix((U.shape[0]-constraint_matrix1.shape[0],constraint_matrix1.shape[1]))
+    #pad1 = csc_matrix((U.shape[0]-constraint_matrix1.shape[0],constraint_matrix1.shape[1]))
     pad2 = csc_matrix((U.shape[0]-constraint_matrix2.shape[0],constraint_matrix2.shape[1]))
-    if mesh_name == 'bif_sym_alpha50_0.10':
-        pad3 = csc_matrix((U.shape[0]-constraint_matrix3.shape[0],constraint_matrix3.shape[1]))
+    pad3 = csc_matrix((U.shape[0]-constraint_matrix3.shape[0],constraint_matrix3.shape[1]))
+    #if mesh_name == 'bif_sym_alpha50_0.10':
+    #    pad3 = csc_matrix((U.shape[0]-constraint_matrix3.shape[0],constraint_matrix3.shape[1]))
 
-    constraint_matrix1 = scipy.sparse.vstack([constraint_matrix1,pad1])
+    #constraint_matrix1 = scipy.sparse.vstack([constraint_matrix1,pad1])
     constraint_matrix2 = scipy.sparse.vstack([constraint_matrix2,pad2])
-    if mesh_name == 'bif_sym_alpha50_0.10':
-        constraint_matrix3 = scipy.sparse.vstack([constraint_matrix3,pad3])
-
-    if mesh_name != 'bif_sym_alpha50_0.10':
-        global_constraint = csr_matrix(scipy.sparse.hstack([constraint_matrix1,constraint_matrix2]))
-    else:
-        global_constraint = csr_matrix(scipy.sparse.hstack([constraint_matrix1,constraint_matrix2,constraint_matrix3]))
+    #if mesh_name == 'bif_sym_alpha50_0.10':
+    #    constraint_matrix3 = scipy.sparse.vstack([constraint_matrix3,pad3])
+    constraint_matrix3 = scipy.sparse.vstack([constraint_matrix3,pad3])
+    #if mesh_name != 'bif_sym_alpha50_0.10':
+    #   global_constraint = csr_matrix(scipy.sparse.hstack([constraint_matrix1,constraint_matrix2]))
+    #else:
+    #    global_constraint = csr_matrix(scipy.sparse.hstack([constraint_matrix1,constraint_matrix2,constraint_matrix3]))
+    global_constraint = csr_matrix(scipy.sparse.hstack([constraint_matrix2,constraint_matrix3]))
     global_constraint[dir_indices] = 0
 
     print(global_constraint.shape)

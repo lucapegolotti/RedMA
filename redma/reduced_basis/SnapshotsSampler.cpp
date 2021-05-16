@@ -28,7 +28,7 @@ void
 SnapshotsSampler::
 takeSnapshots()
 {
-    std::string outdir = M_data("rb/offline/snapshots/directory", "snapshot");
+    std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
 
     fs::create_directory(outdir);
     GeometryPrinter printer;
