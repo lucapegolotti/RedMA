@@ -43,6 +43,9 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                 const shp<aVector>& sol) override;
 
+    virtual shp<aMatrix> getPressureMass(const double& time,
+                                         const shp<aVector>& sol) override;
+
     virtual shp<aMatrix> getMassJacobian(const double& time,
                                         const shp<aVector>& sol) override;
 

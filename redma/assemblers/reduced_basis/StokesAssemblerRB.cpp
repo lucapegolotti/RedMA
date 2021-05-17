@@ -33,6 +33,14 @@ getMass(const double& time,
 
 shp<aMatrix>
 StokesAssemblerRB::
+getPressureMass(const double& time,
+                const shp<aVector>& sol)
+{
+    return M_reducedMassPressure;
+}
+
+shp<aMatrix>
+StokesAssemblerRB::
 getMassJacobian(const double& time,
                 const shp<aVector>& sol)
 {
@@ -212,12 +220,16 @@ RBsetup()
     M_reducedMass.reset(new BlockMatrix(2,2));
     M_reducedStiffness.reset(new BlockMatrix(2,2));
     M_reducedDivergence.reset(new BlockMatrix(2,2));
+    M_reducedMassPressure.reset(new BlockMatrix(2,2));
 
     auto matrices = M_FEAssembler->getMatrices();
     M_reducedMass->setBlock(0,0,M_bases->matrixProject(matrices[0]->block(0,0), 0, 0, id));
     M_reducedStiffness->setBlock(0,0,M_bases->matrixProject(matrices[1]->block(0,0), 0, 0, id));
     M_reducedDivergence->setBlock(0,1,M_bases->matrixProject(matrices[2]->block(0,1), 0, 1, id));
     M_reducedDivergence->setBlock(1,0,M_bases->matrixProject(matrices[2]->block(1,0), 1, 0, id));
+
+    auto mass_pressure = M_FEAssembler->getPressureMass(0.0, nullptr);
+    M_reducedMassPressure->setBlock(1,1,M_bases->matrixProject(mass_pressure->block(1,1), 1, 1, id));
 
     msg = "done, in ";
     msg += std::to_string(chrono.diff());

@@ -12,7 +12,10 @@ outputdir = rb_solutions
 
 [assembler]
 	type = navierstokes_membrane
-	stabilization = none
+	[stabilization]
+	    type = supg  # to choose in {none, supg, ip}
+	    gamma_pressure = 10  # ip pressure coefficient
+    [../]
 [../]
 
 [bc_conditions]

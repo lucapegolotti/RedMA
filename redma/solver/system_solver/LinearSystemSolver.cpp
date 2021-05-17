@@ -55,9 +55,7 @@ solve(const BM& matrix, const BV& rhs, BV& sol)
     M_invOper.reset(new InverseOperator(M_data));
     M_invOper->setOperator(M_oper);
     M_invOper->setBlockMaps(M_maps);
-
     buildPreconditioner(matrixSparse);
-
     M_invOper->setPreconditioner(M_prec);
 
     Chrono chrono;
@@ -85,15 +83,17 @@ buildPreconditioner(const BM& matrix)
     {
         unsigned int recomputeevery = M_data("preconditioner/recomputeevery", 1);
         if (M_prec == nullptr || (M_numSolves % recomputeevery) == 0)
-            M_prec.reset(new SaddlePointPreconditioner(M_data, spcast<BlockMatrix>(matrix)));
+            M_prec.reset(new SaddlePointPreconditioner(M_data,
+                                                       spcast<BlockMatrix>(matrix),
+                                                       spcast<BlockMatrix>(M_Mp)));
         else
-        {
-            spcast<SaddlePointPreconditioner>(M_prec)->setup(spcast<BlockMatrix>(matrix), false);
-        }
+            spcast<SaddlePointPreconditioner>(M_prec)->setup(spcast<BlockMatrix>(matrix),
+                                                                 spcast<BlockMatrix>(M_Mp),
+                                                                 false);
     }
     else
     {
-        throw new Exception("Unknown type of preconditioner!");
+        throw new Exception("Unrecognized type of preconditioner " + precType + " !");
     }
     M_statistics.M_precSetupTime = M_prec->getSetupTime();
 }
@@ -452,6 +452,14 @@ convertVectorType(const shp<BlockMatrix>& matrix,
      }
      targetVector->setBlock(i, iVector);
     }
+}
+
+void
+LinearSystemSolver::
+setPressureMass(const BM &mass)
+{
+    M_Mp.reset(new BlockMatrix());
+    M_Mp->deepCopy(mass);
 }
 
 }

@@ -19,6 +19,7 @@
 
 #include <redma/assemblers/finite_element/StokesAssemblerFE.hpp>
 #include <redma/assemblers/finite_element/SUPGStabilization.hpp>
+#include <redma/assemblers/finite_element/IPStabilization.hpp>
 
 namespace RedMA
 {
@@ -53,11 +54,9 @@ public:
      *
      * \param datafile The datafile.
      * \param datafile The TreeNode encoding the physical domain.
-     * \param stabilizationName Name of the stabilization.
      */
     NavierStokesAssemblerFE(const DataContainer& data,
-                            shp<TreeNode> treeNode,
-                            std::string stabilizationName = "");
+                            shp<TreeNode> treeNode);
 
     /*! \brief Virtual setup function.
      *

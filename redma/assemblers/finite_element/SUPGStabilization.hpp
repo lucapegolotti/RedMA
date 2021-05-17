@@ -43,8 +43,13 @@ public:
                       shp<FESPACE> fespaceVelocity,
                       shp<FESPACE> fespacePressure,
                       shp<ETFESPACE3> etfespaceVelocity,
-                      shp<ETFESPACE1> etfespacePressure);
+                      shp<ETFESPACE1> etfespacePressure,
+                      EPETRACOMM comm);
 
+    /*! \brief Setup method.
+     *
+     */
+    virtual void setup() override;
 
     /*! \brief Assemble and get the mass.
      *
@@ -82,6 +87,10 @@ public:
     virtual shp<BlockVector> getResidual(shp<BlockVector> sol,
                                          shp<BlockVector> rhs) override;
 
+private:
+    unsigned int                        M_timeOrder;
+    double                              M_dt;
+    double                              M_C_I;
 };
 
 }  // namespace RedMA

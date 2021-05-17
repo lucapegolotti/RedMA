@@ -1,4 +1,4 @@
-<buildingblock type="bifurcation_symmetric" assembler="navierstokessupg_membrane" method="fem" refinement="coarse" angle="50" outlet="1">
+<buildingblock type="bifurcation_symmetric" assembler="navierstokes_membrane" method="fem" refinement="coarse" angle="50" outlet="1">
     <alpha>0</alpha>
     <alpha_axis>0</alpha_axis>
     <bx>0</bx>

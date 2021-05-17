@@ -50,9 +50,11 @@ public:
 
     void buildPreconditioner(const BM& matrix);
 
-    SolverStatistics getSolverStatistics() const {return M_statistics;}
+    inline SolverStatistics getSolverStatistics() const {return M_statistics;}
 
-    void setComm(EPETRACOMM comm) {M_comm = comm;}
+    inline void setComm(EPETRACOMM comm) {M_comm = comm;}
+
+    void setPressureMass(const BM& mass);
 
 private:
 
@@ -70,6 +72,7 @@ private:
     Epetra_SerialDenseSolver                        M_schurSolver;
     std::vector<shp<DenseMatrix>>                   M_collapsedAs;
     shp<DenseMatrix>                                M_schurComplementColl;
+    BM                                              M_Mp;
 
     DataContainer                                   M_data;
     shp<InverseOperator>                            M_invOper;

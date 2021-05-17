@@ -91,6 +91,15 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;
 
+    /*! \brief Virtual getter for pressure mass matrix.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     * \return Shared pointer to aMatrix of the mass matrix.
+     */
+    virtual shp<aMatrix> getPressureMass(const double& time,
+                                         const shp<aVector>& sol) override;
+
     /*! \brief Virtual getter for mass matrix Jacobian.
      *
      * \param time Current time.
@@ -324,6 +333,7 @@ protected:
     shp<BlockMatrix>                                  M_reducedMass;
     shp<BlockMatrix>                                  M_reducedDivergence;
     shp<BlockMatrix>                                  M_reducedStiffness;
+    shp<BlockMatrix>                                  M_reducedMassPressure;
 
     shp<StokesAssemblerFE>                            M_FEAssembler;
 };

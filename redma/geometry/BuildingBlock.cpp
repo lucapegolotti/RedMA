@@ -151,14 +151,9 @@ readMesh(std::string meshdir)
 
     LifeV::MeshPartitioner<mesh_Type> meshPart(fullMesh, M_comm);
 
-    // small trick to redirect std cout
-    // CoutRedirecter ct;
-    // ct.redirect();
-    // meshPart.doPartition(fullMesh, M_comm);
     M_mesh.reset(new mesh_Type(M_comm));
     M_mesh = meshPart.meshPartition();
 
-    // printlog(CYAN, ct.restore(), M_verbose);
     printlog(MAGENTA, "done\n", M_verbose);
 
     return 0;

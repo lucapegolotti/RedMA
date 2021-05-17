@@ -33,6 +33,7 @@ setup()
     initializeFEspaces();
 
     M_mass = spcast<BlockMatrix>(assembleMass(M_bcManager)); // #1
+    M_massPressure = spcast<BlockMatrix>(assemblePressureMass(M_bcManager));
     M_stiffness = spcast<BlockMatrix>(assembleStiffness(M_bcManager)); // #2
     M_divergence = spcast<BlockMatrix>(assembleDivergence(M_bcManager)); // #3
 
@@ -88,6 +89,14 @@ getMass(const double& time,
         const shp<aVector>& sol)
 {
     return M_mass;
+}
+
+shp<aMatrix>
+StokesAssemblerFE::
+getPressureMass(const double& time,
+                const shp<aVector>& sol)
+{
+    return M_massPressure;
 }
 
 shp<aMatrix>
@@ -633,6 +642,29 @@ assembleMass(shp<BCManager> bcManager)
                                      !(this->M_addNoSlipBC));
 
     return mass;
+}
+
+shp<aMatrix>
+StokesAssemblerFE::
+assemblePressureMass(shp<BCManager> bcManager)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    shp<BlockMatrix> mass_press(new BlockMatrix(2,2));
+    shp<MATRIXEPETRA> Mp(new MATRIXEPETRA(M_pressureFESpace->map()));
+
+    integrate(elements(M_pressureFESpaceETA->mesh()),
+              M_pressureFESpace->qr(),
+              M_pressureFESpaceETA,
+              M_pressureFESpaceETA,
+              phi_i * phi_j
+    ) >> Mp;
+
+    Mp->globalAssemble();
+    mass_press->setBlock(1, 1, wrap(Mp));
+
+    return mass_press;
 }
 
 shp<aMatrix>

@@ -1,4 +1,4 @@
-<buildingblock type="tube" assembler="navierstokessupg_membrane" method="fem" refinement="h0.12" d="1" L="5" outlet="1">
+<buildingblock type="tube" assembler="navierstokes_membrane" method="fem" refinement="h0.25" d="1" L="5" outlet="1">
     <L_ratio>1</L_ratio>
     <Rout_ratio>1</Rout_ratio>
     <alpha_axis>0</alpha_axis>

@@ -179,6 +179,22 @@ getMass(const double& time,
 
 shp<aMatrix>
 BlockAssembler::
+getPressureMass(const double& time,
+                const shp<aVector>& sol)
+{
+    shp<BlockMatrix> mass_press(new BlockMatrix(M_numberBlocks, M_numberBlocks));
+
+    for (auto as : M_primalAssemblers)
+    {
+        unsigned int ind = as.first;
+        mass_press->setBlock(ind, ind, as.second->getPressureMass(time, convert<BlockVector>(sol)->block(ind)));
+    }
+
+    return mass_press;
+}
+
+shp<aMatrix>
+BlockAssembler::
 getMassJacobian(const double& time,
                 const shp<aVector>& sol)
 {

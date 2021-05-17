@@ -21,6 +21,7 @@
 #include <redma/assemblers/reduced_basis/StokesAssemblerRB.hpp>
 #include <redma/assemblers/abstract/aAssemblerRB.hpp>
 #include <redma/assemblers/finite_element/SUPGStabilization.hpp>
+#include <redma/assemblers/finite_element/IPStabilization.hpp>
 
 #include <redma/reduced_basis/RBBases.hpp>
 
@@ -56,12 +57,9 @@ public:
      *
      * \param datafile The datafile.
      * \param treeNode The TreeNode encoding the physical domain.
-     * \param stabilizationName The name of the stabilization method. Default value is "",
-     * which means no stabilization.
      */
     NavierStokesAssemblerRB(const DataContainer& data,
-                            shp<TreeNode> treeNode,
-                            std::string stabilizationName = "");
+                            shp<TreeNode> treeNode);
 
     /*! \brief Perform the setup for the RB method.
      *

@@ -42,9 +42,9 @@ TimeMarchingAlgorithmFactory(const DataContainer& data, const shp<aVector>& zero
     shp<aTimeMarchingAlgorithm> ret;
     std::string algorithmString = data("time_discretization/algorithm","bdf");
 
-    if (!std::strcmp(algorithmString.c_str(),"bdf"))
+    if (!std::strcmp(algorithmString.c_str(), "bdf"))
         ret.reset(new BDF(data, zeroVector));
-    else if (!std::strcmp(algorithmString.c_str(),"alpha"))
+    else if (!std::strcmp(algorithmString.c_str(), "alpha"))
         ret.reset(new GeneralizedAlphaMethod(data, zeroVector));
     else
         throw new Exception("Requested time marching algorithm is not implemented!");
@@ -52,4 +52,4 @@ TimeMarchingAlgorithmFactory(const DataContainer& data, const shp<aVector>& zero
     return ret;
 }
 
-}
+}  // Namespace RedMA

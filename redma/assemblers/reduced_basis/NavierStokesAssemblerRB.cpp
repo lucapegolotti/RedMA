@@ -5,16 +5,15 @@ namespace RedMA
 
 NavierStokesAssemblerRB::
 NavierStokesAssemblerRB(const DataContainer& data,
-                        shp<TreeNode> treeNode,
-                        std::string stabilizationName) :
-  StokesAssemblerRB(data,treeNode),
-  M_stabilizationName(stabilizationName)
+                        shp<TreeNode> treeNode) :
+  StokesAssemblerRB(data, treeNode)
 {
     M_name = "NavierStokesAssemblerRB";
     M_exactJacobian = M_data("rb/online/exactjacobian",false);
+    M_stabilizationName = data("assembler/stabilization/type", "none");
 
     // if we use a stabilization we use P1-P1 by default and exact jacobian
-    if (std::strcmp(M_stabilizationName.c_str(),""))
+    if (std::strcmp(M_stabilizationName.c_str(), "none"))
     {
         M_FEAssembler->setVelocityOrder("P1");
         M_FEAssembler->setPressureOrder("P1");
@@ -87,26 +86,44 @@ RBsetup()
         printlog(YELLOW, msg, this->M_data.getVerbose());
     }
 
-    if (!std::strcmp(M_stabilizationName.c_str(), "supg"))
+    if (!std::strcmp(M_stabilizationName.c_str(),"none"))
     {
-        printlog(WHITE, "[NavierStokesAssemblerRB] Setting up SUPG stabilization...\n",
-                 this->M_data.getVerbose());
-
-        M_stabilization.reset(new SUPGStabilization(this->M_data,
-                                                    this->M_FEAssembler->getFEspace(0),
-                                                    this->M_FEAssembler->getFEspace(1),
-                                                    this->M_FEAssembler->getVelocityETFEspace(),
-                                                    this->M_FEAssembler->getPressureETFEspace()));
-        M_stabilization->setDensityAndViscosity(this->M_FEAssembler->getDensity(),
-                                                this->M_FEAssembler->getViscosity());
-    }
-    else if (!std::strcmp(M_stabilizationName.c_str(),""))
-    {
-        printlog(WHITE, "[NavierStokesAssemblerRB] Proceeding without stabilization...\n",
+        printlog(YELLOW, "[NavierStokesAssemblerRB] Proceeding without stabilization...\n",
                  this->M_data.getVerbose());
     }
     else
-        throw new Exception("Stabilization " + M_stabilizationName + " is not implemented!");
+    {
+        if (!std::strcmp(M_stabilizationName.c_str(), "supg"))
+        {
+            printlog(WHITE, "[NavierStokesAssemblerRB] Setting up SUPG stabilization...\n",
+                     this->M_data.getVerbose());
+
+            M_stabilization.reset(new SUPGStabilization(this->M_data,
+                                                        this->M_FEAssembler->getFEspace(0),
+                                                        this->M_FEAssembler->getFEspace(1),
+                                                        this->M_FEAssembler->getVelocityETFEspace(),
+                                                        this->M_FEAssembler->getPressureETFEspace(),
+                                                        this->M_comm));
+        }
+        else if (!std::strcmp(M_stabilizationName.c_str(), "ip"))
+        {
+            printlog(YELLOW, "[NavierStokesAssemblerRB] Setting up IP stabilization...\n",
+                     this->M_data.getVerbose());
+
+            M_stabilization.reset(new IPStabilization(this->M_data,
+                                                        this->M_FEAssembler->getFEspace(0),
+                                                        this->M_FEAssembler->getFEspace(1),
+                                                        this->M_FEAssembler->getVelocityETFEspace(),
+                                                        this->M_FEAssembler->getPressureETFEspace(),
+                                                        this->M_comm));
+        }
+        else
+            throw new Exception("Stabilization " + M_stabilizationName + " is not implemented!");
+
+        M_stabilization->setDensityAndViscosity(this->M_FEAssembler->getDensity(),
+                                                this->M_FEAssembler->getViscosity());
+        M_stabilization->setup();
+    }
 }
 
 shp<aMatrix>
@@ -117,12 +134,12 @@ getMass(const double& time,
     shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
     retMat->deepCopy(this->M_reducedMass);
 
-// TODO: here the RB stabilization is implemented in a naive way; indeed every contribution
-//  due to stabilization is computed and assembled in the FEM domain and then projected!
-//  As basic step, it will be beneficial to store the FEM-reconstructed solution and rhs term
-//  in the class, so that they do not have to be recomputed when the mass, mass jacobian, rhs and
-//  rhs jacobian are assembled. However, it is necessary to store multiple terms (because of the
-//  time-marching) and to update them at every Newton iteration.
+// TODO: optimize with respect to the type of stabilization. With SUPG very few can be done, as it is
+//  highly non-linear; a possible upgrade would consist in reconstructing the FEM solution from the
+//  RB one just one for every Newton iteration and not every time a new matrix/vector has to be assembled.
+//  With IP (if it works!), instead, a lot can be optimized; indeed the RB stabilization matrix can be
+//  assembled once-for-all at offline phase and, during the online one, there's never need to reconstruct
+//  FEM vectors from RB ones or to project FEM matrices/vectors onto the RB subspace.
 
     if (M_stabilization)
     {
@@ -147,6 +164,13 @@ NavierStokesAssemblerRB::
 getMassJacobian(const double& time,
                 const shp<aVector>& sol)
 {
+// TODO: optimize with respect to the type of stabilization. With SUPG very few can be done, as it is
+//  highly non-linear; a possible upgrade would consist in reconstructing the FEM solution from the
+//  RB one just one for every Newton iteration and not every time a new matrix/vector has to be assembled.
+//  With IP (if it works!), instead, a lot can be optimized; indeed the RB stabilization matrix can be
+//  assembled once-for-all at offline phase and, during the online one, there's never need to reconstruct
+//  FEM vectors from RB ones or to project FEM matrices/vectors onto the RB subspace.
+
     shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,
                                             this->M_nComponents));
 
@@ -219,6 +243,13 @@ NavierStokesAssemblerRB::
 getRightHandSide(const double& time,
                  const shp<aVector>& sol)
 {
+// TODO: optimize with respect to the type of stabilization. With SUPG very few can be done, as it is
+//  highly non-linear; a possible upgrade would consist in reconstructing the FEM solution from the
+//  RB one just one for every Newton iteration and not every time a new matrix/vector has to be assembled.
+//  With IP (if it works!), instead, a lot can be optimized; indeed the RB stabilization matrix can be
+//  assembled once-for-all at offline phase and, during the online one, there's never need to reconstruct
+//  FEM vectors from RB ones or to project FEM matrices/vectors onto the RB subspace.
+
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
@@ -314,6 +345,13 @@ NavierStokesAssemblerRB::
 getJacobianRightHandSide(const double& time,
                          const shp<aVector>& sol)
 {
+// TODO: optimize with respect to the type of stabilization. With SUPG very few can be done, as it is
+//  highly non-linear; a possible upgrade would consist in reconstructing the FEM solution from the
+//  RB one just one for every Newton iteration and not every time a new matrix/vector has to be assembled.
+//  With IP (if it works!), instead, a lot can be optimized; indeed the RB stabilization matrix can be
+//  assembled once-for-all at offline phase and, during the online one, there's never need to reconstruct
+//  FEM vectors from RB ones or to project FEM matrices/vectors onto the RB subspace.
+
     Chrono chrono;
     chrono.start();
 

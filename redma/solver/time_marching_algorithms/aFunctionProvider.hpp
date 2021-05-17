@@ -37,6 +37,8 @@ public:
 
     virtual shp<aMatrix> getMass(const double& time, const shp<aVector>& sol) = 0;
 
+    virtual shp<aMatrix> getPressureMass(const double& time, const shp<aVector>& sol) = 0;
+
     virtual shp<aMatrix> getMassJacobian(const double& time, const shp<aVector>& sol) = 0;
 
     virtual shp<aVector> getRightHandSide(const double& time, const shp<aVector>& sol) = 0;

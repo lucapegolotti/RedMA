@@ -72,11 +72,9 @@ public:
      *
      * \param datafile The datafile.
      * \param datafile The TreeNode encoding the physical domain.
-     * \param stabilizationName Name of the stabilization.
      */
     MembraneAssemblerFE(const DataContainer& datafile,
-                        shp<TreeNode> treeNode,
-                        std::string stabilizationName = "");
+                        shp<TreeNode> treeNode);
 
     /*! \brief Virtual setup function.
      *

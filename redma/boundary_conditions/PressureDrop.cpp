@@ -38,6 +38,18 @@ getMass(const double& time, const shp<aVector>& sol)
 
 shp<aMatrix>
 PressureDrop::
+getPressureMass(const double& time, const shp<aVector>& sol)
+{
+    shp<BlockMatrix> mass(new BlockMatrix(1,1));
+    shp<Double> one(new Double());
+    one->setValue(1.0);
+    mass->setBlock(1,1,one);
+
+    return mass;
+}
+
+shp<aMatrix>
+PressureDrop::
 getMassJacobian(const double& time, const shp<aVector>& sol)
 {
     shp<BlockMatrix> massJac(new BlockMatrix(1,1));

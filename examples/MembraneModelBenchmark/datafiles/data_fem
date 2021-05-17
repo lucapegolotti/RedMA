@@ -5,14 +5,17 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/tree1.xml
+	xmlfile = geometries/pipe1.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
 
 [assembler]
-	type = navierstokessupg_membrane
-	stabilization = supg
+	type = navierstokes_membrane
+	[./stabilization]
+	    type = ip  # to choose in {none, supg, ip}
+	    gamma_pressure = 0.2  # ip pressure coefficient
+    [../]
 [../]
 
 [bc_conditions]
@@ -92,7 +95,7 @@ outputdir = rb_solutions
 [../]
 
 [newton_method]
-	tol = 1e-6
+	tol = 1e-4
 	maxit = 10
 [../]
 

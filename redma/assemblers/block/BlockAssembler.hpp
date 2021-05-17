@@ -96,6 +96,18 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;
 
+    /*! \brief Getter for the pressure mass matrix.
+    *
+    * The getMass method is called in all the subdomains and each output is
+    * positioned in the diagonal.
+    *
+    * \param time Current time.
+    * \param sol Current solution.
+    * \return Shared pointer to BlockMatrix containing the global pressure mass matrix.
+    */
+    virtual shp<aMatrix> getPressureMass(const double& time,
+                                         const shp<aVector>& sol) override;
+
     /*! \brief Getter for the mass matrix jacobian.
     *
     * The getMassJacobians method is called in all the subdomains and each output is

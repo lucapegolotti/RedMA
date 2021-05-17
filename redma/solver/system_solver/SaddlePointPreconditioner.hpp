@@ -24,6 +24,7 @@
 
 #include <lifev/navier_stokes_blocks/solver/NavierStokesOperator.hpp>
 #include <lifev/navier_stokes_blocks/solver/aSIMPLEOperator.hpp>
+#include <lifev/navier_stokes_blocks/solver/aPmmOperator.hpp>
 #include <lifev/core/linear_algebra/LinearOperatorAlgebra.hpp>
 #include <lifev/core/linear_algebra/BlockEpetra_MultiVector.hpp>
 #include <lifev/core/linear_algebra/BlockEpetra_Map.hpp>
@@ -45,7 +46,9 @@ class SaddlePointPreconditioner : public PreconditionerOperator
     typedef LifeV::Operators::ApproximatedInvertibleRowMatrix        ApproxInv;
 
 public:
-    SaddlePointPreconditioner(const DataContainer& data, const BM& matrix);
+    SaddlePointPreconditioner(const DataContainer& data,
+                              const BM& matrix,
+                              const BM& pressureMass = nullptr);
 
     virtual int ApplyInverse(const super::vector_Type& X,
                              super::vector_Type& Y) const override;
@@ -58,11 +61,12 @@ public:
 
     void setSolverOptions();
 
-
     void computeSchurComplement(const BM& A, const BM& BT,
                                 const BM& B, const BM& C);
 
-    void setup(const BM& matrix, bool doComputeSchurComplement = true);
+    void setup(const BM& matrix,
+               const BM& pressureMass = nullptr,
+               bool doComputeSchurComplement = true);
 
 private:
     void computeAm1BT(const BM& A, const BM& BT);
@@ -80,7 +84,6 @@ private:
     void findSmallBlocks(const BM& primalMatrix);
 
     DataContainer                                        M_data;
-    BM                                                   M_matrix;
     BM                                                   M_matrixCollapsed;
     BM                                                   M_S;
     shp<BlockMaps>                                       M_maps;

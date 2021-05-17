@@ -40,11 +40,13 @@ public:
     BV solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
              BV initialGuess, int& status);
 
+    void setPressureMass(const BM& mass);
+
     inline std::vector<SolverStatistics> getSolverStatistics() const {return M_solverStatistics;}
 
-    void isLinearProblem() {M_isLinearProblem = true;}
+    inline void isLinearProblem() {M_isLinearProblem = true;}
 
-    void setComm(EPETRACOMM comm) {M_comm = comm;}
+    inline void setComm(EPETRACOMM comm) {M_comm = comm;}
 
 private:
     DataContainer                                       M_data;
@@ -52,6 +54,7 @@ private:
     std::vector<SolverStatistics>                       M_solverStatistics;
     bool                                                M_isLinearProblem;
     EPETRACOMM                                          M_comm;
+    BM                                                  M_Mp;
 };
 
 }

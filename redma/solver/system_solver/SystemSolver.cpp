@@ -7,9 +7,7 @@ SystemSolver::
 SystemSolver(const DataContainer& data) :
   M_data(data),
   M_linearSystemSolver(data),
-  M_isLinearProblem(false)
-{
-}
+  M_isLinearProblem(false) {}
 
 SystemSolver::BV
 SystemSolver::
@@ -139,4 +137,13 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
     return sol;
 }
 
+void
+SystemSolver::
+setPressureMass(const SystemSolver::BM &mass)
+{
+    M_Mp.reset(new BlockMatrix());
+    M_Mp->deepCopy(mass);
+    M_linearSystemSolver.setPressureMass(mass);
 }
+
+} // Namespace RedMA

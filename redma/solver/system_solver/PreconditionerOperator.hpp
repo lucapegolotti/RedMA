@@ -34,8 +34,8 @@ namespace RedMA
 class PreconditionerOperator : public LifeV::Operators::LinearOperatorAlgebra
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
-    typedef BlockVector                                              BV;
-    typedef BlockMatrix                                              BM;
+    typedef shp<BlockVector>                                         BV;
+    typedef shp<BlockMatrix>                                         BM;
 
 public:
     PreconditionerOperator();
@@ -66,9 +66,13 @@ public:
 
     inline double getSetupTime() const {return M_setupTime;}
 
+    void setPressureMass(const BM& mass);
+
 protected:
-    EPETRACOMM                      M_comm;
-    double                          M_setupTime;
+    EPETRACOMM                                           M_comm;
+    double                                               M_setupTime;
+
+    BM                                                   M_Mp;
 };
 
 }

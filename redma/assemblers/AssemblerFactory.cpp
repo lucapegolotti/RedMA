@@ -33,17 +33,6 @@ AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode)
             ret.reset(new NavierStokesAssemblerRB(data, treeNode));
         }
     }
-    else if (!std::strcmp(assemblerType.c_str(), "navierstokessupg"))
-    {
-        if (!std::strcmp(method.c_str(), "fem"))
-        {
-            ret.reset(new NavierStokesAssemblerFE(data, treeNode, "supg"));
-        }
-        else if (!std::strcmp(method.c_str(), "rb"))
-        {
-            ret.reset(new NavierStokesAssemblerRB(data, treeNode, "supg"));
-        }
-    }
     else if (!std::strcmp(assemblerType.c_str(), "navierstokes_membrane"))
     {
         if (!std::strcmp(method.c_str(), "fem"))
@@ -53,17 +42,6 @@ AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode)
         else if (!std::strcmp(method.c_str(), "rb"))
         {
             ret.reset(new MembraneAssemblerRB(data, treeNode));
-        }
-    }
-    else if (!std::strcmp(assemblerType.c_str(), "navierstokessupg_membrane"))
-    {
-        if (!std::strcmp(method.c_str(), "fem"))
-        {
-            ret.reset(new MembraneAssemblerFE(data, treeNode, "supg"));
-        }
-        else if (!std::strcmp(method.c_str(), "rb"))
-        {
-            ret.reset(new MembraneAssemblerRB(data, treeNode, "supg"));
         }
     }
     else

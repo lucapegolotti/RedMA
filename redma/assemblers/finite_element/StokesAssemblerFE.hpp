@@ -83,6 +83,15 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;
 
+    /*! \brief Virtual getter for pressure mass matrix.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     * \return Shared pointer to aMatrix of the pressure mass matrix.
+     */
+    virtual shp<aMatrix> getPressureMass(const double& time,
+                                         const shp<aVector>& sol) override;
+
     /*! \brief Virtual getter for mass matrix Jacobian.
      *
      * \param time Current time.
@@ -322,6 +331,20 @@ public:
      */
     virtual shp<aMatrix> assembleMass(shp<BCManager> bcManager);
 
+    /*! \brief Assemble the mass matrix for pressure.
+     *
+     * The mass matrix for pressure is defined as
+     *
+     * \f[
+     *    M_{ij} = \int_{\Omega} \psi_j^h \psi_i^h
+     * \f]
+     *
+     * where \f$\psi_i^h\f$ are the finite element basis functions of the pressure.
+     *
+     * \param bcManager A BCManager for the application of the boundary conditions.
+     */
+    virtual shp<aMatrix> assemblePressureMass(shp<BCManager> bcManager);
+
     /*! \brief Assemble the divergence matrix.
      *
      * The divergence matrix is defined as
@@ -451,6 +474,7 @@ protected:
     std::string                                       M_name;
     shp<BlockVector>                                  M_extrapolatedSolution;
     shp<BlockMatrix>                                  M_mass;
+    shp<BlockMatrix>                                  M_massPressure;
     shp<BlockMatrix>                                  M_stiffness;
     shp<BlockMatrix>                                  M_divergence;
     shp<FESPACE>                                      M_velocityFESpace;
@@ -460,8 +484,7 @@ protected:
     double                                            M_density;
     double                                            M_viscosity;
     shp<MATRIXEPETRA>                                 M_massWall;
-    shp<SparseMatrix>                                 M_massVelocity;
-    shp<SparseMatrix>                                 M_massPressure;
+
     // first index is face flag
     std::map<unsigned int, shp<VECTOREPETRA>>         M_flowRateVectors;
     std::map<unsigned int, shp<BlockMatrix>>          M_flowRateJacobians;

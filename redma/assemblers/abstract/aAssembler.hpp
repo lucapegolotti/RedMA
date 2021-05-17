@@ -89,6 +89,15 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) = 0;
 
+    /*! \brief Virtual getter for pressure mass matrix.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     * \return Shared pointer to aMatrix of the pressure mass matrix.
+     */
+    virtual shp<aMatrix> getPressureMass(const double& time,
+                                         const shp<aVector>& sol) = 0;
+
     /*! \brief Virtual getter for mass matrix jacobian.
      *
      * \param time Current time.

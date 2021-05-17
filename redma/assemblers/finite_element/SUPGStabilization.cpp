@@ -9,11 +9,37 @@ SUPGStabilization(const DataContainer& data,
                   shp<FESPACE> fespaceVelocity,
                   shp<FESPACE> fespacePressure,
                   shp<ETFESPACE3> etfespaceVelocity,
-                  shp<ETFESPACE1> etfespacePressure) :
+                  shp<ETFESPACE1> etfespacePressure,
+                  EPETRACOMM comm) :
   NavierStokesStabilization(data,
                             fespaceVelocity, fespacePressure,
-                            etfespaceVelocity, etfespacePressure)
+                            etfespaceVelocity, etfespacePressure,
+                            comm)
 {
+    M_timeOrder = data("time_discretization/order", 2);
+    M_dt = data("time_discretization/dt", 0.01);
+
+    if (!std::strcmp(M_velocityOrder.c_str(),"P1"))
+        M_C_I = 30;
+    else if (!std::strcmp(M_velocityOrder.c_str(),"P2"))
+        M_C_I = 60;
+    else if (!std::strcmp(M_velocityOrder.c_str(),"P3"))
+        M_C_I = 120;
+    else if (!std::strcmp(M_velocityOrder.c_str(),"P4"))
+        M_C_I = 240;
+    else
+    {
+        std::string msg = "Please implement a suitable value for ";
+        msg += " M_C_I for your velocity FE order";
+        throw Exception(msg);
+    }
+}
+
+void
+SUPGStabilization::
+setup()
+{
+    // in SUPG stabilization there is nothing to setup in advance
 }
 
 shp<BlockMatrix>
@@ -191,7 +217,6 @@ getJacobian(shp<BlockVector> sol,
     jac11->globalAssemble();
 
     M_jac.reset(new BlockMatrix(2,2));
-    M_jac->resize(2,2);
     M_jac->setBlock(0,0, wrap(jac00));
     M_jac->setBlock(0,1, wrap(jac01));
     M_jac->setBlock(1,0, wrap(jac10));
