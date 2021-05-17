@@ -27,7 +27,7 @@ generate_dual_supremizers = True
 nsnapshots = 200
 
 # if true, we normalize with respect to custom norms
-use_custom_norms = True
+use_custom_norms = False
 
 def create_dir(name):
     try:
@@ -44,24 +44,30 @@ def generate_basis(index, nsnaps, norm_matrix, tol):
     snap = False
     count = 0
     print("reading snapshots ...",flush=True)
-    for i in range(nsnaps):
-        fname = build_directory + 'snapshots/param' + str(i)+'.000000' + '/' + mesh_name + '/field' + str(index) + '.snap'
+    for i in np.arange(3,nsnaps):
+        
+        fname = build_directory + 'snapshot/param' + str(i)+'.000000'+ '/' + mesh_name + '/field' + str(index) + '.snap'
         if os.path.isfile(fname):
             count = count + 1
             print('\t snapshotfile: ' + fname,flush=True)
             cur_data = np.genfromtxt(fname, delimiter=',')
             if snap is False:
                 snap = cur_data.T
+                snap=snap[:,np.newaxis]
+               
             else:
-                snap = np.concatenate((snap,cur_data.T),axis=1)
+                snap1=cur_data.T
+                snap1=snap1[:,np.newaxis]
+                snap = np.concatenate((snap,snap1),axis=1)
 
     print("Number of read snapshots = " + str(count),flush=False)
     print("\n")
-    print(str(snap))
+    
     print('Size of snapshots matrix = ' + str(snap.shape),flush=True)
     # snaps =  factor.solve_L(factor.apply_P(snap),use_LDLt_decomposition=False)
     if use_custom_norms:
         snap = factor.L().transpose().dot(factor.apply_P(snap))
+    print('pippo')
     U, S, V = np.linalg.svd(snap, full_matrices=False)
     if use_custom_norms:
         U = factor.apply_Pt(factor.solve_Lt(U,use_LDLt_decomposition=False))
@@ -131,6 +137,7 @@ if generate_primal_supremizers:
     print("===== COMPUTING PRIMAL SUPREMIZERS ====",flush=True)
 
     constraint_matrix = read_matrix(matrix_dir+'/'+mesh_name+'/primalConstraint.m',csr_matrix)
+    #constraint_matrix = read_matrix(matrix_dir+'/'+mesh_name+'/primalConstraint.m',lil_matrix)
     constraint_matrix[dir_indices] = 0
     rhs = constraint_matrix * P
     supr_primal = linalg.spsolve(norm_velocity, rhs)
