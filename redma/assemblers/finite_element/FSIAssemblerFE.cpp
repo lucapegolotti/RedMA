@@ -31,7 +31,7 @@ namespace RedMA
       this->getBoundaryStiffnessMatrix();
 
       this->addFSIMassMatrix(M_mass);
-      this->M_bcManager->apply0DirichletMatrix(*M_mass,this->getFESpaceBCs(),this->getComponentBCs(), 1.0);
+
 
       printlog(YELLOW, "[FSI]Mass matrix assembled ...\n", this->M_data.getVerbose());
 
@@ -70,7 +70,7 @@ namespace RedMA
         M_boundaryMass->globalAssemble();
         *spcast<MATRIXEPETRA>(convert<BlockMatrix>(mat)->block(0,0)->data()) += *M_boundaryMass;
 
-
+        this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(mat),this->getFESpaceBCs(),this->getComponentBCs(), 1.0);
     }
     shp<aVector>
     FSIAssemblerFE::

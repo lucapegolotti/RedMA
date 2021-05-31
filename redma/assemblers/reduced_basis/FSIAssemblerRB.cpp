@@ -42,8 +42,7 @@ namespace RedMA
         this->addForcingTermreduced(rhs);
         retVec->add(rhs);
 
-        this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec), this->getFESpaceBCs(),this->getComponentBCs());
-
+        //getBCManager()->apply0DirichletBCs(*spcast<BlockVector>(retVec),getFESpaceBCs(),getComponentBCs());
         msg = "done, in ";
         msg += std::to_string(chrono.diff());
         msg += " seconds\n";
@@ -67,15 +66,16 @@ namespace RedMA
     {
         shp<aMatrix> jac = NavierStokesAssemblerRB::getJacobianRightHandSide(time,sol);
 
-        if (M_exactJacobian){
+
             shp<BlockMatrix> retMatcopy(new BlockMatrix(0,0));
             retMatcopy->deepCopy(this->M_BoundaryStiffnessreduced);
 
             double  dt = this->M_data("time_discretization/dt", 0.01);
             retMatcopy->multiplyByScalar(-dt * M_TMAlgorithm->getCoefficientExtrapolation());
             jac->add(retMatcopy);
-            this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(jac), this->getFESpaceBCs(),this->getComponentBCs(), 0.0);
-        }
+            //getBCManager()->apply0DirichletMatrix(*spcast<BlockMatrix>(jac),getFESpaceBCs(),getComponentBCs(),0.0);
+
+
 
         return jac;
     }
@@ -84,29 +84,34 @@ namespace RedMA
     FSIAssemblerRB::
     RBsetup()
     {
-        printlog(YELLOW, "[FSIAssembler] assembling and projecting boundary stiffness matrix \t", M_data.getVerbose());
+        printlog(YELLOW, "[FSIAssemblerRB] assembling and projecting boundary stiffness matrix \t", M_data.getVerbose());
         NavierStokesAssemblerRB::RBsetup();
         M_FSIAssembler->setup();
         M_TMAlgorithm->setComm(M_comm);
+
         M_TMAlgorithm->setup(this->getZeroVector());
+
         unsigned int id=M_treeNode->M_ID;
         auto BoundaryStiffness=M_FSIAssembler->returnBoundaryStiffness();
         M_BoundaryStiffnessreduced->setBlock(0,0,M_bases->matrixProject(BoundaryStiffness->block(0,0),0,0,id));
         this->addFSIMassMatrix(M_reducedMass);
-        this->M_bcManager->apply0DirichletMatrix(*M_reducedMass,this->getFESpaceBCs(),this->getComponentBCs(), 1.0);
+
+        //this->M_bcManager->apply0DirichletMatrix(*M_reducedMass,this->getFESpaceBCs(),this->getComponentBCs(), 1.0);
+
+
     }
 
     void
     FSIAssemblerRB::
     postProcess(const double& time, const shp<aVector>& sol)  {
         NavierStokesAssemblerRB::postProcess(time, sol);
-        printlog(YELLOW, "[FSI] Updating displacements field ...\n",
+        printlog(YELLOW, "[FSIAssemblerRB] Updating displacements field ...\n",
                  this->M_data.getVerbose());
         unsigned int id=M_treeNode->M_ID;
         double  dt = this->M_data("time_discretization/dt", 0.01);
 
         shp<BlockVector> Displacement(new BlockVector(this->M_nComponents));
-        //M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol));
+
 
 
         Displacement->deepCopy(M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol)));
@@ -118,6 +123,7 @@ namespace RedMA
 
 
     }
+
     void
     FSIAssemblerRB::
     addFSIMassMatrix(shp<aMatrix> mat)
@@ -151,6 +157,7 @@ namespace RedMA
 
         unsigned int id = M_treeNode->M_ID;
         auto projectedMat = M_bases->matrixProject(matrixWrap, 0, 0, id);
+
         convert<BlockMatrix>(mat)->block(0,0)->add(projectedMat);
 
         msg = "done, in ";

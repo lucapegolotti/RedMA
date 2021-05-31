@@ -499,22 +499,27 @@ matrixProject(shp<aMatrix> matrix,
 
         shp<MATRIXEPETRA> auxMatrix(new MATRIXEPETRA(*rangeMap));
         auto enrichedBasisColEpetra = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexCol, ID, false)->data());
-        spcast<MATRIXEPETRA>(matrix->data())->multiply(false, *enrichedBasisColEpetra,
-                                false, *auxMatrix);
+        printlog(YELLOW, "[1]\n", true);
+
+        spcast<MATRIXEPETRA>(matrix->data())->multiply(false, *enrichedBasisColEpetra,false, *auxMatrix);
         auxMatrix->globalAssemble(domainMap, rangeMap);
 
         rangeMap = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, false)->data())->domainMapPtr();
 
         shp<MATRIXEPETRA> innerMatrix(new MATRIXEPETRA(*rangeMap));
 
-        auto enrichedBasisIndexEpetra = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, false)->data());
+        auto enrichedBasisIndexEpetra = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, true)->data());
+        printlog(YELLOW, "[2]\n", true);
+
+
         enrichedBasisIndexEpetra->multiply(false, *auxMatrix,false, *innerMatrix);
 
         innerMatrix->globalAssemble(domainMap, rangeMap);
-
+        std::cout<<wrap(enrichedBasisIndexEpetra)->nRows()<<std::endl;
+        std::cout<<wrap(enrichedBasisIndexEpetra)->nCols()<<std::endl;
         shp<SparseMatrix> retMatEp(new SparseMatrix());
         retMatEp->setMatrix(innerMatrix);
-
+        printlog(YELLOW, "[3]\n", true);
         return retMatEp->toDenseMatrixPtr();
     }
     return retMat;

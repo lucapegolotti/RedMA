@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/bypass.xml
+	xmlfile = geometries/bypass_rb.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -129,8 +129,8 @@ outputdir = rb_solutions
 	order = 2
 	t0ramp = 0
 	t0 = 0
-	T = 0.03
-	dt = 0.0025
+	T = 0.005
+	dt = 0.03
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
 [../]

@@ -42,15 +42,22 @@ int main(int argc, char **argv)
     #endif
 
     DataContainer data;
-    data.setDatafile("datafiles/data");
+    data.setDatafile("datafiles/data_rb");
     data.setVerbose(comm->MyPID() == 0);
 
     bool analyticInflow = true;
     if (analyticInflow)
     {
+        double alpha=0.5;
+        auto inflow1_alpha([alpha](double t) {
+            return alpha * inflow2(t);
+        });
+        auto inflow2_alpha([alpha](double t) {
+            return (1 - alpha) * inflow3(t);
+        });
         // the second argument is the flag of the inlet. It depends on the mesh.
-        data.setInflow(inflow2, 2);
-        data.setInflow(inflow3, 3);
+        data.setInflow(inflow1_alpha, 2);
+        data.setInflow(inflow2_alpha, 3);
     }
     else
     {

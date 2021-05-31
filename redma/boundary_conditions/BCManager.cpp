@@ -40,8 +40,7 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
 
         for(auto in_face: treeNode->M_block->getInlets()) { //dubbi che funzioni con più blocchi
             M_inletRing.push_back(in_face.M_diskFlag);
-            std::string msg = "[BCManager-inlet] " + std::to_string(in_face.M_diskFlag);
-            printlog(MAGENTA, msg, M_data.getVerbose());
+
         }
     }
 

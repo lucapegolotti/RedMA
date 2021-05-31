@@ -208,9 +208,17 @@ RBsetup()
     M_reducedDivergence.reset(new BlockMatrix(2,2));
 
     auto matrices = M_feStokesAssembler->getMatrices();
+    std::cout<<matrices[0]->block(0,0)->nCols()<<std::endl;
+    std::cout<<matrices[0]->block(0,0)->nRows()<<std::endl;
     M_reducedMass->setBlock(0,0,M_bases->matrixProject(matrices[0]->block(0,0), 0, 0, id));
+    std::cout<<matrices[1]->block(0,0)->nCols()<<std::endl;
+    std::cout<<matrices[1]->block(0,0)->nRows()<<std::endl;
     M_reducedStiffness->setBlock(0,0,M_bases->matrixProject(matrices[1]->block(0,0), 0, 0, id));
+    std::cout<<matrices[2]->block(0,1)->nCols()<<std::endl;
+    std::cout<<matrices[2]->block(0,1)->nRows()<<std::endl;
     M_reducedDivergence->setBlock(0,1,M_bases->matrixProject(matrices[2]->block(0,1), 0, 1, id));
+    std::cout<<matrices[2]->block(1,0)->nCols()<<std::endl;
+    std::cout<<matrices[2]->block(1,0)->nRows()<<std::endl;
     M_reducedDivergence->setBlock(1,0,M_bases->matrixProject(matrices[2]->block(1,0), 1, 0, id));
 
     msg = "done, in ";
