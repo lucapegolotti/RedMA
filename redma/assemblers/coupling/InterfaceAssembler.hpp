@@ -30,6 +30,7 @@
 #include <redma/reduced_basis/RBBases.hpp>
 
 #include <lifev/eta/expression/Integrate.hpp>
+#include <lifev/core/fem/DOFInterface3Dto3D.hpp>
 
 #define THRESHOLDSTAB       1e-15
 
@@ -41,7 +42,8 @@ namespace RedMA
  */
 class Interface
 {
-    typedef aAssembler         AssemblerType;
+    typedef aAssembler                                   AssemblerType;
+
 public:
     /// Default (empty) constructor.
     Interface ();
@@ -74,7 +76,9 @@ public:
  */
 class InterfaceAssembler
 {
-    typedef aAssembler         AssemblerType;
+    typedef aAssembler                                   AssemblerType;
+    typedef LifeV::DOFInterface3Dto3D                    InterfaceType;
+    typedef std::shared_ptr<InterfaceType>               InterfacePtrType;
 
 public:
 
@@ -120,11 +124,14 @@ public:
      * \param matrixT Shared pointer to BlockMatrix of the transpose of the
      *                coupling matrix.
      * \param matrix Shared pointer to BlockMatrix of the coupling matrix.
+     * \param isFather True if the considered block is the father one (default)
+     *
      */
     void buildCouplingMatrices(shp<AssemblerType> assembler,
                                const GeometricFace& face,
                                shp<BlockMatrix> matrixT,
-                               shp<BlockMatrix> matrix);
+                               shp<BlockMatrix> matrix,
+                               const bool isFather = true);
 
     /// Build stabilization matrix. Currently not implemented.
     void buildStabilizationMatrix(shp<AssemblerType> assembler,
@@ -218,10 +225,24 @@ protected:
      * \param bfs Basis functions.
      * \param face The GeometricFace.
      * \param assembler Shared pointer to the assembler.
+     *
+     * \return Vector of shared pointers to the generated DistributedVectors for the coupling
      */
     std::vector<shp<DistributedVector>> buildCouplingVectors(shp<BasisFunctionFunctor> bfs,
                                                              const GeometricFace& face,
                                                              shp<aAssembler> assembler) const;
+
+    /*! \brief Build the DOF map at the rings of the interface
+     *
+     * \return interfacePtr Shared pointer to a DofInterface3Dto3D object, defining the DOF map at the interface ring
+     */
+     InterfacePtrType buildRingInterfaceMap();
+
+     /*! \brief Apply the strong coupling condition at the rings on the child BT matrix
+      *
+      * \return Vector of shared pointers to the generated DistributedVectors for the strong ring coupling
+      */
+     std::vector<shp<DistributedVector>> buildStrongRingCouplingVectors();
 
     /// Not supported at the moment.
     std::vector<shp<DistributedVector>> buildStabilizationVectorsVelocity(shp<BasisFunctionFunctor> bfs,
@@ -237,7 +258,7 @@ protected:
     std::vector<shp<DistributedVector>> buildStabilizationVectorsLagrange() const;
 
     Interface                              M_interface;
-    shp<BlockMatrix>                       M_identity;
+    // shp<BlockMatrix>                       M_identity;
     shp<BlockMatrix>                       M_fatherBT;
     shp<BlockMatrix>                       M_fatherB;
     shp<BlockMatrix>                       M_childBT;

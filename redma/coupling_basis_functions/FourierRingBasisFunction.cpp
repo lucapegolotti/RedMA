@@ -10,10 +10,7 @@ FourierRingBasisFunction(const GeometricFace& face,
     M_nFrequenciesTheta = nFrequenciesTheta;
 
     if (M_nFrequenciesTheta < 0)
-    {
         M_nBasisFunctions = 0;
-        printlog(YELLOW, "No additional Fourier modes on the ring are added...");
-    }
     else
     {
         M_nBasisFunctions = 2 * M_nFrequenciesTheta + 1;

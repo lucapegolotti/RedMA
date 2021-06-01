@@ -91,6 +91,10 @@ public:
                                    const double& z, const unsigned int& i,
                                    const double& K);
 
+    shp<VECTOREPETRA> computeRingsIndicator(shp<FESPACE> fespace,
+                                            const unsigned int flag = 999,
+                                            const bool onlyExtremal = true) const;
+
 private:
     static double poiseuilleInflow(const double& t, const double& x, const double& y,
                                    const double& z, const unsigned int& i,
@@ -113,8 +117,6 @@ private:
 
     void shiftToCartesianCoordSystem(shp<MATRIXEPETRA> mat, shp<VECTOREPETRA> vec,
                                      shp<FESPACE> fespace);
-
-    shp<VECTOREPETRA> computeRingsIndicator(shp<FESPACE> fespace) const;
 
     std::pair<Vector3D, Vector3D> computeTangentVersors(const Vector3D& normal) const;
 

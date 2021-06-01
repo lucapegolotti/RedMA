@@ -89,7 +89,7 @@ getResidual(shp<BlockVector> sol,
     return retVec;
 }
 
-shp<MATRIXEPETRA>
+/*shp<MATRIXEPETRA>
 IPStabilization::
 stabilizePressure()
 {
@@ -108,9 +108,9 @@ stabilizePressure()
     A->globalAssemble();
 
     return A;
-}
+}*/
 
-/*shp<MATRIXEPETRA>
+shp<MATRIXEPETRA>
 IPStabilization::
 stabilizePressure()
 {
@@ -126,14 +126,12 @@ stabilizePressure()
         if (!face.boundary())
             faceInteriorListPtr->push_back(&face);
 
+    // ID geoDims = MESH::S_geoDimensions;
+    // const unsigned int nDof = M_pressureFESpace->dofPtr()->numTotalDof();
+
     unsigned int myFacets = 0;
-    *//*for (unsigned int iFacet(M_pressureFESpace->mesh()->numBoundaryFacets());
-           iFacet < M_pressureFESpace->mesh()->numFacets(); ++iFacet)*//*
     for (auto & face : *faceInteriorListPtr)
     {
-        //const unsigned int iElAd1(M_pressureFESpace->mesh()->facet(iFacet).firstAdjacentElementIdentity());
-        //const unsigned int iElAd2(M_pressureFESpace->mesh()->facet(iFacet).secondAdjacentElementIdentity());
-
         const unsigned int iElAd1(face->firstAdjacentElementIdentity());
         const unsigned int iElAd2(face->secondAdjacentElementIdentity());
 
@@ -146,13 +144,13 @@ stabilizePressure()
         }
         ++myFacets;
 
-        //(M_pressureFESpace->feBd()).update(M_pressureFESpace->mesh()->facet(iFacet), UPDATE_W_ROOT_DET_METRIC);
         (M_pressureFESpace->feBd()).update(*face, UPDATE_W_ROOT_DET_METRIC | UPDATE_QUAD_NODES);
 
         M_pressureFESpaceSide1->updateFirstDeriv(M_pressureFESpace->mesh()->element(iElAd1));
         M_pressureFESpaceSide2->updateFirstDeriv(M_pressureFESpace->mesh()->element(iElAd2));
 
-        MatrixElemental elMatP(M_pressureFESpace->dof().numTotalDof(),1, 1);
+        MatrixElemental elMatP(M_pressureFESpace->dof().numTotalDof(),
+                               1, 1);
 
         const double hK2 = M_pressureFESpace->feBd().measure();
         double coeff_pressure = M_gamma_pressure * M_density / M_viscosity *
@@ -162,16 +160,18 @@ stabilizePressure()
         elMatP.zero();
         AssemblyElemental::ipstab_grad(coeff_pressure, elMatP,
                                        *M_pressureFESpaceSide1, *M_pressureFESpaceSide1,
-                                       M_pressureFESpace->feBd());
+                                       M_pressureFESpace->feBd(),
+                                       0, 0);
         assembleMatrix(*jac, elMatP,
                        *M_pressureFESpaceSide1, *(M_pressureFESpace->dofPtr()),
-                        0, 0, 0, 0);
+                       0, 0, 0, 0);
 
         // coeff_press * int_{Face} grad(p)_1 . grad(q)_1
         elMatP.zero();
         AssemblyElemental::ipstab_grad(coeff_pressure, elMatP,
                                        *M_pressureFESpaceSide2, *M_pressureFESpaceSide2,
-                                       M_pressureFESpace->feBd());
+                                       M_pressureFESpace->feBd(),
+                                       0, 0);
         assembleMatrix(*jac, elMatP,
                        *M_pressureFESpaceSide2, *(M_pressureFESpace->dofPtr()),
                        0, 0, 0, 0);
@@ -180,7 +180,8 @@ stabilizePressure()
         elMatP.zero();
         AssemblyElemental::ipstab_grad(-coeff_pressure, elMatP,
                                        *M_pressureFESpaceSide1, *M_pressureFESpaceSide2,
-                                       M_pressureFESpace->feBd());
+                                       M_pressureFESpace->feBd(),
+                                       0, 0);
         assembleMatrix(*jac, elMatP,
                        *M_pressureFESpaceSide1, *M_pressureFESpaceSide2,
                        *(M_pressureFESpace->dofPtr()), *(M_pressureFESpace->dofPtr()),
@@ -190,7 +191,8 @@ stabilizePressure()
         elMatP.zero();
         AssemblyElemental::ipstab_grad(-coeff_pressure, elMatP,
                                        *M_pressureFESpaceSide2, *M_pressureFESpaceSide1,
-                                       M_pressureFESpace->feBd());
+                                       M_pressureFESpace->feBd(),
+                                       0, 0);
         assembleMatrix(*jac, elMatP,
                        *M_pressureFESpaceSide2, *M_pressureFESpaceSide1,
                        *(M_pressureFESpace->dofPtr()), *(M_pressureFESpace->dofPtr()),
@@ -200,7 +202,7 @@ stabilizePressure()
     jac->globalAssemble();
 
     return jac;
-}*/
+}
 
 }  // namespace RedMA
 

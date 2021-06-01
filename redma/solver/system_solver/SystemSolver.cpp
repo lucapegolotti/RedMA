@@ -50,6 +50,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
         double tol = M_data("newton_method/tol", 1e-5);
         unsigned int maxit = M_data("newton_method/maxit", 10);
+        double omega = M_data("newton_method/relaxation", 1.0);
 
         std::string msg;
 
@@ -90,6 +91,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
                 M_solverStatistics.push_back(M_linearSystemSolver.getSolverStatistics());
             }
             incr->multiplyByScalar(-1.0);
+            incr->multiplyByScalar(omega); // relaxation step
             sol->add(incr);
             count++;
 

@@ -85,6 +85,8 @@ addConvectiveMatrix(shp<aVector> sol,
              ) >> convectiveMatrix;
     convectiveMatrix->globalAssemble();
 
+    // *convectiveMatrix *= 0.0;
+
     *spcast<MATRIXEPETRA>(convert<BlockMatrix>(mat)->block(0,0)->data()) -= *convectiveMatrix;
 }
 
@@ -114,6 +116,9 @@ addConvectiveTermJacobian(shp<aVector> sol,
                phi_i)
              ) >> convectiveMatrix;
     convectiveMatrix->globalAssemble();
+
+    // *convectiveMatrix *= 0.0;
+
     *spcast<MATRIXEPETRA>(convert<BlockMatrix>(mat)->block(0,0)->data()) -= *convectiveMatrix;
 }
 

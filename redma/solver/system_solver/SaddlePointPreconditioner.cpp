@@ -381,8 +381,6 @@ computeSingleAm1BT(const BM& A, const BM& BT,
 
             colU = (*spcast<MATRIXEPETRA>(BT->block(0,0)->data())) * selector;
 
-            std::cout << " I am here 4" << std::endl << std::flush;
-
             ressU[i].reset(new DistributedVector());
             ressU[i]->setData(shp<VECTOREPETRA>(new VECTOREPETRA(rangeMapU)));
             ressP[i].reset(new DistributedVector());

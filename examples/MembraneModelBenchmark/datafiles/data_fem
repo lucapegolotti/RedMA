@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/pipe1.xml
+	xmlfile = geometries/tree1.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -13,7 +13,7 @@ outputdir = rb_solutions
 [assembler]
 	type = navierstokes_membrane
 	[./stabilization]
-	    type = ip  # to choose in {none, supg, ip}
+	    type = supg  # to choose in {none, supg, ip}
 	    gamma_pressure = 0.2  # ip pressure coefficient
     [../]
 [../]
@@ -91,12 +91,13 @@ outputdir = rb_solutions
 	approxshur 	   = SIMPLE
 	innertol   	   = 0.5
 	recomputeevery = 20
-	thresholdsize  = 5000
+	thresholdsize  = 2000
 [../]
 
 [newton_method]
 	tol = 1e-4
 	maxit = 10
+	relaxation = 1.0
 [../]
 
 [fluid]
@@ -153,4 +154,5 @@ outputdir = rb_solutions
 	nfcts_weak_dirichlet = 5
 	frequencies_theta_ring = -1
 	frequencies_theta_ring_weak_dirichlet = -1
+	strong_ring = true
 [../]

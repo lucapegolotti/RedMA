@@ -279,7 +279,8 @@ InterfaceAssembler::
 buildCouplingMatrices(shp<AssemblerType> assembler,
                       const GeometricFace& face,
                       shp<BlockMatrix> matrixT,
-                      shp<BlockMatrix> matrix)
+                      shp<BlockMatrix> matrix,
+                      const bool isFather)
 {
     shp<BasisFunctionFunctor> bfs;
 
@@ -300,6 +301,16 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
 
     couplingVectors.insert(couplingVectors.end(),
                            ringCouplingVectors.begin(), ringCouplingVectors.end());
+
+    bool strongRingCoupling = M_data("coupling/strong_ring", false);
+    if (!isFather && !M_isInlet && strongRingCoupling)
+    {
+        std::vector<shp<DistributedVector>> strongRingCouplingVectors;
+        strongRingCouplingVectors = buildStrongRingCouplingVectors();
+
+        couplingVectors.insert(couplingVectors.end(),
+                               strongRingCouplingVectors.begin(), strongRingCouplingVectors.end());
+    }
 
     // assembling coupling matrices
     shp<SparseMatrix> couplingMatrix(new SparseMatrix(couplingVectors));
@@ -420,6 +431,8 @@ getZeroVector() const
     shp<VECTOREPETRA> zeroVec(new VECTOREPETRA(*M_mapLagrange, LifeV::Unique));
     zeroVec->zero();
 
+    std::cout << "Interface constraints DOFs: " << zeroVec->size() << std::endl << std::flush;
+
     retVector->setBlock(0,wrap(zeroVec));
     return retVector;
 }
@@ -430,18 +443,17 @@ buildCouplingMatrices()
 {
     unsigned int indexOutlet = M_interface.M_indexOutlet;
 
-    auto asFather = M_interface.M_assemblerFather;
+    std::cout << "Building Father!" << std::endl << std::flush;
 
+    auto asFather = M_interface.M_assemblerFather;
     if (asFather)
     {
         GeometricFace outlet = asFather->getTreeNode()->M_block->getOutlet(indexOutlet);
 
-        buildCouplingMatrices(asFather, outlet, M_fatherBT, M_fatherB);
+        buildCouplingMatrices(asFather, outlet, M_fatherBT, M_fatherB, true);
 
-        if (M_stabilizationCoupling > THRESHOLDSTAB)
-        {
-            buildStabilizationMatrix(asFather, outlet, M_stabFather);
-        }
+        /*if (M_stabilizationCoupling > THRESHOLDSTAB)
+            buildStabilizationMatrix(asFather, outlet, M_stabFather);*/
 
         M_mapLagrange = spcast<MATRIXEPETRA>(M_fatherBT->block(0,0)->data())->domainMapPtr();
 
@@ -452,6 +464,8 @@ buildCouplingMatrices()
         }
     }
 
+    std::cout << "Building Child!" << std::endl << std::flush;
+
     auto asChild = M_interface.M_assemblerChild;
     if (asChild)
     {
@@ -459,19 +473,17 @@ buildCouplingMatrices()
         // I invert the normal of the face such that it is the same as the outlet
         inlet.M_normal *= (-1.);
 
-        buildCouplingMatrices(asChild, inlet, M_childBT, M_childB);
+        buildCouplingMatrices(asChild, inlet, M_childBT, M_childB, false);
 
-        if (M_stabilizationCoupling > THRESHOLDSTAB)
-        {
-            buildStabilizationMatrix(asChild, inlet, M_stabChild);
-            // no need to multiply by -1 as the inlet is already reversed
-            // M_stabChild *= (-1.);
-        }
+        /*if (M_stabilizationCoupling > THRESHOLDSTAB)
+            buildStabilizationMatrix(asChild, inlet, M_stabChild);*/
+
         M_childBT->multiplyByScalar(-1.);
         M_childB->multiplyByScalar(-1.);
 
         M_childBTfe = M_childBT;
         M_childBfe = M_childB;
+
         M_mapLagrange = spcast<MATRIXEPETRA>(M_childBT->block(0,0)->data())->domainMapPtr();
 
         if (!std::strcmp(asChild->getTreeNode()->M_block->getDiscretizationMethod().c_str(),"rb"))
@@ -510,6 +522,110 @@ buildStabilizationMatrix(shp<AssemblerType> assembler,
     // M_identity.block(0,0).shallowCopy(MatrixEp(stabVectorsLagrange));
 }
 
+InterfaceAssembler::InterfacePtrType
+InterfaceAssembler::
+buildRingInterfaceMap()
+{
+    auto asFather = M_interface.M_assemblerFather;
+    auto asChild = M_interface.M_assemblerChild;
+
+    shp<FESPACE> FESpaceVFather = asFather->getFEspace(0);
+    shp<FESPACE> FESpaceVChild = asChild->getFEspace(0);
+
+    unsigned int indexOutlet = M_interface.M_indexOutlet;
+    unsigned int fatherFlag = asFather->getTreeNode()->M_block->getOutlet(indexOutlet).M_flag;
+    unsigned int childFlag = asChild->getTreeNode()->M_block->getInlet().M_flag;
+
+    /*double tol = std::max(0.1 * std::sqrt(std::min(FESpaceVFather->feBd().measure(), FESpaceVChild->feBd().measure())),
+                          1e-3);*/
+    const double tol = 1e-3;
+
+    InterfacePtrType ifPtr(new InterfaceType());
+
+    ifPtr->setup (FESpaceVFather->refFE(),
+                  FESpaceVFather->dof(),
+                  FESpaceVChild->refFE(),
+                  FESpaceVChild->dof() );
+    ifPtr->update (*(FESpaceVFather->mesh()), fatherFlag,
+                   *(FESpaceVChild->mesh()), childFlag,
+                   tol);
+
+    if (M_data.getVerbose())
+        ifPtr->showMe();
+
+    return ifPtr;
+}
+
+std::vector<shp<DistributedVector>>
+InterfaceAssembler::
+buildStrongRingCouplingVectors()
+{
+    auto asFather = M_interface.M_assemblerFather;
+    auto asChild = M_interface.M_assemblerChild;
+
+    std::vector<shp<DistributedVector>> SCVectors;
+
+    if (asFather && asChild)
+    {
+        shp<FESPACE> FESpaceVFather = asFather->getFEspace(0);
+        shp<FESPACE> FESpaceVChild = asChild->getFEspace(0);
+        unsigned int indexOutlet = M_interface.M_indexOutlet;
+        unsigned int fatherFlag = asFather->getTreeNode()->M_block->getOutlet(indexOutlet).M_ringFlag;
+
+        shp<VECTOREPETRA> ringsIndicator = asFather->getBCManager()->computeRingsIndicator(FESpaceVFather,
+                                                                                           fatherFlag, false);
+
+        // Building the father->child DOF map at the interface ring
+        InterfacePtrType ifPtr = this->buildRingInterfaceMap();
+
+        unsigned int fathernDOF = FESpaceVFather->dofPtr()->numTotalDof();
+        unsigned int childnDOF = FESpaceVChild->dofPtr()->numTotalDof();
+
+        std::vector<LifeV::Int> indices(2);
+        std::vector<double> values({-1.0, 1.0});
+        shp<BlockVector> vec = this->getZeroVector();
+
+        std::list<std::pair<LifeV::ID, LifeV::ID>> facetToFacetConnections = ifPtr->connectedFacetMap();
+        std::vector<LifeV::ID> localToGlobalMapOnFatherFacets;
+        for (auto i = facetToFacetConnections.begin(); i != facetToFacetConnections.end(); ++i)
+        {
+            std::vector<LifeV::ID> tmpLocalToGlobalMap = FESpaceVFather->dofPtr()->localToGlobalMapOnBdFacet(i->first);
+
+            localToGlobalMapOnFatherFacets.insert(localToGlobalMapOnFatherFacets.end(),
+                                                  tmpLocalToGlobalMap.begin(), tmpLocalToGlobalMap.end());
+        }
+
+        /*unsigned int cnt = 0;
+        for(unsigned int id = 0; id < 15633; ++id)
+            if ((*ringsIndicator)[id] > 0)
+                ++cnt;
+        std::cout << cnt << std::endl << std::flush;*/
+
+        unsigned int childID;
+        for (auto const& fatherID : localToGlobalMapOnFatherFacets)
+        {
+            if ((ifPtr->isMyInterfaceDof(fatherID) &&
+                (std::abs((*ringsIndicator)[fatherID] - fatherFlag) <= 1e-10)))
+            {
+                childID = ifPtr->getInterfaceDof(fatherID);
+
+                for (unsigned int nDim = 0; nDim < 3; ++nDim)
+                {
+                    indices[0] = fatherID + nDim * fathernDOF;
+                    indices[1] = childID + nDim * childnDOF;
+
+                    spcast<VECTOREPETRA>(vec->block(0)->data())->setCoefficients(indices,
+                                                                                 values);
+
+                    SCVectors.push_back(spcast<DistributedVector>(vec->block(0)));
+                }
+            }
+        }
+    }
+
+    return SCVectors;
+}
+
 void
 InterfaceAssembler::
 buildMapLagrange(shp<BasisFunctionFunctor> bfs)
@@ -517,4 +633,4 @@ buildMapLagrange(shp<BasisFunctionFunctor> bfs)
     // NOT IMPLEMENTED
 }
 
-}
+}  // namespace RedMA
