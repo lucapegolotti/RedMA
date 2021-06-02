@@ -41,7 +41,10 @@ takeSnapshots()
                               M_data("rb/offline/snapshots/c_min", 0.0),
                               M_data("rb/offline/snapshots/c_max", 1.0)};
 
-            auto vec = inflowSnapshots(param[0], param[1], param[2], param[3]);
+            // auto vec = inflowSnapshots(param[0], param[1], param[2], param[3]);
+            std::vector<double> vec;
+            vec.push_back(7.9887249049);
+            vec.push_back(0.1597831855);
             array_params = vec;
 
             M_data.setInflow(std::bind(M_inflow,

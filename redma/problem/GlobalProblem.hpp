@@ -67,6 +67,12 @@ public:
      */
     virtual void solve();
 
+    /*! \brief Exporting method
+     *
+     * Method to export solutions already stored in .txt files
+     */
+    void exportFromFiles(const std::string& path);
+
     /*! \brief Set if solutions should be stored at each timestep.
      *
      * The solutions can be retrieved with getSolutions().
@@ -91,25 +97,26 @@ public:
      */
     inline std::vector<double> getTimesteps() {return M_timestepsSolutions;}
 
-    /*! Getter for the BlockAssembler.
+    /*! \brief Getter for the BlockAssembler.
      *
      * \return Shared pointer to the internal BlockAssembler.
      */
     inline shp<BlockAssembler> getBlockAssembler() {return M_assembler;}
 
-    /*! Check if internal BlockAssembler is composed of only FE assemblers.
+    /*! \brief Check if internal BlockAssembler is composed of only FE assemblers.
      *
      * \return True if all the primal assemblers are finite element assemblers.
      */
     bool isFEProblem();
 
-    /*! Check if internal BlockAssembler is composed of only RB assemblers.
+    /*! \brief Check if internal BlockAssembler is composed of only RB assemblers.
      *
      * \return True if all the primal assemblers are reduced basis assemblers.
      */
     bool isRBProblem();
 
 private:
+
     shp<aTimeMarchingAlgorithm>                M_TMAlgorithm;
     shp<BlockAssembler>                        M_assembler;
     BV                                         M_solution;

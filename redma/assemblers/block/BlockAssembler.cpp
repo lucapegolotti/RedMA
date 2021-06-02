@@ -108,8 +108,24 @@ getZeroVector() const
         retVec->setBlock(count, newvec);
         count++;
     }
-    // retVec->close();
+
     return retVec;
+}
+
+std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>>
+BlockAssembler::
+importSolution(const std::string& filename) const
+{
+    unsigned int cnt = 0;
+    std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>> retMap;
+    for (auto as : M_primalAssemblers)
+    {
+        std::string fname = filename + "Block" + std::to_string(cnt) + "/";
+        std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>> sol = as.second->importSolution(fname)[0];
+        retMap[cnt] = sol;
+    }
+
+    return retMap;
 }
 
 void

@@ -52,6 +52,77 @@ postProcess(const double& t,
 {
     // shift solutions in multistep method embedded in windkessels
     M_bcManager->postProcess();
+
+    std::cout << sol->block(0)->norm2() << std::endl << std::flush;
+    std::cout << (this->M_mass->multiplyByVector(sol))->block(0)->norm2() << std::endl << std::flush;
+    std::cout << (this->M_stiffness->multiplyByVector(sol))->block(0)->norm2() << std::endl << std::flush;
+
+    std::cout << sol->block(1)->norm2() << std::endl << std::flush;
+    std::cout << (this->M_divergence->multiplyByVector(sol))->block(0)->norm2() << std::endl << std::flush;
+}
+
+
+std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>>
+StokesAssemblerFE::
+importSolution(const std::string& filename) const
+{
+    std::fstream inVel(filename + "velocity.txt");
+    std::fstream inPres(filename + "pressure.txt");
+    std::string line;
+    std::vector<shp<VECTOREPETRA>> vecVelocity;
+    std::vector<shp<VECTOREPETRA>> vecPressure;
+
+    std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>> retMap;
+
+    while (std::getline(inVel, line))
+    {
+        shp<VECTOREPETRA> tmpEpetraVecVelocity;
+
+        tmpEpetraVecVelocity.reset(new VECTOREPETRA(M_velocityFESpace->map(),
+                                                 LifeV::Unique));
+        tmpEpetraVecVelocity->zero();
+
+        double value;
+        std::stringstream ss(line);
+
+        std::vector<double> values;
+        while (ss >> value)
+            values.push_back(value);
+
+        std::vector<LifeV::Int> indices;
+        for (LifeV::Int i=0; i<tmpEpetraVecVelocity->size(); ++i)
+            indices.push_back(i);
+
+        tmpEpetraVecVelocity->setCoefficients(indices, values);
+
+        vecVelocity.push_back(tmpEpetraVecVelocity);
+    }
+
+    while(std::getline(inPres, line))
+    {
+        shp<VECTOREPETRA> tmpEpetraVecPressure;
+        tmpEpetraVecPressure.reset(new VECTOREPETRA(M_pressureFESpace->map(),
+                                                    LifeV::Unique));
+        tmpEpetraVecPressure->zero();
+
+        double value;
+        std::stringstream ss(line);
+
+        std::vector<double> values;
+        while (ss >> value)
+            values.push_back(value);
+
+        std::vector<LifeV::Int> indices;
+        for (LifeV::Int i=0; i<tmpEpetraVecPressure->size(); ++i)
+            indices.push_back(i);
+
+        vecPressure.push_back(tmpEpetraVecPressure);
+    }
+
+    for (unsigned int cnt = 0; cnt<vecVelocity.size(); ++cnt)
+        retMap[0].push_back(std::make_pair(vecVelocity[cnt], vecPressure[cnt]));
+
+    return retMap;
 }
 
 void
@@ -1027,9 +1098,9 @@ buildZeroVector() const
     shp<VECTOREPETRA> uComp(new VECTOREPETRA(M_velocityFESpace->map(),
                                              LifeV::Unique));
     uComp->zero();
+
     shp<VECTOREPETRA> pComp(new VECTOREPETRA(M_pressureFESpace->map(),
                                              LifeV::Unique));
-
     pComp->zero();
 
     shp<BlockVector> retVec(new BlockVector(2));

@@ -64,6 +64,12 @@ public:
      */
     virtual void setup() override;
 
+    /*! \brief Solutions importing method
+    *
+    * Method to import a solutions (velocity or pressure) from txt file into an EpetraMartrix
+    */
+    std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>> importSolution(const std::string& filename) const override;
+
     /*! \brief Export the solutions in all subdomains.
      *
      * The export function is called in all the primal assemblers.
