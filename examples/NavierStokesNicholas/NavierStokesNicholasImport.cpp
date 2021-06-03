@@ -35,13 +35,26 @@ int main(int argc, char **argv)
 #endif
 
     DataContainer data;
-    data.setDatafile("datafiles/data");
+    data.setDatafile("datafiles/data_fem");
     data.setInflow(inflow);
     data.setVerbose(comm->MyPID() == 0);
 
     GlobalProblem femProblem(data, comm);
 
-    std::string path = "";
+    std::string path = data("importer/indir", "");
+    int param_nb = data("importer/param_nb", -1);
+    bool isFEM = data("importer/isFEM", false);
+
+    if ((param_nb<0) || (!std::strcmp(path.c_str(), "")))
+        throw new Exception("Invalid importing path or invalid parameter number!");
+    else
+        path += ("param" + std::to_string(param_nb) + "/");
+
+    if (isFEM)
+         path +=  "FEM/";
+    else
+        path += "STRB/";
+
     femProblem.exportFromFiles(path);
 
     return 0;

@@ -141,6 +141,12 @@ outputdir = rb_solutions
 	exportnorms = true
 [../]
 
+[importer]
+    indir = ../../../../../PDE-DNN/TESTS/RB/Unsteady/Stokes_spacetime/tube_1x2_h0.15/ST-LSPG/Sampling_0.01_0.01-POD_1e-05_1e-05/results/
+    param_nb = 96
+    idFEM = false
+[../]
+
 [coupling]
 	type                = chebyshev
 	nMax                = 5

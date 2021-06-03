@@ -116,6 +116,11 @@ std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA
 BlockAssembler::
 importSolution(const std::string& filename) const
 {
+    if (!fs::exists(filename))
+        throw new Exception("Importing error. Invalid path provided!");
+
+    printlog(GREEN, "[BlockAssembler] importing solution ...\n", this->M_data.getVerbose());
+
     unsigned int cnt = 0;
     std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>> retMap;
     for (auto as : M_primalAssemblers)

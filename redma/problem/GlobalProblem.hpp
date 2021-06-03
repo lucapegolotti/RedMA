@@ -71,7 +71,7 @@ public:
      *
      * Method to export solutions already stored in .txt files
      */
-    void exportFromFiles(const std::string& path);
+    void exportFromFiles(const std::string& inPath);
 
     /*! \brief Set if solutions should be stored at each timestep.
      *

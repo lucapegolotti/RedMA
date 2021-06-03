@@ -139,7 +139,6 @@ advance(const double& time, double& dt, int& status)
         retVec->deepCopy(mass->multiplyByVector(prevContribution));
 
         f->multiplyByScalar(-1. * M_rhsCoeff * dt);
-        std::cout << f->block(0)->block(0)->norm2() << std::endl << std::flush;
         retVec->add(f);
         // the previous solution satisfies the boundary conditions so we search
         // for an increment with 0bcs
