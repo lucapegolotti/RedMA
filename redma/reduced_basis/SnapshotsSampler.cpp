@@ -161,7 +161,7 @@ dumpSnapshots(GlobalProblem& problem,
 
             for (double i : array_params)
             {
-                file << std::fixed << std::setprecision(3) << i << std::endl;
+                file << std::fixed << std::setprecision(10) << i << std::endl;
             }
 
             file.close();

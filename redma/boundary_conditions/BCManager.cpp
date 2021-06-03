@@ -205,7 +205,7 @@ poiseuille(const double& t, const double& x, const double& y,
     //if (inflow(t) < 0)
     //    inflowNorm = inflowNorm < 0 ? inflowNorm : 0;
 
-    inflowNorm = inflowNorm > 0 ? inflowNorm : 0;
+    //inflowNorm = inflowNorm > 0 ? inflowNorm : 0;
 
     Vector3D inflowValue = -inflowNorm * normal * coefficient;
     return inflowValue[i];

@@ -26,7 +26,7 @@ outputdir = rb_solutions
 	[./offline]
 		[./snapshots]
 		    param_type           = inflow
-			number 			     = 20
+			number 			     = 1
 			bound 			     = 0.2
 			take_every 		     = 1
 			dumpbinary 		     = true
