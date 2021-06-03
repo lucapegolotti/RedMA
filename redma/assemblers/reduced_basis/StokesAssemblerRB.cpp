@@ -8,7 +8,7 @@ StokesAssemblerRB(const DataContainer& data,
                   shp<TreeNode> treeNode) :
   aAssemblerRB(data, treeNode)
 {
-    M_feStokesAssembler.reset(new StokesAssemblerFE(data, treeNode));
+    M_feAssembler.reset(new StokesAssemblerFE(data, treeNode));
     M_name = "StokesAssemblerRB";
     M_nComponents = 2;
 }
@@ -21,7 +21,7 @@ setup()
     msg += this->M_name;
     msg += "] initializing internal FE assembler";
     printlog(YELLOW, msg, this->M_data.getVerbose());
-    M_feStokesAssembler->setup();
+    M_feAssembler->setup();
 }
 
 shp<aMatrix>
@@ -137,7 +137,7 @@ exportSolution(const double& t,
     solBlock->setBlock(0,wrap(M_bases->reconstructFEFunction(sol->block(0), 0, id)));
     solBlock->setBlock(1,wrap(M_bases->reconstructFEFunction(sol->block(1), 1, id)));
 
-    M_feStokesAssembler->exportSolution(t, solBlock);
+    M_feAssembler->exportSolution(t, solBlock);
 }
 
 shp<aVector>
@@ -167,7 +167,7 @@ shp<aVector>
 StokesAssemblerRB::
 getLifting(const double& time) const
 {
-    return M_feStokesAssembler->getLifting(time);
+    return M_feAssembler->getLifting(time);
 }
 
 void
@@ -207,7 +207,7 @@ RBsetup()
     M_reducedStiffness.reset(new BlockMatrix(2,2));
     M_reducedDivergence.reset(new BlockMatrix(2,2));
 
-    auto matrices = M_feStokesAssembler->getMatrices();
+    auto matrices = M_feAssembler->getMatrices();
     std::cout<<matrices[0]->block(0,0)->nCols()<<std::endl;
     std::cout<<matrices[0]->block(0,0)->nRows()<<std::endl;
     M_reducedMass->setBlock(0,0,M_bases->matrixProject(matrices[0]->block(0,0), 0, 0, id));
@@ -247,8 +247,8 @@ setRBBases(shp<RBBasesManager> rbManager)
 
     // beware that at this point the rb bases have not been loaded yet
     M_bases = rbManager->getRBBases(actualName);
-    M_bases->setFESpace(M_feStokesAssembler->getFEspace(0), 0);
-    M_bases->setFESpace(M_feStokesAssembler->getFEspace(1), 1);
+    M_bases->setFESpace(M_feAssembler->getFEspace(0), 0);
+    M_bases->setFESpace(M_feAssembler->getFEspace(1), 1);
 }
 
 shp<aVector>
@@ -285,7 +285,7 @@ StokesAssemblerRB::
 applyPiola(shp<aVector> solution,
            bool inverse)
 {
-    M_feStokesAssembler->applyPiola(solution, inverse);
+    M_feAssembler->applyPiola(solution, inverse);
 }
 
 void
@@ -293,7 +293,7 @@ StokesAssemblerRB::
 setDefaultAssemblers(shp<DefaultAssemblersLibrary> defAssemblers)
 {
     M_defaultAssemblers = defAssemblers;
-    M_feStokesAssembler->setDefaultAssemblers(defAssemblers);
+    M_feAssembler->setDefaultAssemblers(defAssemblers);
 }
 
 }

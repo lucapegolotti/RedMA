@@ -137,7 +137,7 @@ public:
      */
     virtual inline shp<FESPACE> getFESpaceBCs() const override
     {
-        return M_feStokesAssembler->getFESpaceBCs();
+        return M_feAssembler->getFESpaceBCs();
     }
 
     /*! \brief Getter for the component associated with the Dirichlet bcs.
@@ -152,7 +152,7 @@ public:
      */
     virtual inline shp<ETFESPACE3> getETFESpaceCoupling() const override
     {
-        return M_feStokesAssembler->getETFESpaceCoupling();
+        return M_feAssembler->getETFESpaceCoupling();
     }
 
     /*! \brief Virtual method to apply Dirichlet bcs to a matrix.
@@ -190,7 +190,7 @@ public:
      */
     virtual inline shp<FESPACE> getFEspace(unsigned int index) const override
     {
-        return M_feStokesAssembler->getFEspace(index);
+        return M_feAssembler->getFEspace(index);
     }
 
     /*! \brief Getter for a vector containing the mass, stiffness and divergence matrix
@@ -271,7 +271,7 @@ public:
      */
     inline virtual shp<BCManager> getBCManager() const override
     {
-        return M_feStokesAssembler->getBCManager();
+        return M_feAssembler->getBCManager();
     }
 
 protected:
@@ -285,7 +285,7 @@ protected:
     shp<BlockMatrix>                                  M_reducedMass;
     shp<BlockMatrix>                                  M_reducedDivergence;
     shp<BlockMatrix>                                  M_reducedStiffness;
-    shp<StokesAssemblerFE>                            M_feStokesAssembler;
+    shp<StokesAssemblerFE>                            M_feAssembler;
 };
 
 }

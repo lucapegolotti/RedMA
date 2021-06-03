@@ -30,6 +30,7 @@ namespace RedMA {
         virtual void RBsetup() override;
 
         void postProcess(const double &time, const shp <aVector> &sol) override;
+        void exportSolution(const double& t,const shp<aVector>& sol) override;
 
     protected:
         shp<BlockMatrix>             M_BoundaryStiffnessreduced;

@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     bool analyticInflow = true;
     if (analyticInflow)
     {
-        double alpha=0.5;
+        double alpha=0.2125;
         auto inflow1_alpha([alpha](double t) {
             return alpha * inflow2(t);
         });

@@ -36,7 +36,6 @@ namespace RedMA
       printlog(YELLOW, "[FSI]Mass matrix assembled ...\n", this->M_data.getVerbose());
 
       M_boundaryIndicator = M_bcManager->computeBoundaryIndicator(M_velocityFESpace);
-      this->setExporterDisplacement();
 
   }
   shp<VECTOREPETRA>
@@ -223,11 +222,19 @@ namespace RedMA
     }
     void
     FSIAssemblerFE::
-    setExporterDisplacement() {
+    setExporter() {
 
         printlog(GREEN, "[FSI] Preparing to export solution...\n",
                  this->M_data.getVerbose());
+        NavierStokesAssemblerFE::setExporter();
         M_displacementExporter.reset(new VECTOREPETRA(M_velocityFESpace->map(),M_exporter->mapType()));
         M_exporter->addVariable(LifeV::ExporterData<MESH >::VectorField, "displacement", M_velocityFESpace,M_displacementExporter, 0.0);
     }
+    void
+    FSIAssemblerFE::setDisplacementExporter(shp<LifeV::VectorEpetra> displacement){
+      if(M_displacementExporter== nullptr)
+          this->setExporter();
+      *M_displacementExporter=*displacement;
+    }
+
 }

@@ -30,13 +30,13 @@ addConvectiveTermJacobian(shp<aVector> sol,
     shp<VECTOREPETRA>  velocityHandler;
     velocityHandler = M_bases->reconstructFEFunction(convert<BlockVector>(sol)->block(0), 0, M_treeNode->M_ID);
 
-    shp<MATRIXEPETRA>  convectiveMatrix(new MATRIXEPETRA(M_feStokesAssembler->getFEspace(0)->map()));
+    shp<MATRIXEPETRA>  convectiveMatrix(new MATRIXEPETRA(M_feAssembler->getFEspace(0)->map()));
     shp<VECTOREPETRA>  velocityRepeated(new VECTOREPETRA(*velocityHandler, Repeated));
 
-    shp<ETFESPACE3> velocityFESpaceETA = M_feStokesAssembler->getVelocityETFEspace();
-    double density = M_feStokesAssembler->getDensity();
+    shp<ETFESPACE3> velocityFESpaceETA = M_feAssembler->getVelocityETFEspace();
+    double density = M_feAssembler->getDensity();
     integrate(elements(velocityFESpaceETA->mesh()),
-               M_feStokesAssembler->getFEspace(0)->qr(),
+               M_feAssembler->getFEspace(0)->qr(),
                velocityFESpaceETA,
                velocityFESpaceETA,
                value(density) *
@@ -87,15 +87,15 @@ getRightHandSide(const double& time,
 
     if (!approximatenonlinearterm)
     {
-        shp<VECTOREPETRA>  nonLinearTerm(new VECTOREPETRA(M_feStokesAssembler->getFEspace(0)->map()));
+        shp<VECTOREPETRA>  nonLinearTerm(new VECTOREPETRA(M_feAssembler->getFEspace(0)->map()));
         shp<VECTOREPETRA>  velocityReconstructed;
 
         velocityReconstructed = M_bases->reconstructFEFunction(solBlck->block(0), 0, M_treeNode->M_ID);
 
-        shp<ETFESPACE3> velocityFESpaceETA = M_feStokesAssembler->getVelocityETFEspace();
-        double density = M_feStokesAssembler->getDensity();
+        shp<ETFESPACE3> velocityFESpaceETA = M_feAssembler->getVelocityETFEspace();
+        double density = M_feAssembler->getDensity();
         integrate(elements(velocityFESpaceETA->mesh()),
-                   M_feStokesAssembler->getFEspace(0)->qr(),
+                   M_feAssembler->getFEspace(0)->qr(),
                    velocityFESpaceETA,
                    value(density) *
                    dot(value(velocityFESpaceETA , *velocityReconstructed) *
@@ -181,8 +181,8 @@ RBsetup()
         if (nterms == -1)
             nterms = velocityBasis.size();
 
-        shp<MATRIXEPETRA> nonLinearMatrix(new MATRIXEPETRA(M_feStokesAssembler->getFEspace(0)->map()));
-        shp<VECTOREPETRA> nonLinearTerm(new VECTOREPETRA(M_feStokesAssembler->getFEspace(0)->map()));
+        shp<MATRIXEPETRA> nonLinearMatrix(new MATRIXEPETRA(M_feAssembler->getFEspace(0)->map()));
+        shp<VECTOREPETRA> nonLinearTerm(new VECTOREPETRA(M_feAssembler->getFEspace(0)->map()));
 
         M_nonLinearTermsDecomposition.resize(nterms);
         for (unsigned int i = 0; i < nterms; i++)
@@ -190,10 +190,10 @@ RBsetup()
             M_nonLinearTermsDecomposition[i].resize(nterms);
             nonLinearMatrix->zero();
 
-            shp<ETFESPACE3> velocityFESpaceETA = M_feStokesAssembler->getVelocityETFEspace();
-            double density = M_feStokesAssembler->getDensity();
+            shp<ETFESPACE3> velocityFESpaceETA = M_feAssembler->getVelocityETFEspace();
+            double density = M_feAssembler->getDensity();
             integrate(elements(velocityFESpaceETA->mesh()),
-                       M_feStokesAssembler->getFEspace(0)->qr(),
+                       M_feAssembler->getFEspace(0)->qr(),
                        velocityFESpaceETA,
                        velocityFESpaceETA,
                        value(density) *

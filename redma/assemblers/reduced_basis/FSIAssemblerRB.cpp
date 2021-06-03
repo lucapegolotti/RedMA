@@ -83,9 +83,9 @@ namespace RedMA
     void
     FSIAssemblerRB::
     RBsetup()
-    {
+    { NavierStokesAssemblerRB::RBsetup();
         printlog(YELLOW, "[FSIAssemblerRB] assembling and projecting boundary stiffness matrix \t", M_data.getVerbose());
-        NavierStokesAssemblerRB::RBsetup();
+
         M_FSIAssembler->setup();
         M_TMAlgorithm->setComm(M_comm);
 
@@ -117,10 +117,11 @@ namespace RedMA
         Displacement->deepCopy(M_TMAlgorithm->advanceDisp(dt, convert<BlockVector>(sol)));
         shp<VECTOREPETRA> exportedDisplacement = M_bases->reconstructFEFunction(Displacement->block(0), 0, id);
         *exportedDisplacement*= *(this->M_FSIAssembler->getBoundaryIndicator());
-        M_TMAlgorithm->shiftSolutions(Displacement);
+
         //*M_displacementExporter = *spcast<VECTOREPETRA>(Displacement->block(0)->data());
         //*M_displacementExporter *= (*M_boundaryIndicator);
-
+        M_FSIAssembler->setDisplacementExporter(exportedDisplacement);
+        M_TMAlgorithm->shiftSolutions(Displacement);
 
     }
 
@@ -138,9 +139,9 @@ namespace RedMA
 
 
         LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt)); //not sure if updated, there is another way
-        shp<MATRIXEPETRA> M_boundaryMass(new MATRIXEPETRA(M_feStokesAssembler->getFEspace(0)->map()));
-        shp<ETFESPACE3> velocityFESpaceETA = M_feStokesAssembler->getVelocityETFEspace();
-        double density = M_feStokesAssembler->getDensity();
+        shp<MATRIXEPETRA> M_boundaryMass(new MATRIXEPETRA(M_feAssembler->getFEspace(0)->map()));
+        shp<ETFESPACE3> velocityFESpaceETA = M_feAssembler->getVelocityETFEspace();
+        double density = M_feAssembler->getDensity();
         double thickness = M_data("structure/thickness", 0.1);
         unsigned int wallFlag = M_data("structure/flag", 10);
         integrate(boundary(velocityFESpaceETA->mesh(), wallFlag),
@@ -167,6 +168,24 @@ namespace RedMA
 
 
 
+    }
+    void
+    FSIAssemblerRB::
+    exportSolution(const double& t,
+                   const shp<aVector>& sol)
+    {
+        std::ofstream outfile("rbcoefs/block" + std::to_string(M_treeNode->M_ID) + "t" + std::to_string(t) + ".txt");
+        std::string str2write = spcast<DenseVector>(sol->block(0))->getString(',') + "\n";
+        outfile.write(str2write.c_str(), str2write.size());
+        outfile.close();
+
+        unsigned int id = M_treeNode->M_ID;
+
+        shp<BlockVector> solBlock(new BlockVector(2));
+        solBlock->setBlock(0,wrap(M_bases->reconstructFEFunction(sol->block(0), 0, id)));
+        solBlock->setBlock(1,wrap(M_bases->reconstructFEFunction(sol->block(1), 1, id)));
+
+        M_FSIAssembler->exportSolution(t, solBlock);
     }
 
 }
