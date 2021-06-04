@@ -55,7 +55,7 @@ postProcess(const double& t,
 }
 
 
-std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>>
+std::map<unsigned int, std::vector<shp<BlockVector>>>
 StokesAssemblerFE::
 importSolution(const std::string& filename) const
 {
@@ -65,18 +65,15 @@ importSolution(const std::string& filename) const
     std::vector<shp<VECTOREPETRA>> vecVelocity;
     std::vector<shp<VECTOREPETRA>> vecPressure;
 
-    std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>> retMap;
+    std::map<unsigned int, std::vector<shp<BlockVector>>> retMap;
 
     unsigned int cnt = 0;
     std::vector<LifeV::Int> indicesPres;
-    VECTOREPETRA tmpEpetraVecPressure = VECTOREPETRA(M_pressureFESpace->map(),
-                                                     LifeV::Unique);
-    tmpEpetraVecPressure.zero();
 
     while(std::getline(inPres, line))
     {
-        if (!(cnt % 1000))
-            std::cout << "I am here " << cnt/1000 << std::endl << std::flush;
+        shp<VECTOREPETRA> tmpEpetraVecPressure (new VECTOREPETRA(M_pressureFESpace->map(),
+                                                                 LifeV::Unique));
 
         double value;
         std::stringstream ss(line);
@@ -86,26 +83,23 @@ importSolution(const std::string& filename) const
             values.push_back(value);
 
         if (cnt == 0)
-            for (LifeV::Int i=0; i<tmpEpetraVecPressure.size(); ++i)
+            for (LifeV::Int i=0; i<tmpEpetraVecPressure->size(); ++i)
                 indicesPres.push_back(i);
         cnt += 1;
 
-        tmpEpetraVecPressure.setCoefficients(indicesPres, values);
+        tmpEpetraVecPressure->setCoefficients(indicesPres, values);
 
-        vecPressure.push_back(std::make_shared<VECTOREPETRA>(tmpEpetraVecPressure));
+        vecPressure.push_back(tmpEpetraVecPressure);
     }
 
 
     cnt = 0;
     std::vector<LifeV::Int> indicesVel;
-    VECTOREPETRA tmpEpetraVecVelocity = VECTOREPETRA(M_velocityFESpace->map(),
-                                                     LifeV::Unique);
-    tmpEpetraVecVelocity.zero();
 
-    while (std::getline(inVel, line) && (cnt/1000<=20))
+    while (std::getline(inVel, line))
     {
-        if (!(cnt % 1000))
-            std::cout << "I am here " << cnt/1000 << std::endl << std::flush;
+        shp<VECTOREPETRA> tmpEpetraVecVelocity (new VECTOREPETRA(M_velocityFESpace->map(),
+                                                                 LifeV::Unique));
 
         double value;
         std::stringstream ss(line);
@@ -115,22 +109,25 @@ importSolution(const std::string& filename) const
             values.push_back(value);
 
         if (cnt == 0)
-            for (LifeV::Int i=0; i<tmpEpetraVecVelocity.size(); ++i)
+            for (LifeV::Int i=0; i<tmpEpetraVecVelocity->size(); ++i)
                 indicesVel.push_back(i);
         cnt+=1;
 
-        tmpEpetraVecVelocity.setCoefficients(indicesVel, values);
+        tmpEpetraVecVelocity->setCoefficients(indicesVel, values);
 
-        vecVelocity.push_back(std::make_shared<VECTOREPETRA>(tmpEpetraVecVelocity));
+        vecVelocity.push_back(tmpEpetraVecVelocity);
     }
 
     if ((vecVelocity.size() == 0) || (vecPressure.size() == 0))
-        throw new Exception("Importing error! Impossible to load velocity and pressure!");
+        throw new Exception("Importing error! Impossible to load velocity and pressure");
 
     for (unsigned int count = 0; count<vecVelocity.size(); ++count)
-        retMap[0].push_back(std::make_pair(vecVelocity[count], vecPressure[count]));
-
-    std::cout << retMap[0].size() << std::endl << std::flush;
+    {
+        shp<BlockVector> retBlock (new BlockVector(2));
+        retBlock->setBlock(0, wrap(vecVelocity[count]));
+        retBlock->setBlock(1, wrap(vecPressure[count]));
+        retMap[0].push_back(retBlock);
+    }
 
     return retMap;
 }

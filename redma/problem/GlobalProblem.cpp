@@ -119,7 +119,7 @@ exportFromFiles(const std::string &inPath)
     double t = t0;
     unsigned int count = 0;
 
-    std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>> solutions = M_assembler->importSolution(inPath);
+    std::map<unsigned int, std::vector<shp<BlockVector>>> solutions = M_assembler->importSolution(inPath);
 
     while (T - t > dt/2)
     {
@@ -130,29 +130,18 @@ exportFromFiles(const std::string &inPath)
         M_solution = spcast<BlockVector>(M_assembler->getZeroVector());
 
         unsigned int nBlocks = solutions.size();
-        std::cout << solutions[0].size() << std::endl << std::flush;
-        std::cout << M_solution->nRows() << std::endl << std::flush;
-        std::cout << M_solution->block(0)->nRows() << std::endl << std::flush;
         for (unsigned int innerCount=0; innerCount<nBlocks; ++innerCount)
         {
-            std::cout << innerCount << std::endl << std::flush;
-            (M_solution->block(innerCount)->block(0)->data()).reset(new VECTOREPETRA(*(solutions[innerCount][count]).first));
-            std::cout << innerCount << std::endl << std::flush;
-            (M_solution->block(innerCount)->block(1)->data()).reset(new VECTOREPETRA(*(solutions[innerCount][count]).second));
+            spcast<BlockVector>(M_solution->block(innerCount))->setBlock(0,
+                                                                             spcast<DistributedVector>(solutions[innerCount][count]->block(0)));
+            spcast<BlockVector>(M_solution->block(innerCount))->setBlock(1,
+                                                                             spcast<DistributedVector>(solutions[innerCount][count]->block(1)));
         }
 
         t += dt;
 
-        if (M_storeSolutions && t >= t0)
-        {
-            M_solutions.push_back(M_solution);
-            M_timestepsSolutions.push_back(t);
-        }
         if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
             M_assembler->exportSolution(t, M_solution);
-
-        M_assembler->postProcess(t, M_solution);
-        M_TMAlgorithm->shiftSolutions(M_solution);
 
         if (t >= t0)
             count++;

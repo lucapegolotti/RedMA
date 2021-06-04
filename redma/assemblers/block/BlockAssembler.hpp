@@ -68,7 +68,7 @@ public:
     *
     * Method to import a solutions (velocity or pressure) from txt file into an EpetraMartrix
     */
-    std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>> importSolution(const std::string& filename) const override;
+    std::map<unsigned int, std::vector<shp<BlockVector>>> importSolution(const std::string& filename) const override;
 
     /*! \brief Export the solutions in all subdomains.
      *

@@ -68,7 +68,7 @@ public:
      *
      * \param filename Name of the .txt file storing the solution.
      */
-    virtual std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>> importSolution(const std::string& filename) const = 0;
+    virtual std::map<unsigned int, std::vector<shp<BlockVector>>> importSolution(const std::string& filename) const = 0;
 
     /*! \brief Virtual export solution.
      *
