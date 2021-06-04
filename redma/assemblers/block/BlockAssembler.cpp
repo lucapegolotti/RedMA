@@ -112,17 +112,23 @@ getZeroVector() const
     return retVec;
 }
 
-std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>>
+std::map<unsigned int, std::vector<shp<BlockVector>>>
 BlockAssembler::
 importSolution(const std::string& filename) const
 {
+    if (!fs::exists(filename))
+        throw new Exception("Importing error. Invalid path provided!");
+
+    printlog(GREEN, "[BlockAssembler] importing solution ...\n", this->M_data.getVerbose());
+
     unsigned int cnt = 0;
-    std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>> retMap;
+    std::map<unsigned int, std::vector<shp<BlockVector>>> retMap;
     for (auto as : M_primalAssemblers)
     {
         std::string fname = filename + "Block" + std::to_string(cnt) + "/";
-        std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>> sol = as.second->importSolution(fname)[0];
+        std::vector<shp<BlockVector>> sol = as.second->importSolution(fname)[0];
         retMap[cnt] = sol;
+        cnt += 1;
     }
 
     return retMap;

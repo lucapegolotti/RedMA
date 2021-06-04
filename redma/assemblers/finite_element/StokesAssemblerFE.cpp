@@ -52,17 +52,10 @@ postProcess(const double& t,
 {
     // shift solutions in multistep method embedded in windkessels
     M_bcManager->postProcess();
-
-    std::cout << sol->block(0)->norm2() << std::endl << std::flush;
-    std::cout << (this->M_mass->multiplyByVector(sol))->block(0)->norm2() << std::endl << std::flush;
-    std::cout << (this->M_stiffness->multiplyByVector(sol))->block(0)->norm2() << std::endl << std::flush;
-
-    std::cout << sol->block(1)->norm2() << std::endl << std::flush;
-    std::cout << (this->M_divergence->multiplyByVector(sol))->block(0)->norm2() << std::endl << std::flush;
 }
 
 
-std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>>
+std::map<unsigned int, std::vector<shp<BlockVector>>>
 StokesAssemblerFE::
 importSolution(const std::string& filename) const
 {
@@ -72,38 +65,15 @@ importSolution(const std::string& filename) const
     std::vector<shp<VECTOREPETRA>> vecVelocity;
     std::vector<shp<VECTOREPETRA>> vecPressure;
 
-    std::map<unsigned int, std::vector<std::pair<shp<VECTOREPETRA>, shp<VECTOREPETRA>>>> retMap;
+    std::map<unsigned int, std::vector<shp<BlockVector>>> retMap;
 
-    while (std::getline(inVel, line))
-    {
-        shp<VECTOREPETRA> tmpEpetraVecVelocity;
-
-        tmpEpetraVecVelocity.reset(new VECTOREPETRA(M_velocityFESpace->map(),
-                                                 LifeV::Unique));
-        tmpEpetraVecVelocity->zero();
-
-        double value;
-        std::stringstream ss(line);
-
-        std::vector<double> values;
-        while (ss >> value)
-            values.push_back(value);
-
-        std::vector<LifeV::Int> indices;
-        for (LifeV::Int i=0; i<tmpEpetraVecVelocity->size(); ++i)
-            indices.push_back(i);
-
-        tmpEpetraVecVelocity->setCoefficients(indices, values);
-
-        vecVelocity.push_back(tmpEpetraVecVelocity);
-    }
+    unsigned int cnt = 0;
+    std::vector<LifeV::Int> indicesPres;
 
     while(std::getline(inPres, line))
     {
-        shp<VECTOREPETRA> tmpEpetraVecPressure;
-        tmpEpetraVecPressure.reset(new VECTOREPETRA(M_pressureFESpace->map(),
-                                                    LifeV::Unique));
-        tmpEpetraVecPressure->zero();
+        shp<VECTOREPETRA> tmpEpetraVecPressure (new VECTOREPETRA(M_pressureFESpace->map(),
+                                                                 LifeV::Unique));
 
         double value;
         std::stringstream ss(line);
@@ -112,15 +82,52 @@ importSolution(const std::string& filename) const
         while (ss >> value)
             values.push_back(value);
 
-        std::vector<LifeV::Int> indices;
-        for (LifeV::Int i=0; i<tmpEpetraVecPressure->size(); ++i)
-            indices.push_back(i);
+        if (cnt == 0)
+            for (LifeV::Int i=0; i<tmpEpetraVecPressure->size(); ++i)
+                indicesPres.push_back(i);
+        cnt += 1;
+
+        tmpEpetraVecPressure->setCoefficients(indicesPres, values);
 
         vecPressure.push_back(tmpEpetraVecPressure);
     }
 
-    for (unsigned int cnt = 0; cnt<vecVelocity.size(); ++cnt)
-        retMap[0].push_back(std::make_pair(vecVelocity[cnt], vecPressure[cnt]));
+
+    cnt = 0;
+    std::vector<LifeV::Int> indicesVel;
+
+    while (std::getline(inVel, line))
+    {
+        shp<VECTOREPETRA> tmpEpetraVecVelocity (new VECTOREPETRA(M_velocityFESpace->map(),
+                                                                 LifeV::Unique));
+
+        double value;
+        std::stringstream ss(line);
+
+        std::vector<double> values;
+        while (ss >> value)
+            values.push_back(value);
+
+        if (cnt == 0)
+            for (LifeV::Int i=0; i<tmpEpetraVecVelocity->size(); ++i)
+                indicesVel.push_back(i);
+        cnt+=1;
+
+        tmpEpetraVecVelocity->setCoefficients(indicesVel, values);
+
+        vecVelocity.push_back(tmpEpetraVecVelocity);
+    }
+
+    if ((vecVelocity.size() == 0) || (vecPressure.size() == 0))
+        throw new Exception("Importing error! Impossible to load velocity and pressure");
+
+    for (unsigned int count = 0; count<vecVelocity.size(); ++count)
+    {
+        shp<BlockVector> retBlock (new BlockVector(2));
+        retBlock->setBlock(0, wrap(vecVelocity[count]));
+        retBlock->setBlock(1, wrap(vecPressure[count]));
+        retMap[0].push_back(retBlock);
+    }
 
     return retMap;
 }
