@@ -246,6 +246,7 @@ getNeumannBc(const double& time, const double& flag, const double& rate)
     //     return 0.0;
     //
     // return -M_models[flag]->getNeumannCondition(time, rate);
+    return 0.0;
 }
 
 double
@@ -257,6 +258,7 @@ getNeumannJacobian(const double& time, const double& flag, const double& rate)
     //     return 0.0;
     //
     // return -M_models[flag]->getNeumannJacobian(time, rate);
+    return 0.0;
 }
 
 void
