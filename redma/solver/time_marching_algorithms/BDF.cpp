@@ -143,6 +143,7 @@ advance(const double& time, double& dt, int& status)
         // the previous solution satisfies the boundary conditions so we search
         // for an increment with 0bcs
         this->M_funProvider->apply0DirichletBCs(retVec);
+
         return retVec;
     });
 

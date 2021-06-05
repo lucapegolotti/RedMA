@@ -64,7 +64,13 @@ public:
     /// Virtual setup function.
     virtual void setup() = 0;
 
-    /*! Virtual export solution.
+    /*! \brief Virtual import solution.
+     *
+     * \param filename Name of the .txt file storing the solution.
+     */
+    virtual std::map<unsigned int, std::vector<shp<BlockVector>>> importSolution(const std::string& filename) const = 0;
+
+    /*! \brief Virtual export solution.
      *
      * \param time Current time.
      * \param sol Current solution.
@@ -72,7 +78,7 @@ public:
     virtual void exportSolution(const double& time,
                                 const shp<aVector>& sol) = 0;
 
-    /*! Virtual postProcess functions (to be called at the end of the timestep).
+    /*! \brief Virtual postProcess functions (to be called at the end of the timestep).
      *
      * \param time Current time.
      * \param sol Current solution.

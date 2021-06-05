@@ -99,10 +99,54 @@ solve()
             M_assembler->exportSolution(t, M_solution);
 
         M_assembler->postProcess(t, M_solution);
+
         M_TMAlgorithm->shiftSolutions(M_solution);
+
         if (t >= t0)
             count++;
     }
+}
+
+void
+GlobalProblem::
+exportFromFiles(const std::string &inPath)
+{
+    double t0 = M_data("time_discretization/t0", 0.0);
+    double T = M_data("time_discretization/T", 1.0);
+    double dt = M_data("time_discretization/dt", 0.01);
+    int saveEvery = M_data("exporter/save_every", 1);
+
+    double t = t0;
+    unsigned int count = 0;
+
+    std::map<unsigned int, std::vector<shp<BlockVector>>> solutions = M_assembler->importSolution(inPath);
+
+    while (T - t > dt/2)
+    {
+        std::string msg = "[GlobalProblem] exporting solution at timestep " + std::to_string(count) +
+                          ", t = " + std::to_string(t+dt) + "\n";
+        printlog(MAGENTA, msg, M_data.getVerbose());
+
+        M_solution = spcast<BlockVector>(M_assembler->getZeroVector());
+
+        unsigned int nBlocks = solutions.size();
+        for (unsigned int innerCount=0; innerCount<nBlocks; ++innerCount)
+        {
+            spcast<BlockVector>(M_solution->block(innerCount))->setBlock(0,
+                                                                             spcast<DistributedVector>(solutions[innerCount][count]->block(0)));
+            spcast<BlockVector>(M_solution->block(innerCount))->setBlock(1,
+                                                                             spcast<DistributedVector>(solutions[innerCount][count]->block(1)));
+        }
+
+        t += dt;
+
+        if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
+            M_assembler->exportSolution(t, M_solution);
+
+        if (t >= t0)
+            count++;
+    }
+
 }
 
 bool

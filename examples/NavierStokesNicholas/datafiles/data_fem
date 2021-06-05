@@ -132,13 +132,19 @@ outputdir = rb_solutions
 [../]
 
 [exporter]
-	outdir	   = solutions/
+	outdir	   = fem-solutions/
 	type       = hdf5
 	multimesh  = false
 	start      = 0
 	save_every = 1
 	filename   = tube
 	exportnorms = true
+[../]
+
+[importer]
+    indir = ../../../../../PDE-DNN/TESTS/RB/Unsteady/Stokes_spacetime/tube_1x2_h0.15/ST-LSPG/Sampling_0.01_0.01-POD_1e-05_1e-05/results/
+    param_nb = 96
+    isFEM = true
 [../]
 
 [coupling]

@@ -58,6 +58,12 @@ public:
     /// Virtual setup function.
     virtual void setup() override;
 
+    /*! \brief Solutions importing method
+     *
+     * Method to import a solutions (velocity or pressure) from txt file into an EpetraMartrix
+     */
+    std::map<unsigned int, std::vector<shp<BlockVector>>> importSolution(const std::string& filename) const override;
+
     /*! Virtual export solution.
      *
      * \param time Current time.

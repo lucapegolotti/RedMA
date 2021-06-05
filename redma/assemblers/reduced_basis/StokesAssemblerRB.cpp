@@ -121,6 +121,13 @@ apply0DirichletBCs(shp<aVector> vector) const
     // throw new Exception("Method not implemented for RB");
 }
 
+std::map<unsigned int, std::vector<shp<BlockVector>>>
+StokesAssemblerRB::
+importSolution(const std::string &filename) const
+{
+    return M_feStokesAssembler->importSolution(filename);
+}
+
 void
 StokesAssemblerRB::
 exportSolution(const double& t,
