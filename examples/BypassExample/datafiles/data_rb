@@ -75,8 +75,8 @@ outputdir = rb_solutions
 		approximatenonlinearterm = 0
 		[./basis]
 			directory = basis
-			podtol_field0 = 1e-4
-			podtol_field1 = 1e-4
+			podtol_field0 = 1e-2
+			podtol_field1 = 1e-2
 			useprimalsupremizers = 1
 			usedualsupremizers = 0
 		[../]
@@ -111,9 +111,9 @@ outputdir = rb_solutions
 
 [structure]
 	time_integration_order = 3
-	poisson      = 0.3
+	poisson      = 0.5
 	num_young    = 1
-	young    	 = 3.e+6 # 1.07e7 4.07e6'
+	young    	 = 4.6e+6 # 1.07e7 4.07e6'
 	thickness    = 0.1 # 0.2 0.15'
 	density	     = 1.2
 	flag = 10

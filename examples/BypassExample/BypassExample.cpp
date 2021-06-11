@@ -42,13 +42,13 @@ int main(int argc, char **argv)
     #endif
 
     DataContainer data;
-    data.setDatafile("datafiles/data");
+    data.setDatafile("datafiles/data_rb");
     data.setVerbose(comm->MyPID() == 0);
 
     bool analyticInflow = true;
     if (analyticInflow)
     {
-        double alpha=0.2125;
+        double alpha=0.5;
         auto inflow1_alpha([alpha](double t) {
             return alpha * inflow2(t);
         });
