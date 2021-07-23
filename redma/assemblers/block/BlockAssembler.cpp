@@ -222,12 +222,14 @@ getRightHandSide(const double& time,
         rhs->setBlock(ind, as.second->getRightHandSide(time, convert<BlockVector>(sol)->block(ind)));
     }
 
+
     // add interface contributions
     for (auto as: M_dualAssemblers)
     {
         as->addContributionRhs(time, rhs, convert<BlockVector>(sol),
             M_primalAssemblers.size());
     }
+
 
     return rhs;
 }

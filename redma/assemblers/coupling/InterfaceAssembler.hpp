@@ -238,11 +238,17 @@ protected:
      */
      InterfacePtrType buildRingInterfaceMap();
 
-     /*! \brief Apply the strong coupling condition at the rings on the child BT matrix
+     /*! \brief Assemble the vectors for the strong coupling of velocity at the rings
       *
       * \return Vector of shared pointers to the generated DistributedVectors for the strong ring coupling
       */
-     std::vector<shp<DistributedVector>> buildStrongRingCouplingVectors();
+     std::pair<std::vector<shp<DistributedVector>>, std::vector<shp<DistributedVector>>> buildStrongRingCouplingVectors();
+
+    /*! \brief Identifies the interface ring DOFs employed for the strong coupling
+     *
+     * \return Vector of integers, corresponding to the IDs of the DOFs employed for the strong coupling
+     */
+     std::vector<LifeV::ID> identifyValidRingDOFs();
 
     /// Not supported at the moment.
     std::vector<shp<DistributedVector>> buildStabilizationVectorsVelocity(shp<BasisFunctionFunctor> bfs,

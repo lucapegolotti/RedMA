@@ -155,4 +155,5 @@ outputdir = rb_solutions
 	frequencies_theta_ring = -1
 	frequencies_theta_ring_weak_dirichlet = -1
 	strong_ring = true
+	strong_dofs_per_ring = 4
 [../]

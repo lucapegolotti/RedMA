@@ -180,7 +180,6 @@ advance(const double& time, double& dt, int& status)
         BM mass(this->M_funProvider->getMass(time+dt, sol));
         if (M_useExtrapolation)
             this->M_funProvider->setExtrapolatedSolution(computeExtrapolatedSolution());
-
         BV f(this->M_funProvider->getRightHandSide(time+dt, sol));
 
         BV prevContribution(new BlockVector(0));
@@ -201,6 +200,7 @@ advance(const double& time, double& dt, int& status)
         // the previous solution satisfies the boundary conditions so we search
         // for an increment with 0bcs
         this->M_funProvider->apply0DirichletBCs(retVec);
+
         return retVec;
     });
 

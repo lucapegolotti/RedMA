@@ -303,10 +303,13 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
                            ringCouplingVectors.begin(), ringCouplingVectors.end());
 
     bool strongRingCoupling = M_data("coupling/strong_ring", false);
-    if (!isFather && !M_isInlet && strongRingCoupling)
+    if (!M_isInlet && strongRingCoupling)
     {
+        M_mapLagrange = spcast<VECTOREPETRA>(couplingVectors[0]->data())->mapPtr();
+
         std::vector<shp<DistributedVector>> strongRingCouplingVectors;
-        strongRingCouplingVectors = buildStrongRingCouplingVectors();
+        strongRingCouplingVectors = (isFather) ? buildStrongRingCouplingVectors().first :
+                                    buildStrongRingCouplingVectors().second;
 
         couplingVectors.insert(couplingVectors.end(),
                                strongRingCouplingVectors.begin(), strongRingCouplingVectors.end());
@@ -431,9 +434,8 @@ getZeroVector() const
     shp<VECTOREPETRA> zeroVec(new VECTOREPETRA(*M_mapLagrange, LifeV::Unique));
     zeroVec->zero();
 
-    std::cout << "Interface constraints DOFs: " << zeroVec->size() << std::endl << std::flush;
-
     retVector->setBlock(0,wrap(zeroVec));
+
     return retVector;
 }
 
@@ -442,8 +444,6 @@ InterfaceAssembler::
 buildCouplingMatrices()
 {
     unsigned int indexOutlet = M_interface.M_indexOutlet;
-
-    std::cout << "Building Father!" << std::endl << std::flush;
 
     auto asFather = M_interface.M_assemblerFather;
     if (asFather)
@@ -463,8 +463,6 @@ buildCouplingMatrices()
             M_fatherB = asFather->getRBBases()->rightProject(M_fatherB, asFather->ID());
         }
     }
-
-    std::cout << "Building Child!" << std::endl << std::flush;
 
     auto asChild = M_interface.M_assemblerChild;
     if (asChild)
@@ -550,30 +548,108 @@ buildRingInterfaceMap()
                    *(FESpaceVChild->mesh()), childFlag,
                    tol);
 
-    if (M_data.getVerbose())
-        ifPtr->showMe();
+    /*if (M_data.getVerbose())
+        ifPtr->showMe();*/
 
     return ifPtr;
 }
 
-std::vector<shp<DistributedVector>>
+std::vector<LifeV::ID>
+InterfaceAssembler::
+identifyValidRingDOFs()
+{
+    auto asFather = M_interface.M_assemblerFather;
+    if (!asFather)
+        throw new Exception("Father assembler is not defined!");
+
+    shp<FESPACE> FESpaceVFather = asFather->getFEspace(0);
+    unsigned int indexOutlet = M_interface.M_indexOutlet;
+    unsigned int fatherFlag = asFather->getTreeNode()->M_block->getOutlet(indexOutlet).M_ringFlag;
+    shp<VECTOREPETRA> ringsIndicator = asFather->getBCManager()->computeRingsIndicator(FESpaceVFather,
+                                                                                       fatherFlag, false);
+
+    // Building the father->child DOF map at the interface ring
+    InterfacePtrType ifPtr = this->buildRingInterfaceMap();
+
+    std::list<std::pair<LifeV::ID, LifeV::ID>> facetToFacetConnections = ifPtr->connectedFacetMap();
+    std::vector<LifeV::ID> localToGlobalMapOnFatherFacets;
+    for (auto i = facetToFacetConnections.begin(); i != facetToFacetConnections.end(); ++i)
+    {
+        std::vector<LifeV::ID> tmpLocalToGlobalMap = FESpaceVFather->dofPtr()->localToGlobalMapOnBdFacet(i->first);
+
+        localToGlobalMapOnFatherFacets.insert(localToGlobalMapOnFatherFacets.end(),
+                                              tmpLocalToGlobalMap.begin(), tmpLocalToGlobalMap.end());
+    }
+
+    std::sort(localToGlobalMapOnFatherFacets.begin(), localToGlobalMapOnFatherFacets.end());
+    localToGlobalMapOnFatherFacets.erase(std::unique(localToGlobalMapOnFatherFacets.begin(),
+                                                     localToGlobalMapOnFatherFacets.end()),
+                                         localToGlobalMapOnFatherFacets.end());
+
+    std::vector<LifeV::Int> ringIndicesFather;
+    unsigned int count = 0;
+    for (auto const& fatherID : localToGlobalMapOnFatherFacets)
+    {
+        if ((ifPtr->isMyInterfaceDof(fatherID) &&
+             (std::abs((*ringsIndicator)[fatherID] - fatherFlag) <= 1e-10)))
+            ringIndicesFather.push_back(count);
+        count++;
+    }
+
+    std::vector<LifeV::ID> tmpLocalToGlobalMapOnFatherFacets;
+    for (const LifeV::Int ringIndexFather : ringIndicesFather)
+        tmpLocalToGlobalMapOnFatherFacets.push_back(localToGlobalMapOnFatherFacets[ringIndexFather]);
+
+    int dofsPerRing = M_data("coupling/strong_dofs_per_ring", 4);
+    if (((dofsPerRing & 3) != 0) && (dofsPerRing != -1))
+        throw new Exception("The number of DOFs to strongly couple at each ring must be a multiple of 4! "
+                            "Alternatively, if it equals -1, all ring DOFs are considered when performing the "
+                            "strong coupling!");
+    else if (dofsPerRing > tmpLocalToGlobalMapOnFatherFacets.size())
+        throw new Exception("The number of ring DOFs at which performing the strong coupling exceeds the "
+                            "total number of ring DOFs!");
+
+    unsigned int num = (dofsPerRing-4) / 4;
+    unsigned int dim = (tmpLocalToGlobalMapOnFatherFacets.size()-4) / 4;
+
+    std::vector<LifeV::ID> validLocalToGlobalMapOnFatherFacets;
+    if (dofsPerRing == -1)
+        validLocalToGlobalMapOnFatherFacets = tmpLocalToGlobalMapOnFatherFacets;
+    else
+    {
+        validLocalToGlobalMapOnFatherFacets.insert(validLocalToGlobalMapOnFatherFacets.end(),
+                                                   tmpLocalToGlobalMapOnFatherFacets.begin(),
+                                                   tmpLocalToGlobalMapOnFatherFacets.begin() + 4);
+
+        unsigned int index;
+        for (unsigned int quadr = 0; quadr < 4; ++quadr)
+            for (unsigned int cnt = 1; cnt <= num; ++cnt)
+            {
+                index = 3 + (dim * quadr) + (cnt * dim / (num+1)) ;
+                validLocalToGlobalMapOnFatherFacets.push_back(tmpLocalToGlobalMapOnFatherFacets[index]);
+            }
+    }
+
+    /*for (auto elem : validLocalToGlobalMapOnFatherFacets)
+        std::cout << elem << " " << std::endl;*/
+
+    return validLocalToGlobalMapOnFatherFacets;
+}
+
+std::pair<std::vector<shp<DistributedVector>>, std::vector<shp<DistributedVector>>>
 InterfaceAssembler::
 buildStrongRingCouplingVectors()
 {
     auto asFather = M_interface.M_assemblerFather;
     auto asChild = M_interface.M_assemblerChild;
 
-    std::vector<shp<DistributedVector>> SCVectors;
+    std::vector<shp<DistributedVector>> SCVectorsFather;
+    std::vector<shp<DistributedVector>> SCVectorsChild;
 
     if (asFather && asChild)
     {
         shp<FESPACE> FESpaceVFather = asFather->getFEspace(0);
         shp<FESPACE> FESpaceVChild = asChild->getFEspace(0);
-        unsigned int indexOutlet = M_interface.M_indexOutlet;
-        unsigned int fatherFlag = asFather->getTreeNode()->M_block->getOutlet(indexOutlet).M_ringFlag;
-
-        shp<VECTOREPETRA> ringsIndicator = asFather->getBCManager()->computeRingsIndicator(FESpaceVFather,
-                                                                                           fatherFlag, false);
 
         // Building the father->child DOF map at the interface ring
         InterfacePtrType ifPtr = this->buildRingInterfaceMap();
@@ -581,49 +657,37 @@ buildStrongRingCouplingVectors()
         unsigned int fathernDOF = FESpaceVFather->dofPtr()->numTotalDof();
         unsigned int childnDOF = FESpaceVChild->dofPtr()->numTotalDof();
 
-        std::vector<LifeV::Int> indices(2);
-        std::vector<double> values({-1.0, 1.0});
-        shp<BlockVector> vec = this->getZeroVector();
+        std::vector<LifeV::ID> validRingDOFs = this->identifyValidRingDOFs();
 
-        std::list<std::pair<LifeV::ID, LifeV::ID>> facetToFacetConnections = ifPtr->connectedFacetMap();
-        std::vector<LifeV::ID> localToGlobalMapOnFatherFacets;
-        for (auto i = facetToFacetConnections.begin(); i != facetToFacetConnections.end(); ++i)
-        {
-            std::vector<LifeV::ID> tmpLocalToGlobalMap = FESpaceVFather->dofPtr()->localToGlobalMapOnBdFacet(i->first);
-
-            localToGlobalMapOnFatherFacets.insert(localToGlobalMapOnFatherFacets.end(),
-                                                  tmpLocalToGlobalMap.begin(), tmpLocalToGlobalMap.end());
-        }
-
-        /*unsigned int cnt = 0;
-        for(unsigned int id = 0; id < 15633; ++id)
-            if ((*ringsIndicator)[id] > 0)
-                ++cnt;
-        std::cout << cnt << std::endl << std::flush;*/
+        std::vector<LifeV::UInt> indices(2);
+        shp<BlockVector> vecFather;
+        shp<BlockVector> vecChild;
 
         unsigned int childID;
-        for (auto const& fatherID : localToGlobalMapOnFatherFacets)
+        for (auto const& fatherID : validRingDOFs)
         {
-            if ((ifPtr->isMyInterfaceDof(fatherID) &&
-                (std::abs((*ringsIndicator)[fatherID] - fatherFlag) <= 1e-10)))
+            childID = ifPtr->getInterfaceDof(fatherID);
+
+            for (unsigned int nDim = 0; nDim < 3; ++nDim)
             {
-                childID = ifPtr->getInterfaceDof(fatherID);
+                vecFather = this->getZeroVector();
+                vecChild = this->getZeroVector();
 
-                for (unsigned int nDim = 0; nDim < 3; ++nDim)
-                {
-                    indices[0] = fatherID + nDim * fathernDOF;
-                    indices[1] = childID + nDim * childnDOF;
+                indices[0] = fatherID + nDim * fathernDOF;
+                indices[1] = childID + nDim * childnDOF;
 
-                    spcast<VECTOREPETRA>(vec->block(0)->data())->setCoefficients(indices,
-                                                                                 values);
+                spcast<VECTOREPETRA>(vecFather->block(0)->data())->setCoefficient(indices[0],
+                                                                                  1.0);
+                spcast<VECTOREPETRA>(vecChild->block(0)->data())->setCoefficient(indices[1],
+                                                                                 1.0);
 
-                    SCVectors.push_back(spcast<DistributedVector>(vec->block(0)));
-                }
+                SCVectorsFather.push_back(spcast<DistributedVector>(vecFather->block(0)));
+                SCVectorsChild.push_back(spcast<DistributedVector>(vecChild->block(0)));
             }
         }
     }
 
-    return SCVectors;
+    return std::make_pair(SCVectorsFather, SCVectorsChild);
 }
 
 void
