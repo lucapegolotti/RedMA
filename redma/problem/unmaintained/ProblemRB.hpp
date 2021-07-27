@@ -26,6 +26,7 @@
 
 #include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
 #include <redma/assemblers/block/BlockAssembler.hpp>
+#include <redma/solver/assemblers/DefaultAssemblersLibrary.hpp>
 
 #include <memory>
 

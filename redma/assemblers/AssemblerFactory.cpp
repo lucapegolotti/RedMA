@@ -4,7 +4,8 @@ namespace RedMA
 {
 
 shp<aAssembler>
-AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode)
+AssemblerFactory(const DataContainer& data,
+                 shp<TreeNode> treeNode)
 {
     shp<aAssembler> ret;
 

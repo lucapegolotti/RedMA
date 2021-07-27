@@ -69,6 +69,9 @@ public:
     int                     M_indexChild;
     unsigned int            M_ID;
     unsigned int            M_indexOutlet;
+    // This flag is only used to distinguish inlets when they are employed for
+    // boundary conditions.
+    unsigned int            M_inletIndex;
 };
 
 /*! \brief Class for the assembly of coupling matrices.

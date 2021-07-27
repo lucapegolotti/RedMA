@@ -27,14 +27,21 @@
 #include <redma/assemblers/reduced_basis/MembraneAssemblerRB.hpp>
 
 #include <redma/utils/Exception.hpp>
-#include <redma/geometry/BuildingBlock.hpp>
+#include <redma/geometry/building_blocks/BuildingBlock.hpp>
 #include <redma/problem/DataContainer.hpp>
 
 namespace RedMA
 {
 
+/*! \brief Factory to create assemblers.
+ *
+ * \param data The DataContainer of the problem.
+ * \param treeNode Shared pointer to the tree node.
+ * \return Shared pointer to the abstract assembler.
+ */
 shp<aAssembler>
-AssemblerFactory(const DataContainer& data, shp<TreeNode> treeNode);
+AssemblerFactory(const DataContainer& data,
+                 shp<TreeNode> treeNode);
 
 }
 

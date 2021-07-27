@@ -16,9 +16,9 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
-#include <redma/problem/ProblemRB.hpp>
+// #include <redma/problem/ProblemRB.hpp>
 
-#include <redma/problem/ComparisonFEMvsRB.hpp>
+// #include <redma/problem/ComparisonFEMvsRB.hpp>
 
 using namespace RedMA;
 
@@ -44,37 +44,37 @@ int main(int argc, char **argv)
     // tree2.traverseAndDeformGeometries();
     // tree2.dump("output_read/","../../../meshes/");
 
-    ComparisonFEMvsRB comparison(data, comm);
-
-    std::string msg = "Starting chrono\n";
-    printlog(MAGENTA, msg, true);
-    Chrono chrono;
-    chrono.start();
-
-    shp<ProblemRB> rbProblem(new ProblemRB(data, comm));
-    double setupTimeRB = chrono.diff();
-
-    comparison.setProblemRB(rbProblem);
-
-    comparison.runRB();
-    double runTimeRB = comparison.getTimeRB();
-    comparison.exportRB(4);
-
-
-    msg = "Total time =  ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(MAGENTA, msg, true);
-
-    msg = "Setup time =  ";
-    msg += std::to_string(setupTimeRB);
-    msg += " seconds\n";
-    printlog(MAGENTA, msg, true);
-
-    msg = "Run time =  ";
-    msg += std::to_string(runTimeRB);
-    msg += " seconds\n";
-    printlog(MAGENTA, msg, true);
+    // ComparisonFEMvsRB comparison(data, comm);
+    //
+    // std::string msg = "Starting chrono\n";
+    // printlog(MAGENTA, msg, true);
+    // Chrono chrono;
+    // chrono.start();
+    //
+    // shp<ProblemRB> rbProblem(new ProblemRB(data, comm));
+    // double setupTimeRB = chrono.diff();
+    //
+    // comparison.setProblemRB(rbProblem);
+    //
+    // comparison.runRB();
+    // double runTimeRB = comparison.getTimeRB();
+    // comparison.exportRB(4);
+    //
+    //
+    // msg = "Total time =  ";
+    // msg += std::to_string(chrono.diff());
+    // msg += " seconds\n";
+    // printlog(MAGENTA, msg, true);
+    //
+    // msg = "Setup time =  ";
+    // msg += std::to_string(setupTimeRB);
+    // msg += " seconds\n";
+    // printlog(MAGENTA, msg, true);
+    //
+    // msg = "Run time =  ";
+    // msg += std::to_string(runTimeRB);
+    // msg += " seconds\n";
+    // printlog(MAGENTA, msg, true);
 
     return 0;
 }

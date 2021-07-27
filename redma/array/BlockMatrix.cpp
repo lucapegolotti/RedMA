@@ -314,7 +314,7 @@ dump(std::string filename) const
     {
         for (unsigned int j = 0; j < nCols(); j++)
         {
-            M_matrixGrid(i,j)->dump(filename + "block_" + std::to_string(i) + "_" + std::to_string(j));
+            M_matrixGrid(i,j)->dump(filename + "_block_" + std::to_string(i) + "_" + std::to_string(j));
         }
     }
 }
@@ -442,6 +442,24 @@ level()
         }
     }
     return 1;
+}
+
+double
+BlockMatrix::
+normInf()
+{
+    double norm = 0;
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        for (unsigned int j = 0; j < nCols(); j++)
+        {
+            if (block(i,j) && !block(i,j)->isZero())
+            {
+                norm = block(i,j)->normInf() > norm ? block(i,j)->normInf() : norm;
+            }
+        }
+    }
+    return norm;
 }
 
 }

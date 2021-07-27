@@ -16,12 +16,13 @@ setDatafile(const std::string& datafile)
 
 void
 DataContainer::
-setInflow(const std::function<double(double)>& inflow)
+setInflow(const std::function<double(double)>& inflow,
+          unsigned int flag)
 {
     bool generate_inflow = this->checkGenerateInflow();
 
     if (!(generate_inflow))
-        M_inflow = inflow;
+        M_inflows[flag] = inflow;
     else
         printlog(YELLOW, "[DataContainer] WARNING: Inflow function will be "
                       "read from file, as the 'generate_inflow' flag in datafile is set to 1\n");
@@ -122,10 +123,30 @@ void
 DataContainer::
 finalize()
 {
-    if (!M_inflow)
+    if (M_inflows.size() == 0)
     {
         generateRamp();
-        generateInflow();
+
+        int ninlets = (*M_datafile)("bc_conditions/numinletbcs", -1);
+        if (ninlets == -1)
+        {
+            std::string inputfile = (*M_datafile)("bc_conditions/inflowfile",
+                                         "datafiles/inflow.txt");
+            generateInflow(0, inputfile);
+        }
+        else
+        {
+            for (unsigned int i = 0; i < ninlets; i++)
+            {
+                std::string path = "bc_conditions/inlet" + std::to_string(i);
+                std::string arg1 = path + "/flag";
+                unsigned int curflag = (*M_datafile)(arg1.c_str(), 0);
+                arg1 = path + "/inflowfile";
+                std::string arg2 = "datafiles/inflow" + std::to_string(i) + ".txt";
+                std::string inputfile = (*M_datafile)(arg1.c_str(),arg2.c_str());
+                generateInflow(curflag, inputfile);
+            }
+        }
     }
 
     if (!M_inflow)
@@ -138,14 +159,14 @@ finalize()
 
 void
 DataContainer::
-generateInflow()
+generateInflow(unsigned int flag, std::string inputfilename)
 {
     bool generate_inflow = this->checkGenerateInflow();
 
     if (generate_inflow)
     {
-        auto flowValues = parseInflow();
-        linearInterpolation(flowValues, M_inflow);
+        auto flowValues = parseInflow(inputfilename);
+        linearInterpolation(flowValues, M_inflows[flag])
     }
 }
 
@@ -200,10 +221,12 @@ linearInterpolation(const std::vector<std::pair<double,double>>& values,
 
 std::vector<std::pair<double, double>>
 DataContainer::
-parseInflow()
+parseInflow(std::string filename)
 {
-    std::ifstream inflowfile((*M_datafile)("bc_conditions/inflowfile",
-                                           "datafiles/inflow.txt"));
+    std::ifstream inflowfile;
+    inflowfile.open(filename);
+
+
     std::vector<std::pair<double, double>> flowValues;
     if (inflowfile.is_open())
     {

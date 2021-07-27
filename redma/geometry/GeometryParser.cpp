@@ -4,8 +4,8 @@ namespace RedMA
 {
 
 GeometryParser::
-GeometryParser(const GetPot& datafile, std::string fileName,
-               commPtr_Type comm, bool verbose) :
+GeometryParser(const DataContainer& datafile, std::string fileName,
+               EPETRACOMM comm, bool verbose) :
   M_comm(comm),
   M_datafile(datafile),
   M_verbose(verbose),
@@ -145,6 +145,17 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
         printlog(GREEN, msg, M_verbose);
 
         returnBlock.reset(new AortaBifurcation1(M_comm, ref, "aortabif1", M_verbose));
+
+    }
+    else if (!std::strcmp(element->Attribute("type"),
+                          "bypass"))
+    {
+        std::string msg = std::string("[GeometryParser] parsing") +
+                  " building block of type bypass\n";
+        printlog(GREEN, msg, M_verbose);
+
+        returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose));
+
     }
     else
     {

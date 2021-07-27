@@ -408,19 +408,25 @@ setup()
     {
         shp<InnerAssembler> inletAssembler = M_primalAssemblers[0];
 
-        // we set the inlet to child such that we are consistent with the normal orientation
-        // with respect to flow direction
-        Interface newInterface(nullptr, -1, inletAssembler, 0,
-                                               interfaceID);
+        unsigned int ninlets = inletAssembler->getTreeNode()->M_block->getInlets().size();
 
-        shp<InterfaceAssembler> inletInAssembler;
-        bool inletPrimalIsFE = !(std::strcmp(inletAssembler->getTreeNode()->M_block->getDiscretizationMethod().c_str(), "fem"));
-        bool hasNoSlipBCs = (inletPrimalIsFE) ? ((spcast<StokesAssemblerFE>(inletAssembler))->hasNoSlipBCs()) :
+        for (unsigned int i = 0; i < ninlets; i++)
+        {
+            // we set the inlet to child such that we are consistent with the normal orientation
+            // with respect to flow direction
+            Interface newInterface(nullptr, -1, inletAssembler, 0,
+                                                   interfaceID);
+            newInterface.M_inletIndex = i;
+
+            shp<InterfaceAssembler> inletInAssembler;
+            bool inletPrimalIsFE = !(std::strcmp(inletAssembler->getTreeNode()->M_block->getDiscretizationMethod().c_str(), "fem"));
+            bool hasNoSlipBCs = (inletPrimalIsFE) ? ((spcast<StokesAssemblerFE>(inletAssembler))->hasNoSlipBCs()) :
                             (spcast<StokesAssemblerFE>(spcast<StokesAssemblerRB>(inletAssembler)->getFEAssembler())->hasNoSlipBCs());
-        inletInAssembler.reset(new InletInflowAssembler(this->M_data, newInterface, hasNoSlipBCs));
+            inletInAssembler.reset(new InletInflowAssembler(this->M_data, newInterface, hasNoSlipBCs));
 
-        M_dualAssemblers.push_back(inletInAssembler);
-        interfaceID++;
+            M_dualAssemblers.push_back(inletInAssembler);
+            interfaceID++;
+        }
     }
 
     M_numberBlocks = M_primalAssemblers.size() + M_dualAssemblers.size();

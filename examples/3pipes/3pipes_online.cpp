@@ -16,7 +16,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
-#include <redma/problem/ProblemRB.hpp>
+// #include <redma/problem/ProblemRB.hpp>
 
 using namespace RedMA;
 
@@ -40,13 +40,13 @@ int main(int argc, char **argv)
     data.setVerbose(comm->MyPID() == 0);
     data.finalize();
 
-    ProblemRB rbProblem(data, comm);
-    rbProblem.solve();
-
-    msg = "Total time =  ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(MAGENTA, msg, true);
+    // ProblemRB rbProblem(data, comm);
+    // rbProblem.solve();
+    //
+    // msg = "Total time =  ";
+    // msg += std::to_string(chrono.diff());
+    // msg += " seconds\n";
+    // printlog(MAGENTA, msg, true);
 
     return 0;
 }

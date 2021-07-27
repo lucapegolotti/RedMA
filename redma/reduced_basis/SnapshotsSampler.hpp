@@ -26,18 +26,28 @@
 namespace RedMA
 {
 
+/// Class handling the generation of the snapshots.
 class SnapshotsSampler
 {
 public:
-    SnapshotsSampler(const DataContainer& data, EPETRACOMM comm);
+    /*! \brief Constructor.
+     *
+     * \param dataContainer A DataContainer.
+     * \param comm A MPI Communicator.
+     */
+    SnapshotsSampler(const DataContainer& data,
+                     EPETRACOMM comm);
 
-    void takeSnapshots(const unsigned int& Nstart = 0);
+    /// Take the snapshots.
+    void takeSnapshots();
 
-    void dumpSnapshots(GlobalProblem& problem, std::string outdir);
-
-    void transformSnapshotsWithPiola(std::string snapshotsDir,
-                                     unsigned int fieldIndex,
-                                     unsigned int maxSnapshot);
+    /*! \brief Dump snapshots to file.
+     *
+     * \param problem A GlobalProblem containing the solutions.
+     * \param outdir Output directory
+     */
+    void dumpSnapshots(GlobalProblem& problem,
+                       std::string outdir);
 
 private:
     DataContainer       M_data;

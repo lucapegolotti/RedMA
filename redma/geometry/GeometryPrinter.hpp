@@ -28,12 +28,22 @@
 namespace RedMA
 {
 
+/// Class to print a TreeStructure to a .xml file.
 class GeometryPrinter
 {
 public:
+
+    /// Default constructor.
     GeometryPrinter();
 
-    void saveToFile(TreeStructure& tree, std::string name,
+    /*! \brief Save a TreeStructure to a file.
+     *
+     * \param The TreeStructure.
+     * \param name Name of the file.
+     * \param comm The MPI Communicator.
+     */
+    void saveToFile(TreeStructure& tree,
+                    std::string name,
                     shp<Epetra_Comm> comm);
 };
 

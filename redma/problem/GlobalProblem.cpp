@@ -6,7 +6,7 @@ namespace RedMA
 GlobalProblem::
 GlobalProblem(const DataContainer& data, EPETRACOMM comm, bool doSetup) :
   aProblem(data),
-  M_geometryParser(data.getDatafile(),
+  M_geometryParser(data,
                    data("geometric_structure/xmlfile","tree.xml"),
                    comm, data.getVerbose()),
   M_storeSolutions(false),

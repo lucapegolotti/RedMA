@@ -31,22 +31,47 @@
 namespace RedMA
 {
 
+/// Inverse operator.
 class InverseOperator
 {
     typedef LifeV::Operators::InvertibleOperator        InvertibleOperatorType;
 
 public:
+    /* \brief Constructor.
+     *
+     * \param data The DataContainer of the problem.
+     */
     InverseOperator(const DataContainer& data);
 
+    /* \brief Setter for the block maps.
+     *
+     * \param maps Shared pointer to the block maps.
+     */
     void setBlockMaps(shp<BlockMaps> maps);
 
+    /* \brief Setter for the operator.
+     *
+     * \param oper Shared pointer to the operator.
+     */
     void setOperator(shp<LinearOperator> oper);
 
+    /* \brief Setter for the preconditioner.
+     *
+     * \param prec Shared pointer to the preconditioner.
+     */
     void setPreconditioner(shp<PreconditionerOperator> prec);
 
+    /// Setter for the solver options.
     void setSolverOptions();
 
-    int invert(const shp<aVector>& rhs, shp<aVector>& sol);
+    /*! \brief Function to apply the inverse of the operator.
+     *
+     * \param rhs Shared pointer to right-hand side.
+     * \param sol Shared pointer to solution.
+     * \return Integer code; 0 if successful.
+     */
+    int invert(const shp<aVector>& rhs,
+               shp<aVector>& sol);
 
 private:
     DataContainer                                   M_data;

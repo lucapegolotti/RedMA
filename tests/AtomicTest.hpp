@@ -23,11 +23,22 @@
 #define FAILURE 1
 #define TZERO   1e-14
 
+/// Class testing a specific feature.
 class AtomicTest
 {
 public:
-    AtomicTest(std::string name, std::function<int(void)> test);
+    /*! \brief Constructor.
+     *
+     * \param name The name of the test.
+     * \param test The test; the return code determines failure or success.
+     */
+    AtomicTest(std::string name,
+               std::function<int(void)> test);
 
+    /*! \brief Run the test.
+     *
+     * \return A code; by default, 0 if success and 1 if failure.
+     */
     int run();
 
 private:

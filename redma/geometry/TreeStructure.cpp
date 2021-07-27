@@ -426,7 +426,7 @@ findBlockWithFace(const Vector3D& centerOfTheFace, const double& tol, int& outle
 
         if (curNode->M_depth == 0)
         {
-            if ((curNode->M_block->getInlet().M_center-centerOfTheFace).norm() < tol)
+            if ((curNode->M_block->getInlet(0).M_center-centerOfTheFace).norm() < tol)
                 return curNode->M_ID;
         }
 
@@ -479,7 +479,7 @@ operator+(TreeStructure& other)
     int status;
     int outletIndex = -1;
     // first we see if other must be attached to this
-    status = findBlockWithFace(other.M_root->M_block->getInlet().M_center,
+    status = findBlockWithFace(other.M_root->M_block->getInlet(0).M_center,
                                tol, outletIndex);
 
     if (status >= 0)
@@ -490,7 +490,7 @@ operator+(TreeStructure& other)
     }
     else
     {
-        status = other.findBlockWithFace(M_root->M_block->getInlet().M_center,
+        status = other.findBlockWithFace(M_root->M_block->getInlet(0).M_center,
                                          tol, outletIndex);
 
         if (status < 0)

@@ -54,7 +54,7 @@ print() const
 }
 
 BuildingBlock::
-BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
+BuildingBlock(EPETRACOMM comm, std::string refinement, bool verbose) :
   M_comm(comm),
   M_refinement(refinement),
   M_verbose(verbose),
@@ -89,7 +89,7 @@ BuildingBlock(commPtr_Type comm, std::string refinement, bool verbose) :
 
 void
 BuildingBlock::
-setDatafile(const GetPot& datafile)
+setDatafile(const DataContainer& datafile)
 {
     M_datafile = datafile;
 }
@@ -133,7 +133,7 @@ getParametersMap()
     return M_parametersHandler.getParametersMap();
 }
 
-int
+void
 BuildingBlock::
 readMesh(std::string meshdir)
 {
@@ -141,7 +141,7 @@ readMesh(std::string meshdir)
                     " BuildingBlock] reading mesh ...\n",
                     M_verbose);
 
-    meshPtr_Type fullMesh(new mesh_Type(M_comm));
+    shp<MESH> fullMesh(new MESH(M_comm));
     LifeV::MeshData meshData;
     GetPot meshDatafile(meshdir + M_datafileName);
     meshDatafile.set("mesh/mesh_file", M_meshName.c_str());
@@ -149,14 +149,12 @@ readMesh(std::string meshdir)
     meshData.setMeshDir(meshdir);
     LifeV::readMesh(*fullMesh,meshData);
 
-    LifeV::MeshPartitioner<mesh_Type> meshPart(fullMesh, M_comm);
+    LifeV::MeshPartitioner<MESH> meshPart(fullMesh, M_comm);
 
     M_mesh.reset(new mesh_Type(M_comm));
     M_mesh = meshPart.meshPartition();
 
     printlog(MAGENTA, "done\n", M_verbose);
-
-    return 0;
 }
 
 std::string
@@ -283,7 +281,7 @@ applyAffineTransformation(bool transformMesh)
         throw Exception(errorMsg);
     }
 
-    shp<LifeV::MeshUtility::MeshTransformer<mesh_Type> > transformer;
+    shp<LifeV::MeshUtility::MeshTransformer<MESH> > transformer;
 
     if (transformMesh)
         transformer.reset(new Transformer(*M_mesh));
@@ -390,18 +388,22 @@ applyAffineTransformation(bool transformMesh)
         printlog(GREEN, "done\n", M_verbose);
     }
 
-    applyAffineTransformationGeometricFace(M_inlet,M_R,M_translation,M_scale);
+    for (std::vector<GeometricFace>::iterator it = M_inlets.begin();
+         it != M_inlets.end(); it++)
+    {
+        applyAffineTransformationGeometricFace(*it, M_R, M_translation, M_scale);
+    }
     for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
          it != M_outlets.end(); it++)
     {
-        applyAffineTransformationGeometricFace(*it, M_R, M_translation,M_scale);
+        applyAffineTransformationGeometricFace(*it, M_R, M_translation, M_scale);
     }
 
-    // Handle rotation along the axis of the inlet
+    // Handle rotation along the axis of the inlet 0
     double angle = M_parametersHandler["alpha_axis"];
 
-    M_Raxis = computeRotationMatrix(M_inlet.M_normal, angle);
-    Vector3D transZero = M_inlet.M_center - M_Raxis * M_inlet.M_center;
+    M_Raxis = computeRotationMatrix(M_inlets[0].M_normal, angle);
+    Vector3D transZero = M_inlets[0].M_center - M_Raxis * M_inlets[0].M_center;
 
     auto foo = std::bind(rotationFunction,
                          std::placeholders::_1,
@@ -411,6 +413,12 @@ applyAffineTransformation(bool transformMesh)
 
     if (transformMesh)
         transformer->transformMesh(foo);
+
+    for (std::vector<GeometricFace>::iterator it = M_inlets.begin();
+         it != M_inlets.end(); it++)
+    {
+        applyAffineTransformationGeometricFace(*it, M_Raxis, transZero, 1.0);
+    }
 
     for (std::vector<GeometricFace>::iterator it = M_outlets.begin();
          it != M_outlets.end(); it++)
@@ -483,14 +491,14 @@ dumpMesh(std::string outdir, std::string meshdir, std::string outputName)
     fs::create_directory(outdir);
 
     GetPot exporterDatafile(meshdir + M_datafileName);
-    LifeV::ExporterVTK<mesh_Type> exporter(exporterDatafile, outputName);
+    LifeV::ExporterVTK<MESH> exporter(exporterDatafile, outputName);
     exporter.setMeshProcId(M_mesh, M_comm->MyPID());
 
-    FESpacePtr_Type dummyFespace(new FESpace_Type(M_mesh, "P1", 3, M_comm));
-    vectorPtr_Type zero(new vector_Type(dummyFespace->map()) );
+    shp<FESPACE> dummyFespace(new FESPACE(M_mesh, "P1", 3, M_comm));
+    shp<VECTOREPETRA> zero(new VECTOREPETRA(dummyFespace->map()) );
     zero->zero();
 
-    exporter.addVariable(LifeV::ExporterData<mesh_Type>::ScalarField, "z",
+    exporter.addVariable(LifeV::ExporterData<MESH>::ScalarField, "z",
                          dummyFespace, zero, 0);
     exporter.setPostDir(outdir);
 
@@ -509,10 +517,23 @@ getOutlet(unsigned int outletIndex) const
     if (outletIndex >= M_outlets.size())
     {
         std::string msg = "Requesting access to outlet that does not exist!";
-        throw Exception(msg);
+        throw new Exception(msg);
     }
 
     return M_outlets[outletIndex];
+}
+
+GeometricFace
+BuildingBlock::
+getInlet(unsigned int inletIndex) const
+{
+    if (inletIndex >= M_inlets.size())
+    {
+        std::string msg = "Requesting access to inlet that does not exist!";
+        throw new Exception(msg);
+    }
+
+    return M_inlets[inletIndex];
 }
 
 std::vector<GeometricFace>
@@ -522,11 +543,11 @@ getOutlets() const
     return M_outlets;
 }
 
-GeometricFace
+std::vector<GeometricFace>
 BuildingBlock::
-getInlet() const
+getInlets() const
 {
-    return M_inlet;
+    return M_inlets;
 }
 
 void
@@ -535,12 +556,12 @@ mapChildInletToParentOutlet(GeometricFace parentOutlet)
 {
     M_isChild = true;
 
-    Vector3D iNormal = -1 * M_inlet.M_normal;
+    Vector3D iNormal = -1 * M_inlets[0].M_normal;
     Vector3D oNormal = parentOutlet.M_normal;
-    Vector3D iCenter = M_inlet.M_center;
+    Vector3D iCenter = M_inlets[0].M_center;
     Vector3D oCenter = parentOutlet.M_center;
 
-    M_inletScale = parentOutlet.M_radius / M_inlet.M_radius;
+    M_inletScale = parentOutlet.M_radius / M_inlets[0].M_radius;
 
     M_inletTranslation = oCenter - iCenter;
 
@@ -565,8 +586,6 @@ applyGlobalTransformation(bool transformMesh)
 {
     applyNonAffineTransformation(transformMesh);
     applyAffineTransformation(transformMesh);
-    M_inlet.print();
-    M_outlets[0].print();
 }
 
 void
@@ -576,7 +595,7 @@ setIsChild(bool isChild)
     M_isChild = isChild;
 }
 
-BuildingBlock::meshPtr_Type
+shp<MESH>
 BuildingBlock::
 getMesh() const
 {

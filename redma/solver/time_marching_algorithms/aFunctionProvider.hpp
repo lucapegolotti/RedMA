@@ -27,28 +27,90 @@
 namespace RedMA
 {
 
+/*! \brief Generic function provider.
+ *
+ * We are interested in solving equations in the form
+ *  \f[
+ *    M(u) \dot{u} = F(t,u).
+ *  \f]
+ * The classes inheriting from this abstract class need to implement all the
+ * elements necessary to the solution of the equation with the Newton method.
+ */
 class aFunctionProvider
 {
 public:
-
+    /// Empty constructor.
     aFunctionProvider() {};
 
+    /*! \brief Getter for the zero vector.
+     *
+     * \return Shared pointer to the zero vector.
+     */
     virtual shp<aVector> getZeroVector() const = 0;
 
-    virtual shp<aMatrix> getMass(const double& time, const shp<aVector>& sol) = 0;
+    /*! \brief Getter for the mass matrix.
+     *
+     * \param time The current time.
+     * \param Shared pointer to the solution.
+     * \return Shared pointer to the mass matrix.
+     */
+    virtual shp<aMatrix> getMass(const double& time,
+                                 const shp<aVector>& sol) = 0;
 
-    virtual shp<aMatrix> getPressureMass(const double& time, const shp<aVector>& sol) = 0;
+    /*! \brief Getter for the pressure mass matrix.
+     *
+     * \param time The current time.
+     * \param Shared pointer to the solution.
+     * \return Shared pointer to the pressure mass matrix.
+     */
+    virtual shp<aMatrix> getPressureMass(const double& time, 
+                                         const shp<aVector>& sol) = 0;
 
-    virtual shp<aMatrix> getMassJacobian(const double& time, const shp<aVector>& sol) = 0;
+    /*! \brief Getter for the mass matrix Jacobian.
+     *
+     * \param time The current time.
+     * \param Shared pointer to the solution.
+     * \return Shared pointer to the mass matrix Jacobian.
+     */
+    virtual shp<aMatrix> getMassJacobian(const double& time,
+                                         const shp<aVector>& sol) = 0;
 
-    virtual shp<aVector> getRightHandSide(const double& time, const shp<aVector>& sol) = 0;
+    /*! \brief Getter for the right-hand side.
+     *
+     * \param time The current time.
+     * \param Shared pointer to the solution.
+     * \return Shared pointer to the right-hand side.
+     */
+    virtual shp<aVector> getRightHandSide(const double& time,
+                                          const shp<aVector>& sol) = 0;
 
-    virtual shp<aMatrix> getJacobianRightHandSide(const double& time, const shp<aVector>& sol) = 0;
+    /*! \brief Getter for the right-hand side Jacobian.
+     *
+     * \param time The current time.
+     * \param Shared pointer to the solution.
+     * \return Shared pointer to the right-hand side Jacobian.
+     */
+    virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
+                                                  const shp<aVector>& sol) = 0;
 
+    /* \brief Apply homogeneous Dirichlet boundary conditions to a vector.
+     *
+     * \param vector Shared pointer to the vector.
+     */
     virtual void apply0DirichletBCs(shp<aVector> vector) const = 0;
 
-    virtual void applyDirichletBCs(const double& time, shp<aVector> vector) const = 0;
+    /* \brief Apply Dirichlet boundary conditions to a vector.
+     *
+     * \param time The current time.
+     * \param vector Shared pointer to the vector.
+     */
+    virtual void applyDirichletBCs(const double& time,
+                                   shp<aVector> vector) const = 0;
 
+    /* \brief Set the extrapolated solution.
+     *
+     * \param exSol Shared pointer to the extrapolated solution.
+     */
     virtual void setExtrapolatedSolution(const shp<aVector>& exSol) = 0;
 };
 

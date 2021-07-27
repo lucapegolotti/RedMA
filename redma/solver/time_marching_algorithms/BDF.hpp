@@ -30,41 +30,78 @@
 namespace RedMA
 {
 
+/*! \brief Backward Differentiation Formula.
+ *
+ * See https://en.wikipedia.org/wiki/Backward_differentiation_formula.
+ */
 class BDF : public aTimeMarchingAlgorithm
 {
     typedef aFunctionProvider      FunProvider;
 
 public:
-
+    /*! \brief Constructor.
+     *
+     * \param datafile The DataContainer of the problem.
+     */
     BDF(const DataContainer& data);
 
-    BDF(const DataContainer& data, shp<FunProvider> funProvider);
+    /*! \brief Constructor.
+     *
+     * \param datafile The DataContainer of the problem.
+     * \param funProvider The function provider.
+     */
+    BDF(const DataContainer& data,
+        shp<FunProvider> funProvider);
 
-    BDF(const DataContainer& data, const shp<aVector>& zeroVector);
+    /*! \brief Constructor.
+     *
+     * \param datafile The DataContainer of the problem.
+     * \param zeroVector Shared pointer to a zero vector.
+     */
+    BDF(const DataContainer& data, 
+        const shp<aVector>& zeroVector);
 
+    /*! \brief Setup function.
+     *
+     * \param zeroVector Shared pointer to a zero vector.
+     */
     virtual void setup(const shp<aVector>& zeroVector) override;
 
-    virtual shp<aVector> advance(const double& time, double& dt,
+    /*! \brief Advance function.
+     *
+     * \param time The time.
+     * \param dt The timestep size.
+     * \param status Return code; 0 if successful.
+     */
+    virtual shp<aVector> advance(const double& time,
+                                 double& dt,
                                  int& status) override;
 
-    virtual shp<aVector> simpleAdvance(const double &dt, const shp<BlockVector> &sol) override;
+    /*! \brief Simple advance function used in the Membrane Model.
+     *
+     * \param time The time.
+     * \param sol Shared pointer to the solution in order to update the displacement.
+     */
+    virtual shp<aVector> simpleAdvance(const double &dt, 
+                                       const shp<BlockVector> &sol) override;
 
+    /*! \brief Shift previous solutions given the new one.
+     *
+     * \param sol Shared pointer to the new solution.
+     */
     virtual void shiftSolutions(const shp<aVector>& sol) override;
 
+    /*! \brief Compute derivative of a function.
+     *
+     * \param solnp1 Solution at time n+1.
+     * \param dt Timestep size.
+     * \return Shared pointer to the derivative.
+     */
     virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1,
                                            double& dt) override;
 
-    virtual shp<aVector> computeExtrapolatedSolution() override;
-
-    shp<aVector> combineOldSolutions() override;
-
-    std::vector<double> getCoefficients() const override;
-
 protected:
-
-    void setBDFCoefficients();
-
-    void setExtrapolationCoefficients();
+    shp<aVector> computeExtrapolatedSolution();
 
     std::vector<shp<BlockVector>>            M_prevSolutions;
     std::vector<double>                      M_coefficients;

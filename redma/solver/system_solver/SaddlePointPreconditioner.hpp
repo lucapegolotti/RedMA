@@ -35,6 +35,7 @@
 namespace RedMA
 {
 
+/// Preconditioner for a saddle point problem.
 class SaddlePointPreconditioner : public PreconditionerOperator
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
@@ -46,10 +47,22 @@ class SaddlePointPreconditioner : public PreconditionerOperator
     typedef LifeV::Operators::ApproximatedInvertibleRowMatrix        ApproxInv;
 
 public:
+    /*! \brief Constructor.
+     *
+     * \param data The DataContainer of the problem.
+     * \param matrix Shared pointer to the matrix.
+     * \param pressureMass Shared pointer to the pressure mass matrix.
+     */
     SaddlePointPreconditioner(const DataContainer& data,
                               const BM& matrix,
                               const BM& pressureMass = nullptr);
 
+    /*! \brief Apply the approximated inverse to a vector.
+     *
+     * \param X Vector to which the inverse must be applied.
+     * \param Y Result.
+     * \return Return code; 0 if successful.
+     */
     virtual int ApplyInverse(const super::vector_Type& X,
                              super::vector_Type& Y) const override;
 
@@ -64,6 +77,12 @@ public:
     void computeSchurComplement(const BM& A, const BM& BT,
                                 const BM& B, const BM& C);
 
+    /*! \brief Setup method.
+     *
+     * \param matrix The matrix.
+     * \param pressureMass The pressure mass matrix.
+     * \param doComputeSchurComplement If true, compute the Schur complement based on the input matrix.
+     */
     void setup(const BM& matrix,
                const BM& pressureMass = nullptr,
                bool doComputeSchurComplement = true);
@@ -82,6 +101,18 @@ private:
     void applyEveryAm1BT(const VECTOREPETRA& X, VECTOREPETRA &Y) const;
 
     void findSmallBlocks(const BM& primalMatrix);
+
+    void allocateInnerPreconditioners(const BM& primalMatrix);
+
+    void allocateInverseSolvers(const BM& primalMatrix);
+
+    void allocateApproximatedInverses(const BM& primalMatrix);
+
+    void setSolverOptions();
+
+
+    void computeSchurComplement(const BM& A, const BM& BT,
+                                const BM& B, const BM& C);
 
     DataContainer                                        M_data;
     BM                                                   M_matrixCollapsed;

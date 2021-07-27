@@ -29,41 +29,103 @@
 namespace RedMA
 {
 
+/// An abstract time marching algorithm.
 class aTimeMarchingAlgorithm
 {
     typedef aFunctionProvider         FunProvider;
 public:
 
+    /*! \brief Constructor.
+     *
+     * \param datafile The DataContainer of the problem.
+     */
     aTimeMarchingAlgorithm(const DataContainer& datafile);
 
+    /*! \brief Constructor.
+     *
+     * \param datafile The DataContainer of the problem.
+     * \param funProvider The function provider.
+     */
     aTimeMarchingAlgorithm(const DataContainer& datafile,
                            shp<FunProvider> funProvider);
 
+    /*! \brief Constructor.
+     *
+     * \param datafile The DataContainer of the problem.
+     * \param zeroVector The null vector.
+     */
     aTimeMarchingAlgorithm(const DataContainer& datafile,
                            const shp<aVector>& zeroVector);
 
+    /*! \brief Virtual setup function.
+     *
+     * \param zeroVector Shared pointer to a zero vector.
+     */
     virtual void setup(const shp<aVector>& zeroVector) = 0;
 
-    virtual shp<aVector> advance(const double& time, double& dt,
-                                int& status) = 0;
+    /*! \brief Virtual advance function.
+     *
+     * \param time The time.
+     * \param dt The timestep size.
+     * \param status Return code; 0 if successful.
+     */
+    virtual shp<aVector> advance(const double& time, 
+                                 double& dt,
+                                 int& status) = 0;
 
-    virtual shp<aVector> simpleAdvance(const double &dt, const shp<BlockVector> &sol) = 0;
+    /*! \brief Virtual simple advance function for the Membrane Model.
+     *
+     * \param time The time.
+     * \param sol The solution employed for the simple advancing of the displacement.
+     */
+    virtual shp<aVector> simpleAdvance(const double &dt, 
+                                       const shp<BlockVector> &sol) = 0;
 
-    // compute derivative of u at tn+1 given its value
+    /*! \brief Compute derivative of a function.
+     *
+     * \param solnp1 Solution at time n+1.
+     * \param dt Timestep size.
+     * \return Shared pointer to the derivative.
+     */
     virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1,
-                                          double& dt) = 0;
+                                           double& dt) = 0;
 
+    /*! \brief Shift previous solutions given the new one.
+     *
+     * \param sol Shared pointer to the new solution.
+     */
     virtual void shiftSolutions(const shp<aVector>& sol) = 0;
 
+    /*! \brief Virtual function to compute the extrapolated solution.
+     *
+     * \return Shared pointer to the extrapolated solution.
+     */
     virtual shp<aVector> computeExtrapolatedSolution() = 0;
 
+    /*! \brief Virtual function to combine solutions at previopus time instants.
+     *
+     * \return Shared pointer to the combination between the previous solutions.
+     */
     virtual shp<aVector> combineOldSolutions() = 0;
 
+    /*! \brief Virtual getter of the time marching coefficients.
+     *
+     * \return Vector of the TMA coefficients.
+     */
     virtual std::vector<double> getCoefficients() const = 0;
 
+    /*! \brief Dump solver statistics to file.
+     *
+     * \param Vector of solver statistics.
+     * \param time The time.
+     */
     void dumpSolverStatistics(std::vector<SolverStatistics> statistics,
-                              const double& t) const;
+                              const double& time) const;
 
+    /*! \brief Setter for the MPI Communicator.
+     *
+     * \param Shared pointer to the MPI Communicator.
+     */
     void setComm(EPETRACOMM comm) {M_comm = comm; M_systemSolver.setComm(comm);}
 
 protected:

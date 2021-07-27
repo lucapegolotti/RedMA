@@ -9,10 +9,7 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
   M_treeNode(treeNode)
 {
     M_inletBCType = data("bc_conditions/inlet_bc_type", "dirichlet");
-
-    M_inflow = data.getInflow();
     M_strongDirichlet = std::strcmp(data("bc_conditions/inletdirichlet", "weak").c_str(),"strong") == 0;
-    M_coefficientInflow = data("bc_conditions/coefficientinflow", 1.0);
 
     M_ringConstraint = data("bc_conditions/ring_constraint", "normal");
 
@@ -36,36 +33,57 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
     for (auto out_face : treeNode->getOutlets())
         // these are the "true" ring outlets, i.e. rings of faces without children!
         M_trueOutletRingFlags.push_back(out_face.M_ringFlag);
+
+    M_inflows = M_data.getInflows();
+    if (M_inflows.size() > 1)
+    {
+        for (int indexInflow = 0; indexInflow < M_inflows.size(); indexInflow++)
+        {
+            std::string path = "bc_conditions/inlet" + std::to_string(indexInflow);
+            unsigned int curflag = data(path + "/flag", 0);
+            if (M_inflows.find(curflag) == M_inflows.end())
+                throw new Exception("Invalid bc_conditions/inlet*/flag in datafile!");
+            M_coefficientsInflow[curflag] = data(path + "/coefficient", 1.0);
+        }
+    }
+    else
+        M_coefficientsInflow[M_treeNode->M_block->getInlet(0).M_flag] = data("bc_conditions/coefficientinflow", 1.0);
+    parseNeumannData();
+
+    M_wallFlag = treeNode->M_block->wallFlag();
+    M_inletRing = 30;
+    M_outletRing = 31;
 }
 
 void
 BCManager::
 parseOutflowNeumannData()
 {
-    unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
-
-    for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
-    {
-        std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
-
-        unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
-        if (M_treeNode->M_ID == blockindex)
-        {
-            unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
-            M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
-        }
-    }
+    // unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
+    //
+    // for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
+    // {
+    //     std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
+    //
+    //     unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
+    //     if (M_treeNode->M_ID == blockindex)
+    //     {
+    //         unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
+    //         M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
+    //     }
+    // }
 }
 
 void
 BCManager::
-applyInflowDirichletBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag) const
+applyInflowDirichletBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
+                        const bool& zeroFlag) const
 {
     std::function<double(double)> inflowLaw;
     if (zeroFlag)
-        inflowLaw = std::function<double(double)>([](double t){return 0.0;});
+        inflowLaw = Law([](double t){return 0.0;});
     else
-        inflowLaw = this->M_inflow;
+        inflowLaw = law;
 
     auto foo = std::bind(this->poiseuilleInflow,
                          std::placeholders::_1,
@@ -73,24 +91,25 @@ applyInflowDirichletBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag) const
                          std::placeholders::_3,
                          std::placeholders::_4,
                          std::placeholders::_5,
-                         M_treeNode->M_block->getInlet(),
+                         inlet,
                          inflowLaw,
-                         this->M_coefficientInflow);
+                         M_coefficientsInflow.find(inlet.M_flag)->second);
 
     LifeV::BCFunctionBase inflowFunction(foo);
-    bcs->addBC("Inlet", M_inletFlag, LifeV::Essential, LifeV::Full,
+    bcs->addBC("Inlet", inlet.M_flag, LifeV::Essential, LifeV::Full,
                inflowFunction, 3);
 }
 
 void
 BCManager::
-applyInflowNeumannBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag) const
+applyInflowNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law,
+                      const bool& zeroFlag) const
 {
     std::function<double(double)> inflowLaw;
     if (zeroFlag)
-        inflowLaw = std::function<double(double)>([](double t){return 0.0;});
+        inflowLaw = Law([](double t){return 0.0;});
     else
-        inflowLaw = this->M_inflow;
+        inflowLaw = law;
 
     auto inflowBoundaryCondition = std::bind(neumannInflow,
                                              std::placeholders::_1,
@@ -107,7 +126,8 @@ applyInflowNeumannBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag) const
 
 void
 BCManager::
-applyOutflowNeumannBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag) const
+applyOutflowNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law,
+                       const bool& zeroFlag) const
 {
     std::function<double(double)> outflowLaw;
     if (zeroFlag)
@@ -133,17 +153,19 @@ applyOutflowNeumannBCs(shp<LifeV::BCHandler> bcs, const bool& zeroFlag) const
 
 void
 BCManager::
-addInletBC(shp<LifeV::BCHandler> bcs, const bool& ringOnly, const bool& zeroFlag) const
+addInletBC(shp<LifeV::BCHandler> bcs, 
+           const Law& law, GeometricFace inlet,
+           const bool& ringOnly, const bool& zeroFlag) const
 {
     if (M_treeNode->isInletNode())
     {
         if (!std::strcmp(M_inletBCType.c_str(), "dirichlet"))
             // imposing an inflow velocity profile
-            this->applyInflowDirichletBCs(bcs, zeroFlag);
+            this->applyInflowDirichletBCs(bcs, law, inlet, zeroFlag);
 
         else if (!std::strcmp(M_inletBCType.c_str(), "neumann"))
             // imposing an inflow pressure --> actually this is done at RHS so this is not called!
-            this->applyInflowNeumannBCs(bcs, zeroFlag);
+            this->applyInflowNeumannBCs(bcs, law, zeroFlag);
 
         else
             throw new Exception("Selected inflow BCs not implemented!");
@@ -156,10 +178,26 @@ applyDirichletBCs(const double& time, BlockVector& input,
                   shp<FESPACE> fespace, const unsigned int& index,
                   const bool& ringOnly)
 {
-    shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
+    shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet();
 
-    if (!std::strcmp(M_inletBCType.c_str(), "dirichlet"))
-        addInletBC(bcs, ringOnly);
+    if (!std::strcmp(M_inletBCType.c_str(), "dirichlet")) 
+    {
+        if (M_inflows.find(0) != M_inflows.end())
+            addInletBC(bcs, M_inflows.find(0)->second, M_treeNode->M_block->getInlet(0), ringOnly);
+        else
+        {
+            auto inlets = M_treeNode->M_block->getInlets();
+            for (auto inlet : inlets)
+            {
+                if (M_inflows.find(inlet.M_flag) == M_inflows.end())
+                    throw new Exception("Inlet with flag " + std::to_string(inlet.M_flag) +
+                                        " was not set an inflowrate!");
+
+                addInletBC(bcs, M_inflows.find(inlet.M_flag)->second, inlet, ringOnly);
+            }
+        }
+        bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
+    }
 
     shp<VECTOREPETRA> curVec(spcast<VECTOREPETRA>(input.block(index)->data()));
 
@@ -171,8 +209,7 @@ applyDirichletBCs(const double& time, BlockVector& input,
                     *bcs, fespace->feBd(), 1.0, time);
     }
 
-    if (ringOnly && (M_treeNode->isExtremalNode()))  // TODO change here!
-    // if (ringOnly)
+    if (ringOnly && (M_treeNode->isExtremalNode())) 
     {
         shp<LifeV::BCHandler> bcsRing = createBCHandler0DirichletRing();
         bcsRing->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
@@ -368,7 +405,7 @@ double
 BCManager::
 poiseuilleInflow(const double& t, const double& x, const double& y,
                  const double& z, const unsigned int& i,
-                 const GeometricFace& face, const std::function<double(double)> inflow,
+                 const GeometricFace& face, const Law inflow,
                  const double& coefficient)
 {
     const Vector3D& center = face.M_center;
@@ -442,30 +479,32 @@ double
 BCManager::
 getOutflowNeumannBC(const double& time, const double& flag, const double& rate)
 {
-    auto it = M_models.find(flag);
-    if (it == M_models.end())
-        return 0.0;
-
-    return -M_models[flag]->getNeumannCondition(time, rate);
+    // auto it = M_models.find(flag);
+    // if (it == M_models.end())
+    //     return 0.0;
+    //
+    // return -M_models[flag]->getNeumannCondition(time, rate);
+    return 0.0;
 }
 
 double
 BCManager::
 getOutflowNeumannJacobian(const double& time, const double& flag, const double& rate)
 {
-    auto it = M_models.find(flag);
-    if (it == M_models.end())
-        return 0.0;
-
-    return -M_models[flag]->getNeumannJacobian(time, rate);
+    // auto it = M_models.find(flag);
+    // if (it == M_models.end())
+    //     return 0.0;
+    //
+    // return -M_models[flag]->getNeumannJacobian(time, rate);
+    return 0.0;
 }
 
 void
 BCManager::
 postProcess()
 {
-    for (auto windkessel : M_models)
-        windkessel.second->shiftSolutions();
+    // for (auto windkessel : M_models)
+    //     windkessel.second->shiftSolutions();
 }
 
 std::vector<unsigned int>

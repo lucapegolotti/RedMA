@@ -36,6 +36,7 @@ namespace RedMA
  */
 class DataContainer
 {
+    typedef std::function<double(double)>           Law;
 public:
     /// Default constructor
     DataContainer();
@@ -45,18 +46,17 @@ public:
      * Internally, this method opens the GetPot corresponding to the string
      * passed as argument
      *
-     * \param datafile Name of the datafile to be opened (usually, "data")
+     * \param datafile Name of the datafile to be opened (usually, "data").
      */
     void setDatafile(const std::string& datafile);
 
-    /*! \brief Setter for the datafile.
+    /*! \brief  Setter for the inflow law with a given inlet flag
      *
-     * Internally, this method opens the GetPot corresponding to the string
-     * passed as argument
-     *
-     * \param datafile Name of the datafile to be opened (usually, "data")
+     * \param inflow The inflow rate law.
+     * \param flag The inlet flag; if unspecified, we assume there is only one inlet.
      */
-    void setInflow(const std::function<double(double)>& inflow);
+    void setInflow(const Law& inflow,
+                   unsigned int flag = 0);
 
     /*! \brief Setter for the distal pressure.
      *
@@ -64,7 +64,7 @@ public:
      * \param indexOutlet Index of the outlet to which the distal pressure must
      *        be applied.
      */
-    void setDistalPressure(const std::function<double(double)>& pressure,
+    void setDistalPressure(const Law& pressure,
                            const unsigned int& indexOutlet);
 
     /// Setter for the verbose variable.
@@ -80,12 +80,22 @@ public:
     /// Getter for the internal datafile.
     inline GetPot getDatafile() const {return *M_datafile;}
 
-    /*! \brief Getter for the inflow function.
+    /*! \brief Getter for the inflow function corresponding to a specific flag.
+     *
+     * The inflow function are either set in analytical form through setInflow
+     * or passed through file specified in M_datafile.
+     *
+     * \param flag The flag of the inlet.
+     * \return Standard map with key = flag, value = inflow function.
+     */
+    inline Law getInflow(unsigned int flag = 0) {return M_inflows[flag];}
+
+    /*! \brief Getter for the inflow functions.
      *
      * The inflow function is either set in analytical form through setInflow.
      * or passed through file specified in M_datafile.
      */
-    inline std::function<double(double)> getInflow() const {return M_inflow;}
+    inline std::map<unsigned int, Law> getInflows() {return M_inflows;}
 
     /// Getter for M_verbose.
     inline bool getVerbose() const {return M_verbose;}
@@ -169,13 +179,9 @@ public:
     double evaluateRamp(double time);
 
 protected:
-    /// Parse inflow from file.
-    std::vector<std::pair<double,double>> parseInflow();
+    std::vector<std::pair<double,double>> parseInflow(std::string filename);
 
-    /*! \brief Generate M_inflow by calling parseInflow and then linearInterpolation
-     *         on the discrete values.
-     */
-    void generateInflow();
+    void generateInflow(unsigned int flag, std::string inputfilename);
 
     /*! \brief Generate ramp based on the values specified in the time_discretization
      * section of M_datafile.
@@ -203,9 +209,9 @@ protected:
     bool checkGenerateInflow() const;
 
     shp<GetPot>                                           M_datafile;
-    std::function<double(double)>                         M_inflow;
-    std::function<double(double)>                         M_ramp;
-    std::map<unsigned int, std::function<double(double)>> M_distalPressures;
+    std::map<unsigned int, Law>                           M_inflows;
+    Law                                                   M_ramp;
+    std::map<unsigned int, Law>                           M_distalPressures;
     bool                                                  M_verbose;
 };
 
