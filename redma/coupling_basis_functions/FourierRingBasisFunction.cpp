@@ -4,7 +4,8 @@ namespace RedMA {
 
 FourierRingBasisFunction::
 FourierRingBasisFunction(const GeometricFace& face,
-                         int nFrequenciesTheta) :
+                         int nFrequenciesTheta,
+                         const double mesh_size):
     BasisFunctionFunctor(face)
 {
     M_nFrequenciesTheta = nFrequenciesTheta;
@@ -16,7 +17,6 @@ FourierRingBasisFunction(const GeometricFace& face,
         M_nBasisFunctions = 2 * M_nFrequenciesTheta + 1;
 
         double pid2 = M_PI / 2;
-        double radius = M_face.M_radius;
 
         M_thetaFreq.push_back(0.0);
         M_thetaPhase.push_back(pid2);
@@ -31,7 +31,9 @@ FourierRingBasisFunction(const GeometricFace& face,
         for (unsigned int i = 0; i < (2 * M_nFrequenciesTheta + 1); i++)
                 M_auxIndicesTheta.push_back(i);
 
-        M_sigmaRadial = radius / 10.0;  // to control the exponential decay towards the center
+        // in this way I impose that, at R-h, the Gaussian is 1% of its maximum
+        M_sigmaRadial = std::min(M_face.M_radius / 100.0,
+                                 mesh_size / std::sqrt(2*std::log(100)));
 
         printlog(YELLOW, "Adding Fourier modes on the ring...");
     }

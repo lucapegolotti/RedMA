@@ -205,39 +205,3 @@ stabilizePressure()
 }
 
 }  // namespace RedMA
-
-// OLD CODE
-/*shp<MESH> meshCurPtr = M_pressureFESpaceETA->mesh();
-    std::shared_ptr<faceList_Type> faceInteriorListPtr (new faceList_Type());
-    std::shared_ptr<indexList_Type> indexFaceInteriorListPtr (new indexList_Type());
-
-    if ( meshCurPtr->check(0,false,false) )
-        std::cout << "PID " << M_comm->MyPID() << " something wrong with mesh. " << std::endl << std::flush;
-
-    for (auto & face : meshCurPtr->faceList)
-    {
-        if (Flag<meshEntityFlag_Type>::testOneNotSet(face.flag(), EntityFlags::PHYSICAL_BOUNDARY))
-        {
-            faceInteriorListPtr->push_back(&face);
-            indexFaceInteriorListPtr->push_back(face.localId());
-        }
-    }
-
-    printlog(YELLOW, "[IPStabilization] Number of interior faces: " +
-             std::to_string(indexFaceInteriorListPtr->size()) + "\n", M_verbose);
-
-    auto loopFacesInterior = interiorIntegrationOverSelectedFaces<MESH>(meshCurPtr,
-                                                                    faceInteriorListPtr,
-                                                                    indexFaceInteriorListPtr);
-    LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
-
-    integrate(loopFacesInterior,
-              myBDQR,
-              M_pressureFESpaceETA,
-              M_pressureFESpaceETA,
-              value( M_gamma_pressure * M_density / M_viscosity ) *
-              h_F * h_F * h_F *
-              dot(grad(phi_j), grad(phi_i))
-              ) >> jac11;
-
-    jac11->globalAssemble(); */

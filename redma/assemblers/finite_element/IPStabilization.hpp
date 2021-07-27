@@ -17,8 +17,6 @@
 #ifndef IPSTABILIZATION_HPP
 #define IPSTABILIZATION_HPP
 
-// #include <lifev/core/mesh/MeshPartitionerIntersection.hpp>
-
 #include <lifev/core/array/MatrixElemental.hpp>
 #include <lifev/core/array/VectorElemental.hpp>
 #include <lifev/core/fem/AssemblyElemental.hpp>

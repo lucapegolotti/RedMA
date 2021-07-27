@@ -294,7 +294,9 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
     couplingVectors = buildCouplingVectors(bfs, face, assembler);
 
     // 2) add extra basis function on the disk ring, if necessary
-    bfs = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet, true);
+    const double h = (double) LifeV::MeshUtility::MeshStatistics::computeSize(*(assembler->getFEspace(0)->mesh())).meanH;
+
+    bfs = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet, true, h);
 
     std::vector<shp<DistributedVector>> ringCouplingVectors;
     ringCouplingVectors = buildCouplingVectors(bfs, face, assembler);
@@ -520,7 +522,7 @@ buildStabilizationMatrix(shp<AssemblerType> assembler,
     // M_identity.block(0,0).shallowCopy(MatrixEp(stabVectorsLagrange));
 }
 
-InterfaceAssembler::InterfacePtrType
+/*InterfaceAssembler::InterfacePtrType
 InterfaceAssembler::
 buildRingInterfaceMap()
 {
@@ -534,9 +536,10 @@ buildRingInterfaceMap()
     unsigned int fatherFlag = asFather->getTreeNode()->M_block->getOutlet(indexOutlet).M_flag;
     unsigned int childFlag = asChild->getTreeNode()->M_block->getInlet().M_flag;
 
-    /*double tol = std::max(0.1 * std::sqrt(std::min(FESpaceVFather->feBd().measure(), FESpaceVChild->feBd().measure())),
-                          1e-3);*/
-    const double tol = 1e-3;
+    const double tol = 1e-1;
+
+    *//*const double tol = std::max((double) LifeV::MeshUtility::MeshStatistics::computeSize(*(FESpaceVFather->mesh())).maxH,
+                                (double) LifeV::MeshUtility::MeshStatistics::computeSize(*(FESpaceVChild->mesh())).maxH);*//*
 
     InterfacePtrType ifPtr(new InterfaceType());
 
@@ -548,13 +551,13 @@ buildRingInterfaceMap()
                    *(FESpaceVChild->mesh()), childFlag,
                    tol);
 
-    /*if (M_data.getVerbose())
-        ifPtr->showMe();*/
+    *//*if (M_data.getVerbose())
+        ifPtr->showMe();*//*
 
     return ifPtr;
-}
+}*/
 
-std::vector<LifeV::ID>
+/*std::vector<LifeV::ID>
 InterfaceAssembler::
 identifyValidRingDOFs()
 {
@@ -601,13 +604,16 @@ identifyValidRingDOFs()
         tmpLocalToGlobalMapOnFatherFacets.push_back(localToGlobalMapOnFatherFacets[ringIndexFather]);
 
     int dofsPerRing = M_data("coupling/strong_dofs_per_ring", 4);
-    if (((dofsPerRing & 3) != 0) && (dofsPerRing != -1))
-        throw new Exception("The number of DOFs to strongly couple at each ring must be a multiple of 4! "
-                            "Alternatively, if it equals -1, all ring DOFs are considered when performing the "
-                            "strong coupling!");
-    else if (dofsPerRing > tmpLocalToGlobalMapOnFatherFacets.size())
-        throw new Exception("The number of ring DOFs at which performing the strong coupling exceeds the "
-                            "total number of ring DOFs!");
+    if (dofsPerRing != -1)
+    {
+        if ((dofsPerRing & 3) != 0)
+            throw new Exception("The number of DOFs to strongly couple at each ring must be a multiple of 4! "
+                                "Alternatively, if it equals -1, all ring DOFs are considered when performing the "
+                                "strong coupling!");
+        else if (dofsPerRing > tmpLocalToGlobalMapOnFatherFacets.size())
+            throw new Exception("The number of ring DOFs at which performing the strong coupling exceeds the "
+                                "total number of ring DOFs!");
+    }
 
     unsigned int num = (dofsPerRing-4) / 4;
     unsigned int dim = (tmpLocalToGlobalMapOnFatherFacets.size()-4) / 4;
@@ -630,11 +636,81 @@ identifyValidRingDOFs()
             }
     }
 
-    /*for (auto elem : validLocalToGlobalMapOnFatherFacets)
-        std::cout << elem << " " << std::endl;*/
-
     return validLocalToGlobalMapOnFatherFacets;
+}*/
+
+double
+InterfaceAssembler::evaluate_RBF(double x, double y, double z, double xc, double yc, double zc, double R)
+{
+    double D = std::sqrt(std::pow(x-xc, 2) + std::pow(y-yc, 2) + std::pow(z-zc, 2));
+    double val = std::pow(1 - D/R, 4) * (4 * D/R + 1);
+    return val;
 }
+
+void
+InterfaceAssembler::findRingPointsCoordinates()
+{
+    auto asFather = M_interface.M_assemblerFather;
+    auto asChild = M_interface.M_assemblerChild;
+
+    if (asFather && asChild)
+    {
+        shp<FESPACE > FESpaceVFather = asFather->getFEspace(0);
+        shp<FESPACE > FESpaceVChild = asChild->getFEspace(0);
+
+        int numTotalDofFather = FESpaceVFather->dof().numTotalDof();
+        unsigned int fatherFlag = asFather->getTreeNode()->M_block->getOutlet(M_interface.M_indexOutlet).M_ringFlag;
+        for (unsigned int i = 0; i < numTotalDofFather; i++) {
+            if (FESpaceVFather->mesh()->point(i).markerID() == fatherFlag) {
+                std::vector<double> coords(3);
+                coords[0] = FESpaceVFather->mesh()->point(i).x();
+                coords[1] = FESpaceVFather->mesh()->point(i).y();
+                coords[2] = FESpaceVFather->mesh()->point(i).z();
+
+                M_fatherRingPoints[FESpaceVFather->mesh()->point(i).id()] = coords;
+            }
+        }
+
+        int numTotalDofChild = FESpaceVFather->dof().numTotalDof();
+        unsigned int childFlag = asChild->getTreeNode()->M_block->getInlet().M_ringFlag;
+        for (unsigned int i = 0; i < numTotalDofChild; i++) {
+            if (FESpaceVChild->mesh()->point(i).markerID() == childFlag) {
+                std::vector<double> coords(3);
+                coords[0] = FESpaceVChild->mesh()->point(i).x();
+                coords[1] = FESpaceVChild->mesh()->point(i).y();
+                coords[2] = FESpaceVChild->mesh()->point(i).z();
+
+                M_childRingPoints[FESpaceVChild->mesh()->point(i).id()] = coords;
+            }
+        }
+    }
+}
+
+void
+InterfaceAssembler::
+buildRingDOFsMap()
+{
+    for (auto itF = M_fatherRingPoints.begin(); itF != M_fatherRingPoints.end(); ++itF)
+    {
+        double m = std::numeric_limits<double>::max();
+        double d;
+        LifeV::ID id = 0;
+
+        for (auto itC= M_childRingPoints.begin(); itC != M_childRingPoints.end(); ++itC)
+        {
+            d = std::sqrt(std::pow((itF->second[0] - itC->second[0]), 2) +
+                          std::pow((itF->second[1] - itC->second[1]), 2) +
+                          std::pow((itF->second[2] - itC->second[2]), 2));
+            if (d < m) {
+                m = d;
+                id = itC->first;
+            }
+        }
+
+        M_ringDOFsMap[itF->first] = id;
+    }
+}
+
 
 std::pair<std::vector<shp<DistributedVector>>, std::vector<shp<DistributedVector>>>
 InterfaceAssembler::
@@ -652,21 +728,44 @@ buildStrongRingCouplingVectors()
         shp<FESPACE> FESpaceVChild = asChild->getFEspace(0);
 
         // Building the father->child DOF map at the interface ring
-        InterfacePtrType ifPtr = this->buildRingInterfaceMap();
+        // InterfacePtrType ifPtr = this->buildRingInterfaceMap();
 
         unsigned int fathernDOF = FESpaceVFather->dofPtr()->numTotalDof();
         unsigned int childnDOF = FESpaceVChild->dofPtr()->numTotalDof();
 
-        std::vector<LifeV::ID> validRingDOFs = this->identifyValidRingDOFs();
+        const double R = 1.5 * std::max((double) LifeV::MeshUtility::MeshStatistics::computeSize(*(FESpaceVFather->mesh())).maxH,
+                                        (double) LifeV::MeshUtility::MeshStatistics::computeSize(*(FESpaceVChild->mesh())).maxH);
+
+        // std::vector<LifeV::ID> validRingDOFs = this->identifyValidRingDOFs();
+
+        this->findRingPointsCoordinates();
+        this->buildRingDOFsMap();
 
         std::vector<LifeV::UInt> indices(2);
         shp<BlockVector> vecFather;
         shp<BlockVector> vecChild;
 
-        unsigned int childID;
-        for (auto const& fatherID : validRingDOFs)
+        LifeV::ID fatherID;
+        LifeV::ID childID;
+        //for (auto const& fatherID : validRingDOFs)
+        for (auto itF = M_fatherRingPoints.begin(); itF != M_fatherRingPoints.end(); ++itF)
         {
-            childID = ifPtr->getInterfaceDof(fatherID);
+            fatherID = itF->first;
+            childID = M_ringDOFsMap[fatherID];
+
+            // childID = ifPtr->getInterfaceDof(fatherID);
+
+            /*std::cout << fatherID << " " << childID << std::endl << std::flush;
+            std::cout << M_fatherRingPoints[fatherID][0] << " " << M_fatherRingPoints[fatherID][1] << " " << M_fatherRingPoints[fatherID][2] << std::endl;
+            std::cout << M_childRingPoints[childID][0] << " " << M_childRingPoints[childID][1] << " " << M_childRingPoints[childID][2] << std::endl;*/
+
+            double val = evaluate_RBF(M_childRingPoints[childID][0],
+                                      M_childRingPoints[childID][1],
+                                      M_childRingPoints[childID][2],
+                                      M_fatherRingPoints[fatherID][0],
+                                      M_fatherRingPoints[fatherID][1],
+                                      M_fatherRingPoints[fatherID][2],
+                                      R);
 
             for (unsigned int nDim = 0; nDim < 3; ++nDim)
             {
@@ -677,7 +776,7 @@ buildStrongRingCouplingVectors()
                 indices[1] = childID + nDim * childnDOF;
 
                 spcast<VECTOREPETRA>(vecFather->block(0)->data())->setCoefficient(indices[0],
-                                                                                  1.0);
+                                                                                  val);
                 spcast<VECTOREPETRA>(vecChild->block(0)->data())->setCoefficient(indices[1],
                                                                                  1.0);
 

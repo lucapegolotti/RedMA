@@ -77,8 +77,8 @@ public:
 class InterfaceAssembler
 {
     typedef aAssembler                                   AssemblerType;
-    typedef LifeV::DOFInterface3Dto3D                    InterfaceType;
-    typedef std::shared_ptr<InterfaceType>               InterfacePtrType;
+    /*typedef LifeV::DOFInterface3Dto3D                    InterfaceType;
+    typedef std::shared_ptr<InterfaceType>               InterfacePtrType;*/
 
 public:
 
@@ -235,8 +235,8 @@ protected:
     /*! \brief Build the DOF map at the rings of the interface
      *
      * \return interfacePtr Shared pointer to a DofInterface3Dto3D object, defining the DOF map at the interface ring
-     */
-     InterfacePtrType buildRingInterfaceMap();
+     *//*
+     InterfacePtrType buildRingInterfaceMap();*/
 
      /*! \brief Assemble the vectors for the strong coupling of velocity at the rings
       *
@@ -247,8 +247,24 @@ protected:
     /*! \brief Identifies the interface ring DOFs employed for the strong coupling
      *
      * \return Vector of integers, corresponding to the IDs of the DOFs employed for the strong coupling
-     */
-     std::vector<LifeV::ID> identifyValidRingDOFs();
+     *//*
+     std::vector<LifeV::ID> identifyValidRingDOFs();*/
+
+    /*! \brief Method to compute the coordinates of the ring mesh points in the father and child blocks
+    *
+    */
+     void findRingPointsCoordinates();
+
+    /*! \brief Method to identify the correspondences between father and child DOFs at the ring
+    *
+    */
+     void buildRingDOFsMap();
+
+    /*! \brief Evaluate in (x,y,z) a quartic RBF with center in (xc,yc,zc) and radius R
+    *
+    * \return Evaluation of the RBF in (x,y,z)
+    */
+    double evaluate_RBF(double x, double y, double z, double xc, double yc, double zc, double R);
 
     /// Not supported at the moment.
     std::vector<shp<DistributedVector>> buildStabilizationVectorsVelocity(shp<BasisFunctionFunctor> bfs,
@@ -263,23 +279,29 @@ protected:
     /// Not supported at the moment.
     std::vector<shp<DistributedVector>> buildStabilizationVectorsLagrange() const;
 
-    Interface                              M_interface;
-    // shp<BlockMatrix>                       M_identity;
-    shp<BlockMatrix>                       M_fatherBT;
-    shp<BlockMatrix>                       M_fatherB;
-    shp<BlockMatrix>                       M_childBT;
-    shp<BlockMatrix>                       M_childB;
-    shp<BlockMatrix>                       M_childBTfe;
-    shp<BlockMatrix>                       M_childBfe;
+    Interface                                 M_interface;
+
+    shp<BlockMatrix>                          M_fatherBT;
+    shp<BlockMatrix>                          M_fatherB;
+    shp<BlockMatrix>                          M_childBT;
+    shp<BlockMatrix>                          M_childB;
+    shp<BlockMatrix>                          M_childBTfe;
+    shp<BlockMatrix>                          M_childBfe;
+
     // this is required in the RB setting to impose weakly dirichlet conditions
-    shp<BlockMatrix>                       M_childBEp;
-    shp<BlockMatrix>                       M_stabChild;
-    shp<BlockMatrix>                       M_stabFather;
-    DataContainer                          M_data;
-    shp<const LifeV::MapEpetra>            M_mapLagrange;
-    double                                 M_stabilizationCoupling;
-    bool                                   M_isInlet;
-    bool                                   M_addNoSlipBC;
+    shp<BlockMatrix>                          M_childBEp;
+    shp<BlockMatrix>                          M_stabChild;
+    shp<BlockMatrix>                          M_stabFather;
+
+    DataContainer                             M_data;
+    shp<const LifeV::MapEpetra>               M_mapLagrange;
+    double                                    M_stabilizationCoupling;
+    bool                                      M_isInlet;
+    bool                                      M_addNoSlipBC;
+
+    std::map<LifeV::ID, std::vector<double>>  M_fatherRingPoints;
+    std::map<LifeV::ID, std::vector<double>>  M_childRingPoints;
+    std::map<LifeV::ID, LifeV::ID>            M_ringDOFsMap;
 };
 
 }

@@ -37,7 +37,8 @@ namespace RedMA
 
 shp<BasisFunctionFunctor>
 BasisFunctionFactory(const GetPot& datafile, GeometricFace inlet,
-                     bool isBoundary = false, bool isRing = false);
+                     bool isBoundary = false, bool isRing = false,
+                     const double mesh_size = 0.0);
 
 }  // namespace RedMA
 

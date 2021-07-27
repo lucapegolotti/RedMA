@@ -7,7 +7,7 @@ shp<BasisFunctionFunctor>
 BasisFunctionFactory(const GetPot& datafile,
                      GeometricFace inlet,
                      bool isBoundary,
-                     bool isRing)
+                     bool isRing, const double mesh_size)
 {
     shp<BasisFunctionFunctor> basisFunction;
     std::string type = datafile("coupling/type", "chebyshev");
@@ -19,7 +19,8 @@ BasisFunctionFactory(const GetPot& datafile,
             frequenciesTheta = datafile("coupling/frequencies_theta_ring_weak_dirichlet", -1);
 
         basisFunction.reset(new FourierRingBasisFunction(inlet,
-                                                         frequenciesTheta));
+                                                         frequenciesTheta,
+                                                         mesh_size));
     }
 
     else
@@ -30,8 +31,8 @@ BasisFunctionFactory(const GetPot& datafile,
             unsigned int frequenciesRadial = datafile("coupling/frequencies_radial", 1);
 
             basisFunction.reset(new FourierBasisFunction(inlet,
-                                                         frequenciesTheta,
-                                                         frequenciesRadial));
+                                                           frequenciesTheta,
+                                                           frequenciesRadial));
         }
         else if (!std::strcmp(type.c_str(), "chebyshev"))
         {

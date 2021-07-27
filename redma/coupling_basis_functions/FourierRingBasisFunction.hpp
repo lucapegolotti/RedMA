@@ -25,7 +25,8 @@ class FourierRingBasisFunction : public BasisFunctionFunctor
 {
 public:
     FourierRingBasisFunction(const GeometricFace& face,
-                             int nFrequenciesTheta);
+                             int nFrequenciesTheta,
+                             const double mesh_size);
 
     return_Type operator()(const Vector3D& pos);
 
