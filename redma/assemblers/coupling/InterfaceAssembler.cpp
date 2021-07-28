@@ -157,7 +157,7 @@ generateQuadratureRule(std::string tag) const
 
 Interface::
 Interface() :
-  M_inletIndex(0)
+  M_indexInlet(0)
 {
 }
 
@@ -172,7 +172,7 @@ Interface(shp<AssemblerType> assemblerFather,
   M_assemblerChild(assemblerChild),
   M_indexChild(indexChild),
   M_ID(interfaceID),
-  M_inletIndex(0)
+  M_indexInlet(0)
 {
 }
 
@@ -470,7 +470,7 @@ buildCouplingMatrices()
     auto asChild = M_interface.M_assemblerChild;
     if (asChild)
     {
-        GeometricFace inlet = asChild->getTreeNode()->M_block->getInlet(M_interface.M_inletIndex);
+        GeometricFace inlet = asChild->getTreeNode()->M_block->getInlet(M_interface.M_indexInlet);
         // I invert the normal of the face such that it is the same as the outlet
         inlet.M_normal *= (-1.);
 
@@ -535,7 +535,8 @@ buildRingInterfaceMap()
 
     unsigned int indexOutlet = M_interface.M_indexOutlet;
     unsigned int fatherFlag = asFather->getTreeNode()->M_block->getOutlet(indexOutlet).M_flag;
-    unsigned int childFlag = asChild->getTreeNode()->M_block->getInlet().M_flag;
+    unsigned int indexInlet = M_interface.M_indexInlet;
+    unsigned int childFlag = asChild->getTreeNode()->M_block->getInlet(indexInlet).M_flag;
 
     const double tol = 1e-1;
 
@@ -673,7 +674,7 @@ InterfaceAssembler::findRingPointsCoordinates()
         }
 
         int numTotalDofChild = FESpaceVFather->dof().numTotalDof();
-        unsigned int childFlag = asChild->getTreeNode()->M_block->getInlet().M_ringFlag;
+        unsigned int childFlag = asChild->getTreeNode()->M_block->getInlet(M_interface.M_indexInlet).M_ringFlag;
         for (unsigned int i = 0; i < numTotalDofChild; i++) {
             if (FESpaceVChild->mesh()->point(i).markerID() == childFlag) {
                 std::vector<double> coords(3);

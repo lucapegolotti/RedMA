@@ -6,6 +6,7 @@ cmake-build-debug/
 cmake-build-release/
 config.sh
 meshes/
+meshes_old/
 doc/html/
 doc/latex/
 .idea/

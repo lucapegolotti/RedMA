@@ -20,14 +20,40 @@
 
 using namespace RedMA;
 
-double inflow2(double t)
+double inflowDirichlet0(double t)
 {
     return 1;
 }
 
-double inflow3(double t)
+double inflowDirichlet1(double t)
 {
     return 1;
+}
+
+double inflowNeumann0(double t)
+{
+    const double t0 = 0.0;
+    const double T = t0 + 3e-3;
+    const double omega = 2.0 * M_PI / T;
+    const double Pmax = 13300.0;
+
+    if ((t >= t0) && (t <= T))
+        return -0.5 * (1.0 - std::cos(omega * (t-t0))) * Pmax;
+
+    return 0.0;
+}
+
+double inflowNeumann1(double t)
+{
+    const double t0 = 1e-2;
+    const double T = t0 + 3e-3;
+    const double omega = 2.0 * M_PI / T;
+    const double Pmax = 13300.0;
+
+    if ((t >= t0) && (t <= T))
+        return -0.5 * (1.0 - std::cos(omega * (t-t0))) * Pmax;
+
+    return 0.0;
 }
 
 int main(int argc, char **argv)
@@ -39,21 +65,67 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
+    Chrono chrono;
+    chrono.start();
+
+    std::string msg = "Starting chrono \n";
+    printlog(MAGENTA, msg, true);
+
     DataContainer data;
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);
 
-    bool analyticInflow = true;
-    if (analyticInflow)
+    if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet"))
     {
-        // the second argument is the flag of the inlet. It depends on the mesh.
-        data.setInflow(inflow2, 2);
-        data.setInflow(inflow3, 3);
+        // the second argument is teh index of the inlet. The corresponding flag is set in the datafile
+        data.setInflow(inflowDirichlet0, 0);
+        data.setInflow(inflowDirichlet1, 1);
+    }
+    else if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "neumann"))
+    {
+        // the second argument is teh index of the inlet. The corresponding flag is set in the datafile
+        data.setInflow(inflowNeumann0, 0);
+        data.setInflow(inflowNeumann1, 1);
     }
     else
+        throw new Exception("Unrecognized inlet BC type!");
+
+    std::string solutionDir = "solutions";
+    if (!fs::exists(solutionDir))
+        fs::create_directory(solutionDir);
+
+    unsigned int solutionIndex = 0;
+    std::string curSolutionDir = solutionDir + "/solution" + std::to_string(solutionIndex) + "/";
+    while (fs::exists(curSolutionDir))
     {
-        data.finalize();
+        solutionIndex++;
+        curSolutionDir = solutionDir + "/solution" + std::to_string(solutionIndex) + "/";
     }
+
+    if (solutionIndex >= 100){
+        msg = "Cannot store more than 100 solutions!\n";
+        printlog(RED, msg, true);
+        exit(1);
+    }
+    else {
+        fs::create_directory(curSolutionDir);
+        msg = "Saving the solution at " + curSolutionDir + "\n";
+        printlog(MAGENTA, msg, true);
+    }
+
+    data.setValueString("exporter/outdir", curSolutionDir);
+    data.finalize();
+
+    GlobalProblem globalProblem(data, comm);
+    globalProblem.solve();
+
+    msg = "Saved the solution at " + curSolutionDir + "\n";
+    printlog(MAGENTA, msg, true);
+
+    msg = "Total time =  ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(MAGENTA, msg, true);
 
     GlobalProblem femProblem(data, comm);
 

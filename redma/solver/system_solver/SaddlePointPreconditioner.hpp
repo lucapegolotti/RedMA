@@ -102,18 +102,6 @@ private:
 
     void findSmallBlocks(const BM& primalMatrix);
 
-    void allocateInnerPreconditioners(const BM& primalMatrix);
-
-    void allocateInverseSolvers(const BM& primalMatrix);
-
-    void allocateApproximatedInverses(const BM& primalMatrix);
-
-    void setSolverOptions();
-
-
-    void computeSchurComplement(const BM& A, const BM& BT,
-                                const BM& B, const BM& C);
-
     DataContainer                                        M_data;
     BM                                                   M_matrixCollapsed;
     BM                                                   M_S;

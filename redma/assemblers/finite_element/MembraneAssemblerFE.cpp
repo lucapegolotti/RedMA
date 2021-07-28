@@ -27,7 +27,8 @@ MembraneAssemblerFE(const DataContainer &data,
     M_transverse_shear_coeff = data("structure/transverse_shear_coefficient", 1.0);
     M_wall_elasticity = data("structure/external_wall/elastic", 1e4);
     M_wall_viscoelasticity = data("structure/external_wall/plastic", 1e3);
-    M_wallFlag = data("structure/flag", 10);
+    // M_wallFlag = data("structure/flag", 10);
+    M_wallFlag = treeNode->M_block->getWallFlag();
 
     this->computeLameConstants();
 
@@ -97,14 +98,6 @@ exportThickness()
                             thickness, 0.0);
 
     printlog(CYAN, ct1.restore(), false);
-
-    /*CoutRedirecter ct2;
-    ct2.redirect();
-
-    double t0 = M_data("time_discretization/t0", 0.0);
-    M_exporter->postProcess(t0);
-
-    printlog(CYAN, ct2.restore());*/
 }
 
 shp<aMatrix>

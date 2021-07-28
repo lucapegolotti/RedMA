@@ -144,8 +144,22 @@ addNeumannBCs(double time,
             shp<LifeV::BCHandler> bcs;
             bcs.reset(new LifeV::BCHandler);
 
-            this->M_bcManager->applyInflowNeumannBCs(bcs);
+            auto inlets = M_treeNode->M_block->getInlets();
+            auto inflows = this->M_bcManager->getInflows();
 
+            if ((inflows.size() == 1) && (inflows.find(0) != inflows.end()))
+                this->M_bcManager->applyInflowNeumannBCs(bcs, inflows.find(0)->second, inlets[0]);
+            else
+            {
+                for (auto inlet : inlets)
+                {
+                    if (inflows.find(inlet.M_flag) == inflows.end())
+                        throw new Exception("Inlet with flag " + std::to_string(inlet.M_flag) +
+                                            " was not set an inflow pressure!");
+
+                    this->M_bcManager->applyInflowNeumannBCs(bcs, inflows.find(inlet.M_flag)->second, inlet);
+                }
+            }
             bcs->bcUpdate(*M_velocityFESpace->mesh(), M_velocityFESpace->feBd(),
                           M_velocityFESpace->dof());
 
@@ -158,10 +172,13 @@ addNeumannBCs(double time,
     if (aAssembler::M_treeNode->isOutletNode())
     {
         auto flowRates = this->computeFlowRates(sol, true);
+        std::vector<unsigned int> inletFlags;
+        for (auto in : aAssembler::M_treeNode->M_block->getInlets())
+            inletFlags.push_back(in.M_flag);
 
         for (auto rate : flowRates) 
         {
-            if (rate.first != aAssembler::M_treeNode->M_block->getInlet().M_flag) 
+            if (std::find(inletFlags.begin(), inletFlags.end(), rate.first) != inletFlags.end())
             {
                 double P = this->M_bcManager->getOutflowNeumannBC(time, rate.first, rate.second);
 
@@ -188,11 +205,14 @@ getJacobianRightHandSide(const double& time,
 
     if (aAssembler::M_treeNode->isOutletNode())
     {
-        auto flowRates = computeFlowRates(sol);
+        auto flowRates = this->computeFlowRates(sol);
+        std::vector<unsigned int> inletFlags;
+        for (auto in : aAssembler::M_treeNode->M_block->getInlets())
+            inletFlags.push_back(in.M_flag);
         
         for (auto rate : flowRates)
         {
-            if (rate.first != aAssembler::M_treeNode->M_block->getInlet().M_flag)
+            if (std::find(inletFlags.begin(), inletFlags.end(), rate.first) != inletFlags.end())
             {
                 double dhdQ = this->M_bcManager->getOutflowNeumannJacobian(time, rate.first, rate.second);
                 shp<BlockMatrix> curjac(new BlockMatrix(2,2));

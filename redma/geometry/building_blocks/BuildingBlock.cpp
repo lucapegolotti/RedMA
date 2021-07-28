@@ -53,6 +53,28 @@ print() const
 
 }
 
+bool
+operator==(const GeometricFace& lhs, const GeometricFace& rhs)
+{
+    typedef LifeV::VectorSmall<3>   Vector3D;
+
+    Vector3D normalLhs;
+    Vector3D centerLhs;
+    Vector3D normalRhs;
+    Vector3D centerRhs;
+
+    normalLhs = lhs.M_normal;
+    normalLhs *= (-1);
+    centerLhs = lhs.M_center;
+
+    normalRhs = rhs.M_normal;
+    centerRhs = rhs.M_center;
+
+    double diff = (normalLhs - normalRhs).norm() + (centerLhs - centerRhs).norm();
+
+    return (diff <= 1e-3);
+}
+
 BuildingBlock::
 BuildingBlock(EPETRACOMM comm, std::string refinement, bool verbose) :
   M_comm(comm),
@@ -151,7 +173,7 @@ readMesh(std::string meshdir)
 
     LifeV::MeshPartitioner<MESH> meshPart(fullMesh, M_comm);
 
-    M_mesh.reset(new mesh_Type(M_comm));
+    M_mesh.reset(new MESH(M_comm));
     M_mesh = meshPart.meshPartition();
 
     printlog(MAGENTA, "done\n", M_verbose);
@@ -253,16 +275,25 @@ computeMembraneThickness() {
     M_membraneThicknessComputer.reset(new MembraneThicknessComputer(M_datafile,
                                                                     M_comm));
 
+    std::vector<double> radia_in;
+    std::vector<unsigned int> flags_in;
+    for (auto in : M_inlets)
+    {
+        radia_in.push_back(in.M_radius);
+        flags_in.push_back(in.M_ringFlag);
+    }
+
     std::vector<double> radia_out;
-    std::vector<int> flags_out;
-    for (auto out : M_outlets){
+    std::vector<unsigned int> flags_out;
+    for (auto out : M_outlets)
+    {
         radia_out.push_back(out.M_radius);
         flags_out.push_back(out.M_ringFlag);
     }
 
-    M_membraneThicknessComputer->setup(M_inlet.M_radius, radia_out,
-                                       M_inlet.M_ringFlag, flags_out,
-                                       M_mesh);
+    M_membraneThicknessComputer->setup(radia_in, radia_out,
+                                       flags_in, flags_out,
+                                       M_wallFlag, M_mesh);
 
     M_membraneThicknessComputer->solve();
 }

@@ -54,13 +54,13 @@ public:
      *
      * \return True if it is an outlet node.
      */
-    bool isOutletNode();
+    bool isOutletNode() const;
 
     /*! \brief Returns true if it is an inlet node.
      *
      * \return True if it is an inlet node.
      */
-    bool isInletNode();
+    bool isInletNode() const;
 
     /*! \brief Returns true if it is an inlet or an outlet node.
      *

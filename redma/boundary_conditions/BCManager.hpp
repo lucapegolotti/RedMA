@@ -46,12 +46,6 @@ class BCManager
     typedef std::function<double(double)>           Law;
 
 public:
-    BCManager(const DataContainer& datafile, shp<TreeNode> treeNode);
-
-    void applyDirichletBCs(const double& time, BlockVector& input,
-                           shp<FESPACE> fespace, const unsigned int& index,
-                           const bool& ringOnly = false);
-
     /*! \brief Constructor accepting a datafile and a TreeNode.
      *
      * \param datafile The DataContainer.
@@ -67,11 +61,11 @@ public:
      * \param fespace The finite element space.
      * \param index Index of the block vector to which the boundary conditions
      * must be applied.
+     * \param ringOnly True if the BCs have to be imposed only at the rings
      */
-    void applyDirichletBCs(const double& time,
-                           BlockVector& input,
-                           shp<FESPACE> fespace,
-                           const unsigned int& index) const;
+    void applyDirichletBCs(const double& time, BlockVector& input,
+                           shp<FESPACE> fespace, const unsigned int& index,
+                           const bool& ringOnly = false);
 
    /*! \brief Apply homogeneous Dirichlet boundary conditions to a block vector.
     *
@@ -118,6 +112,8 @@ public:
     inline bool useStrongDirichlet() const {return M_strongDirichlet;}
 
     inline std::string getInletBCType() const {return M_inletBCType;}
+
+    inline std::map<unsigned int, Law> getInflows() const {return M_inflows;}
 
     std::vector<unsigned int> getWallFlags(const bool& withRings = true) const;
 

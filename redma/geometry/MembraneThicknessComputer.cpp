@@ -19,10 +19,9 @@
 namespace RedMA {
 
     MembraneThicknessComputer::
-    MembraneThicknessComputer(const GetPot& datafile, EPETRACOMM comm):
-            M_datafile(datafile), M_comm(comm), M_R_in(1.0)
+    MembraneThicknessComputer(const DataContainer& datafile, EPETRACOMM comm):
+            M_datafile(datafile), M_comm(comm), M_R_ref(1.0)
     {
-        M_wallFlag = datafile("structure/flag", 10);
         M_constantFlag = datafile("structure/constant_thickness", 0);
         M_thicknessProportion = datafile("structure/thickness", 0.1);
         M_linearSolver = LifeV::LinearSolver(comm);
@@ -30,9 +29,9 @@ namespace RedMA {
 
     void
     MembraneThicknessComputer::
-    setup(const double& R_in, const std::vector<double>& R_out,
-          const int& inletFlag, const std::vector<int>& outletFlags,
-          shp<MESH> mesh)
+    setup(const std::vector<double>& R_in, const std::vector<double>& R_out,
+          const std::vector<unsigned int>& inletFlags, const std::vector<unsigned int>& outletFlags,
+          const unsigned int& wallFlag, shp<MESH> mesh)
     {
         M_fespace.reset(new FESPACE(mesh, "P1", 1, M_comm));
         M_fespaceETA.reset(new ETFESPACE1(M_fespace->mesh(),
@@ -42,12 +41,14 @@ namespace RedMA {
         M_thickness.reset(new VECTOREPETRA(M_fespace->map(), LifeV::Unique));
         M_thickness->zero();
 
+        M_wallFlag = wallFlag;
+
         if (!M_constantFlag)
         {
             M_R_in = R_in;
             M_R_out = R_out;
 
-            M_inletFlag = inletFlag;
+            M_inletFlags = inletFlags;
             M_outletFlags = outletFlags;
 
             this->computeStiffness();
@@ -59,9 +60,10 @@ namespace RedMA {
         else
         {
             // If the thickness is chosen as constant, then the reference radius is the average
-            // between the inlet radius and the average of the outlets radia.
+            // between the average of the inlet radia and the average of the outlets radia.
+            double R_in_mean = (std::accumulate(std::begin(R_in), std::end(R_in), 0.0)) / (R_in.size());
             double R_out_mean = (std::accumulate(std::begin(R_out), std::end(R_out), 0.0)) / (R_out.size());
-            M_R_in = 0.5 * (R_in + R_out_mean);
+            M_R_ref = 0.5 * (R_in_mean + R_out_mean);
         }
     }
 
@@ -97,22 +99,26 @@ namespace RedMA {
         bcs.reset(new LifeV::BCHandler);
 
         // Imposing the BCs at the rings and at inlet/outlet
-        auto BC_in = std::bind(this->constantFunction,
-                               std::placeholders::_1,
-                               std::placeholders::_2,
-                               std::placeholders::_3,
-                               std::placeholders::_4,
-                               std::placeholders::_5,
-                               2.0 * M_R_in * M_thicknessProportion
-        );
-        LifeV::BCFunctionBase inflowBC(BC_in);
+        unsigned int countIn = 0;
+        for (double R_in : M_R_in) {
+            auto BC_in = std::bind(this->constantFunction,
+                                   std::placeholders::_1,
+                                   std::placeholders::_2,
+                                   std::placeholders::_3,
+                                   std::placeholders::_4,
+                                   std::placeholders::_5,
+                                   2.0 * R_in * M_thicknessProportion
+            );
+            LifeV::BCFunctionBase inflowBC(BC_in);
 
-        bcs->addBC("InletRing", M_inletFlag,
-                   LifeV::EssentialEdges, LifeV::Full, inflowBC, 3);
+            bcs->addBC("InletRing", M_inletFlags[countIn],
+                       LifeV::EssentialEdges, LifeV::Full, inflowBC, 3);
 
-        unsigned int count = 0;
+            countIn++;
+        }
+
+        unsigned int countOut = 0;
         for (double R_out : M_R_out) {
-            // TODO: if multiple outlets with different diameters are present, the code must be updated!
             auto BC_out = std::bind(this->constantFunction,
                                     std::placeholders::_1,
                                     std::placeholders::_2,
@@ -123,10 +129,10 @@ namespace RedMA {
             );
             LifeV::BCFunctionBase outflowBC(BC_out);
 
-            bcs->addBC("OutletRing", M_outletFlags[count],
+            bcs->addBC("OutletRing", M_outletFlags[countOut],
                        LifeV::EssentialEdges, LifeV::Full, outflowBC, 3);
 
-            count++;
+            countOut++;
         }
 
         // Applying the defined BCs
@@ -191,7 +197,7 @@ namespace RedMA {
             tmp.reset(new VECTOREPETRA(M_fespace->map(), LifeV::Unique));
             tmp->zero();
             *tmp += 1.0;
-            *tmp *= (2.0 * M_R_in * M_thicknessProportion);
+            *tmp *= (2.0 * M_R_ref * M_thicknessProportion);
             *M_thickness += *tmp;
         }
     }

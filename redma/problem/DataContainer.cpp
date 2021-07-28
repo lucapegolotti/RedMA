@@ -17,12 +17,20 @@ setDatafile(const std::string& datafile)
 void
 DataContainer::
 setInflow(const std::function<double(double)>& inflow,
-          unsigned int flag)
+          unsigned int indexInlet)
 {
-    bool generate_inflow = this->checkGenerateInflow();
+    bool generate_inflow = this->checkGenerateInflow(indexInlet);
 
-    if (!(generate_inflow))
+    if (!(generate_inflow)) {
+        std::string path;
+        if (indexInlet != 99)
+            path = "bc_conditions/inlet" + std::to_string(indexInlet) +"/flag";
+        else
+            path = "bc_conditions/flag";
+
+        unsigned int flag = (*M_datafile)(path.c_str(), 0);
         M_inflows[flag] = inflow;
+    }
     else
         printlog(YELLOW, "[DataContainer] WARNING: Inflow function will be "
                       "read from file, as the 'generate_inflow' flag in datafile is set to 1\n");
@@ -123,7 +131,7 @@ void
 DataContainer::
 finalize()
 {
-    if (M_inflows.size() == 0)
+    if (M_inflows.empty())
     {
         generateRamp();
 
@@ -132,24 +140,22 @@ finalize()
         {
             std::string inputfile = (*M_datafile)("bc_conditions/inflowfile",
                                          "datafiles/inflow.txt");
-            generateInflow(0, inputfile);
+            generateInflow(inputfile, 99);
         }
         else
         {
             for (unsigned int i = 0; i < ninlets; i++)
             {
                 std::string path = "bc_conditions/inlet" + std::to_string(i);
-                std::string arg1 = path + "/flag";
-                unsigned int curflag = (*M_datafile)(arg1.c_str(), 0);
-                arg1 = path + "/inflowfile";
+                std::string arg1 = path + "/inflowfile";
                 std::string arg2 = "datafiles/inflow" + std::to_string(i) + ".txt";
                 std::string inputfile = (*M_datafile)(arg1.c_str(),arg2.c_str());
-                generateInflow(curflag, inputfile);
+                generateInflow(inputfile, i);
             }
         }
     }
 
-    if (!M_inflow)
+    if (M_inflows.empty())
         throw new Exception("An inflow function has neither being set nor being "
                             "interpolated from datafile! Either call to  'setInflow' method before "
                             "the 'finalize' method (with 'generate_inflow' flag set to 0) or call "
@@ -159,14 +165,17 @@ finalize()
 
 void
 DataContainer::
-generateInflow(unsigned int flag, std::string inputfilename)
+generateInflow(std::string inputfilename, unsigned int inletIndex)
 {
-    bool generate_inflow = this->checkGenerateInflow();
+    bool generate_inflow = this->checkGenerateInflow(inletIndex);
 
     if (generate_inflow)
     {
+        std::string path = "bc_conditions/inlet" + std::to_string(inletIndex) + "/flag";
+        unsigned int flag = (*M_datafile)(path.c_str(), 0);
+
         auto flowValues = parseInflow(inputfilename);
-        linearInterpolation(flowValues, M_inflows[flag])
+        linearInterpolation(flowValues, M_inflows[flag]);
     }
 }
 
@@ -226,7 +235,6 @@ parseInflow(std::string filename)
     std::ifstream inflowfile;
     inflowfile.open(filename);
 
-
     std::vector<std::pair<double, double>> flowValues;
     if (inflowfile.is_open())
     {
@@ -243,7 +251,7 @@ parseInflow(std::string filename)
                 newpair.first = std::stod(line.substr(0,firstspace));
 
                 auto lastspace = line.find_last_of(" ");
-                if (lastspace == std::string::npos || firstspace == 0)
+                if (lastspace == std::string::npos || lastspace == 0)
                     throw new Exception("Inflow file is badly formatted");
 
                 newpair.second = std::stod(line.substr(lastspace+1,line.size()));
@@ -269,14 +277,29 @@ evaluateRamp(double time)
 
 bool
 DataContainer::
-checkGenerateInflow() const
+checkGenerateInflow(unsigned int indexInlet) const
 {
-    int generate_inflow = (*M_datafile)("bc_conditions/generate_inflow", -1);
+    std::string inlet_path;
+    std::string default_path;
+    if (indexInlet != 99)
+    {
+        inlet_path = "bc_conditions/inlet" + std::to_string(indexInlet);
+        default_path = "datafiles/inflow" + std::to_string(indexInlet) + ".txt";
+    }
+    else
+    {
+        inlet_path = "bc_conditions";
+        default_path = "datafiles/inflow.txt";
+    }
+
+    std::string path1 = inlet_path + "/generate_inflow";
+    int generate_inflow = (*M_datafile)(path1.c_str(), -1);
 
     if (generate_inflow == -1)
     {
-        std::ifstream inflowfile((*M_datafile)("bc_conditions/inflowfile",
-                                               "datafiles/inflow.txt"));
+        std::string path2 = inlet_path + "/inflowfile";
+        std::ifstream inflowfile((*M_datafile)(path2.c_str(),
+                                                 default_path.c_str()));
         generate_inflow = (inflowfile.good()) ? 1 : 0;
     }
 

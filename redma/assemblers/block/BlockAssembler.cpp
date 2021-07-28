@@ -341,7 +341,7 @@ setup()
 
     if (!(this->arePrimalAssemblersFE())) {
         M_basesManager.reset(new RBBasesManager(M_data, M_comm, getIDMeshTypeMap()));
-        M_basesManager->load();
+        M_basesManager->loadSingularValues();
     }
 
     for (auto& primalas : M_primalAssemblers)
@@ -383,26 +383,39 @@ setup()
             {
                 unsigned int otherID = (*itVector)->M_ID;
                 shp<InnerAssembler> childAssembler = M_primalAssemblers[otherID];
+                unsigned int ninlets = childAssembler->getTreeNode()->M_block->getInlets().size();
 
                 if (spcast<StokesAssemblerFE>(fatherAssembler)->hasNoSlipBCs() !=
                     spcast<StokesAssemblerFE>(childAssembler)->hasNoSlipBCs())
                     throw new Exception("Father and Child assemblers MUST have the same "
                                         "type of BCs at the vessel wall!");
 
-                Interface newInterface(fatherAssembler, myID,
-                                       childAssembler, otherID,
-                                       interfaceID);
-                newInterface.M_indexOutlet = countChildren;
-                shp<InterfaceAssembler> inAssembler;
-                inAssembler.reset(new InterfaceAssembler(this->M_data, newInterface,
-                                                           spcast<StokesAssemblerFE>(fatherAssembler)->hasNoSlipBCs()));
-                M_dualAssemblers.push_back(inAssembler);
-                interfaceID++;
+                for (unsigned int i = 0; i < ninlets; i++)
+                {
+                    if ((childAssembler->getTreeNode()->M_block->getInlet(i) ==
+                        fatherAssembler->getTreeNode()->M_block->getOutlet(countChildren)) ||
+                        (ninlets == 1))
+                    {
+                        Interface newInterface(fatherAssembler, myID,
+                                               childAssembler, otherID,
+                                               interfaceID);
+                        newInterface.M_indexInlet = i;
+                        newInterface.M_indexOutlet = countChildren;
+                        shp<InterfaceAssembler> inAssembler;
+                        inAssembler.reset(new InterfaceAssembler(this->M_data, newInterface,
+                                                                 spcast<StokesAssemblerFE>(fatherAssembler)->hasNoSlipBCs()));
+                        M_dualAssemblers.push_back(inAssembler);
+                        interfaceID++;
+
+                        i = ninlets; // once I find a matching inlet in the child, I can avoid investigating the others
+                    }
+                }
             }
             countChildren++;
         }
     }
 
+    // allocate weak Dirichlet BC assembler
     if ((!std::strcmp(this->M_data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet")) &&
         (!std::strcmp(this->M_data("bc_conditions/inletdirichlet", "weak").c_str(), "weak")))
     {
@@ -416,7 +429,7 @@ setup()
             // with respect to flow direction
             Interface newInterface(nullptr, -1, inletAssembler, 0,
                                                    interfaceID);
-            newInterface.M_inletIndex = i;
+            newInterface.M_indexInlet = i;
 
             shp<InterfaceAssembler> inletInAssembler;
             bool inletPrimalIsFE = !(std::strcmp(inletAssembler->getTreeNode()->M_block->getDiscretizationMethod().c_str(), "fem"));

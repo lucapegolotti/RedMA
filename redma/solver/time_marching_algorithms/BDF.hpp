@@ -100,8 +100,29 @@ public:
     virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1,
                                            double& dt) override;
 
+    /*! \brief Function to compute the extrapolated solution.
+     *
+     * \return Shared pointer to the extrapolated solution.
+     */
+    virtual shp<aVector> computeExtrapolatedSolution() override;
+
+    /*! \brief Function to combine solutions at previous time instants.
+     *
+     * \return Shared pointer to the combination between the previous solutions.
+     */
+    shp<aVector> combineOldSolutions() override;
+
+    /*! \brief Getter of the time marching coefficients.
+     *
+     * \return Vector of the BDF coefficients.
+     */
+    std::vector<double> getCoefficients() const override;
+
 protected:
-    shp<aVector> computeExtrapolatedSolution();
+
+    void setBDFCoefficients();
+
+    void setExtrapolationCoefficients();
 
     std::vector<shp<BlockVector>>            M_prevSolutions;
     std::vector<double>                      M_coefficients;

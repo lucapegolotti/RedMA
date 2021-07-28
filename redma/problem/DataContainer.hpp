@@ -53,10 +53,10 @@ public:
     /*! \brief  Setter for the inflow law with a given inlet flag
      *
      * \param inflow The inflow rate law.
-     * \param flag The inlet flag; if unspecified, we assume there is only one inlet.
+     * \param inletIndex. The index of the inlet to be considered. If not specified, it defaults to 99 (unique inlet)
      */
     void setInflow(const Law& inflow,
-                   unsigned int flag = 0);
+                   unsigned int indexInlet = 99);
 
     /*! \brief Setter for the distal pressure.
      *
@@ -181,7 +181,7 @@ public:
 protected:
     std::vector<std::pair<double,double>> parseInflow(std::string filename);
 
-    void generateInflow(unsigned int flag, std::string inputfilename);
+    void generateInflow(std::string inputfilename, unsigned int indexInlet = 99);
 
     /*! \brief Generate ramp based on the values specified in the time_discretization
      * section of M_datafile.
@@ -199,14 +199,17 @@ protected:
     void linearInterpolation(const std::vector<std::pair<double,double>>& values,
                              std::function<double(double)>& funct);
 
-    /*! \brief Check if the inflow should be generated from file or externally set
+    /*! \brief Check if the inflow for given inlet should be generated from file or externally set
      *
      * Reads 'generate_inflow' field from data file; if 0 or 1, it returns; if -1
      * (default value), it returns 1 if a datafile for the inflow is available,
      * 0 otherwise.
      *
+     * \param indexInlet Index of the inlet to be considered. If not specified, it defaults to 99.
+     * \return True if the inflow can be generated from file, false otherwise
+     *
      */
-    bool checkGenerateInflow() const;
+    bool checkGenerateInflow(unsigned int indexInlet=99) const;
 
     shp<GetPot>                                           M_datafile;
     std::map<unsigned int, Law>                           M_inflows;

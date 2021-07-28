@@ -13,20 +13,39 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
 
     M_ringConstraint = data("bc_conditions/ring_constraint", "normal");
 
+    M_inflows = M_data.getInflows();
+    int ninlets = M_data("bc_conditions/numinletbcs", -1);
+    if (ninlets > 0)
+    {
+        for (int indexInflow = 0; indexInflow < ninlets; indexInflow++)
+        {
+            std::string path = "bc_conditions/inlet" + std::to_string(indexInflow);
+            unsigned int curflag = M_treeNode->M_block->getInlet(indexInflow).M_flag;
+            if (M_inflows.find(curflag) == M_inflows.end())
+                throw new Exception("Invalid bc_conditions/inlet*/flag in datafile!");
+            M_coefficientsInflow[curflag] = data(path + "/coefficient", 1.0);
+            M_inletFlags.push_back(treeNode->M_block->getInlet(indexInflow).M_flag);
+            M_inletRingFlags.push_back(treeNode->M_block->getInlet(indexInflow).M_ringFlag);
+        }
+    }
+    else
+    {
+        M_coefficientsInflow[M_treeNode->M_block->getInlet(0).M_flag] = data("bc_conditions/coefficientinflow", 1.0);
+        M_inletFlags.push_back(treeNode->M_block->getInlet(0).M_flag);
+        M_inletRingFlags.push_back(treeNode->M_block->getInlet(0).M_ringFlag);
+    }
+
     if (M_treeNode->isOutletNode())
         this->parseOutflowNeumannData();
     if (M_treeNode->isInletNode())
         this->checkInflowLaw();
 
-    M_inletFlag = treeNode->M_block->getInlet().M_flag;
     for(auto out_face : treeNode->M_block->getOutlets())
         // these are all the outlets, even the ones with children in the block structure!
         M_outletFlags.push_back(out_face.M_flag);
     for(auto out_face : treeNode->getOutlets())
         // these are the "true" outlets, i.e. faces without children!
         M_trueOutletFlags.push_back(out_face.M_flag);
-    M_wallFlag = treeNode->M_block->getWallFlag();
-    M_inletRingFlag = treeNode->M_block->getInlet().M_ringFlag;
     for (auto out_face : treeNode->M_block->getOutlets())
         // these are all the ring outlets, even the ones with children in the block structure!
         M_outletRingFlags.push_back(out_face.M_ringFlag);
@@ -34,44 +53,29 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
         // these are the "true" ring outlets, i.e. rings of faces without children!
         M_trueOutletRingFlags.push_back(out_face.M_ringFlag);
 
-    M_inflows = M_data.getInflows();
-    if (M_inflows.size() > 1)
-    {
-        for (int indexInflow = 0; indexInflow < M_inflows.size(); indexInflow++)
-        {
-            std::string path = "bc_conditions/inlet" + std::to_string(indexInflow);
-            unsigned int curflag = data(path + "/flag", 0);
-            if (M_inflows.find(curflag) == M_inflows.end())
-                throw new Exception("Invalid bc_conditions/inlet*/flag in datafile!");
-            M_coefficientsInflow[curflag] = data(path + "/coefficient", 1.0);
-        }
-    }
-    else
-        M_coefficientsInflow[M_treeNode->M_block->getInlet(0).M_flag] = data("bc_conditions/coefficientinflow", 1.0);
-    parseNeumannData();
+    M_wallFlag = treeNode->M_block->getWallFlag();
 
-    M_wallFlag = treeNode->M_block->wallFlag();
-    M_inletRing = 30;
-    M_outletRing = 31;
+    parseOutflowNeumannData();
+
 }
 
 void
 BCManager::
 parseOutflowNeumannData()
 {
-    // unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
-    //
-    // for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
-    // {
-    //     std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
-    //
-    //     unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
-    //     if (M_treeNode->M_ID == blockindex)
-    //     {
-    //         unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
-    //         M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
-    //     }
-    // }
+    /*unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
+
+    for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
+    {
+        std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
+
+        unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
+        if (M_treeNode->M_ID == blockindex)
+        {
+            unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
+            M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
+        }
+    }*/
 }
 
 void
@@ -102,7 +106,7 @@ applyInflowDirichletBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace
 
 void
 BCManager::
-applyInflowNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law,
+applyInflowNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
                       const bool& zeroFlag) const
 {
     std::function<double(double)> inflowLaw;
@@ -120,7 +124,7 @@ applyInflowNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law,
                                              inflowLaw);
 
     LifeV::BCFunctionBase inflowFunction(inflowBoundaryCondition);
-    bcs->addBC("Inlet", M_inletFlag, LifeV::Natural, LifeV::Normal,
+    bcs->addBC("Inlet", inlet.M_flag, LifeV::Natural, LifeV::Normal,
                inflowFunction);
 }
 
@@ -131,10 +135,9 @@ applyOutflowNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law,
 {
     std::function<double(double)> outflowLaw;
     if (zeroFlag)
-        outflowLaw = std::function<double(double)>([](double t){return 0.0;});
+        outflowLaw = Law([](double t){return 0.0;});
     else
-        // TODO: set an outflow function if non-homogeneous Neumann outflow BCs wish to be imposed!
-        outflowLaw = std::function<double(double)>([](double t){return 1.0;});
+        outflowLaw = law;
 
     auto outflowBoundaryCondition = std::bind(neumannInflow,
                                               std::placeholders::_1,
@@ -165,7 +168,7 @@ addInletBC(shp<LifeV::BCHandler> bcs,
 
         else if (!std::strcmp(M_inletBCType.c_str(), "neumann"))
             // imposing an inflow pressure --> actually this is done at RHS so this is not called!
-            this->applyInflowNeumannBCs(bcs, law, zeroFlag);
+            this->applyInflowNeumannBCs(bcs, law, inlet, zeroFlag);
 
         else
             throw new Exception("Selected inflow BCs not implemented!");
@@ -191,12 +194,12 @@ applyDirichletBCs(const double& time, BlockVector& input,
             {
                 if (M_inflows.find(inlet.M_flag) == M_inflows.end())
                     throw new Exception("Inlet with flag " + std::to_string(inlet.M_flag) +
-                                        " was not set an inflowrate!");
+                                        " was not set an inflow rate!");
 
                 addInletBC(bcs, M_inflows.find(inlet.M_flag)->second, inlet, ringOnly);
             }
         }
-        bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
+        // bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
     }
 
     shp<VECTOREPETRA> curVec(spcast<VECTOREPETRA>(input.block(index)->data()));
@@ -240,8 +243,8 @@ apply0DirichletMatrix(BlockMatrix& input,
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
-    if ((!std::strcmp(M_inletBCType.c_str(), "dirichlet")) && (M_strongDirichlet))
-        addInletBC(bcs, ringOnly, true);
+    /*if ((!std::strcmp(M_inletBCType.c_str(), "dirichlet")) && (M_strongDirichlet))
+        addInletBC(bcs, ringOnly, true);*/
 
     if (bcs->size())
         bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
@@ -261,8 +264,7 @@ apply0DirichletMatrix(BlockMatrix& input,
                                fespace->dof(), *bcs, fespace->feBd(),
                                (j == index) * diagCoefficient, 0.0);
 
-            if (ringOnly && (M_treeNode->isExtremalNode()))  // TODO change here!
-            // if (ringOnly)
+            if (ringOnly && (M_treeNode->isExtremalNode()))
             {
                 shp<LifeV::BCHandler> bcsRing = createBCHandler0DirichletRing();
                 bcsRing->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
@@ -297,8 +299,8 @@ apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
-    if ((!std::strcmp(M_inletBCType.c_str(), "dirichlet")) && (M_strongDirichlet))
-        addInletBC(bcs, ringOnly, true);
+    /*if ((!std::strcmp(M_inletBCType.c_str(), "dirichlet")) && (M_strongDirichlet))
+        addInletBC(bcs, ringOnly, true);*/
 
     shp<VECTOREPETRA> curVec(spcast<VECTOREPETRA>(input.block(index)->data()));
 
@@ -310,8 +312,7 @@ apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
                     *bcs, fespace->feBd(), 0.0, 0.0);
     }
 
-    if (ringOnly && (M_treeNode->isExtremalNode()))  // TODO change here!
-    // if (ringOnly)
+    if (ringOnly && (M_treeNode->isExtremalNode()))
     {
         shp<LifeV::BCHandler> bcsRing = createBCHandler0DirichletRing();
         bcsRing->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
@@ -360,15 +361,14 @@ createBCHandler0DirichletRing() const
     compz[0] = 2;
 
     if (!std::strcmp(M_ringConstraint.c_str(), "normal")) {
-        if (M_treeNode->isInletNode())  // TODO change here!
-        // if (true)
+        if (M_treeNode->isInletNode())
         {
-            bcs->addBC("InletRingZ", M_inletRingFlag, LifeV::EssentialEdges,
-                       LifeV::Component, zeroFunction, compz);
+            for(const unsigned int& ringFlag : M_inletRingFlags)
+                bcs->addBC("InletRingZ", ringFlag, LifeV::EssentialEdges,
+                           LifeV::Component, zeroFunction, compz);
         }
 
-        if (M_treeNode->isOutletNode())  // TODO change here!
-        // if (true)
+        if (M_treeNode->isOutletNode())
         {
             for(const unsigned int& ringFlag : M_trueOutletRingFlags)
                 bcs->addBC("OutletRingZ", ringFlag, LifeV::EssentialEdges,
@@ -377,15 +377,14 @@ createBCHandler0DirichletRing() const
     }
     else if (!std::strcmp(M_ringConstraint.c_str(), "full"))
     {
-        if (M_treeNode->isInletNode())  // TODO change here!
-        // if (true)
+        if (M_treeNode->isInletNode())
         {
-            bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
-                       LifeV::Full, zeroFunction, 3);
-        }
+            for(const unsigned int& ringFlag : M_inletRingFlags)
+                bcs->addBC("InletRing", ringFlag, LifeV::EssentialEdges,
+                           LifeV::Full, zeroFunction, 3);
+            }
 
-        if (M_treeNode->isOutletNode())  // TODO change here!
-        // if (true)
+        if (M_treeNode->isOutletNode())
         {
             for(const unsigned int& ringFlag : M_trueOutletRingFlags)
                 bcs->addBC("OutletRing", ringFlag, LifeV::EssentialEdges,
@@ -442,8 +441,9 @@ void
 BCManager::
 checkInflowLaw()
 {
-    if ( (!M_inflow) and (std::strcmp(M_inletBCType.c_str(), "dirichlet") == 0) ) {
-        printlog(RED, "Setting default Dirichlet inflow BC (unit constant))",
+    if ( (M_inflows.empty()) && (std::strcmp(M_inletBCType.c_str(), "dirichlet") == 0) )
+    {
+        printlog(RED, "[BCManager] Setting default Dirichlet inflow BC (unit constant))\n",
                  this->M_data.getVerbose());
 
         std::function<double(double)> inflow(
@@ -451,11 +451,28 @@ checkInflowLaw()
                     return 1.0;
                 });
 
-        M_inflow = inflow;
+        int ninlets = M_data("bc_conditions/numinletbcs", -1);
+        std::string path;
+        unsigned int curflag;
+
+        if (ninlets == -1)
+        {
+            curflag = M_treeNode->M_block->getInlet(0).M_flag;
+            M_inflows[curflag] = inflow;
+        }
+        else
+        {
+            for (unsigned int indexInflow=0; indexInflow<ninlets; indexInflow++)
+            {
+                curflag = M_treeNode->M_block->getInlet(indexInflow).M_flag;
+                M_inflows[curflag] = inflow;
+            }
+        }
     }
 
-    else if ( (!M_inflow) and (std::strcmp(M_inletBCType.c_str(), "neumann") == 0) ) {
-        printlog(RED, "Setting default Neumann inflow BC (pressure bump at initial times)",
+    else if ( (M_inflows.empty()) && (std::strcmp(M_inletBCType.c_str(), "neumann") == 0) )
+    {
+        printlog(RED, "[BCManager] Setting default Neumann inflow BC (pressure bump at initial times)\n",
                  this->M_data.getVerbose());
 
         const double T = 3e-3;
@@ -470,7 +487,23 @@ checkInflowLaw()
                     return 0.0;
                 });
 
-        M_inflow = inflow;
+        int ninlets = M_data("bc_conditions/numinletbcs", -1);
+        std::string path;
+        unsigned int curflag;
+
+        if (ninlets == -1)
+        {
+            curflag = M_treeNode->M_block->getInlet(0).M_flag;
+            M_inflows[curflag] = inflow;
+        }
+        else
+        {
+            for (unsigned int indexInflow=0; indexInflow<ninlets; indexInflow++)
+            {
+                curflag = M_treeNode->M_block->getInlet(indexInflow).M_flag;
+                M_inflows[curflag] = inflow;
+            }
+        }
     }
 
 }
@@ -516,7 +549,7 @@ getWallFlags(const bool& withRings) const
     flags.push_back(M_wallFlag);
     if (withRings)
     {
-        flags.push_back(M_inletRingFlag);
+        flags.insert(std::end(flags), std::begin(M_inletRingFlags), std::end(M_inletRingFlags));
         flags.insert(std::end(flags), std::begin(M_outletRingFlags), std::end(M_outletRingFlags));
     }
 
@@ -537,10 +570,11 @@ computeBoundaryIndicator(shp<FESPACE> fespace, const std::vector<unsigned int> f
 
     for (unsigned int flag : flags)
     {
-        if ((flag == M_inletFlag) || (flag == M_wallFlag) ||
+        if ((flag == M_wallFlag) ||
+            (std::find(M_inletFlags.begin(), M_inletFlags.end(), flag) != M_inletFlags.end()) ||
             (std::find(M_outletFlags.begin(), M_outletFlags.end(), flag) != M_outletFlags.end()))
             bcs->addBC("BC", flag, LifeV::Essential, LifeV::Full, oneFunction, 3);
-        else if ((flag == M_inletRingFlag) ||
+        else if ((std::find(M_inletRingFlags.begin(), M_inletRingFlags.end(), flag) != M_inletRingFlags.end()) ||
                  (std::find(M_outletRingFlags.begin(), M_outletRingFlags.end(), flag) != M_outletRingFlags.end()))
             bcs->addBC("BC", flag, LifeV::EssentialEdges, LifeV::Full, oneFunction, 3);
     }
@@ -636,9 +670,9 @@ computeTangentVersors(const Vector3D& normal) const
     double ny = normal[1];
     double nz = normal[2];
 
-    double nx2 = std::sqrt(normal[1] * normal[1] + normal[2] * normal[2]);
-    double ny2 = std::sqrt(normal[0] * normal[0] + normal[2] * normal[2]);
-    double nz2 = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
+    double nx2 = std::sqrt(ny * ny + nz * nz);
+    double ny2 = std::sqrt(nx * nx + nz * nz);
+    double nz2 = std::sqrt(nx * nx + ny * ny);
 
     if ((nx2 >= ny2) && (nx2 >= nz2))
     {
@@ -689,8 +723,9 @@ computeRotationMatrices() const
 {
     std::map<unsigned int, Matrix3D> rotationMatrices;
 
-    GeometricFace inlet = this->M_treeNode->M_block->getInlet();
-    rotationMatrices[inlet.M_ringFlag] = this->computeRotationMatrix(inlet.M_normal, 2);
+    std::vector<GeometricFace> inlets = this->M_treeNode->M_block->getInlets();
+    for (GeometricFace inlet : inlets)
+        rotationMatrices[inlet.M_ringFlag] = this->computeRotationMatrix(inlet.M_normal, 2);
 
     std::vector<GeometricFace> outlets = this->M_treeNode->M_block->getOutlets();
     for (GeometricFace outlet : outlets)
@@ -711,25 +746,34 @@ computeRingsIndicator(shp<FESPACE> fespace, const unsigned int flag, const bool 
     shp<VECTOREPETRA> ringsIndicator(new VECTOREPETRA(fespace->map()));
     ringsIndicator->zero();
 
+    std::string baseBCName;
+    std::string BCName;
+
     bool inletCondition = (!onlyExtremal || M_treeNode->isInletNode()) &&
-                          ((flag==999) || (flag == M_inletRingFlag));
+                          ((flag==999) ||
+                           (std::find(M_inletRingFlags.begin(), M_inletRingFlags.end(), flag) != M_inletRingFlags.end()));
     if (inletCondition)
     {
-        FUN inletFlag = std::bind(constantFunction,
+        FUN inletFlag;
+        LifeV::BCFunctionBase inletFunction;
+        baseBCName = "InletRing_";
+
+        for(unsigned int ringFlag : M_inletRingFlags)
+        {
+            inletFlag = std::bind(constantFunction,
                                   std::placeholders::_1,
                                   std::placeholders::_2,
                                   std::placeholders::_3,
                                   std::placeholders::_4,
                                   std::placeholders::_5,
-                                  M_inletRingFlag);
-        LifeV::BCFunctionBase inletFunction(inletFlag);
+                                  ringFlag);
+            inletFunction.setFunction(inletFlag);
 
-        bcs->addBC("InletRing", M_inletRingFlag, LifeV::EssentialEdges,
-                   LifeV::Full, inletFunction, 3);
+            BCName = baseBCName + std::to_string(ringFlag);
+            bcs->addBC(BCName, ringFlag, LifeV::EssentialEdges,
+                       LifeV::Full, inletFunction, 3);
+        }
     }
-
-    std::string baseBCName = "OutletRing_";
-    std::string BCName;
 
     std::vector<unsigned int> outletFlags = (onlyExtremal) ? M_trueOutletRingFlags : M_outletRingFlags;
     bool outletCondition = (!onlyExtremal || M_treeNode->isOutletNode()) &&
@@ -738,6 +782,7 @@ computeRingsIndicator(shp<FESPACE> fespace, const unsigned int flag, const bool 
     {
         FUN outletFlag;
         LifeV::BCFunctionBase outletFunction;
+        baseBCName = "OutletRing_";
 
         for(unsigned int ringFlag : outletFlags)
         {
@@ -772,7 +817,7 @@ computeGlobalRotationMatrix(shp<FESPACE> fespace)
     if (M_globalRotationMatrix)
         return;
 
-    // throw Exception is the fespace is null
+    // throw Exception if the fespace is null
     if (!fespace)
         throw new Exception("Impossible to build a rotation matrix if the"
                             " given FESpace is null!");
@@ -815,13 +860,16 @@ computeGlobalRotationMatrix(shp<FESPACE> fespace)
     {
         id = MyGlobalElements[i];
 
-        if (std::abs((*ringsIndicator)[id] - M_inletRingFlag) <= 1e-10)
-            flag = M_inletRingFlag;
+        auto itIn = std::find(M_inletRingFlags.begin(), M_inletRingFlags.end(),
+                              (*ringsIndicator)[id]);
+        if (itIn != M_inletRingFlags.end())
+            flag = *itIn;
         else
         {
-            auto it = std::find(M_trueOutletRingFlags.begin(), M_trueOutletRingFlags.end(), (*ringsIndicator)[id]);
-            if (it != M_trueOutletRingFlags.end())
-                flag = *it;
+            auto itOut = std::find(M_trueOutletRingFlags.begin(), M_trueOutletRingFlags.end(),
+                                   (*ringsIndicator)[id]);
+            if (itOut != M_trueOutletRingFlags.end())
+                flag = *itOut;
             else
                 flag = 999;
         }
@@ -868,8 +916,7 @@ BCManager::
 shiftToNormalTangentialCoordSystem(shp<MATRIXEPETRA> mat, shp<VECTOREPETRA> vec,
                                    shp<FESPACE> fespace)
 {
-    if ((fespace) && ((M_treeNode->isInletNode()) || (M_treeNode->isOutletNode())))  // TODO change here!
-    // if (fespace)
+    if ((fespace) && ((M_treeNode->isInletNode()) || (M_treeNode->isOutletNode())))
         this->computeGlobalRotationMatrix(fespace);
 
     unsigned int nDOF = fespace->dof().numTotalDof();
@@ -926,8 +973,7 @@ BCManager::
 shiftToCartesianCoordSystem(shp<MATRIXEPETRA> mat, shp<VECTOREPETRA> vec,
                             shp<FESPACE> fespace)
 {
-    if ((fespace) && ((M_treeNode->isInletNode()) || (M_treeNode->isOutletNode())))  // TODO change here!
-    // if (fespace)
+    if ((fespace) && ((M_treeNode->isInletNode()) || (M_treeNode->isOutletNode())))
         this->computeGlobalRotationMatrix(fespace);
 
     unsigned int nDOF = fespace->dof().numTotalDof();

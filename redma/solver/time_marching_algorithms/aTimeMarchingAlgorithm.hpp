@@ -102,7 +102,7 @@ public:
      */
     virtual shp<aVector> computeExtrapolatedSolution() = 0;
 
-    /*! \brief Virtual function to combine solutions at previopus time instants.
+    /*! \brief Virtual function to combine solutions at previous time instants.
      *
      * \return Shared pointer to the combination between the previous solutions.
      */

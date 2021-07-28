@@ -56,7 +56,7 @@ int main(int argc, char **argv)
     Chrono chrono;
     chrono.start();
 
-    std::string msg = "Starting chrono \n";
+    std::string msg = "Starting chrono... \n";
     printlog(MAGENTA, msg, true);
 
     DataContainer data;
@@ -64,8 +64,10 @@ int main(int argc, char **argv)
     data.setVerbose(comm->MyPID() == 0);
 
     if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet"))
+        // the second argument is the flag of the inlet. It depends on the mesh.
         data.setInflow(inflowDirichlet);
     else if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "neumann"))
+        // the second argument is the flag of the inlet. It depends on the mesh.
         data.setInflow(inflowNeumann);
     else
         throw new Exception("Unrecognized inlet BC type!");

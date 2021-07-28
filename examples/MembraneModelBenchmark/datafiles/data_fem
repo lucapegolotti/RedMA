@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/tree_fem_membrane.xml
+	xmlfile = geometries/tree2.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -25,7 +25,7 @@ outputdir = rb_solutions
 	inflowfile = datafiles/inflow.txt
 	coefficientinflow = 1.000552724487405
 	numoutletbcs = 0
-	ring_constraint = normal # type of homogeneous BC imposed at I/O rings
+	ring_constraint = normal  # type of homogeneous BC imposed at I/O rings
 [../]
 
 [rb]
@@ -95,7 +95,7 @@ outputdir = rb_solutions
 [../]
 
 [newton_method]
-	tol = 1e-4
+	tol = 1e-5
 	maxit = 10
 	relaxation = 1.0
 [../]

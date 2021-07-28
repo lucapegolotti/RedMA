@@ -18,6 +18,7 @@
 #define REDMA_MEMBRANETHICKNESSCOMPUTER_H
 
 #include <redma/RedMA.hpp>
+#include <redma/problem/DataContainer.hpp>
 
 #include <lifev/core/fem/BCManage.hpp>
 #include <lifev/eta/expression/Integrate.hpp>
@@ -60,7 +61,7 @@ class MembraneThicknessComputer {
          * @param datafile The datafile
          * @param comm The Epetra Communicator (for multi-processing)
          */
-        MembraneThicknessComputer(const GetPot& datafile,
+        MembraneThicknessComputer(const DataContainer& datafile,
                                   EPETRACOMM comm);
 
         /*! \brief Setup method, initializing all quantities needed to compute the membrane thickness.
@@ -72,15 +73,16 @@ class MembraneThicknessComputer {
          * right-hand side term, applying the proper BCs at the I/O rings, and it initializes the linear
          * system solver.
          *
-         * @param R_in Inlet radius
+         * @param R_in Vector storing the radia of the inlets
          * @param R_out Vector storing the radia of the outlets
-         * @param inletFlag Flag of the inlet ring
+         * @param inletFlag Vector storing the flags of the inlet rings
          * @param outletFlags Vector storing the flags of the outlet rings
-         * @param mesh Mesh
+         * @param wallFlag Flag of the lateral wall (i.e. structure)
+         * @param mesh Shared pointer to the mesh
          */
-        void setup(const double& R_in, const std::vector<double>& R_out,
-                   const int& inletFlag, const std::vector<int>& outletFlags,
-                   shp<MESH> mesh);
+        void setup(const std::vector<double>& R_in, const std::vector<double>& R_out,
+                   const std::vector<unsigned int>& inletFlags, const std::vector<unsigned int>& outletFlags,
+                   const unsigned int& wallFlag, shp<MESH> mesh);
 
         /*! \brief Method to compute the membrane thickness.
          *
@@ -140,13 +142,12 @@ class MembraneThicknessComputer {
 
         shp <VECTOREPETRA>                            M_thickness;
         double                                        M_thicknessProportion;
-        int                                           M_wallFlag;
         int                                           M_constantFlag;
 
         shp <MATRIXEPETRA>                            M_stiffness;
         shp <VECTOREPETRA>                            M_rhs;
 
-        GetPot                                        M_datafile;
+        DataContainer                                 M_datafile;
 
         EPETRACOMM                                    M_comm;
 
@@ -156,11 +157,13 @@ class MembraneThicknessComputer {
         shp<FESPACE>                                  M_fespace;
         shp<ETFESPACE1>                               M_fespaceETA;
 
-        double                                        M_R_in;
+        std::vector<double>                           M_R_in;
         std::vector<double>                           M_R_out;
+        double                                        M_R_ref;
 
-        int                                           M_inletFlag;
-        std::vector<int>                              M_outletFlags;
+        std::vector<unsigned int>                     M_inletFlags;
+        std::vector<unsigned int>                     M_outletFlags;
+        unsigned int                                  M_wallFlag;
 
     };
 

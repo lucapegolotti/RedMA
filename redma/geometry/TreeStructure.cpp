@@ -44,35 +44,45 @@ TreeNode::
 getOutlets() const
 {
     std::vector<GeometricFace> outlets;
-    Vector3D normalIn;
+    /*Vector3D normalIn;
     Vector3D centerIn;
     Vector3D normalOut;
-    Vector3D centerOut;
+    Vector3D centerOut;*/
     bool isOutlet;
 
-    double diff;
+    // double diff;
 
     if (this->isOutletNode())
     {
         for (const auto& outlet : M_block->getOutlets())
         {
-            normalOut = outlet.M_normal;
-            centerOut = outlet.M_center;
+            /*normalOut = outlet.M_normal;
+            centerOut = outlet.M_center;*/
 
             isOutlet = true;
 
-            if (M_nChildren > 0) {
-                for (const auto &child : M_children) {
-                    normalIn = child->M_block->getInlet().M_normal;
-                    normalIn *= (-1);
-                    centerIn = child->M_block->getInlet().M_center;
-                    centerIn *= (-1);
+            if (M_nChildren > 0)
+            {
+                for (const auto &child : M_children)
+                {
+                    std::vector<GeometricFace> inlets = child->M_block->getInlets();
+                    for (auto inlet : inlets)
+                    {
+                        if (inlet == outlet)
+                        {
+                            isOutlet = false;
+                            break;
+                        }
+                        /*normalIn = inlet.M_normal;
+                        normalIn *= (-1);
+                        centerIn = inlet.M_center;
 
-                    diff = (normalIn - normalOut).norm() + (centerIn - centerOut).norm();
+                        diff = (normalIn - normalOut).norm() + (centerIn - centerOut).norm();
 
-                    if (diff <= 1e-8) {
-                        isOutlet = false;
-                        break;
+                        if (diff <= 1e-8) {
+                            isOutlet = false;
+                            break;
+                        }*/
                     }
                 }
             }

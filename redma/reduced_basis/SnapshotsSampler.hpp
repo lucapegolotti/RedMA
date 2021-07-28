@@ -39,7 +39,7 @@ public:
                      EPETRACOMM comm);
 
     /// Take the snapshots.
-    void takeSnapshots();
+    void takeSnapshots(const unsigned int& Nstart = 0);
 
     /*! \brief Dump snapshots to file.
      *

@@ -26,6 +26,7 @@
 #include <redma/utils/Exception.hpp>
 #include <redma/utils/PrintLog.hpp>
 #include <redma/geometry/GeometricParametersHandler.hpp>
+#include <redma/geometry/MembraneThicknessComputer.hpp>
 #include <redma/problem/DataContainer.hpp>
 
 #include <lifev/core/mesh/RegionMesh.hpp>
@@ -76,19 +77,26 @@ public:
      * \param normal Normal of the face.
      * \param radius The radius of the face.
      * \param flag The flag of the face.
-     * \param flagDisk The flag of the disk.
+     * \param flagDisk The flag of the ring.
      */
     GeometricFace(Vector3D center,
                   Vector3D normal,
                   double radius,
                   unsigned int flag,
-                  unsigned int flagDisk);
+                  unsigned int flagRing);
 
     /// Print information regarding the geometric face.
     void print() const;
 
+    /*! \brief Equality operator between geometric faces.
+     *
+     * \param lhs Left Hand Side face
+     * \param rhs Right Hand Side face
+     */
+    friend bool operator==(const GeometricFace& lhs, const GeometricFace& rhs);
+
     unsigned int    M_flag;
-    unsigned int    M_diskFlag;
+    unsigned int    M_ringFlag;
     Vector3D        M_center;
     Vector3D        M_normal;
     double          M_radius;
@@ -178,13 +186,13 @@ public:
      */
     virtual void applyNonAffineTransformation(bool transformMesh = true) = 0;
 
-    /*! \brief Apply nonaffine and affine transformation.
+    /*! \brief Apply non-affine and affine transformation.
      *
      * \param transformMesh If true, the mesh is modified and transformed.
      */
     void applyGlobalTransformation(bool transformMesh = true);
 
-    /*! \brief Dump themesh to file.
+    /*! \brief Dump the mesh to file.
      *
      * \param outdir The output directory.
      * \param meshdir The directory where the meshes are stored.
@@ -197,26 +205,26 @@ public:
     /*! \brief Get an outlet.
      *
      * \param indexFace The index of the face.
-     * \return The geometric face.
+     * \return The outlet geometric face.
      */
     GeometricFace getOutlet(unsigned int indexFace) const;
 
     /*! \brief Get the outlets.
      *
-     * \return Vector of geometric faces.
+     * \return Vector of the outlet geometric faces.
      */
     std::vector<GeometricFace> getOutlets() const;
 
     /*! \brief Get an inlet.
      *
      * \param indexInlet The index of the inlet.
-     * \return The geometric face.
+     * \return The inlet geometric face.
      */
     GeometricFace getInlet(unsigned int indexFace) const;
 
-    /*! \brief Get the inlet.
+    /*! \brief Get the inlets.
      *
-     * \return The geometric face.
+     * \return Vector of the inlet geometric faces.
      */
     std::vector<GeometricFace> getInlets() const;
 
@@ -236,7 +244,7 @@ public:
      *
      * \retrun Shared pointer to the mesh.
      */
-    shp<MESH> getMesh();
+    shp<MESH> getMesh() const;
 
     /*! \brief Set the datafile.
      *
@@ -280,6 +288,15 @@ public:
     static Matrix3D computeRotationMatrix(Vector3D axis,
                                           double angle);
 
+    /// Compute the thickness of the membrane over the building block lateral surface.
+    void computeMembraneThickness();
+
+    /*! \brief Getter of the membrane thickness.
+     *
+     * \return A vector storing the thickness of the membrane over the building block lateral surface.
+     */
+    inline shp<VECTOREPETRA> getMembraneThickness() const {return M_membraneThicknessComputer->getThickness();}
+
     /*! \brief Get the refinement.
      *
      * \param The refinement.
@@ -322,6 +339,12 @@ public:
      * \return The assembler type.
      */
     inline std::string getAssemblerType() const {return M_assemblerType;}
+
+    /*! \brief Getter of the wall flag.
+     *
+     * \return The wall flag.
+     */
+    inline unsigned int getWallFlag() {return M_wallFlag;}
 
     /*! \brief Set the discretization method.
      *
@@ -395,12 +418,6 @@ public:
                                  double& y,
                                  double& z) {};
 
-    /*! \brief Getter of the wall flag.
-     *
-     * \return The wall flag.
-     */
-    unsigned int wallFlag() {return M_wallFlag;}
-
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,
@@ -414,41 +431,43 @@ protected:
     static double fZero(const double& t, const double& x, const double& y,
                         const double& z, const LifeV::ID& i);
 
-    GeometricParametersHandler      M_parametersHandler;
-    std::string                     M_name;
+    GeometricParametersHandler            M_parametersHandler;
+    std::string                           M_name;
 
-    std::string                     M_refinement;
-    std::string                     M_meshName;
-    shp<MESH>                       M_mesh;
+    std::string                           M_refinement;
+    std::string                           M_meshName;
+    shp<MESH>                             M_mesh;
 
-    Matrix3D                        M_R;
-    Matrix3D                        M_Raxis;
+    Matrix3D                              M_R;
+    Matrix3D                              M_Raxis;
 
-    EPETRACOMM                      M_comm;
+    EPETRACOMM                            M_comm;
 
-    bool                            M_verbose;
+    bool                                  M_verbose;
 
-    std::string                     M_datafileName;
+    std::string                           M_datafileName;
 
-    std::vector<GeometricFace>      M_inlets;
-    std::vector<GeometricFace>      M_outlets;
+    std::vector<GeometricFace>            M_inlets;
+    std::vector<GeometricFace>            M_outlets;
 
-    bool                            M_isChild;
+    bool                                  M_isChild;
 
-    double                          M_inletScale;
-    double                          M_scale;
+    double                                M_inletScale;
+    double                                M_scale;
 
-    Vector3D                        M_inletTranslation;
-    Vector3D                        M_inletRotationAxis;
-    Vector3D                        M_translation;
-    double                          M_inletAngle;
+    Vector3D                              M_inletTranslation;
+    Vector3D                              M_inletRotationAxis;
+    Vector3D                              M_translation;
+    double                                M_inletAngle;
 
-    DataContainer                   M_datafile;
+    DataContainer                         M_datafile;
 
-    std::string                     M_discrMethod;
-    std::string                     M_assemblerType;
+    std::string                           M_discrMethod;
+    std::string                           M_assemblerType;
 
-    unsigned int                    M_wallFlag;
+    unsigned int                          M_wallFlag;
+
+    shp<MembraneThicknessComputer>        M_membraneThicknessComputer;
 };
 
 }  // namespace RedMA
