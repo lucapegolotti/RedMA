@@ -418,6 +418,21 @@ public:
                                  double& y,
                                  double& z) {};
 
+    /*! \brief Compute a rotation matrix with respect to a local (n, t1, t2) reference system
+     *
+     * \param vec 3D vector, representing the normal vector
+     * \param index Index of the normal component in the resulting local reference system It defaults to 2.
+     * \return The rotation matrix to the local reference system
+     */
+    Matrix3D computeLocalRotationMatrix(Vector3D vec, const unsigned int& index = 2) const;
+
+    /*! \brief Compute two orthonormal tangent vectors to a given input vector
+     *
+     * \param vec 3D vector of reference
+     * \return A pair of tangent orthonormal vectors to the input vector
+     */
+    static std::pair<Vector3D, Vector3D> computeLocalTangentVersors(const Vector3D& normal);
+
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,

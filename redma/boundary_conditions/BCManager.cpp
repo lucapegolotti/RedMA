@@ -9,7 +9,7 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
   M_treeNode(treeNode)
 {
     M_inletBCType = data("bc_conditions/inlet_bc_type", "dirichlet");
-    M_strongDirichlet = std::strcmp(data("bc_conditions/inletdirichlet", "weak").c_str(),"strong") == 0;
+    // M_strongDirichlet = std::strcmp(data("bc_conditions/inletdirichlet", "weak").c_str(),"strong") == 0;
 
     M_ringConstraint = data("bc_conditions/ring_constraint", "normal");
 
@@ -611,113 +611,7 @@ constantFunction(const double& t, const double& x, const double& y,
     return K;
 }
 
-LifeV::MatrixSmall<3,3>
-BCManager::
-computeRotationMatrix(Vector3D vec, const unsigned int& index) const
-{
-    if (std::abs(vec.norm() - 1.0) <= 1e-10)
-        vec.normalize();
-
-    if (index > 2)
-        printlog(YELLOW, "[computeRotationMatrix] WARNING: "
-                         "the second argument must be either 0, 1 or 2!"
-                         "Setting it to 2 as default value",
-                 this->M_data.getVerbose());
-
-    Matrix3D mat;
-
-    std::pair<Vector3D, Vector3D> tangents = this->computeTangentVersors(vec);
-
-    // assign the prescribed normalized vector to the prescribed column
-    mat[0][index] = vec[0];
-    mat[1][index] = vec[1];
-    mat[2][index] = vec[2];
-
-    if (index != 0) {
-        mat[0][0] = tangents.first[0];
-        mat[1][0] = tangents.first[1];
-        mat[2][0] = tangents.first[2];
-    }
-    else {
-        mat[0][1] = tangents.first[0];
-        mat[1][1] = tangents.first[1];
-        mat[2][1] = tangents.first[2];
-    }
-
-    if (index != 2) {
-        mat[0][2] = tangents.second[0];
-        mat[1][2] = tangents.second[1];
-        mat[2][2] = tangents.second[2];
-    }
-    else {
-        mat[0][1] = tangents.second[0];
-        mat[1][1] = tangents.second[1];
-        mat[2][1] = tangents.second[2];
-    }
-
-    return mat;
-}
-
-std::pair<LifeV::VectorSmall<3>, LifeV::VectorSmall<3>>
-BCManager::
-computeTangentVersors(const Vector3D& normal) const
-{
-    Vector3D t1;
-    Vector3D t2;
-    std::pair<Vector3D, Vector3D> res;
-
-    double nx = normal[0];
-    double ny = normal[1];
-    double nz = normal[2];
-
-    double nx2 = std::sqrt(ny * ny + nz * nz);
-    double ny2 = std::sqrt(nx * nx + nz * nz);
-    double nz2 = std::sqrt(nx * nx + ny * ny);
-
-    if ((nx2 >= ny2) && (nx2 >= nz2))
-    {
-        //We create t1
-        t1[0] = 0;
-        t1[1] = nz / nx2;
-        t1[2] = -ny / nx2;
-
-        //We create t2
-        t2[0] = -nx2;
-        t2[1] = nx * ny / nx2;
-        t2[2] = nx * nz / nx2;
-    }
-    else if ((ny2 >= nx2) && (ny2 >= nz2))
-    {
-        //We create t1
-        t1[0] = -nz / ny2;
-        t1[1] = 0;
-        t1[2] = nx / ny2;
-
-        //We create t2
-        t2[0] = nx * ny / ny2;
-        t2[1] = -ny2;
-        t2[2] = ny * nz / ny2;
-    }
-    else
-    {
-        //We create t1
-        t1[0] = ny / nz2;
-        t1[1] = -nx / nz2;
-        t1[2] = 0;
-
-        //We create t2
-        t2[0] = nx * nz / nz2;
-        t2[1] = ny * nz / nz2;
-        t2[2] = -nz2;
-    }
-
-    res.first = t1;
-    res.second = t2;
-
-    return res;
-}
-
-std::map<unsigned int, LifeV::MatrixSmall<3,3>>
+std::map<unsigned int, BCManager::Matrix3D>
 BCManager::
 computeRotationMatrices() const
 {
@@ -725,11 +619,11 @@ computeRotationMatrices() const
 
     std::vector<GeometricFace> inlets = this->M_treeNode->M_block->getInlets();
     for (GeometricFace inlet : inlets)
-        rotationMatrices[inlet.M_ringFlag] = this->computeRotationMatrix(inlet.M_normal, 2);
+        rotationMatrices[inlet.M_ringFlag] = this->M_treeNode->M_block->computeLocalRotationMatrix(inlet.M_normal);
 
     std::vector<GeometricFace> outlets = this->M_treeNode->M_block->getOutlets();
     for (GeometricFace outlet : outlets)
-       rotationMatrices[outlet.M_ringFlag] = this->computeRotationMatrix(outlet.M_normal, 2);
+       rotationMatrices[outlet.M_ringFlag] = this->M_treeNode->M_block->computeLocalRotationMatrix(outlet.M_normal);
 
     return rotationMatrices;
 }

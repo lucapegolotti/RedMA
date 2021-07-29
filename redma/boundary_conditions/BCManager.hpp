@@ -109,7 +109,7 @@ public:
 
     void postProcess();
 
-    inline bool useStrongDirichlet() const {return M_strongDirichlet;}
+    // inline bool useStrongDirichlet() const {return M_strongDirichlet;}
 
     inline std::string getInletBCType() const {return M_inletBCType;}
 
@@ -144,8 +144,6 @@ private:
                                 const double& z, const unsigned int& i,
                                 Law inflowLaw);
 
-    Matrix3D computeRotationMatrix(Vector3D vec, const unsigned int& index = 2) const;
-
     std::map<unsigned int, Matrix3D> computeRotationMatrices() const;
 
     void computeGlobalRotationMatrix(shp<FESPACE> fespace);
@@ -155,8 +153,6 @@ private:
 
     void shiftToCartesianCoordSystem(shp<MATRIXEPETRA> mat, shp<VECTOREPETRA> vec,
                                      shp<FESPACE> fespace);
-
-    std::pair<Vector3D, Vector3D> computeTangentVersors(const Vector3D& normal) const;
 
     void checkInflowLaw();
 
@@ -178,9 +174,7 @@ private:
     std::string                                      M_inletBCType;
     std::string                                      M_ringConstraint;
     std::map<unsigned int, Law>                      M_inflows;
-    std::map<unsigned int, Law>                      M_inflowsDt;
-    bool                                             M_strongDirichlet;
-    double                                           M_coefficientInflow;
+    // bool                                             M_strongDirichlet;
 
     std::vector<unsigned int>                        M_inletFlags;
     std::vector<unsigned int>                        M_outletFlags;

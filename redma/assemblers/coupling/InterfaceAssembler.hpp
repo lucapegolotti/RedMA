@@ -81,6 +81,9 @@ class InterfaceAssembler
     /*typedef LifeV::DOFInterface3Dto3D                    InterfaceType;
     typedef std::shared_ptr<InterfaceType>               InterfacePtrType;*/
 
+    typedef LifeV::VectorSmall<3>                        Vector3D;
+    typedef LifeV::MatrixSmall<3,3>                      Matrix3D;
+
 public:
 
     /*! \brief Constructor taking a DataContainer as argument.
@@ -300,8 +303,8 @@ protected:
     bool                                      M_isInlet;
     bool                                      M_addNoSlipBC;
 
-    std::map<LifeV::ID, std::vector<double>>  M_fatherRingPoints;
-    std::map<LifeV::ID, std::vector<double>>  M_childRingPoints;
+    std::map<LifeV::ID, Vector3D>             M_fatherRingPoints;
+    std::map<LifeV::ID, Vector3D>             M_childRingPoints;
     std::map<LifeV::ID, LifeV::ID>            M_ringDOFsMap;
 };
 
