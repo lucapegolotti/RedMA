@@ -302,10 +302,11 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
         // 2a) add extra basis function on the disk ring
         const double h = (double) LifeV::MeshUtility::MeshStatistics::computeSize(*(assembler->getFEspace(0)->mesh())).meanH;
 
-        bfs = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet, true, h);
+        shp<BasisFunctionFunctor> bfsRing;
+        bfsRing = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet, true, h);
 
         std::vector<shp<DistributedVector>> ringCouplingVectors;
-        ringCouplingVectors = buildCouplingVectors(bfs, face, assembler);
+        ringCouplingVectors = buildCouplingVectors(bfsRing, face, assembler);
 
         // std::cout << "Ring coupling dimension: " << ringCouplingVectors.size() << std::endl;
 
@@ -334,7 +335,7 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
     matrixT->setBlock(0,0,couplingMatrix);
     matrix->setBlock(0,0,couplingMatrix->transpose());
 
-    // 4) imposing BCs on the transpose coupling matrix only
+    // 4) imposing BCs on the transposed coupling matrix only
     assembler->getBCManager()->apply0DirichletMatrix(*matrixT,
                                                      assembler->getFESpaceBCs(),
                                                      assembler->getComponentBCs(),

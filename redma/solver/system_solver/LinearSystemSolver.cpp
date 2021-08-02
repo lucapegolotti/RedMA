@@ -17,12 +17,20 @@ solve(const BM& matrix, const BV& rhs, BV& sol)
     if (matrix->type() != BLOCK || rhs->type() != BLOCK)
         throw new Exception("LinearSystemSolver currently supports only block structures!");
 
-    if (convert<BlockMatrix>(matrix)->block(0,0)->type() == DOUBLE)
+    if (convert<BlockMatrix>(matrix)->globalTypeIs(DOUBLE))
     {
-        double matValue = convert<Double>(convert<BlockMatrix>(matrix)->block(0,0))->getValue();
-        double rhsValue = convert<Double>(convert<BlockVector>(rhs)->block(0))->getValue();
-        sol->deepCopy(rhs);
-        spcast<Double>(convert<BlockVector>(sol)->block(0))->setValue(rhsValue/matValue);
+        double matValue = 0.0;
+        double rhsValue = 0.0;
+        if (convert<BlockMatrix>(matrix)->nRows() > 0)
+            matValue = convert<DoubleMatrix>(convert<BlockMatrix>(matrix)->block(0,0))->getValue();
+        if (convert<BlockVector>(rhs)->nRows() > 0)
+            rhsValue = convert<DoubleVector>(convert<BlockVector>(rhs)->block(0))->getValue();
+
+        sol.reset(new BlockVector(1));
+        shp<DoubleVector> retVec(new DoubleVector());
+        retVec->setValue(rhsValue/matValue);
+        convert<BlockVector>(sol)->setBlock(0, retVec);
+
         return;
     }
 

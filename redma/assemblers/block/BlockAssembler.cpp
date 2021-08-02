@@ -18,8 +18,9 @@ void
 BlockAssembler::
 checkStabTerm(const shp<aVector>& sol) const
 {
-    // for (auto as: M_dualAssemblers)
-    //     as->checkStabilizationTerm(sol, M_primalAssemblers.size());
+    for (auto as: M_dualAssemblers)
+        as->checkStabilizationTerm(spcast<BlockVector>(sol),
+                        M_primalAssemblers.size());
 }
 
 shp<aVector>

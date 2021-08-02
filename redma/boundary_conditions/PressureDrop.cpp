@@ -4,12 +4,10 @@ namespace RedMA
 {
 
 PressureDrop::
-PressureDrop(const double& C, const double& Rp, const double& Rd) :
+PressureDrop(const double& C, const double& Rd) :
   M_C(C),
-  M_Rp(Rp),
-  M_Rd(Rd)
+  M_R(Rd)
 {
-
 }
 
 
@@ -18,9 +16,10 @@ PressureDrop::
 getZeroVector() const
 {
     shp<BlockVector> retVec(new BlockVector(1));
-    shp<Double> value(new Double());
+    shp<DoubleVector> value(new DoubleVector());
     value->setValue(0);
-    retVec->setBlock(0,value);
+    retVec->setBlock(0, value);
+
     return retVec;
 }
 
@@ -29,8 +28,8 @@ PressureDrop::
 getMass(const double& time, const shp<aVector>& sol)
 {
     shp<BlockMatrix> mass(new BlockMatrix(1,1));
-    shp<Double> one(new Double());
-    one->setValue(1.0);
+    shp<DoubleMatrix> one(new DoubleMatrix());
+    one->setValue(1);
     mass->setBlock(0,0,one);
 
     return mass;
@@ -40,12 +39,7 @@ shp<aMatrix>
 PressureDrop::
 getPressureMass(const double& time, const shp<aVector>& sol)
 {
-    shp<BlockMatrix> mass(new BlockMatrix(1,1));
-    shp<Double> one(new Double());
-    one->setValue(1.0);
-    mass->setBlock(1,1,one);
-
-    return mass;
+    return this->getMass(time, sol);
 }
 
 shp<aMatrix>
@@ -62,9 +56,10 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
 {
     shp<BlockVector> retVec(new BlockVector(1));
     retVec->deepCopy(sol);
-    spcast<Double>(retVec->block(0))->multiplyByScalar(-1.0 / (M_C * M_Rd));
-    double v = spcast<Double>(retVec->block(0))->getValue();
-    // spcast<Double>(retVec->block(0))->setValue(v + M_Q / M_C);
+    retVec->block(0)->multiplyByScalar(-1.0 / (M_C * M_R));
+    double v = spcast<DoubleVector>(retVec->block(0))->getValue();
+    spcast<DoubleVector>(retVec->block(0))->setValue(v + M_Q / M_C);
+
     return retVec;
 }
 
@@ -73,9 +68,10 @@ PressureDrop::
 getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
 {
     shp<BlockMatrix> retMat(new BlockMatrix(1,1));
-    shp<Double> value(new Double());
-    // value->setValue(-1.0 / (M_C * M_Rd));
+    shp<DoubleMatrix> value(new DoubleMatrix());
+    value->setValue(-1.0 / (M_C * M_R));
     retMat->setBlock(0,0,value);
+
     return retMat;
 }
 

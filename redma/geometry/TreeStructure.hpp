@@ -42,7 +42,7 @@ private:
     typedef LifeV::VectorSmall<3>          Vector3D;
 public:
 
-    /*! \brief Costructor.
+    /*! \brief Constructor.
      *
      * \param block Shared pointer to the building block.
      * \param id ID of the building block.
@@ -228,4 +228,4 @@ private:
 
 }  // namespace RedMA
 
-#endif  // BUILDINGBLOCK_HPP
+#endif  // TREESTRUCTURE_HPP

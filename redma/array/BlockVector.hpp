@@ -20,6 +20,7 @@
 #include <redma/utils/Exception.hpp>
 #include <redma/array/DenseVector.hpp>
 #include <redma/array/DistributedVector.hpp>
+#include <redma/array/DoubleVector.hpp>
 #include <redma/array/Wrap.hpp>
 
 #include <boost/numeric/ublas/matrix.hpp>

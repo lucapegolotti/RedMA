@@ -162,8 +162,8 @@ outputdir = rb_solutions
 	stab_coefficient	= 1e-16
 	check_stabterm		= true
 	nfcts_weak_dirichlet = 5
-	frequencies_theta_ring = 10
+	frequencies_theta_ring = -1
 	frequencies_theta_ring_weak_dirichlet = -1
-	strong_ring = False
+	strong_ring = false
 	strong_dofs_per_ring = -1
 [../]

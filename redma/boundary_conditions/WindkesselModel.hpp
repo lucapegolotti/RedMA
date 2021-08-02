@@ -29,7 +29,7 @@ namespace RedMA
 
 // For a reference see:
 // "The nested block preconditioning technique for the incompressible Navier-Stokes
-// equations with emphasis on hemodynamic simulations" - Liu, Yang, Dong, Marsden
+// equations with emphasis on haemodynamic simulations" - Liu, Yang, Dong, Marsden
 class WindkesselModel
 {
 public:

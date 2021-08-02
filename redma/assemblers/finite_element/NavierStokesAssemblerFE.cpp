@@ -32,7 +32,7 @@ setup()
     {
         if (!std::strcmp(M_stabilizationName.c_str(), "supg"))
         {
-            printlog(WHITE, "[NavierStokesAssemblerFE] Setting up SUPG stabilization...\n",
+            printlog(YELLOW, "[NavierStokesAssemblerFE] Setting up SUPG stabilization...\n",
                      this->M_data.getVerbose());
 
             M_stabilization.reset(new SUPGStabilization(this->M_data,

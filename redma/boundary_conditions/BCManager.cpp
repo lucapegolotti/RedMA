@@ -17,7 +17,7 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
     int ninlets = M_data("bc_conditions/numinletbcs", -1);
     if (ninlets > 0)
     {
-        for (int indexInflow = 0; indexInflow < ninlets; indexInflow++)
+        for (unsigned int indexInflow = 0; indexInflow < ninlets; ++indexInflow)
         {
             std::string path = "bc_conditions/inlet" + std::to_string(indexInflow);
             unsigned int curflag = M_treeNode->M_block->getInlet(indexInflow).M_flag;
@@ -63,7 +63,7 @@ void
 BCManager::
 parseOutflowNeumannData()
 {
-    /*unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
+    unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
 
     for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
     {
@@ -75,7 +75,7 @@ parseOutflowNeumannData()
             unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
             M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
         }
-    }*/
+    }
 }
 
 void
@@ -199,7 +199,6 @@ applyDirichletBCs(const double& time, BlockVector& input,
                 addInletBC(bcs, M_inflows.find(inlet.M_flag)->second, inlet, ringOnly);
             }
         }
-        // bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
     }
 
     shp<VECTOREPETRA> curVec(spcast<VECTOREPETRA>(input.block(index)->data()));
@@ -512,32 +511,32 @@ double
 BCManager::
 getOutflowNeumannBC(const double& time, const double& flag, const double& rate)
 {
-    // auto it = M_models.find(flag);
-    // if (it == M_models.end())
-    //     return 0.0;
-    //
-    // return -M_models[flag]->getNeumannCondition(time, rate);
-    return 0.0;
+    auto it = M_models.find(flag);
+    if (it == M_models.end())
+        return 0.0;
+
+    return -M_models[flag]->getNeumannCondition(time, rate);
+    // return 0.0;
 }
 
 double
 BCManager::
 getOutflowNeumannJacobian(const double& time, const double& flag, const double& rate)
 {
-    // auto it = M_models.find(flag);
-    // if (it == M_models.end())
-    //     return 0.0;
-    //
-    // return -M_models[flag]->getNeumannJacobian(time, rate);
-    return 0.0;
+    auto it = M_models.find(flag);
+    if (it == M_models.end())
+        return 0.0;
+
+    return -M_models[flag]->getNeumannJacobian(time, rate);
+    // return 0.0;
 }
 
 void
 BCManager::
 postProcess()
 {
-    // for (auto windkessel : M_models)
-    //     windkessel.second->shiftSolutions();
+    for (auto windkessel : M_models)
+        windkessel.second->shiftSolutions();
 }
 
 std::vector<unsigned int>
@@ -789,11 +788,9 @@ computeGlobalRotationMatrix(shp<FESPACE> fespace)
             M_globalRotationMatrix->addToCoefficient(indices[1], indices[1], -1.0);
             M_globalRotationMatrix->addToCoefficient(indices[2], indices[2], -1.0);
 
-            for (unsigned int r=0; r<3; r++) {
-                for (unsigned int c=0; c<3; c++) {
+            for (unsigned int r=0; r<3; r++)
+                for (unsigned int c=0; c<3; c++)
                     values[r][c] = rotationMatrices[flag][r][c];
-                }
-            }
 
             M_globalRotationMatrix->addToCoefficients(3, 3, cols, rows, &values[0]);
         }

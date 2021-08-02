@@ -20,7 +20,8 @@
 #include <redma/RedMA.hpp>
 
 #include <redma/solver/time_marching_algorithms/aFunctionProvider.hpp>
-#include <redma/array/Double.hpp>
+#include <redma/array/DoubleVector.hpp>
+#include <redma/array/DoubleMatrix.hpp>
 #include <redma/array/BlockVector.hpp>
 #include <redma/array/BlockMatrix.hpp>
 
@@ -36,7 +37,7 @@ class PressureDrop : public aFunctionProvider
 {
 public:
 
-    PressureDrop(const double& C, const double& Rp, const double& Rd);
+    PressureDrop(const double& C, const double& Rd);
 
     virtual shp<aVector> getZeroVector() const override;
 
@@ -65,8 +66,7 @@ public:
 
 private:
     double                      M_C;  // compliance
-    double                      M_Rp; // proximal resistance
-    double                      M_Rd; // distal resistance
+    double                      M_R;  // resistance
     double                      M_Q;  // flow rate
 };
 

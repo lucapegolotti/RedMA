@@ -93,13 +93,13 @@ public:
     virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
                                                   const shp<aVector>& sol) = 0;
 
-    /* \brief Apply homogeneous Dirichlet boundary conditions to a vector.
+    /*! \brief Apply homogeneous Dirichlet boundary conditions to a vector.
      *
      * \param vector Shared pointer to the vector.
      */
     virtual void apply0DirichletBCs(shp<aVector> vector) const = 0;
 
-    /* \brief Apply Dirichlet boundary conditions to a vector.
+    /*! \brief Apply Dirichlet boundary conditions to a vector.
      *
      * \param time The current time.
      * \param vector Shared pointer to the vector.
@@ -107,7 +107,7 @@ public:
     virtual void applyDirichletBCs(const double& time,
                                    shp<aVector> vector) const = 0;
 
-    /* \brief Set the extrapolated solution.
+    /*! \brief Set the extrapolated solution.
      *
      * \param exSol Shared pointer to the extrapolated solution.
      */

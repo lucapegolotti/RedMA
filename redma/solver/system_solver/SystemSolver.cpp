@@ -22,7 +22,6 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
         BV curFun = fun(sol);
 
         double err = curFun->norm2();
-
         std::ostringstream streamOb;
         streamOb << err;
 
@@ -37,6 +36,15 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
         incr->multiplyByScalar(-1.0);
         sol->add(incr);
+
+        curFun = fun(sol);
+        err = curFun->norm2();
+        std::ostringstream streamOb2;
+        streamOb2 << err;
+
+        msg = "[SystemSolver] linear solve,";
+        msg += " final residual = " + streamOb2.str() + "\n";
+        printlog(GREEN, msg, M_data.getVerbose());
 
         status = 0;
     }

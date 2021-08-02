@@ -26,6 +26,7 @@
 #include <redma/array/SparseMatrix.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
+#include <redma/boundary_conditions/WindkesselModel.hpp>
 
 #include <lifev/core/fem/BCHandler.hpp>
 #include <lifev/core/array/VectorSmall.hpp>
@@ -189,6 +190,8 @@ private:
     shp<MATRIXEPETRA>                                M_globalRotationMatrix;
 
     std::map<unsigned int, double>                   M_coefficientsInflow;
+
+    std::map<unsigned int, shp<WindkesselModel>>     M_models;
 };
 
 }

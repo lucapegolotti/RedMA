@@ -1,131 +1,127 @@
-#include "Double.hpp"
+#include "DoubleVector.hpp"
 
 namespace RedMA
 {
-Double::
-Double()
+DoubleVector::
+DoubleVector()
 {
     M_double = 0;
 }
 
-void
-Double::
+/*void
+DoubleVector::
 add(shp<aMatrix> other)
 {
     if (!other->isZero())
     {
-        double value = convert<Double>(other)->getValue();
+        double value = convert<DoubleVector>(other)->getValue();
         M_double += value;
     }
-}
+}*/
 
 void
-Double::
+DoubleVector::
 multiplyByScalar(const double& coeff)
 {
     M_double *= coeff;
 }
 
-shp<aVector>
-Double::
+/*shp<aVector>
+DoubleVector::
 multiplyByVector(shp<aVector> vector)
 {
-    shp<Double> res(new Double());
+    shp<DoubleVector> res(new DoubleVector());
     if (!vector->isZero())
     {
-        double value = convert<Double>(vector)->getValue();
+        double value = convert<DoubleVector>(vector)->getValue();
 
         res->setValue(M_double * value);
     }
     return res;
-}
+}*/
 
-shp<aMatrix>
-Double::
+/*shp<aMatrix>
+DoubleVector::
 multiplyByMatrix(shp<aMatrix> other)
 {
-    shp<Double> res(new Double());
+    shp<DoubleVector> res(new DoubleVector());
     if (!other->isZero())
     {
-        double value = convert<Double>(other)->getValue();
+        double value = convert<DoubleVector>(other)->getValue();
         res->setValue(M_double * value);
     }
     return res;
-}
+}*/
 
 void
-Double::
+DoubleVector::
 dump(std::string namefile) const
 {
-    throw new Exception("Method dump not implemented for Double!");
+    throw new Exception("Method dump not implemented for class DoubleVector!");
 }
 
 bool
-Double::
+DoubleVector::
 isZero() const
 {
-    return M_double == 0;
+    return false; //M_double == 0;
 }
 
 double
-Double::
+DoubleVector::
 operator()(unsigned int index)
 {
     return M_double;
 }
 
 void
-Double::
+DoubleVector::
 add(shp<aVector> other)
 {
     if (!other->isZero())
     {
-        double value = value = convert<Double>(other)->getValue();
+        double value = convert<DoubleVector>(other)->getValue();
         M_double += value;
     }
 }
 
 void
-Double::
+DoubleVector::
 shallowCopy(shp<aDataWrapper> other)
 {
-    double value = convert<Double>(other)->getValue();
+    double value = convert<DoubleVector>(other)->getValue();
     M_double = value;
 }
 
 void
-Double::
+DoubleVector::
 deepCopy(shp<aDataWrapper> other)
 {
     double value = 0;
     if (other)
-        value = convert<Double>(other)->getValue();
+        value = convert<DoubleVector>(other)->getValue();
     M_double = value;
 }
 
 std::string
-Double::
+DoubleVector::
 getString(const char& delimiter) const
 {
-    throw new Exception("Method getString not implemented for Double!");
+    throw new Exception("Method getString not implemented for class DoubleVector!");
 }
 
-double
-Double::
-norm2() const
-{
-    return M_double > 0 ? M_double : -M_double;
-}
-
-aDataWrapper*
-Double::
+DoubleVector*
+DoubleVector::
 clone() const
 {
-    throw new Exception("Method clone not implemented for Double!");
+    DoubleVector* value = new DoubleVector();
+    value->setValue(M_double);
+    return value;
+    // throw new Exception("Method clone not implemented for class DoubleVector!");
 }
 
 shp<void>
-Double::
+DoubleVector::
 data() const
 {
     shp<double> res(new double(M_double));
@@ -134,7 +130,7 @@ data() const
 
 // specification of template function to avoid ambiguous cast
 template<>
-shp<Double> convert(shp<aDataWrapper> container)
+shp<DoubleVector> convert(shp<aDataWrapper> container)
 {
     if (container->type() != DOUBLE)
     {
@@ -145,7 +141,7 @@ shp<Double> convert(shp<aDataWrapper> container)
         msg += "\n";
         throw new Exception(msg);
     }
-    return spcast<Double>(spcast<aVector>(container));
+    return spcast<DoubleVector>(spcast<aVector>(container));
 }
 
 }

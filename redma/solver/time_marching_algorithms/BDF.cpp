@@ -13,7 +13,7 @@ BDF(const DataContainer& data) :
     // if we set this we save the evaluation of the residual at the end of resolution
     // (important for rb method)
     if (M_useExtrapolation)
-        this->M_systemSolver.isLinearProblem();
+        this->setLinearSolver();
 }
 
 BDF::
@@ -197,7 +197,7 @@ advance(const double& time, double& dt, int& status)
 
         f->multiplyByScalar(-1. * M_rhsCoeff * dt);
         retVec->add(f);
-        // the previous solution satisfies the boundary conditions so we search
+        // the previous solution satisfies the boundary conditions, so we search
         // for an increment with 0bcs
         this->M_funProvider->apply0DirichletBCs(retVec);
 
@@ -295,7 +295,8 @@ shiftSolutions(const shp<aVector>& sol)
 {
     // shift solutions
     std::vector<shp<BlockVector>> newPrevSolutions(std::max(M_order, M_extrapolationOrder));
-    newPrevSolutions[0].reset(dynamic_cast<BlockVector*>(sol->clone()));
+    shp<BlockVector> newSol = dpcast<BlockVector>(sol);
+    newPrevSolutions[0].reset(newSol->clone());
 
     for (unsigned int i = 0; i < std::max(M_order, M_extrapolationOrder)-1; i++)
         newPrevSolutions[i+1].reset(new BlockVector(*M_prevSolutions[i]));

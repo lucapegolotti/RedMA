@@ -37,6 +37,11 @@ double inflowNeumann(double t)
     return 0;
 }
 
+double distalPressure(double t)
+{
+    return 0.0;
+}
+
 int main(int argc, char **argv)
 {
     #ifdef HAVE_MPI
@@ -49,7 +54,7 @@ int main(int argc, char **argv)
     Chrono chrono;
     chrono.start();
 
-    std::string msg = "Starting chrono...\n";
+    std::string msg = "Starting chrono \n";
     printlog(MAGENTA, msg, true);
 
     DataContainer data;
@@ -76,8 +81,8 @@ int main(int argc, char **argv)
         curSolutionDir = solutionDir + "/solution" + std::to_string(solutionIndex) + "/";
     }
 
-    if (solutionIndex >= 1000){
-        msg = "Cannot store more than 1000 solutions!\n";
+    if (solutionIndex >= 100){
+        msg = "Cannot store more than 100 solutions!\n";
         printlog(RED, msg, true);
         exit(1);
     }
@@ -88,6 +93,7 @@ int main(int argc, char **argv)
     }
 
     data.setValueString("exporter/outdir", curSolutionDir);
+    data.setDistalPressure(distalPressure, 0);
     data.finalize();
 
     GlobalProblem femProblem(data, comm);

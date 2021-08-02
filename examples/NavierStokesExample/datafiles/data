@@ -12,7 +12,10 @@ outputdir = rb_solutions
 
 [assembler]
 	type = navierstokes
-	stabilization = supg
+	[./stabilization]
+	    type = supg  # to choose in {none, supg, ip}
+	    gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
+    [../]
 [../]
 
 [bc_conditions]
@@ -21,7 +24,21 @@ outputdir = rb_solutions
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 	coefficientinflow = 1.000552724487405
-	numoutletbcs = 0
+	numoutletbcs = 2
+	[./outlet0]
+        blockindex = 5
+        boundaryflag = 2
+        C = 0.0000760
+        Rp = 718.27
+        Rd = 15945.20
+    [../]
+    [./outlet1]
+        blockindex = 8
+        boundaryflag = 2
+        C = 0.0000760
+        Rp = 718.27
+        Rd = 15945.20
+    [../]
 	ring_constraint = full # type of homogeneous BC imposed at I/O rings
 [../]
 
@@ -94,10 +111,11 @@ outputdir = rb_solutions
 [newton_method]
 	tol = 1e-4
 	maxit = 10
+	relaxation = 1.0
 [../]
 
 [fluid]
-	velocity_order = P2
+	velocity_order = P1
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1.06
@@ -105,7 +123,7 @@ outputdir = rb_solutions
 
 [structure]
 	time_integration_order = 3
-	poisson      = 0.45
+	poisson      = 0.5
 	num_young    = 1
 	young    	 = 4.07e+6
 	thickness    = 0.1
@@ -123,7 +141,7 @@ outputdir = rb_solutions
 	rhoinf = 0.5
 	order = 2
 	extrapolation_order = 2
-	t0ramp = 0
+	t0ramp = -0.002
 	t0 = 0
 	T = 0.1
 	dt = 0.0002
@@ -145,6 +163,10 @@ outputdir = rb_solutions
 	type                = chebyshev
 	nMax                = 5
 	stab_coefficient	= 1e-16
-	check_stabterm		= true
+	check_stabterm		= false
 	nfcts_weak_dirichlet = 5
+	frequencies_theta_ring = 5
+    frequencies_theta_ring_weak_dirichlet = -1
+    strong_ring = true
+    strong_dofs_per_ring = 4
 [../]

@@ -128,6 +128,9 @@ public:
      */
     void setComm(EPETRACOMM comm) {M_comm = comm; M_systemSolver.setComm(comm);}
 
+    /// Set the solver as linear
+    inline void setLinearSolver() {this->M_systemSolver.isLinearProblem();}
+
 protected:
     void initializeStatisticsFile();
 

@@ -172,13 +172,13 @@ addNeumannBCs(double time,
     if (aAssembler::M_treeNode->isOutletNode())
     {
         auto flowRates = this->computeFlowRates(sol, true);
-        std::vector<unsigned int> inletFlags;
-        for (auto in : aAssembler::M_treeNode->M_block->getInlets())
-            inletFlags.push_back(in.M_flag);
+        std::vector<unsigned int> outletFlags;
+        for (auto out : aAssembler::M_treeNode->M_block->getOutlets())
+            outletFlags.push_back(out.M_flag);
 
         for (auto rate : flowRates) 
         {
-            if (std::find(inletFlags.begin(), inletFlags.end(), rate.first) != inletFlags.end())
+            if (std::find(outletFlags.begin(), outletFlags.end(), rate.first) != outletFlags.end())
             {
                 double P = this->M_bcManager->getOutflowNeumannBC(time, rate.first, rate.second);
 

@@ -154,8 +154,8 @@ BlockVector::
 multiplyByScalar(const double& coeff)
 {
     for (unsigned int i = 0; i < nRows(); i++)
-    if (block(i))
-        block(i)->multiplyByScalar(coeff);
+        if (block(i) && !(block(i)->isZero()))
+            block(i)->multiplyByScalar(coeff);
 }
 
 void
