@@ -55,8 +55,8 @@ public:
      * \param inflow The inflow rate law.
      * \param inletIndex. The index of the inlet to be considered. If not specified, it defaults to 99 (unique inlet)
      */
-    void setInflow(const Law& inflow,
-                   unsigned int indexInlet = 99);
+    void setInletBC(const Law& inflow,
+                    unsigned int indexInlet = 99);
 
     /*! \brief Setter for the distal pressure.
      *
@@ -73,7 +73,7 @@ public:
     /*! \brief Finalize method.
      *
      * This method must be called whenever the inflow is passed through file.
-     * It calls the methods generateRamp() and generateInflow().
+     * It calls the methods generateRamp() and generateInletBC().
      */
     void finalize();
 
@@ -82,20 +82,20 @@ public:
 
     /*! \brief Getter for the inflow function corresponding to a specific flag.
      *
-     * The inflow function are either set in analytical form through setInflow
+     * The inflow function are either set in analytical form through setInletBC
      * or passed through file specified in M_datafile.
      *
      * \param flag The flag of the inlet.
      * \return Standard map with key = flag, value = inflow function.
      */
-    inline Law getInflow(unsigned int flag = 0) {return M_inflows[flag];}
+    inline Law getInletBC(unsigned int flag = 0) {return M_inletBCs[flag];}
 
     /*! \brief Getter for the inflow functions.
      *
-     * The inflow function is either set in analytical form through setInflow.
+     * The inflow function is either set in analytical form through setInletBC.
      * or passed through file specified in M_datafile.
      */
-    inline std::map<unsigned int, Law> getInflows() {return M_inflows;}
+    inline std::map<unsigned int, Law> getInflowBCs() {return M_inletBCs;}
 
     /// Getter for M_verbose.
     inline bool getVerbose() const {return M_verbose;}
@@ -187,19 +187,19 @@ public:
 
 protected:
 
-    /*! \brief Parse text file storing pairs of values in the form "time  flow"
+    /*! \brief Parse text file storing pairs of values in the form "time  value"
      *
      * \param filename Name of the file storing the data
-     * \return Vector of pairs of the form (time,flow)
+     * \return Vector of pairs of the form (time,value)
      */
-    std::vector<std::pair<double,double>> parseInflow(std::string filename);
+    std::vector<std::pair<double,double>> parseTimeValueFile(std::string filename);
 
-    /*! \brief Generate inflow law at the specified inlet by parsing data file and linear interpolation
+    /*! \brief Generate law at the specified inlet by parsing data file and linear interpolation
      *
-     * \param inputfilename Name of the file storing the inflow
+     * \param inputfilename Name of the file storing the inlet BC
      * \param indexInlet Index of the inlet to be consider. If the inlet in unique, it defaults to 99.
      */
-    void generateInflow(std::string inputfilename, unsigned int indexInlet = 99);
+    void generateInletBC(std::string inputfilename, unsigned int indexInlet = 99);
 
     /*! \brief Generate by linear interpolation from file and return the IntraMyocardial pressure.
      *
@@ -212,7 +212,7 @@ protected:
      */
     void generateRamp();
 
-    /*! \brief Linear interpolation method (used within generateInflow).
+    /*! \brief Linear interpolation method (used within generateInletBC).
      *
      * Given a vector of pairs, this method generate a functional to evaluate
      * the linear interpolant across those coordinates at any location.
@@ -225,7 +225,7 @@ protected:
 
     /*! \brief Check if the inflow for given inlet should be generated from file or externally set
      *
-     * Reads 'generate_inflow' field from data file; if 0 or 1, it returns; if -1
+     * Reads 'generate_inletBC' field from data file; if 0 or 1, it returns; if -1
      * (default value), it returns 1 if a datafile for the inflow is available,
      * 0 otherwise.
      *
@@ -233,10 +233,10 @@ protected:
      * \return True if the inflow can be generated from file, false otherwise
      *
      */
-    bool checkGenerateInflow(unsigned int indexInlet=99) const;
+    bool checkGenerateInletBC(unsigned int indexInlet=99) const;
 
     shp<GetPot>                                           M_datafile;
-    std::map<unsigned int, Law>                           M_inflows;
+    std::map<unsigned int, Law>                           M_inletBCs;
     Law                                                   M_ramp;
     std::map<unsigned int, Law>                           M_distalPressures;
     Law                                                   M_intraMyocardialPressure;

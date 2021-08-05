@@ -13,7 +13,7 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
 
     M_ringConstraint = data("bc_conditions/ring_constraint", "normal");
 
-    M_inflows = M_data.getInflows();
+    M_inflows = M_data.getInflowBCs();
     int ninlets = M_data("bc_conditions/numinletbcs", -1);
     if (ninlets > 0)
     {

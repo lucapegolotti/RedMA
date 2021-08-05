@@ -18,9 +18,9 @@ void
 BlockAssembler::
 checkStabTerm(const shp<aVector>& sol) const
 {
-    for (auto as: M_dualAssemblers)
+    /*for (auto as: M_dualAssemblers)
         as->checkStabilizationTerm(spcast<BlockVector>(sol),
-                        M_primalAssemblers.size());
+                        M_primalAssemblers.size());*/
 }
 
 shp<aVector>
@@ -158,8 +158,8 @@ postProcess(const double& t, const shp<aVector>& sol)
     for (auto as : M_primalAssemblers)
         as.second->postProcess(t, convert<BlockVector>(sol)->block(as.first));
 
-    if (this->M_data("coupling/check_stabterm", false))
-        checkStabTerm(sol);
+    /*if (this->M_data("coupling/check_stabterm", false))
+        checkStabTerm(sol);*/
 }
 
 shp<aMatrix>

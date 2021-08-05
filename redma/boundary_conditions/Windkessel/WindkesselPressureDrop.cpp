@@ -28,7 +28,7 @@ getMass(const double& time, const shp<aVector>& sol)
 {
     shp<BlockMatrix> mass(new BlockMatrix(1,1));
     shp<DoubleMatrix> value(new DoubleMatrix());
-    value->setValue(1.0);
+    value->setValue(M_R * M_C);
     mass->setBlock(0,0,value);
 
     return mass;
@@ -48,9 +48,9 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
 {
     shp<BlockVector> retVec(new BlockVector(1));
     retVec->deepCopy(sol);
-    retVec->block(0)->multiplyByScalar(-1.0 / (M_R * M_C));
+    retVec->block(0)->multiplyByScalar(-1.0);
     double v = spcast<DoubleVector>(retVec->block(0))->getValue();
-    spcast<DoubleVector>(retVec->block(0))->setValue(v + M_Q / M_C);
+    spcast<DoubleVector>(retVec->block(0))->setValue(v + M_Q * M_R);
 
     return retVec;
 }
@@ -61,7 +61,7 @@ getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
 {
     shp<BlockMatrix> retMat(new BlockMatrix(1,1));
     shp<DoubleMatrix> value(new DoubleMatrix());
-    value->setValue(-1.0 / (M_R * M_C));
+    value->setValue(-1.0);
     retMat->setBlock(0,0,value);
 
     return retMat;

@@ -16,12 +16,12 @@ setDatafile(const std::string& datafile)
 
 void
 DataContainer::
-setInflow(const std::function<double(double)>& inflow,
-          unsigned int indexInlet)
+setInletBC(const std::function<double(double)>& inflow,
+           unsigned int indexInlet)
 {
-    bool generate_inflow = this->checkGenerateInflow(indexInlet);
+    bool generate_inletBC = this->checkGenerateInletBC(indexInlet);
 
-    if (!(generate_inflow)) {
+    if (!(generate_inletBC)) {
         std::string path;
         if (indexInlet != 99)
             path = "bc_conditions/inlet" + std::to_string(indexInlet) +"/flag";
@@ -29,11 +29,11 @@ setInflow(const std::function<double(double)>& inflow,
             path = "bc_conditions/flag";
 
         unsigned int flag = (*M_datafile)(path.c_str(), 0);
-        M_inflows[flag] = inflow;
+        M_inletBCs[flag] = inflow;
     }
     else
-        printlog(YELLOW, "[DataContainer] WARNING: Inflow function will be "
-                      "read from file, as the 'generate_inflow' flag in datafile is set to 1\n");
+        printlog(YELLOW, "[DataContainer] WARNING: Inlet BC function will be "
+                      "read from file, as the 'generate_inletBC' flag in datafile is set to 1\n");
 }
 
 DataContainer::Law
@@ -43,9 +43,16 @@ getDistalPressure(const unsigned int& outletIndex) const
     auto it = M_distalPressures.find(outletIndex);
 
     if (it == M_distalPressures.end())
-        throw new Exception("Error in DataContainer: requested Distal pressure not present");
-
-    return it->second;
+    {
+        printlog(YELLOW, "[DataContainer] WARNING: distal pressure not set in outlet number " +
+                std::to_string(outletIndex) + ". Setting a default null distal pressure.\n");
+        std::function<double(double)> nullP = [](double t) {return 0.0;};
+        return nullP;
+    }
+    else
+    {
+        return it->second;
+    }
 }
 
 DataContainer::Law
@@ -139,35 +146,55 @@ DataContainer::
 finalize()
 {
     // handling inflows
-    if (M_inflows.empty())
+    if (M_inletBCs.empty())
     {
         generateRamp();
+        std::string BC_type = (*M_datafile)("bc_conditions/inlet_bc_type", "dirichlet");
 
         int ninlets = (*M_datafile)("bc_conditions/numinletbcs", -1);
         if (ninlets == -1)
         {
-            std::string inputfile = (*M_datafile)("bc_conditions/inflowfile",
-                                         "datafiles/inflow.txt");
-            generateInflow(inputfile, 99);
+            std::string inputfile;
+            if (!(std::strcmp(BC_type.c_str(), "dirichlet")))
+                inputfile = (*M_datafile)("bc_conditions/inflowfile",
+                            "datafiles/inflow.txt");
+            else if (!(std::strcmp(BC_type.c_str(), "neumann")))
+                inputfile = (*M_datafile)("bc_conditions/inletpressurefile",
+                        "datafiles/inlet_pressure.txt");
+            else
+                throw new Exception("Unrecognized inlet BC type " + BC_type);
+
+            generateInletBC(inputfile, 99);
         }
         else
         {
             for (unsigned int i = 0; i < ninlets; i++)
             {
                 std::string path = "bc_conditions/inlet" + std::to_string(i);
-                std::string arg1 = path + "/inflowfile";
-                std::string arg2 = "datafiles/inflow" + std::to_string(i) + ".txt";
+                std::string arg1;
+                std::string arg2;
+                if (!(std::strcmp(BC_type.c_str(), "dirichlet"))) {
+                    arg1 = path + "/inflowfile";
+                    arg2 = "datafiles/inflow" + std::to_string(i) + ".txt";
+                }
+                else if (!(std::strcmp(BC_type.c_str(), "neumann"))) {
+                    arg1 = path + "/inletpressurefile";
+                    arg2 = "datafiles/inlet_pressure" + std::to_string(i) + ".txt";
+                }
+                else
+                    throw new Exception("Unrecognized inlet BC type " + BC_type);
+
                 std::string inputfile = (*M_datafile)(arg1.c_str(),arg2.c_str());
-                generateInflow(inputfile, i);
+                generateInletBC(inputfile, i);
             }
         }
     }
 
-    if (M_inflows.empty())
+    if (M_inletBCs.empty())
         throw new Exception("An inflow function has neither being set nor being "
-                            "interpolated from datafile! Either call to  'setInflow' method before "
-                            "the 'finalize' method (with 'generate_inflow' flag set to 0) or call "
-                            "the 'finalize' method (with 'generate_inflow' flag set to 1 and "
+                            "interpolated from datafile! Either call to  'setInletBC' method before "
+                            "the 'finalize' method (with 'generate_inletBC' flag set to 0) or call "
+                            "the 'finalize' method (with 'generate_inletBC' flag set to 1 and "
                             "providing a valid inflow text file)!");
 
     // handling outlets
@@ -186,24 +213,30 @@ finalize()
     }
     if (indexOutlet == noutletbcs + 2)
     {
-        std::string IMPpath = (*M_datafile)("bc_conditions/pimfile", "datafiles/plv.txt");
+        std::string IMPpath = (*M_datafile)("bc_conditions/pimfile", "datafiles/IM_pressure.txt");
         this->generateIntraMyocardialPressure(IMPpath);
     }
 }
 
 void
 DataContainer::
-generateInflow(std::string inputfilename, unsigned int inletIndex)
+generateInletBC(std::string inputfilename, unsigned int indexInlet)
 {
-    bool generate_inflow = this->checkGenerateInflow(inletIndex);
+    bool generate_inletBC = this->checkGenerateInletBC(indexInlet);
 
-    if (generate_inflow)
+    if (generate_inletBC)
     {
-        std::string path = "bc_conditions/inlet" + std::to_string(inletIndex) + "/flag";
+        std::string path = "bc_conditions/inlet" + std::to_string(indexInlet) + "/flag";
         unsigned int flag = (*M_datafile)(path.c_str(), 0);
 
-        auto flowValues = parseInflow(inputfilename);
-        linearInterpolation(flowValues, M_inflows[flag]);
+        auto values = parseTimeValueFile(inputfilename);
+        linearInterpolation(values, M_inletBCs[flag]);
+
+        std::string BC_type = (*M_datafile)("bc_conditions/inlet_bc_type", "dirichlet");
+        if (!std::strcmp(BC_type.c_str(), "neumann")) {
+            std::function<double(double)> tmp = M_inletBCs[flag];
+            M_inletBCs[flag] = [tmp](double x) {return tmp(x) * (-1.0);};
+        }
     }
 }
 
@@ -211,16 +244,17 @@ void
 DataContainer::
 generateIntraMyocardialPressure(std::string inputfilename)
 {
-    // TODO: scale and shift !!
+    // TODO: scale and shift ??
     try
     {
-        auto values = parseInflow(inputfilename);
+        auto values = parseTimeValueFile(inputfilename);
         linearInterpolation(values, M_intraMyocardialPressure);
     }
     catch (Exception* e)
     {
         printlog(YELLOW, "[DataContainer] Intramyocardial pressure datafile not found; "
                          "setting it to 0 by default.");
+        M_intraMyocardialPressure = [](double t) {return 0.0;};
     }
 }
 
@@ -275,50 +309,34 @@ linearInterpolation(const std::vector<std::pair<double,double>>& values,
 
 std::vector<std::pair<double, double>>
 DataContainer::
-parseInflow(std::string filename)
+parseTimeValueFile(std::string filename)
 {
-    std::ifstream inflowfile;
-    inflowfile.open(filename);
+    std::ifstream inletfile;
+    inletfile.open(filename);
 
-    std::vector<std::pair<double, double>> flowValues;
-    if (inflowfile.is_open())
+    std::vector<std::pair<double, double>> values;
+    if (inletfile.is_open())
     {
-        while (inflowfile.good())
+        while (inletfile.good())
         {
             std::pair<double, double> newpair;
             std::string line;
-            std::getline(inflowfile>>std::ws,line);
+            std::getline(inletfile>>std::ws,line);
 
             if (!(line.empty()))
             {
                 std::stringstream lineStream(line);
-
                 lineStream >> newpair.first >> newpair.second;
 
-                if (!inflowfile || !lineStream)
+                if (!inletfile || !lineStream)
                     throw new Exception("Failed in reading file " + filename);
 
-                flowValues.push_back(newpair);
+                values.push_back(newpair);
             }
-
-            /*if (std::strcmp(line.c_str(),""))
-            {
-                auto firstspace = line.find(" ");
-                if (firstspace == std::string::npos || firstspace == 0)
-                    throw new Exception("Inflow file is badly formatted");
-                newpair.first = std::stod(line.substr(0,firstspace));
-
-                auto lastspace = line.find_last_of(" ");
-                if (lastspace == std::string::npos || lastspace == 0)
-                    throw new Exception("Inflow file is badly formatted");
-                newpair.second = std::stod(line.substr(lastspace+1,line.size()));
-
-                flowValues.push_back(newpair);
-            }*/
         }
-        inflowfile.close();
+        inletfile.close();
     }
-    return flowValues;
+    return values;
 }
 
 double
@@ -335,32 +353,50 @@ evaluateRamp(double time)
 
 bool
 DataContainer::
-checkGenerateInflow(unsigned int indexInlet) const
+checkGenerateInletBC(unsigned int indexInlet) const
 {
     std::string inlet_path;
     std::string default_path;
+    std::string BC_type = (*M_datafile)("bc_conditions/inlet_bc_type", "dirichlet");
     if (indexInlet != 99)
     {
         inlet_path = "bc_conditions/inlet" + std::to_string(indexInlet);
-        default_path = "datafiles/inflow" + std::to_string(indexInlet) + ".txt";
+        if (!(std::strcmp(BC_type.c_str(), "dirichlet")))
+            default_path = "datafiles/inflow" + std::to_string(indexInlet) + ".txt";
+        else if (!(std::strcmp(BC_type.c_str(), "neumann")))
+            default_path = "datafiles/inletpressure" + std::to_string(indexInlet) + ".txt";
+        else
+            throw new Exception("Unrecognized inlet BC type " + BC_type);
     }
     else
     {
         inlet_path = "bc_conditions";
-        default_path = "datafiles/inflow.txt";
+        if (!(std::strcmp(BC_type.c_str(), "dirichlet")))
+            default_path = "datafiles/inflow.txt";
+        else if (!(std::strcmp(BC_type.c_str(), "neumann")))
+            default_path = "datafiles/inlet_pressure.txt";
+        else
+            throw new Exception("Unrecognized inlet BC type " + BC_type);
     }
 
-    std::string path1 = inlet_path + "/generate_inflow";
-    int generate_inflow = (*M_datafile)(path1.c_str(), -1);
+    std::string path1 = inlet_path + "/generate_inletBC";
+    int generate_inletBC = (*M_datafile)(path1.c_str(), -1);
 
-    if (generate_inflow == -1)
+    if (generate_inletBC == -1)
     {
-        std::string path2 = inlet_path + "/inflowfile";
+        std::string path2;
+        if (!(std::strcmp(BC_type.c_str(), "dirichlet")))
+            path2 = inlet_path + "/inflowfile";
+        else if (!(std::strcmp(BC_type.c_str(), "neumann")))
+            path2 = inlet_path + "/inletpressurefile";
+        else
+            throw new Exception("Unrecognized inlet BC type " + BC_type);
+
         std::ifstream inflowfile((*M_datafile)(path2.c_str(),
                                                  default_path.c_str()));
-        generate_inflow = (inflowfile.good()) ? 1 : 0;
+        generate_inletBC = (inflowfile.good()) ? 1 : 0;
     }
 
-    return (generate_inflow == 1);
+    return (generate_inletBC == 1);
 }
 }
