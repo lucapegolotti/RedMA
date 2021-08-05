@@ -17,15 +17,7 @@
 #ifndef PRESSUREDROP_HPP
 #define PRESSUREDROP_HPP
 
-#include <redma/RedMA.hpp>
-
-#include <redma/solver/time_marching_algorithms/aFunctionProvider.hpp>
-#include <redma/array/DoubleVector.hpp>
-#include <redma/array/DoubleMatrix.hpp>
-#include <redma/array/BlockVector.hpp>
-#include <redma/array/BlockMatrix.hpp>
-
-#include <fstream>
+#include <redma/boundary_conditions/aPressureDrop.hpp>
 
 namespace RedMA
 {
@@ -33,19 +25,16 @@ namespace RedMA
 // we compute the pressure drop for the three element windkessel model following
 // "The nested block preconditioning technique for the incompressible Navier-Stokes
 // equations with emphasis on hemodynamic simulations" - Liu, Yang, Dong, Marsden
-class PressureDrop : public aFunctionProvider
+class WindkesselPressureDrop : public aPressureDrop
 {
 public:
 
-    PressureDrop(const double& C, const double& Rd);
+    WindkesselPressureDrop(const double& C, const double& Rd);
 
     virtual shp<aVector> getZeroVector() const override;
 
     virtual shp<aMatrix> getMass(const double& time,
                                 const shp<aVector>& sol) override;
-
-    virtual shp<aMatrix> getPressureMass(const double& time,
-                                         const shp<aVector>& sol) override;
 
     virtual shp<aMatrix> getMassJacobian(const double& time,
                                         const shp<aVector>& sol) override;
@@ -56,18 +45,9 @@ public:
     virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
                                                  const shp<aVector>& sol) override;
 
-    inline void setFlowRate(const double& Q) {M_Q = Q;}
-
-    virtual void apply0DirichletBCs(shp<aVector> vector) const override {}
-
-    virtual void applyDirichletBCs(const double& time, shp<aVector> vector) const override {}
-
-    void setExtrapolatedSolution(const shp<aVector>& exSol) override {throw new Exception("function must still be implemented PressureDrop");}
-
 private:
     double                      M_C;  // compliance
     double                      M_R;  // resistance
-    double                      M_Q;  // flow rate
 };
 
 }

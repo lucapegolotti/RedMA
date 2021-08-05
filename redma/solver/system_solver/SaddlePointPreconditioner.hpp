@@ -51,11 +51,9 @@ public:
      *
      * \param data The DataContainer of the problem.
      * \param matrix Shared pointer to the matrix.
-     * \param pressureMass Shared pointer to the pressure mass matrix.
      */
     SaddlePointPreconditioner(const DataContainer& data,
-                              const BM& matrix,
-                              const BM& pressureMass = nullptr);
+                              const BM& matrix);
 
     /*! \brief Apply the approximated inverse to a vector.
      *
@@ -80,11 +78,9 @@ public:
     /*! \brief Setup method.
      *
      * \param matrix The matrix.
-     * \param pressureMass The pressure mass matrix.
      * \param doComputeSchurComplement If true, compute the Schur complement based on the input matrix.
      */
     void setup(const BM& matrix,
-               const BM& pressureMass = nullptr,
                bool doComputeSchurComplement = true);
 
 private:

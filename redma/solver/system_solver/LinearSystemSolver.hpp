@@ -23,8 +23,10 @@
 #include <redma/solver/system_solver/LinearOperator.hpp>
 #include <redma/solver/system_solver/InverseOperator.hpp>
 #include <redma/solver/system_solver/SaddlePointPreconditioner.hpp>
-
 #include <redma/problem/DataContainer.hpp>
+
+#include <lifev/core/array/VectorSmall.hpp>
+#include <lifev/core/array/MatrixSmall.hpp>
 
 #include <memory>
 
@@ -44,6 +46,9 @@ class LinearSystemSolver
 {
     typedef shp<aVector>               BV;
     typedef shp<aMatrix>               BM;
+
+    typedef LifeV::MatrixSmall<2,2>    Matrix2D;
+    typedef LifeV::VectorSmall<2>      Vector2D;
 
 public:
     /*! \brief Constructor.
@@ -77,8 +82,6 @@ public:
     /// Setter for the MPI Communicator.
     void setComm(EPETRACOMM comm) {M_comm = comm;}
 
-    void setPressureMass(const BM& mass);
-
 private:
 
     // only required for dense computation
@@ -95,7 +98,6 @@ private:
     Epetra_SerialDenseSolver                        M_schurSolver;
     std::vector<shp<DenseMatrix>>                   M_collapsedAs;
     shp<DenseMatrix>                                M_schurComplementColl;
-    BM                                              M_Mp;
 
     DataContainer                                   M_data;
     shp<InverseOperator>                            M_invOper;

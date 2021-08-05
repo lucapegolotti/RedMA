@@ -44,7 +44,7 @@ class PreconditionerOperator : public LifeV::Operators::LinearOperatorAlgebra
 
 public:
     /// Empty constructor.
-    PreconditionerOperator();
+    PreconditionerOperator() {};
 
     /// Method not implemented.
     virtual int SetUseTranspose(bool UseTranspose) override {}
@@ -92,13 +92,9 @@ public:
      */
     inline double getSetupTime() const {return M_setupTime;}
 
-    void setPressureMass(const BM& mass);
-
 protected:
     EPETRACOMM                                           M_comm;
     double                                               M_setupTime;
-
-    BM                                                   M_Mp;
 };
 
 }

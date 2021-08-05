@@ -100,41 +100,48 @@ public:
     /// Getter for M_verbose.
     inline bool getVerbose() const {return M_verbose;}
 
-    /*! Getter for the distal pressure at a specific outlet.
+    /*! \brief Getter for the distal pressure at a specific outlet.
      *
      * \param outletIndex Index of the desired outlet.
+     * \return function representing the distal pressure at the prescribed outlet
      */
-    std::function<double(double)> getDistalPressure(const unsigned int& outletIndex) const;
+    Law getDistalPressure(const unsigned int& outletIndex) const;
 
-    /*! Method to retrieve a char* from the internal datafile.
+    /*! \brief Getter for the intramyocardial pressure
+     *
+     * \return Function describing the intramyocardial pressure at the prescribed outlet
+     */
+    Law getIntramyocardialPressure() const;
+
+    /*! \brief Method to retrieve a char* from the internal datafile.
      *
      * \param location Location within the datafile.
      * \param defValue Default value, returned if location is not found.
      */
     std::string operator()(std::string location, const char* defValue) const;
 
-    /*! Method to retrieve a string from the internal datafile.
+    /*! \brief Method to retrieve a string from the internal datafile.
      *
      * \param location Location within the datafile.
      * \param defValue Default value, returned if location is not found.
      */
     std::string operator()(std::string location, std::string defValue) const;
 
-    /*! Method to retrieve an int from the internal datafile.
+    /*! \brief Method to retrieve an int from the internal datafile.
      *
      * \param location Location within the datafile.
      * \param defValue Default value, returned if location is not found.
      */
     int operator()(std::string location, int defValue) const;
 
-    /*! Method to retrieve a double from the internal datafile.
+    /*! \brief Method to retrieve a double from the internal datafile.
      *
      * \param location Location within the datafile.
      * \param defValue Default value, returned if location is not found.
      */
     double operator()(std::string location, double defValue) const;
 
-    /*! Method to retrieve a bool from the internal datafile.
+    /*! \brief Method to retrieve a bool from the internal datafile.
      *
      * \param location Location within the datafile.
      * \param defValue Default value, returned if location is not found.
@@ -144,28 +151,28 @@ public:
     // we differentiate the methods that follow to avoid implicit conversion by +
     // mistake
 
-    /*! Method to set a string in the internal datafile.
+    /*! \brief Method to set a string in the internal datafile.
      *
      * \param location Location within the datafile.
      * \param value Value to set.
      */
     void setValueString(std::string location, std::string value);
 
-    /*! Method to set an int in the internal datafile.
+    /*! \brief Method to set an int in the internal datafile.
      *
      * \param location Location within the datafile.
      * \param value Value to set.
      */
     void setValueInt(std::string location, int value);
 
-    /*! Method to set a double in the internal datafile.
+    /*! \brief Method to set a double in the internal datafile.
      *
      * \param location Location within the datafile.
      * \param value Value to set.
      */
     void setValueDouble(std::string location, double value);
 
-    /*! Method to set a bool in the internal datafile.
+    /*! \brief Method to set a bool in the internal datafile.
      *
      * \param location Location within the datafile.
      * \param value Value to set.
@@ -179,9 +186,26 @@ public:
     double evaluateRamp(double time);
 
 protected:
+
+    /*! \brief Parse text file storing pairs of values in the form "time  flow"
+     *
+     * \param filename Name of the file storing the data
+     * \return Vector of pairs of the form (time,flow)
+     */
     std::vector<std::pair<double,double>> parseInflow(std::string filename);
 
+    /*! \brief Generate inflow law at the specified inlet by parsing data file and linear interpolation
+     *
+     * \param inputfilename Name of the file storing the inflow
+     * \param indexInlet Index of the inlet to be consider. If the inlet in unique, it defaults to 99.
+     */
     void generateInflow(std::string inputfilename, unsigned int indexInlet = 99);
+
+    /*! \brief Generate by linear interpolation from file and return the IntraMyocardial pressure.
+     *
+     * \param inputfilename Name of the file storing the data of Intramyocardial pressure
+     */
+    void generateIntraMyocardialPressure(std::string inputfilename);
 
     /*! \brief Generate ramp based on the values specified in the time_discretization
      * section of M_datafile.
@@ -215,6 +239,7 @@ protected:
     std::map<unsigned int, Law>                           M_inflows;
     Law                                                   M_ramp;
     std::map<unsigned int, Law>                           M_distalPressures;
+    Law                                                   M_intraMyocardialPressure;
     bool                                                  M_verbose;
 };
 

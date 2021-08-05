@@ -1,18 +1,17 @@
-#include "PressureDrop.hpp"
+#include "WindkesselPressureDrop.hpp"
 
 namespace RedMA
 {
 
-PressureDrop::
-PressureDrop(const double& C, const double& Rd) :
+WindkesselPressureDrop::
+WindkesselPressureDrop(const double& C, const double& Rd) :
   M_C(C),
   M_R(Rd)
 {
 }
 
-
 shp<aVector>
-PressureDrop::
+WindkesselPressureDrop::
 getZeroVector() const
 {
     shp<BlockVector> retVec(new BlockVector(1));
@@ -24,26 +23,19 @@ getZeroVector() const
 }
 
 shp<aMatrix>
-PressureDrop::
+WindkesselPressureDrop::
 getMass(const double& time, const shp<aVector>& sol)
 {
     shp<BlockMatrix> mass(new BlockMatrix(1,1));
-    shp<DoubleMatrix> one(new DoubleMatrix());
-    one->setValue(1);
-    mass->setBlock(0,0,one);
+    shp<DoubleMatrix> value(new DoubleMatrix());
+    value->setValue(1.0);
+    mass->setBlock(0,0,value);
 
     return mass;
 }
 
 shp<aMatrix>
-PressureDrop::
-getPressureMass(const double& time, const shp<aVector>& sol)
-{
-    return this->getMass(time, sol);
-}
-
-shp<aMatrix>
-PressureDrop::
+WindkesselPressureDrop::
 getMassJacobian(const double& time, const shp<aVector>& sol)
 {
     shp<BlockMatrix> massJac(new BlockMatrix(1,1));
@@ -51,12 +43,12 @@ getMassJacobian(const double& time, const shp<aVector>& sol)
 }
 
 shp<aVector>
-PressureDrop::
+WindkesselPressureDrop::
 getRightHandSide(const double& time, const shp<aVector>& sol)
 {
     shp<BlockVector> retVec(new BlockVector(1));
     retVec->deepCopy(sol);
-    retVec->block(0)->multiplyByScalar(-1.0 / (M_C * M_R));
+    retVec->block(0)->multiplyByScalar(-1.0 / (M_R * M_C));
     double v = spcast<DoubleVector>(retVec->block(0))->getValue();
     spcast<DoubleVector>(retVec->block(0))->setValue(v + M_Q / M_C);
 
@@ -64,12 +56,12 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
 }
 
 shp<aMatrix>
-PressureDrop::
+WindkesselPressureDrop::
 getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
 {
     shp<BlockMatrix> retMat(new BlockMatrix(1,1));
     shp<DoubleMatrix> value(new DoubleMatrix());
-    value->setValue(-1.0 / (M_C * M_R));
+    value->setValue(-1.0 / (M_R * M_C));
     retMat->setBlock(0,0,value);
 
     return retMat;

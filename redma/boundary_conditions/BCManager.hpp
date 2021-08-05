@@ -26,7 +26,9 @@
 #include <redma/array/SparseMatrix.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
-#include <redma/boundary_conditions/WindkesselModel.hpp>
+#include <redma/boundary_conditions/aBCModel.hpp>
+#include <redma/boundary_conditions/Windkessel/WindkesselModel.hpp>
+#include <redma/boundary_conditions/Coronary/CoronaryModel.hpp>
 
 #include <lifev/core/fem/BCHandler.hpp>
 #include <lifev/core/array/VectorSmall.hpp>
@@ -39,8 +41,6 @@ namespace RedMA
  */
 class BCManager
 {
-    typedef aTimeMarchingAlgorithm    TimeMarchingAlgorithm;
-
     typedef LifeV::VectorSmall<3>     Vector3D;
     typedef LifeV::MatrixSmall<3,3>   Matrix3D;
 
@@ -191,7 +191,7 @@ private:
 
     std::map<unsigned int, double>                   M_coefficientsInflow;
 
-    std::map<unsigned int, shp<WindkesselModel>>     M_models;
+    std::map<unsigned int, shp<aBCModel>>            M_models;
 };
 
 }

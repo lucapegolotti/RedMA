@@ -56,9 +56,6 @@ public:
              BV initialGuess,
              int& status);
 
-    /// Set pressure mass matrix.
-    void setPressureMass(const BM& mass);
-
     /*! \brief Getter for the solver statistics.
      *
      * \return Vector of solver statistics (one for every iteration).
@@ -77,7 +74,6 @@ private:
     std::vector<SolverStatistics>                       M_solverStatistics;
     bool                                                M_isLinearProblem;
     EPETRACOMM                                          M_comm;
-    BM                                                  M_Mp;
 };
 
 }

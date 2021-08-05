@@ -36,7 +36,7 @@ setInflow(const std::function<double(double)>& inflow,
                       "read from file, as the 'generate_inflow' flag in datafile is set to 1\n");
 }
 
-std::function<double(double)>
+DataContainer::Law
 DataContainer::
 getDistalPressure(const unsigned int& outletIndex) const
 {
@@ -46,6 +46,13 @@ getDistalPressure(const unsigned int& outletIndex) const
         throw new Exception("Error in DataContainer: requested Distal pressure not present");
 
     return it->second;
+}
+
+DataContainer::Law
+DataContainer::
+getIntramyocardialPressure() const
+{
+    return M_intraMyocardialPressure;
 }
 
 void
@@ -131,6 +138,7 @@ void
 DataContainer::
 finalize()
 {
+    // handling inflows
     if (M_inflows.empty())
     {
         generateRamp();
@@ -161,6 +169,26 @@ finalize()
                             "the 'finalize' method (with 'generate_inflow' flag set to 0) or call "
                             "the 'finalize' method (with 'generate_inflow' flag set to 1 and "
                             "providing a valid inflow text file)!");
+
+    // handling outlets
+    unsigned int noutletbcs = (*M_datafile)("bc_conditions/numoutletbcs", 0);
+    std::string dataEntry;
+    std::string BCType;
+    unsigned int indexOutlet = 0;
+    while (indexOutlet < noutletbcs)
+    {
+        dataEntry = "bc_conditions/outlet" + std::to_string(indexOutlet) +"/type";
+        BCType = (*M_datafile)(dataEntry.c_str(), "windkessel");
+        if (!std::strcmp(BCType.c_str(), "coronary"))
+            indexOutlet = noutletbcs + 2;
+        else
+            indexOutlet++;
+    }
+    if (indexOutlet == noutletbcs + 2)
+    {
+        std::string IMPpath = (*M_datafile)("bc_conditions/pimfile", "datafiles/plv.txt");
+        this->generateIntraMyocardialPressure(IMPpath);
+    }
 }
 
 void
@@ -176,6 +204,23 @@ generateInflow(std::string inputfilename, unsigned int inletIndex)
 
         auto flowValues = parseInflow(inputfilename);
         linearInterpolation(flowValues, M_inflows[flag]);
+    }
+}
+
+void
+DataContainer::
+generateIntraMyocardialPressure(std::string inputfilename)
+{
+    // TODO: scale and shift !!
+    try
+    {
+        auto values = parseInflow(inputfilename);
+        linearInterpolation(values, M_intraMyocardialPressure);
+    }
+    catch (Exception* e)
+    {
+        printlog(YELLOW, "[DataContainer] Intramyocardial pressure datafile not found; "
+                         "setting it to 0 by default.");
     }
 }
 
@@ -214,7 +259,7 @@ linearInterpolation(const std::vector<std::pair<double,double>>& values,
         }
         if (count == values.size())
         {
-            printlog(YELLOW, "WARNING: exiting the bounds of the inflow file");
+            printlog(YELLOW, "[DataContainer] WARNING: exiting the bounds of the inflow file");
             return values[count-1].second;
         }
 
@@ -242,8 +287,21 @@ parseInflow(std::string filename)
         {
             std::pair<double, double> newpair;
             std::string line;
-            std::getline(inflowfile,line);
-            if (std::strcmp(line.c_str(),""))
+            std::getline(inflowfile>>std::ws,line);
+
+            if (!(line.empty()))
+            {
+                std::stringstream lineStream(line);
+
+                lineStream >> newpair.first >> newpair.second;
+
+                if (!inflowfile || !lineStream)
+                    throw new Exception("Failed in reading file " + filename);
+
+                flowValues.push_back(newpair);
+            }
+
+            /*if (std::strcmp(line.c_str(),""))
             {
                 auto firstspace = line.find(" ");
                 if (firstspace == std::string::npos || firstspace == 0)
@@ -253,10 +311,10 @@ parseInflow(std::string filename)
                 auto lastspace = line.find_last_of(" ");
                 if (lastspace == std::string::npos || lastspace == 0)
                     throw new Exception("Inflow file is badly formatted");
-
                 newpair.second = std::stod(line.substr(lastspace+1,line.size()));
+
                 flowValues.push_back(newpair);
-            }
+            }*/
         }
         inflowfile.close();
     }

@@ -1,6 +1,3 @@
-add_subdirectory(Coronary)
-add_subdirectory(Windkessel)
-
 file(GLOB headers_files "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 set(HEADERS ${HEADERS} ${headers_files} CACHE INTERNAL "")
 

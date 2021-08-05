@@ -54,7 +54,7 @@ void
 StokesAssemblerFE::
 postProcess(const double& t, const shp<aVector>& sol)
 {
-    // shift solutions in multistep method embedded in windkessels
+    // shift solutions in multistep method embedded in outlet BC models
     M_bcManager->postProcess();
 }
 

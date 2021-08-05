@@ -73,7 +73,14 @@ parseOutflowNeumannData()
         if (M_treeNode->M_ID == blockindex)
         {
             unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
-            M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
+            std::string BCtype = M_data(dataEntry + "/type", "windkessel");
+            if (!std::strcmp(BCtype.c_str(), "windkessel"))
+                M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
+            else if (!std::strcmp(BCtype.c_str(), "coronary"))
+                M_models[boundaryflag].reset(new CoronaryModel(M_data, dataEntry, outletIndex));
+            else
+                throw new Exception("Unrecognized outlet BC model " + BCtype +
+                                     " in outlet number " + std::to_string(outletIndex) + "!");
         }
     }
 }
@@ -535,8 +542,8 @@ void
 BCManager::
 postProcess()
 {
-    for (auto windkessel : M_models)
-        windkessel.second->shiftSolutions();
+    for (auto BCmodel : M_models)
+        BCmodel.second->shiftSolutions();
 }
 
 std::vector<unsigned int>

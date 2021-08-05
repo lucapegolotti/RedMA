@@ -59,9 +59,6 @@ setup(const shp<aVector>& zeroVector)
     this->setBDFCoefficients();
     this->setExtrapolationCoefficients();
 
-    if (M_funProvider)
-        this->M_systemSolver.setPressureMass(spcast<BlockMatrix>(this->M_funProvider->getPressureMass(0.0, zeroVector)));
-
 }
 
 void

@@ -19,17 +19,59 @@ solve(const BM& matrix, const BV& rhs, BV& sol)
 
     if (convert<BlockMatrix>(matrix)->globalTypeIs(DOUBLE))
     {
-        double matValue = 0.0;
-        double rhsValue = 0.0;
-        if (convert<BlockMatrix>(matrix)->nRows() > 0)
-            matValue = convert<DoubleMatrix>(convert<BlockMatrix>(matrix)->block(0,0))->getValue();
-        if (convert<BlockVector>(rhs)->nRows() > 0)
-            rhsValue = convert<DoubleVector>(convert<BlockVector>(rhs)->block(0))->getValue();
+        unsigned int dim = convert<BlockMatrix>(matrix)->nRows();
+        if (convert<BlockVector>(rhs)->nRows() != dim)
+            throw new Exception("Inconsistent matrix/vector dimensions in LinearSystemSolver!");
 
-        sol.reset(new BlockVector(1));
-        shp<DoubleVector> retVec(new DoubleVector());
-        retVec->setValue(rhsValue/matValue);
-        convert<BlockVector>(sol)->setBlock(0, retVec);
+        if (dim == 1)
+        {
+            double matValue = convert<DoubleMatrix>(convert<BlockMatrix>(matrix)->block(0,0))->getValue();
+            double rhsValue = convert<DoubleVector>(convert<BlockVector>(rhs)->block(0))->getValue();
+
+            sol.reset(new BlockVector(1));
+            shp<DoubleVector> retVec(new DoubleVector());
+            retVec->setValue(rhsValue/matValue);
+            convert<BlockVector>(sol)->setBlock(0, retVec);
+        }
+        else if (dim == 2)
+        {
+            Matrix2D mat;
+            Vector2D vec;
+
+            double matValue00 = convert<DoubleMatrix>(convert<BlockMatrix>(matrix)->block(0,0))->getValue();
+            double matValue01 = convert<DoubleMatrix>(convert<BlockMatrix>(matrix)->block(0,1))->getValue();
+            double matValue10 = convert<DoubleMatrix>(convert<BlockMatrix>(matrix)->block(1,0))->getValue();
+            double matValue11 = convert<DoubleMatrix>(convert<BlockMatrix>(matrix)->block(1,1))->getValue();
+
+            double det = (matValue00*matValue11) - (matValue01*matValue10);
+
+            mat(0,0) = matValue11;
+            mat(0,1) = -matValue01;
+            mat(1,0) = -matValue10;
+            mat(1,1) = matValue00;
+            mat /= det;
+
+            double vecValue0 = convert<DoubleVector>(convert<BlockVector>(rhs)->block(0))->getValue();
+            double vecValue1 = convert<DoubleVector>(convert<BlockVector>(rhs)->block(1))->getValue();
+
+            vec(0) = vecValue0;
+            vec(1) = vecValue1;
+
+            Vector2D sol2D = mat * vec;
+
+            sol.reset(new BlockVector(2));
+            shp<DoubleVector> retVec0(new DoubleVector());
+            retVec0->setValue(sol2D(0));
+            convert<BlockVector>(sol)->setBlock(0, retVec0);
+            shp<DoubleVector> retVec1(new DoubleVector());
+            retVec1->setValue(sol2D(1));
+            convert<BlockVector>(sol)->setBlock(1, retVec1);
+        }
+        else
+        {
+            throw new Exception("Invalid double linear system dimension " + std::to_string(dim) +
+                                 "LinearSystemSolver only supports dimensions 1 and 2.");
+        }
 
         return;
     }
@@ -92,11 +134,9 @@ buildPreconditioner(const BM& matrix)
         unsigned int recomputeevery = M_data("preconditioner/recomputeevery", 1);
         if (M_prec == nullptr || (M_numSolves % recomputeevery) == 0)
             M_prec.reset(new SaddlePointPreconditioner(M_data,
-                                                       spcast<BlockMatrix>(matrix),
-                                                       spcast<BlockMatrix>(M_Mp)));
+                                                       spcast<BlockMatrix>(matrix)));
         else
             spcast<SaddlePointPreconditioner>(M_prec)->setup(spcast<BlockMatrix>(matrix),
-                                                                 spcast<BlockMatrix>(M_Mp),
                                                                  false);
     }
     else
@@ -460,14 +500,6 @@ convertVectorType(const shp<BlockMatrix>& matrix,
      }
      targetVector->setBlock(i, iVector);
     }
-}
-
-void
-LinearSystemSolver::
-setPressureMass(const BM &mass)
-{
-    M_Mp.reset(new BlockMatrix());
-    M_Mp->deepCopy(mass);
 }
 
 }

@@ -5,17 +5,16 @@ namespace RedMA
 
 SaddlePointPreconditioner::
 SaddlePointPreconditioner(const DataContainer& data,
-                          const BM& matrix,
-                          const BM& pressureMass) :
+                          const BM& matrix) :
   M_data(data),
   M_thresholdSizeExactSolve(-1)
 {
-    setup(matrix, pressureMass, true);
+    setup(matrix, true);
 }
 
 void
 SaddlePointPreconditioner::
-setup(const BM& matrix, const BM& pressureMass, bool doComputeSchurComplement)
+setup(const BM& matrix, bool doComputeSchurComplement)
 {
 
     Chrono chrono;
@@ -78,10 +77,6 @@ setup(const BM& matrix, const BM& pressureMass, bool doComputeSchurComplement)
     else
         printlog(YELLOW,"[SaddlePointPreconditioner] dual map size = " +
                         std::to_string(0) + ". No coupling occurs!\n", M_data.getVerbose());
-
-    if (!std::strcmp(M_innerPrecType.c_str(), "Pmm") ||
-        !std::strcmp(M_approxSchurType.c_str(), "Pmm"))
-        this->setPressureMass(pressureMass->getSubmatrix(0, nPrimal-1, 0, nPrimal-1));
 
     /*BlockMaps bmaps(BT);
     M_primalMap = bmaps.getMonolithicRangeMapEpetra();
@@ -257,8 +252,7 @@ allocateInnerPreconditioners(const BM& primalMatrix)
             if (convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->type() == SPARSE)
             {
                 shp<NSPrec> newPrec;
-                if ((!std::strcmp(M_innerPrecType.c_str(), "SIMPLE")) ||
-                   (!std::strcmp(M_innerPrecType.c_str(), "Pmm")))
+                if (!std::strcmp(M_innerPrecType.c_str(), "SIMPLE"))
                     newPrec.reset(LifeV::Operators::NSPreconditionerFactory::instance().
                                      createObject(M_innerPrecType));
                 else if (!std::strcmp(M_innerPrecType.c_str(), "exact"))
@@ -288,14 +282,6 @@ allocateInnerPreconditioners(const BM& primalMatrix)
                     newPrec->setUp(spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data()),
                                    spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,0)->data()),
                                    spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,1)->data()));
-                }
-
-                if (!std::strcmp(M_innerPrecType.c_str(), "Pmm"))
-                {
-                    newPrec->setPressureMass(
-                            spcast<MATRIXEPETRA>(convert<BlockMatrix>(M_Mp->block(i, i))->block(1, 1)->data()));
-                    // TODO: make next line work!
-                    // newPrec->setViscosity(M_data("fluid/viscosity", 0.035));
                 }
 
                 std::vector<shp<Epetra_Map>> localRangeMaps(2);
