@@ -24,13 +24,13 @@ outputdir = rb_solutions
 	numoutletbcs = 0
 	numinletbcs = 2
 	[./inlet0]
-	    generate_inflow = 0  # use 0 with Neumann BCs and 1 with Dirichlet BCs
+	    generate_inletBC = 0  # use 0 with Neumann BCs and 1 with Dirichlet BCs
 		inflowfile = datafiles/inflow0.txt
 		coefficient = 1.0309752387
 		flag = 2
 	[../]
 	[./inlet1]
-	    generate_inflow = 0  # use 0 with Neumann BCs and 1 with Dirichlet BCs
+	    generate_inletBC = 0  # use 0 with Neumann BCs and 1 with Dirichlet BCs
 		inflowfile = datafiles/inflow1.txt
 		coefficient = 1.0916819025
 		flag = 3
@@ -160,7 +160,7 @@ outputdir = rb_solutions
 	type                = chebyshev
 	nMax                = 5
 	stab_coefficient	= 1e-16
-	check_stabterm		= true
+	check_stabterm		= false
 	nfcts_weak_dirichlet = 5
 	frequencies_theta_ring = -1
 	frequencies_theta_ring_weak_dirichlet = -1

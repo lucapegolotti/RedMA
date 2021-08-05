@@ -140,6 +140,6 @@ outputdir = rb_solutions
 	type                = chebyshev
 	nMax                = 5
 	stab_coefficient	= 1e-16
-	check_stabterm		= true
+	check_stabterm		= false
 	nfcts_weak_dirichlet = 5
 [../]

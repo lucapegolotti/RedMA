@@ -20,18 +20,19 @@
 
 using namespace RedMA;
 
-double inflowDirichlet(double t)
+double inletDirichlet(double t)
 {
     const double T = 5e-3;
+    const double omega = 2.0 * M_PI / T;
     const double Q_max = 5.0;
 
     if (t <= T)
-        return (1.0 - std::cos(t)) * Q_max;
+        return (1.0 - std::cos(omega * t)) * Q_max;
 
-    return 1.0;
+    return Q_max;
 }
 
-double inflowNeumann(double t)
+double inletNeumann(double t)
 {
     const double T = 3e-3;
     const double omega = 2.0 * M_PI / T;
@@ -65,10 +66,10 @@ int main(int argc, char **argv)
 
     if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet"))
         // the second argument is the flag of the inlet. It depends on the mesh.
-        data.setInflow(inflowDirichlet);
+        data.setInletBC(inletDirichlet);
     else if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "neumann"))
         // the second argument is the flag of the inlet. It depends on the mesh.
-        data.setInflow(inflowNeumann);
+        data.setInletBC(inletNeumann);
     else
         throw new Exception("Unrecognized inlet BC type!");
 

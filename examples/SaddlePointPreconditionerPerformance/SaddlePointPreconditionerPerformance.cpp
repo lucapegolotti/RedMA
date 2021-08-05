@@ -30,7 +30,7 @@ void solveProblem(EPETRACOMM comm, std::string innerprec, std::string approxschu
 {
     DataContainer data;
     data.setDatafile("datafiles/data");
-    data.setInflow(inflow);
+    data.setInletBC(inflow);
     data.setVerbose(false);
 
     data.setValueInt("geometric_structure/maxnumblocks", numblocks);

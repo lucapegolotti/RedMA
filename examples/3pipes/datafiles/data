@@ -137,6 +137,6 @@
 	type                = chebyshev
 	nMax                = 6
 	stab_coefficient	= 1e-16
-	check_stabterm		= true
+	check_stabterm		= false
 	nfcts_weak_dirichlet = 6
 [../]

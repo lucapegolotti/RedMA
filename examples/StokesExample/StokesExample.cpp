@@ -20,12 +20,12 @@
 
 using namespace RedMA;
 
-double inflowDirichlet(double t)
+double inletDirichlet(double t)
 {
     return 1;
 }
 
-double inflowNeumann(double t)
+double inletNeumann(double t)
 {
     const double T = 3e-3;
     const double omega = 2.0 * M_PI / T;
@@ -57,9 +57,9 @@ int main(int argc, char **argv)
     data.setVerbose(comm->MyPID() == 0);
 
     if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet"))
-        data.setInflow(inflowDirichlet);
+        data.setInletBC(inletDirichlet);
     else if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "neumann"))
-        data.setInflow(inflowNeumann);
+        data.setInletBC(inletNeumann);
     else
         throw new Exception("Unrecognized inlet BC type! "
                             "Available types: {dirichlet, neumann}.");

@@ -20,12 +20,19 @@
 
 using namespace RedMA;
 
-double inflowDirichlet(double t)
+double inletDirichlet(double t)
 {
-    return 1;
+    const double T = 5e-3;
+    const double omega = 2.0 * M_PI / T;
+    const double Q_max = 1.0;
+
+    if (t <= T)
+        return (1.0 - std::cos(omega * t)) * Q_max;
+
+    return Q_max;
 }
 
-double inflowNeumann(double t)
+double inletNeumann(double t)
 {
     const double T = 3e-3;
     const double omega = 2.0 * M_PI / T;
@@ -35,11 +42,6 @@ double inflowNeumann(double t)
         return -0.5 * (1.0 - std::cos(omega * t) ) * Pmax;
     }
     return 0;
-}
-
-double distalPressure(double t)
-{
-    return 0.0;
 }
 
 int main(int argc, char **argv)
@@ -54,7 +56,7 @@ int main(int argc, char **argv)
     Chrono chrono;
     chrono.start();
 
-    std::string msg = "Starting chrono... \n";
+    std::string msg = "Starting chrono \n";
     printlog(MAGENTA, msg, true);
 
     DataContainer data;
@@ -62,9 +64,9 @@ int main(int argc, char **argv)
     data.setVerbose(comm->MyPID() == 0);
 
     if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet"))
-        data.setInflow(inflowDirichlet);
+        data.setInletBC(inletDirichlet);
     else if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "neumann"))
-        data.setInflow(inflowNeumann);
+        data.setInletBC(inletNeumann);
     else
         throw new Exception("Unrecognized inlet BC type! "
                             "Available types: {dirichlet, neumann}.");
@@ -93,7 +95,6 @@ int main(int argc, char **argv)
     }
 
     data.setValueString("exporter/outdir", curSolutionDir);
-    data.setDistalPressure(distalPressure, 0);
     data.finalize();
 
     GlobalProblem femProblem(data, comm);

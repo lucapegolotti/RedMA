@@ -20,17 +20,17 @@
 
 using namespace RedMA;
 
-double inflowDirichlet0(double t)
+double inletDirichlet0(double t)
 {
     return 1;
 }
 
-double inflowDirichlet1(double t)
+double inletDirichlet1(double t)
 {
     return 1;
 }
 
-double inflowNeumann0(double t)
+double inletNeumann0(double t)
 {
     const double t0 = 0.0;
     const double T = t0 + 3e-3;
@@ -43,7 +43,7 @@ double inflowNeumann0(double t)
     return 0.0;
 }
 
-double inflowNeumann1(double t)
+double inletNeumann1(double t)
 {
     const double t0 = 1e-2;
     const double T = t0 + 3e-3;
@@ -78,14 +78,14 @@ int main(int argc, char **argv)
     if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet"))
     {
         // the second argument is teh index of the inlet. The corresponding flag is set in the datafile
-        data.setInflow(inflowDirichlet0, 0);
-        data.setInflow(inflowDirichlet1, 1);
+        data.setInletBC(inletDirichlet0, 0);
+        data.setInletBC(inletDirichlet1, 1);
     }
     else if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "neumann"))
     {
         // the second argument is teh index of the inlet. The corresponding flag is set in the datafile
-        data.setInflow(inflowNeumann0, 0);
-        data.setInflow(inflowNeumann1, 1);
+        data.setInletBC(inletNeumann0, 0);
+        data.setInletBC(inletNeumann1, 1);
     }
     else
         throw new Exception("Unrecognized inlet BC type!");

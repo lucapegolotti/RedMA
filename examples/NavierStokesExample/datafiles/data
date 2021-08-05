@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/tree.xml
+	xmlfile = geometries/tree2.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -20,19 +20,23 @@ outputdir = rb_solutions
 
 [bc_conditions]
     inlet_bc_type = dirichlet
-    generate_inflow = 1  # use 0 with Neumann BCs and 1 with Dirichlet BCs
+    generate_inletBC = 1
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
-	pimfile = datafiles/plv.dat
+	inletpressurefile = datafiles/inlet_pressure.txt
 	coefficientinflow = 1.000552724487405
+
 	numoutletbcs = 1
+	pimfile = datafiles/IM_pressure.txt
 	[./outlet0]
-	    type = coronary
-        blockindex = 0
+	    type = windkessel
+        blockindex = 1
         boundaryflag = 2
+
         C = 0.0000760  # WK3
         Rp = 718.27  # WK3
         Rd = 15945.20  # WK3
+
         Ca = 1.0606295687808294e-07  # CORO
         Cim = 8.581457420135802e-07  # CORO
         Ra = 194674.68548804865  # CORO
@@ -40,6 +44,7 @@ outputdir = rb_solutions
         Rvm = 0  # CORO
         Rv = 97337.34274402432  # CORO
     [../]
+
 	ring_constraint = full # type of homogeneous BC imposed at I/O rings
 [../]
 
@@ -144,7 +149,7 @@ outputdir = rb_solutions
 	extrapolation_order = 2
 	t0ramp = -0.002
 	t0 = 0
-	T = 0.02
+	T = 0.04
 	dt = 0.0002
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
