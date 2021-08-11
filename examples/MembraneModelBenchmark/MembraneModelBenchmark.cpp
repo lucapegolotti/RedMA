@@ -23,11 +23,11 @@ using namespace RedMA;
 double inletDirichlet(double t)
 {
     const double T = 5e-3;
-    const double omega = 2.0 * M_PI / T;
+    const double omega = M_PI / T;
     const double Q_max = 5.0;
 
     if (t <= T)
-        return (1.0 - std::cos(omega * t)) * Q_max;
+        return 0.5 * (1.0 - std::cos(omega * t)) * Q_max;
 
     return Q_max;
 }
@@ -36,10 +36,10 @@ double inletNeumann(double t)
 {
     const double T = 3e-3;
     const double omega = 2.0 * M_PI / T;
-    const double Pmax = 13300.0;
+    const double P_max = 13300.0;
 
     if (t <= T)
-        return -0.5 * (1.0 - std::cos(omega * t) ) * Pmax;
+        return -0.5 * (1.0 - std::cos(omega * t) ) * P_max;
 
     return 0.0;
 }
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     Chrono chrono;
     chrono.start();
 
-    std::string msg = "Starting chrono \n";
+    std::string msg = "Starting chrono... \n";
     printlog(MAGENTA, msg, true);
 
     DataContainer data;
@@ -65,10 +65,8 @@ int main(int argc, char **argv)
     data.setVerbose(comm->MyPID() == 0);
 
     if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet"))
-        // the second argument is the flag of the inlet. It depends on the mesh.
         data.setInletBC(inletDirichlet);
     else if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "neumann"))
-        // the second argument is the flag of the inlet. It depends on the mesh.
         data.setInletBC(inletNeumann);
     else
         throw new Exception("Unrecognized inlet BC type!");

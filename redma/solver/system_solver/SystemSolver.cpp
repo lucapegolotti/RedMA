@@ -27,7 +27,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
         std::string msg = "[SystemSolver] linear solve,";
         msg += " residual = " + streamOb.str() + "\n";
-        printlog(GREEN, msg, M_data.getVerbose());
+        printlog(GREEN, msg, false);
 
         incr->multiplyByScalar(0.0);
         BM curJac = jac(sol);
@@ -44,7 +44,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
         msg = "[SystemSolver] linear solve,";
         msg += " final residual = " + streamOb2.str() + "\n";
-        printlog(GREEN, msg, M_data.getVerbose());
+        printlog(GREEN, msg, false);
 
         status = 0;
     }

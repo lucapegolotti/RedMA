@@ -13,7 +13,7 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
 
     M_ringConstraint = data("bc_conditions/ring_constraint", "normal");
 
-    M_inflows = M_data.getInflowBCs();
+    M_inletBCs = M_data.getInflowBCs();
     int ninlets = M_data("bc_conditions/numinletbcs", -1);
     if (ninlets > 0)
     {
@@ -21,7 +21,7 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
         {
             std::string path = "bc_conditions/inlet" + std::to_string(indexInflow);
             unsigned int curflag = M_treeNode->M_block->getInlet(indexInflow).M_flag;
-            if (M_inflows.find(curflag) == M_inflows.end())
+            if (M_inletBCs.find(curflag) == M_inletBCs.end())
                 throw new Exception("Invalid bc_conditions/inlet*/flag in datafile!");
             M_coefficientsInflow[curflag] = data(path + "/coefficient", 1.0);
             M_inletFlags.push_back(treeNode->M_block->getInlet(indexInflow).M_flag);
@@ -36,9 +36,9 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
     }
 
     if (M_treeNode->isOutletNode())
-        this->parseOutflowNeumannData();
+        this->parseOutletNeumannData();
     if (M_treeNode->isInletNode())
-        this->checkInflowLaw();
+        this->checkInletLaw();
 
     for(auto out_face : treeNode->M_block->getOutlets())
         // these are all the outlets, even the ones with children in the block structure!
@@ -55,13 +55,13 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
 
     M_wallFlag = treeNode->M_block->getWallFlag();
 
-    parseOutflowNeumannData();
+    parseOutletNeumannData();
 
 }
 
 void
 BCManager::
-parseOutflowNeumannData()
+parseOutletNeumannData()
 {
     unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
 
@@ -87,8 +87,8 @@ parseOutflowNeumannData()
 
 void
 BCManager::
-applyInflowDirichletBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
-                        const bool& zeroFlag) const
+applyInletDirichletBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
+                       const bool& zeroFlag) const
 {
     std::function<double(double)> inflowLaw;
     if (zeroFlag)
@@ -113,8 +113,8 @@ applyInflowDirichletBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace
 
 void
 BCManager::
-applyInflowNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
-                      const bool& zeroFlag) const
+applyInletNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
+                     const bool& zeroFlag) const
 {
     std::function<double(double)> inflowLaw;
     if (zeroFlag)
@@ -122,7 +122,7 @@ applyInflowNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace i
     else
         inflowLaw = law;
 
-    auto inflowBoundaryCondition = std::bind(neumannInflow,
+    auto inflowBoundaryCondition = std::bind(neumannInlet,
                                              std::placeholders::_1,
                                              std::placeholders::_2,
                                              std::placeholders::_3,
@@ -137,8 +137,8 @@ applyInflowNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace i
 
 void
 BCManager::
-applyOutflowNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law,
-                       const bool& zeroFlag) const
+applyOutletNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law,
+                      const bool& zeroFlag) const
 {
     std::function<double(double)> outflowLaw;
     if (zeroFlag)
@@ -146,7 +146,7 @@ applyOutflowNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law,
     else
         outflowLaw = law;
 
-    auto outflowBoundaryCondition = std::bind(neumannInflow,
+    auto outflowBoundaryCondition = std::bind(neumannInlet,
                                               std::placeholders::_1,
                                               std::placeholders::_2,
                                               std::placeholders::_3,
@@ -171,11 +171,11 @@ addInletBC(shp<LifeV::BCHandler> bcs,
     {
         if (!std::strcmp(M_inletBCType.c_str(), "dirichlet"))
             // imposing an inflow velocity profile
-            this->applyInflowDirichletBCs(bcs, law, inlet, zeroFlag);
+            this->applyInletDirichletBCs(bcs, law, inlet, zeroFlag);
 
         else if (!std::strcmp(M_inletBCType.c_str(), "neumann"))
             // imposing an inflow pressure --> actually this is done at RHS so this is not called!
-            this->applyInflowNeumannBCs(bcs, law, inlet, zeroFlag);
+            this->applyInletNeumannBCs(bcs, law, inlet, zeroFlag);
 
         else
             throw new Exception("Selected inflow BCs not implemented!");
@@ -192,18 +192,18 @@ applyDirichletBCs(const double& time, BlockVector& input,
 
     if (!std::strcmp(M_inletBCType.c_str(), "dirichlet")) 
     {
-        if (M_inflows.find(0) != M_inflows.end())
-            addInletBC(bcs, M_inflows.find(0)->second, M_treeNode->M_block->getInlet(0), ringOnly);
+        if (M_inletBCs.find(0) != M_inletBCs.end())
+            addInletBC(bcs, M_inletBCs.find(0)->second, M_treeNode->M_block->getInlet(0), ringOnly);
         else
         {
             auto inlets = M_treeNode->M_block->getInlets();
             for (auto inlet : inlets)
             {
-                if (M_inflows.find(inlet.M_flag) == M_inflows.end())
+                if (M_inletBCs.find(inlet.M_flag) == M_inletBCs.end())
                     throw new Exception("Inlet with flag " + std::to_string(inlet.M_flag) +
                                         " was not set an inflow rate!");
 
-                addInletBC(bcs, M_inflows.find(inlet.M_flag)->second, inlet, ringOnly);
+                addInletBC(bcs, M_inletBCs.find(inlet.M_flag)->second, inlet, ringOnly);
             }
         }
     }
@@ -436,18 +436,18 @@ poiseuilleInflow(const double& t, const double& x, const double& y,
 
 double
 BCManager::
-neumannInflow(const double &t, const double &x,
-              const double &y, const double &z, const unsigned int &i,
-              std::function<double(double)> inflowLaw)
+neumannInlet(const double &t, const double &x,
+             const double &y, const double &z, const unsigned int &i,
+             std::function<double(double)> inflowLaw)
 {
     return inflowLaw(t);
 }
 
 void
 BCManager::
-checkInflowLaw()
+checkInletLaw()
 {
-    if ( (M_inflows.empty()) && (std::strcmp(M_inletBCType.c_str(), "dirichlet") == 0) )
+    if ((M_inletBCs.empty()) && (std::strcmp(M_inletBCType.c_str(), "dirichlet") == 0) )
     {
         printlog(RED, "[BCManager] Setting default Dirichlet inflow BC (unit constant))\n",
                  this->M_data.getVerbose());
@@ -464,19 +464,19 @@ checkInflowLaw()
         if (ninlets == -1)
         {
             curflag = M_treeNode->M_block->getInlet(0).M_flag;
-            M_inflows[curflag] = inflow;
+            M_inletBCs[curflag] = inflow;
         }
         else
         {
             for (unsigned int indexInflow=0; indexInflow<ninlets; indexInflow++)
             {
                 curflag = M_treeNode->M_block->getInlet(indexInflow).M_flag;
-                M_inflows[curflag] = inflow;
+                M_inletBCs[curflag] = inflow;
             }
         }
     }
 
-    else if ( (M_inflows.empty()) && (std::strcmp(M_inletBCType.c_str(), "neumann") == 0) )
+    else if ((M_inletBCs.empty()) && (!std::strcmp(M_inletBCType.c_str(), "neumann")) )
     {
         printlog(RED, "[BCManager] Setting default Neumann inflow BC (pressure bump at initial times)\n",
                  this->M_data.getVerbose());
@@ -500,23 +500,22 @@ checkInflowLaw()
         if (ninlets == -1)
         {
             curflag = M_treeNode->M_block->getInlet(0).M_flag;
-            M_inflows[curflag] = inflow;
+            M_inletBCs[curflag] = inflow;
         }
         else
         {
             for (unsigned int indexInflow=0; indexInflow<ninlets; indexInflow++)
             {
                 curflag = M_treeNode->M_block->getInlet(indexInflow).M_flag;
-                M_inflows[curflag] = inflow;
+                M_inletBCs[curflag] = inflow;
             }
         }
     }
-
 }
 
 double
 BCManager::
-getOutflowNeumannBC(const double& time, const double& flag, const double& rate)
+getOutletNeumannBC(const double& time, const double& flag, const double& rate)
 {
     auto it = M_models.find(flag);
     if (it == M_models.end())
@@ -528,7 +527,7 @@ getOutflowNeumannBC(const double& time, const double& flag, const double& rate)
 
 double
 BCManager::
-getOutflowNeumannJacobian(const double& time, const double& flag, const double& rate)
+getOutletNeumannJacobian(const double& time, const double& flag, const double& rate)
 {
     auto it = M_models.find(flag);
     if (it == M_models.end())

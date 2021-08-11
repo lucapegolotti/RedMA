@@ -94,19 +94,19 @@ public:
                                const double& diagCoefficient,
                                const bool& ringOnly = false);
 
-    void applyInflowDirichletBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
-                                 const bool& zeroFlag = false) const;
+    void applyInletDirichletBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
+                                const bool& zeroFlag = false) const;
 
-    void applyInflowNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
-                               const bool& zeroFlag = false) const;
+    void applyInletNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
+                              const bool& zeroFlag = false) const;
 
-    void applyOutflowNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law,
-                                const bool& zeroFlag = true) const;
+    void applyOutletNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law,
+                               const bool& zeroFlag = true) const;
 
-    double getOutflowNeumannBC(const double& time, const double& flag, const double& rate);
+    double getOutletNeumannBC(const double& time, const double& flag, const double& rate);
 
     // actually derivative wrt to flowrate
-    double getOutflowNeumannJacobian(const double& time, const double& flag, const double& rate);
+    double getOutletNeumannJacobian(const double& time, const double& flag, const double& rate);
 
     void postProcess();
 
@@ -114,7 +114,7 @@ public:
 
     inline std::string getInletBCType() const {return M_inletBCType;}
 
-    inline std::map<unsigned int, Law> getInflows() const {return M_inflows;}
+    inline std::map<unsigned int, Law> getInletBCs() const {return M_inletBCs;}
 
     std::vector<unsigned int> getWallFlags(const bool& withRings = true) const;
 
@@ -141,9 +141,9 @@ private:
                                    const Law inflow,
                                    const double& coefficient);
 
-    static double neumannInflow(const double& t, const double& x, const double& y,
-                                const double& z, const unsigned int& i,
-                                Law inflowLaw);
+    static double neumannInlet(const double& t, const double& x, const double& y,
+                               const double& z, const unsigned int& i,
+                               Law inflowLaw);
 
     std::map<unsigned int, Matrix3D> computeRotationMatrices() const;
 
@@ -155,7 +155,7 @@ private:
     void shiftToCartesianCoordSystem(shp<MATRIXEPETRA> mat, shp<VECTOREPETRA> vec,
                                      shp<FESPACE> fespace);
 
-    void checkInflowLaw();
+    void checkInletLaw();
 
     shp<LifeV::BCHandler> createBCHandler0Dirichlet(const bool& ringOnly = false) const;
 
@@ -167,21 +167,20 @@ private:
                     const bool& ringOnly = false,
                     const bool& zeroFlag = false) const;
 
-    void parseOutflowNeumannData();
+    void parseOutletNeumannData();
 
     shp<TreeNode>                                    M_treeNode;
     DataContainer                                    M_data;
 
     std::string                                      M_inletBCType;
     std::string                                      M_ringConstraint;
-    std::map<unsigned int, Law>                      M_inflows;
+    std::map<unsigned int, Law>                      M_inletBCs;
     // bool                                             M_strongDirichlet;
 
     std::vector<unsigned int>                        M_inletFlags;
     std::vector<unsigned int>                        M_outletFlags;
     std::vector<unsigned int>                        M_trueOutletFlags;
 
-    
     unsigned int                                     M_wallFlag;
     std::vector<unsigned int>                        M_inletRingFlags;
     std::vector<unsigned int>                        M_outletRingFlags;

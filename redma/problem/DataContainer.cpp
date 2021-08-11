@@ -16,7 +16,7 @@ setDatafile(const std::string& datafile)
 
 void
 DataContainer::
-setInletBC(const std::function<double(double)>& inflow,
+setInletBC(const std::function<double(double)>& inletLaw,
            unsigned int indexInlet)
 {
     bool generate_inletBC = this->checkGenerateInletBC(indexInlet);
@@ -29,7 +29,7 @@ setInletBC(const std::function<double(double)>& inflow,
             path = "bc_conditions/flag";
 
         unsigned int flag = (*M_datafile)(path.c_str(), 0);
-        M_inletBCs[flag] = inflow;
+        M_inletBCs[flag] = inletLaw;
     }
     else
         printlog(YELLOW, "[DataContainer] WARNING: Inlet BC function will be "
@@ -145,7 +145,7 @@ void
 DataContainer::
 finalize()
 {
-    // handling inflows
+    // handling inlets
     if (M_inletBCs.empty())
     {
         generateRamp();
@@ -226,8 +226,12 @@ generateInletBC(std::string inputfilename, unsigned int indexInlet)
 
     if (generate_inletBC)
     {
-        std::string path = "bc_conditions/inlet" + std::to_string(indexInlet) + "/flag";
-        unsigned int flag = (*M_datafile)(path.c_str(), 0);
+        std::string path;
+        if (indexInlet != 99)
+            path = "bc_conditions/inlet" + std::to_string(indexInlet) +"/flag";
+        else
+            path = "bc_conditions/flag";
+        unsigned int flag = (*M_datafile)(path.c_str(), 1);
 
         auto values = parseTimeValueFile(inputfilename);
         linearInterpolation(values, M_inletBCs[flag]);
@@ -279,6 +283,10 @@ DataContainer::
 linearInterpolation(const std::vector<std::pair<double,double>>& values,
                     std::function<double(double)>& funct)
 {
+    if (std::abs(values[0].second) <= 1e-5 && M_ramp)
+        printlog(YELLOW, "[DataContainer] WARNING: unnecessary addition of ramp, as the initial "
+                         "value is already zero. Risk of numerical problems!\n");
+
     funct = [values,this](double x)
     {
         if (x < values[0].first && M_ramp)
@@ -364,7 +372,7 @@ checkGenerateInletBC(unsigned int indexInlet) const
         if (!(std::strcmp(BC_type.c_str(), "dirichlet")))
             default_path = "datafiles/inflow" + std::to_string(indexInlet) + ".txt";
         else if (!(std::strcmp(BC_type.c_str(), "neumann")))
-            default_path = "datafiles/inletpressure" + std::to_string(indexInlet) + ".txt";
+            default_path = "datafiles/inlet_pressure" + std::to_string(indexInlet) + ".txt";
         else
             throw new Exception("Unrecognized inlet BC type " + BC_type);
     }

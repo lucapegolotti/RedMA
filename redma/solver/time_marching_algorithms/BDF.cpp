@@ -290,7 +290,6 @@ void
 BDF::
 shiftSolutions(const shp<aVector>& sol)
 {
-    // shift solutions
     std::vector<shp<BlockVector>> newPrevSolutions(std::max(M_order, M_extrapolationOrder));
     shp<BlockVector> newSol = dpcast<BlockVector>(sol);
     newPrevSolutions[0].reset(newSol->clone());

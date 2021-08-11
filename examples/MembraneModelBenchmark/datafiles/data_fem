@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/tree2.xml
+	xmlfile = geometries/tree_fem_membrane.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -26,11 +26,21 @@ outputdir = rb_solutions
 	inletpressurefile = datafiles/inlet_pressure.txt
 	coefficientinflow = 1.000552724487405
 
-	numoutletbcs = 0
+	numoutletbcs = 2
 	pimfile = datafiles/IM_pressure.txt
     [./outlet0]
         type = windkessel
-        blockindex = 1
+        blockindex = 5
+        boundaryflag = 2
+
+        C = 0.0000760  # WK3
+        Rp = 718.27  # WK3
+        Rd = 15945.20  # WK3
+    [../]
+
+    [./outlet1]
+        type = windkessel
+        blockindex = 8
         boundaryflag = 2
 
         C = 0.0000760  # WK3

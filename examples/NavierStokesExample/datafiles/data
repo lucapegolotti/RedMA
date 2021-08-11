@@ -19,7 +19,7 @@ outputdir = rb_solutions
 [../]
 
 [bc_conditions]
-    inlet_bc_type = dirichlet
+    inlet_bc_type = neumann
     generate_inletBC = 1
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
@@ -115,7 +115,7 @@ outputdir = rb_solutions
 [../]
 
 [newton_method]
-	tol = 1e-4
+	tol = 1e-5
 	maxit = 10
 	relaxation = 1.0
 [../]

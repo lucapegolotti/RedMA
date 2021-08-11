@@ -38,7 +38,7 @@ setup()
     M_divergence = spcast<BlockMatrix>(assembleDivergence(M_bcManager)); // #3
 
     assembleFlowRateVectors();
-    // assembleFlowRateJacobians(this->M_bcManager);
+    // assembleFlowRateJacobians();
 
     setExporter();
 
@@ -145,10 +145,10 @@ addNeumannBCs(double time,
             bcs.reset(new LifeV::BCHandler);
 
             auto inlets = M_treeNode->M_block->getInlets();
-            auto inflows = this->M_bcManager->getInflows();
+            auto inflows = this->M_bcManager->getInletBCs();
 
             if ((inflows.size() == 1) && (inflows.find(0) != inflows.end()))
-                this->M_bcManager->applyInflowNeumannBCs(bcs, inflows.find(0)->second, inlets[0]);
+                this->M_bcManager->applyInletNeumannBCs(bcs, inflows.find(0)->second, inlets[0]);
             else
             {
                 for (auto inlet : inlets)
@@ -157,7 +157,7 @@ addNeumannBCs(double time,
                         throw new Exception("Inlet with flag " + std::to_string(inlet.M_flag) +
                                             " was not set an inflow pressure!");
 
-                    this->M_bcManager->applyInflowNeumannBCs(bcs, inflows.find(inlet.M_flag)->second, inlet);
+                    this->M_bcManager->applyInletNeumannBCs(bcs, inflows.find(inlet.M_flag)->second, inlet);
                 }
             }
             bcs->bcUpdate(*M_velocityFESpace->mesh(), M_velocityFESpace->feBd(),
@@ -180,7 +180,7 @@ addNeumannBCs(double time,
         {
             if (std::find(outletFlags.begin(), outletFlags.end(), rate.first) != outletFlags.end())
             {
-                double P = this->M_bcManager->getOutflowNeumannBC(time, rate.first, rate.second);
+                double P = this->M_bcManager->getOutletNeumannBC(time, rate.first, rate.second);
 
                 shp<VECTOREPETRA> flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
                 *flowRateCopy *= P;
@@ -206,15 +206,15 @@ getJacobianRightHandSide(const double& time,
     if (aAssembler::M_treeNode->isOutletNode())
     {
         auto flowRates = this->computeFlowRates(sol);
-        std::vector<unsigned int> inletFlags;
-        for (auto in : aAssembler::M_treeNode->M_block->getInlets())
-            inletFlags.push_back(in.M_flag);
+        std::vector<unsigned int> outletFlags;
+        for (auto out : aAssembler::M_treeNode->M_block->getOutlets())
+            outletFlags.push_back(out.M_flag);
         
         for (auto rate : flowRates)
         {
-            if (std::find(inletFlags.begin(), inletFlags.end(), rate.first) != inletFlags.end())
+            if (std::find(outletFlags.begin(), outletFlags.end(), rate.first) != outletFlags.end())
             {
-                double dhdQ = this->M_bcManager->getOutflowNeumannJacobian(time, rate.first, rate.second);
+                double dhdQ = this->M_bcManager->getOutletNeumannJacobian(time, rate.first, rate.second);
                 shp<BlockMatrix> curjac(new BlockMatrix(2,2));
                 curjac->deepCopy(M_flowRateJacobians[rate.first]);
                 curjac->multiplyByScalar(dhdQ);
@@ -733,7 +733,6 @@ void
 StokesAssemblerFE::
 assembleFlowRateVectors()
 {
-    // assemble inflow flow rate vector
     if (M_treeNode->isInletNode())
     {
         auto faces = M_treeNode->M_block->getInlets();
@@ -753,7 +752,7 @@ assembleFlowRateVectors()
 
 void
 StokesAssemblerFE::
-assembleFlowRateJacobians(shp<BCManager> bcManager)
+assembleFlowRateJacobians()
 {
     if (M_treeNode->isOutletNode())
     {
@@ -790,9 +789,7 @@ computeFlowRates(shp<aVector> sol, bool verbose)
         for (auto face : faces)
         {
             flowRates[face.M_flag] = spcast<VECTOREPETRA>(solBlck->block(0)->data())->dot(*M_flowRateVectors[face.M_flag]);
-            std::string msg = "[";
-            msg += "StokesAssemblerFE";
-            msg += "]  inflow rate = ";
+            msg = "[StokesAssemblerFE]  inflow rate = ";
             msg += std::to_string(flowRates[face.M_flag]);
             msg += "\n";
             printlog(YELLOW, msg, verbose);
@@ -806,9 +803,7 @@ computeFlowRates(shp<aVector> sol, bool verbose)
         for (auto face : faces)
         {
             flowRates[face.M_flag] = spcast<VECTOREPETRA>(solBlck->block(0)->data())->dot(*M_flowRateVectors[face.M_flag]);
-            std::string msg = "[";
-            msg += "StokesAssemblerFE";
-            msg += "]  outflow rate = ";
+            msg = "[StokesAssemblerFE]  outflow rate = ";
             msg += std::to_string(flowRates[face.M_flag]);
             msg += "\n";
             printlog(YELLOW, msg, verbose);
@@ -844,6 +839,9 @@ assembleFlowRateVector(const GeometricFace& face)
     return flowRateVector;
 }
 
+// For a reference see:
+// "The nested block preconditioning technique for the incompressible Navier-Stokes
+// equations with emphasis on haemodynamic simulations" - Liu, Yang, Dong, Marsden
 shp<MATRIXEPETRA>
 StokesAssemblerFE::
 assembleFlowRateJacobian(const GeometricFace& face)
@@ -851,31 +849,35 @@ assembleFlowRateJacobian(const GeometricFace& face)
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
+    // compute outer product of flowrate vector with itself - very slow in this way!
+    /*shp<MATRIXEPETRA> flowRateJacobian;
+    flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
+
+    flowRateJacobian->addDyadicProduct(*M_flowRateVectors[face.M_flag],
+                                       *M_flowRateVectors[face.M_flag]);*/
+
     const double dropTolerance(2.0 * std::numeric_limits<double>::min());
 
     shp<MAPEPETRA> rangeMap = M_flowRateVectors[face.M_flag]->mapPtr();
     EPETRACOMM comm = rangeMap->commPtr();
-
-
     Epetra_Map epetraMap = M_flowRateVectors[face.M_flag]->epetraMap();
     unsigned int numElements = epetraMap.NumMyElements();
     unsigned int numGlobalElements = epetraMap.NumGlobalElements();
 
-    // this should be optimized
+    // compute outer product of flowrate vector with itself
     shp<MATRIXEPETRA> flowRateJacobian;
     flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map(),
                                             numGlobalElements,
                                             false));
 
-    // compute outer product of flowrate vector with itself
     for (unsigned int j = 0; j < numGlobalElements; j++)
     {
-        double myvaluecol = 0;
+        double myvaluecol = 0.0;
 
         if (M_flowRateVectors[face.M_flag]->isGlobalIDPresent(j))
             myvaluecol = M_flowRateVectors[face.M_flag]->operator[](j);
 
-        double valuecol = 0;
+        double valuecol = 0.0;
         comm->SumAll(&myvaluecol, &valuecol, 1);
 
         if (std::abs(valuecol) > dropTolerance)
@@ -887,13 +889,10 @@ assembleFlowRateJacobian(const GeometricFace& face)
                 {
                     double valuerow = M_flowRateVectors[face.M_flag]->operator[](gdof);
                     if (std::abs(valuerow * valuecol) > dropTolerance)
-                    {
                         flowRateJacobian->addToCoefficient(gdof, j, valuerow * valuecol);
-                    }
                 }
             }
         }
-
     }
 
     comm->Barrier();

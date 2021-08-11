@@ -97,8 +97,8 @@ getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
     retMat->setBlock(1,0,value10);
 
     shp<DoubleMatrix> value11(new DoubleMatrix());
-    value00->setValue(1.0 / M_Ram + 1.0 / (M_Rvm + M_Rv));
-    retMat->setBlock(1,1,value00);
+    value11->setValue(- 1.0 / M_Ram - 1.0 / (M_Rvm + M_Rv));
+    retMat->setBlock(1,1,value11);
 
     return retMat;
 }

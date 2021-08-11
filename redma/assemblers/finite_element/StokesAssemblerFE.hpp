@@ -377,7 +377,7 @@ public:
      *
      * Attention: this function is expensive.
      */
-    void assembleFlowRateJacobians(shp<BCManager> bcManager);
+    void assembleFlowRateJacobians();
 
     /*! \brief Assemble vector to compute the flow rate given a face.
      *

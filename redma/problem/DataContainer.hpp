@@ -50,9 +50,9 @@ public:
      */
     void setDatafile(const std::string& datafile);
 
-    /*! \brief  Setter for the inflow law with a given inlet flag
+    /*! \brief  Setter for the inlet law (either Dirichlet or Neumann) with a given inlet flag
      *
-     * \param inflow The inflow rate law.
+     * \param inflow The inlet law.
      * \param inletIndex. The index of the inlet to be considered. If not specified, it defaults to 99 (unique inlet)
      */
     void setInletBC(const Law& inflow,
