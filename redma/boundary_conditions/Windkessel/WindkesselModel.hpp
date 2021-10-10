@@ -34,10 +34,14 @@ public:
 
     virtual double getNeumannCondition(const double& time, const double& rate) override;
 
+    virtual void shiftSolutions() override;
+
 private:
     double                                              M_C;  // compliance
     double                                              M_Rp; // proximal resistance
     double                                              M_Rd; // distal resistance
+
+    bool                                                M_isResistanceBC;
 };
 
 }

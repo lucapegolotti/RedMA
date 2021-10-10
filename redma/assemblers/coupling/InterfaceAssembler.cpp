@@ -294,8 +294,6 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
     std::vector<shp<DistributedVector>> couplingVectors;
     couplingVectors = buildCouplingVectors(bfs, face, assembler);
 
-    // std::cout << "Basic coupling dimension: " << couplingVectors.size() << std::endl;
-
     // 2) take care of the rings, in case reduced FSI (i.e. membrane) model is used
     if (!M_addNoSlipBC)
     {
@@ -307,8 +305,6 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
 
         std::vector<shp<DistributedVector>> ringCouplingVectors;
         ringCouplingVectors = buildCouplingVectors(bfsRing, face, assembler);
-
-        // std::cout << "Ring coupling dimension: " << ringCouplingVectors.size() << std::endl;
 
         couplingVectors.insert(couplingVectors.end(),
                                ringCouplingVectors.begin(), ringCouplingVectors.end());
@@ -322,8 +318,6 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
             std::vector<shp<DistributedVector>> strongRingCouplingVectors;
             strongRingCouplingVectors = (isFather) ? buildStrongRingCouplingVectors().first :
                                         buildStrongRingCouplingVectors().second;
-
-            // std::cout << "Strong ring coupling dimension: " << strongRingCouplingVectors.size() << std::endl << std::flush;
 
             couplingVectors.insert(couplingVectors.end(),
                                    strongRingCouplingVectors.begin(), strongRingCouplingVectors.end());

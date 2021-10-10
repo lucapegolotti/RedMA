@@ -36,6 +36,14 @@ setInletBC(const std::function<double(double)>& inletLaw,
                       "read from file, as the 'generate_inletBC' flag in datafile is set to 1\n");
 }
 
+void
+DataContainer::
+setOutletBC(const std::function<double(double)>& outletLaw,
+           unsigned int indexOutlet)
+{
+    M_outletBCs[indexOutlet] = outletLaw;
+}
+
 DataContainer::Law
 DataContainer::
 getDistalPressure(const unsigned int& outletIndex) const
@@ -248,7 +256,6 @@ void
 DataContainer::
 generateIntraMyocardialPressure(std::string inputfilename)
 {
-    // TODO: scale and shift ??
     try
     {
         auto values = parseTimeValueFile(inputfilename);
@@ -271,9 +278,12 @@ generateRamp()
 
     if (std::abs(t0ramp - t0) > 1e-15)
     {
-        M_ramp = [t0,t0ramp](double x)
+        M_ramp = [t0,t0ramp](double t)
         {
-            return (1.0 - std::cos((x - t0ramp) * M_PI / (t0 - t0ramp))) / 2.0;
+            if (t <= t0)
+                return (1.0 - std::cos((t - t0ramp) * M_PI / (t0 - t0ramp))) / 2.0;
+            else
+                return 1.0;
         };
     }
 }

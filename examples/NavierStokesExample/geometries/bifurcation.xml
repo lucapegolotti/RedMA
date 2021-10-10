@@ -1,0 +1,17 @@
+<buildingblock type="bifurcation_symmetric" assembler="navierstokes" method="fem" refinement="coarse" angle="50" outlet="1">
+    <alpha>0</alpha>
+    <alpha_axis>0</alpha_axis>
+    <bx>0</bx>
+    <by>0</by>
+    <bz>0</bz>
+    <out1_alphax>-0.10000000000000001</out1_alphax>
+    <out1_alphay>-0.10000000000000001</out1_alphay>
+    <out1_alphaz>0.092641716520347472</out1_alphaz>
+    <out2_alphax>-0.09660139532741141</out2_alphax>
+    <out2_alphay>0.032328669519188225</out2_alphay>
+    <out2_alphaz>0.044859319926171454</out2_alphaz>
+    <rotation_axis_x>0.37783290373650275</rotation_axis_x>
+    <rotation_axis_y>-0.92587380179700651</rotation_axis_y>
+    <rotation_axis_z>0</rotation_axis_z>
+    <scale>1</scale>
+</buildingblock>

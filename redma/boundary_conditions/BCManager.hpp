@@ -100,7 +100,7 @@ public:
     void applyInletNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
                               const bool& zeroFlag = false) const;
 
-    void applyOutletNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law,
+    void applyOutletNeumannBCs(shp<LifeV::BCHandler> bcs,
                                const bool& zeroFlag = true) const;
 
     double getOutletNeumannBC(const double& time, const double& flag, const double& rate);
@@ -141,9 +141,9 @@ private:
                                    const Law inflow,
                                    const double& coefficient);
 
-    static double neumannInlet(const double& t, const double& x, const double& y,
-                               const double& z, const unsigned int& i,
-                               Law inflowLaw);
+    static double neumannLaw(const double& t, const double& x, const double& y,
+                             const double& z, const unsigned int& i,
+                             Law inflowLaw);
 
     std::map<unsigned int, Matrix3D> computeRotationMatrices() const;
 
@@ -167,7 +167,7 @@ private:
                     const bool& ringOnly = false,
                     const bool& zeroFlag = false) const;
 
-    void parseOutletNeumannData();
+    void parseOutletBCData();
 
     shp<TreeNode>                                    M_treeNode;
     DataContainer                                    M_data;
@@ -175,6 +175,7 @@ private:
     std::string                                      M_inletBCType;
     std::string                                      M_ringConstraint;
     std::map<unsigned int, Law>                      M_inletBCs;
+    std::map<unsigned int, Law>                      M_outletBCs;
     // bool                                             M_strongDirichlet;
 
     std::vector<unsigned int>                        M_inletFlags;

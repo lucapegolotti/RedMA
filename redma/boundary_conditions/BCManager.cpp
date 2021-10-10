@@ -13,7 +13,7 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
 
     M_ringConstraint = data("bc_conditions/ring_constraint", "normal");
 
-    M_inletBCs = M_data.getInflowBCs();
+    M_inletBCs = M_data.getInletBCs();
     int ninlets = M_data("bc_conditions/numinletbcs", -1);
     if (ninlets > 0)
     {
@@ -36,7 +36,7 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
     }
 
     if (M_treeNode->isOutletNode())
-        this->parseOutletNeumannData();
+        this->parseOutletBCData();
     if (M_treeNode->isInletNode())
         this->checkInletLaw();
 
@@ -55,13 +55,14 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
 
     M_wallFlag = treeNode->M_block->getWallFlag();
 
-    parseOutletNeumannData();
+    M_outletBCs = M_data.getOutletBCs();
+    parseOutletBCData();
 
 }
 
 void
 BCManager::
-parseOutletNeumannData()
+parseOutletBCData()
 {
     unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
 
@@ -78,6 +79,8 @@ parseOutletNeumannData()
                 M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
             else if (!std::strcmp(BCtype.c_str(), "coronary"))
                 M_models[boundaryflag].reset(new CoronaryModel(M_data, dataEntry, outletIndex));
+            else if (!std::strcmp(BCtype.c_str(), "neumann"))
+                continue;
             else
                 throw new Exception("Unrecognized outlet BC model " + BCtype +
                                      " in outlet number " + std::to_string(outletIndex) + "!");
@@ -116,49 +119,66 @@ BCManager::
 applyInletNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
                      const bool& zeroFlag) const
 {
-    std::function<double(double)> inflowLaw;
+    std::function<double(double)> inletLaw;
     if (zeroFlag)
-        inflowLaw = Law([](double t){return 0.0;});
+        inletLaw = Law([](double t){return 0.0;});
     else
-        inflowLaw = law;
+        inletLaw = law;
 
-    auto inflowBoundaryCondition = std::bind(neumannInlet,
-                                             std::placeholders::_1,
-                                             std::placeholders::_2,
-                                             std::placeholders::_3,
-                                             std::placeholders::_4,
-                                             std::placeholders::_5,
-                                             inflowLaw);
+    auto inletBoundaryCondition = std::bind(neumannLaw,
+                                            std::placeholders::_1,
+                                            std::placeholders::_2,
+                                            std::placeholders::_3,
+                                            std::placeholders::_4,
+                                            std::placeholders::_5,
+                                            inletLaw);
 
-    LifeV::BCFunctionBase inflowFunction(inflowBoundaryCondition);
-    bcs->addBC("Inlet", inlet.M_flag, LifeV::Natural, LifeV::Normal,
-               inflowFunction);
+    LifeV::BCFunctionBase inletFunction(inletBoundaryCondition);
+    bcs->addBC("InletNeumann", inlet.M_flag, LifeV::Natural, LifeV::Normal,
+               inletFunction);
 }
 
 void
 BCManager::
-applyOutletNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law,
+applyOutletNeumannBCs(shp<LifeV::BCHandler> bcs,
                       const bool& zeroFlag) const
 {
-    std::function<double(double)> outflowLaw;
-    if (zeroFlag)
-        outflowLaw = Law([](double t){return 0.0;});
-    else
-        outflowLaw = law;
+    unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
 
-    auto outflowBoundaryCondition = std::bind(neumannInlet,
-                                              std::placeholders::_1,
-                                              std::placeholders::_2,
-                                              std::placeholders::_3,
-                                              std::placeholders::_4,
-                                              std::placeholders::_5,
-                                              outflowLaw);
+    for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
+    {
+        std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
 
-    LifeV::BCFunctionBase outflowFunction(outflowBoundaryCondition);
+        unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
+        std::string BCtype = M_data(dataEntry + "/type", "windkessel");
+        if ((M_treeNode->M_ID == blockindex) && (!std::strcmp(BCtype.c_str(), "neumann")))
+        {
+            unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
 
-    for (unsigned int flag : M_outletFlags)
-        bcs->addBC("OutletHomoNeumann", flag, LifeV::Natural, LifeV::Normal,
-                   outflowFunction);
+            std::function<double(double)> outletLaw;
+            if (zeroFlag)
+                outletLaw = Law([](double t){return 0.0;});
+            else
+                if (M_outletBCs.find(outletIndex) == M_outletBCs.end())
+                    throw new Exception("Outlet with index " + std::to_string(outletIndex) +
+                                        " was not set an outlet function!");
+
+                outletLaw = Law([this, outletIndex](double t) {return -M_outletBCs.find(outletIndex)->second(t);});
+
+            auto outletBoundaryCondition = std::bind(neumannLaw,
+                                                     std::placeholders::_1,
+                                                     std::placeholders::_2,
+                                                     std::placeholders::_3,
+                                                     std::placeholders::_4,
+                                                     std::placeholders::_5,
+                                                     outletLaw);
+
+            LifeV::BCFunctionBase outletFunction(outletBoundaryCondition);
+
+            bcs->addBC("OutletNeumann", boundaryflag, LifeV::Natural, LifeV::Normal,
+                       outletFunction);
+        }
+    }
 }
 
 void
@@ -436,11 +456,11 @@ poiseuilleInflow(const double& t, const double& x, const double& y,
 
 double
 BCManager::
-neumannInlet(const double &t, const double &x,
-             const double &y, const double &z, const unsigned int &i,
-             std::function<double(double)> inflowLaw)
+neumannLaw(const double &t, const double &x,
+           const double &y, const double &z, const unsigned int &i,
+           std::function<double(double)> inletLaw)
 {
-    return inflowLaw(t);
+    return inletLaw(t);
 }
 
 void
@@ -522,7 +542,6 @@ getOutletNeumannBC(const double& time, const double& flag, const double& rate)
         return 0.0;
 
     return -M_models[flag]->getNeumannCondition(time, rate);
-    // return 0.0;
 }
 
 double
@@ -534,7 +553,6 @@ getOutletNeumannJacobian(const double& time, const double& flag, const double& r
         return 0.0;
 
     return -M_models[flag]->getNeumannJacobian(time, rate);
-    // return 0.0;
 }
 
 void

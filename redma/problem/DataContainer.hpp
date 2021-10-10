@@ -58,6 +58,14 @@ public:
     void setInletBC(const Law& inflow,
                     unsigned int indexInlet = 99);
 
+    /*! \brief  Setter for the outlet law (Neumann) with a given outlet index
+     *
+     * \param inflow The outlet law.
+     * \param inletIndex. The index of the outlet to be considered
+     */
+    void setOutletBC(const Law& inflow,
+                    unsigned int indexOutlet);
+
     /*! \brief Setter for the distal pressure.
      *
      * \param pressure Analytical function of the distal pressure.
@@ -80,22 +88,41 @@ public:
     /// Getter for the internal datafile.
     inline GetPot getDatafile() const {return *M_datafile;}
 
-    /*! \brief Getter for the inflow function corresponding to a specific flag.
+    /*! \brief Getter for the inlet function corresponding to a specific flag.
      *
-     * The inflow function are either set in analytical form through setInletBC
+     * The inlet function is either set in analytical form through setInletBC
      * or passed through file specified in M_datafile.
      *
      * \param flag The flag of the inlet.
-     * \return Standard map with key = flag, value = inflow function.
+     * \return Inlet function corresponding to the given flag
      */
     inline Law getInletBC(unsigned int flag = 0) {return M_inletBCs[flag];}
 
     /*! \brief Getter for the inflow functions.
      *
-     * The inflow function is either set in analytical form through setInletBC.
+     * The inlet function is either set in analytical form through setInletBC.
      * or passed through file specified in M_datafile.
+     *
+     * \return Standard map with key = flag, value = inlet function.
      */
-    inline std::map<unsigned int, Law> getInflowBCs() {return M_inletBCs;}
+    inline std::map<unsigned int, Law> getInletBCs() {return M_inletBCs;}
+
+    /*! \brief Getter for the outlet function corresponding to a specific flag.
+     *
+     * The outlet function is set in analytical form through setOutletBC
+     *
+     * \param outletIndex The index of the outlet.
+     * \return Outlet function corresponding to the given outlet index
+     */
+    inline Law getOutletBC(unsigned int outletIndex = 0) {return M_outletBCs[outletIndex];}
+
+    /*! \brief Getter for the outlet functions.
+     *
+     * The outlet function is set in analytical form through setOutletBC.
+     *
+     * \return Standard map with key = index, value = outlet function.
+     */
+    inline std::map<unsigned int, Law> getOutletBCs() {return M_outletBCs;}
 
     /// Getter for M_verbose.
     inline bool getVerbose() const {return M_verbose;}
@@ -237,6 +264,7 @@ protected:
 
     shp<GetPot>                                           M_datafile;
     std::map<unsigned int, Law>                           M_inletBCs;
+    std::map<unsigned int, Law>                           M_outletBCs;
     Law                                                   M_ramp;
     std::map<unsigned int, Law>                           M_distalPressures;
     Law                                                   M_intraMyocardialPressure;

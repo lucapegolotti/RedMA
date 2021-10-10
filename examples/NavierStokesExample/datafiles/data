@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/tree2.xml
+	xmlfile = geometries/aorta_bifurcation.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -19,23 +19,39 @@ outputdir = rb_solutions
 [../]
 
 [bc_conditions]
-    inlet_bc_type = neumann
-    generate_inletBC = 1
+    inlet_bc_type = dirichlet
+    generate_inletBC = 0
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 	inletpressurefile = datafiles/inlet_pressure.txt
 	coefficientinflow = 1.000552724487405
 
-	numoutletbcs = 1
+	numoutletbcs = 2
 	pimfile = datafiles/IM_pressure.txt
 	[./outlet0]
 	    type = windkessel
-        blockindex = 1
-        boundaryflag = 2
+        blockindex = 0
+        boundaryflag = 3
 
-        C = 0.0000760  # WK3
-        Rp = 718.27  # WK3
-        Rd = 15945.20  # WK3
+        C = 0.0  # 0.0000760  # WK3
+        Rp = 1000  # 718.27  # WK3
+        Rd = 0.0  # 15945.20  # WK3
+
+        Ca = 1.0606295687808294e-07  # CORO
+        Cim = 8.581457420135802e-07  # CORO
+        Ra = 194674.68548804865  # CORO
+        Ram = 316346.36391807906  # CORO
+        Rvm = 0  # CORO
+        Rv = 97337.34274402432  # CORO
+    [../]
+    [./outlet1]
+        type = windkessel
+        blockindex = 0
+        boundaryflag = 4
+
+        C = 0.0  # 0.0000760  # WK3
+        Rp = 2000  # 718.27  # WK3
+        Rd = 0.0  # 15945.20  # WK3
 
         Ca = 1.0606295687808294e-07  # CORO
         Cim = 8.581457420135802e-07  # CORO
@@ -45,7 +61,7 @@ outputdir = rb_solutions
         Rv = 97337.34274402432  # CORO
     [../]
 
-	ring_constraint = full # type of homogeneous BC imposed at I/O rings
+	ring_constraint = full # type of homogeneous BC imposed at I/O rings for membrane model
 [../]
 
 [rb]
@@ -147,7 +163,7 @@ outputdir = rb_solutions
 	rhoinf = 0.5
 	order = 2
 	extrapolation_order = 2
-	t0ramp = -0.002
+	t0ramp = 0.0
 	t0 = 0
 	T = 0.04
 	dt = 0.0002

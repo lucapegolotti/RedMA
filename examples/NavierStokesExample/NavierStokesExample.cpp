@@ -44,6 +44,23 @@ double inletNeumann(double t)
     return 0.0;
 }
 
+double outletNeumann(double t, unsigned int i)
+{
+    const double T = 5e-3;
+    const double omega = M_PI / T;
+    double P_max;
+    // potentially we can define here different BC for different outlet indices
+    if (i == 0)
+        P_max = 1333.0;
+    else
+        P_max = 5 * 1333.0;
+
+    if (t <= T)
+        return 0.5 * (1.0 - std::cos(omega * t)) * P_max;
+
+    return P_max;
+}
+
 int main(int argc, char **argv)
 {
     #ifdef HAVE_MPI
@@ -56,7 +73,7 @@ int main(int argc, char **argv)
     Chrono chrono;
     chrono.start();
 
-    std::string msg = "Starting chrono \n";
+    std::string msg = "Starting chrono... \n";
     printlog(MAGENTA, msg, true);
 
     DataContainer data;
@@ -70,6 +87,14 @@ int main(int argc, char **argv)
     else
         throw new Exception("Unrecognized inlet BC type! "
                             "Available types: {dirichlet, neumann}.");
+
+    unsigned int numOutletConditions = data("bc_conditions/numoutletbcs", 0);
+    for (unsigned int i = 0; i < numOutletConditions; i++)
+    {
+        std::string dataEntry = "bc_conditions/outlet" + std::to_string(i);
+        if (!std::strcmp(data(dataEntry + "/type", "windkessel").c_str(), "neumann"))
+            data.setOutletBC([i](double t){return outletNeumann(t,i);}, i);
+    }
 
     std::string solutionDir = "solutions";
     if (!fs::exists(solutionDir))

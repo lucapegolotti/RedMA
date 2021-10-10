@@ -171,7 +171,22 @@ addNeumannBCs(double time,
 
     if (aAssembler::M_treeNode->isOutletNode())
     {
+        shp<LifeV::BCHandler> bcs;
+        bcs.reset(new LifeV::BCHandler);
+
+        // 1) handle non-homogeneous Neumann outlet BCs
+        this->M_bcManager->applyOutletNeumannBCs(bcs, false);
+
+        bcs->bcUpdate(*M_velocityFESpace->mesh(), M_velocityFESpace->feBd(),
+                      M_velocityFESpace->dof());
+
+        bcManageRhs(*spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()),
+                    *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+                    *bcs, M_velocityFESpace->feBd(), 1.0, time);
+
+        // 2) handle other outlet BCs (Coronary, Windkessel)
         auto flowRates = this->computeFlowRates(sol, true);
+
         std::vector<unsigned int> outletFlags;
         for (auto out : aAssembler::M_treeNode->M_block->getOutlets())
             outletFlags.push_back(out.M_flag);
@@ -188,6 +203,7 @@ addNeumannBCs(double time,
                 *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;
             }
         }
+
     }
 }
 
