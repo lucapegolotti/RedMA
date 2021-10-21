@@ -29,6 +29,8 @@
 #include <redma/geometry/GeometryPrinter.hpp>
 #include <redma/geometry/building_blocks/Tube.hpp>
 #include <redma/geometry/building_blocks/BifurcationSymmetric.hpp>
+#include <redma/geometry/building_blocks/AortaBifurcation0.hpp>
+#include <redma/geometry/building_blocks/AortaBifurcation1.hpp>
 
 #include <redma/reduced_basis/RBBases.hpp>
 
@@ -75,6 +77,10 @@ private:
     shp<TreeNode> generateDefaultTube(const std::string& nameMesh);
 
     shp<TreeNode> generateDefaultSymmetricBifurcation(const std::string& nameMesh);
+
+    shp<TreeNode> generateDefaultAortaBifurcation0(const std::string& nameMesh);
+
+    shp<TreeNode> generateDefaultAortaBifurcation1(const std::string& nameMesh);
 
     DataContainer                                       M_data;
     EPETRACOMM                                          M_comm;

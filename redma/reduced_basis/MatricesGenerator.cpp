@@ -192,4 +192,38 @@ generateDefaultSymmetricBifurcation(const std::string& nameMesh)
     return treeNode;
 }
 
-}  // namespace RedMA
+shp<TreeNode>
+MatricesGenerator::
+generateDefaultAortaBifurcation0(const std::string& nameMesh)
+{
+    std::string refinement = "normal";
+
+    shp<AortaBifurcation0> defaultBifurcation(new AortaBifurcation0(M_comm, refinement));
+    defaultBifurcation->readMesh();
+    defaultBifurcation->setDiscretizationMethod("fem");
+    
+    defaultBifurcation->setAssemblerType("navierstokes");
+
+    shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234));
+
+    return treeNode;
+}
+
+shp<TreeNode>
+MatricesGenerator::
+generateDefaultAortaBifurcation1(const std::string& nameMesh)
+{
+    std::string refinement = "normal";
+
+    shp<AortaBifurcation1> defaultBifurcation(new AortaBifurcation1(M_comm, refinement));
+    defaultBifurcation->readMesh();
+    defaultBifurcation->setDiscretizationMethod("fem");
+    
+    defaultBifurcation->setAssemblerType("navierstokes");
+
+    shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234));
+
+    return treeNode;
+}
+
+}// namespace RedMA
