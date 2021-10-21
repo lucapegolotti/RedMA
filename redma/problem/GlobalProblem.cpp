@@ -95,7 +95,7 @@ solve()
             M_solutions.push_back(M_solution);
             M_timestepsSolutions.push_back(t);
         }
-        if (t >= t0 && t > 0.6 && saveEvery > 0 && count % saveEvery == 0)
+        if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
             M_assembler->exportSolution(t, M_solution);
 
         M_assembler->postProcess(t, M_solution);

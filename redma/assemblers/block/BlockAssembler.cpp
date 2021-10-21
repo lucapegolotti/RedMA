@@ -115,7 +115,8 @@ getZeroVector() const
 std::map<unsigned int, std::vector<shp<BlockVector>>>
 BlockAssembler::
 importSolution(const std::string& filename) const
-{
+{   
+    std::cout << filename << std::endl << std::flush;
     if (!fs::exists(filename))
         throw new Exception("Importing error. Invalid path provided!");
 

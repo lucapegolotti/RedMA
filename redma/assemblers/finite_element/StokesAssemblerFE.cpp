@@ -59,8 +59,8 @@ std::map<unsigned int, std::vector<shp<BlockVector>>>
 StokesAssemblerFE::
 importSolution(const std::string& filename) const
 {
-    std::fstream inVel(filename + "velocity.txt");
-    std::fstream inPres(filename + "pressure.txt");
+    std::fstream inVel(filename + "/velocity.txt");
+    std::fstream inPres(filename + "/pressure.txt");
     std::string line;
     std::vector<shp<VECTOREPETRA>> vecVelocity;
     std::vector<shp<VECTOREPETRA>> vecPressure;

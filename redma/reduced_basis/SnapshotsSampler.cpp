@@ -41,10 +41,10 @@ takeSnapshots()
                               M_data("rb/offline/snapshots/c_min", 0.0),
                               M_data("rb/offline/snapshots/c_max", 1.0)};
 
-            // auto vec = inflowSnapshots(param[0], param[1], param[2], param[3]);
-            std::vector<double> vec;
-            vec.push_back(7.9887249049);
-            vec.push_back(0.1597831855);
+            auto vec = inflowSnapshots(param[0], param[1], param[2], param[3]);
+            //std::vector<double> vec;
+            //vec.push_back(4.0015753921);
+            //vec.push_back(0.2318212560);
             array_params = vec;
 
             M_data.setInflow(std::bind(M_inflow,
@@ -63,8 +63,8 @@ takeSnapshots()
 
         problem.setup();
         auto M_divergence = problem.getBlockAssembler()->block(0)->assembleMatrix(2);
-        M_divergence->block(0,1)->dump("M_divergence01");
-        M_divergence->block(1,0)->dump("M_divergence10");
+        M_divergence->block(0,1)->dump("BdivT");
+        M_divergence->block(1,0)->dump("Bdiv");
 
         if (!problem.isFEProblem())
             throw new Exception("The tree must be composed of only FE nodes to "
@@ -102,9 +102,9 @@ dumpSnapshots(GlobalProblem& problem,
     if (binary)
         omode = omode | std::ios::binary;
 
-    M_mass->block(0,0)->dump("M_mass");
-    M_stiffness->block(0,0)->dump("M_stiffness");
-    M_divergence->block(0,0)->dump("M_divergence");
+    M_mass->block(0,0)->dump("M");
+    M_stiffness->block(0,0)->dump("A");
+    // M_divergence->block(0,0)->dump("M_divergence");
 
     //for (auto sol : solutions)
     //    problem.getBlockAssembler()->applyPiola(sol, true);
@@ -112,13 +112,13 @@ dumpSnapshots(GlobalProblem& problem,
     for (auto idmeshtype : IDmeshTypeMap)
     {
         std::string meshtypedir = outdir + "/" + idmeshtype.second;
-        fs::create_directory(meshtypedir);
+        // fs::create_directory(meshtypedir);
 
         unsigned int nfields = solutions[0]->block(idmeshtype.first)->nRows();
 
         for (unsigned int i = 0; i < nfields; i++)
         {
-            std::string outfilename = meshtypedir + "/field" + std::to_string(i) + ".snap";
+            std::string outfilename = outdir + "/field" + std::to_string(i) + ".snap";
 
             std::ofstream outfile;
             outfile.open(outfilename, omode);
@@ -141,7 +141,7 @@ dumpSnapshots(GlobalProblem& problem,
         if (computereynolds)
         {
             std::ofstream reynoldsfile;
-            reynoldsfile.open(meshtypedir + "/reynolds.txt", std::ios_base::app |
+            reynoldsfile.open(outdir + "/reynolds.txt", std::ios_base::app |
                                                              std::ios::binary);
             for (auto sol : solutions)
             {
@@ -160,7 +160,7 @@ dumpSnapshots(GlobalProblem& problem,
 
         if (!array_params.empty())
         {
-            std::ofstream file(meshtypedir + "/coeffile.txt", std::ios_base::app);
+            std::ofstream file(outdir + "/coeffile.txt", std::ios_base::app);
 
             for (double i : array_params)
             {
