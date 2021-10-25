@@ -40,7 +40,7 @@ class TreeNode
 {
 public:
 
-    /*! \brief Costructor.
+    /*! \brief Constructor.
      *
      * \param block Shared pointer to the building block.
      * \param id ID of the building block.

@@ -104,21 +104,20 @@ dumpSnapshots(GlobalProblem& problem,
 
     M_mass->block(0,0)->dump("M");
     M_stiffness->block(0,0)->dump("A");
-    // M_divergence->block(0,0)->dump("M_divergence");
 
-    //for (auto sol : solutions)
-    //    problem.getBlockAssembler()->applyPiola(sol, true);
+    /*for (auto sol : solutions)
+        problem.getBlockAssembler()->applyPiola(sol, true);*/
 
     for (auto idmeshtype : IDmeshTypeMap)
     {
         std::string meshtypedir = outdir + "/" + idmeshtype.second;
-        // fs::create_directory(meshtypedir);
+        fs::create_directory(meshtypedir);
 
         unsigned int nfields = solutions[0]->block(idmeshtype.first)->nRows();
 
         for (unsigned int i = 0; i < nfields; i++)
         {
-            std::string outfilename = outdir + "/field" + std::to_string(i) + ".snap";
+            std::string outfilename = meshtypedir + "/field" + std::to_string(i) + ".snap";
 
             std::ofstream outfile;
             outfile.open(outfilename, omode);
@@ -137,6 +136,24 @@ dumpSnapshots(GlobalProblem& problem,
             }
             outfile.close();
         }
+
+        std::string outfilename = meshtypedir + "/lagmult.snap";
+        std::ofstream outfile;
+        outfile.open(outfilename, omode);
+        unsigned int count = 0;
+        for (auto sol : solutions)
+        {
+            auto solBlck = convert<DistributedVector>(convert<BlockVector>(convert<BlockVector>(sol)->block(1))->block(0));
+            if (count % takeEvery == 0)
+            {
+                std::string str2write = solBlck->getString(',') + "\n";
+                if (M_comm->MyPID() == 0)
+                    outfile.write(str2write.c_str(), str2write.size());
+            }
+
+            count++;
+        }
+        outfile.close();
 
         if (computereynolds)
         {
@@ -163,32 +180,11 @@ dumpSnapshots(GlobalProblem& problem,
             std::ofstream file(outdir + "/coeffile.txt", std::ios_base::app);
 
             for (double i : array_params)
-            {
                 file << std::fixed << std::setprecision(10) << i << std::endl;
-            }
 
             file.close();
         }
     }
-
-    std::string outfilename = outdir + "/lagmult.snap";
-
-    std::ofstream outfile;
-    outfile.open(outfilename, omode);
-    unsigned int count = 0;
-    for (auto sol : solutions)
-    {
-        auto solBlck = convert<DistributedVector>(convert<BlockVector>(convert<BlockVector>(sol)->block(1))->block(0));
-        if (count % takeEvery == 0)
-        {
-            std::string str2write = solBlck->getString(',') + "\n";
-            if (M_comm->MyPID() == 0)
-                outfile.write(str2write.c_str(), str2write.size());
-        }
-
-        count++;
-    }
-    outfile.close();
 
 }
 
@@ -273,7 +269,6 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
 
                 std::ofstream outfile;
                 outfile.open(snapshotFile, omode);
-                unsigned int count = 0;
                 for (auto sol : snapshots)
                 {
                     shp<DistributedVector> vectorWrap(new DistributedVector());

@@ -141,7 +141,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
                           "aortabif1"))
     {
         std::string msg = std::string("[GeometryParser] parsing") +
-                  " building block of type aortabif0\n";
+                  " building block of type aortabif1\n";
         printlog(GREEN, msg, M_verbose);
 
         returnBlock.reset(new AortaBifurcation1(M_comm, ref, "aortabif1", M_verbose));
