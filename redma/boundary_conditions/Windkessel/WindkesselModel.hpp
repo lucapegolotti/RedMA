@@ -34,6 +34,8 @@ public:
 
     virtual double getNeumannCondition(const double& time, const double& rate) override;
 
+    virtual double getNeumannJacobian(const double& time, const double& rate) override;
+
     virtual void shiftSolutions() override;
 
 private:

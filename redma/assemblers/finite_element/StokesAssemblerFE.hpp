@@ -379,6 +379,11 @@ public:
      */
     void assembleFlowRateJacobians();
 
+    /*! \brief Compute additional outlet matrices.
+     *
+     */
+    void assembleAdditionalOutletMatrices();
+
     /*! \brief Assemble vector to compute the flow rate given a face.
      *
      * These are defined as
@@ -400,6 +405,21 @@ public:
      * \return Shared pointer to the vector.
      */
     shp<MATRIXEPETRA> assembleFlowRateJacobian(const GeometricFace& face);
+
+    /*! \brief Assemble the additional matrix appearing in outlet if non-standard BCs are imposed.
+     *
+     * The additional outlet matrix is defined as
+     *
+     * \f[
+     *    O_{ij} = -\int_{\Gamma} \mu \psi_j^h \cdot \nabla \varphi_i^h n
+     * \f]
+     *
+     * where \f$\varphi_i^h\f$ is the finite element functions of velocity, and \f$n\f$ is the normal to the face \f$\Gamma\f$.
+     *
+     * \param face The face.
+     * \return Shared pointer to the matrix.
+     */
+    shp<MATRIXEPETRA> assembleAdditionalOutletMatrix(const GeometricFace& face);
 
     /*! \brief Add backflow stabilization.
      *
@@ -488,6 +508,7 @@ protected:
     // first index is face flag
     std::map<unsigned int, shp<VECTOREPETRA>>         M_flowRateVectors;
     std::map<unsigned int, shp<BlockMatrix>>          M_flowRateJacobians;
+    std::map<unsigned int, shp<BlockMatrix>>          M_additionalOutletMatrices;
 
     std::string                                       M_velocityOrder;
     std::string                                       M_pressureOrder;

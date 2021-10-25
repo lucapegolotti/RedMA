@@ -161,22 +161,21 @@ applyOutletNeumannBCs(shp<LifeV::BCHandler> bcs,
             else
                 if (M_outletBCs.find(outletIndex) == M_outletBCs.end())
                     throw new Exception("Outlet with index " + std::to_string(outletIndex) +
-                                        " was not set an outlet function!");
+                    " was not set an outlet function!");
 
                 outletLaw = Law([this, outletIndex](double t) {return -M_outletBCs.find(outletIndex)->second(t);});
 
-            auto outletBoundaryCondition = std::bind(neumannLaw,
-                                                     std::placeholders::_1,
-                                                     std::placeholders::_2,
-                                                     std::placeholders::_3,
-                                                     std::placeholders::_4,
-                                                     std::placeholders::_5,
-                                                     outletLaw);
+                auto outletBoundaryCondition = std::bind(neumannLaw,
+                                                         std::placeholders::_1,
+                                                         std::placeholders::_2,
+                                                         std::placeholders::_3,
+                                                         std::placeholders::_4,
+                                                         std::placeholders::_5,
+                                                         outletLaw);
 
-            LifeV::BCFunctionBase outletFunction(outletBoundaryCondition);
-
-            bcs->addBC("OutletNeumann", boundaryflag, LifeV::Natural, LifeV::Normal,
-                       outletFunction);
+                LifeV::BCFunctionBase outletFunction(outletBoundaryCondition);
+                bcs->addBC("OutletNeumann", boundaryflag, LifeV::Natural, LifeV::Normal,
+                           outletFunction);
         }
     }
 }

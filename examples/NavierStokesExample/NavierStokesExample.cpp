@@ -51,9 +51,9 @@ double outletNeumann(double t, unsigned int i)
     double P_max;
     // potentially we can define here different BC for different outlet indices
     if (i == 0)
-        P_max = 1333.0;
+        P_max = 1.5 * 1333.0;
     else
-        P_max = 5 * 1333.0;
+        P_max = 1333.0;
 
     if (t <= T)
         return 0.5 * (1.0 - std::cos(omega * t)) * P_max;
@@ -65,6 +65,7 @@ int main(int argc, char **argv)
 {
     #ifdef HAVE_MPI
     MPI_Init (nullptr, nullptr);
+
     EPETRACOMM comm (new Epetra_MpiComm(MPI_COMM_WORLD));
     #else
     EPETRACOMM comm(new Epetra_SerialComm());

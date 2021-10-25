@@ -10,8 +10,7 @@ BDF(const DataContainer& data) :
   M_extrapolationOrder(data("time_discretization/extrapolation_order", 2))
 {
     M_useExtrapolation = this->M_data("time_discretization/use_extrapolation", 0);
-    // if we set this we save the evaluation of the residual at the end of resolution
-    // (important for rb method)
+
     if (M_useExtrapolation)
         this->setLinearSolver();
 }
@@ -25,8 +24,9 @@ BDF(const DataContainer& data, shp<FunProvider> funProvider) :
     setup(this->M_funProvider->getZeroVector());
 
     M_useExtrapolation = this->M_data("time_discretization/use_extrapolation", 0);
+    bool linearSolve = this->M_data("time_discretization/solve_as_linear", 0);
 
-    if (M_useExtrapolation)
+    if ((linearSolve) || (M_useExtrapolation))
         this->M_systemSolver.isLinearProblem();
 }
 
@@ -39,9 +39,9 @@ BDF(const DataContainer& data, const shp<aVector>& zeroVector):
     setup(zeroVector);
 
     M_useExtrapolation = this->M_data("time_discretization/use_extrapolation", 0);
-    // if we set this we save the evaluation of the residual at the end of resolution
-    // (important for rb method)
-    if (M_useExtrapolation)
+    bool linearSolve = this->M_data("time_discretization/solve_as_linear", 0);
+
+    if ((linearSolve) || (M_useExtrapolation))
         this->M_systemSolver.isLinearProblem();
 }
 
@@ -175,8 +175,10 @@ advance(const double& time, double& dt, int& status)
         [this,time,dt](BV sol)
     {
         BM mass(this->M_funProvider->getMass(time+dt, sol));
+
         if (M_useExtrapolation)
             this->M_funProvider->setExtrapolatedSolution(computeExtrapolatedSolution());
+
         BV f(this->M_funProvider->getRightHandSide(time+dt, sol));
 
         BV prevContribution(new BlockVector(0));

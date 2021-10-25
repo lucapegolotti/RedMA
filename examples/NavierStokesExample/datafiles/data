@@ -34,7 +34,7 @@ outputdir = rb_solutions
         boundaryflag = 3
 
         C = 0.0  # 0.0000760  # WK3
-        Rp = 1000  # 718.27  # WK3
+        Rp = 100  # 718.27  # WK3
         Rd = 0.0  # 15945.20  # WK3
 
         Ca = 1.0606295687808294e-07  # CORO
@@ -50,7 +50,7 @@ outputdir = rb_solutions
         boundaryflag = 4
 
         C = 0.0  # 0.0000760  # WK3
-        Rp = 2000  # 718.27  # WK3
+        Rp = 200  # 718.27  # WK3
         Rd = 0.0  # 15945.20  # WK3
 
         Ca = 1.0606295687808294e-07  # CORO
@@ -137,7 +137,7 @@ outputdir = rb_solutions
 [../]
 
 [fluid]
-	velocity_order = P1
+	velocity_order = P2
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1.06
@@ -168,6 +168,7 @@ outputdir = rb_solutions
 	T = 0.04
 	dt = 0.0002
 	use_extrapolation = 0
+	solve_as_linear = 0
 	solverstatistics = solverstatistics.txt
 [../]
 

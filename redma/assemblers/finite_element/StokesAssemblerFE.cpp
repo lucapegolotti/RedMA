@@ -38,11 +38,10 @@ setup()
     M_divergence = spcast<BlockMatrix>(assembleDivergence(M_bcManager)); // #3
 
     assembleFlowRateVectors();
-    // assembleFlowRateJacobians();
+    assembleFlowRateJacobians();
+    assembleAdditionalOutletMatrices();
 
     setExporter();
-
-    // initializePythonStructures();
 
     msg = "done, in ";
     msg += std::to_string(chrono.diff());
@@ -171,18 +170,21 @@ addNeumannBCs(double time,
 
     if (aAssembler::M_treeNode->isOutletNode())
     {
+        // 1) handle non-homogeneous Neumann outlet BCs
         shp<LifeV::BCHandler> bcs;
         bcs.reset(new LifeV::BCHandler);
 
-        // 1) handle non-homogeneous Neumann outlet BCs
         this->M_bcManager->applyOutletNeumannBCs(bcs, false);
 
-        bcs->bcUpdate(*M_velocityFESpace->mesh(), M_velocityFESpace->feBd(),
-                      M_velocityFESpace->dof());
+        if (bcs->size())
+        {
+            bcs->bcUpdate(*M_velocityFESpace->mesh(), M_velocityFESpace->feBd(),
+                          M_velocityFESpace->dof());
 
-        bcManageRhs(*spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()),
-                    *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
-                    *bcs, M_velocityFESpace->feBd(), 1.0, time);
+            bcManageRhs(*spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()),
+                        *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+                        *bcs, M_velocityFESpace->feBd(), 1.0, time);
+        }
 
         // 2) handle other outlet BCs (Coronary, Windkessel)
         auto flowRates = this->computeFlowRates(sol, true);
@@ -195,12 +197,20 @@ addNeumannBCs(double time,
         {
             if (std::find(outletFlags.begin(), outletFlags.end(), rate.first) != outletFlags.end())
             {
-                double P = this->M_bcManager->getOutletNeumannBC(time, rate.first, rate.second);
-
+                /*double P = this->M_bcManager->getOutletNeumannBC(time, rate.first, rate.second);
                 shp<VECTOREPETRA> flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
                 *flowRateCopy *= P;
+                *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;*/
 
-                *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;
+                double dhdQ = this->M_bcManager->getOutletNeumannJacobian(time, rate.first, rate.second);
+                shp<BlockMatrix> curjac(new BlockMatrix(2,2));
+                curjac->deepCopy(M_flowRateJacobians[rate.first]);
+                curjac->multiplyByScalar(dhdQ);
+                rhs->add(curjac->multiplyByVector(sol));
+
+                /*shp<aVector> additionalContrib = M_additionalOutletMatrices[rate.first]->multiplyByVector(sol);
+                additionalContrib->multiplyByScalar(-1);
+                rhs->add(additionalContrib);*/
             }
         }
 
@@ -234,8 +244,11 @@ getJacobianRightHandSide(const double& time,
                 shp<BlockMatrix> curjac(new BlockMatrix(2,2));
                 curjac->deepCopy(M_flowRateJacobians[rate.first]);
                 curjac->multiplyByScalar(dhdQ);
-
                 retMat->add(curjac);
+
+                /*shp<BlockMatrix> additionalContrib = M_additionalOutletMatrices[rate.first];
+                additionalContrib->multiplyByScalar(-1);
+                retMat->add(additionalContrib);*/
             }
         }
     }
@@ -790,6 +803,30 @@ assembleFlowRateJacobians()
     }
 }
 
+void
+StokesAssemblerFE::
+assembleAdditionalOutletMatrices()
+{
+    if (M_treeNode->isOutletNode())
+    {
+        auto faces = M_treeNode->M_block->getOutlets();
+
+        for (auto face : faces)
+        {
+            shp<BlockMatrix> newOutletMatrix(new BlockMatrix(2,2));
+            shp<SparseMatrix> OMWrapper(new SparseMatrix());
+            OMWrapper->setMatrix(assembleAdditionalOutletMatrix(face));
+
+            newOutletMatrix->setBlock(0,0,OMWrapper);
+
+            applyDirichletBCsMatrix(newOutletMatrix, 0.0);
+
+            M_additionalOutletMatrices[face.M_flag] = newOutletMatrix;
+
+        }
+    }
+}
+
 std::map<unsigned int, double>
 StokesAssemblerFE::
 computeFlowRates(shp<aVector> sol, bool verbose)
@@ -866,11 +903,11 @@ assembleFlowRateJacobian(const GeometricFace& face)
     using namespace ExpressionAssembly;
 
     // compute outer product of flowrate vector with itself - very slow in this way!
-    /*shp<MATRIXEPETRA> flowRateJacobian;
-    flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
+    // shp<MATRIXEPETRA> flowRateJacobian;
+    // flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
 
-    flowRateJacobian->addDyadicProduct(*M_flowRateVectors[face.M_flag],
-                                       *M_flowRateVectors[face.M_flag]);*/
+    // flowRateJacobian->addDyadicProduct(*M_flowRateVectors[face.M_flag],
+    //                                   *M_flowRateVectors[face.M_flag]);
 
     const double dropTolerance(2.0 * std::numeric_limits<double>::min());
 
@@ -916,6 +953,57 @@ assembleFlowRateJacobian(const GeometricFace& face)
     flowRateJacobian->globalAssemble();
 
     return flowRateJacobian;
+}
+
+/*shp<MATRIXEPETRA>
+StokesAssemblerFE::
+assembleFlowRateJacobian(const GeometricFace &face)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria7pt));
+
+    double faceArea;
+    integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
+              myBDQR,
+              value(1.0)) >> faceArea;
+
+    shp<MATRIXEPETRA> flowRateJacobian(new MATRIXEPETRA(M_velocityFESpace->map()));
+    integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
+              myBDQR,
+              M_velocityFESpaceETA,
+              M_velocityFESpaceETA,
+              value(faceArea) * dot(phi_i, Nface) * dot(phi_j, Nface)
+              ) >> flowRateJacobian;
+
+    flowRateJacobian->globalAssemble();
+
+    return flowRateJacobian;
+}*/
+
+shp<MATRIXEPETRA>
+StokesAssemblerFE::
+assembleAdditionalOutletMatrix(const GeometricFace &face)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria7pt));
+
+    shp<MATRIXEPETRA> OMat(new MATRIXEPETRA(M_velocityFESpace->map()));
+
+    integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
+              myBDQR,
+              M_velocityFESpaceETA,
+              M_velocityFESpaceETA,
+              value(-1.0) * value(M_viscosity) * dot(phi_i, grad(phi_j) * Nface) +
+              dot(phi_i, Nface * dot(Nface, value(M_viscosity) * grad(phi_j) * Nface))
+              ) >> OMat;
+
+    OMat->globalAssemble();
+
+    return OMat;
 }
 
 void
@@ -976,21 +1064,6 @@ exportNorms(double t, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure)
         filename << M_pressureFESpace->l2Norm(*pressure) << "\n";
     }
 }
-
-// void
-// StokesAssemblerFE::
-// initializePythonStructures()
-// {
-//     // setenv("PYTHONPATH",".",1);
-//
-//     // Py_Initialize();
-//     // PyObject* pName = PyUnicode_DecodeFSDefault("test");
-//
-//     // M_pModule = PyImport_Import(pName);
-//     // Py_DECREF(pName);
-//
-//     // M_pFunc = PyObject_GetAttrString(M_pModule, "evaluate_model");
-// }
 
 void
 StokesAssemblerFE::
