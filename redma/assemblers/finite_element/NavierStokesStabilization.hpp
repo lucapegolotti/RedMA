@@ -43,7 +43,6 @@
 
 #include <lifev/eta/utils/Functions.hpp>
 #include <lifev/eta/expression/Integrate.hpp>
-#include <lifev/eta/expression/InteriorIntegrate.hpp>
 
 #include <functional>
 

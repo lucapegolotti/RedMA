@@ -955,33 +955,6 @@ assembleFlowRateJacobian(const GeometricFace& face)
     return flowRateJacobian;
 }
 
-/*shp<MATRIXEPETRA>
-StokesAssemblerFE::
-assembleFlowRateJacobian(const GeometricFace &face)
-{
-    using namespace LifeV;
-    using namespace ExpressionAssembly;
-
-    LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria7pt));
-
-    double faceArea;
-    integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
-              myBDQR,
-              value(1.0)) >> faceArea;
-
-    shp<MATRIXEPETRA> flowRateJacobian(new MATRIXEPETRA(M_velocityFESpace->map()));
-    integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
-              myBDQR,
-              M_velocityFESpaceETA,
-              M_velocityFESpaceETA,
-              value(faceArea) * dot(phi_i, Nface) * dot(phi_j, Nface)
-              ) >> flowRateJacobian;
-
-    flowRateJacobian->globalAssemble();
-
-    return flowRateJacobian;
-}*/
-
 shp<MATRIXEPETRA>
 StokesAssemblerFE::
 assembleAdditionalOutletMatrix(const GeometricFace &face)
