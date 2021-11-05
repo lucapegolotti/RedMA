@@ -113,7 +113,6 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
             status = -1;
 
             std::ostringstream streamOb;
-
             streamOb << err / initialError;
 
             msg = "[SystemSolver] Newton's algorithm, failed";

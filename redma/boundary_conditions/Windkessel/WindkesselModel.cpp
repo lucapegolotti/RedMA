@@ -53,7 +53,8 @@ getNeumannCondition(const double& time, const double& rate)
     }
     else
     {
-        retVal = M_Rp * rate +
+        double ramp = M_data.evaluateRamp(time);
+        retVal = M_Rp * rate * ramp +
                  M_Pd(time);
     }
 
@@ -64,8 +65,10 @@ double
 WindkesselModel::
 getNeumannJacobian(const double &time, const double &rate)
 {
-    if (M_isResistanceBC)
-        return M_Rp;
+    if (M_isResistanceBC) {
+        double ramp = M_data.evaluateRamp(time);
+        return M_Rp * ramp;
+    }
     else
         return aBCModel::getNeumannJacobian(time, rate);
 

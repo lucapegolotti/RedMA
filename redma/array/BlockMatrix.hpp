@@ -243,6 +243,12 @@ public:
      */
     virtual double normInf() override;
 
+    /*! \brief Compute teh Frobenius norm of the matrix.
+     *
+     * \return The Frobenius norm.
+     */
+    virtual double normFrobenius() override;
+
 protected:
 
     shp<Epetra_Comm>              M_comm;

@@ -39,7 +39,7 @@ setup()
 
     assembleFlowRateVectors();
     assembleFlowRateJacobians();
-    assembleAdditionalOutletMatrices();
+    // assembleAdditionalOutletMatrices();
 
     setExporter();
 
@@ -186,7 +186,7 @@ addNeumannBCs(double time,
                         *bcs, M_velocityFESpace->feBd(), 1.0, time);
         }
 
-        // 2) handle other outlet BCs (Coronary, Windkessel)
+        // 2) handle other outlet BCs (Coronary, Windkessel, Resistance)
         auto flowRates = this->computeFlowRates(sol, true);
 
         std::vector<unsigned int> outletFlags;
@@ -203,7 +203,7 @@ addNeumannBCs(double time,
                 *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;*/
 
                 double dhdQ = this->M_bcManager->getOutletNeumannJacobian(time, rate.first, rate.second);
-                shp<BlockMatrix> curjac(new BlockMatrix(2,2));
+                shp<BlockMatrix> curjac(new BlockMatrix(this->M_nComponents,this->M_nComponents));
                 curjac->deepCopy(M_flowRateJacobians[rate.first]);
                 curjac->multiplyByScalar(dhdQ);
                 rhs->add(curjac->multiplyByVector(sol));
@@ -241,7 +241,7 @@ getJacobianRightHandSide(const double& time,
             if (std::find(outletFlags.begin(), outletFlags.end(), rate.first) != outletFlags.end())
             {
                 double dhdQ = this->M_bcManager->getOutletNeumannJacobian(time, rate.first, rate.second);
-                shp<BlockMatrix> curjac(new BlockMatrix(2,2));
+                shp<BlockMatrix> curjac(new BlockMatrix(this->M_nComponents,this->M_nComponents));
                 curjac->deepCopy(M_flowRateJacobians[rate.first]);
                 curjac->multiplyByScalar(dhdQ);
                 retMat->add(curjac);
@@ -789,7 +789,7 @@ assembleFlowRateJacobians()
 
         for (auto face : faces)
         {
-            shp<BlockMatrix> newJacobian(new BlockMatrix(2,2));
+            shp<BlockMatrix> newJacobian(new BlockMatrix(this->M_nComponents,this->M_nComponents));
             shp<SparseMatrix> jacWrapper(new SparseMatrix());
             jacWrapper->setMatrix(assembleFlowRateJacobian(face));
 
@@ -813,12 +813,11 @@ assembleAdditionalOutletMatrices()
 
         for (auto face : faces)
         {
-            shp<BlockMatrix> newOutletMatrix(new BlockMatrix(2,2));
+            shp<BlockMatrix> newOutletMatrix(new BlockMatrix(this->M_nComponents,this->M_nComponents));
             shp<SparseMatrix> OMWrapper(new SparseMatrix());
             OMWrapper->setMatrix(assembleAdditionalOutletMatrix(face));
 
             newOutletMatrix->setBlock(0,0,OMWrapper);
-
             applyDirichletBCsMatrix(newOutletMatrix, 0.0);
 
             M_additionalOutletMatrices[face.M_flag] = newOutletMatrix;
@@ -888,7 +887,7 @@ assembleFlowRateVector(const GeometricFace& face)
     flowRateVectorRepeated->globalAssemble();
 
     shp<VECTOREPETRA> flowRateVector(new VECTOREPETRA(*flowRateVectorRepeated,
-                                                      Unique));
+                                                      Repeated));
     return flowRateVector;
 }
 
@@ -903,11 +902,11 @@ assembleFlowRateJacobian(const GeometricFace& face)
     using namespace ExpressionAssembly;
 
     // compute outer product of flowrate vector with itself - very slow in this way!
-    // shp<MATRIXEPETRA> flowRateJacobian;
-    // flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
+    /*shp<MATRIXEPETRA> flowRateJacobian;
+    flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
 
-    // flowRateJacobian->addDyadicProduct(*M_flowRateVectors[face.M_flag],
-    //                                   *M_flowRateVectors[face.M_flag]);
+    flowRateJacobian->addDyadicProduct(*M_flowRateVectors[face.M_flag],
+                                       *M_flowRateVectors[face.M_flag]);*/
 
     const double dropTolerance(2.0 * std::numeric_limits<double>::min());
 
@@ -919,9 +918,7 @@ assembleFlowRateJacobian(const GeometricFace& face)
 
     // compute outer product of flowrate vector with itself
     shp<MATRIXEPETRA> flowRateJacobian;
-    flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map(),
-                                            numGlobalElements,
-                                            false));
+    flowRateJacobian.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
 
     for (unsigned int j = 0; j < numGlobalElements; j++)
     {
@@ -962,17 +959,28 @@ assembleAdditionalOutletMatrix(const GeometricFace &face)
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
+    bool useFullStrain = M_data("fluid/use_strain", true);
+
     LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria7pt));
 
     shp<MATRIXEPETRA> OMat(new MATRIXEPETRA(M_velocityFESpace->map()));
 
-    integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
-              myBDQR,
-              M_velocityFESpaceETA,
-              M_velocityFESpaceETA,
-              value(-1.0) * value(M_viscosity) * dot(phi_i, grad(phi_j) * Nface) +
-              dot(phi_i, Nface * dot(Nface, value(M_viscosity) * grad(phi_j) * Nface))
-              ) >> OMat;
+    if (useFullStrain)
+        integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
+                  myBDQR,
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  value(-1.0) * value(M_viscosity) *
+                  dot((grad(phi_i) + transpose(grad(phi_i))) * Nface, phi_j)
+                  ) >> OMat;
+    else
+        integrate(boundary(M_velocityFESpaceETA->mesh(), face.M_flag),
+                  myBDQR,
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  value(-1.0) * value(M_viscosity) *
+                  dot(grad(phi_i) * Nface, phi_j)
+                  ) >> OMat;
 
     OMat->globalAssemble();
 

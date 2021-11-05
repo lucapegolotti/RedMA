@@ -97,6 +97,12 @@ public:
      */
     virtual double normInf() override {return std::abs(M_double);}
 
+    /*! \brief Compute Frobenius norm of the double.
+     *
+     * \return The Frobenius norm.
+     */
+    virtual double normFrobenius() override {return std::abs(M_double);}
+
     /*! \brief Setter for the internal double.
      *
      * \param data The double.

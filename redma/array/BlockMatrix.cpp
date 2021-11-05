@@ -462,4 +462,24 @@ normInf()
     return norm;
 }
 
+double
+BlockMatrix::
+normFrobenius()
+{
+    double norm = 0;
+    for (unsigned int i = 0; i < nRows(); i++)
+    {
+        for (unsigned int j = 0; j < nCols(); j++)
+        {
+            if (block(i,j) && !block(i,j)->isZero())
+            {
+                norm += std::pow(block(i,j)->normFrobenius(), 2);
+            }
+        }
+    }
+
+    norm = std::sqrt(norm);
+    return norm;
+}
+
 }

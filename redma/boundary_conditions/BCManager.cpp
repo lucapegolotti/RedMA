@@ -268,9 +268,6 @@ apply0DirichletMatrix(BlockMatrix& input,
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
 
-    /*if ((!std::strcmp(M_inletBCType.c_str(), "dirichlet")) && (M_strongDirichlet))
-        addInletBC(bcs, ringOnly, true);*/
-
     if (bcs->size())
         bcs->bcUpdate(*fespace->mesh(), fespace->feBd(), fespace->dof());
 
