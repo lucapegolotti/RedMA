@@ -68,8 +68,8 @@ generate()
 
         // create list of faces
         std::vector<GeometricFace> faces = buildingBlock->getOutlets();
-        faces.push_back(buildingBlock->getInlet(0));
-
+	faces.push_back(buildingBlock->getInlet(0));
+	std::cout << typeid(faces).name() << std::endl;
         for (auto face : faces)
         {
             shp<BlockMatrix> constraintMatrixBlock(new BlockMatrix(0,0));
@@ -93,7 +93,7 @@ createDefaultAssemblers()
     // using namespace boost::filesystem;
 
     std::string snapshotsdir = M_data("rb/offline/snapshots/directory", "snapshots");
-
+    
     if (!fs::exists(snapshotsdir))
         throw new Exception("Snapshots directory has not been generated yet!");
 
@@ -102,25 +102,24 @@ createDefaultAssemblers()
     // we loop over the folders with the parameters
     while (fs::exists(paramdir + std::to_string(i)))
     {
-        fs::directory_iterator end_it;
+	fs::directory_iterator end_it;
         for (fs::directory_iterator it(paramdir + std::to_string(i)); it != end_it; it++)
-        {
+        { 	
             if (is_directory(it->status()))
             {
                 std::string paramDir = it->path().string();
-
+              
                 unsigned int dashpos = paramDir.find_last_of("/");
                 std::string nameMesh = paramDir.substr(dashpos + 1);
-
-                if (M_meshASPairMap.find(nameMesh) == M_meshASPairMap.end())
+                
+		if (M_meshASPairMap.find(nameMesh) == M_meshASPairMap.end())
                 {
-                    shp<TreeNode> defTreeNode = generateDefaultTreeNode(nameMesh);
+		    shp<TreeNode> defTreeNode = generateDefaultTreeNode(nameMesh);
                     shp<AssemblerType> defAssembler = AssemblerFactory(M_data, defTreeNode);
                     defAssembler->setup();
 
                     M_meshASPairMap[nameMesh].first = defAssembler;
                     M_meshASPairMap[nameMesh].second.resize(defAssembler->getNumComponents());
-
                     M_bases[nameMesh].reset(new RBBases(M_data, M_comm));
                     M_bases[nameMesh]->setNumberOfFields(defAssembler->getNumComponents());
                     unsigned int indexField = 0;
@@ -142,15 +141,19 @@ createDefaultAssemblers()
 shp<TreeNode>
 MatricesGenerator::
 generateDefaultTreeNode(const std::string& nameMesh)
-{
+{	 	
     if (nameMesh.find("tube") != std::string::npos)
         return generateDefaultTube(nameMesh);
-    else if (nameMesh.find("bifurcation_symmetric"))
-        return generateDefaultSymmetricBifurcation(nameMesh);
+    else if (nameMesh.find("bifurcation_symmetric") != std::string::npos)
+        return generateDefaultSymmetricBifurcation(nameMesh); 
+    else if (nameMesh.find("aorta") != std::string::npos && nameMesh.find("bif1") == std::string::npos)
+        return generateDefaultAortaBifurcation0(nameMesh);
+    else if (nameMesh.find("aortabif1") != std::string::npos)
+	return generateDefaultAortaBifurcation1(nameMesh);
     else
-    {
+    	{
         throw new Exception("MatricesGenerator: this branch must still be implemented");
-    }
+    	}	
 
     return nullptr;
 }
@@ -196,6 +199,7 @@ shp<TreeNode>
 MatricesGenerator::
 generateDefaultAortaBifurcation0(const std::string& nameMesh)
 {
+    std::cout << nameMesh.substr(10) << std::endl;
     std::string refinement = "normal";
 
     shp<AortaBifurcation0> defaultBifurcation(new AortaBifurcation0(M_comm, refinement));
@@ -214,7 +218,7 @@ MatricesGenerator::
 generateDefaultAortaBifurcation1(const std::string& nameMesh)
 {
     std::string refinement = "normal";
-
+    std::cout << nameMesh.substr(10) << std::endl;
     shp<AortaBifurcation1> defaultBifurcation(new AortaBifurcation1(M_comm, refinement));
     defaultBifurcation->readMesh();
     defaultBifurcation->setDiscretizationMethod("fem");

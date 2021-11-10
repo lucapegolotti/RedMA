@@ -33,13 +33,14 @@ double inflow(double t, double a, double c)
 
 int main(int argc, char **argv)
 {
+    
     #ifdef HAVE_MPI
     MPI_Init (nullptr, nullptr);
     EPETRACOMM comm (new Epetra_MpiComm(MPI_COMM_WORLD));
     #else
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
-
+    printlog(MAGENTA,"start example", true);	
     DataContainer data;
     data.setDatafile("datafiles/data_fem");
     data.setVerbose(comm->MyPID() == 0);

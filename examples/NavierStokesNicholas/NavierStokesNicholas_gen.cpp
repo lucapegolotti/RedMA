@@ -24,8 +24,6 @@ int main(int argc, char **argv)
     data.setDatafile("datafiles/data_fem");
     data.setVerbose(comm->MyPID() == 0);
 
-    std::cout << "here I am" << std::endl;
-
     MatricesGenerator generator(data, comm);
     generator.generate();
 
