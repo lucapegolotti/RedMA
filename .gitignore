@@ -8,4 +8,6 @@ meshes/
 doc/html/
 doc/latex/
 .idea/
+*/.vscode/
+*.sublime-workspace
 

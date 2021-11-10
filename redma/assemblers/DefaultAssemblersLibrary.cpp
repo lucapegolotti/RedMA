@@ -40,10 +40,10 @@ generateDefaultTreeNode(const std::string& nameMesh)
 {
     if (nameMesh.find("tube") != std::string::npos)
         return generateDefaultTube(nameMesh);
-    else if (nameMesh.find("bif_sym")  != std::string::npos )
+    else if (nameMesh.find("bif_sym") != std::string::npos)
         return generateDefaultSymmetricBifurcation(nameMesh);
     else
-        printlog(YELLOW, "[DefaultAssemblersLibrary] default mesh is not implemented\n", true);
+        printlog(YELLOW, "[DefaultAssemblersLibrary]: no default assembler available for " + nameMesh + " mesh!", true);
 
     return nullptr;
 }

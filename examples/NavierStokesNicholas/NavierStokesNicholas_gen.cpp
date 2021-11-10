@@ -8,7 +8,8 @@ using namespace RedMA;
 
 double inflow(double t, double a, double c)
 {
-    return c*sin(a*t);
+    double T = 0.3;
+    return 1-cos(2*M_PI*t/T) + c*sin(2*M_PI*a*t/T);
 }
 
 int main(int argc, char **argv)
