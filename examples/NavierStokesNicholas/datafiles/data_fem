@@ -94,7 +94,7 @@ outputdir = rb_solutions
 [../]
 
 [newton_method]
-	tol = 1e-4
+	tol = 1e-6
 	maxit = 10
 [../]
 
