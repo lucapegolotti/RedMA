@@ -111,7 +111,7 @@ importSolution(const std::string& filename) const
         if (cnt == 0)
             for (LifeV::Int i=0; i<tmpEpetraVecVelocity->size(); ++i)
                 indicesVel.push_back(i);
-        cnt+=1;
+        cnt += 1;
 
         tmpEpetraVecVelocity->setCoefficients(indicesVel, values);
 

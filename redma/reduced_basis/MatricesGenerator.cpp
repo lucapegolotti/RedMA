@@ -95,7 +95,7 @@ createDefaultAssemblers()
     // we loop over the folders with the parameters
     while (fs::exists(paramdir + std::to_string(i)))
     {
-	fs::directory_iterator end_it;
+	    fs::directory_iterator end_it;
         for (fs::directory_iterator it(paramdir + std::to_string(i)); it != end_it; it++)
         { 	
             if (is_directory(it->status()))
@@ -105,9 +105,9 @@ createDefaultAssemblers()
                 unsigned int dashpos = paramDir.find_last_of("/");
                 std::string nameMesh = paramDir.substr(dashpos + 1);
                 
-		if (M_meshASPairMap.find(nameMesh) == M_meshASPairMap.end())
-                {
-		    shp<TreeNode> defTreeNode = generateDefaultTreeNode(nameMesh);
+		        if (M_meshASPairMap.find(nameMesh) == M_meshASPairMap.end())
+		        {
+		            shp<TreeNode> defTreeNode = generateDefaultTreeNode(nameMesh);
                     shp<AssemblerType> defAssembler = AssemblerFactory(M_data, defTreeNode);
                     defAssembler->setup();
 
@@ -141,13 +141,9 @@ generateDefaultTreeNode(const std::string& nameMesh)
     else if (nameMesh.find("aorta") != std::string::npos && nameMesh.find("bif1") == std::string::npos)
         return generateDefaultAortaBifurcation0(nameMesh);
     else if (nameMesh.find("aortabif1") != std::string::npos)
-	return generateDefaultAortaBifurcation1(nameMesh);
+	    return generateDefaultAortaBifurcation1(nameMesh);
     else
-    	{
         throw new Exception("MatricesGenerator: this branch must still be implemented");
-    	}	
-
-    return nullptr;
 }
 
 shp<TreeNode>
@@ -178,6 +174,9 @@ generateDefaultSymmetricBifurcation(const std::string& nameMesh)
 
     shp<BifurcationSymmetric> defaultBifurcation(new BifurcationSymmetric(M_comm, refinement, false, alpha));
     defaultBifurcation->readMesh();
+
+    defaultBifurcation->setDiscretizationMethod("fem");
+    defaultBifurcation->setAssemblerType("navierstokes");
 
     shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234));
 
