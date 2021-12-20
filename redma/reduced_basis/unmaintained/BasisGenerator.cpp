@@ -87,8 +87,10 @@ generateMatricesOnly()
         shp<BuildingBlock> buildingBlock = meshas.second.first->getTreeNode()->M_block;
 
         // create list of faces
-        std::vector<GeometricFace> faces = buildingBlock->getOutlets();
-        faces.push_back(buildingBlock->getInlet());
+        std::vector<GeometricFace> inFaces = buildingBlock->getInlets();
+        std::vector<GeometricFace> outFaces = buildingBlock->getOutlets();
+        std::vector<GeometricFace> faces = std::copy(inFaces);
+        faces.insert(faces.end(), outFaces.begin(), outFaces.end());
 
         for (auto face : faces)
         {
@@ -306,8 +308,10 @@ addSupremizers()
     //         SHP(BuildingBlock) buildingBlock = meshas.second.first->getTreeNode()->M_block;
     //
     //         // create list of faces
-    //         std::vector<GeometricFace> faces = buildingBlock->getOutlets();
-    //         faces.push_back(buildingBlock->getInlet());
+    //        std::vector<GeometricFace> inFaces = buildingBlock->getInlets();
+    //        std::vector<GeometricFace> outFaces = buildingBlock->getOutlets();
+    //        std::vector<GeometricFace> faces = std::copy(inFaces);
+    //        faces.insert(faces.end(), outFaces.begin(), outFaces.end());
     //
     //         for (auto face : faces)
     //         {

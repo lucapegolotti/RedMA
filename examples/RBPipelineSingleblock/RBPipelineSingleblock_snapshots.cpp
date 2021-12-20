@@ -35,8 +35,12 @@ int main(int argc, char **argv)
     data.setVerbose(comm->MyPID() == 0);
     data.finalize();
 
+    unsigned int Nstart = 0;
+    if (argc > 1)
+        Nstart = std::atoi(argv[1]);
+
     SnapshotsSampler sampler(data, comm);
-    sampler.takeSnapshots();
+    sampler.takeSnapshots(Nstart);
 
     return 0;
 }

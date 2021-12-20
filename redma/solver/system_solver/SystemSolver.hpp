@@ -63,10 +63,10 @@ public:
     inline std::vector<SolverStatistics> getSolverStatistics() const {return M_solverStatistics;}
 
     /// Set M_isLinearProblem to true.
-    void isLinearProblem() {M_isLinearProblem = true;}
+    inline void isLinearProblem() {M_isLinearProblem = true;}
 
     /// Setter for the MPI Communicator.
-    void setComm(EPETRACOMM comm) {M_comm = comm;}
+    inline void setComm(EPETRACOMM comm) {M_comm = comm;}
 
 private:
     DataContainer                                       M_data;

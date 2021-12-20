@@ -1,0 +1,182 @@
+-------------------------------------------------------------
+#           Data file for MembraneModelBenchmark
+#-------------------------------------------------------------
+
+outputdir = rb_solutions
+
+[geometric_structure]
+	xmlfile = geometries/tree_fem_membrane.xml
+	xmldeformer = datafiles/SolverParamList.xml
+	geometries_dir = ../../../meshes/
+[../]
+
+[assembler]
+	type = navierstokes_membrane
+	[./stabilization]
+	    type = supg  # to choose in {none, supg, ip}
+	    gamma_pressure = 0.2  # ip pressure coefficient
+    [../]
+[../]
+
+[bc_conditions]
+    inlet_bc_type = dirichlet
+    generate_inletBC = 1
+	inletdirichlet = weak
+	inflowfile = datafiles/inflow.txt
+	inletpressurefile = datafiles/inlet_pressure.txt
+	coefficientinflow = 1.000552724487405
+
+	numoutletbcs = 2
+	pimfile = datafiles/IM_pressure.txt
+    [./outlet0]
+        type = windkessel
+        blockindex = 5
+        boundaryflag = 2
+
+        C = 0.0000760  # WK3
+        Rp = 718.27  # WK3
+        Rd = 15945.20  # WK3
+    [../]
+
+    [./outlet1]
+        type = windkessel
+        blockindex = 8
+        boundaryflag = 2
+
+        C = 0.0000760  # WK3
+        Rp = 718.27  # WK3
+        Rd = 15945.20  # WK3
+    [../]
+
+	ring_constraint = full  # type of homogeneous BC imposed at I/O rings
+[../]
+
+[rb]
+	[./offline]
+		[./snapshots]
+			number 			     = 50
+			bound 			     = 0.2
+			take_every 		     = 8
+			dumpbinary 		     = true
+			computereynolds      = true
+			seed 			     = 1234
+		[../]
+		[./basis]
+			directory  = basis
+			podtol     = 1e-5
+			dumpbinary = true
+			xmlfile = datafiles/SolverParamList.xml
+			addprimalsupremizers = true
+			adddualsupremizers = true
+			[./primal_supremizers]
+				field2augment = 0
+				limitingfield = 1
+			[../]
+			[./dual_supremizers]
+				field2augment = 0
+			[../]
+		[../]
+		[./deim]
+			take_snapshot_every = 4
+			dumpbinary_snapshots = true
+			numbersnapshots = 50
+		[../]
+		[./mdeim]
+			numbersnapshots = 1
+			podtol 			= 1e-5
+			checksonline    = 1
+			directory		= mdeims
+		[../]
+	[../]
+	[./online]
+		usemdeim = false
+		monolithicSolve = false
+		recomputeSchur = false
+		approximatenonlinearterm = 0
+		[./basis]
+			directory = basis
+			podtol_field0 = 1e-1
+			podtol_field1 = 1e-5
+			useprimalsupremizers = 1
+			usedualsupremizers = 0
+		[../]
+		[./mdeim]
+			loadfullbasis   = true
+			directory 		= mdeims
+		[../]
+	[../]
+[../]
+
+[preconditioner]
+	options    	   = datafiles/solversOptionsFast
+	outer      	   = saddlepoint
+	inner	   	   = SIMPLE
+	approxshur 	   = SIMPLE
+	innertol   	   = 0.5
+	recomputeevery = 20
+	thresholdsize  = 2000
+[../]
+
+[newton_method]
+	tol = 1e-5
+	maxit = 10
+	relaxation = 1.0
+[../]
+
+[fluid]
+	velocity_order = P1
+	pressure_order = P1
+	viscosity      = 0.035
+	density        = 1.06
+[../]
+
+[structure]
+	time_integration_order = 3
+	poisson      = 0.5
+	num_young    = 1
+	young    	 = 4.07e+6
+	thickness    = 0.1
+	density	     = 1.2
+	transverse_shear_coefficient = 0.8333
+	flag = 10
+	constant_thickness = 0
+	[./external_wall]
+		elastic = 0
+		plastic = 0
+	[../]
+[../]
+
+[time_discretization]
+	algorithm = bdf
+	rhoinf = 0.5
+	order = 2
+	extrapolation_order = 2
+	t0ramp = -0.002
+	t0 = 0
+	T = 0.04
+	dt = 0.0002
+	use_extrapolation = 0
+	solverstatistics = solverstatistics.txt
+[../]
+
+[exporter]
+	outdir	   = solutions/
+	type       = hdf5
+	multimesh  = false
+	start      = 0
+	save_every = 2
+	filename   = tube
+	exportnorms = true
+[../]
+
+[coupling]
+	type                = chebyshev
+	nMax                = 5
+	stab_coefficient	= 1e-16
+	check_stabterm		= false
+	nfcts_weak_dirichlet = 5
+	frequencies_theta_ring = 5
+	frequencies_theta_ring_weak_dirichlet = -1
+	strong_ring = false
+	strong_dofs_per_ring = 4
+[../]

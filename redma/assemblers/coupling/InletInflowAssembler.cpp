@@ -5,8 +5,9 @@ namespace RedMA
 
 InletInflowAssembler::
 InletInflowAssembler(const DataContainer& data,
-                     const Interface& interface) :
-  InterfaceAssembler(data, interface)
+                     const Interface& interface,
+                     const bool& addNoSlipBC) :
+  InterfaceAssembler(data, interface, addNoSlipBC)
 {
 }
 
@@ -17,7 +18,6 @@ addContributionJacobianRhs(const double& time,
                            shp<BlockVector> sol,
                            const unsigned int& nPrimalBlocks)
 {
-    unsigned int fatherID = this->M_interface.M_indexFather;
     unsigned int childID = this->M_interface.M_indexChild;
     unsigned int interfaceID = this->M_interface.M_ID;
 
@@ -57,7 +57,6 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
     else
         rhs->block(nPrimalBlocks + interfaceID)->add(temp);
 
-    // rhs->block(nPrimalBlocks + interfaceID) -= this->M_childB * sol.block(childID);
     temp = this->M_childBfe->multiplyByVector(assemblerChild->getLifting(time));
     temp->multiplyByScalar(1.0/M_data.getInflow()(time));
     temp->block(0)->dump("RHS");

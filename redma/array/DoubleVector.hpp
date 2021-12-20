@@ -19,27 +19,25 @@
 
 #include <iostream>
 #include <redma/array/aVector.hpp>
-#include <redma/array/aMatrix.hpp>
-
 
 namespace RedMA
 {
 
 /// Wrapper of a double.
-class Double : public aVector, public aMatrix
+class DoubleVector : public aVector
 {
 public:
 
     /// Default constructor.
-    Double();
+    DoubleVector();
 
     /*! \brief Addition operator.
      *
      * The compatibility of the input is checked internally.
      *
      * \param other The double to add.
-     */
-    virtual void add(shp<aMatrix> other) override;
+     *//*
+    virtual void add(shp<aMatrix> other) override;*/
 
     /*! \brief Multiplication by scalar operator.
      *
@@ -47,23 +45,23 @@ public:
      */
     virtual void multiplyByScalar(const double& coeff) override;
 
-    /*! \brief Multiplication by another Double.
+    /*! \brief Multiplication by another DoubleVector.
      *
      * The compatibility of the input is checked internally.
      *
-     * \param other Shared pointer to the Double to multiply.
+     * \param other Shared pointer to the DoubleVector to multiply.
      * \return vector Shared pointer to the output.
-     */
-    virtual shp<aVector> multiplyByVector(shp<aVector> vector) override;
+     *//*
+    virtual shp<aVector> multiplyByVector(shp<aVector> vector) override;*/
 
-    /*! \brief Multiplication by another Double.
+    /*! \brief Multiplication by another DoubleVector.
      *
      * The compatibility of the input is checked internally.
      *
-     * \param other Shared pointer to the Double to multiply.
+     * \param other Shared pointer to the DoubleVector to multiply.
      * \return vector Shared pointer to the output.
-     */
-    virtual shp<aMatrix> multiplyByMatrix(shp<aMatrix> other) override;
+     *//*
+    virtual shp<aMatrix> multiplyByMatrix(shp<aMatrix> other) override;*/
 
     /// This method is not implemented.
     virtual void dump(std::string namefile) const override;
@@ -75,7 +73,7 @@ public:
     virtual bool isZero() const override;
 
     /// This method is not implemented.
-    virtual aDataWrapper* clone() const override;
+    virtual DoubleVector* clone() const override;
 
     /*! \brief Returns the value of the double regardless of the input.
      *
@@ -96,7 +94,7 @@ public:
      * The compatibility of the input is checked internally.
      * The shared pointer to the data of the argument is copied.
      *
-     * \param other Shared pointer to another Double.
+     * \param other Shared pointer to another DoubleVector.
      */
     virtual void shallowCopy(shp<aDataWrapper> other) override;
 
@@ -105,7 +103,7 @@ public:
      * The compatibility of the input is checked internally.
      * The data of the argument is copied.
      *
-     * \param other Shared pointer to another Double.
+     * \param other Shared pointer to another DoubleVector.
      */
     virtual void deepCopy(shp<aDataWrapper> other) override;
 
@@ -116,7 +114,7 @@ public:
      *
      * \return The absolute value of the double.
      */
-    virtual double norm2() const override;
+    virtual double norm2() const override {return std::abs(M_double);}
 
     /*! \brief Setter for the internal double.
      *
@@ -146,13 +144,13 @@ public:
     virtual void setData(shp<void>) override {};
 
     /// Method not implemented.
-    virtual shp<aMatrix> transpose() const override {return nullptr;};
+    // virtual shp<aMatrix> transpose() const override {return nullptr;};
 
     /*! \brief Compute norm inf of the double.
      *
      * \return The infinite norm.
-     */
-    virtual double normInf() override {return std::abs(M_double);}
+     *//*
+    virtual double normInf() override {return std::abs(M_double);}*/
 
 private:
     double  M_double;
@@ -160,7 +158,7 @@ private:
 
 // specification of template function to avoid ambiguous cast
 template<>
-shp<Double> convert(shp<aDataWrapper> container);
+shp<DoubleVector> convert(shp<aDataWrapper> container);
 
 }
 

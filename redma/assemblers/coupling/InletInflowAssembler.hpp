@@ -32,11 +32,13 @@ public:
      *
      * \param data The DataContainer of the problem.
      * \param interface The interface.
+     * \param addNoSlipBC True in no-slip BCs at the vessel wall are desired (default)
      */
     InletInflowAssembler(const DataContainer& data,
-                         const Interface& interface);
+                         const Interface& interface,
+                         const bool& addNoSlipBC = true);
 
-    /* \brief Add coupling contribution to a right-hand side.
+    /*! \brief Add coupling contribution to a right-hand side.
     *
     * \param time Current time (needed in derived classes).
     * \param rhs Shared pointer to the right-hand side.
@@ -48,7 +50,7 @@ public:
                                     shp<BlockVector> sol,
                                     const unsigned int& nPrimalBlocks) override;
 
-    /* \brief Add coupling contribution to the jacobian right-hand side.
+    /*! \brief Add coupling contribution to the jacobian right-hand side.
     *
     * \param time Current time (needed in derived classes).
     * \param jac Shared pointer to the jacobian of the right-hand side.
@@ -64,4 +66,4 @@ public:
 
 }
 
-#endif // INTERFACEASSEMBLER_HPP
+#endif // INLETINFLOWASSEMBLER_HPP

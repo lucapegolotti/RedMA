@@ -159,7 +159,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
     }
     else
     {
-        std::string warningMsg = "[GeometryParser] building block "
+        std::string warningMsg = "[GeometryParser] WARNING: building block "
         + std::string(element->Attribute("type")) +
         " is not implemented! Skipping\n";
 

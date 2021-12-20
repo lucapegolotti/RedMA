@@ -38,6 +38,8 @@ namespace RedMA
 /// A node containing a geometric building block.
 class TreeNode
 {
+private:
+    typedef LifeV::VectorSmall<3>          Vector3D;
 public:
 
     /*! \brief Constructor.
@@ -52,13 +54,21 @@ public:
      *
      * \return True if it is an outlet node.
      */
-    bool isOutletNode();
+    bool isOutletNode() const;
 
     /*! \brief Returns true if it is an inlet node.
      *
      * \return True if it is an inlet node.
      */
-    bool isInletNode();
+    bool isInletNode() const;
+
+    /*! \brief Returns true if it is an inlet or an outlet node.
+     *
+     * \return True if it is an inlet or an outlet node.
+     */
+    bool isExtremalNode() const;
+
+    std::vector<GeometricFace> getOutlets() const;
 
     std::vector<shp<TreeNode>>              M_children;
     shp<BuildingBlock>                      M_block;
@@ -218,4 +228,4 @@ private:
 
 }  // namespace RedMA
 
-#endif  // BUILDINGBLOCK_HPP
+#endif  // TREESTRUCTURE_HPP

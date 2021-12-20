@@ -49,6 +49,10 @@ shp<aTimeMarchingAlgorithm>
 TimeMarchingAlgorithmFactory(const DataContainer& data,
                              shp<aFunctionProvider> funProvider);
 
+shp<aTimeMarchingAlgorithm>
+TimeMarchingAlgorithmFactory(const DataContainer& data,
+                             const shp<aVector>& zeroVector);
+
 }
 
 #endif // TIMEMARCHINGALGORITHMFACTORY_HPP

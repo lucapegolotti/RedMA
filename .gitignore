@@ -1,10 +1,12 @@
 .DS_Store
 build/
 build_/
+build_debug/
 cmake-build-debug/
 cmake-build-release/
 config.sh
 meshes/
+meshes_old/
 doc/html/
 doc/latex/
 .idea/

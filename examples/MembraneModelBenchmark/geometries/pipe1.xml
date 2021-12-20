@@ -1,0 +1,15 @@
+<buildingblock type="tube" assembler="navierstokes_membrane" method="fem" refinement="h0.25" d="1" L="1" outlet="1">
+    <L_ratio>1</L_ratio>
+    <Rout_ratio>1</Rout_ratio>
+    <alpha_axis>0</alpha_axis>
+    <alpha>0</alpha>
+    <bend>0</bend>
+    <bx>0</bx>
+    <by>0</by>
+    <bz>0</bz>
+    <rotation_axis_x>0</rotation_axis_x>
+    <rotation_axis_y>0</rotation_axis_y>
+    <rotation_axis_z>0</rotation_axis_z>
+    <scale>2</scale>
+    <use_linear_elasticity>0</use_linear_elasticity>
+</buildingblock>

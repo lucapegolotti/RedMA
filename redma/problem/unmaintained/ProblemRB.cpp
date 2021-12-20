@@ -23,6 +23,7 @@ ProblemRB::
 setup()
 {
     typedef BlockAssembler BAssembler;
+
     printlog(MAGENTA, "[ProblemRB] starting setup ... \n", M_data.getVerbose());
 
     std::string geometriesDir = M_data("geometric_structure/geometries_dir",

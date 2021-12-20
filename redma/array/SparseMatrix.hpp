@@ -197,6 +197,12 @@ public:
      */
     virtual double normInf() override {return M_matrix->normInf();};
 
+    /*! \brief Compute Frobenius norm of the matrix.
+     *
+     * \return The infinite norm.
+     */
+    virtual double normFrobenius() override {return M_matrix->normFrobenius();};
+
 private:
     shp<MATRIXEPETRA>           M_matrix;
 };

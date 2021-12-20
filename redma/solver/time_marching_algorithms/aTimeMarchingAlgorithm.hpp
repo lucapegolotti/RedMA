@@ -49,6 +49,14 @@ public:
     aTimeMarchingAlgorithm(const DataContainer& datafile,
                            shp<FunProvider> funProvider);
 
+    /*! \brief Constructor.
+     *
+     * \param datafile The DataContainer of the problem.
+     * \param zeroVector The null vector.
+     */
+    aTimeMarchingAlgorithm(const DataContainer& datafile,
+                           const shp<aVector>& zeroVector);
+
     /*! \brief Virtual setup function.
      *
      * \param zeroVector Shared pointer to a zero vector.
@@ -61,9 +69,17 @@ public:
      * \param dt The timestep size.
      * \param status Return code; 0 if successful.
      */
-    virtual shp<aVector> advance(const double& time,
+    virtual shp<aVector> advance(const double& time, 
                                  double& dt,
                                  int& status) = 0;
+
+    /*! \brief Virtual simple advance function for the Membrane Model.
+     *
+     * \param time The time.
+     * \param sol The solution employed for the simple advancing of the displacement.
+     */
+    virtual shp<aVector> simpleAdvance(const double &dt, 
+                                       const shp<BlockVector> &sol) = 0;
 
     /*! \brief Compute derivative of a function.
      *
@@ -72,13 +88,31 @@ public:
      * \return Shared pointer to the derivative.
      */
     virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1,
-                                          double& dt) = 0;
+                                           double& dt) = 0;
 
     /*! \brief Shift previous solutions given the new one.
      *
-     * \param Shared pointer to the new solution.
+     * \param sol Shared pointer to the new solution.
      */
     virtual void shiftSolutions(const shp<aVector>& sol) = 0;
+
+    /*! \brief Virtual function to compute the extrapolated solution.
+     *
+     * \return Shared pointer to the extrapolated solution.
+     */
+    virtual shp<aVector> computeExtrapolatedSolution() = 0;
+
+    /*! \brief Virtual function to combine solutions at previous time instants.
+     *
+     * \return Shared pointer to the combination between the previous solutions.
+     */
+    virtual shp<aVector> combineOldSolutions() = 0;
+
+    /*! \brief Virtual getter of the time marching coefficients.
+     *
+     * \return Vector of the TMA coefficients.
+     */
+    virtual std::vector<double> getCoefficients() const = 0;
 
     /*! \brief Dump solver statistics to file.
      *
@@ -93,6 +127,9 @@ public:
      * \param Shared pointer to the MPI Communicator.
      */
     void setComm(EPETRACOMM comm) {M_comm = comm; M_systemSolver.setComm(comm);}
+
+    /// Set the solver as linear
+    inline void setLinearSolver() {this->M_systemSolver.isLinearProblem();}
 
 protected:
     void initializeStatisticsFile();

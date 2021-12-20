@@ -19,6 +19,7 @@
 
 #include <redma/assemblers/finite_element/StokesAssemblerFE.hpp>
 #include <redma/assemblers/finite_element/SUPGStabilization.hpp>
+#include <redma/assemblers/finite_element/IPStabilization.hpp>
 
 namespace RedMA
 {
@@ -49,15 +50,13 @@ class NavierStokesAssemblerFE : public StokesAssemblerFE
 {
 public:
     /*! \brief Constructor taking a datafile, a TreeNode, and a string describing
-     * a stabilization  as arguments.
+     * a stabilization as arguments.
      *
      * \param datafile The datafile.
      * \param datafile The TreeNode encoding the physical domain.
-     * \param stabilizationName Name of the stabilization.
      */
     NavierStokesAssemblerFE(const DataContainer& data,
-                            shp<TreeNode> treeNode,
-                            std::string stabilizationName = "");
+                            shp<TreeNode> treeNode);
 
     /*! \brief Virtual setup function.
      *
@@ -91,7 +90,7 @@ public:
     void addConvectiveTermJacobian(shp<aVector> sol,
                                    shp<aMatrix> mat);
 
-    /*! \brief Virtual getter for mass matrix.
+    /*! \brief Getter for mass matrix.
      *
      * See StokesAssemblerFE for the definition of the mass matrix.
      *
@@ -102,7 +101,7 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;
 
-    /*! \brief Virtual getter for mass matrix Jacobian.
+    /*! \brief Getter for mass matrix Jacobian.
      *
      * \param time Current time.
      * \param sol Current solution.
@@ -111,7 +110,7 @@ public:
     virtual shp<aMatrix> getMassJacobian(const double& time,
                                          const shp<aVector>& sol) override;
 
-    /*! \brief Virtual getter for right-hand side.
+    /*! \brief Getter for right-hand side.
      *
      * \param time Current time.
      * \param sol Current solution.
@@ -120,7 +119,7 @@ public:
     virtual shp<aVector> getRightHandSide(const double& time,
                                           const shp<aVector>& sol) override;
 
-    /*! \brief Virtual getter for Jacobian of the right-hand side.
+    /*! \brief Getter for Jacobian of the right-hand side.
      *
      * \param time Current time.
      * \param sol Current solution.

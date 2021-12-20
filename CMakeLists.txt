@@ -89,7 +89,9 @@ set(LINKED_LIBRARIES
     stdc++fs
     )
 
-set(CMAKE_BUILD_TYPE Debug)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
 
 # we disable warnings of wrong return type because these are already present
 # at the level of LifeV

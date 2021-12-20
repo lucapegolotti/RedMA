@@ -309,10 +309,7 @@ blockMatrixToDenseMatrix(shp<BlockMatrix> matrix)
 
         unsigned int totalrows = 0;
         for (auto row : nrows)
-        {
             totalrows += row;
-            std::cout << "row = " << row << std::endl << std::flush;
-        }
 
         unsigned int totalcols = 0;
         for (auto col : ncols)

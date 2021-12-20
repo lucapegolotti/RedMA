@@ -80,7 +80,7 @@ public:
 
     /*! \brief Virtual postProcess functions (to be called at the end of the timestep).
      *
-     * \param time Current time.
+     * \param t Current time.
      * \param sol Current solution.
      */
     virtual void postProcess(const double& t,
@@ -94,6 +94,15 @@ public:
      */
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) = 0;
+
+    /*! \brief Virtual getter for pressure mass matrix.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     * \return Shared pointer to aMatrix of the pressure mass matrix.
+     */
+    virtual shp<aMatrix> getPressureMass(const double& time,
+                                         const shp<aVector>& sol) = 0;
 
     /*! \brief Virtual getter for mass matrix jacobian.
      *
@@ -140,7 +149,7 @@ public:
      * \param index Index of the desired component.
      * \return Shared pointer to desired finite element space.
      */
-    virtual shp<FESPACE> getFEspace(unsigned int index) const {return nullptr;}
+    virtual inline shp<FESPACE> getFEspace(unsigned int index) const {return nullptr;}
 
     /*! \brief Getter for the finite element space corresponding to the Dirichlet bcs (e.g., in the
      *         Stokes equations, the finite element s of the velocity).
@@ -182,21 +191,23 @@ public:
      */
     virtual inline shp<ETFESPACE3> getETFESpaceCoupling() const {return nullptr;}
 
-    // virtual inline shp<ETFESPACE1> getETFESpaceSecondary() const {return nullptr;}
-
     /*! \brief Getter for the vector of assembled matrices.
      *
      * If not overloaded, this method returns an empty vector of aMatrix.
      *
      * \return Vector of shared pointers to aMatrix (empty if not overloaded).
      */
-    virtual std::vector<shp<aMatrix>> getMatrices() const {return std::vector<shp<aMatrix>>();}
+    virtual inline std::vector<shp<aMatrix>> getMatrices() const {return std::vector<shp<aMatrix>>();}
 
     /*! \brief Getter for the internal BCManager.
      *
      * \return Shared pointer to the BCManager.
      */
-    inline virtual shp<BCManager> getBCManager() const {return M_bcManager;}
+    virtual inline shp<BCManager> getBCManager() const {return M_bcManager;}
+
+    /*! \brief Virtual setup of the exporter.
+     */
+    virtual void setExporter() = 0;
 
     /*! \brief Virtual method to apply Dirichlet bcs to a matrix.
      *
@@ -253,7 +264,7 @@ public:
      */
     virtual void initializeFEspaces() {};
 
-    /* \brief Setter for the default assemblers.
+    /*! \brief Setter for the default assemblers.
      *
      * \param Shared pointer to the DefaultAssemblersLibrary.
      */
@@ -262,11 +273,11 @@ public:
         M_defaultAssemblers = defAssemblers;
     };
 
-    /* \brief Get the ID of the internal TreeNode.
+    /*! \brief Get the ID of the internal TreeNode.
      *
      * \return Index of the tree node.
      */
-    inline unsigned int ID() {return M_treeNode->M_ID;}
+    inline unsigned int ID() const {return M_treeNode->M_ID;}
 
     /// Perform the setup necessary to RB method.
     virtual void RBsetup() {}
@@ -282,6 +293,12 @@ public:
      * \param rbManager Shared pointer to RBBasesManager.
      */
     virtual void setRBBases(shp<RBBasesManager> rbManager) {}
+
+    /*! \brief Getter for the no-slip BCs at the lateral wall.
+     *
+     * \return True if no-slip BC at the lateral wall are imposed.
+     */
+    // virtual inline bool hasNoSlipBCs() const = 0;
 
 protected:
     DataContainer                           M_data;

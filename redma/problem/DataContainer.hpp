@@ -23,6 +23,8 @@
 #include <lifev/core/filter/GetPot.hpp>
 
 #include <fstream>
+#include <functional>
+#include <map>
 
 namespace RedMA
 {
@@ -48,13 +50,21 @@ public:
      */
     void setDatafile(const std::string& datafile);
 
-    /*! \brief  Setter for the inflow law with a given inlet flag
+    /*! \brief  Setter for the inlet law (either Dirichlet or Neumann) with a given inlet flag
      *
-     * \param inflow The inflow rate law.
-     * \param flag The inlet flag; if unspecified, we assume there is only one inlet.
+     * \param inflow The inlet law.
+     * \param inletIndex. The index of the inlet to be considered. If not specified, it defaults to 99 (unique inlet)
      */
-    void setInflow(const Law& inflow,
-                   unsigned int flag = 0);
+    void setInletBC(const Law& inflow,
+                    unsigned int indexInlet = 99);
+
+    /*! \brief  Setter for the outlet law (Neumann) with a given outlet index
+     *
+     * \param inflow The outlet law.
+     * \param inletIndex. The index of the outlet to be considered
+     */
+    void setOutletBC(const Law& inflow,
+                    unsigned int indexOutlet);
 
     /*! \brief Setter for the distal pressure.
      *
@@ -71,68 +81,94 @@ public:
     /*! \brief Finalize method.
      *
      * This method must be called whenever the inflow is passed through file.
-     * It calls the methods generateRamp() and generateInflow().
+     * It calls the methods generateRamp() and generateInletBC().
      */
     void finalize();
 
     /// Getter for the internal datafile.
     inline GetPot getDatafile() const {return *M_datafile;}
 
-    /*! \brief Getter for the inflow function corresponding to a specific flag.
+    /*! \brief Getter for the inlet function corresponding to a specific flag.
      *
-     * The inflow function are either set in analytical form through setInflow
+     * The inlet function is either set in analytical form through setInletBC
      * or passed through file specified in M_datafile.
      *
      * \param flag The flag of the inlet.
-     * \return Standard map with key = flag, value = inflow function.
+     * \return Inlet function corresponding to the given flag
      */
-    inline Law getInflow(unsigned int flag = 0) {return M_inflows[flag];}
+    inline Law getInletBC(unsigned int flag = 0) {return M_inletBCs[flag];}
 
     /*! \brief Getter for the inflow functions.
      *
-     * The inflow function is either set in analytical form through setInflow.
+     * The inlet function is either set in analytical form through setInletBC.
      * or passed through file specified in M_datafile.
+     *
+     * \return Standard map with key = flag, value = inlet function.
      */
-    inline std::map<unsigned int, Law> getInflows() {return M_inflows;}
+    inline std::map<unsigned int, Law> getInletBCs() {return M_inletBCs;}
+
+    /*! \brief Getter for the outlet function corresponding to a specific flag.
+     *
+     * The outlet function is set in analytical form through setOutletBC
+     *
+     * \param outletIndex The index of the outlet.
+     * \return Outlet function corresponding to the given outlet index
+     */
+    inline Law getOutletBC(unsigned int outletIndex = 0) {return M_outletBCs[outletIndex];}
+
+    /*! \brief Getter for the outlet functions.
+     *
+     * The outlet function is set in analytical form through setOutletBC.
+     *
+     * \return Standard map with key = index, value = outlet function.
+     */
+    inline std::map<unsigned int, Law> getOutletBCs() {return M_outletBCs;}
 
     /// Getter for M_verbose.
     inline bool getVerbose() const {return M_verbose;}
 
-    /*! Getter for the distal pressure at a specific outlet.
+    /*! \brief Getter for the distal pressure at a specific outlet.
      *
      * \param outletIndex Index of the desired outlet.
+     * \return function representing the distal pressure at the prescribed outlet
      */
-    std::function<double(double)> getDistalPressure(const unsigned int& outletIndex) const;
+    Law getDistalPressure(const unsigned int& outletIndex) const;
 
-    /*! Method to retrieve a char* from the internal datafile.
+    /*! \brief Getter for the intramyocardial pressure
+     *
+     * \return Function describing the intramyocardial pressure at the prescribed outlet
+     */
+    Law getIntramyocardialPressure() const;
+
+    /*! \brief Method to retrieve a char* from the internal datafile.
      *
      * \param location Location within the datafile.
      * \param defValue Default value, returned if location is not found.
      */
     std::string operator()(std::string location, const char* defValue) const;
 
-    /*! Method to retrieve a string from the internal datafile.
+    /*! \brief Method to retrieve a string from the internal datafile.
      *
      * \param location Location within the datafile.
      * \param defValue Default value, returned if location is not found.
      */
     std::string operator()(std::string location, std::string defValue) const;
 
-    /*! Method to retrieve an int from the internal datafile.
+    /*! \brief Method to retrieve an int from the internal datafile.
      *
      * \param location Location within the datafile.
      * \param defValue Default value, returned if location is not found.
      */
     int operator()(std::string location, int defValue) const;
 
-    /*! Method to retrieve a double from the internal datafile.
+    /*! \brief Method to retrieve a double from the internal datafile.
      *
      * \param location Location within the datafile.
      * \param defValue Default value, returned if location is not found.
      */
     double operator()(std::string location, double defValue) const;
 
-    /*! Method to retrieve a bool from the internal datafile.
+    /*! \brief Method to retrieve a bool from the internal datafile.
      *
      * \param location Location within the datafile.
      * \param defValue Default value, returned if location is not found.
@@ -142,28 +178,28 @@ public:
     // we differentiate the methods that follow to avoid implicit conversion by +
     // mistake
 
-    /*! Method to set a string in the internal datafile.
+    /*! \brief Method to set a string in the internal datafile.
      *
      * \param location Location within the datafile.
      * \param value Value to set.
      */
     void setValueString(std::string location, std::string value);
 
-    /*! Method to set an int in the internal datafile.
+    /*! \brief Method to set an int in the internal datafile.
      *
      * \param location Location within the datafile.
      * \param value Value to set.
      */
     void setValueInt(std::string location, int value);
 
-    /*! Method to set a double in the internal datafile.
+    /*! \brief Method to set a double in the internal datafile.
      *
      * \param location Location within the datafile.
      * \param value Value to set.
      */
     void setValueDouble(std::string location, double value);
 
-    /*! Method to set a bool in the internal datafile.
+    /*! \brief Method to set a bool in the internal datafile.
      *
      * \param location Location within the datafile.
      * \param value Value to set.
@@ -177,16 +213,33 @@ public:
     double evaluateRamp(double time);
 
 protected:
-    std::vector<std::pair<double,double>> parseInflow(std::string filename);
 
-    void generateInflow(unsigned int flag, std::string inputfilename);
+    /*! \brief Parse text file storing pairs of values in the form "time  value"
+     *
+     * \param filename Name of the file storing the data
+     * \return Vector of pairs of the form (time,value)
+     */
+    std::vector<std::pair<double,double>> parseTimeValueFile(std::string filename);
+
+    /*! \brief Generate law at the specified inlet by parsing data file and linear interpolation
+     *
+     * \param inputfilename Name of the file storing the inlet BC
+     * \param indexInlet Index of the inlet to be consider. If the inlet in unique, it defaults to 99.
+     */
+    void generateInletBC(std::string inputfilename, unsigned int indexInlet = 99);
+
+    /*! \brief Generate by linear interpolation from file and return the IntraMyocardial pressure.
+     *
+     * \param inputfilename Name of the file storing the data of Intramyocardial pressure
+     */
+    void generateIntraMyocardialPressure(std::string inputfilename);
 
     /*! \brief Generate ramp based on the values specified in the time_discretization
      * section of M_datafile.
      */
     void generateRamp();
 
-    /*! \brief Linear interpolation method (used within generateInflow).
+    /*! \brief Linear interpolation method (used within generateInletBC).
      *
      * Given a vector of pairs, this method generate a functional to evaluate
      * the linear interpolant across those coordinates at any location.
@@ -197,10 +250,24 @@ protected:
     void linearInterpolation(const std::vector<std::pair<double,double>>& values,
                              std::function<double(double)>& funct);
 
+    /*! \brief Check if the inflow for given inlet should be generated from file or externally set
+     *
+     * Reads 'generate_inletBC' field from data file; if 0 or 1, it returns; if -1
+     * (default value), it returns 1 if a datafile for the inflow is available,
+     * 0 otherwise.
+     *
+     * \param indexInlet Index of the inlet to be considered. If not specified, it defaults to 99.
+     * \return True if the inflow can be generated from file, false otherwise
+     *
+     */
+    bool checkGenerateInletBC(unsigned int indexInlet=99) const;
+
     shp<GetPot>                                           M_datafile;
-    std::map<unsigned int, Law>                           M_inflows;
+    std::map<unsigned int, Law>                           M_inletBCs;
+    std::map<unsigned int, Law>                           M_outletBCs;
     Law                                                   M_ramp;
     std::map<unsigned int, Law>                           M_distalPressures;
+    Law                                                   M_intraMyocardialPressure;
     bool                                                  M_verbose;
 
     //void setInflow(const std::function<double(double, double, double)> &inflow);

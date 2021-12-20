@@ -23,7 +23,7 @@
 #include <redma/array/BlockVector.hpp>
 #include <redma/solver/system_solver/FunctionFunctor.hpp>
 #include <redma/solver/system_solver/SystemSolver.hpp>
-#include <redma/array/Double.hpp>
+// #include <redma/array/DoubleVector.hpp>
 
 #include <memory>
 
@@ -53,6 +53,14 @@ public:
     BDF(const DataContainer& data,
         shp<FunProvider> funProvider);
 
+    /*! \brief Constructor.
+     *
+     * \param datafile The DataContainer of the problem.
+     * \param zeroVector Shared pointer to a zero vector.
+     */
+    BDF(const DataContainer& data, 
+        const shp<aVector>& zeroVector);
+
     /*! \brief Setup function.
      *
      * \param zeroVector Shared pointer to a zero vector.
@@ -69,9 +77,17 @@ public:
                                  double& dt,
                                  int& status) override;
 
+    /*! \brief Simple advance function used in the Membrane Model.
+     *
+     * \param time The time.
+     * \param sol Shared pointer to the solution in order to update the displacement.
+     */
+    virtual shp<aVector> simpleAdvance(const double &dt, 
+                                       const shp<BlockVector> &sol) override;
+
     /*! \brief Shift previous solutions given the new one.
      *
-     * \param Shared pointer to the new solution.
+     * \param sol Shared pointer to the new solution.
      */
     virtual void shiftSolutions(const shp<aVector>& sol) override;
 
@@ -84,13 +100,36 @@ public:
     virtual shp<aVector> computeDerivative(const shp<aVector>& solnp1,
                                            double& dt) override;
 
+    /*! \brief Function to compute the extrapolated solution.
+     *
+     * \return Shared pointer to the extrapolated solution.
+     */
+    virtual shp<aVector> computeExtrapolatedSolution() override;
+
+    /*! \brief Function to combine solutions at previous time instants.
+     *
+     * \return Shared pointer to the combination between the previous solutions.
+     */
+    shp<aVector> combineOldSolutions() override;
+
+    /*! \brief Getter of the time marching coefficients.
+     *
+     * \return Vector of the BDF coefficients.
+     */
+    std::vector<double> getCoefficients() const override;
+
 protected:
-    shp<aVector> computeExtrapolatedSolution();
+
+    void setBDFCoefficients();
+
+    void setExtrapolationCoefficients();
 
     std::vector<shp<BlockVector>>            M_prevSolutions;
     std::vector<double>                      M_coefficients;
-    unsigned int                             M_order;
     double                                   M_rhsCoeff;
+    unsigned int                             M_order;
+    unsigned int                             M_extrapolationOrder;
+    std::vector<double>                      M_extrapolationCoefficients;
     bool                                     M_useExtrapolation;
 };
 

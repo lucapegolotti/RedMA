@@ -154,6 +154,12 @@ public:
      */
     virtual double normInf() override {return M_matrix->NormInf();};
 
+    /*! \brief Compute Frobenius of the matrix.
+     *
+     * \return The Frobenius norm.
+     */
+    virtual double normFrobenius() override {return 0.0;};  // not implemented for dense matrices!
+
 private:
 
     shp<DENSEMATRIX>        M_matrix;

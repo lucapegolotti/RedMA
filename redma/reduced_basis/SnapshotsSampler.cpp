@@ -14,7 +14,7 @@ SnapshotsSampler(const DataContainer& data, const std::function<double(double,do
 
 void
 SnapshotsSampler::
-takeSnapshots()
+takeSnapshots(const unsigned int& Nstart)
 {
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
     std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
@@ -28,8 +28,10 @@ takeSnapshots()
 
     for (unsigned int i = 0; i < nSnapshots; i++)
     {
-        unsigned int paramIndex = 0;
+        // to guarantee (almost) that two snapshots are not saved at the same location!
+        unsigned int paramIndex = Nstart;
         
+        // we find the first parameter index available, starting from Nstart
         while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);

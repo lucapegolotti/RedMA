@@ -71,6 +71,12 @@ shp<Type1> spcast(shp<Type2> ptr)
     return std::static_pointer_cast<Type1>(ptr);
 }
 
+template <class Type1, class Type2>
+shp<Type1> dpcast(shp<Type2> ptr)
+{
+    return std::dynamic_pointer_cast<Type1>(ptr);
+}
+
 }
 
 #define COMMA                 ,

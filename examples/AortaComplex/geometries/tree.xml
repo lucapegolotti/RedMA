@@ -26,7 +26,7 @@
         <rotation_axis_z>0</rotation_axis_z>
         <scale>2.3989073578658244</scale>
         <use_linear_elasticity>0</use_linear_elasticity>
-        <buildingblock type="aortabif0" assembler="navierstokessupg" method="fem" outlet="1">
+        <buildingblock type="aortabif0" assembler="navierstokes" method="fem" outlet="1">
             <L_ratio>1</L_ratio>
             <Rout_ratio>1</Rout_ratio>
             <alpha>0</alpha>
@@ -189,7 +189,7 @@
                 <rotation_axis_z>0</rotation_axis_z>
                 <scale>1.2359808892423765</scale>
                 <use_linear_elasticity>0</use_linear_elasticity>
-                <buildingblock type="aortabif1" assembler="navierstokessupg" refinement="normal" outlet="1">
+                <buildingblock type="aortabif1" assembler="navierstokes" refinement="normal" outlet="1">
                     <L_ratio>1</L_ratio>
                     <Rout_ratio>1</Rout_ratio>
                     <alpha>0</alpha>
