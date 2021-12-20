@@ -280,13 +280,13 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
 
                 unsigned int nsnapshots = snapshots.size() / mtn.second.size();
 
-                for (unsigned int i = 0; i < nsnapshots; i++)
+                for (unsigned int k = 0; k < nsnapshots; k++)
                 {
                     unsigned int count = 0;
                     for (auto bindex : mtn.second)
                     {
                         shp<DistributedVector> vecWrap(new DistributedVector());
-                        vecWrap->setVector(snapshots[i + count * nsnapshots]);
+                        vecWrap->setVector(snapshots[k + count * nsnapshots]);
                         convert<BlockVector>(convert<BlockVector>(auxVec)->block(bindex))->setBlock(fieldIndex,vecWrap);
                         count++;
                     }

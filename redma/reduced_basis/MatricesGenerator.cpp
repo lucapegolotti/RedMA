@@ -62,8 +62,8 @@ generate()
 
         // create list of faces
         std::vector<GeometricFace> faces = buildingBlock->getOutlets();
-	faces.push_back(buildingBlock->getInlet(0));
-	std::cout << typeid(faces).name() << std::endl;
+	    faces.push_back(buildingBlock->getInlet(0));
+	    std::cout << typeid(faces).name() << std::endl;
         for (auto face : faces)
         {
             shp<BlockMatrix> constraintMatrixBlock(new BlockMatrix(0,0));

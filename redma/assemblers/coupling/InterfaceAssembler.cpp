@@ -221,8 +221,18 @@ setup()
     M_childBT.reset(new BlockMatrix(0,0));
     M_childB.reset(new BlockMatrix(0,0));
     buildCouplingMatrices();
-    M_childBT->dump("BT");
-    M_childB->dump("B");
+
+    // dumping some matrices
+    if (M_interface.M_indexChild != -1)
+    {
+        M_childBT->dump("BT_child_" + std::to_string(M_interface.M_ID));
+        M_childB->dump("B_child_" + std::to_string(M_interface.M_ID));
+    }
+    if (M_interface.M_indexFather != -1)
+    {
+        M_fatherBT->dump("BT_father_" + std::to_string(M_interface.M_ID));
+        M_fatherB->dump("B_father_" + std::to_string(M_interface.M_ID));
+    }
 
     std::string msg = "done, in ";
     msg += std::to_string(chrono.diff());
