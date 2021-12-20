@@ -100,6 +100,9 @@ public:
     void applyInletNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
                               const bool& zeroFlag = false) const;
 
+    void applyOutletDirichletBCs(shp<LifeV::BCHandler> bcs,
+                                 const bool& zeroFlag = true) const;
+
     void applyOutletNeumannBCs(shp<LifeV::BCHandler> bcs,
                                const bool& zeroFlag = true) const;
 

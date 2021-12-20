@@ -24,6 +24,7 @@
 #include <redma/assemblers/AssemblerFactory.hpp>
 #include <redma/assemblers/coupling/InterfaceAssembler.hpp>
 #include <redma/assemblers/coupling/InletInflowAssembler.hpp>
+#include <redma/assemblers/coupling/OutletOutflowAssembler.hpp>
 
 #include <redma/reduced_basis/RBBasesManager.hpp>
 

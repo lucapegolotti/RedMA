@@ -181,6 +181,7 @@ InterfaceAssembler(const DataContainer& data,
                    const bool& addNoSlipBC) :
   M_data(data),
   M_isInlet(false),
+  M_isOutlet(false),
   M_addNoSlipBC(addNoSlipBC)
 {
 }
@@ -192,10 +193,14 @@ InterfaceAssembler(const DataContainer& data,
   M_data(data),
   M_interface(interface),
   M_isInlet(false),
+  M_isOutlet(false),
   M_addNoSlipBC(addNoSlipBC)
 {
-    if (M_interface.M_indexFather == -1 || M_interface.M_indexChild == -1)
+    if (M_interface.M_indexFather == -1)
         M_isInlet = true;
+    else if (M_interface.M_indexChild == -1)
+        M_isOutlet = true;
+
     setup();
 }
 
@@ -289,7 +294,7 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
     matrix->resize(1, assembler->getNumComponents());
 
     // 1) add disk basis functions
-    bfs = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet, false);
+    bfs = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet, M_isOutlet, false);
 
     std::vector<shp<DistributedVector>> couplingVectors;
     couplingVectors = buildCouplingVectors(bfs, face, assembler);
@@ -301,7 +306,7 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
         const double h = (double) LifeV::MeshUtility::MeshStatistics::computeSize(*(assembler->getFEspace(0)->mesh())).meanH;
 
         shp<BasisFunctionFunctor> bfsRing;
-        bfsRing = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet, true, h);
+        bfsRing = BasisFunctionFactory(M_data.getDatafile(), face, M_isInlet, M_isOutlet, true, h);
 
         std::vector<shp<DistributedVector>> ringCouplingVectors;
         ringCouplingVectors = buildCouplingVectors(bfsRing, face, assembler);
@@ -311,7 +316,7 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
 
         // 2b) apply strong coupling of ring DOFs, using RBF interpolation in the non-conforming case
         bool strongRingCoupling = M_data("coupling/strong_ring", false);
-        if (!M_isInlet && strongRingCoupling)
+        if (!M_isInlet && !M_isOutlet && strongRingCoupling)
         {
             M_mapLagrange = spcast<VECTOREPETRA>(couplingVectors[0]->data())->mapPtr();
 
@@ -461,6 +466,8 @@ buildCouplingMatrices()
 
         buildCouplingMatrices(asFather, outlet, M_fatherBT, M_fatherB, true);
 
+        M_fatherBfe = M_fatherB;
+
         /*if (M_stabilizationCoupling > THRESHOLDSTAB)
             buildStabilizationMatrix(asFather, outlet, M_stabFather);*/
 
@@ -488,7 +495,6 @@ buildCouplingMatrices()
         M_childBT->multiplyByScalar(-1.);
         M_childB->multiplyByScalar(-1.);
 
-        M_childBTfe = M_childBT;
         M_childBfe = M_childB;
 
         M_mapLagrange = spcast<MATRIXEPETRA>(M_childBT->block(0,0)->data())->domainMapPtr();

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef INLETINFLOWASSEMBLER_HPP
-#define INLETINFLOWASSEMBLER_HPP
+#ifndef OUTLETOUTFLOWASSEMBLER_HPP
+#define OUTLETOUTFLOWASSEMBLER_HPP
 
 #include <redma/assemblers/coupling/InterfaceAssembler.hpp>
 
@@ -23,9 +23,9 @@ namespace RedMA
 {
 
 /// \brief Class for the assembly of the matrix handling the weak dirichlet bcs.
-class InletInflowAssembler  : public InterfaceAssembler
+class OutletOutflowAssembler  : public InterfaceAssembler
 {
-    typedef aAssembler         AssemblerType;
+typedef aAssembler         AssemblerType;
 
 public:
     /*! \brief Constructor taking a DataContainer and an Interface as arguments.
@@ -34,9 +34,9 @@ public:
      * \param interface The interface.
      * \param addNoSlipBC True in no-slip BCs at the vessel wall are desired (default)
      */
-    InletInflowAssembler(const DataContainer& data,
-                         const Interface& interface,
-                         const bool& addNoSlipBC = true);
+    OutletOutflowAssembler(const DataContainer& data,
+                           const Interface& interface,
+                           const bool& addNoSlipBC = true);
 
     /*! \brief Add coupling contribution to a right-hand side.
     *
@@ -66,4 +66,5 @@ public:
 
 }
 
-#endif // INLETINFLOWASSEMBLER_HPP
+
+#endif //OUTLETOUTFLOWASSEMBLER_HPP

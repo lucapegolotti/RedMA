@@ -6,7 +6,7 @@ namespace RedMA
 shp<BasisFunctionFunctor>
 BasisFunctionFactory(const GetPot& datafile,
                      GeometricFace inlet,
-                     bool isBoundary,
+                     bool isInlet, bool isOutlet,
                      bool isRing, const double mesh_size)
 {
     shp<BasisFunctionFunctor> basisFunction;
@@ -15,12 +15,14 @@ BasisFunctionFactory(const GetPot& datafile,
     if (isRing)
     {
         int frequenciesTheta = datafile("coupling/frequencies_theta_ring", -1);
-        if (isBoundary)
-            frequenciesTheta = datafile("coupling/frequencies_theta_ring_weak_dirichlet", -1);
+        if (isInlet)
+            frequenciesTheta = datafile("coupling/frequencies_theta_ring_weak_dirichlet_in", -1);
+        else if (isOutlet)
+            frequenciesTheta = datafile("coupling/frequencies_theta_ring_weak_dirichlet_out", -1);
 
         basisFunction.reset(new FourierRingBasisFunction(inlet,
-                                                         frequenciesTheta,
-                                                         mesh_size));
+                                                           frequenciesTheta,
+                                                           mesh_size));
     }
 
     else
@@ -37,8 +39,10 @@ BasisFunctionFactory(const GetPot& datafile,
         else if (!std::strcmp(type.c_str(), "chebyshev"))
         {
             unsigned int nMax = datafile("coupling/nMax", 5);
-            if (isBoundary)
-                nMax = datafile("coupling/nfcts_weak_dirichlet", 1);
+            if (isInlet)
+                nMax = datafile("coupling/nfcts_weak_dirichlet_in", 5);
+            else if (isOutlet)
+                nMax = datafile("coupling/nfcts_weak_dirichlet_out", 0);
             basisFunction.reset(new ChebyshevBasisFunction(inlet, nMax));
         }
         else if (!std::strcmp(type.c_str(), "traces"))  // it actually defines null functions!

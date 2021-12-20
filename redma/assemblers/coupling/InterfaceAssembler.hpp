@@ -289,8 +289,8 @@ protected:
     shp<BlockMatrix>                          M_fatherB;
     shp<BlockMatrix>                          M_childBT;
     shp<BlockMatrix>                          M_childB;
-    shp<BlockMatrix>                          M_childBTfe;
     shp<BlockMatrix>                          M_childBfe;
+    shp<BlockMatrix>                          M_fatherBfe;
 
     // this is required in the RB setting to impose weakly dirichlet conditions
     shp<BlockMatrix>                          M_childBEp;
@@ -301,6 +301,7 @@ protected:
     shp<const LifeV::MapEpetra>               M_mapLagrange;
     double                                    M_stabilizationCoupling;
     bool                                      M_isInlet;
+    bool                                      M_isOutlet;
     bool                                      M_addNoSlipBC;
 
     std::map<LifeV::ID, Vector3D>             M_fatherRingPoints;

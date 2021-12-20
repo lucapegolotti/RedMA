@@ -38,7 +38,8 @@ namespace RedMA
 /// \brief Factory for BasisFunctionFunctor.
 shp<BasisFunctionFunctor>
 BasisFunctionFactory(const GetPot& datafile, GeometricFace inlet,
-                     bool isBoundary = false, bool isRing = false,
+                     bool isInlet = false, bool isOutlet = false,
+                     bool isRing = false,
                      const double mesh_size = 0.0);
 
 }  // namespace RedMA

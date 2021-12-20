@@ -32,6 +32,11 @@ double inletDirichlet(double t)
     return Q_max;
 }
 
+double outletDirichlet(double t, unsigned int i)
+{
+    return 0.3 * inletDirichlet(t); // attention to flow conservation here!!!
+}
+
 double inletNeumann(double t)
 {
     const double T = 3e-3;
@@ -95,6 +100,8 @@ int main(int argc, char **argv)
         std::string dataEntry = "bc_conditions/outlet" + std::to_string(i);
         if (!std::strcmp(data(dataEntry + "/type", "windkessel").c_str(), "neumann"))
             data.setOutletBC([i](double t){return outletNeumann(t,i);}, i);
+        else if (!std::strcmp(data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
+            data.setOutletBC([i](double t){return outletDirichlet(t,i);}, i);
     }
 
     std::string solutionDir = "solutions";

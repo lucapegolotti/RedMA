@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/aorta_bifurcation.xml
+	xmlfile = geometries/bifurcation_symmetric.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -26,12 +26,12 @@ outputdir = rb_solutions
 	inletpressurefile = datafiles/inlet_pressure.txt
 	coefficientinflow = 1.000552724487405
 
-	numoutletbcs = 2
+	numoutletbcs = 1
 	pimfile = datafiles/IM_pressure.txt
 	[./outlet0]
-	    type = windkessel
+	    type = dirichlet
         blockindex = 0
-        boundaryflag = 3
+        boundaryflag = 2
 
         C = 0.0  # 0.0000760  # WK3
         Rp = 100  # 718.27  # WK3
@@ -47,7 +47,7 @@ outputdir = rb_solutions
     [./outlet1]
         type = windkessel
         blockindex = 0
-        boundaryflag = 4
+        boundaryflag = 3
 
         C = 0.0  # 0.0000760  # WK3
         Rp = 200  # 718.27  # WK3
@@ -187,9 +187,11 @@ outputdir = rb_solutions
 	nMax                = 5
 	stab_coefficient	= 1e-16
 	check_stabterm		= false
-	nfcts_weak_dirichlet = 5
+	nfcts_weak_dirichlet_in = 5
+	nfcts_weak_dirichlet_out = 0
 	frequencies_theta_ring = 5
-    frequencies_theta_ring_weak_dirichlet = -1
+    frequencies_theta_ring_weak_dirichlet_in = -1
+    frequencies_theta_ring_weak_dirichlet_out = -1
     strong_ring = false
     strong_dofs_per_ring = 4
 [../]

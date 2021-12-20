@@ -223,14 +223,12 @@ getRightHandSide(const double& time,
         rhs->setBlock(ind, as.second->getRightHandSide(time, convert<BlockVector>(sol)->block(ind)));
     }
 
-
     // add interface contributions
     for (auto as: M_dualAssemblers)
     {
         as->addContributionRhs(time, rhs, convert<BlockVector>(sol),
             M_primalAssemblers.size());
     }
-
 
     return rhs;
 }
@@ -416,7 +414,7 @@ setup()
         }
     }
 
-    // allocate weak Dirichlet BC assembler
+    // allocate weak inlet Dirichlet BC assemblers
     if ((!std::strcmp(this->M_data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet")) &&
         (!std::strcmp(this->M_data("bc_conditions/inletdirichlet", "weak").c_str(), "weak")))
     {
@@ -440,6 +438,43 @@ setup()
 
             M_dualAssemblers.push_back(inletInAssembler);
             interfaceID++;
+        }
+    }
+
+    // allocate weak outlet Dirichlet BC assemblers
+    unsigned int numConditions = this->M_data("bc_conditions/numoutletbcs", 0);
+    for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
+    {
+        std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
+        unsigned int blockindex = this->M_data(dataEntry + "/blockindex", 0);
+        std::string BCtype = this->M_data(dataEntry + "/type", "windkessel");
+
+        if (!std::strcmp(BCtype.c_str(), "dirichlet"))
+        {
+            shp<InnerAssembler> outletAssembler = M_primalAssemblers[blockindex];
+            auto outlets = outletAssembler->getTreeNode()->M_block->getOutlets();
+            unsigned int boundaryflag = this->M_data(dataEntry + "/boundaryflag", 2);
+
+            for (GeometricFace outlet : outlets)
+            {
+                unsigned int cnt = 0;
+                if (outlet.M_flag == boundaryflag)
+                {
+                    Interface newInterface(outletAssembler, blockindex,
+                                           nullptr, -1, interfaceID);
+                    newInterface.M_indexOutlet = cnt;
+
+                    shp<InterfaceAssembler> outletOutAssembler;
+                    bool outletPrimalIsFE = !(std::strcmp(outletAssembler->getTreeNode()->M_block->getDiscretizationMethod().c_str(), "fem"));
+                    bool hasNoSlipBCs = (outletPrimalIsFE) ? ((spcast<StokesAssemblerFE>(outletAssembler))->hasNoSlipBCs()) :
+                            (spcast<StokesAssemblerFE>(spcast<StokesAssemblerRB>(outletAssembler)->getFEAssembler())->hasNoSlipBCs());
+                    outletOutAssembler.reset(new OutletOutflowAssembler(this->M_data, newInterface, hasNoSlipBCs));
+
+                    M_dualAssemblers.push_back(outletOutAssembler);
+                    interfaceID++;
+                }
+                ++cnt;
+            }
         }
     }
 

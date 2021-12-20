@@ -79,7 +79,8 @@ parseOutletBCData()
                 M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
             else if (!std::strcmp(BCtype.c_str(), "coronary"))
                 M_models[boundaryflag].reset(new CoronaryModel(M_data, dataEntry, outletIndex));
-            else if (!std::strcmp(BCtype.c_str(), "neumann"))
+            else if ((!std::strcmp(BCtype.c_str(), "neumann")) ||
+                     (!std::strcmp(BCtype.c_str(), "dirichlet")))
                 continue;
             else
                 throw new Exception("Unrecognized outlet BC model " + BCtype +
@@ -140,6 +141,59 @@ applyInletNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace in
 
 void
 BCManager::
+applyOutletDirichletBCs(shp<LifeV::BCHandler> bcs,
+                        const bool& zeroFlag) const
+{
+    unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
+
+    for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
+    {
+        std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
+
+        unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
+        std::string BCtype = M_data(dataEntry + "/type", "windkessel");
+        if ((M_treeNode->M_ID == blockindex) && (!std::strcmp(BCtype.c_str(), "dirichlet")))
+        {
+            unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
+
+            std::function<double(double)> outletLaw;
+            if (zeroFlag)
+                outletLaw = Law([](double t){return 0.0;});
+            else
+            {
+                if (M_outletBCs.find(outletIndex) == M_outletBCs.end())
+                    throw new Exception("Outlet with index " + std::to_string(outletIndex) +
+                    " was not set an outlet function!");
+
+                outletLaw = Law([this, outletIndex](double t) {return M_outletBCs.find(outletIndex)->second(t);});
+            }
+
+            std::vector<GeometricFace> outlets = M_treeNode->M_block->getOutlets();
+            shp<GeometricFace> outlet;
+            for (GeometricFace face : outlets) {
+                if (face.M_flag == boundaryflag)
+                    outlet.reset(new GeometricFace(face));
+            }
+
+            auto outletBoundaryCondition = std::bind(this->poiseuilleInflow,
+                                                     std::placeholders::_1,
+                                                     std::placeholders::_2,
+                                                     std::placeholders::_3,
+                                                     std::placeholders::_4,
+                                                     std::placeholders::_5,
+                                                     *outlet,
+                                                     outletLaw,
+                                                     1.0);
+
+            LifeV::BCFunctionBase outflowFunction(outletBoundaryCondition);
+            bcs->addBC("Outlet", boundaryflag, LifeV::Essential, LifeV::Full,
+                       outflowFunction, 3);
+        }
+    }
+}
+
+void
+BCManager::
 applyOutletNeumannBCs(shp<LifeV::BCHandler> bcs,
                       const bool& zeroFlag) const
 {
@@ -159,23 +213,25 @@ applyOutletNeumannBCs(shp<LifeV::BCHandler> bcs,
             if (zeroFlag)
                 outletLaw = Law([](double t){return 0.0;});
             else
+            {
                 if (M_outletBCs.find(outletIndex) == M_outletBCs.end())
                     throw new Exception("Outlet with index " + std::to_string(outletIndex) +
                     " was not set an outlet function!");
 
                 outletLaw = Law([this, outletIndex](double t) {return -M_outletBCs.find(outletIndex)->second(t);});
+            }
 
-                auto outletBoundaryCondition = std::bind(neumannLaw,
-                                                         std::placeholders::_1,
-                                                         std::placeholders::_2,
-                                                         std::placeholders::_3,
-                                                         std::placeholders::_4,
-                                                         std::placeholders::_5,
-                                                         outletLaw);
+            auto outletBoundaryCondition = std::bind(neumannLaw,
+                                                     std::placeholders::_1,
+                                                     std::placeholders::_2,
+                                                     std::placeholders::_3,
+                                                     std::placeholders::_4,
+                                                     std::placeholders::_5,
+                                                     outletLaw);
 
-                LifeV::BCFunctionBase outletFunction(outletBoundaryCondition);
-                bcs->addBC("OutletNeumann", boundaryflag, LifeV::Natural, LifeV::Normal,
-                           outletFunction);
+            LifeV::BCFunctionBase outletFunction(outletBoundaryCondition);
+            bcs->addBC("OutletNeumann", boundaryflag, LifeV::Natural, LifeV::Normal,
+                       outletFunction);
         }
     }
 }
@@ -226,6 +282,8 @@ applyDirichletBCs(const double& time, BlockVector& input,
             }
         }
     }
+
+    this->applyOutletDirichletBCs(bcs, false);
 
     shp<VECTOREPETRA> curVec(spcast<VECTOREPETRA>(input.block(index)->data()));
 

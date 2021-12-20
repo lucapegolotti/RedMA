@@ -232,8 +232,10 @@ shp<aVector>
 BlockVector::
 block(const unsigned int& iblock) const
 {
-    if (iblock >= nRows())
+    if (iblock >= nRows()){
+        std::cout << iblock << " > " << nRows() << std::endl << std::flush;
         throw new Exception("BlockVector: iblock > nRows()!");
+    }
     return M_vectorGrid(iblock,0);
 }
 
