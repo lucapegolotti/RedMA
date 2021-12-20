@@ -62,6 +62,15 @@ public:
                                             shp<BlockVector> sol,
                                             const unsigned int& nPrimalBlocks) override;
 
+    /*! \brief Set global index of the outlet.
+    *
+    * \param index global index of the outlet
+    */
+    inline void setGlobalOutletIndex(const unsigned int& index) {M_globalOutletIndex = index;};
+
+private:
+    unsigned int                                         M_globalOutletIndex;
+
 };
 
 }

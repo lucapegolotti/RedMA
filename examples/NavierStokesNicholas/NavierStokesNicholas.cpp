@@ -40,13 +40,19 @@ int main(int argc, char **argv)
     #else
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
-    printlog(MAGENTA,"start example", true);	
+
+    printlog(MAGENTA,"Starting snapshots generation", true);
     DataContainer data;
     data.setDatafile("datafiles/data_fem");
     data.setVerbose(comm->MyPID() == 0);
 
-    SnapshotsSampler sampler(data, inflow, comm);
-    sampler.takeSnapshots();
+    unsigned int Nstart = 0;
+    if (argc > 1)
+        Nstart = std::atoi(argv[1]);
+
+    SnapshotsSampler sampler(data, comm);
+    sampler.setInflow(inflow);
+    sampler.takeSnapshots(Nstart);
 
     return 0;
 }

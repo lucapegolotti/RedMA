@@ -2,7 +2,7 @@
 #           Data file for NavierStokesExample
 #-------------------------------------------------------------
 
-outputdir = rb_solutions
+outputdir = solutions
 
 [geometric_structure]
 	xmlfile = geometries/bifurcation_symmetric.xml

@@ -52,6 +52,10 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
     
     temp = this->M_fatherBfe->multiplyByVector(assemblerFather->getLifting(time));
     temp->multiplyByScalar(-1); // correcting the sign
+    temp->multiplyByScalar(1.0/M_data.getOutletBC(M_globalOutletIndex)(time));
+    temp->block(0)->dump("RHS_out_" + std::to_string(M_globalOutletIndex));
+    temp->multiplyByScalar(M_data.getOutletBC(M_globalOutletIndex)(time));
+
     if (assemblerFather->getRBBases())
         temp = assemblerFather->getRBBases()->projectOnLagrangeSpace(spcast<BlockVector>(temp));
     rhs->block(nPrimalBlocks + interfaceID)->add(temp);

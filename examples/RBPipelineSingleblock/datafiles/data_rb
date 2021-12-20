@@ -151,7 +151,7 @@ outputdir = rb_solutions
 	nMax                = 10
 	stab_coefficient	= 1e-16
 	check_stabterm		= false
-	nfcts_weak_dirichlet = 10
+	nfcts_weak_dirichlet_in = 10
 	frequencies_theta_ring = -1
-	frequencies_theta_ring_weak_dirichlet = -1
+	frequencies_theta_ring_weak_dirichlet_in = -1
 [../]

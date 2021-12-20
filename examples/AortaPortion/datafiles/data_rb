@@ -144,5 +144,5 @@ outputdir = rb_solutions
 	nMax                = 2
 	stab_coefficient	= 1e-16
 	check_stabterm		= false
-	nfcts_weak_dirichlet = 2
+	nfcts_weak_dirichlet_in = 2
 [../]

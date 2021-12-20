@@ -35,10 +35,12 @@ namespace RedMA
 class SnapshotsSampler
 {
 public:
-    SnapshotsSampler(const DataContainer& data, const std::function<double(double,double,double)>& inflow, EPETRACOMM comm);
+    SnapshotsSampler(const DataContainer& data, EPETRACOMM comm);
 
     /// Take the snapshots.
     void takeSnapshots(const unsigned int& Nstart = 0);
+
+    inline void setInflow(const std::function<double(double,double,double)>& inflow) {M_inflow=inflow;};
 
     void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double> array_params);
 
@@ -46,12 +48,13 @@ public:
                                      unsigned int fieldIndex,
                                      unsigned int maxSnapshot);
 
-    std::vector<double> inflowSnapshots(double a_min, double a_max, double c_min, double c_max);
+    std::vector<double> inflowSnapshots(const std::vector<std::vector<double>>& param_bounds);
 
 private:
     DataContainer                                       M_data;
-    const std::function<double(double,double,double)>   M_inflow;
     EPETRACOMM                                          M_comm;
+
+    std::function<double(double,double,double)>         M_inflow;
 };
 
 }  // namespace RedMA

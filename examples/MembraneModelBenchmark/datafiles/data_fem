@@ -174,9 +174,9 @@ outputdir = rb_solutions
 	nMax                = 5
 	stab_coefficient	= 1e-16
 	check_stabterm		= false
-	nfcts_weak_dirichlet = 5
+	nfcts_weak_dirichlet_in = 5
 	frequencies_theta_ring = 5
-	frequencies_theta_ring_weak_dirichlet = -1
+	frequencies_theta_ring_weak_dirichlet_in = -1
 	strong_ring = false
 	strong_dofs_per_ring = 4
 [../]

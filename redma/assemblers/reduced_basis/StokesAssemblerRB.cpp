@@ -132,7 +132,7 @@ std::map<unsigned int, std::vector<shp<BlockVector>>>
 StokesAssemblerRB::
 importSolution(const std::string &filename) const
 {
-    return M_feStokesAssembler->importSolution(filename);
+    return M_FEAssembler->importSolution(filename);
 }
 
 void

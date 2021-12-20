@@ -486,11 +486,12 @@ setup()
                                            nullptr, -1, interfaceID);
                     newInterface.M_indexOutlet = cnt;
 
-                    shp<InterfaceAssembler> outletOutAssembler;
+                    shp<OutletOutflowAssembler> outletOutAssembler;
                     bool outletPrimalIsFE = !(std::strcmp(outletAssembler->getTreeNode()->M_block->getDiscretizationMethod().c_str(), "fem"));
                     bool hasNoSlipBCs = (outletPrimalIsFE) ? ((spcast<StokesAssemblerFE>(outletAssembler))->hasNoSlipBCs()) :
                             (spcast<StokesAssemblerFE>(spcast<StokesAssemblerRB>(outletAssembler)->getFEAssembler())->hasNoSlipBCs());
                     outletOutAssembler.reset(new OutletOutflowAssembler(this->M_data, newInterface, hasNoSlipBCs));
+                    outletOutAssembler->setGlobalOutletIndex(outletIndex);
 
                     M_dualAssemblers.push_back(outletOutAssembler);
                     interfaceID++;

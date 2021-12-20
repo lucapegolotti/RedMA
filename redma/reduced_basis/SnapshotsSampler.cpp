@@ -5,9 +5,8 @@ namespace RedMA
 {
 
 SnapshotsSampler::
-SnapshotsSampler(const DataContainer& data, const std::function<double(double,double,double)>& inflow, EPETRACOMM comm) :
+SnapshotsSampler(const DataContainer& data, EPETRACOMM comm) :
   M_data(data),
-  M_inflow(inflow),
   M_comm(comm)
 {
 }
@@ -18,6 +17,8 @@ takeSnapshots(const unsigned int& Nstart)
 {
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
     std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
+    bool withOutflow = M_data("rb/offline/snapshots/add_outflow_param", false);
+    unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
 
     fs::create_directory(outdir);
     GeometryPrinter printer;
@@ -28,7 +29,7 @@ takeSnapshots(const unsigned int& Nstart)
 
     for (unsigned int i = 0; i < nSnapshots; i++)
     {
-        // to guarantee (almost) that two snapshots are not saved at the same location!
+        // to guarantee (almost...) that two snapshots are not saved at the same location!
         unsigned int paramIndex = Nstart;
         
         // we find the first parameter index available, starting from Nstart
@@ -38,20 +39,48 @@ takeSnapshots(const unsigned int& Nstart)
 
         if (!std::strcmp(param_type.c_str(), "inflow"))
         {
-            double param[] = {M_data("rb/offline/snapshots/a_min", 0.0),
-                              M_data("rb/offline/snapshots/a_max", 1.0),
-                              M_data("rb/offline/snapshots/c_min", 0.0),
-                              M_data("rb/offline/snapshots/c_max", 1.0)};
+            std::vector<std::vector<double>> param_bounds;
+            param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/a_min", 0.0),
+                                                          M_data("rb/offline/snapshots/a_max", 1.0)}));
+            param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/c_min", 0.0),
+                                                          M_data("rb/offline/snapshots/c_max", 1.0)}));
+            if (withOutflow)
+                for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
+                {
+                    std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
+                    if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
+                        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/out_min", 0.0),
+                                                                      M_data("rb/offline/snapshots/out_max", 1.0)}));
+                }
 
-            auto vec = inflowSnapshots(param[0], param[1], param[2], param[3]);
-            //std::vector<double> vec;
-            //vec.push_back(4.0015753921);
-            //vec.push_back(0.2318212560);
+            std::vector<double> vec = inflowSnapshots(param_bounds);
             array_params = vec;
 
-            M_data.setInflow(std::bind(M_inflow,
-                                       std::placeholders::_1,
-                                       vec[0],vec[1]));
+            auto inletBC = std::bind(M_inflow,
+                                     std::placeholders::_1,
+                                     vec[0],vec[1]);
+            M_data.setInletBC(inletBC);
+
+            if (withOutflow)
+            {
+                unsigned int cnt = 2;
+                for (unsigned int numOutlet = 0; numOutlet < numOutletConditions; numOutlet++)
+                {
+                    std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
+                    if ((!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "neumann")) ||
+                        (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "windkessel")) ||
+                        (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "coronary")))
+                        throw new Exception("Invalid outlet BC type! Only Dirichlet BCs are supported.");
+                    else if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
+                    {
+                        std::function<double(double)> outletDirichlet = [vec, cnt, inletBC] (double t)
+                                {return vec[cnt] * inletBC(t);};
+                        M_data.setOutletBC(outletDirichlet, numOutlet);
+                    }
+
+                }
+
+            }
         }
 
         GlobalProblem problem(M_data, M_comm, false);
@@ -237,13 +266,13 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
 
                     std::stringstream linestream(line);
                     std::string value;
-                    unsigned int i = 0;
+                    unsigned int j = 0;
                     while(getline(linestream,value,','))
                     {
-                        newVector->operator[](i) = std::atof(value.c_str());
-                        i++;
+                        newVector->operator[](j) = std::atof(value.c_str());
+                        j++;
                     }
-                    if (i != newVector->epetraVector().GlobalLength())
+                    if (j != newVector->epetraVector().GlobalLength())
                         throw new Exception("Stored snapshot length does not match fespace dimension!");
 
                     snapshots.push_back(newVector);
@@ -288,16 +317,20 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
 
 std::vector<double>
 SnapshotsSampler::
-inflowSnapshots(double a_min = 0.0, double a_max = 1.0, double c_min = 0.0, double c_max = 1.0)
+inflowSnapshots(const std::vector<std::vector<double>>& param_bounds)
 {
-    std::random_device rd;  //Will be used to obtain a seed for the random number engine
-    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_real_distribution<> distribution_a(a_min, a_max);
-    std::uniform_real_distribution<> distribution_c(c_min, c_max);
-    std::vector<double> vec(2);
-    vec[0] = distribution_a(gen);
-    vec[1] = distribution_c(gen);
-    return vec;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    std::vector<double> out;
+
+    for (auto elem : param_bounds)
+    {
+        std::uniform_real_distribution<> distribution(elem[0], elem[1]);
+        out.push_back(distribution(gen));
+    }
+
+    return out;
 }
 
 }  // namespace RedMA
