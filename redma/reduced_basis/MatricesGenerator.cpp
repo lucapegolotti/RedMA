@@ -63,7 +63,6 @@ generate()
         // create list of faces
         std::vector<GeometricFace> faces = buildingBlock->getOutlets();
 	    faces.push_back(buildingBlock->getInlet(0));
-	    std::cout << typeid(faces).name() << std::endl;
         for (auto face : faces)
         {
             shp<BlockMatrix> constraintMatrixBlock(new BlockMatrix(0,0));
@@ -134,7 +133,7 @@ generateDefaultTreeNode(const std::string& nameMesh)
 {	 	
     if (nameMesh.find("tube") != std::string::npos)
         return generateDefaultTube(nameMesh);
-    else if (nameMesh.find("bifurcation_symmetric") != std::string::npos)
+    else if (nameMesh.find("bifurcation_symmetric"))
         return generateDefaultSymmetricBifurcation(nameMesh); 
     else if (nameMesh.find("aorta") != std::string::npos && nameMesh.find("bif1") == std::string::npos)
         return generateDefaultAortaBifurcation0(nameMesh);
