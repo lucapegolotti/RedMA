@@ -119,6 +119,11 @@ dumpSnapshots(GlobalProblem& problem,
     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
     auto solutions = problem.getSolutions();
 
+    assert(!(solutions.empty()));
+
+    unsigned int n_primal_blocks = IDmeshTypeMap.size();
+    unsigned int n_dual_blocks = solutions[0]->nRows() - n_primal_blocks;
+
     auto M_mass = problem.getBlockAssembler()->block(0)->assembleMatrix(0);
     auto M_stiffness = problem.getBlockAssembler()->block(0)->assembleMatrix(1);
     auto M_divergence = problem.getBlockAssembler()->block(0)->assembleMatrix(2);
@@ -155,7 +160,8 @@ dumpSnapshots(GlobalProblem& problem,
             unsigned int count = 0;
             for (auto sol : solutions)
             {
-                auto solBlck = convert<DistributedVector>(convert<BlockVector>(convert<BlockVector>(sol)->block(idmeshtype.first))->block(i));
+                auto solBlck = convert<DistributedVector>(convert<BlockVector>(
+                               convert<BlockVector>(sol)->block(idmeshtype.first))->block(i));
                 if (count % takeEvery == 0)
                 {
                     std::string str2write = solBlck->getString(',') + "\n";
@@ -168,23 +174,27 @@ dumpSnapshots(GlobalProblem& problem,
             outfile.close();
         }
 
-        std::string outfilename = meshtypedir + "/lagmult.snap";
-        std::ofstream outfile;
-        outfile.open(outfilename, omode);
-        unsigned int count = 0;
-        for (auto sol : solutions)
+        for(unsigned int j = 0; j < n_dual_blocks; j++)  // save Lagrange multipliers, if any
         {
-            auto solBlck = convert<DistributedVector>(convert<BlockVector>(convert<BlockVector>(sol)->block(1))->block(0));
-            if (count % takeEvery == 0)
+            std::string outfilename = meshtypedir + "/lagmult_" + std::to_string(j) + ".snap";
+            std::ofstream outfile;
+            outfile.open(outfilename, omode);
+            unsigned int count = 0;
+            unsigned int cur_index = n_primal_blocks + j;
+            for (auto sol : solutions)
             {
-                std::string str2write = solBlck->getString(',') + "\n";
-                if (M_comm->MyPID() == 0)
-                    outfile.write(str2write.c_str(), str2write.size());
+                auto solBlck = convert<DistributedVector>(convert<BlockVector>(
+                               convert<BlockVector>(sol)->block(cur_index))->block(0));
+                if (count % takeEvery == 0)
+                {
+                    std::string str2write = solBlck->getString(',') + "\n";
+                    if (M_comm->MyPID() == 0)
+                        outfile.write(str2write.c_str(), str2write.size());
+                }
+                count++;
             }
-
-            count++;
+            outfile.close();
         }
-        outfile.close();
 
         if (computereynolds)
         {
@@ -193,7 +203,8 @@ dumpSnapshots(GlobalProblem& problem,
                                                              std::ios::binary);
             for (auto sol : solutions)
             {
-                auto solBlck = convert<DistributedVector>(convert<BlockVector>(convert<BlockVector>(sol)->block(idmeshtype.first))->block(0));
+                auto solBlck = convert<DistributedVector>(convert<BlockVector>(
+                               convert<BlockVector>(sol)->block(idmeshtype.first))->block(0));
                 double Umax = solBlck->maxMagnitude3D();
                 auto tNode = problem.getBlockAssembler()->block(0)->getTreeNode();
                 double D = 2 * tNode->M_block->getInlet(0).M_radius;
@@ -205,7 +216,6 @@ dumpSnapshots(GlobalProblem& problem,
             reynoldsfile.close();
         }
 
-
         if (!array_params.empty())
         {
             std::ofstream file(outdir + "/coeffile.txt", std::ios_base::app);
@@ -216,7 +226,6 @@ dumpSnapshots(GlobalProblem& problem,
             file.close();
         }
     }
-
 }
 
 void
