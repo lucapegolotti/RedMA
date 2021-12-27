@@ -74,6 +74,8 @@ generate()
             // we assume that the first block is the one to be coupled (as in interface assembler)
             auto constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
             constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraint" + std::to_string(face.M_flag));
+	    auto constraintMatrix_out = spcast<SparseMatrix>(constraintMatrixBlock->block(1,0));
+            constraintMatrix_out->dump(outdir + "/" + meshas.first + "/dualConstraint_out" + std::to_string(face.M_flag));
         }
     }
 }
