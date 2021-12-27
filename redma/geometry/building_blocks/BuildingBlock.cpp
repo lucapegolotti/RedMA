@@ -10,7 +10,7 @@ GeometricFace() :
   M_normal(Vector3D(1.0,0.0,0.0)),
   M_radius(1.0),
   M_flag(0),
-  M_diskFlag(0)
+  M_ringFlag(0)
 {
 }
 
@@ -21,18 +21,18 @@ GeometricFace(Vector3D center, Vector3D normal, double radius,
   M_normal(normal),
   M_radius(radius),
   M_flag(flag),
-  M_diskFlag(0)
+  M_ringFlag(0)
 {
 }
 
 GeometricFace::
 GeometricFace(Vector3D center, Vector3D normal, double radius,
-              unsigned int flag, unsigned int flagDisk) :
+              unsigned int flag, unsigned int flagRing) :
   M_center(center),
   M_normal(normal),
   M_radius(radius),
   M_flag(flag),
-  M_diskFlag(flagDisk)
+  M_ringFlag(flagRing)
 {
 }
 
@@ -49,7 +49,30 @@ print() const
                     std::to_string(M_normal[2]) + ")\n");
     printlog(WHITE, std::string("\tradius = ") + std::to_string(M_radius) + "\n");
     printlog(WHITE, std::string("\tflag = ") + std::to_string(M_flag) + "\n");
+    printlog(WHITE, std::string("\tring flag = ") + std::to_string(M_ringFlag) + "\n");
 
+}
+
+bool
+operator==(const GeometricFace& lhs, const GeometricFace& rhs)
+{
+    typedef LifeV::VectorSmall<3>   Vector3D;
+
+    Vector3D normalLhs;
+    Vector3D centerLhs;
+    Vector3D normalRhs;
+    Vector3D centerRhs;
+
+    normalLhs = lhs.M_normal;
+    normalLhs *= (-1);
+    centerLhs = lhs.M_center;
+
+    normalRhs = rhs.M_normal;
+    centerRhs = rhs.M_center;
+
+    double diff = (normalLhs - normalRhs).norm() + (centerLhs - centerRhs).norm();
+
+    return (diff <= 1e-3);
 }
 
 BuildingBlock::
@@ -74,7 +97,7 @@ BuildingBlock(EPETRACOMM comm, std::string refinement, bool verbose) :
     M_parametersHandler.registerParameter("rotation_axis_z", 0.0, -infty, infty);
     M_parametersHandler.registerParameter("alpha", 0.0, -mp2, mp2, false, true);
 
-
+    // angle around axis
     M_parametersHandler.registerParameter("alpha_axis", 0.0, -mp2, mp2, true, true);
 
     // scale
@@ -150,14 +173,9 @@ readMesh(std::string meshdir)
 
     LifeV::MeshPartitioner<MESH> meshPart(fullMesh, M_comm);
 
-    // small trick to redirect std cout
-    // CoutRedirecter ct;
-    // ct.redirect();
-    // meshPart.doPartition(fullMesh, M_comm);
     M_mesh.reset(new MESH(M_comm));
     M_mesh = meshPart.meshPartition();
 
-    // printlog(CYAN, ct.restore(), M_verbose);
     printlog(MAGENTA, "done\n", M_verbose);
 }
 
@@ -248,6 +266,142 @@ computeRotationMatrix(Vector3D axis, double angle)
     R(2,2) = mcos + axis[2] * axis[2] * omcos;
 
     return R;
+}
+
+BuildingBlock::Matrix3D
+BuildingBlock::
+computeLocalRotationMatrix(Vector3D vec, const unsigned int& index) const
+{
+    if (std::abs(vec.norm() - 1.0) <= 1e-10)
+        vec.normalize();
+
+    if (index > 2)
+        printlog(YELLOW, "[computeRotationMatrix] WARNING: "
+                         "the second argument must be either 0, 1 or 2!"
+                         "Setting it to 2 as default value",
+                 this->M_datafile.getVerbose());
+
+    Matrix3D mat;
+
+    std::pair<Vector3D, Vector3D> tangents = this->computeLocalTangentVersors(vec);
+
+    // assign the prescribed normalized vector to the prescribed column
+    mat[0][index] = vec[0];
+    mat[1][index] = vec[1];
+    mat[2][index] = vec[2];
+
+    if (index != 0) {
+        mat[0][0] = tangents.first[0];
+        mat[1][0] = tangents.first[1];
+        mat[2][0] = tangents.first[2];
+    }
+    else {
+        mat[0][1] = tangents.first[0];
+        mat[1][1] = tangents.first[1];
+        mat[2][1] = tangents.first[2];
+    }
+
+    if (index != 2) {
+        mat[0][2] = tangents.second[0];
+        mat[1][2] = tangents.second[1];
+        mat[2][2] = tangents.second[2];
+    }
+    else {
+        mat[0][1] = tangents.second[0];
+        mat[1][1] = tangents.second[1];
+        mat[2][1] = tangents.second[2];
+    }
+
+    return mat;
+}
+
+std::pair<BuildingBlock::Vector3D, BuildingBlock::Vector3D>
+BuildingBlock::
+computeLocalTangentVersors(const Vector3D& normal)
+{
+    Vector3D t1;
+    Vector3D t2;
+    std::pair<Vector3D, Vector3D> res;
+
+    double nx = normal[0];
+    double ny = normal[1];
+    double nz = normal[2];
+
+    double nx2 = std::sqrt(ny * ny + nz * nz);
+    double ny2 = std::sqrt(nx * nx + nz * nz);
+    double nz2 = std::sqrt(nx * nx + ny * ny);
+
+    if ((nx2 >= ny2) && (nx2 >= nz2))
+    {
+        //We create t1
+        t1[0] = 0;
+        t1[1] = nz / nx2;
+        t1[2] = -ny / nx2;
+
+        //We create t2
+        t2[0] = -nx2;
+        t2[1] = nx * ny / nx2;
+        t2[2] = nx * nz / nx2;
+    }
+    else if ((ny2 >= nx2) && (ny2 >= nz2))
+    {
+        //We create t1
+        t1[0] = -nz / ny2;
+        t1[1] = 0;
+        t1[2] = nx / ny2;
+
+        //We create t2
+        t2[0] = nx * ny / ny2;
+        t2[1] = -ny2;
+        t2[2] = ny * nz / ny2;
+    }
+    else
+    {
+        //We create t1
+        t1[0] = ny / nz2;
+        t1[1] = -nx / nz2;
+        t1[2] = 0;
+
+        //We create t2
+        t2[0] = nx * nz / nz2;
+        t2[1] = ny * nz / nz2;
+        t2[2] = -nz2;
+    }
+
+    res.first = t1;
+    res.second = t2;
+
+    return res;
+}
+
+void
+BuildingBlock::
+computeMembraneThickness() {
+
+    M_membraneThicknessComputer.reset(new MembraneThicknessComputer(M_datafile,
+                                                                    M_comm));
+
+    std::vector<double> radia_in;
+    std::vector<unsigned int> flags_in;
+    for (auto in : M_inlets)
+    {
+        radia_in.push_back(in.M_radius);
+        flags_in.push_back(in.M_ringFlag);
+    }
+
+    std::vector<double> radia_out;
+    std::vector<unsigned int> flags_out;
+    for (auto out : M_outlets)
+    {
+        radia_out.push_back(out.M_radius);
+        flags_out.push_back(out.M_ringFlag);
+    }
+
+    M_membraneThicknessComputer->setup(radia_in, radia_out,
+                                       flags_in, flags_out,
+                                       M_wallFlag, M_mesh);
+
+    M_membraneThicknessComputer->solve();
 }
 
 void
@@ -580,7 +734,7 @@ setIsChild(bool isChild)
 
 shp<MESH>
 BuildingBlock::
-getMesh()
+getMesh() const
 {
     return M_mesh;
 }

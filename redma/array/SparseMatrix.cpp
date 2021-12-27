@@ -117,8 +117,14 @@ add(shp<aMatrix> other)
 
     if (!other->isZero())
     {
-        if (other->nRows() != nRows() || other->nCols() != nCols())
-            throw new Exception("[SparseMatrix::add] inconsistent dimensions of matrices");
+        if (other->nRows() != nRows() || other->nCols() != nCols()) {
+            std::string msg = std::string("[SparseMatrix::add] inconsistent dimensions of matrices!\n"
+                              "First matrix is ") + std::to_string(nRows()) + std::string("x") +
+                              std::to_string(nCols()) + std::string(". Second matrix is ") +
+                              std::to_string(other->nRows()) + std::string("x") +
+                              std::to_string(other->nCols());
+            throw new Exception(msg);
+        }
 
         SparseMatrix* otherMatrix = dynamic_cast<SparseMatrix*>(other.get());
         (*M_matrix) += *otherMatrix->M_matrix;

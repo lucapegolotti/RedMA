@@ -89,6 +89,15 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;
 
+    /*! \brief Virtual getter for pressure mass matrix.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     * \return Shared pointer to aMatrix of the pressure mass matrix.
+     */
+    virtual shp<aMatrix> getPressureMass(const double& time,
+                                         const shp<aVector>& sol) override;
+
     /*! \brief Virtual getter for mass matrix Jacobian.
      *
      * \param time Current time.
@@ -164,6 +173,12 @@ public:
      */
     virtual inline unsigned int getComponentBCs() const override {return 0;}
 
+    /*! \brief Getter for the flag telling if no-slip BCs on the lateral wall are imposed
+    *
+    * \return true if no-slip BCs are imposed on th alteral wall, false otherwise
+    */
+    virtual inline bool hasNoSlipBCs() const {return M_addNoSlipBC;}
+
     /*! \brief Getter for the ETA finite element space associated with the coupling (velocity).
      *
      * \return Shared pointer to desired ETA finite element space.
@@ -178,14 +193,14 @@ public:
      * \param matrix The matrix to which the bcs must be applied.
      * \param diagCoeff Coefficient to put in the diagonal of the matrix.
      */
-    void applyDirichletBCsMatrix(shp<aMatrix> matrix,
-                                 double diagCoeff) const override;
+    virtual void applyDirichletBCsMatrix(shp<aMatrix> matrix,
+                                         double diagCoeff) const override;
 
     /*! \brief Virtual method to apply homogeneous Dirichlet bcs to a vector.
      *
      * \param vector The vector to which the bcs must be applied.
      */
-    void apply0DirichletBCs(shp<aVector> vector) const override;
+    virtual void apply0DirichletBCs(shp<aVector> vector) const override;
 
     /*! \brief Virtual method to apply Dirichlet bcs to a vector.
      *
@@ -194,8 +209,8 @@ public:
      * \param time Current time.
      * \param vector The vector to which the bcs must be applied.
      */
-    void applyDirichletBCs(const double& time,
-                           shp<aVector> vector) const override;
+    virtual void applyDirichletBCs(const double& time,
+                                   shp<aVector> vector) const override;
 
     /*! \brief Getter for the finite element space corresponding to a specific component.
      *
@@ -204,11 +219,17 @@ public:
      */
     virtual shp<FESPACE> getFEspace(unsigned int index) const override;
 
-    /*! \brief Getter for the ETA finite element space associated with the velocity.
+    /*! \brief Getter for the ETA finite element space associated with velocity.
      *
      * \return Shared pointer to the desired ETA finite element space.
      */
     shp<ETFESPACE3> getVelocityETFEspace() const {return M_velocityFESpaceETA;}
+
+    /*! \brief Getter for the ETA finite element space associated with pressure.
+    *
+    * \return Shared pointer to the desired ETA finite element space.
+    */
+    shp<ETFESPACE1> getPressureETFEspace() const {return M_pressureFESpaceETA;}
 
     /*! \brief Getter for a vector containing the mass, stiffness and divergence matrix
      *  (in order).
@@ -267,8 +288,7 @@ public:
      * \param sol The current solution.
      * \param rhs The vector to which the boundary conditions must be applied.
      */
-    void addNeumannBCs(double time, shp<aVector> sol,
-                       shp<aVector> rhs);
+    void addNeumannBCs(double time, shp<aVector> sol, shp<aVector> rhs);
 
     /*! \brief Setter for the velocity finite element order (e.g., "P2")
      *
@@ -300,21 +320,36 @@ public:
      *
      * \param bcManager A BCManager for the application of the boundary conditions.
      */
-    shp<aMatrix> assembleStiffness(shp<BCManager> bcManager);
+    virtual shp<aMatrix> assembleStiffness(shp<BCManager> bcManager);
 
     /*! \brief Assemble the mass matrix.
      *
      * The mass matrix is defined as
      *
-     *  \f[
+     * \f[
      *    M_{ij} = \int_{\Omega} \rho \varphi_j^h \cdot \varphi_i^h
-     *  \f]
+     * \f]
      *
-     * where \f$\rho\f$ is the fluid density and \f$\varphi_i^h\f$ are the finite element basis functions of the velocity.
+     * where \f$\rho\f$ is the fluid density and \f$\varphi_i^h\f$ are the finite
+     * element basis functions of the velocity.
      *
      * \param bcManager A BCManager for the application of the boundary conditions.
      */
-    shp<aMatrix> assembleMass(shp<BCManager> bcManager);
+    virtual shp<aMatrix> assembleMass(shp<BCManager> bcManager);
+
+    /*! \brief Assemble the mass matrix for pressure.
+     *
+     * The mass matrix for pressure is defined as
+     *
+     * \f[
+     *    M_{ij} = \int_{\Omega} \psi_j^h \psi_i^h
+     * \f]
+     *
+     * where \f$\psi_i^h\f$ are the finite element basis functions of the pressure.
+     *
+     * \param bcManager A BCManager for the application of the boundary conditions.
+     */
+    virtual shp<aMatrix> assemblePressureMass(shp<BCManager> bcManager);
 
     /*! \brief Assemble the divergence matrix.
      *
@@ -344,11 +379,16 @@ public:
      */
     void assembleFlowRateVectors();
 
-    /*! \brief Compute the Jacobians of the vectors computed in computeFlowRates.
+    /*! \brief Compute the jacobians of the vectors computed in computeFlowRates.
      *
      * Attention: this function is expensive.
      */
-    void assembleFlowRateJacobians(shp<BCManager> bcManager);
+    void assembleFlowRateJacobians();
+
+    /*! \brief Compute additional outlet matrices.
+     *
+     */
+    void assembleAdditionalOutletMatrices();
 
     /*! \brief Assemble vector to compute the flow rate given a face.
      *
@@ -365,12 +405,27 @@ public:
      */
     shp<VECTOREPETRA> assembleFlowRateVector(const GeometricFace& face);
 
-    /*! \brief Assemble Jacobian of the vector computed in assembleFlowRateVector.
+    /*! \brief Assemble jacobian of the vector computed in assembleFlowRateVector.
      *
      * \param face The face.
      * \return Shared pointer to the vector.
      */
     shp<MATRIXEPETRA> assembleFlowRateJacobian(const GeometricFace& face);
+
+    /*! \brief Assemble the additional matrix appearing in outlet if non-standard BCs are imposed.
+     *
+     * The additional outlet matrix is defined as
+     *
+     * \f[
+     *    O_{ij} = -\int_{\Gamma} \mu \psi_j^h \cdot \nabla \varphi_i^h n
+     * \f]
+     *
+     * where \f$\varphi_i^h\f$ is the finite element functions of velocity, and \f$n\f$ is the normal to the face \f$\Gamma\f$.
+     *
+     * \param face The face.
+     * \return Shared pointer to the matrix.
+     */
+    shp<MATRIXEPETRA> assembleAdditionalOutletMatrix(const GeometricFace& face);
 
     /*! \brief Add backflow stabilization.
      *
@@ -392,11 +447,7 @@ public:
      * \param velocity Current velocity.
      * \param pressure Current pressure.
      */
-    void exportNorms(double time,
-                     shp<VECTOREPETRA> velocity,
-                     shp<VECTOREPETRA> pressure);
-
-    // void initializePythonStructures();
+    void exportNorms(double time, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure);
 
     /*! \brief Compute the wall shear stress given the velocity.
      *
@@ -407,16 +458,6 @@ public:
     void computeWallShearStress(shp<VECTOREPETRA> velocity,
                                 shp<VECTOREPETRA> WSS,
                                 EPETRACOMM comm);
-
-    /*! \brief Apply Dirichlet boundary conditions to a matrix.
-     *
-     * \param bcManager The BCManager.
-     * \param matrix The matrix to modify.
-     * \param diagCoeff Diagonal coefficient to place in the diagonal.
-     */
-    void applyDirichletBCsMatrix(shp<BCManager> bcManager,
-                                 shp<aMatrix> matrix,
-                                 double diagCoeff);
 
     /*! \brief Initialize the finite element space of the velocity.
      *
@@ -459,6 +500,7 @@ protected:
     std::string                                       M_name;
     shp<BlockVector>                                  M_extrapolatedSolution;
     shp<BlockMatrix>                                  M_mass;
+    shp<BlockMatrix>                                  M_massPressure;
     shp<BlockMatrix>                                  M_stiffness;
     shp<BlockMatrix>                                  M_divergence;
     shp<FESPACE>                                      M_velocityFESpace;
@@ -468,11 +510,11 @@ protected:
     double                                            M_density;
     double                                            M_viscosity;
     shp<MATRIXEPETRA>                                 M_massWall;
-    shp<SparseMatrix>                                 M_massVelocity;
-    shp<SparseMatrix>                                 M_massPressure;
+
     // first index is face flag
     std::map<unsigned int, shp<VECTOREPETRA>>         M_flowRateVectors;
     std::map<unsigned int, shp<BlockMatrix>>          M_flowRateJacobians;
+    std::map<unsigned int, shp<BlockMatrix>>          M_additionalOutletMatrices;
 
     std::string                                       M_velocityOrder;
     std::string                                       M_pressureOrder;
@@ -481,6 +523,8 @@ protected:
     shp<VECTOREPETRA>                                 M_xs;
     shp<VECTOREPETRA>                                 M_ys;
     shp<VECTOREPETRA>                                 M_zs;
+
+    bool                                              M_addNoSlipBC;
 };
 
 }

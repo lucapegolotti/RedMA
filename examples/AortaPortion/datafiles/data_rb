@@ -16,6 +16,7 @@ outputdir = rb_solutions
 [../]
 
 [bc_conditions]
+    inlet_bc_type = dirichlet
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 	coefficientinflow = 1.000552724487405
@@ -119,6 +120,7 @@ outputdir = rb_solutions
 	algorithm = bdf
 	rhoinf = 0.5
 	order = 2
+	extrapolation_order = 2
 	t0ramp = -0.02
 	t0 = 0
 	T = 0.30
@@ -141,6 +143,6 @@ outputdir = rb_solutions
 	type                = chebyshev
 	nMax                = 2
 	stab_coefficient	= 1e-16
-	check_stabterm		= true
-	nfcts_weak_dirichlet = 2
+	check_stabterm		= false
+	nfcts_weak_dirichlet_in = 2
 [../]

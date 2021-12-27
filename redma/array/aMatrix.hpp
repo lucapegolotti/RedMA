@@ -95,6 +95,12 @@ public:
      */
     virtual double normInf() = 0;
 
+    /*! \brief Compute Frobenius norm of the matrix.
+     *
+     * \return The infinite norm.
+     */
+    virtual double normFrobenius() = 0;
+
     /*! \brief Getter for a block.
      *
      * This function only makes sense in case of block matrices, but is included

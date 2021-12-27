@@ -18,6 +18,7 @@
 #define BCMANAGER_HPP
 
 #include <redma/RedMA.hpp>
+
 #include <redma/geometry/TreeStructure.hpp>
 #include <redma/array/BlockVector.hpp>
 #include <redma/array/BlockMatrix.hpp>
@@ -25,8 +26,13 @@
 #include <redma/array/SparseMatrix.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
+#include <redma/boundary_conditions/aBCModel.hpp>
+#include <redma/boundary_conditions/Windkessel/WindkesselModel.hpp>
+#include <redma/boundary_conditions/Coronary/CoronaryModel.hpp>
 
 #include <lifev/core/fem/BCHandler.hpp>
+#include <lifev/core/array/VectorSmall.hpp>
+#include <lifev/core/array/MatrixSmall.hpp>
 
 namespace RedMA
 {
@@ -35,10 +41,12 @@ namespace RedMA
  */
 class BCManager
 {
-    typedef aTimeMarchingAlgorithm                  TimeMarchingAlgorithm;
-    typedef std::function<double(double)>           Law;
-public:
+    typedef LifeV::VectorSmall<3>     Vector3D;
+    typedef LifeV::MatrixSmall<3,3>   Matrix3D;
 
+    typedef std::function<double(double)>           Law;
+
+public:
     /*! \brief Constructor accepting a datafile and a TreeNode.
      *
      * \param datafile The DataContainer.
@@ -54,11 +62,11 @@ public:
      * \param fespace The finite element space.
      * \param index Index of the block vector to which the boundary conditions
      * must be applied.
+     * \param ringOnly True if the BCs have to be imposed only at the rings
      */
-    void applyDirichletBCs(const double& time,
-                           BlockVector& input,
-                           shp<FESPACE> fespace,
-                           const unsigned int& index) const;
+    void applyDirichletBCs(const double& time, BlockVector& input,
+                           shp<FESPACE> fespace, const unsigned int& index,
+                           const bool& ringOnly = false);
 
    /*! \brief Apply homogeneous Dirichlet boundary conditions to a block vector.
     *
@@ -69,7 +77,8 @@ public:
     */
     void apply0DirichletBCs(BlockVector& input,
                             shp<FESPACE> fespace,
-                            const unsigned int& index) const;
+                            const unsigned int& index,
+                            const bool& ringOnly = false);
 
     /*! \brief Apply Dirichlet boundary conditions to a block vector.
      *
@@ -82,77 +91,110 @@ public:
     void apply0DirichletMatrix(BlockMatrix& input,
                                shp<FESPACE> fespace,
                                const unsigned int& index,
-                               const double& diagCoefficient) const;
+                               const double& diagCoefficient,
+                               const bool& ringOnly = false);
 
-    /*! \brief Get Neumann condition.
-     *
-     * The Neumann condition is constant on the corresponding flag.
-     *
-     * \param time The current time.
-     * \param flag The flag of the outlet.
-     * \param rate Flow rate at the outlet.
-     */
-    double getNeumannBc(const double& time,
-                        const double& flag,
-                        const double& rate);
+    void applyInletDirichletBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
+                                const bool& zeroFlag = false) const;
 
-    /*! \brief Get Jacobian of the Neumann condition.
-     *
-     * \param time The current time.
-     * \param flag The flag of the outlet.
-     * \param rate Flow rate at the outlet.
-     */
-    double getNeumannJacobian(const double& time,
-                              const double& flag,
-                              const double& rate);
+    void applyInletNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace inlet,
+                              const bool& zeroFlag = false) const;
 
-    /// Post process function to call at the end of a timestep.
+    void applyOutletDirichletBCs(shp<LifeV::BCHandler> bcs,
+                                 const bool& zeroFlag = true) const;
+
+    void applyOutletNeumannBCs(shp<LifeV::BCHandler> bcs,
+                               const bool& zeroFlag = true) const;
+
+    double getOutletNeumannBC(const double& time, const double& flag, const double& rate);
+
+    // actually derivative wrt to flowrate
+    double getOutletNeumannJacobian(const double& time, const double& flag, const double& rate);
+
     void postProcess();
 
-private:
-    static double poiseuille(const double& t,
-                             const double& x,
-                             const double& y,
-                             const double& z,
-                             const unsigned int& i,
-                             const GeometricFace& face,
-                             const Law inflow,
-                             const double& coefficient);
+    // inline bool useStrongDirichlet() const {return M_strongDirichlet;}
 
-    static double fZero(const double& t,
-                        const double& x,
-                        const double& y,
-                        const double& z,
-                        const unsigned int& i);
+    inline std::string getInletBCType() const {return M_inletBCType;}
 
-    static double constantFunction(const double& t,
-                                   const double& x,
-                                   const double& y,
-                                   const double& z,
-                                   const unsigned int& i,
+    inline std::map<unsigned int, Law> getInletBCs() const {return M_inletBCs;}
+
+    std::vector<unsigned int> getWallFlags(const bool& withRings = true) const;
+
+    shp<VECTOREPETRA> computeBoundaryIndicator(shp<FESPACE> fespace, const std::vector<unsigned int> flags) const;
+
+    static double fZero(const double& t, const double& x, const double& y,
+                        const double& z, const unsigned int& i);
+
+    static double fOne(const double& t, const double& x, const double& y,
+                       const double& z, const unsigned int& i);
+
+    static double constantFunction(const double& t, const double& x, const double& y,
+                                   const double& z, const unsigned int& i,
                                    const double& K);
 
-    static double fZero2(double t);
+    shp<VECTOREPETRA> computeRingsIndicator(shp<FESPACE> fespace,
+                                            const unsigned int flag = 999,
+                                            const bool onlyExtremal = true) const;
 
-    shp<LifeV::BCHandler> createBCHandler0Dirichlet() const;
+private:
+    static double poiseuilleInflow(const double& t, const double& x, const double& y,
+                                   const double& z, const unsigned int& i,
+                                   const GeometricFace& face,
+                                   const Law inflow,
+                                   const double& coefficient);
+
+    static double neumannLaw(const double& t, const double& x, const double& y,
+                             const double& z, const unsigned int& i,
+                             Law inflowLaw);
+
+    std::map<unsigned int, Matrix3D> computeRotationMatrices() const;
+
+    void computeGlobalRotationMatrix(shp<FESPACE> fespace);
+
+    void shiftToNormalTangentialCoordSystem(shp<MATRIXEPETRA> mat, shp<VECTOREPETRA> vec,
+                                            shp<FESPACE> fespace);
+
+    void shiftToCartesianCoordSystem(shp<MATRIXEPETRA> mat, shp<VECTOREPETRA> vec,
+                                     shp<FESPACE> fespace);
+
+    void checkInletLaw();
+
+    shp<LifeV::BCHandler> createBCHandler0Dirichlet(const bool& ringOnly = false) const;
+
+    shp<LifeV::BCHandler> createBCHandler0DirichletRing() const;
 
     void addInletBC(shp<LifeV::BCHandler> bcs,
                     const Law& law,
-                    GeometricFace inlet) const;
+                    GeometricFace inlet, 
+                    const bool& ringOnly = false,
+                    const bool& zeroFlag = false) const;
 
-    void parseNeumannData();
+    void parseOutletBCData();
 
     shp<TreeNode>                                    M_treeNode;
     DataContainer                                    M_data;
-    std::map<unsigned int, Law>                      M_inflows;
-    std::map<unsigned int, Law>                      M_inflowsDt;
+
+    std::string                                      M_inletBCType;
+    std::string                                      M_ringConstraint;
+    std::map<unsigned int, Law>                      M_inletBCs;
+    std::map<unsigned int, Law>                      M_outletBCs;
+    // bool                                             M_strongDirichlet;
 
     std::vector<unsigned int>                        M_inletFlags;
+    std::vector<unsigned int>                        M_outletFlags;
+    std::vector<unsigned int>                        M_trueOutletFlags;
+
     unsigned int                                     M_wallFlag;
-    unsigned int                                     M_inletRing;
-    unsigned int                                     M_outletRing;
+    std::vector<unsigned int>                        M_inletRingFlags;
+    std::vector<unsigned int>                        M_outletRingFlags;
+    std::vector<unsigned int>                        M_trueOutletRingFlags;
+
+    shp<MATRIXEPETRA>                                M_globalRotationMatrix;
 
     std::map<unsigned int, double>                   M_coefficientsInflow;
+
+    std::map<unsigned int, shp<aBCModel>>            M_models;
 };
 
 }

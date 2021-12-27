@@ -39,12 +39,12 @@ namespace RedMA
 class PreconditionerOperator : public LifeV::Operators::LinearOperatorAlgebra
 {
     typedef LifeV::Operators::LinearOperatorAlgebra                  super;
-    typedef BlockVector                                              BV;
-    typedef BlockMatrix                                              BM;
+    typedef shp<BlockVector>                                         BV;
+    typedef shp<BlockMatrix>                                         BM;
 
 public:
     /// Empty constructor.
-    PreconditionerOperator();
+    PreconditionerOperator() {};
 
     /// Method not implemented.
     virtual int SetUseTranspose(bool UseTranspose) override {}
@@ -93,8 +93,8 @@ public:
     inline double getSetupTime() const {return M_setupTime;}
 
 protected:
-    EPETRACOMM                      M_comm;
-    double                          M_setupTime;
+    EPETRACOMM                                           M_comm;
+    double                                               M_setupTime;
 };
 
 }

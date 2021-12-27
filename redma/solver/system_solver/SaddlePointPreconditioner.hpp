@@ -24,6 +24,7 @@
 
 #include <lifev/navier_stokes_blocks/solver/NavierStokesOperator.hpp>
 #include <lifev/navier_stokes_blocks/solver/aSIMPLEOperator.hpp>
+#include <lifev/navier_stokes_blocks/solver/aPmmOperator.hpp>
 #include <lifev/core/linear_algebra/LinearOperatorAlgebra.hpp>
 #include <lifev/core/linear_algebra/BlockEpetra_MultiVector.hpp>
 #include <lifev/core/linear_algebra/BlockEpetra_Map.hpp>
@@ -63,10 +64,21 @@ public:
     virtual int ApplyInverse(const super::vector_Type& X,
                              super::vector_Type& Y) const override;
 
+    void allocateInnerPreconditioners(const BM& primalMatrix);
+
+    void allocateInverseSolvers(const BM& primalMatrix);
+
+    void allocateApproximatedInverses(const BM& primalMatrix);
+
+    void setSolverOptions();
+
+    void computeSchurComplement(const BM& A, const BM& BT,
+                                const BM& B, const BM& C);
+
     /*! \brief Setup method.
      *
-     * \param The matrix.
-     * \param If true, compute the Schur complement based on the input matrix.
+     * \param matrix The matrix.
+     * \param doComputeSchurComplement If true, compute the Schur complement based on the input matrix.
      */
     void setup(const BM& matrix,
                bool doComputeSchurComplement = true);
@@ -86,20 +98,7 @@ private:
 
     void findSmallBlocks(const BM& primalMatrix);
 
-    void allocateInnerPreconditioners(const BM& primalMatrix);
-
-    void allocateInverseSolvers(const BM& primalMatrix);
-
-    void allocateApproximatedInverses(const BM& primalMatrix);
-
-    void setSolverOptions();
-
-
-    void computeSchurComplement(const BM& A, const BM& BT,
-                                const BM& B, const BM& C);
-
     DataContainer                                        M_data;
-    BM                                                   M_matrix;
     BM                                                   M_matrixCollapsed;
     BM                                                   M_S;
     shp<BlockMaps>                                       M_maps;
@@ -120,7 +119,7 @@ private:
     unsigned int                                         M_nPrimalBlocks;
     unsigned int                                         M_nDualBlocks;
     std::vector<shp<Epetra_SerialDenseSolver>>           M_solversAsDense;
-    int                                                  M_tresholdSizeExactSolve;
+    int                                                  M_thresholdSizeExactSolve;
     std::vector<bool>                                    M_isSmallBlock;
 };
 

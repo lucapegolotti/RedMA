@@ -154,8 +154,8 @@ BlockVector::
 multiplyByScalar(const double& coeff)
 {
     for (unsigned int i = 0; i < nRows(); i++)
-    if (block(i))
-        block(i)->multiplyByScalar(coeff);
+        if (block(i) && !(block(i)->isZero()))
+            block(i)->multiplyByScalar(coeff);
 }
 
 void
@@ -232,8 +232,10 @@ shp<aVector>
 BlockVector::
 block(const unsigned int& iblock) const
 {
-    if (iblock >= nRows())
+    if (iblock >= nRows()){
+        std::cout << iblock << " > " << nRows() << std::endl << std::flush;
         throw new Exception("BlockVector: iblock > nRows()!");
+    }
     return M_vectorGrid(iblock,0);
 }
 

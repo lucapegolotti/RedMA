@@ -48,7 +48,6 @@ generate()
     }
 
     // dump matrices for supremizers
-
     for (auto& meshas : M_meshASPairMap)
     {
         auto constraintMatrix = spcast<aAssemblerFE>(meshas.second.first)->getConstraintMatrix();
@@ -63,8 +62,7 @@ generate()
 
         // create list of faces
         std::vector<GeometricFace> faces = buildingBlock->getOutlets();
-	faces.push_back(buildingBlock->getInlet(0));
-	std::cout << typeid(faces).name() << std::endl;
+	    faces.push_back(buildingBlock->getInlet(0));
         for (auto face : faces)
         {
             shp<BlockMatrix> constraintMatrixBlock(new BlockMatrix(0,0));
@@ -73,8 +71,7 @@ generate()
                                                      face,
                                                      constraintMatrixBlock,
                                                      constraintMatrixDummyBlock);
-            // we assume that the first block is the one to be coupled
-            // (as in interface assembler)
+            // we assume that the first block is the one to be coupled (as in interface assembler)
             auto constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
             constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraint" + std::to_string(face.M_flag));
         }
@@ -95,7 +92,7 @@ createDefaultAssemblers()
     // we loop over the folders with the parameters
     while (fs::exists(paramdir + std::to_string(i)))
     {
-	fs::directory_iterator end_it;
+	    fs::directory_iterator end_it;
         for (fs::directory_iterator it(paramdir + std::to_string(i)); it != end_it; it++)
         { 	
             if (is_directory(it->status()))
@@ -105,9 +102,9 @@ createDefaultAssemblers()
                 unsigned int dashpos = paramDir.find_last_of("/");
                 std::string nameMesh = paramDir.substr(dashpos + 1);
                 
-		if (M_meshASPairMap.find(nameMesh) == M_meshASPairMap.end())
-                {
-		    shp<TreeNode> defTreeNode = generateDefaultTreeNode(nameMesh);
+		        if (M_meshASPairMap.find(nameMesh) == M_meshASPairMap.end())
+		        {
+		            shp<TreeNode> defTreeNode = generateDefaultTreeNode(nameMesh);
                     shp<AssemblerType> defAssembler = AssemblerFactory(M_data, defTreeNode);
                     defAssembler->setup();
 
@@ -136,18 +133,16 @@ generateDefaultTreeNode(const std::string& nameMesh)
 {	 	
     if (nameMesh.find("tube") != std::string::npos)
         return generateDefaultTube(nameMesh);
-    else if (nameMesh.find("bifurcation_symmetric") != std::string::npos)
+    else if (nameMesh.find("bifurcation_symmetric"))
         return generateDefaultSymmetricBifurcation(nameMesh); 
     else if (nameMesh.find("aorta") != std::string::npos && nameMesh.find("bif1") == std::string::npos)
         return generateDefaultAortaBifurcation0(nameMesh);
     else if (nameMesh.find("aortabif1") != std::string::npos)
-	return generateDefaultAortaBifurcation1(nameMesh);
+	    return generateDefaultAortaBifurcation1(nameMesh);
     else
-    	{
-        throw new Exception("MatricesGenerator: this branch must still be implemented");
-    	}	
-
-    return nullptr;
+    {
+        throw new Exception("[MatricesGenerator]: this branch must still be implemented");
+    }
 }
 
 shp<TreeNode>
@@ -158,11 +153,13 @@ generateDefaultTube(const std::string& nameMesh)
     unsigned int length = std::atoi(nameMesh.substr(7,8).c_str());
     std::string refinement = nameMesh.substr(9);
 
+    std::string assemblerType = M_data("assembler/type", "navierstokes");
+
     shp<Tube> defaultTube(new Tube(M_comm, refinement, false, diameter, length));
     defaultTube->readMesh();
 
     defaultTube->setDiscretizationMethod("fem");
-    defaultTube->setAssemblerType("navierstokes");
+    defaultTube->setAssemblerType(assemblerType);
 
     shp<TreeNode> treeNode(new TreeNode(defaultTube, 1234));
 
@@ -176,8 +173,13 @@ generateDefaultSymmetricBifurcation(const std::string& nameMesh)
     unsigned int alpha = std::atoi(nameMesh.substr(13,15).c_str());
     std::string refinement = nameMesh.substr(17);
 
+    std::string assemblerType = M_data("assembler/type", "navierstokes");
+
     shp<BifurcationSymmetric> defaultBifurcation(new BifurcationSymmetric(M_comm, refinement, false, alpha));
     defaultBifurcation->readMesh();
+
+    defaultBifurcation->setDiscretizationMethod("fem");
+    defaultBifurcation->setAssemblerType(assemblerType);
 
     shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234));
 
@@ -190,11 +192,13 @@ generateDefaultAortaBifurcation0(const std::string& nameMesh)
 {
     std::string refinement = "normal";
 
+    std::string assemblerType = M_data("assembler/type", "navierstokes");
+
     shp<AortaBifurcation0> defaultBifurcation(new AortaBifurcation0(M_comm, refinement));
     defaultBifurcation->readMesh();
 
     defaultBifurcation->setDiscretizationMethod("fem");
-    defaultBifurcation->setAssemblerType("navierstokes");
+    defaultBifurcation->setAssemblerType(assemblerType);
 
     shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234));
 
@@ -206,11 +210,14 @@ MatricesGenerator::
 generateDefaultAortaBifurcation1(const std::string& nameMesh)
 {
     std::string refinement = "normal";
+
+    std::string assemblerType = M_data("assembler/type", "navierstokes");
+
     shp<AortaBifurcation1> defaultBifurcation(new AortaBifurcation1(M_comm, refinement));
     defaultBifurcation->readMesh();
 
     defaultBifurcation->setDiscretizationMethod("fem");
-    defaultBifurcation->setAssemblerType("navierstokes");
+    defaultBifurcation->setAssemblerType(assemblerType);
 
     shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234));
 

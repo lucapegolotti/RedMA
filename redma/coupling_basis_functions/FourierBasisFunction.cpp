@@ -7,21 +7,20 @@ FourierBasisFunction::
 FourierBasisFunction(const GeometricFace& face,
                      unsigned int nFrequenciesTheta,
                      unsigned int nFrequenciesRadial) :
-  BasisFunctionFunctor(face)
+    BasisFunctionFunctor(face)
 {
     M_nFrequenciesTheta = nFrequenciesTheta;
     M_nFrequenciesRadial = nFrequenciesRadial;
     // in the radial direction we only consider cos in order to ensure bfs
     // with continuous derivatives in the center
-    M_nBasisFunctions = (2 * nFrequenciesTheta + 1) * (nFrequenciesRadial + 1);
+    M_nBasisFunctions = (2 * M_nFrequenciesTheta + 1) * (M_nFrequenciesRadial + 1);
 
     double pid2 = M_PI / 2;
-
-    double radius = face.M_radius;
+    double radius = M_face.M_radius;
 
     M_thetaFreq.push_back(0.0);
     M_thetaPhase.push_back(pid2);
-    for (unsigned int i = 0; i < nFrequenciesTheta; i++)
+    for (unsigned int i = 0; i < M_nFrequenciesTheta; i++)
     {
         M_thetaFreq.push_back((i + 1) * 2);
         M_thetaFreq.push_back((i + 1) * 2);
@@ -31,15 +30,15 @@ FourierBasisFunction(const GeometricFace& face,
 
     M_radialPhase.push_back(0.0);
     M_radialFreq.push_back(0.0);
-    for (unsigned int i = 0; i < nFrequenciesRadial; i++)
+    for (unsigned int i = 0; i < M_nFrequenciesRadial; i++)
     {
         M_radialFreq.push_back((i + 1) * radius * 2);
         M_radialPhase.push_back(0.0);
     }
 
-    for (unsigned int i = 0; i < (2 * nFrequenciesTheta + 1); i++)
+    for (unsigned int i = 0; i < (2 * M_nFrequenciesTheta + 1); i++)
     {
-        for (unsigned int j = 0; j < nFrequenciesRadial + 1; j++)
+        for (unsigned int j = 0; j < M_nFrequenciesRadial + 1; j++)
         {
             M_auxIndicesTheta.push_back(i);
             M_auxIndicesRadial.push_back(j);

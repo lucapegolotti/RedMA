@@ -1,25 +1,67 @@
-#-------------------------------------------------------------
+-------------------------------------------------------------
 #           Data file for NavierStokesExample
 #-------------------------------------------------------------
 
-outputdir = rb_solutions
+outputdir = solutions
 
 [geometric_structure]
-	xmlfile = geometries/tree.xml
+	xmlfile = geometries/bifurcation_symmetric.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
 
 [assembler]
 	type = navierstokes
-	stabilization = none
+	[./stabilization]
+	    type = supg  # to choose in {none, supg, ip}
+	    gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
+    [../]
 [../]
 
 [bc_conditions]
+    inlet_bc_type = dirichlet
+    generate_inletBC = 0
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
+	inletpressurefile = datafiles/inlet_pressure.txt
 	coefficientinflow = 1.000552724487405
-	numoutletbcs = 0
+
+	numoutletbcs = 1
+	pimfile = datafiles/IM_pressure.txt
+	[./outlet0]
+	    type = dirichlet
+        blockindex = 0
+        boundaryflag = 2
+
+        C = 0.0  # 0.0000760  # WK3
+        Rp = 100  # 718.27  # WK3
+        Rd = 0.0  # 15945.20  # WK3
+
+        Ca = 1.0606295687808294e-07  # CORO
+        Cim = 8.581457420135802e-07  # CORO
+        Ra = 194674.68548804865  # CORO
+        Ram = 316346.36391807906  # CORO
+        Rvm = 0  # CORO
+        Rv = 97337.34274402432  # CORO
+    [../]
+    [./outlet1]
+        type = windkessel
+        blockindex = 0
+        boundaryflag = 3
+
+        C = 0.0  # 0.0000760  # WK3
+        Rp = 200  # 718.27  # WK3
+        Rd = 0.0  # 15945.20  # WK3
+
+        Ca = 1.0606295687808294e-07  # CORO
+        Cim = 8.581457420135802e-07  # CORO
+        Ra = 194674.68548804865  # CORO
+        Ram = 316346.36391807906  # CORO
+        Rvm = 0  # CORO
+        Rv = 97337.34274402432  # CORO
+    [../]
+
+	ring_constraint = full # type of homogeneous BC imposed at I/O rings for membrane model
 [../]
 
 [rb]
@@ -89,28 +131,30 @@ outputdir = rb_solutions
 [../]
 
 [newton_method]
-	tol = 1e-4
+	tol = 1e-5
 	maxit = 10
+	relaxation = 1.0
 [../]
 
 [fluid]
 	velocity_order = P2
 	pressure_order = P1
-	viscosity      = 0.04
+	viscosity      = 0.035
 	density        = 1.06
 [../]
 
 [structure]
 	time_integration_order = 3
-	poisson      = 0.3
+	poisson      = 0.5
 	num_young    = 1
-	young    	 = 3.e+6 # 1.07e7 4.07e6'
-	thickness    = 0.1 # 0.2 0.15'
+	young    	 = 4.07e+6
+	thickness    = 0.1
 	density	     = 1.2
 	flag = 10
+	constant_thickness = 1
 	[./external_wall]
-		elastic = 1e4
-		plastic = 1e4
+		elastic = 0
+		plastic = 0
 	[../]
 [../]
 
@@ -118,11 +162,13 @@ outputdir = rb_solutions
 	algorithm = bdf
 	rhoinf = 0.5
 	order = 2
-	t0ramp = 0
+	extrapolation_order = 2
+	t0ramp = 0.0
 	t0 = 0
-	T = 0.30
-	dt = 0.0025
+	T = 0.04
+	dt = 0.0002
 	use_extrapolation = 0
+	solve_as_linear = 0
 	solverstatistics = solverstatistics.txt
 [../]
 
@@ -140,6 +186,12 @@ outputdir = rb_solutions
 	type                = chebyshev
 	nMax                = 5
 	stab_coefficient	= 1e-16
-	check_stabterm		= true
-	nfcts_weak_dirichlet = 5
+	check_stabterm		= false
+	nfcts_weak_dirichlet_in = 5
+	nfcts_weak_dirichlet_out = 0
+	frequencies_theta_ring = 5
+    frequencies_theta_ring_weak_dirichlet_in = -1
+    frequencies_theta_ring_weak_dirichlet_out = -1
+    strong_ring = false
+    strong_dofs_per_ring = 4
 [../]

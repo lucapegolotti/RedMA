@@ -17,41 +17,33 @@
 #ifndef WINDKESSELMODEL_HPP
 #define WINDKESSELMODEL_HPP
 
-#include <redma/RedMA.hpp>
-
-#include <redma/boundary_conditions/PressureDrop.hpp>
-#include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
-
-#include <fstream>
+#include <redma/boundary_conditions/aBCModel.hpp>
+#include <redma/boundary_conditions/Windkessel/WindkesselPressureDrop.hpp>
 
 namespace RedMA
 {
 
 // For a reference see:
 // "The nested block preconditioning technique for the incompressible Navier-Stokes
-// equations with emphasis on hemodynamic simulations" - Liu, Yang, Dong, Marsden
-class WindkesselModel
+// equations with emphasis on haemodynamic simulations" - Liu, Yang, Dong, Marsden
+class WindkesselModel : public aBCModel
 {
 public:
     WindkesselModel(const DataContainer& data, const std::string& dataEntry,
                     const unsigned int& indexOutlet);
 
-    double getNeumannCondition(const double& time, const double& rate);
+    virtual double getNeumannCondition(const double& time, const double& rate) override;
 
-    double getNeumannJacobian(const double& time, const double& rate);
+    virtual double getNeumannJacobian(const double& time, const double& rate) override;
 
-    void shiftSolutions();
+    virtual void shiftSolutions() override;
 
 private:
     double                                              M_C;  // compliance
     double                                              M_Rp; // proximal resistance
     double                                              M_Rd; // distal resistance
-    std::function<double(double)>                       M_Pd; // distal reference pressure
-    double                                              M_dt;
-    shp<PressureDrop>                                   M_pressureDrop;
-    shp<BDF>                                            M_bdf;
-    shp<BlockVector>                                    M_pressureDropSolution;
-    DataContainer                                       M_data;
+
+    bool                                                M_isResistanceBC;
 };
 
 }

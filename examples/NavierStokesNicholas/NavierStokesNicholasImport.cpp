@@ -34,9 +34,12 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
 #endif
 
+    std::string msg = "Starting chrono...\n";
+    printlog(MAGENTA, msg, true);
+
     DataContainer data;
     data.setDatafile("datafiles/data_fem");
-    data.setInflow(inflow);
+    data.setInletBC(inflow);
     data.setVerbose(comm->MyPID() == 0);
 
     GlobalProblem femProblem(data, comm);
@@ -53,7 +56,7 @@ int main(int argc, char **argv)
     if (isFEM)
          path +=  "FEM/";
     else
-        path += "STRB/";
+        path += "RB/";
 
     femProblem.exportFromFiles(path);
 

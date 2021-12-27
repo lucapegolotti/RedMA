@@ -11,15 +11,16 @@ BlockAssembler(const DataContainer& data,
   M_tree(tree)
 {
     this->M_defaultAssemblers = defAssemblers;
-    setup();
+    this->setup();
 }
 
 void
 BlockAssembler::
 checkStabTerm(const shp<aVector>& sol) const
 {
-    // for (auto as: M_dualAssemblers)
-    //     as->checkStabilizationTerm(sol, M_primalAssemblers.size());
+    /*for (auto as: M_dualAssemblers)
+        as->checkStabilizationTerm(spcast<BlockVector>(sol),
+                        M_primalAssemblers.size());*/
 }
 
 shp<aVector>
@@ -73,7 +74,6 @@ void
 BlockAssembler::
 apply0DirichletBCs(shp<aVector> initialGuess) const
 {
-    unsigned int count = 0;
     for (auto as : M_primalAssemblers)
     {
         as.second->apply0DirichletBCs(
@@ -115,8 +115,7 @@ getZeroVector() const
 std::map<unsigned int, std::vector<shp<BlockVector>>>
 BlockAssembler::
 importSolution(const std::string& filename) const
-{   
-    std::cout << filename << std::endl << std::flush;
+{
     if (!fs::exists(filename))
         throw new Exception("Importing error. Invalid path provided!");
 
@@ -137,8 +136,15 @@ importSolution(const std::string& filename) const
 
 void
 BlockAssembler::
-exportSolution(const double& t,
-               const shp<aVector>& sol)
+setExporter()
+{
+    for (auto as: M_primalAssemblers)
+        as.second->setExporter();
+}
+
+void
+BlockAssembler::
+exportSolution(const double& t, const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)
         as.second->exportSolution(t,
@@ -169,14 +175,13 @@ setExtrapolatedSolution(const shp<aVector>& exSol)
 
 void
 BlockAssembler::
-postProcess(const double& t,
-            const shp<aVector>& sol)
+postProcess(const double& t, const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)
         as.second->postProcess(t, convert<BlockVector>(sol)->block(as.first));
 
-    if (this->M_data("coupling/check_stabterm", false))
-        checkStabTerm(sol);
+    /*if (this->M_data("coupling/check_stabterm", false))
+        checkStabTerm(sol);*/
 }
 
 shp<aMatrix>
@@ -193,6 +198,22 @@ getMass(const double& time,
     }
 
     return mass;
+}
+
+shp<aMatrix>
+BlockAssembler::
+getPressureMass(const double& time,
+                const shp<aVector>& sol)
+{
+    shp<BlockMatrix> mass_press(new BlockMatrix(M_numberBlocks, M_numberBlocks));
+
+    for (auto as : M_primalAssemblers)
+    {
+        unsigned int ind = as.first;
+        mass_press->setBlock(ind, ind, as.second->getPressureMass(time, convert<BlockVector>(sol)->block(ind)));
+    }
+
+    return mass_press;
 }
 
 shp<aMatrix>
@@ -221,7 +242,7 @@ getRightHandSide(const double& time,
     for (auto as: M_primalAssemblers)
     {
         unsigned int ind = as.first;
-        rhs->setBlock(ind,as.second->getRightHandSide(time, convert<BlockVector>(sol)->block(ind)));
+        rhs->setBlock(ind, as.second->getRightHandSide(time, convert<BlockVector>(sol)->block(ind)));
     }
 
     // add interface contributions
@@ -330,7 +351,7 @@ setup()
 
     NodesMap nodesMap = M_tree.getNodesMap();
     // allocate assemblers
-    for (NodesMap::iterator it = nodesMap.begin(); it != nodesMap.end(); it++)
+    for (auto it = nodesMap.begin(); it != nodesMap.end(); it++)
     {
         shp<InnerAssembler> newAssembler;
         newAssembler = AssemblerFactory(this->M_data, it->second);
@@ -339,23 +360,30 @@ setup()
         M_primalAssemblers[it->second->M_ID] = newAssembler;
     }
 
-    M_basesManager.reset(new RBBasesManager(M_data, M_comm, getIDMeshTypeMap()));
-    M_basesManager->loadSingularValues();
+    if (!(this->arePrimalAssemblersFE())) {
+        M_basesManager.reset(new RBBasesManager(M_data, M_comm, getIDMeshTypeMap()));
+        M_basesManager->loadSingularValues();
+    }
 
     for (auto& primalas : M_primalAssemblers)
     {
         primalas.second->setup();
         // we set the RBBases later because we need the finite element space
-        primalas.second->setRBBases(M_basesManager);
+        auto block = primalas.second->getTreeNode()->M_block;
+        if (std::strcmp(block->getDiscretizationMethod().c_str(), "rb") == 0)
+            primalas.second->setRBBases(M_basesManager);
     }
 
     // we need to load the bases here because now we have the finite element space
-    M_basesManager->loadBases();
+    if(!(this->arePrimalAssemblersFE()))
+        M_basesManager->loadBases();
 
     for (auto& primalas : M_primalAssemblers)
     {
         // restrict RB matrices based on desired pod tolerance (if needed)
-        primalas.second->RBsetup();
+        auto block = primalas.second->getTreeNode()->M_block;
+        if (std::strcmp(block->getDiscretizationMethod().c_str(), "rb") == 0)
+            primalas.second->RBsetup();
     }
 
     // allocate interface assemblers
@@ -364,7 +392,6 @@ setup()
     {
         NodesVector children = it->second->M_children;
 
-        unsigned int countOutlet = 0;
         unsigned int myID = it->second->M_ID;
 
         shp<InnerAssembler> fatherAssembler = M_primalAssemblers[myID];
@@ -377,20 +404,41 @@ setup()
             {
                 unsigned int otherID = (*itVector)->M_ID;
                 shp<InnerAssembler> childAssembler = M_primalAssemblers[otherID];
-                Interface newInterface(fatherAssembler, myID,
-                                       childAssembler, otherID,
-                                       interfaceID);
-                newInterface.M_indexOutlet = countChildren;
-                shp<InterfaceAssembler> inAssembler;
-                inAssembler.reset(new InterfaceAssembler(this->M_data, newInterface));
-                M_dualAssemblers.push_back(inAssembler);
-                interfaceID++;
+                unsigned int ninlets = childAssembler->getTreeNode()->M_block->getInlets().size();
+
+                if (spcast<StokesAssemblerFE>(fatherAssembler)->hasNoSlipBCs() !=
+                    spcast<StokesAssemblerFE>(childAssembler)->hasNoSlipBCs())
+                    throw new Exception("Father and Child assemblers MUST have the same "
+                                        "type of BCs at the vessel wall!");
+
+                for (unsigned int i = 0; i < ninlets; i++)
+                {
+                    if ((childAssembler->getTreeNode()->M_block->getInlet(i) ==
+                        fatherAssembler->getTreeNode()->M_block->getOutlet(countChildren)) ||
+                        (ninlets == 1))
+                    {
+                        Interface newInterface(fatherAssembler, myID,
+                                               childAssembler, otherID,
+                                               interfaceID);
+                        newInterface.M_indexInlet = i;
+                        newInterface.M_indexOutlet = countChildren;
+                        shp<InterfaceAssembler> inAssembler;
+                        inAssembler.reset(new InterfaceAssembler(this->M_data, newInterface,
+                                                                 spcast<StokesAssemblerFE>(fatherAssembler)->hasNoSlipBCs()));
+                        M_dualAssemblers.push_back(inAssembler);
+                        interfaceID++;
+
+                        i = ninlets; // once I find a matching inlet in the child, I can avoid investigating the others
+                    }
+                }
             }
             countChildren++;
         }
     }
 
-    if (!std::strcmp(this->M_data("bc_conditions/inletdirichlet", "weak").c_str(),"weak"))
+    // allocate weak inlet Dirichlet BC assemblers
+    if ((!std::strcmp(this->M_data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet")) &&
+        (!std::strcmp(this->M_data("bc_conditions/inletdirichlet", "weak").c_str(), "weak")))
     {
         shp<InnerAssembler> inletAssembler = M_primalAssemblers[0];
 
@@ -402,13 +450,54 @@ setup()
             // with respect to flow direction
             Interface newInterface(nullptr, -1, inletAssembler, 0,
                                                    interfaceID);
-            newInterface.M_inletIndex = i;
+            newInterface.M_indexInlet = i;
 
             shp<InterfaceAssembler> inletInAssembler;
-            inletInAssembler.reset(new InletInflowAssembler(this->M_data, newInterface));
+            bool inletPrimalIsFE = !(std::strcmp(inletAssembler->getTreeNode()->M_block->getDiscretizationMethod().c_str(), "fem"));
+            bool hasNoSlipBCs = (inletPrimalIsFE) ? ((spcast<StokesAssemblerFE>(inletAssembler))->hasNoSlipBCs()) :
+                            (spcast<StokesAssemblerFE>(spcast<StokesAssemblerRB>(inletAssembler)->getFEAssembler())->hasNoSlipBCs());
+            inletInAssembler.reset(new InletInflowAssembler(this->M_data, newInterface, hasNoSlipBCs));
 
             M_dualAssemblers.push_back(inletInAssembler);
             interfaceID++;
+        }
+    }
+
+    // allocate weak outlet Dirichlet BC assemblers
+    unsigned int numConditions = this->M_data("bc_conditions/numoutletbcs", 0);
+    for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
+    {
+        std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
+        unsigned int blockindex = this->M_data(dataEntry + "/blockindex", 0);
+        std::string BCtype = this->M_data(dataEntry + "/type", "windkessel");
+
+        if (!std::strcmp(BCtype.c_str(), "dirichlet"))
+        {
+            shp<InnerAssembler> outletAssembler = M_primalAssemblers[blockindex];
+            auto outlets = outletAssembler->getTreeNode()->M_block->getOutlets();
+            unsigned int boundaryflag = this->M_data(dataEntry + "/boundaryflag", 2);
+
+            for (GeometricFace outlet : outlets)
+            {
+                unsigned int cnt = 0;
+                if (outlet.M_flag == boundaryflag)
+                {
+                    Interface newInterface(outletAssembler, blockindex,
+                                           nullptr, -1, interfaceID);
+                    newInterface.M_indexOutlet = cnt;
+
+                    shp<OutletOutflowAssembler> outletOutAssembler;
+                    bool outletPrimalIsFE = !(std::strcmp(outletAssembler->getTreeNode()->M_block->getDiscretizationMethod().c_str(), "fem"));
+                    bool hasNoSlipBCs = (outletPrimalIsFE) ? ((spcast<StokesAssemblerFE>(outletAssembler))->hasNoSlipBCs()) :
+                            (spcast<StokesAssemblerFE>(spcast<StokesAssemblerRB>(outletAssembler)->getFEAssembler())->hasNoSlipBCs());
+                    outletOutAssembler.reset(new OutletOutflowAssembler(this->M_data, newInterface, hasNoSlipBCs));
+                    outletOutAssembler->setGlobalOutletIndex(outletIndex);
+
+                    M_dualAssemblers.push_back(outletOutAssembler);
+                    interfaceID++;
+                }
+                ++cnt;
+            }
         }
     }
 
@@ -424,7 +513,7 @@ arePrimalAssemblersFE()
     for (auto& primalas : M_primalAssemblers)
     {
         auto block = primalas.second->getTreeNode()->M_block;
-        if (std::strcmp(block->getDiscretizationMethod().c_str(),"fem") != 0)
+        if (std::strcmp(block->getDiscretizationMethod().c_str(), "fem") != 0)
             return false;
     }
     return true;
@@ -437,7 +526,7 @@ arePrimalAssemblersRB()
     for (auto& primalas : M_primalAssemblers)
     {
         auto block = primalas.second->getTreeNode()->M_block;
-        if (std::strcmp(block->getDiscretizationMethod().c_str(),"rb") != 0)
+        if (std::strcmp(block->getDiscretizationMethod().c_str(), "rb") != 0)
             return false;
     }
     return true;

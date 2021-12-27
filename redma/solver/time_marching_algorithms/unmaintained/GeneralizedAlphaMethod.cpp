@@ -19,6 +19,14 @@ GeneralizedAlphaMethod(const DataContainer& data, shp<FunProvider> funProvider) 
   setup(this->M_funProvider->getZeroVector());
 }
 
+GeneralizedAlphaMethod::
+GeneralizedAlphaMethod(const DataContainer& data, const shp<aVector>& zeroVector) :
+  aTimeMarchingAlgorithm(data, zeroVector),
+  M_order(2)
+{
+    setup(zeroVector);
+}
+
 void
 GeneralizedAlphaMethod::
 setup(const shp<aVector>& zeroVector)
@@ -98,6 +106,35 @@ advance(const double& time, double& dt, int& status)
     // this->dumpSolverStatistics(statistics, time+dt);
     //
     // return sol;
+}
+
+shp<aVector>
+GeneralizedAlphaMethod::
+simpleAdvance(const double &dt, const shp<BlockVector> &sol)
+{
+    // placeholder for simple advancing, used in membrane model to update displacements
+}
+
+shp<aVector>
+GeneralizedAlphaMethod::
+computeExtrapolatedSolution()
+{
+    // placeholder for computation of extrapolated solution (of given order),
+    // used in membrane model to extrapolate displacements
+}
+
+std::vector<double>
+GeneralizedAlphaMethod::
+getCoefficients() const
+{
+    // placeholder for the return of the characteristic coefficients of the method
+}
+
+shp<aVector>
+GeneralizedAlphaMethod::
+combineOldSolutions()
+{
+    return M_prevSolution;
 }
 
 shp<aVector>

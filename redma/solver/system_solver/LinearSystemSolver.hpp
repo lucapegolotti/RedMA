@@ -23,8 +23,10 @@
 #include <redma/solver/system_solver/LinearOperator.hpp>
 #include <redma/solver/system_solver/InverseOperator.hpp>
 #include <redma/solver/system_solver/SaddlePointPreconditioner.hpp>
-
 #include <redma/problem/DataContainer.hpp>
+
+#include <lifev/core/array/VectorSmall.hpp>
+#include <lifev/core/array/MatrixSmall.hpp>
 
 #include <memory>
 
@@ -44,6 +46,9 @@ class LinearSystemSolver
 {
     typedef shp<aVector>               BV;
     typedef shp<aMatrix>               BM;
+
+    typedef LifeV::MatrixSmall<2,2>    Matrix2D;
+    typedef LifeV::VectorSmall<2>      Vector2D;
 
 public:
     /*! \brief Constructor.
@@ -80,20 +85,19 @@ public:
 private:
 
     // only required for dense computation
-    // void computeSchurComplementDense(const BM& matrix);
-    //
-    // void solveDense(const BM& matrix, const BV& rhs, BV& sol);
+    void computeSchurComplementDense(const BM& matrix);
+
+    void solveDense(const BM& matrix, const BV& rhs, BV& sol);
 
     void convertVectorType(const shp<BlockMatrix>& matrix,
                            const shp<DenseVector>& vector,
                            shp<BlockVector>& targetVector);
 
-    // these are relative to dense solver
+    // only required for dense computation
     std::vector<shp<Epetra_SerialDenseSolver>>      M_solversAs;
     Epetra_SerialDenseSolver                        M_schurSolver;
     std::vector<shp<DenseMatrix>>                   M_collapsedAs;
     shp<DenseMatrix>                                M_schurComplementColl;
-    //
 
     DataContainer                                   M_data;
     shp<InverseOperator>                            M_invOper;

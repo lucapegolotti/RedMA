@@ -66,7 +66,7 @@ solve()
     else
         t = t0;
 
-    unsigned int count = 0;
+    unsigned int count = 1;
     while (T - t > dt/2)
     {
         if (t < t0)
@@ -86,7 +86,7 @@ solve()
 
         M_solution = spcast<BlockVector>(M_TMAlgorithm->advance(t, dt, status));
         if (status)
-            throw new Exception("Error in solver. Status != 0.");
+            throw new Exception("Error in solver. Status != 0");
 
         t += dt;
 
@@ -95,14 +95,15 @@ solve()
             M_solutions.push_back(M_solution);
             M_timestepsSolutions.push_back(t);
         }
-        if (t >= t0 && saveEvery > 0 && count % saveEvery == 0)
-            M_assembler->exportSolution(t, M_solution);
 
         M_assembler->postProcess(t, M_solution);
 
+        if ((t > t0 && saveEvery > 0 && count % saveEvery == 0) || (std::abs(t-t0) < dt/2))
+            M_assembler->exportSolution(t, M_solution);
+
         M_TMAlgorithm->shiftSolutions(M_solution);
 
-        if (t >= t0)
+        if ((t-t0) > dt/2)
             count++;
     }
 }

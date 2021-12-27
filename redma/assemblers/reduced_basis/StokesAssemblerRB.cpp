@@ -4,11 +4,10 @@ namespace RedMA
 {
 
 StokesAssemblerRB::
-StokesAssemblerRB(const DataContainer& data,
-                  shp<TreeNode> treeNode) :
+StokesAssemblerRB(const DataContainer& data, shp<TreeNode> treeNode) :
   aAssemblerRB(data, treeNode)
 {
-    M_feStokesAssembler.reset(new StokesAssemblerFE(data, treeNode));
+    M_FEAssembler.reset(new StokesAssemblerFE(data, treeNode));
     M_name = "StokesAssemblerRB";
     M_nComponents = 2;
 }
@@ -19,9 +18,9 @@ setup()
 {
     std::string msg = "[";
     msg += this->M_name;
-    msg += "] initializing internal FE assembler";
+    msg += "] initializing internal FE assembler...";
     printlog(YELLOW, msg, this->M_data.getVerbose());
-    M_feStokesAssembler->setup();
+    M_FEAssembler->setup();
 }
 
 shp<aMatrix>
@@ -34,10 +33,19 @@ getMass(const double& time,
 
 shp<aMatrix>
 StokesAssemblerRB::
+getPressureMass(const double& time,
+                const shp<aVector>& sol)
+{
+    return M_reducedMassPressure;
+}
+
+shp<aMatrix>
+StokesAssemblerRB::
 getMassJacobian(const double& time,
                 const shp<aVector>& sol)
 {
-    shp<BlockMatrix> retMat(new BlockMatrix(2,2));
+    shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,
+                                              this->M_nComponents));
     return retMat;
 }
 
@@ -108,8 +116,7 @@ applyDirichletBCs(const double& time,
 
 void
 StokesAssemblerRB::
-postProcess(const double& t,
-            const shp<aVector>& sol)
+postProcess(const double& t, const shp<aVector>& sol)
 {
     getBCManager()->postProcess();
 }
@@ -125,12 +132,19 @@ std::map<unsigned int, std::vector<shp<BlockVector>>>
 StokesAssemblerRB::
 importSolution(const std::string &filename) const
 {
-    return M_feStokesAssembler->importSolution(filename);
+    return M_FEAssembler->importSolution(filename);
 }
 
 void
 StokesAssemblerRB::
-exportSolution(const double& t,
+setExporter()
+{
+    this->M_FEAssembler->setExporter();
+}
+
+void
+StokesAssemblerRB::
+exportSolution(const double& t, 
                const shp<aVector>& sol)
 {
     std::ofstream outfile("rbcoefs/block" + std::to_string(M_treeNode->M_ID) + "t" + std::to_string(t) + ".txt");
@@ -144,7 +158,7 @@ exportSolution(const double& t,
     solBlock->setBlock(0,wrap(M_bases->reconstructFEFunction(sol->block(0), 0, id)));
     solBlock->setBlock(1,wrap(M_bases->reconstructFEFunction(sol->block(1), 1, id)));
 
-    M_feStokesAssembler->exportSolution(t, solBlock);
+    M_FEAssembler->exportSolution(t, solBlock);
 }
 
 shp<aVector>
@@ -174,7 +188,7 @@ shp<aVector>
 StokesAssemblerRB::
 getLifting(const double& time) const
 {
-    return M_feStokesAssembler->getLifting(time);
+    return M_FEAssembler->getLifting(time);
 }
 
 void
@@ -184,9 +198,9 @@ RBsetup()
     if (M_bases == nullptr)
         throw new Exception("RB bases have not been set yet");
 
-    // scale with piola
+    // scale bases with piola transformation
     unsigned int indexField = 0;
-    printlog(YELLOW, "[StokesAssembler] applying Piola transformation\t", M_data.getVerbose());
+    printlog(YELLOW, "[StokesAssemblerRB] applying Piola transformation\t", M_data.getVerbose());
     Chrono chrono;
     chrono.start();
     M_bases->scaleBasisWithPiola(0, M_treeNode->M_ID, [=](shp<VECTOREPETRA> vector)
@@ -205,7 +219,7 @@ RBsetup()
     msg += " seconds\n";
     printlog(YELLOW, msg, this->M_data.getVerbose());
 
-    printlog(YELLOW, "[StokesAssembler] assembling and projecting matrices\t", M_data.getVerbose());
+    printlog(YELLOW, "[StokesAssemblerRB] assembling and projecting matrices\t", M_data.getVerbose());
     chrono.start();
 
     unsigned int id = M_treeNode->M_ID;
@@ -213,12 +227,16 @@ RBsetup()
     M_reducedMass.reset(new BlockMatrix(2,2));
     M_reducedStiffness.reset(new BlockMatrix(2,2));
     M_reducedDivergence.reset(new BlockMatrix(2,2));
+    M_reducedMassPressure.reset(new BlockMatrix(2,2));
 
-    auto matrices = M_feStokesAssembler->getMatrices();
+    auto matrices = M_FEAssembler->getMatrices();
     M_reducedMass->setBlock(0,0,M_bases->matrixProject(matrices[0]->block(0,0), 0, 0, id));
     M_reducedStiffness->setBlock(0,0,M_bases->matrixProject(matrices[1]->block(0,0), 0, 0, id));
     M_reducedDivergence->setBlock(0,1,M_bases->matrixProject(matrices[2]->block(0,1), 0, 1, id));
     M_reducedDivergence->setBlock(1,0,M_bases->matrixProject(matrices[2]->block(1,0), 1, 0, id));
+
+    auto mass_pressure = M_FEAssembler->getPressureMass(0.0, nullptr);
+    M_reducedMassPressure->setBlock(1,1,M_bases->matrixProject(mass_pressure->block(1,1), 1, 1, id));
 
     msg = "done, in ";
     msg += std::to_string(chrono.diff());
@@ -246,8 +264,8 @@ setRBBases(shp<RBBasesManager> rbManager)
 
     // beware that at this point the rb bases have not been loaded yet
     M_bases = rbManager->getRBBases(actualName);
-    M_bases->setFESpace(M_feStokesAssembler->getFEspace(0), 0);
-    M_bases->setFESpace(M_feStokesAssembler->getFEspace(1), 1);
+    M_bases->setFESpace(M_FEAssembler->getFEspace(0), 0);
+    M_bases->setFESpace(M_FEAssembler->getFEspace(1), 1);
 }
 
 shp<aVector>
@@ -284,7 +302,7 @@ StokesAssemblerRB::
 applyPiola(shp<aVector> solution,
            bool inverse)
 {
-    M_feStokesAssembler->applyPiola(solution, inverse);
+    M_FEAssembler->applyPiola(solution, inverse);
 }
 
 void
@@ -292,7 +310,25 @@ StokesAssemblerRB::
 setDefaultAssemblers(shp<DefaultAssemblersLibrary> defAssemblers)
 {
     M_defaultAssemblers = defAssemblers;
-    M_feStokesAssembler->setDefaultAssemblers(defAssemblers);
+    M_FEAssembler->setDefaultAssemblers(defAssemblers);
+}
+
+shp<BlockVector>
+StokesAssemblerRB::
+reconstructFESolution(shp<BlockVector> sol) const
+{
+    shp<VECTOREPETRA>  velocityHandlerSol;
+    shp<VECTOREPETRA>  pressureHandlerSol;
+    velocityHandlerSol = M_bases->reconstructFEFunction(convert<BlockVector>(sol)->block(0),
+                                                        0, ID());
+    pressureHandlerSol = M_bases->reconstructFEFunction(convert<BlockVector>(sol)->block(1),
+                                                        1, ID());
+
+    shp<BlockVector> solFEM(new BlockVector(this->M_nComponents));
+    solFEM->setBlock(0, wrap(velocityHandlerSol));
+    solFEM->setBlock(1, wrap(pressureHandlerSol));
+
+    return solFEM;
 }
 
 }

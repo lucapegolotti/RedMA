@@ -74,5 +74,5 @@
 	type                = chebyshev
 	nMax                = 2
 	stab_coefficient	= 1e-15
-	check_stabterm		= true
+	check_stabterm		= false
 [../]

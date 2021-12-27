@@ -16,7 +16,7 @@ TreeNode(shp<BuildingBlock> block, unsigned int id) :
 
 bool
 TreeNode::
-isOutletNode()
+isOutletNode() const
 {
     if (M_nChildren < M_block->getOutlets().size())
         return true;
@@ -25,11 +25,74 @@ isOutletNode()
 
 bool
 TreeNode::
-isInletNode()
+isInletNode() const
 {
     if (M_ID == 0)
         return true;
     return false;
+}
+
+bool
+TreeNode::
+isExtremalNode() const
+{
+    return (this->isInletNode() || this->isOutletNode());
+}
+
+std::vector<GeometricFace>
+TreeNode::
+getOutlets() const
+{
+    std::vector<GeometricFace> outlets;
+    /*Vector3D normalIn;
+    Vector3D centerIn;
+    Vector3D normalOut;
+    Vector3D centerOut;*/
+    bool isOutlet;
+
+    // double diff;
+
+    if (this->isOutletNode())
+    {
+        for (const auto& outlet : M_block->getOutlets())
+        {
+            /*normalOut = outlet.M_normal;
+            centerOut = outlet.M_center;*/
+
+            isOutlet = true;
+
+            if (M_nChildren > 0)
+            {
+                for (const auto &child : M_children)
+                {
+                    std::vector<GeometricFace> inlets = child->M_block->getInlets();
+                    for (auto inlet : inlets)
+                    {
+                        if (inlet == outlet)
+                        {
+                            isOutlet = false;
+                            break;
+                        }
+                        /*normalIn = inlet.M_normal;
+                        normalIn *= (-1);
+                        centerIn = inlet.M_center;
+
+                        diff = (normalIn - normalOut).norm() + (centerIn - centerOut).norm();
+
+                        if (diff <= 1e-8) {
+                            isOutlet = false;
+                            break;
+                        }*/
+                    }
+                }
+            }
+
+            if (isOutlet)
+                outlets.push_back(outlet);
+        }
+    }
+
+    return outlets;
 }
 
 TreeStructure::

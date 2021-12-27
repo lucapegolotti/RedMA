@@ -68,6 +68,10 @@ public:
      * Method to import a solutions (velocity or pressure) from txt file into an EpetraMartrix
      */
     std::map<unsigned int, std::vector<shp<BlockVector>>> importSolution(const std::string& filename) const override;
+    
+    /*! \brief Virtual setup of the exporter.
+     */
+    virtual void setExporter() override;
 
     /*! Virtual export solution.
      *
@@ -79,7 +83,6 @@ public:
 
     /*! Virtual postProcess functions (to be called at the end of the timestep).
      *
-     * \param time Current time.
      * \param sol Current solution.
      */
     virtual void postProcess(const double& t,
@@ -93,6 +96,15 @@ public:
      */
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;
+
+    /*! \brief Virtual getter for pressure mass matrix.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     * \return Shared pointer to aMatrix of the mass matrix.
+     */
+    virtual shp<aMatrix> getPressureMass(const double& time,
+                                         const shp<aVector>& sol) override;
 
     /*! \brief Virtual getter for mass matrix Jacobian.
      *
@@ -143,7 +155,7 @@ public:
      */
     virtual inline shp<FESPACE> getFESpaceBCs() const override
     {
-        return M_feStokesAssembler->getFESpaceBCs();
+        return M_FEAssembler->getFESpaceBCs();
     }
 
     /*! \brief Getter for the component associated with the Dirichlet bcs.
@@ -158,7 +170,7 @@ public:
      */
     virtual inline shp<ETFESPACE3> getETFESpaceCoupling() const override
     {
-        return M_feStokesAssembler->getETFESpaceCoupling();
+        return M_FEAssembler->getETFESpaceCoupling();
     }
 
     /*! \brief Virtual method to apply Dirichlet bcs to a matrix.
@@ -196,7 +208,7 @@ public:
      */
     virtual inline shp<FESPACE> getFEspace(unsigned int index) const override
     {
-        return M_feStokesAssembler->getFEspace(index);
+        return M_FEAssembler->getFEspace(index);
     }
 
     /*! \brief Getter for a vector containing the mass, stiffness and divergence matrix
@@ -265,7 +277,7 @@ public:
      */
     virtual shp<aVector> convertFunctionRBtoFEM(shp<aVector> rbSolution) const override;
 
-    /* \brief Setter for the default assemblers.
+    /*! \brief Setter for the default assemblers.
      *
      * \param Shared pointer to the DefaultAssemblersLibrary.
      */
@@ -277,21 +289,59 @@ public:
      */
     inline virtual shp<BCManager> getBCManager() const override
     {
-        return M_feStokesAssembler->getBCManager();
+        return M_FEAssembler->getBCManager();
     }
 
+    /*! \brief Getter method for the internal FE assembler
+     *
+     * \return Shared pointer to the internal StokesAssemblerFE FE assembler
+     */
+    inline shp<StokesAssemblerFE> getFEAssembler() {return M_FEAssembler;}
+
+    /*! \brief Function that reconstructs the FE solution from the RB one, considering both
+     * velocity and pressure fields
+     *
+     * @param sol The RB vector to be reconstructed in the FE domain
+     * @return The FE vector computed by reconstructing the RB solution
+     */
+    shp<BlockVector> reconstructFESolution(shp<BlockVector> sol) const;
+
 protected:
+
+    /*! \brief Replacer (i.e. setter) method for the underlying FE assembler
+     *
+     * \param assembler StokesAssemblerFE to be set as internal FE assembler
+     */
+    inline void replaceFEAssembler(shp<StokesAssemblerFE> assembler) {M_FEAssembler = assembler;}
+
+    /*! \brief Getter method for the internal FE assembler, dynamically casted to a shared pointer to class T
+     *
+     * \tparam T: FE assembler, being StokesAssemblerFE or a derived class
+     * \return Shared pointer to the internal FE assembler, casted as a shared pointer to class T
+     */
+    template<class T>
+    shp<T> getFEAssemblerAs()
+    {
+        return std::dynamic_pointer_cast<T>(M_FEAssembler);
+    }
+
     shp<LifeV::Exporter<MESH>>                        M_exporter;
     shp<VECTOREPETRA>                                 M_velocityExporter;
     shp<VECTOREPETRA>                                 M_WSSExporter;
     shp<VECTOREPETRA>                                 M_pressureExporter;
+
     std::string                                       M_name;
+
     shp<BlockVector>                                  M_extrapolatedSolution;
+
     shp<RBBases>                                      M_bases;
+
     shp<BlockMatrix>                                  M_reducedMass;
     shp<BlockMatrix>                                  M_reducedDivergence;
     shp<BlockMatrix>                                  M_reducedStiffness;
-    shp<StokesAssemblerFE>                            M_feStokesAssembler;
+    shp<BlockMatrix>                                  M_reducedMassPressure;
+
+    shp<StokesAssemblerFE>                            M_FEAssembler;
 };
 
 }

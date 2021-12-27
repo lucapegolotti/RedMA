@@ -71,8 +71,6 @@ private:
     std::vector<double>         M_radialPhase;
     std::vector<unsigned int>   M_auxIndicesTheta;
     std::vector<unsigned int>   M_auxIndicesRadial;
-    // versor to compute the normal
-    Vector3D                    M_e;
 };
 
 }  // namespace RedMA

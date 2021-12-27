@@ -4,10 +4,10 @@ namespace RedMA
 {
 
 SaddlePointPreconditioner::
-SaddlePointPreconditioner(const DataContainer& data, const BM& matrix) :
+SaddlePointPreconditioner(const DataContainer& data,
+                          const BM& matrix) :
   M_data(data),
-  M_matrix(matrix),
-  M_tresholdSizeExactSolve(-1)
+  M_thresholdSizeExactSolve(-1)
 {
     setup(matrix, true);
 }
@@ -32,88 +32,83 @@ setup(const BM& matrix, bool doComputeSchurComplement)
 
     // preconditioner used to approximate Am1 in iterations
     M_innerPrecType = M_data("preconditioner/inner", "SIMPLE");
-    M_tresholdSizeExactSolve = M_data("preconditioner/thresholdsize", -1);
+    M_thresholdSizeExactSolve = M_data("preconditioner/thresholdsize", -1);
     // solution method to approximate BAm1BT in schur
     M_approxSchurType = M_data("preconditioner/approxshur", "SIMPLE");
 
-    if (1)
+    unsigned int nPrimal = 1;
+    // if nBlocks == 2, then we are imposing weak boundary conditions and
+    // we know that nprimal = 1
+    if (nBlocks > 2)
     {
-        unsigned int nPrimal = 1;
-        // if nBlocks == 2, then we are imposing weak boundary conditions and
-        // we know that nprimal = 1
-        if (nBlocks > 2)
-        {
-            while (nPrimal < nBlocks && matrix->block(0,nPrimal)->isZero())
-                nPrimal++;
+        while (nPrimal < nBlocks && matrix->block(0,nPrimal)->isZero())
+            nPrimal++;
+    }
+    unsigned int nDual = nBlocks - nPrimal;
+    M_nPrimalBlocks = nPrimal;
+    M_nDualBlocks = nDual;
 
-            if (nPrimal == nBlocks)
-                throw new Exception("The system does not have a saddle point structure");
-        }
-        unsigned int nDual = nBlocks - nPrimal;
-        M_nPrimalBlocks = nPrimal;
-        M_nDualBlocks = nDual;
+    BM A = matrix->getSubmatrix(0, nPrimal-1, 0, nPrimal-1);
+    BM BT(new BlockMatrix(0,0));
+    BM B(new BlockMatrix(0,0));
+    BM C(new BlockMatrix(0,0));
 
-        BM A = matrix->getSubmatrix(0, nPrimal-1, 0, nPrimal-1);
-        BM BT = matrix->getSubmatrix(0, nPrimal-1, nPrimal, nBlocks-1);
-        BM B = matrix->getSubmatrix(nPrimal, nBlocks-1, 0, nPrimal-1);
-        BM C = matrix->getSubmatrix(nPrimal, nBlocks-1, nPrimal, nBlocks-1);
+    M_primalMap.reset(new MAPEPETRA());
+    for (unsigned int i = 0; i < 2 * nPrimal; i++)
+        *M_primalMap += *M_maps->M_rangeMaps[i];
+    printlog(YELLOW,"[SaddlePointPreconditioner] primal map size = " +
+                    std::to_string((nPrimal == 0) ? 0 : M_primalMap->mapSize()) +
+                    "\n", M_data.getVerbose());
 
-        M_primalMap.reset(new MAPEPETRA());
-        for (unsigned int i = 0; i < 2*nPrimal; i++)
-            *M_primalMap += *M_maps->M_rangeMaps[i];
+    M_dualMap.reset(new MAPEPETRA());
 
-        M_dualMap.reset(new MAPEPETRA());
+    if (nDual > 0)
+    {
         for (unsigned int i = 0; i < nDual; i++)
-            *M_dualMap += *M_maps->M_rangeMaps[i+nPrimal*2];
+            *M_dualMap += *M_maps->M_rangeMaps[i + nPrimal * 2];
+        printlog(YELLOW,"[SaddlePointPreconditioner] dual map size = " +
+                        std::to_string(M_dualMap->mapSize()) +
+                        "\n", M_data.getVerbose());
 
-        printlog(YELLOW,"[SaddlePointPreconditioner] primal map size = " + std::to_string(M_primalMap->mapSize()) + "\n", M_data.getVerbose());
-        printlog(YELLOW,"[SaddlePointPreconditioner] dual map size = " + std::to_string(M_dualMap->mapSize()) + "\n", M_data.getVerbose());
-
-        // BlockMaps bmaps(*BT);
-        // M_primalMap = bmaps.getMonolithicRangeMapEpetra();
-        // M_dualMap = bmaps.getMonolithicDomainMapEpetra();
-        //
-        // BlockMaps allmaps(*matrix);
-        // M_rangeMaps = allmaps.getRangeMapsEpetra();
-        // M_domainMaps = allmaps.getDomainMapsEpetra();
-        // M_monolithicMap = allmaps.getMonolithicRangeMapEpetra();
-        // M_setupTime = chrono.diff();
-        //
-        // std::string msg = "Monolithic map size = ";
-        // msg += std::to_string(M_monolithicMap->mapSize());
-        // msg += "\n";
-        // printlog(GREEN, msg, M_data.getVerbose());
-        //
-        // // this is to be optimized
-        // M_matrixCollapsed->shallowCopy(collapseBlocks(matrix, allmaps));
-        //
-        findSmallBlocks(A);
-
-        allocateInnerPreconditioners(A);
-        allocateApproximatedInverses(A);
-
-        if ((!std::strcmp(M_innerPrecType.c_str(), "exact") ||
-             !std::strcmp(M_approxSchurType.c_str(), "exact")))
-        {
-            allocateInverseSolvers(A);
-        }
-
-        // printlog(MAGENTA, msg, M_data.getVerbose());
-        if (doComputeSchurComplement)
-            computeSchurComplement(A, BT, B, C);
-
-        // printlog(MAGENTA, msg, M_data.getVerbose());
+        BT = matrix->getSubmatrix(0, nPrimal - 1, nPrimal, nBlocks - 1);
+        B = matrix->getSubmatrix(nPrimal, nBlocks - 1, 0, nPrimal - 1);
+        C = matrix->getSubmatrix(nPrimal, nBlocks - 1, nPrimal, nBlocks - 1);
     }
     else
-    {
-        M_nPrimalBlocks = 1;
-        M_nDualBlocks = 0;
-        allocateInnerPreconditioners(matrix);
-    }
+        printlog(YELLOW,"[SaddlePointPreconditioner] dual map size = " +
+                        std::to_string(0) + ". No coupling occurs!\n", M_data.getVerbose());
 
+    /*BlockMaps bmaps(BT);
+    M_primalMap = bmaps.getMonolithicRangeMapEpetra();
+    M_dualMap = bmaps.getMonolithicDomainMapEpetra();
 
+    BlockMaps allmaps(matrix);
+    M_rangeMaps = allmaps.getRangeMapsEpetra();
+    M_domainMaps = allmaps.getDomainMapsEpetra();
+    M_monolithicMap = allmaps.getMonolithicRangeMapEpetra();
     M_setupTime = chrono.diff();
 
+    std::string msg = "Monolithic map size = ";
+    msg += std::to_string(M_monolithicMap->mapSize());
+    msg += "\n";
+    printlog(GREEN, msg, M_data.getVerbose());
+
+    // TODO: this is to be optimized
+    M_matrixCollapsed->shallowCopy(collapseBlocks(matrix, allmaps));*/
+
+    findSmallBlocks(A);
+
+    allocateInnerPreconditioners(A);
+    allocateApproximatedInverses(A);
+
+    if ((!std::strcmp(M_innerPrecType.c_str(), "exact") ||
+         !std::strcmp(M_approxSchurType.c_str(), "exact")))
+        allocateInverseSolvers(A);
+
+    if ((nDual > 0) && (doComputeSchurComplement))
+        computeSchurComplement(A, BT, B, C);
+
+    M_setupTime = chrono.diff();
     std::string msg = "done, in ";
     msg += std::to_string(M_setupTime);
     msg += " seconds\n";
@@ -160,7 +155,7 @@ findSmallBlocks(const BM& primalMatrix)
         unsigned int size1 = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data())->rangeMapPtr()->mapSize();
         unsigned int size2 = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,0)->data())->rangeMapPtr()->mapSize();
 
-        if (size1 + size2 < M_tresholdSizeExactSolve)
+        if (size1 + size2 < M_thresholdSizeExactSolve)
             M_isSmallBlock[i] = true;
     }
 }
@@ -213,13 +208,12 @@ allocateInverseSolvers(const BM& primalMatrix)
             unsigned int size1 = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data())->rangeMapPtr()->mapSize();
             unsigned int size2 = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(1,0)->data())->rangeMapPtr()->mapSize();
 
-            if ((M_tresholdSizeExactSolve == -1) || (size1 + size2 < M_tresholdSizeExactSolve))
+            if ((M_thresholdSizeExactSolve == -1) || (size1 + size2 < M_thresholdSizeExactSolve))
             {
                 oper->setUp(matrixGrid,
                 spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data())->rangeMap().commPtr());
 
                 shp<Teuchos::ParameterList> options;
-
                 options.reset(new Teuchos::ParameterList(M_solversOptionsInner->sublist("InnerBlockOperator")));
 
                 double innertol = M_data("preconditioner/innertol", 1e-3);
@@ -258,19 +252,21 @@ allocateInnerPreconditioners(const BM& primalMatrix)
             if (convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->type() == SPARSE)
             {
                 shp<NSPrec> newPrec;
-                newPrec.reset(LifeV::Operators::NSPreconditionerFactory::
-                              instance().createObject("SIMPLE"));
+                if (!std::strcmp(M_innerPrecType.c_str(), "SIMPLE"))
+                    newPrec.reset(LifeV::Operators::NSPreconditionerFactory::instance().
+                                     createObject(M_innerPrecType));
+                else if (!std::strcmp(M_innerPrecType.c_str(), "exact"))
+                    continue;
+                else
+                    throw new Exception("Unrecognized preconditioner type " + M_innerPrecType);
+
                 Teuchos::RCP<Teuchos::ParameterList> curList(M_solversOptionsInner);
                 unsigned int size = spcast<MATRIXEPETRA>(convert<BlockMatrix>(primalMatrix->block(i,i))->block(0,0)->data())->rangeMapPtr()->mapSize();
-                // this obviously needs to be fixed..
+                // TODO: this obviously needs to be fixed..
                 if (size < 10000)
-                {
                     curList->sublist("MomentumOperator").get<std::string>("preconditioner type") = "Ifpack";
-                }
                 else
-                {
                     curList->sublist("MomentumOperator").get<std::string>("preconditioner type") = "ML";
-                }
 
                 newPrec->setOptions(*curList);
 
@@ -354,13 +350,12 @@ computeSingleAm1BT(const BM& A, const BM& BT,
 
         bool exactSolve = false;
 
-        if (!std::strcmp(M_approxSchurType.c_str(),"exact") ||
-            M_isSmallBlock[index]) exactSolve = true;
+        if (!std::strcmp(M_approxSchurType.c_str(), "exact") || M_isSmallBlock[index])
+            exactSolve = true;
 
         VECTOREPETRA selector(domainMap);
         VECTOREPETRA colU(rangeMapU);
         VECTOREPETRA colP(rangeMapP);
-
 
         for (unsigned int i = 0; i < ncols; i++)
         {
@@ -445,13 +440,10 @@ solveEveryPrimalBlock(const VECTOREPETRA& X, VECTOREPETRA &Y) const
         MAPEPETRA rangeVelocity = *M_rangeMaps[count];
         MAPEPETRA rangePressure = *M_rangeMaps[count+1];
 
-        unsigned int size1 = rangeVelocity.mapSize();
-        unsigned int size2 = rangePressure.mapSize();
-
         bool exactSolve = false;
 
-        if (!std::strcmp(M_innerPrecType.c_str(),"exact") ||
-            M_isSmallBlock[i]) exactSolve = true;
+        if (!std::strcmp(M_innerPrecType.c_str(),"exact") || M_isSmallBlock[i])
+            exactSolve = true;
 
         if (exactSolve)
         {

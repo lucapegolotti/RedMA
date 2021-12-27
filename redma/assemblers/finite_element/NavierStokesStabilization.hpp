@@ -66,7 +66,13 @@ public:
                               shp<FESPACE> fespaceVelocity,
                               shp<FESPACE> fespacePressure,
                               shp<ETFESPACE3> etfespaceVelocity,
-                              shp<ETFESPACE1> etfespacePressure);
+                              shp<ETFESPACE1> etfespacePressure,
+                              EPETRACOMM comm);
+
+    /*! \brief Setup method.
+     *
+     */
+    virtual void setup() = 0;
 
     /*! \brief Setter for the density and the velocity.
      *
@@ -113,10 +119,11 @@ public:
                                          shp<BlockVector> rhs) = 0;
 
 protected:
+    EPETRACOMM                          M_comm;
+    bool                                M_verbose;
+
     double                              M_density;
     double                              M_viscosity;
-    unsigned int                        M_timeOrder;
-    unsigned int                        M_velocityOrder;
     shp<FESPACE>                        M_velocityFESpace;
     shp<FESPACE>                        M_pressureFESpace;
     shp<ETFESPACE3>                     M_velocityFESpaceETA;
@@ -124,8 +131,8 @@ protected:
     shp<BlockMatrix>                    M_jac;
     shp<BlockMatrix>                    M_massJac;
     shp<BlockMatrix>                    M_mass;
-    double                              M_dt;
-    double                              M_C_I;
+
+    std::string                         M_velocityOrder;
 };
 
 }  // namespace RedMA

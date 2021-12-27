@@ -1,5 +1,5 @@
 #-------------------------------------------------------------
-#           Data file for NavierStokesExample
+#           Data file for BypassExample
 #-------------------------------------------------------------
 
 outputdir = rb_solutions
@@ -11,24 +11,31 @@ outputdir = rb_solutions
 [../]
 
 [assembler]
-	type = navierstokes
-	stabilization = none
+	type = navierstokes_membrane
+	[./stabilization]
+    	    type = supg  # to choose in {none, supg, ip}
+    	    gamma_pressure = 0.2  # ip pressure coefficient
+    [../]
 [../]
 
 [bc_conditions]
+    inlet_bc_type = dirichlet
 	inletdirichlet = weak
 	numoutletbcs = 0
 	numinletbcs = 2
 	[./inlet0]
+	    generate_inletBC = 0  # use 0 with Neumann BCs and 1 with Dirichlet BCs
 		inflowfile = datafiles/inflow0.txt
 		coefficient = 1.0309752387
 		flag = 2
 	[../]
 	[./inlet1]
+	    generate_inletBC = 0  # use 0 with Neumann BCs and 1 with Dirichlet BCs
 		inflowfile = datafiles/inflow1.txt
 		coefficient = 1.0916819025
 		flag = 3
 	[../]
+	ring_constraint = full  # type of homogeneous BC imposed at I/O rings
 [../]
 
 [rb]
@@ -98,28 +105,31 @@ outputdir = rb_solutions
 [../]
 
 [newton_method]
-	tol = 1e-4
+	tol = 1e-5
 	maxit = 10
+	relaxation = 1.0
 [../]
 
 [fluid]
-	velocity_order = P2
+	velocity_order = P1
 	pressure_order = P1
-	viscosity      = 0.04
+	viscosity      = 0.035
 	density        = 1.06
 [../]
 
 [structure]
 	time_integration_order = 3
-	poisson      = 0.3
+	poisson      = 0.5
 	num_young    = 1
-	young    	 = 3.e+6 # 1.07e7 4.07e6'
-	thickness    = 0.1 # 0.2 0.15'
+	young    	 = 4.07e+6
+	thickness    = 0.1
 	density	     = 1.2
+	transverse_shear_coefficient = 0.8333
 	flag = 10
+	constant_thickness = 0
 	[./external_wall]
-		elastic = 1e4
-		plastic = 1e4
+		elastic = 0
+		plastic = 0
 	[../]
 [../]
 
@@ -127,10 +137,11 @@ outputdir = rb_solutions
 	algorithm = bdf
 	rhoinf = 0.5
 	order = 2
+	extrapolation_order = 2
 	t0ramp = 0
 	t0 = 0
-	T = 0.30
-	dt = 0.0025
+	T = 0.025
+	dt = 0.00025
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
 [../]
@@ -149,6 +160,10 @@ outputdir = rb_solutions
 	type                = chebyshev
 	nMax                = 5
 	stab_coefficient	= 1e-16
-	check_stabterm		= true
-	nfcts_weak_dirichlet = 5
+	check_stabterm		= false
+	nfcts_weak_dirichlet_in = 5
+	frequencies_theta_ring = -1
+	frequencies_theta_ring_weak_dirichlet_in = -1
+	strong_ring = false
+	strong_dofs_per_ring = -1
 [../]

@@ -7,9 +7,7 @@ SystemSolver::
 SystemSolver(const DataContainer& data) :
   M_data(data),
   M_linearSystemSolver(data),
-  M_isLinearProblem(false)
-{
-}
+  M_isLinearProblem(false) {}
 
 SystemSolver::BV
 SystemSolver::
@@ -24,13 +22,12 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
         BV curFun = fun(sol);
 
         double err = curFun->norm2();
-
         std::ostringstream streamOb;
         streamOb << err;
 
         std::string msg = "[SystemSolver] linear solve,";
         msg += " residual = " + streamOb.str() + "\n";
-        printlog(GREEN, msg, M_data.getVerbose());
+        printlog(GREEN, msg, false);
 
         incr->multiplyByScalar(0.0);
         BM curJac = jac(sol);
@@ -39,6 +36,15 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
         incr->multiplyByScalar(-1.0);
         sol->add(incr);
+
+        curFun = fun(sol);
+        err = curFun->norm2();
+        std::ostringstream streamOb2;
+        streamOb2 << err;
+
+        msg = "[SystemSolver] linear solve,";
+        msg += " final residual = " + streamOb2.str() + "\n";
+        printlog(GREEN, msg, false);
 
         status = 0;
     }
@@ -52,6 +58,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
         double tol = M_data("newton_method/tol", 1e-5);
         unsigned int maxit = M_data("newton_method/maxit", 10);
+        double omega = M_data("newton_method/relaxation", 1.0);
 
         std::string msg;
 
@@ -70,7 +77,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
             std::ostringstream streamOb;
             streamOb << err / initialError;
 
-            msg = "[SystemSolver] Newtons algorithm,";
+            msg = "[SystemSolver] Newton's algorithm,";
             msg += " rel error = " + streamOb.str();
             streamOb.str("");
             streamOb.clear();
@@ -87,13 +94,13 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
                 incr->multiplyByScalar(0.0);
                 BM curJac = jac(sol);
                 M_linearSystemSolver.setComm(M_comm);
+
                 M_linearSystemSolver.solve(curJac, curFun, incr);
                 M_solverStatistics.push_back(M_linearSystemSolver.getSolverStatistics());
             }
-
             incr->multiplyByScalar(-1.0);
+            incr->multiplyByScalar(omega); // relaxation step
             sol->add(incr);
-
             count++;
 
             curFun = fun(sol);
@@ -106,10 +113,9 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
             status = -1;
 
             std::ostringstream streamOb;
-
             streamOb << err / initialError;
 
-            msg = "[SystemSolver] Newtons algorithm, failed";
+            msg = "[SystemSolver] Newton's algorithm, failed";
             msg += " rel error = " + streamOb.str();
             streamOb.str("");
             streamOb.clear();
@@ -126,7 +132,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
             streamOb << err / initialError;
 
-            msg = "[SystemSolver] Newtons algorithm converged,";
+            msg = "[SystemSolver] Newton's algorithm converged,";
             msg += " rel error = " + streamOb.str();
             streamOb.str("");
             streamOb.clear();
@@ -140,4 +146,4 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
     return sol;
 }
 
-}
+} // Namespace RedMA
