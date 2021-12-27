@@ -111,13 +111,14 @@ dumpSnapshots(GlobalProblem& problem,
     for (auto idmeshtype : IDmeshTypeMap)
     {
         std::string meshtypedir = outdir + "/" + idmeshtype.second;
-        fs::create_directory(meshtypedir);
+        //fs::create_directory(meshtypedir);
 
         unsigned int nfields = solutions[0]->block(idmeshtype.first)->nRows();
 
         for (unsigned int i = 0; i < nfields; i++)
         {
-            std::string outfilename = meshtypedir + "/field" + std::to_string(i) + ".snap";
+            //std::string outfilename = meshtypedir + "/field" + std::to_string(i) + ".snap";
+	    std::string outfilename = outdir + "/field" + std::to_string(i) + ".snap";	
 
             std::ofstream outfile;
             outfile.open(outfilename, omode);
@@ -137,7 +138,8 @@ dumpSnapshots(GlobalProblem& problem,
             outfile.close();
         }
 
-        std::string outfilename = meshtypedir + "/lagmult.snap";
+        //std::string outfilename = meshtypedir + "/lagmult.snap";
+        std::string outfilename = outdir + "/lagmult.snap";
         std::ofstream outfile;
         outfile.open(outfilename, omode);
         unsigned int count = 0;
