@@ -70,6 +70,7 @@ public:
     unsigned int            M_ID;
     unsigned int            M_indexOutlet;
     unsigned int            M_indexInlet;
+    unsigned int            M_interfaceFlag;
 };
 
 /*! \brief Class for the assembly of coupling matrices.
@@ -215,6 +216,10 @@ public:
      * \return Child's coupling matrix.
      */
     inline shp<BlockMatrix> getChildB() const {return M_childB;}
+
+    inline void setAsInlet() {M_isInlet=true;}
+
+    inline void setAsOutlet() {M_isOutlet=true;}
 
 protected:
     /*! \brief Generate a quadrature rule.

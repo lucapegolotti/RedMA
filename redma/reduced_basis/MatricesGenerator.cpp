@@ -57,12 +57,22 @@ generate()
     for (auto& meshas : M_meshASPairMap)
     {
         InterfaceAssembler interfaceAssembler(M_data);
+        InterfaceAssembler inletInflowAssembler(M_data);
+        inletInflowAssembler.setAsInlet();
+        InterfaceAssembler outletOutflowAssembler(M_data);
+        outletOutflowAssembler.setAsOutlet();
 
         shp<BuildingBlock> buildingBlock = meshas.second.first->getTreeNode()->M_block;
 
         // create list of faces
-        std::vector<GeometricFace> faces = buildingBlock->getOutlets();
-	    faces.push_back(buildingBlock->getInlet(0));
+        std::vector<GeometricFace> in_faces = buildingBlock->getInlets();
+        std::vector<GeometricFace> out_faces = buildingBlock->getOutlets();
+        std::vector<GeometricFace> faces;
+	    faces.insert(std::end(faces), std::begin(in_faces), std::end(in_faces));
+	    faces.insert(std::end(faces), std::begin(out_faces), std::end(out_faces));
+
+	    // assemble coupling matrices
+	    unsigned int cnt = 0;
         for (auto face : faces)
         {
             shp<BlockMatrix> constraintMatrixBlock(new BlockMatrix(0,0));
@@ -71,11 +81,34 @@ generate()
                                                      face,
                                                      constraintMatrixBlock,
                                                      constraintMatrixDummyBlock);
-            // we assume that the first block is the one to be coupled (as in interface assembler)
+
             auto constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
             constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraint" + std::to_string(face.M_flag));
-	    auto constraintMatrix_out = spcast<SparseMatrix>(constraintMatrixBlock->block(1,0));
-            constraintMatrix_out->dump(outdir + "/" + meshas.first + "/dualConstraint_out" + std::to_string(face.M_flag));
+
+            constraintMatrixBlock.reset(new BlockMatrix(0,0));
+            constraintMatrixDummyBlock.reset(new BlockMatrix(0,0));
+            if (cnt < in_faces.size())
+            {
+                inletInflowAssembler.buildCouplingMatrices(meshas.second.first,
+                                                            face,
+                                                            constraintMatrixBlock,
+                                                            constraintMatrixDummyBlock);
+
+                constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
+                constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraintIn" + std::to_string(face.M_flag));
+            }
+            else
+            {
+                outletOutflowAssembler.buildCouplingMatrices(meshas.second.first,
+                                                             face,
+                                                             constraintMatrixBlock,
+                                                             constraintMatrixDummyBlock);
+
+                constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
+                constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraintOut" + std::to_string(face.M_flag));
+            }
+
+            cnt++;
         }
     }
 }
