@@ -5,11 +5,7 @@
 outputdir = solutions
 
 [geometric_structure]
-<<<<<<< HEAD
-	xmlfile = geometries/tree_fem.xml
-=======
-	xmlfile = geometries/bifurcation_symmetric.xml
->>>>>>> 925e364679f2276d4c2237f84d25fad4ae3504db
+	xmlfile = geometries/bypass.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -24,17 +20,26 @@ outputdir = solutions
 
 [bc_conditions]
 	inlet_bc_type = dirichlet
-    generate_inletBC = 0
     inletdirichlet = weak
-    inflowfile = datafiles/inflow.txt
     inletpressurefile = datafiles/inlet_pressure.txt
-    coefficientinflow = 1.0
 
-    numoutletbcs = 1
+    numinletbcs = 2
+    	[./inlet0]
+    	    generate_inletBC = 0
+    		coefficient = 1.0  #  1.0309752387
+    		flag = 2
+    	[../]
+    	[./inlet1]
+    	    generate_inletBC = 0
+    		coefficient = 1.0  # 1.0916819025
+    		flag = 3
+    	[../]
+
+    numoutletbcs = 0
     [./outlet0]
         type = dirichlet
         blockindex = 0
-        boundaryflag = 2
+        boundaryflag = 4
 
         C = 0.0  # 0.0000760  # WK3
         Rp = 100.0  # 718.27  # WK3
@@ -54,7 +59,7 @@ outputdir = solutions
 		[./snapshots]
 		    param_type           = inflow
 		    add_outflow_param    = true
-			number 			     = 10
+			number 			     = 5
 			bound 			     = 0.2
 			take_every 		     = 1
 			dumpbinary 		     = true

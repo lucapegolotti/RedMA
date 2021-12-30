@@ -18,7 +18,10 @@ takeSnapshots(const unsigned int& Nstart)
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
     std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
     bool withOutflow = M_data("rb/offline/snapshots/add_outflow_param", false);
+    int numInletConditions = M_data("bc_conditions/numinletbcs", -1);
     unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
+    if (numInletConditions == -1)
+        numInletConditions = 1;
 
     fs::create_directory(outdir);
     GeometryPrinter printer;
@@ -40,10 +43,15 @@ takeSnapshots(const unsigned int& Nstart)
         if (!std::strcmp(param_type.c_str(), "inflow"))
         {
             std::vector<std::vector<double>> param_bounds;
-            param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/a_min", 0.0),
-                                                          M_data("rb/offline/snapshots/a_max", 1.0)}));
-            param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/c_min", 0.0),
-                                                          M_data("rb/offline/snapshots/c_max", 1.0)}));
+
+            for (unsigned int numInlets=0; numInlets < numInletConditions; numInlets++)
+            {
+                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/a_min", 0.0),
+                                                            M_data("rb/offline/snapshots/a_max", 1.0)}));
+                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/c_min", 0.0),
+                                                            M_data("rb/offline/snapshots/c_max", 1.0)}));
+            }
+
             if (withOutflow)
                 for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
                 {
@@ -56,14 +64,20 @@ takeSnapshots(const unsigned int& Nstart)
             std::vector<double> vec = inflowSnapshots(param_bounds);
             array_params = vec;
 
-            auto inletBC = std::bind(M_inflow,
-                                     std::placeholders::_1,
-                                     vec[0],vec[1]);
-            M_data.setInletBC(inletBC);
+            for (unsigned int numInlets=0; numInlets < numInletConditions; numInlets++)
+            {
+                auto inletBC = std::bind(M_inflow,
+                                         std::placeholders::_1,
+                                         vec[2*numInlets],vec[2*numInlets+1]);
+                M_data.setInletBC(inletBC, numInlets);
+            }
 
             if (withOutflow)
             {
-                unsigned int cnt = 2;
+                unsigned int cnt = 2*numInletConditions;
+                auto inletBC = std::bind(M_inflow,
+                                         std::placeholders::_1,
+                                         vec[0],vec[1]);
                 for (unsigned int numOutlet = 0; numOutlet < numOutletConditions; numOutlet++)
                 {
                     std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
@@ -77,7 +91,6 @@ takeSnapshots(const unsigned int& Nstart)
                                 {return vec[cnt] * inletBC(t);};
                         M_data.setOutletBC(outletDirichlet, numOutlet);
                     }
-
                 }
             }
         }

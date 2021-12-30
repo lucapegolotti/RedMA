@@ -168,16 +168,16 @@ generateDefaultTreeNode(const std::string& nameMesh)
 {	 	
     if (nameMesh.find("tube") != std::string::npos)
         return generateDefaultTube(nameMesh);
-    else if (nameMesh.find("bifurcation_symmetric"))
+    else if (nameMesh.find("bif_sym") != std::string::npos)
         return generateDefaultSymmetricBifurcation(nameMesh); 
-    else if (nameMesh.find("aorta") != std::string::npos && nameMesh.find("bif1") == std::string::npos)
+    else if (nameMesh.find("aortabif0") != std::string::npos)
         return generateDefaultAortaBifurcation0(nameMesh);
     else if (nameMesh.find("aortabif1") != std::string::npos)
 	    return generateDefaultAortaBifurcation1(nameMesh);
+    else if (nameMesh.find("bypass") != std::string::npos)
+        return generateDefaultBypass(nameMesh);
     else
-    {
         throw new Exception("[MatricesGenerator]: this branch must still be implemented");
-    }
 }
 
 shp<TreeNode>
@@ -255,6 +255,23 @@ generateDefaultAortaBifurcation1(const std::string& nameMesh)
     defaultBifurcation->setAssemblerType(assemblerType);
 
     shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234));
+
+    return treeNode;
+}
+
+shp<TreeNode>
+MatricesGenerator::
+generateDefaultBypass(const std::string &nameMesh)
+{
+    std::string assemblerType = M_data("assembler/type", "navierstokes");
+
+    shp<Bypass> defaultBypass(new Bypass(M_comm));
+    defaultBypass->readMesh();
+
+    defaultBypass->setDiscretizationMethod("fem");
+    defaultBypass->setAssemblerType(assemblerType);
+
+    shp<TreeNode> treeNode(new TreeNode(defaultBypass, 1234));
 
     return treeNode;
 }
