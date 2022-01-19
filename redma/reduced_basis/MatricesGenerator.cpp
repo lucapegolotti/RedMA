@@ -57,22 +57,12 @@ generate()
     for (auto& meshas : M_meshASPairMap)
     {
         InterfaceAssembler interfaceAssembler(M_data);
-        InterfaceAssembler inletInflowAssembler(M_data);
-        inletInflowAssembler.setAsInlet();
-        InterfaceAssembler outletOutflowAssembler(M_data);
-        outletOutflowAssembler.setAsOutlet();
 
         shp<BuildingBlock> buildingBlock = meshas.second.first->getTreeNode()->M_block;
 
         // create list of faces
-        std::vector<GeometricFace> in_faces = buildingBlock->getInlets();
-        std::vector<GeometricFace> out_faces = buildingBlock->getOutlets();
-        std::vector<GeometricFace> faces;
-	    faces.insert(std::end(faces), std::begin(in_faces), std::end(in_faces));
-	    faces.insert(std::end(faces), std::begin(out_faces), std::end(out_faces));
-
-	    // assemble coupling matrices
-	    unsigned int cnt = 0;
+        std::vector<GeometricFace> faces = buildingBlock->getOutlets();
+	    faces.push_back(buildingBlock->getInlet(0));
         for (auto face : faces)
         {
             shp<BlockMatrix> constraintMatrixBlock(new BlockMatrix(0,0));
@@ -81,34 +71,11 @@ generate()
                                                      face,
                                                      constraintMatrixBlock,
                                                      constraintMatrixDummyBlock);
-
+            // we assume that the first block is the one to be coupled (as in interface assembler)
             auto constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
             constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraint" + std::to_string(face.M_flag));
-
-            constraintMatrixBlock.reset(new BlockMatrix(0,0));
-            constraintMatrixDummyBlock.reset(new BlockMatrix(0,0));
-            if (cnt < in_faces.size())
-            {
-                inletInflowAssembler.buildCouplingMatrices(meshas.second.first,
-                                                            face,
-                                                            constraintMatrixBlock,
-                                                            constraintMatrixDummyBlock);
-
-                constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
-                constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraintIn" + std::to_string(face.M_flag));
-            }
-            else
-            {
-                outletOutflowAssembler.buildCouplingMatrices(meshas.second.first,
-                                                             face,
-                                                             constraintMatrixBlock,
-                                                             constraintMatrixDummyBlock);
-
-                constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
-                constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraintOut" + std::to_string(face.M_flag));
-            }
-
-            cnt++;
+	    auto constraintMatrix_out = spcast<SparseMatrix>(constraintMatrixBlock->block(1,0));
+            constraintMatrix_out->dump(outdir + "/" + meshas.first + "/dualConstraint_out" + std::to_string(face.M_flag));
         }
     }
 }
@@ -168,16 +135,16 @@ generateDefaultTreeNode(const std::string& nameMesh)
 {	 	
     if (nameMesh.find("tube") != std::string::npos)
         return generateDefaultTube(nameMesh);
-    else if (nameMesh.find("bif_sym") != std::string::npos)
+    else if (nameMesh.find("bifurcation_symmetric"))
         return generateDefaultSymmetricBifurcation(nameMesh); 
-    else if (nameMesh.find("aortabif0") != std::string::npos)
+    else if (nameMesh.find("aorta") != std::string::npos && nameMesh.find("bif1") == std::string::npos)
         return generateDefaultAortaBifurcation0(nameMesh);
     else if (nameMesh.find("aortabif1") != std::string::npos)
 	    return generateDefaultAortaBifurcation1(nameMesh);
-    else if (nameMesh.find("bypass") != std::string::npos)
-        return generateDefaultBypass(nameMesh);
     else
+    {
         throw new Exception("[MatricesGenerator]: this branch must still be implemented");
+    }
 }
 
 shp<TreeNode>
@@ -255,23 +222,6 @@ generateDefaultAortaBifurcation1(const std::string& nameMesh)
     defaultBifurcation->setAssemblerType(assemblerType);
 
     shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234));
-
-    return treeNode;
-}
-
-shp<TreeNode>
-MatricesGenerator::
-generateDefaultBypass(const std::string &nameMesh)
-{
-    std::string assemblerType = M_data("assembler/type", "navierstokes");
-
-    shp<Bypass> defaultBypass(new Bypass(M_comm));
-    defaultBypass->readMesh();
-
-    defaultBypass->setDiscretizationMethod("fem");
-    defaultBypass->setAssemblerType(assemblerType);
-
-    shp<TreeNode> treeNode(new TreeNode(defaultBypass, 1234));
 
     return treeNode;
 }

@@ -18,10 +18,7 @@ takeSnapshots(const unsigned int& Nstart)
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
     std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
     bool withOutflow = M_data("rb/offline/snapshots/add_outflow_param", false);
-    int numInletConditions = M_data("bc_conditions/numinletbcs", -1);
     unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
-    if (numInletConditions == -1)
-        numInletConditions = 1;
 
     fs::create_directory(outdir);
     GeometryPrinter printer;
@@ -43,15 +40,10 @@ takeSnapshots(const unsigned int& Nstart)
         if (!std::strcmp(param_type.c_str(), "inflow"))
         {
             std::vector<std::vector<double>> param_bounds;
-
-            for (unsigned int numInlets=0; numInlets < numInletConditions; numInlets++)
-            {
-                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/a_min", 0.0),
-                                                            M_data("rb/offline/snapshots/a_max", 1.0)}));
-                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/c_min", 0.0),
-                                                            M_data("rb/offline/snapshots/c_max", 1.0)}));
-            }
-
+            param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/a_min", 0.0),
+                                                          M_data("rb/offline/snapshots/a_max", 1.0)}));
+            param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/c_min", 0.0),
+                                                          M_data("rb/offline/snapshots/c_max", 1.0)}));
             if (withOutflow)
                 for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
                 {
@@ -64,20 +56,14 @@ takeSnapshots(const unsigned int& Nstart)
             std::vector<double> vec = inflowSnapshots(param_bounds);
             array_params = vec;
 
-            for (unsigned int numInlets=0; numInlets < numInletConditions; numInlets++)
-            {
-                auto inletBC = std::bind(M_inflow,
-                                         std::placeholders::_1,
-                                         vec[2*numInlets],vec[2*numInlets+1]);
-                M_data.setInletBC(inletBC, numInlets);
-            }
+            auto inletBC = std::bind(M_inflow,
+                                     std::placeholders::_1,
+                                     vec[0],vec[1]);
+            M_data.setInletBC(inletBC);
 
             if (withOutflow)
             {
-                unsigned int cnt = 2*numInletConditions;
-                auto inletBC = std::bind(M_inflow,
-                                         std::placeholders::_1,
-                                         vec[0],vec[1]);
+                unsigned int cnt = 2;
                 for (unsigned int numOutlet = 0; numOutlet < numOutletConditions; numOutlet++)
                 {
                     std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
@@ -91,7 +77,9 @@ takeSnapshots(const unsigned int& Nstart)
                                 {return vec[cnt] * inletBC(t);};
                         M_data.setOutletBC(outletDirichlet, numOutlet);
                     }
+
                 }
+
             }
         }
 
@@ -105,6 +93,9 @@ takeSnapshots(const unsigned int& Nstart)
             problem.getTree().randomSampleAroundOriginalValue(bound);
 
         problem.setup();
+        auto M_divergence = problem.getBlockAssembler()->block(0)->assembleMatrix(2);
+        M_divergence->block(0,1)->dump("BdivT");
+        M_divergence->block(1,0)->dump("Bdiv");
 
         if (!problem.isFEProblem())
             throw new Exception("The tree must be composed of only FE nodes to "
@@ -157,8 +148,6 @@ dumpSnapshots(GlobalProblem& problem,
 
     M_mass->block(0,0)->dump("M");
     M_stiffness->block(0,0)->dump("A");
-    M_divergence->block(0,1)->dump("BdivT");
-    M_divergence->block(1,0)->dump("Bdiv");
 
     /*for (auto sol : solutions)
         problem.getBlockAssembler()->applyPiola(sol, true);*/
@@ -166,13 +155,14 @@ dumpSnapshots(GlobalProblem& problem,
     for (auto idmeshtype : IDmeshTypeMap)
     {
         std::string meshtypedir = outdir + "/" + idmeshtype.second;
-        fs::create_directory(meshtypedir);
+        //fs::create_directory(meshtypedir);
 
         unsigned int nfields = solutions[0]->block(idmeshtype.first)->nRows();
 
         for (unsigned int i = 0; i < nfields; i++)
         {
-            std::string outfilename = meshtypedir + "/field" + std::to_string(i) + ".snap";
+            //std::string outfilename = meshtypedir + "/field" + std::to_string(i) + ".snap";
+	    std::string outfilename = outdir + "/field" + std::to_string(i) + ".snap";	
 
             std::ofstream outfile;
             outfile.open(outfilename, omode);
@@ -197,7 +187,7 @@ dumpSnapshots(GlobalProblem& problem,
         for(unsigned int j = 0; j < n_dual_blocks; j++)  // save Lagrange multipliers, if any
 
         {
-            std::string outfilename = meshtypedir + "/lagmult_" + std::to_string(j) + ".snap";
+            std::string outfilename = outdir + "/lagmult_" + std::to_string(j) + ".snap";
             std::ofstream outfile;
             outfile.open(outfilename, omode);
             unsigned int count = 0;

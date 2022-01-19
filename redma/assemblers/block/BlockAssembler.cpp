@@ -442,8 +442,7 @@ setup()
     {
         shp<InnerAssembler> inletAssembler = M_primalAssemblers[0];
 
-        std::vector<GeometricFace> inlets = inletAssembler->getTreeNode()->M_block->getInlets();
-        unsigned int ninlets = inlets.size();
+        unsigned int ninlets = inletAssembler->getTreeNode()->M_block->getInlets().size();
 
         for (unsigned int i = 0; i < ninlets; i++)
         {
@@ -452,7 +451,6 @@ setup()
             Interface newInterface(nullptr, -1, inletAssembler, 0,
                                                    interfaceID);
             newInterface.M_indexInlet = i;
-            newInterface.M_interfaceFlag = inlets[i].M_flag;
 
             shp<InterfaceAssembler> inletInAssembler;
             bool inletPrimalIsFE = !(std::strcmp(inletAssembler->getTreeNode()->M_block->getDiscretizationMethod().c_str(), "fem"));
@@ -487,7 +485,6 @@ setup()
                     Interface newInterface(outletAssembler, blockindex,
                                            nullptr, -1, interfaceID);
                     newInterface.M_indexOutlet = cnt;
-                    newInterface.M_interfaceFlag = outlet.M_flag;
 
                     shp<OutletOutflowAssembler> outletOutAssembler;
                     bool outletPrimalIsFE = !(std::strcmp(outletAssembler->getTreeNode()->M_block->getDiscretizationMethod().c_str(), "fem"));

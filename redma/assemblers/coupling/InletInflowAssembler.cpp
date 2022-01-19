@@ -44,8 +44,6 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
 {
     unsigned int childID = this->M_interface.M_indexChild;
     unsigned int interfaceID = this->M_interface.M_ID;
-    unsigned int inletID = this->M_interface.M_indexInlet;
-    unsigned int inletFlag = this->M_interface.M_interfaceFlag;
     shp<aAssembler> assemblerChild = this->M_interface.M_assemblerChild;
 
     auto temp = this->M_childBT->multiplyByVector(sol->block(nPrimalBlocks + interfaceID));
@@ -60,9 +58,12 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
         rhs->block(nPrimalBlocks + interfaceID)->add(temp);
 
     temp = this->M_childBfe->multiplyByVector(assemblerChild->getLifting(time));
-    temp->multiplyByScalar(1.0/M_data.getInletBC(inletFlag)(time));
-    temp->block(0)->dump("RHS_in_" + std::to_string(inletID));
-    temp->multiplyByScalar(M_data.getInletBC(inletFlag)(time));
+    temp->multiplyByScalar(1.0/M_data.getInletBC(0)(time));
+    temp->block(0)->dump("RHS_in");
+    temp->multiplyByScalar(M_data.getInletBC(0)(time));
+    // std::shared_ptr<DistributedVector> to_dump = convert<DistributedVector>(temp);
+    // std::shared_ptr<DistributedVector> to_dump = spcast<DistributedVector>(temp);
+    // to_dump->dump("couplingRHS");
 
     if (assemblerChild->getRBBases())
         temp = assemblerChild->getRBBases()->projectOnLagrangeSpace(spcast<BlockVector>(temp));
