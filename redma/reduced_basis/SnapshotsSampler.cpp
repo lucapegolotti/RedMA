@@ -103,9 +103,16 @@ takeSnapshots(const unsigned int& Nstart)
 
         std::string filename = curdir + "/tree.xml";
         printer.saveToFile(problem.getTree(), filename, M_comm);
+        
+	clock_t t1,t2;
+	t1 = clock();
 
         problem.solve();
-        dumpSnapshots(problem, curdir, array_params);
+
+	t2 = clock();
+	double time_dif = (double)(t2 - t1)/CLOCKS_PER_SEC;	
+
+        dumpSnapshots(problem, curdir, time_dif, array_params);
     }
 
 }
@@ -114,6 +121,7 @@ void
 SnapshotsSampler::
 dumpSnapshots(GlobalProblem& problem,
               std::string outdir,
+              const double computational_time,
               const std::vector<double> array_params = {})
 {
     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
@@ -228,6 +236,10 @@ dumpSnapshots(GlobalProblem& problem,
 
             file.close();
         }
+
+        std::ofstream file(outdir + "/computational_time.txt", std::ios_base::app);
+	file << std::fixed << std::setprecision(2) << computational_time << std::endl;
+
     }
 }
 

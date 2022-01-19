@@ -27,7 +27,8 @@
 #include <iomanip>
 #include <fstream>
 #include <random>
-
+#include <time.h>
+  
 namespace RedMA
 {
 
