@@ -21,8 +21,8 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
         {
             std::string path = "bc_conditions/inlet" + std::to_string(indexInflow);
             unsigned int curflag = M_treeNode->M_block->getInlet(indexInflow).M_flag;
-            if (M_inletBCs.find(curflag) == M_inletBCs.end())
-                throw new Exception("Invalid bc_conditions/inlet*/flag in datafile!");
+            // if (M_inletBCs.find(curflag) == M_inletBCs.end())
+            //     throw new Exception("Invalid bc_conditions/inlet*/flag in datafile!");
             M_coefficientsInflow[curflag] = data(path + "/coefficient", 1.0);
             M_inletFlags.push_back(treeNode->M_block->getInlet(indexInflow).M_flag);
             M_inletRingFlags.push_back(treeNode->M_block->getInlet(indexInflow).M_ringFlag);
