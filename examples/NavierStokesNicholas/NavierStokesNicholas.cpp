@@ -33,6 +33,12 @@ double inflow(double t, double a, double c)
 
 int main(int argc, char **argv)
 {
+
+    Chrono chrono;
+    chrono.start();
+
+    std::string msg = "Starting chrono... \n";
+    printlog(MAGENTA, msg, true);
     
     #ifdef HAVE_MPI
     MPI_Init (nullptr, nullptr);
@@ -53,6 +59,11 @@ int main(int argc, char **argv)
     SnapshotsSampler sampler(data, comm);
     sampler.setInflow(inflow);
     sampler.takeSnapshots(Nstart);
+
+    msg = "Total time =  ";
+    msg += std::to_string(chrono.diff());
+    msg += " seconds\n";
+    printlog(MAGENTA, msg, true);
 
     return 0;
 }

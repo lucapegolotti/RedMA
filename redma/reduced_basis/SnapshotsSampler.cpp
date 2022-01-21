@@ -18,10 +18,8 @@ takeSnapshots(const unsigned int& Nstart)
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
     std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
     bool withOutflow = M_data("rb/offline/snapshots/add_outflow_param", false);
-    int numInletConditions = M_data("bc_conditions/numinletbcs", -1);
+    int numInletConditions = M_data("bc_conditions/numinletbcs", 1);
     unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
-    if (numInletConditions == -1)
-        numInletConditions = 1;
 
     fs::create_directory(outdir);
     GeometryPrinter printer;
@@ -30,8 +28,14 @@ takeSnapshots(const unsigned int& Nstart)
     double bound = M_data("rb/offline/snapshots/bound", 0.2);
     std::vector<double> array_params;
 
+    double elapsedTime = 0.0;
+    double elapsedTimeNoSetup = 0.0;
+
     for (unsigned int i = 0; i < nSnapshots; i++)
     {
+        Chrono chrono;
+        chrono.start();
+
         // to guarantee (almost...) that two snapshots are not saved at the same location!
         unsigned int paramIndex = Nstart;
         
@@ -44,12 +48,17 @@ takeSnapshots(const unsigned int& Nstart)
         {
             std::vector<std::vector<double>> param_bounds;
 
-            for (unsigned int numInlets=0; numInlets < numInletConditions; numInlets++)
+            param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/a_min", 0.0),
+                                                        M_data("rb/offline/snapshots/a_max", 1.0)}));
+            param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/c_min", 0.0),
+                                                        M_data("rb/offline/snapshots/c_max", 1.0)}));
+
+            for (unsigned int numInlet=1; numInlet < numInletConditions; numInlet++)
             {
-                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/a_min", 0.0),
-                                                            M_data("rb/offline/snapshots/a_max", 1.0)}));
-                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/c_min", 0.0),
-                                                            M_data("rb/offline/snapshots/c_max", 1.0)}));
+                std::string dataEntryMin = "rb/offline/snapshots/in_min_" + std::to_string(numInlet);
+                std::string dataEntryMax = "rb/offline/snapshots/in_max_" + std::to_string(numInlet);
+                param_bounds.push_back(std::vector<double>({M_data(dataEntryMin, 0.0),
+                                                            M_data(dataEntryMax, 1.0)}));
             }
 
             if (withOutflow)
@@ -58,26 +67,42 @@ takeSnapshots(const unsigned int& Nstart)
                     std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
                     if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
                         param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/out_min", 0.0),
-                                                                      M_data("rb/offline/snapshots/out_max", 1.0)}));
+                                                                    M_data("rb/offline/snapshots/out_max", 1.0)}));
                 }
 
             std::vector<double> vec = inflowSnapshots(param_bounds);
+
+            if (numInletConditions > 1)
+            {
+                double sum = 1.0 + std::accumulate(vec.begin()+2, vec.begin()+1+numInletConditions, 0.0);
+                for (auto it = vec.begin()+2; it != vec.begin()+1+numInletConditions; ++it)
+                    *it /= sum;
+                vec.insert(vec.begin() + 2, 1.0 / sum);
+            }
+            else
+                vec.insert(vec.end(), 1.0);
             array_params = vec;
 
-            for (unsigned int numInlets=0; numInlets < numInletConditions; numInlets++)
+            std::cout << "After\n" << std::endl;
+            for (auto elem : vec)
+                std::cout << elem << " - " << std::endl;
+
+            auto inletBC = std::bind(M_inflow,
+                                     std::placeholders::_1,
+                                     vec[0],vec[1]);
+
+            for (unsigned int numInlet=0; numInlet < numInletConditions; numInlet++)
             {
-                auto inletBC = std::bind(M_inflow,
-                                         std::placeholders::_1,
-                                         vec[2*numInlets],vec[2*numInlets+1]);
-                M_data.setInletBC(inletBC, numInlets);
+                unsigned int cnt = 2 + numInlet;
+                std::function<double(double)> inletDirichlet = [vec, cnt, inletBC] (double t)
+                        {return vec[cnt] * inletBC(t);};
+                M_data.setInletBC(inletDirichlet, numInlet);
             }
 
             if (withOutflow)
             {
-                unsigned int cnt = 2*numInletConditions;
-                auto inletBC = std::bind(M_inflow,
-                                         std::placeholders::_1,
-                                         vec[0],vec[1]);
+                unsigned int cnt = 2 + numInletConditions;
+
                 for (unsigned int numOutlet = 0; numOutlet < numOutletConditions; numOutlet++)
                 {
                     std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
@@ -91,6 +116,7 @@ takeSnapshots(const unsigned int& Nstart)
                                 {return vec[cnt] * inletBC(t);};
                         M_data.setOutletBC(outletDirichlet, numOutlet);
                     }
+                    cnt++;
                 }
             }
         }
@@ -104,7 +130,10 @@ takeSnapshots(const unsigned int& Nstart)
         if (!std::strcmp(param_type.c_str(), "geometric"))
             problem.getTree().randomSampleAroundOriginalValue(bound);
 
+        Chrono chrono2;
+        chrono2.start();
         problem.setup();
+        double setupTime = chrono2.diff();
 
         if (!problem.isFEProblem())
             throw new Exception("The tree must be composed of only FE nodes to "
@@ -114,8 +143,22 @@ takeSnapshots(const unsigned int& Nstart)
         printer.saveToFile(problem.getTree(), filename, M_comm);
 
         problem.solve();
+
+        elapsedTime += chrono.diff() / nSnapshots;
+        elapsedTimeNoSetup += (chrono.diff() - setupTime) / nSnapshots;
+
         dumpSnapshots(problem, curdir, array_params);
     }
+
+    std::string msg = "Average time per snapshot =  ";
+    msg += std::to_string(elapsedTime);
+    msg += " seconds\n";
+    printlog(MAGENTA, msg, true);
+
+    msg = "Average time per snapshot (no setup) =  ";
+    msg += std::to_string(elapsedTimeNoSetup);
+    msg += " seconds\n";
+    printlog(MAGENTA, msg, true);
 
 }
 
