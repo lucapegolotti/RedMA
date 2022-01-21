@@ -83,10 +83,6 @@ takeSnapshots(const unsigned int& Nstart)
                 vec.insert(vec.end(), 1.0);
             array_params = vec;
 
-            std::cout << "After\n" << std::endl;
-            for (auto elem : vec)
-                std::cout << elem << " - " << std::endl;
-
             auto inletBC = std::bind(M_inflow,
                                      std::placeholders::_1,
                                      vec[0],vec[1]);
