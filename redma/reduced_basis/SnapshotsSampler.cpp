@@ -80,7 +80,7 @@ takeSnapshots(const unsigned int& Nstart)
                 vec.insert(vec.begin() + 2, 1.0 / sum);
             }
             else
-                vec.insert(vec.end(), 1.0);
+                vec.insert(vec.begin() + 2, 1.0);
             array_params = vec;
 
             auto inletBC = std::bind(M_inflow,

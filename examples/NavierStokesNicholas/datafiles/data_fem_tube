@@ -1,11 +1,11 @@
 #-------------------------------------------------------------
-#           Data file for NavierStokesExample
+#   Data file for NavierStokesExample
 #-------------------------------------------------------------
 
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/tree_rb.xml
+	xmlfile = geometries/tube1x2.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -18,7 +18,14 @@ outputdir = rb_solutions
 [bc_conditions]
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
-	coefficientinflow = 1.000552724487405
+
+        numinletbcs = 1
+    	[./inlet0]
+    	    generate_inletBC = 0
+            coefficient = 1.0  #  1.0309752387
+            flag = 1
+        [../]
+
 	numoutletbcs = 0
 [../]
 
@@ -26,16 +33,16 @@ outputdir = rb_solutions
 	[./offline]
 		[./snapshots]
 		    param_type           = inflow
-			number 			     = 50
+			number 			     = 5
 			bound 			     = 0.2
-			take_every 		     = 8
+			take_every 		     = 1
 			dumpbinary 		     = true
 			computereynolds      = true
 			seed 			     = 1234
-            a_min = 1
-			a_max = 10
-			c_min = 1
-			c_max = 10
+			c_min = 0.1
+			c_max = 0.3
+			a_min = 4
+			a_max = 8
 		[../]
 		[./basis]
 			directory  = basis
@@ -94,14 +101,15 @@ outputdir = rb_solutions
 [../]
 
 [newton_method]
-	tol = 1e-4
+	tol = 1e-5
 	maxit = 10
+        relaxation = 1.0
 [../]
 
 [fluid]
 	velocity_order = P2
 	pressure_order = P1
-	viscosity      = 0.04
+	viscosity      = 0.035
 	density        = 1.06
 [../]
 
@@ -132,7 +140,7 @@ outputdir = rb_solutions
 [../]
 
 [exporter]
-	outdir	   = solutions/
+	outdir	   = fem-solutions/
 	type       = hdf5
 	multimesh  = false
 	start      = 0
@@ -141,10 +149,22 @@ outputdir = rb_solutions
 	exportnorms = true
 [../]
 
+[importer]
+    indir = ../../../../../PDE-DNN/TESTS/RB/Unsteady/Stokes/ResultsPaper/ResultsTube1x2/SRB-TFO/pod_tolerance_1e-05_1e-05/results/
+    param_nb = 80
+    isFEM = true
+[../]
+
 [coupling]
 	type                = chebyshev
 	nMax                = 5
 	stab_coefficient	= 1e-16
 	check_stabterm		= false
-	nfcts_weak_dirichlet_in = 6
+	nfcts_weak_dirichlet_in = 5
+	nfcts_weak_dirichlet_out = 0
+	frequencies_theta_ring = 5
+    frequencies_theta_ring_weak_dirichlet_in = -1
+    frequencies_theta_ring_weak_dirichlet_out = -1
+    strong_ring = false
+    strong_dofs_per_ring = 4
 [../]

@@ -134,9 +134,9 @@ exportFromFiles(const std::string &inPath)
         for (unsigned int innerCount=0; innerCount<nBlocks; ++innerCount)
         {
             spcast<BlockVector>(M_solution->block(innerCount))->setBlock(0,
-                                                                             spcast<DistributedVector>(solutions[innerCount][count]->block(0)));
+                                                                         spcast<DistributedVector>(solutions[innerCount][count]->block(0)));
             spcast<BlockVector>(M_solution->block(innerCount))->setBlock(1,
-                                                                             spcast<DistributedVector>(solutions[innerCount][count]->block(1)));
+                                                                         spcast<DistributedVector>(solutions[innerCount][count]->block(1)));
         }
 
         t += dt;
