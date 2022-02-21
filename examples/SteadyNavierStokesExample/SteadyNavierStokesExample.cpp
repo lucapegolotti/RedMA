@@ -22,16 +22,7 @@ using namespace RedMA;
 
 double inletDirichlet(double t, unsigned int i)
 {
-    const double T = 5e-3;
-    const double omega = M_PI / T;
-    const double Q_max = 1.0;
-
     return 1.0;
-
-    /*if (t <= T)
-        return 0.5 * (1.0 - std::cos(omega * t)) * Q_max;
-
-    return Q_max;*/
 }
 
 double outletDirichlet(double t, unsigned int i)
@@ -41,29 +32,19 @@ double outletDirichlet(double t, unsigned int i)
 
 double inletNeumann(double t, unsigned int i)
 {
-    const double T = 3e-3;
-    const double omega = 2.0 * M_PI / T;
     const double P_max = 13300.0;
 
-    if (t <= T)
-        return -0.5 * (1.0 - std::cos(omega * t) ) * P_max;
-
-    return 0.0;
+    return P_max;
 }
 
 double outletNeumann(double t, unsigned int i)
 {
-    const double T = 5e-3;
-    const double omega = M_PI / T;
     double P_max;
     // potentially we can define here different BC for different outlet indices
     if (i == 0)
         P_max = 1.5 * 1333.0;
     else
         P_max = 1333.0;
-
-    if (t <= T)
-        return 0.5 * (1.0 - std::cos(omega * t)) * P_max;
 
     return P_max;
 }
@@ -138,7 +119,6 @@ int main(int argc, char **argv)
     data.finalize();
 
     GlobalProblem femProblem(data, comm);
-    // femProblem.solve();
     femProblem.solveSteady();
 
     msg = "Total time =  ";

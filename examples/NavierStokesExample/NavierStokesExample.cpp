@@ -20,7 +20,7 @@
 
 using namespace RedMA;
 
-double inletDirichlet(double t)
+double inletDirichlet(double t, unsigned int i)
 {
     const double T = 5e-3;
     const double omega = M_PI / T;
@@ -34,10 +34,10 @@ double inletDirichlet(double t)
 
 double outletDirichlet(double t, unsigned int i)
 {
-    return 0.3 * inletDirichlet(t); // attention to flow conservation here!!!
+    return 0.3 * inletDirichlet(t, 0); // attention to flow conservation here!!!
 }
 
-double inletNeumann(double t)
+double inletNeumann(double t, unsigned int i)
 {
     const double T = 3e-3;
     const double omega = 2.0 * M_PI / T;
@@ -86,13 +86,18 @@ int main(int argc, char **argv)
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);
 
-    if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet"))
-        data.setInletBC(inletDirichlet);
-    else if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "neumann"))
-        data.setInletBC(inletNeumann);
-    else
-        throw new Exception("Unrecognized inlet BC type! "
-                            "Available types: {dirichlet, neumann}.");
+    unsigned int numInletConditions = data("bc_conditions/numinletbcs", 0);
+    for (unsigned int i = 0; i < numInletConditions; i++)
+    {
+        std::string dataEntry = "bc_conditions/inlet" + std::to_string(i);
+        if (!std::strcmp(data(dataEntry + "/type", "dirichlet").c_str(), "dirichlet"))
+            data.setInletBC([i](double t){return inletDirichlet(t,i);}, i);
+        else if (!std::strcmp(data(dataEntry + "/type", "dirichlet").c_str(), "neumann"))
+            data.setInletBC([i](double t){return inletNeumann(t,i);}, i);
+        else
+            throw new Exception("Unrecognized inlet BC type! "
+                                "Available types: {dirichlet, neumann}.");
+    }
 
     unsigned int numOutletConditions = data("bc_conditions/numoutletbcs", 0);
     for (unsigned int i = 0; i < numOutletConditions; i++)

@@ -5,7 +5,7 @@
 outputdir = solutions
 
 [geometric_structure]
-	xmlfile = geometries/bifurcation_symmetric.xml
+	xmlfile = geometries/pipe1.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -20,13 +20,19 @@ outputdir = solutions
 
 [bc_conditions]
     inlet_bc_type = dirichlet
-    generate_inletBC = 0
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 	inletpressurefile = datafiles/inlet_pressure.txt
 	coefficientinflow = 1.000552724487405
 
-	numoutletbcs = 1
+	numinletbcs = 1
+    [./inlet0]
+        generate_inletBC = 0
+        coefficient = 1.0
+        flag = 1
+    [../]
+
+	numoutletbcs = 0
 	pimfile = datafiles/IM_pressure.txt
 	[./outlet0]
 	    type = dirichlet

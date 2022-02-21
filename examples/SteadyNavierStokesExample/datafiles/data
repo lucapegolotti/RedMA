@@ -38,7 +38,6 @@ outputdir = solutions
     [../]
 
 	numoutletbcs = 0
-	pimfile = datafiles/IM_pressure.txt
 	[./outlet0]
 	    type = dirichlet
         blockindex = 0
@@ -47,13 +46,6 @@ outputdir = solutions
         C = 0.0  # 0.0000760  # WK3
         Rp = 100  # 718.27  # WK3
         Rd = 0.0  # 15945.20  # WK3
-
-        Ca = 1.0606295687808294e-07  # CORO
-        Cim = 8.581457420135802e-07  # CORO
-        Ra = 194674.68548804865  # CORO
-        Ram = 316346.36391807906  # CORO
-        Rvm = 0  # CORO
-        Rv = 97337.34274402432  # CORO
     [../]
     [./outlet1]
         type = windkessel
@@ -63,13 +55,6 @@ outputdir = solutions
         C = 0.0  # 0.0000760  # WK3
         Rp = 200  # 718.27  # WK3
         Rd = 0.0  # 15945.20  # WK3
-
-        Ca = 1.0606295687808294e-07  # CORO
-        Cim = 8.581457420135802e-07  # CORO
-        Ra = 194674.68548804865  # CORO
-        Ram = 316346.36391807906  # CORO
-        Rvm = 0  # CORO
-        Rv = 97337.34274402432  # CORO
     [../]
 
 	ring_constraint = full # type of homogeneous BC imposed at I/O rings for membrane model

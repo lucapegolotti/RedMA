@@ -1,4 +1,4 @@
-<buildingblock type="bifurcation_symmetric" assembler="stokes" method="fem" refinement="coarse" angle="50" outlet="1">
+<buildingblock type="bifurcation_symmetric" assembler="navierstokes" method="fem" refinement="coarse" angle="50" outlet="1">
     <L_ratio>1</L_ratio>
     <Rout_ratio>1</Rout_ratio>
     <alpha>0</alpha>
