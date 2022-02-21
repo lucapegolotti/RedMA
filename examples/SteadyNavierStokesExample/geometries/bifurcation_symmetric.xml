@@ -1,0 +1,15 @@
+<buildingblock type="bifurcation_symmetric" assembler="navierstokes" method="fem" refinement="coarse" angle="50" outlet="1">
+    <L_ratio>1</L_ratio>
+    <Rout_ratio>1</Rout_ratio>
+    <alpha>0</alpha>
+    <alpha_axis>0</alpha_axis>
+    <bend>0</bend>
+    <bx>0</bx>
+    <by>0</by>
+    <bz>0</bz>
+    <rotation_axis_x>0</rotation_axis_x>
+    <rotation_axis_y>0</rotation_axis_y>
+    <rotation_axis_z>0</rotation_axis_z>
+    <scale>1.4324166082620979</scale>
+    <use_linear_elasticity>0</use_linear_elasticity>
+</buildingblock>

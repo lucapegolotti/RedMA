@@ -1,0 +1,19 @@
+<buildingblock type="bypass" assembler="navierstokes" method="fem">
+    <alpha_axis>0</alpha_axis>
+    <alphax>0</alphax>
+    <alphay>0</alphay>
+    <alphaz>0</alphaz>
+    <bx>0</bx>
+    <by>0</by>
+    <bz>0</bz>
+    <in1_alphax>-0.4</in1_alphax>
+    <in1_alphay>-0.4</in1_alphay>
+    <in1_alphaz>0</in1_alphaz>
+    <in2_alphax>-0.4</in2_alphax>
+    <in2_alphay>-0.4</in2_alphay>
+    <in2_alphaz>0.0</in2_alphaz>
+    <rotation_axis_x>0</rotation_axis_x>
+    <rotation_axis_y>0</rotation_axis_y>
+    <rotation_axis_z>0</rotation_axis_z>
+    <scale>1</scale>
+</buildingblock>

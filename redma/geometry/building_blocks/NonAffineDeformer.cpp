@@ -10,7 +10,7 @@ NonAffineDeformer(shp<MESH> mesh, EPETRACOMM comm, bool verbose) :
   M_verbose(verbose)
 {
     // hardcoded values for the moment
-    const double young = 100;// 3e6;
+    const double young = 100;
     const double poisson = 0.3;
 
     M_fespace.reset(new FESPACE(M_mesh, "P1", 3, M_comm));

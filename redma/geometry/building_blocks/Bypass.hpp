@@ -32,14 +32,16 @@ public:
      * \param comm The MPI Communicator.
      * \param name The name of the mesh.
      * \param verbose If true, output is pushed to standard output.
+     * \param randomizable If true, the geometrical parameters are randomizable.
      */
     Bypass(EPETRACOMM comm,
           std::string name = "bypass",
-          bool verbose = false);
+          bool verbose = false,
+          bool randomizable = true);
 
     /*! \brief Return the expected number of children.
      *
-     * \return The expected number of children (2).
+     * \return The expected number of children (1).
      */
     virtual inline unsigned int expectedNumberOfChildren() override
     {
@@ -68,7 +70,7 @@ public:
 
     /*! \brief Compute the Jacobian non affine transformation.
      *
-     * This function does not do anything.
+     * We approximate it with the identity.
      *
      * \param x First component of the point in which the Jacobian must be computed.
      * \param y Second component of the point in which the Jacobian must be computed.
@@ -77,9 +79,32 @@ public:
      */
     virtual Matrix3D computeJacobianNonAffineTransformation(const double& x,
                                                             const double& y,
-                                                            const double& z) override {};
+                                                            const double& z) override {return M_identity3D;};
 
 private:
+
+    static double inletMapFunction(const double& t, const double& x,
+                                   const double& y, const double& z,
+                                   const LifeV::ID& i,
+                                   const GeometricFace& targetFace,
+                                   const Vector3D& desiredCenter,
+                                   const Matrix3D& rotationMatrix);
+
+    void bend(const double& out1_alphax,
+              const double& out1_alphay,
+              const double& out1_alphaz,
+              const double& out2_alphax,
+              const double& out2_alphay,
+              const double& out2_alphaz,
+              shp<Transformer> transformer,
+              bool transformMesh = true);
+
+    void rotateGeometricFace(const GeometricFace& face, Vector3D& rotatedCenter,
+                             Vector3D& rotatedNormal,
+                             const Matrix3D& rotationMatrix,
+                             const Vector3D& rotationCenter);
+
+    void computeCenter();
 
     Vector3D M_inletCenterRef1;
     Vector3D M_inletNormalRef1;
@@ -88,6 +113,9 @@ private:
     Vector3D M_outletCenterRef;
     Vector3D M_outletNormalRef;
 
+    Vector3D M_center;
+
+    Matrix3D M_identity3D;
 
     double M_inletRadiusRef1;
     double M_inletRadiusRef2;
