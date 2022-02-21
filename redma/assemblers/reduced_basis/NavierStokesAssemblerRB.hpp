@@ -124,7 +124,8 @@ public:
      * \return Shared pointer to aMatrix of the right-hand side Jacobian.
      */
     shp<aMatrix> getJacobianRightHandSide(const double& time,
-                                          const shp<aVector>& sol) override;
+                                          const shp<aVector>& sol,
+                                          const double& diagCoeff = 0) override;
 
 protected:
     std::vector<std::vector<shp<BlockVector>>>       M_nonLinearTermsDecomposition;

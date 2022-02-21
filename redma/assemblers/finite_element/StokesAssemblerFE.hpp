@@ -123,7 +123,8 @@ public:
      * \return Shared pointer to aMatrix of the right-hand side Jacobian.
      */
     virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
-                                                  const shp<aVector>& sol) override;
+                                                  const shp<aVector>& sol,
+                                                  const double& diagCoeff = 0) override;
 
     /*! \brief Virtual getter for the zero vector.
      *

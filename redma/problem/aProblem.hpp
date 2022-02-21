@@ -38,6 +38,9 @@ public:
     /// Virtual solve method
     virtual void solve() = 0;
 
+    /// Virtual solve method for the steady problem
+    virtual void solveSteady() = 0;
+
     /// Getter for the datafile
     DataContainer& getData() {return M_data;}
 
@@ -47,4 +50,4 @@ protected:
 
 }
 
-#endif // BLOCKMATRIX_HPP
+#endif // aPROBLEM_HPP

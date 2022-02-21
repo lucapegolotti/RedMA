@@ -107,7 +107,8 @@ public:
      * \return Shared pointer to aMatrix of the right-hand side term Jacobian.
      */
     shp<aMatrix> getJacobianRightHandSide(const double& time,
-                                          const shp<aVector>& sol) override;
+                                          const shp<aVector>& sol,
+                                          const double& diagCoeff = 0) override;
 
     /*! PostProcess function, to be called at the end of each timestep.
      *

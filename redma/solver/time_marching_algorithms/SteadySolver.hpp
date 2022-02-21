@@ -20,6 +20,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/utils/Exception.hpp>
 #include <redma/array/BlockVector.hpp>
+#include <redma/solver/time_marching_algorithms/aFunctionProvider.hpp>
 #include <redma/solver/system_solver/FunctionFunctor.hpp>
 #include <redma/solver/system_solver/SystemSolver.hpp>
 

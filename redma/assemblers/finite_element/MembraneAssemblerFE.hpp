@@ -229,7 +229,8 @@ public:
      * \return Shared pointer to aMatrix of the right-hand side term Jacobian.
      */
     shp<aMatrix> getJacobianRightHandSide(const double& time,
-                                          const shp<aVector>& sol) override;
+                                          const shp<aVector>& sol,
+                                          const double& diagCoeff = 0) override;
 
     /*! \brief Getter for a vector containing the boundary mass, the boundary stiffness and
     * the wall boundary mass (in order).

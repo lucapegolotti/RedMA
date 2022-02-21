@@ -198,7 +198,8 @@ getRightHandSide(const double& time,
 shp<aMatrix>
 NavierStokesAssemblerFE::
 getJacobianRightHandSide(const double& time,
-                         const shp<aVector>& sol)
+                         const shp<aVector>& sol,
+                         const double& diagCoeff)
 {
     shp<aMatrix> retMat = StokesAssemblerFE::getJacobianRightHandSide(time, sol);
 
@@ -214,7 +215,7 @@ getJacobianRightHandSide(const double& time,
 
     this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(retMat),
                                              this->getFESpaceBCs(),
-                                             this->getComponentBCs(), 0.0,
+                                             this->getComponentBCs(), diagCoeff,
                                              !(this->M_addNoSlipBC));
 
     return retMat;

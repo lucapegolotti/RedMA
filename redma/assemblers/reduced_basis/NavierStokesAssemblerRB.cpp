@@ -343,7 +343,8 @@ getRightHandSide(const double& time,
 shp<aMatrix>
 NavierStokesAssemblerRB::
 getJacobianRightHandSide(const double& time,
-                         const shp<aVector>& sol)
+                         const shp<aVector>& sol,
+                         const double& diagCoeff)
 {
 // TODO: optimize with respect to the type of stabilization. With SUPG very few can be done, as it is
 //  highly non-linear; a possible upgrade would consist in reconstructing the FEM solution from the

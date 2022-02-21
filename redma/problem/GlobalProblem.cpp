@@ -43,9 +43,19 @@ setup()
     // create block assembler
     M_assembler.reset(new BAssembler(M_data, M_tree, M_defaultAssemblers));
 
-    // initialize time marching algorithm (for instance BDF)
-    M_TMAlgorithm = TimeMarchingAlgorithmFactory(M_data, M_assembler);
-    M_TMAlgorithm->setComm(M_comm);
+    if (M_data("time_discretization/order", 0) > 0)
+    {
+        // initialize time marching algorithm (for instance BDF)
+        M_TMAlgorithm = TimeMarchingAlgorithmFactory(M_data, M_assembler);
+        M_TMAlgorithm->setComm(M_comm);
+    }
+    else
+    {
+        // initialize solver for the steady problem
+        M_steadySolver.reset(new SteadySolver(M_data, M_assembler));
+        M_steadySolver->setComm(M_comm);
+    }
+
     printlog(MAGENTA, "done\n", M_data.getVerbose());
 }
 
@@ -106,6 +116,22 @@ solve()
         if ((t-t0) > dt/2)
             count++;
     }
+}
+
+void
+GlobalProblem::
+solveSteady()
+{
+    std::string msg = "[GlobalProblem] solving steady problem...\n";
+    printlog(MAGENTA, msg, M_data.getVerbose());
+
+    int status = -1;
+
+    M_solution = spcast<BlockVector>(M_steadySolver->solve(status));
+    if (status)
+        throw new Exception("Error in solver. Status != 0");
+
+    M_assembler->exportSolution(0.0, M_solution);
 }
 
 void

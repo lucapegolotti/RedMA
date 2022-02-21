@@ -298,7 +298,8 @@ addNeumannBCs(double time,
 shp<aMatrix>
 StokesAssemblerFE::
 getJacobianRightHandSide(const double& time,
-                         const shp<aVector>& sol)
+                         const shp<aVector>& sol,
+                         const double& diagCoeff)
 {
     shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,
                                             this->M_nComponents));
@@ -332,7 +333,7 @@ getJacobianRightHandSide(const double& time,
     }
 
     this->M_bcManager->apply0DirichletMatrix(*retMat, getFESpaceBCs(),
-                                             getComponentBCs(), 0.0,
+                                             getComponentBCs(), diagCoeff,
                                              !(this->M_addNoSlipBC));
 
     return retMat;

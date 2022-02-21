@@ -80,7 +80,9 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
 
 shp<aMatrix>
 CoronaryPressureDrop::
-getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
+getJacobianRightHandSide(const double& time,
+                         const shp<aVector>& sol,
+                         const double& diagCoeff)
 {
     shp<BlockMatrix> retMat(new BlockMatrix(2,2));
     

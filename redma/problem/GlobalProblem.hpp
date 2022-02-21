@@ -25,6 +25,7 @@
 #include <redma/geometry/GeometryParser.hpp>
 
 #include <redma/solver/time_marching_algorithms/TimeMarchingAlgorithmFactory.hpp>
+#include <redma/solver/time_marching_algorithms/SteadySolver.hpp>
 #include <redma/assemblers/block/BlockAssembler.hpp>
 #include <redma/assemblers/DefaultAssemblersLibrary.hpp>
 
@@ -66,6 +67,12 @@ public:
      * Method that launches the time loop over the timesteps.
      */
     virtual void solve();
+
+    /*! \brief Solve method for the steady problem.
+     *
+     * Method that launches the solver of the steady problem.
+     */
+    virtual void solveSteady();
 
     /*! \brief Exporting method
      *
@@ -118,6 +125,7 @@ public:
 private:
 
     shp<aTimeMarchingAlgorithm>                M_TMAlgorithm;
+    shp<SteadySolver>                          M_steadySolver;
     shp<BlockAssembler>                        M_assembler;
     BV                                         M_solution;
     TreeStructure                              M_tree;

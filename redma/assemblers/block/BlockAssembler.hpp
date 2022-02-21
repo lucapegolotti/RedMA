@@ -149,7 +149,8 @@ public:
      * \return Shared pointer to BlockVector containing the global right-hand side.
      */
     virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
-                                                  const shp<aVector>& sol) override;
+                                                  const shp<aVector>& sol,
+                                                  const double& diagCoeff = 0) override;
 
     /*! \brief Getter for the lifting at a specific time.
      *

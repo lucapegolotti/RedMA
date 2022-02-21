@@ -17,6 +17,21 @@
 #ifndef SUPGSTABILIZATION_HPP
 #define SUPGSTABILIZATION_HPP
 
+// this is taken from StabilizationSUPG_semi_implicit
+// MACRO TO DEFINE TAU_M
+#define TAU_M 	       value(1.0)/( eval(squareroot,TAU_M_DEN) )
+#define TAU_M_DEN      TAU_M_DEN_DT + TAU_M_DEN_VEL + TAU_M_DEN_VISC
+#define TAU_M_DEN_DT   value(M_density*M_density)*value(M_timeOrder*M_timeOrder)/value(M_dt * M_dt)
+#define TAU_M_DEN_VEL  value(M_density*M_density)*dot(value(M_velocityFESpaceETA, *velocityRep), G*value(M_velocityFESpaceETA, *velocityRep))
+#define TAU_M_DEN_VISC value(M_C_I)*value(M_viscosity*M_viscosity)*dot(G,G)
+
+#define TAU_C ( value(1.0)/( dot(g, TAU_M * g ) ) )
+
+#define VH M_velocityFESpaceETA,*velocityRep
+#define PH M_pressureFESpaceETA,*pressureRep
+#define MOMENTUM_R value(M_density) * value(VH) * grad(VH) - value(M_density) * value(M_velocityFESpaceETA,*velocityRhsRep) + grad(PH) - value(M_viscosity) * laplacian(VH)
+#define MOMENTUM_R_DER value(M_density) * phi_j * grad(VH) +  value(M_density) * value(VH) * grad(phi_j) - value(M_viscosity) * laplacian(phi_j)
+
 #include <redma/assemblers/finite_element/NavierStokesStabilization.hpp>
 
 namespace RedMA

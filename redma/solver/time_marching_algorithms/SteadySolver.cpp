@@ -60,13 +60,11 @@ solve(int& status)
     // we set the initial guess equal to the last solution
     // keep in mind that this MUST be a hard copy
     BV initialGuess = this->M_funProvider->getZeroVector();
-
     this->M_funProvider->applyDirichletBCs(0.0, initialGuess);
 
-    FunctionFunctor<BV,BV> fct([this,time,dt](BV sol)
+    FunctionFunctor<BV,BV> fct([this](BV sol)
     {
-        BV retVec(new BlockVector(1));
-        retVec->deepCopy(this->M_funProvider->getRightHandSide(0.0, sol));
+        BV retVec(this->M_funProvider->getRightHandSide(0.0, sol));
 
         // the previous solution satisfies the boundary conditions, so we search
         // for an increment with 0bcs
@@ -75,7 +73,7 @@ solve(int& status)
         return retVec;
     });
 
-    FunctionFunctor<BV,BM> jac([this,time,dt](BV sol)
+    FunctionFunctor<BV,BM> jac([this](BV sol)
     {
         // here the choice of hard copies is compulsory
         BM retMat(new BlockMatrix(1,1));

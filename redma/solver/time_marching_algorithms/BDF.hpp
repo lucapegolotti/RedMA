@@ -23,7 +23,6 @@
 #include <redma/array/BlockVector.hpp>
 #include <redma/solver/system_solver/FunctionFunctor.hpp>
 #include <redma/solver/system_solver/SystemSolver.hpp>
-// #include <redma/array/DoubleVector.hpp>
 
 #include <memory>
 

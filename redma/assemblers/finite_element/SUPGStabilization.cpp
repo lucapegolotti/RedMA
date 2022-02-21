@@ -16,7 +16,7 @@ SUPGStabilization(const DataContainer& data,
                             etfespaceVelocity, etfespacePressure,
                             comm)
 {
-    M_timeOrder = data("time_discretization/order", 2);
+    M_timeOrder = data("time_discretization/order", 0);
     M_dt = data("time_discretization/dt", 0.01);
 
     if (!std::strcmp(M_velocityOrder.c_str(),"P1"))

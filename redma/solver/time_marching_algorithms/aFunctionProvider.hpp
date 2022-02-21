@@ -91,7 +91,8 @@ public:
      * \return Shared pointer to the right-hand side Jacobian.
      */
     virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
-                                                  const shp<aVector>& sol) = 0;
+                                                  const shp<aVector>& sol,
+                                                  const double& diagCoeff = 0) = 0;
 
     /*! \brief Apply homogeneous Dirichlet boundary conditions to a vector.
      *

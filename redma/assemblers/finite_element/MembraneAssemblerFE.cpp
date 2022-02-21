@@ -23,11 +23,14 @@ MembraneAssemblerFE(const DataContainer &data,
                     shp<TreeNode> treeNode) :
         NavierStokesAssemblerFE(data, treeNode)
 {
+    if (M_data("time_discretization/order", 0) <= 0)
+        throw new Exception("Membrane model cannot be employed on steady problems. "
+                            "Set the time discretization order to a positive value to enable time marching.");
+
     M_membrane_density = data("structure/density", 1.2);
     M_transverse_shear_coeff = data("structure/transverse_shear_coefficient", 1.0);
     M_wall_elasticity = data("structure/external_wall/elastic", 1e4);
     M_wall_viscoelasticity = data("structure/external_wall/plastic", 1e3);
-    // M_wallFlag = data("structure/flag", 10);
     M_wallFlag = treeNode->M_block->getWallFlag();
 
     this->computeLameConstants();
@@ -47,7 +50,8 @@ setup()
     std::vector<unsigned int> flags = M_bcManager->getWallFlags(true);
     M_boundaryIndicator = M_bcManager->computeBoundaryIndicator(M_velocityFESpace, flags);
 
-    if (!(M_TMA_Displacements)){
+    if (!(M_TMA_Displacements))
+    {
         M_TMA_Displacements = TimeMarchingAlgorithmFactory(this->M_data, this->getZeroVector());
         M_TMA_Displacements->setComm(this->M_comm);
     }
@@ -312,7 +316,7 @@ getRightHandSide(const double &time,
 
 shp<aMatrix>
 MembraneAssemblerFE::
-getJacobianRightHandSide(const double &time, const shp<aVector> &sol)
+getJacobianRightHandSide(const double &time, const shp<aVector> &sol, const double& diagCoeff)
 {
     shp<aMatrix> retMat = NavierStokesAssemblerFE::getJacobianRightHandSide(time, sol);
 
@@ -332,7 +336,7 @@ getJacobianRightHandSide(const double &time, const shp<aVector> &sol)
 
     this->M_bcManager->apply0DirichletMatrix(*spcast<BlockMatrix>(retMat),
                                              this->getFESpaceBCs(),
-                                             this->getComponentBCs(), 0.0,
+                                             this->getComponentBCs(), diagCoeff,
                                              !(this->M_addNoSlipBC));
 
     return retMat;

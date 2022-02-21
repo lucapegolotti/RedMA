@@ -120,7 +120,9 @@ getRightHandSide(const double& time,
 
 shp<aMatrix>
 MembraneAssemblerRB::
-getJacobianRightHandSide(const double &time, const shp<aVector> &sol)
+getJacobianRightHandSide(const double &time,
+                         const shp<aVector> &sol,
+                         const double& diagCoeff)
 {
     Chrono chrono;
     chrono.start();

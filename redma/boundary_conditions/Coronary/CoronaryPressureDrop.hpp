@@ -41,7 +41,8 @@ public:
                                           const shp<aVector>& sol) override;
 
     virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
-                                                  const shp<aVector>& sol) override;
+                                                  const shp<aVector>& sol,
+                                                  const double& diagCoeff = 0) override;
 
     void setIntramyocardialPressure(const double& time,
                                     std::function<double(double)> Pim) {M_Pim = Pim(time);};

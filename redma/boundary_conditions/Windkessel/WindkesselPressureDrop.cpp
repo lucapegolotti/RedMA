@@ -24,7 +24,8 @@ getZeroVector() const
 
 shp<aMatrix>
 WindkesselPressureDrop::
-getMass(const double& time, const shp<aVector>& sol)
+getMass(const double& time,
+        const shp<aVector>& sol)
 {
     shp<BlockMatrix> mass(new BlockMatrix(1,1));
     shp<DoubleMatrix> value(new DoubleMatrix());
@@ -36,7 +37,8 @@ getMass(const double& time, const shp<aVector>& sol)
 
 shp<aMatrix>
 WindkesselPressureDrop::
-getMassJacobian(const double& time, const shp<aVector>& sol)
+getMassJacobian(const double& time,
+                const shp<aVector>& sol)
 {
     shp<BlockMatrix> massJac(new BlockMatrix(1,1));
     return massJac;
@@ -44,7 +46,8 @@ getMassJacobian(const double& time, const shp<aVector>& sol)
 
 shp<aVector>
 WindkesselPressureDrop::
-getRightHandSide(const double& time, const shp<aVector>& sol)
+getRightHandSide(const double& time,
+                 const shp<aVector>& sol)
 {
     shp<BlockVector> retVec(new BlockVector(1));
     retVec->deepCopy(sol);
@@ -57,7 +60,9 @@ getRightHandSide(const double& time, const shp<aVector>& sol)
 
 shp<aMatrix>
 WindkesselPressureDrop::
-getJacobianRightHandSide(const double& time, const shp<aVector>& sol)
+getJacobianRightHandSide(const double& time,
+                         const shp<aVector>& sol,
+                         const double& diagCoeff)
 {
     shp<BlockMatrix> retMat(new BlockMatrix(1,1));
     shp<DoubleMatrix> value(new DoubleMatrix());

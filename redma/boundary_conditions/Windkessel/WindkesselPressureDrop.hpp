@@ -43,7 +43,8 @@ public:
                                          const shp<aVector>& sol) override;
 
     virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
-                                                 const shp<aVector>& sol) override;
+                                                 const shp<aVector>& sol,
+                                                 const double& diagCoeff = 0) override;
 
 private:
     double                      M_C;  // compliance

@@ -66,7 +66,8 @@ getRightHandSide(const double& time,
 shp<aMatrix>
 StokesAssemblerRB::
 getJacobianRightHandSide(const double& time,
-                         const shp<aVector>& sol)
+                         const shp<aVector>& sol,
+                         const double& diagCoeff)
 {
     shp<BlockMatrix> retMat(new BlockMatrix(this->M_nComponents,
                                             this->M_nComponents));

@@ -303,7 +303,8 @@ getNonLinearTerm()
 shp<aMatrix>
 BlockAssembler::
 getJacobianRightHandSide(const double& time,
-                         const shp<aVector>& sol)
+                         const shp<aVector>& sol,
+                         const double& diagCoeff)
 {
     shp<BlockMatrix> jac(new BlockMatrix(M_numberBlocks, M_numberBlocks));
 
@@ -311,7 +312,7 @@ getJacobianRightHandSide(const double& time,
     {
         unsigned int ind = as.first;
         jac->setBlock(ind,ind,as.second->getJacobianRightHandSide(time,
-                              convert<BlockVector>(sol)->block(ind)));
+                              convert<BlockVector>(sol)->block(ind), diagCoeff));
     }
 
     for (auto as: M_dualAssemblers)

@@ -129,7 +129,8 @@ public:
      * \return Shared pointer to aMatrix of the right-hand side jacobian.
      */
     virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
-                                                  const shp<aVector>& sol) = 0;
+                                                  const shp<aVector>& sol,
+                                                  const double& diagCoeff = 0) = 0;
 
     /*! \brief Virtual getter for the lifting.
      *
