@@ -42,6 +42,12 @@ public:
     /// Empty constructor.
     aFunctionProvider() {};
 
+    /*! \brief Virtual import solution.
+     *
+     * \param filename Name of the .txt file storing the solution.
+     */
+    virtual std::map<unsigned int, std::vector<shp<aVector>>> importSolution(const std::string& filename) const = 0;
+
     /*! \brief Getter for the zero vector.
      *
      * \return Shared pointer to the zero vector.

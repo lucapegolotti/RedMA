@@ -50,17 +50,34 @@ dumpSolverStatistics(std::vector<SolverStatistics> statistics) const
     }
 }
 
+void
+SteadySolver::
+setInitialGuess(const std::string &ICpath)
+{
+    M_initialGuess = this->M_funProvider->getZeroVector();
+
+    if (fs::exists(ICpath) && (std::strcmp(ICpath.c_str(), "")))
+    {
+        std::map<unsigned int, std::vector<shp<aVector>>> IC_map = this->M_funProvider->importSolution(ICpath);
+        unsigned int nPrimalBlocks = IC_map.size();
+
+        for (unsigned int cnt = 0; cnt<nPrimalBlocks; cnt++)
+            spcast<BlockVector>(M_initialGuess)->setBlock(cnt, IC_map[cnt][0]);
+    }
+}
+
+void
+SteadySolver::
+setInitialGuess(const BV IC)
+{
+    M_initialGuess = IC;
+}
+
 shp<aVector>
 SteadySolver::
 solve(int& status)
 {
-    typedef shp<aVector>               BV;
-    typedef shp<aMatrix>               BM;
-
-    // we set the initial guess equal to the last solution
-    // keep in mind that this MUST be a hard copy
-    BV initialGuess = this->M_funProvider->getZeroVector();
-    this->M_funProvider->applyDirichletBCs(0.0, initialGuess);
+    this->M_funProvider->applyDirichletBCs(0.0, M_initialGuess);
 
     FunctionFunctor<BV,BV> fct([this](BV sol)
     {
@@ -81,7 +98,7 @@ solve(int& status)
 
         return retMat;
     });
-    BV sol = this->M_systemSolver.solve(fct, jac, initialGuess, status);
+    BV sol = this->M_systemSolver.solve(fct, jac, M_initialGuess, status);
 
     if (status != 0)
         throw new Exception("Solver has not converged!");

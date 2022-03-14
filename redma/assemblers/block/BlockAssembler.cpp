@@ -55,7 +55,7 @@ applyPiola(shp<aVector> solution,
         as.second->applyPiola(
             convert<BlockVector>(convert<BlockVector>(solution)->block(count)),
             inverse);
-        count = count + 1;
+        count += 1;
     }
 }
 
@@ -112,7 +112,7 @@ getZeroVector() const
     return retVec;
 }
 
-std::map<unsigned int, std::vector<shp<BlockVector>>>
+std::map<unsigned int, std::vector<shp<aVector>>>
 BlockAssembler::
 importSolution(const std::string& filename) const
 {
@@ -122,16 +122,32 @@ importSolution(const std::string& filename) const
     printlog(GREEN, "[BlockAssembler] importing solution ...\n", this->M_data.getVerbose());
 
     unsigned int cnt = 0;
-    std::map<unsigned int, std::vector<shp<BlockVector>>> retMap;
+    std::map<unsigned int, std::vector<shp<aVector>>> retMap;
     for (auto as : M_primalAssemblers)
     {
         std::string fname = filename + "Block" + std::to_string(cnt) + "/";
-        std::vector<shp<BlockVector>> sol = as.second->importSolution(fname)[0];
+        std::vector<shp<aVector>> sol = as.second->importSolution(fname)[0];
         retMap[cnt] = sol;
         cnt += 1;
     }
 
     return retMap;
+}
+
+void
+BlockAssembler::
+exportSolutionToTxt(const double &time, const shp<aVector> &sol, const std::string &filename)
+{
+    printlog(GREEN, "[BlockAssembler] exporting solution to text file ...\n", this->M_data.getVerbose());
+    printlog(GREEN, "[BlockAssembler] saving solution at " + filename + "\n", this->M_data.getVerbose());
+
+    unsigned int cnt = 0;
+    for (auto as : M_primalAssemblers)
+    {
+        std::string fname = filename + "Block" + std::to_string(cnt) + "/";
+        as.second->exportSolutionToTxt(time, sol->block(cnt), fname);
+        cnt += 1;
+    }
 }
 
 void

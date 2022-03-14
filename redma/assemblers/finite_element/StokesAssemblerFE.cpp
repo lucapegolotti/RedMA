@@ -58,7 +58,7 @@ postProcess(const double& t, const shp<aVector>& sol)
 }
 
 
-std::map<unsigned int, std::vector<shp<BlockVector>>>
+std::map<unsigned int, std::vector<shp<aVector>>>
 StokesAssemblerFE::
 importSolution(const std::string& filename) const
 {
@@ -68,9 +68,9 @@ importSolution(const std::string& filename) const
     std::vector<shp<VECTOREPETRA>> vecVelocity;
     std::vector<shp<VECTOREPETRA>> vecPressure;
 
-    std::map<unsigned int, std::vector<shp<BlockVector>>> retMap;
+    std::map<unsigned int, std::vector<shp<aVector>>> retMap;
 
-    unsigned int cnt = 0;
+    /*unsigned int cnt = 0;
     std::vector<LifeV::Int> indicesPres;
 
     while(std::getline(inPres, line))
@@ -82,8 +82,10 @@ importSolution(const std::string& filename) const
         std::stringstream ss(line);
 
         std::vector<double> values;
-        while (ss >> value)
+        while (ss >> value){
+
             values.push_back(value);
+        }
 
         if (cnt == 0)
             for (LifeV::Int i=0; i<tmpEpetraVecPressure->size(); ++i)
@@ -93,10 +95,27 @@ importSolution(const std::string& filename) const
         tmpEpetraVecPressure->setCoefficients(indicesPres, values);
 
         vecPressure.push_back(tmpEpetraVecPressure);
+    }*/
+
+    shp<VECTOREPETRA> tmpEpetraVecPressure (new VECTOREPETRA(M_pressureFESpace->map(),
+                                                             LifeV::Unique));
+    std::vector<LifeV::Int> indicesPres;
+    for (LifeV::Int i=0; i<tmpEpetraVecPressure->size(); ++i)
+        indicesPres.push_back(i);
+
+    std::vector<double> values_pres;
+    while (std::getline(inPres, line))
+    {
+        double value;
+        std::stringstream ss(line);
+        while (ss >> value)
+            values_pres.push_back(value);
     }
 
+    tmpEpetraVecPressure->setCoefficients(indicesPres, values_pres);
+    vecPressure.push_back(tmpEpetraVecPressure);
 
-    cnt = 0;
+    /*cnt = 0;
     std::vector<LifeV::Int> indicesVel;
 
     while (std::getline(inVel, line))
@@ -119,7 +138,26 @@ importSolution(const std::string& filename) const
         tmpEpetraVecVelocity->setCoefficients(indicesVel, values);
 
         vecVelocity.push_back(tmpEpetraVecVelocity);
+    }*/
+
+    shp<VECTOREPETRA> tmpEpetraVecVelocity (new VECTOREPETRA(M_velocityFESpace->map(),
+                                                             LifeV::Unique));
+    std::vector<LifeV::Int> indicesVel;
+    for (LifeV::Int i=0; i<tmpEpetraVecVelocity->size(); ++i)
+        indicesVel.push_back(i);
+
+    std::vector<double> values_vel;
+    while (std::getline(inVel, line))
+    {
+        double value;
+        std::stringstream ss(line);
+        while (ss >> value)
+            values_vel.push_back(value);
     }
+
+    tmpEpetraVecVelocity->setCoefficients(indicesVel, values_vel);
+    vecVelocity.push_back(tmpEpetraVecVelocity);
+
 
     if ((vecVelocity.size() == 0) || (vecPressure.size() == 0))
         throw new Exception("Importing error! Impossible to load velocity and pressure");
@@ -158,6 +196,26 @@ exportSolution(const double& t,
     ct.redirect();
     M_exporter->postProcess(t);
     printlog(CYAN, ct.restore());
+}
+
+void
+StokesAssemblerFE::
+exportSolutionToTxt(const double& t,
+                    const shp<aVector>& sol,
+                    const std::string& filename)
+{
+    if (!fs::exists(filename))
+        fs::create_directory(filename);
+
+    auto solBlck = convert<BlockVector>(sol);
+    shp<VECTOREPETRA> velocity = spcast<VECTOREPETRA>(solBlck->block(0)->data());
+    shp<VECTOREPETRA> pressure = spcast<VECTOREPETRA>(solBlck->block(1)->data());
+
+    std::ofstream outVel(filename + "/velocity.txt");
+    std::ofstream outPres(filename + "/pressure.txt");
+
+    velocity->showMe(outVel);
+    pressure->showMe(outPres);
 }
 
 shp<aMatrix>

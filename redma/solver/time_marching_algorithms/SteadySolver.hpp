@@ -29,6 +29,8 @@ namespace RedMA {
 class SteadySolver {
 
     typedef aFunctionProvider      FunProvider;
+    typedef shp<aVector>           BV;
+    typedef shp<aMatrix>           BM;
 
 public:
     /*! \brief Constructor.
@@ -44,6 +46,23 @@ public:
      */
     SteadySolver(const DataContainer& data,
                  shp<FunProvider> funProvider);
+
+    /*! \brief Set the initial guess from file
+     *
+     * \param ICpath path to the folder storing the IC. If empty, the IC is set to 0.
+     */
+    void setInitialGuess(const std::string& ICpath = "");
+
+    /*! \brief Set the initial guess from a vector
+     *
+     * \param IC initial guess
+     */
+    void setInitialGuess(const BV IC);
+
+    /*! \brief Get the initial guess
+     *
+     */
+    BV getInitialGuess() const {return M_initialGuess;};
 
     /*! \brief Solve function.
      *
@@ -73,6 +92,7 @@ protected:
     DataContainer                                       M_data;
     SystemSolver                                        M_systemSolver;
     shp<FunProvider>                                    M_funProvider;
+    BV                                                  M_initialGuess;
     std::string                                         M_statisticsFile;
     EPETRACOMM                                          M_comm;
 

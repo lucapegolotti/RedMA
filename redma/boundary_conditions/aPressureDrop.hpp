@@ -45,6 +45,9 @@ public:
     void setExtrapolatedSolution(const shp<aVector>& exSol) override
     {throw new Exception("'setExtrapolatedSolution' method must still be implemented in aPressureDrop class");}
 
+    virtual std::map<unsigned int, std::vector<shp<aVector>>> importSolution(const std::string& filename) const override
+    {throw new Exception("'importSolution' method must still be implemented in aPressureDrop class");};
+
 protected:
     double                            M_Q;  // outflow rate
 

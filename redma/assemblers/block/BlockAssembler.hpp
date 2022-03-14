@@ -69,7 +69,7 @@ public:
     *
     * Method to import a solutions (velocity or pressure) from txt file into an EpetraMartrix
     */
-    std::map<unsigned int, std::vector<shp<BlockVector>>> importSolution(const std::string& filename) const override;
+    std::map<unsigned int, std::vector<shp<aVector>>> importSolution(const std::string& filename) const override;
 
     /*! \brief Export the solutions in all subdomains.
      *
@@ -80,6 +80,17 @@ public:
      */
     virtual void exportSolution(const double& time,
                                 const shp<aVector>& sol) override;
+
+    /*! \brief Export the solution at the current time to a .txt in all subdomains.
+     *
+     * The export function is called in all the primal assemblers.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     */
+    virtual void exportSolutionToTxt(const double& time,
+                                     const shp<aVector>& sol,
+                                     const std::string& filename) override;
 
     /*! \brief Postprocess function to be called at the end of the timestep.
      *

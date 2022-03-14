@@ -54,6 +54,12 @@ setup()
         // initialize solver for the steady problem
         M_steadySolver.reset(new SteadySolver(M_data, M_assembler));
         M_steadySolver->setComm(M_comm);
+
+        std::string IC_path = M_data("newton_method/ic_path", "");
+        M_steadySolver->setInitialGuess(IC_path);
+        shp<aVector> tmp = M_steadySolver->getInitialGuess();
+        M_assembler->applyPiola(tmp, false);
+        M_steadySolver->setInitialGuess(tmp);
     }
 
     printlog(MAGENTA, "done\n", M_data.getVerbose());
@@ -132,6 +138,12 @@ solveSteady()
         throw new Exception("Error in solver. Status != 0");
 
     M_assembler->exportSolution(0.0, M_solution);
+    if (M_data("exporter/exporttotxt", true))
+    {
+        std::string fname = M_data("exporter/pathtotxt", "IC/");
+        M_assembler->exportSolutionToTxt(0.0, M_solution, fname);
+    }
+
 }
 
 void
@@ -146,7 +158,7 @@ exportFromFiles(const std::string &inPath)
     double t = t0;
     unsigned int count = 0;
 
-    std::map<unsigned int, std::vector<shp<BlockVector>>> solutions = M_assembler->importSolution(inPath);
+    std::map<unsigned int, std::vector<shp<aVector>>> solutions = M_assembler->importSolution(inPath);
 
     while (T - t > dt/2)
     {
@@ -160,9 +172,9 @@ exportFromFiles(const std::string &inPath)
         for (unsigned int innerCount=0; innerCount<nBlocks; ++innerCount)
         {
             spcast<BlockVector>(M_solution->block(innerCount))->setBlock(0,
-                                                                         spcast<DistributedVector>(solutions[innerCount][count]->block(0)));
+                                                                         spcast<DistributedVector>(spcast<BlockVector>(solutions[innerCount][count])->block(0)));
             spcast<BlockVector>(M_solution->block(innerCount))->setBlock(1,
-                                                                         spcast<DistributedVector>(solutions[innerCount][count]->block(1)));
+                                                                         spcast<DistributedVector>(spcast<BlockVector>(solutions[innerCount][count])->block(1)));
         }
 
         t += dt;

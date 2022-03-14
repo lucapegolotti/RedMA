@@ -129,7 +129,7 @@ apply0DirichletBCs(shp<aVector> vector) const
     // throw new Exception("Method not implemented for RB");
 }
 
-std::map<unsigned int, std::vector<shp<BlockVector>>>
+std::map<unsigned int, std::vector<shp<aVector>>>
 StokesAssemblerRB::
 importSolution(const std::string &filename) const
 {
@@ -160,6 +160,15 @@ exportSolution(const double& t,
     solBlock->setBlock(1,wrap(M_bases->reconstructFEFunction(sol->block(1), 1, id)));
 
     M_FEAssembler->exportSolution(t, solBlock);
+}
+
+void
+StokesAssemblerRB::
+exportSolutionToTxt(const double& t,
+                    const shp<aVector>& sol,
+                    const std::string& filename)
+{
+    M_FEAssembler->exportSolutionToTxt(t, sol, filename);
 }
 
 shp<aVector>

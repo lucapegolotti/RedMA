@@ -22,12 +22,15 @@ using namespace RedMA;
 
 double inletDirichlet(double t, unsigned int i)
 {
-    return 1.0;
+    if (i==0)
+        return 1.0;
+    else
+        return 0.1;
 }
 
 double outletDirichlet(double t, unsigned int i)
 {
-    return 0.3 * inletDirichlet(t, 0); // attention to flow conservation here!!!
+    return inletDirichlet(t, 0) + inletDirichlet(t, 1); // for the bypass case!!!
 }
 
 double inletNeumann(double t, unsigned int i)
@@ -62,7 +65,7 @@ int main(int argc, char **argv)
     Chrono chrono;
     chrono.start();
 
-    std::string msg = "Starting chrono... \n";
+    std::string msg = "Starting chrono \n";
     printlog(MAGENTA, msg, true);
 
     DataContainer data;
