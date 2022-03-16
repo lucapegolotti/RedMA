@@ -32,11 +32,13 @@ public:
      * \param comm The MPI Communicator.
      * \param name The name of the mesh.
      * \param verbose If true, output is pushed to standard output.
+     * \param boundary_layer If true, the mesh with the boundary layer is considered
      * \param randomizable If true, the geometrical parameters are randomizable.
      */
     Bypass(EPETRACOMM comm,
           std::string name = "bypass",
           bool verbose = false,
+          bool boundary_layer = false,
           bool randomizable = true);
 
     /*! \brief Return the expected number of children.

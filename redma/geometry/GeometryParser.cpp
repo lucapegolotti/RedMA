@@ -154,7 +154,14 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
                   " building block of type bypass\n";
         printlog(GREEN, msg, M_verbose);
 
-        returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose));
+        // boundary layer
+        bool BL = false;
+        if (element->Attribute("BL"))
+        {
+            BL = std::atoi(element->Attribute("BL"));
+        }
+
+        returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose, BL));
 
     }
     else

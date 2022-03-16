@@ -129,7 +129,7 @@ outputdir = solutions
 	tol = 1e-4
 	maxit = 10
 	relaxation = 1.0
-	ic_path = IC/bypass/
+	ic_path = IC/bypass_BL/
 [../]
 
 [fluid]

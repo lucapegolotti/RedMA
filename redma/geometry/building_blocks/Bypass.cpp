@@ -4,12 +4,21 @@ namespace RedMA
 {
 
 Bypass::
-Bypass(EPETRACOMM comm, std::string name, bool verbose, bool randomizable) :
+Bypass(EPETRACOMM comm, std::string name, bool verbose, bool boundary_layer, bool randomizable) :
   BuildingBlock(comm, "coarse", verbose)
 {
     M_name = name;
     M_datafileName = "data_mesh";
-    M_meshName = "others/bypass_coarse_fluid.mesh";
+    if (!(std::strcmp(M_refinement.c_str(), "coarse")))
+    {
+        if (boundary_layer)
+            M_meshName = "others/bypass_BL.mesh";
+        else
+            M_meshName = "others/bypass_coarse_fluid.mesh";
+    }
+    else
+        throw new Exception("No refined meshed for the bypass geometry are available! "
+                            "Please set the refinement to coarse.");
 
     // center of inlet1 (reference configuration)
     M_inletCenterRef1[0] = -7.06006787;

@@ -1,4 +1,4 @@
-<buildingblock type="bypass" assembler="navierstokes" method="fem">
+<buildingblock type="bypass" assembler="navierstokes" method="fem" refinement="coarse" BL="1">
     <alpha_axis>0</alpha_axis>
     <alphax>0</alphax>
     <alphay>0</alphay>
