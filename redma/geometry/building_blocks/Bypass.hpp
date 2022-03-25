@@ -24,105 +24,123 @@ namespace RedMA
 {
 
 /// Building block of a femoropopliteal bypass.
-class Bypass : public BuildingBlock
-{
-public:
-    /*! \brief Default constructor.
-     *
-     * \param comm The MPI Communicator.
-     * \param name The name of the mesh.
-     * \param verbose If true, output is pushed to standard output.
-     * \param boundary_layer If true, the mesh with the boundary layer is considered
-     * \param randomizable If true, the geometrical parameters are randomizable.
-     */
-    Bypass(EPETRACOMM comm,
-          std::string name = "bypass",
-          bool verbose = false,
-          bool boundary_layer = false,
-          bool randomizable = true);
-
-    /*! \brief Return the expected number of children.
-     *
-     * \return The expected number of children (1).
-     */
-    virtual inline unsigned int expectedNumberOfChildren() override
+    class Bypass : public BuildingBlock
     {
-        return 1;
-    }
+    public:
+        /*! \brief Default constructor.
+         *
+         * \param comm The MPI Communicator.
+         * \param name The name of the mesh.
+         * \param verbose If true, output is pushed to standard output.
+         * \param boundary_layer If true, the mesh with the boundary layer is considered
+         * \param randomizable If true, the geometrical parameters are randomizable.
+         */
+        Bypass(EPETRACOMM comm,
+               std::string name = "bypass",
+               bool verbose = false,
+               bool boundary_layer = false,
+               bool randomizable = true);
 
-    /*! \brief Apply nonaffine transformation.
-     *
-     * This function does not do anything.
-     *
-     * \param transformMesh If true, the mesh is modified and transformed.
-     */
-    virtual void applyNonAffineTransformation(bool transformMesh) override;
+        /*! \brief Return the expected number of children.
+         *
+         * \return The expected number of children (1).
+         */
+        virtual inline unsigned int expectedNumberOfChildren() override
+        {
+            return 1;
+        }
 
-    /*! \brief Get building blocks dependent parameters.
-     *
-     * This function does not do anything.
-     *
-     * \param index Index of the parameter.
-     * \return The parameter name.
-     */
-    std::string getOptionalParameter(unsigned int index) override;
+        /*! \brief Apply nonaffine transformation.
+         *
+         * This function does not do anything.
+         *
+         * \param transformMesh If true, the mesh is modified and transformed.
+         */
+        virtual void applyNonAffineTransformation(bool transformMesh) override;
 
-    /// Set the inlet and outlets.
-    void resetInletOutlets() override;
+        /*! \brief Get building blocks dependent parameters.
+         *
+         * This function does not do anything.
+         *
+         * \param index Index of the parameter.
+         * \return The parameter name.
+         */
+        std::string getOptionalParameter(unsigned int index) override;
 
-    /*! \brief Compute the Jacobian non affine transformation.
-     *
-     * We approximate it with the identity.
-     *
-     * \param x First component of the point in which the Jacobian must be computed.
-     * \param y Second component of the point in which the Jacobian must be computed.
-     * \param z Third component of the point in which the Jacobian must be computed.
-     * \return The Jacobian matrix.
-     */
-    virtual Matrix3D computeJacobianNonAffineTransformation(const double& x,
-                                                            const double& y,
-                                                            const double& z) override {return M_identity3D;};
+        /// Set the inlet and outlets.
+        void resetInletOutlets() override;
 
-private:
+        /*! \brief Compute the Jacobian non affine transformation.
+         *
+         * We approximate it with the identity.
+         *
+         * \param x First component of the point in which the Jacobian must be computed.
+         * \param y Second component of the point in which the Jacobian must be computed.
+         * \param z Third component of the point in which the Jacobian must be computed.
+         * \return The Jacobian matrix.
+         */
+        virtual Matrix3D computeJacobianNonAffineTransformation(const double& x,
+                                                                const double& y,
+                                                                const double& z) override {return M_identity3D;};
 
-    static double inletMapFunction(const double& t, const double& x,
-                                   const double& y, const double& z,
-                                   const LifeV::ID& i,
-                                   const GeometricFace& targetFace,
-                                   const Vector3D& desiredCenter,
-                                   const Matrix3D& rotationMatrix);
+    private:
 
-    void bend(const double& out1_alphax,
-              const double& out1_alphay,
-              const double& out1_alphaz,
-              const double& out2_alphax,
-              const double& out2_alphay,
-              const double& out2_alphaz,
-              shp<Transformer> transformer,
-              bool transformMesh = true);
+        static double inletMapFunction(const double& t, const double& x,
+                                       const double& y, const double& z,
+                                       const LifeV::ID& i,
+                                       const GeometricFace& targetFace,
+                                       const Vector3D& desiredCenter,
+                                       const Matrix3D& rotationMatrix);
 
-    void rotateGeometricFace(const GeometricFace& face, Vector3D& rotatedCenter,
-                             Vector3D& rotatedNormal,
-                             const Matrix3D& rotationMatrix,
-                             const Vector3D& rotationCenter);
+        void bend(const double& in1_alphax,
+                  const double& in1_alphay,
+                  const double& in1_alphaz,
+                  const double& in2_alphax,
+                  const double& in2_alphay,
+                  const double& in2_alphaz,
+                  shp<Transformer> transformer,
+                  bool transformMesh = true);
 
-    void computeCenter();
+        void rotateGeometricFace(const GeometricFace& face, Vector3D& rotatedCenter,
+                                 Vector3D& rotatedNormal,
+                                 const Matrix3D& rotationMatrix,
+                                 const Vector3D& rotationCenter);
 
-    Vector3D M_inletCenterRef1;
-    Vector3D M_inletNormalRef1;
-    Vector3D M_inletCenterRef2;
-    Vector3D M_inletNormalRef2;
-    Vector3D M_outletCenterRef;
-    Vector3D M_outletNormalRef;
+        static double stenosisDeformation(const double &z);
 
-    Vector3D M_center;
+        static double stenosisBC(const double &t, const double &x,
+                                 const double &y, const double &z,
+                                 const LifeV::ID &i, const double& amplitude, const double& width,
+                                 const Vector3D& stenosisCentre, const Vector3D& stenosisNormal,
+                                 const Matrix3D& distorsionMatrix);
 
-    Matrix3D M_identity3D;
+        void addStenosis(const double &amplitude, const double &width,
+                    shp <Transformer> transformer, bool transformMesh);
 
-    double M_inletRadiusRef1;
-    double M_inletRadiusRef2;
-    double M_outletRadiusRef;
-};
+        void computeCenter();
+
+        void computeStenosisCenter();
+
+        void computeStenosisOuterNormal();
+
+        Vector3D M_inletCenterRef1;
+        Vector3D M_inletNormalRef1;
+        Vector3D M_inletCenterRef2;
+        Vector3D M_inletNormalRef2;
+        Vector3D M_outletCenterRef;
+        Vector3D M_outletNormalRef;
+
+        Vector3D M_center;
+        Vector3D M_stenosisCenter;
+        Vector3D M_stenosisOuterNormal;
+
+        Matrix3D M_identity3D;
+        Matrix3D M_distorsionMatrix;
+
+        double M_inletRadiusRef1;
+        double M_inletRadiusRef2;
+        double M_outletRadiusRef;
+    };
 
 }  // namespace RedMA
 
