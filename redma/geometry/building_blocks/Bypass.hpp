@@ -130,9 +130,11 @@ namespace RedMA
         Vector3D M_outletCenterRef;
         Vector3D M_outletNormalRef;
 
+
         Vector3D M_center;
         Vector3D M_stenosisCenter;
         Vector3D M_stenosisOuterNormal;
+
 
         Vector3D M_Eigenvector1;
         Vector3D M_Eigenvector2;
