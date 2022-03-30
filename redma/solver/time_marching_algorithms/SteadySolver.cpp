@@ -58,6 +58,7 @@ setInitialGuess(const std::string &ICpath)
 
     if (fs::exists(ICpath) && (std::strcmp(ICpath.c_str(), "")))
     {
+
         std::map<unsigned int, std::vector<shp<aVector>>> IC_map = this->M_funProvider->importSolution(ICpath);
         unsigned int nPrimalBlocks = IC_map.size();
 

@@ -60,8 +60,8 @@ namespace RedMA
         resetInletOutlets();
 
         const double maxAngle = 0.4;
-        const double maxAmplitude = 0.5;
-        const double maxWidth = 0.5;
+        const double maxAmplitude = 0.4;
+        const double maxWidth = 0.4;
 
         M_parametersHandler.registerParameter("in1_alphax", 0.0, -maxAngle,
                                               maxAngle, randomizable);
@@ -94,15 +94,7 @@ namespace RedMA
         M_identity3D(2,1) = 0;
         M_identity3D(2,2) = 1;
 
-        M_distorsionMatrix(0,0) = 2;
-        M_distorsionMatrix(0,1) = 0;
-        M_distorsionMatrix(0,2) = 0;
-        M_distorsionMatrix(1,0) = 0;
-        M_distorsionMatrix(1,1) = 2;
-        M_distorsionMatrix(1,2) = 0;
-        M_distorsionMatrix(2,0) = 0;
-        M_distorsionMatrix(2,1) = 0;
-        M_distorsionMatrix(2,2) = 1;
+        setDistorsionMatrix();
     }
 
     void
@@ -141,17 +133,76 @@ namespace RedMA
     Bypass::
     computeStenosisCenter()
     {
-        M_stenosisCenter[0] = -7.9804;
-        M_stenosisCenter[1] = 2.8732;
-        M_stenosisCenter[2] = 42.3715;
+        M_stenosisCenter[0] = -7.8933;
+        M_stenosisCenter[1] = 2.5276;
+        M_stenosisCenter[2] = 42.4082;
     }
 
     void
     Bypass::
-    computeStenosisOuterNormal() {
-        M_stenosisOuterNormal[0] = 0.226589;
-        M_stenosisOuterNormal[1] = 0.973849;
-        M_stenosisOuterNormal[2] = -0.016605;
+    computeStenosisOuterNormal()
+    {
+        M_stenosisOuterNormal[0] = 0.32901267;
+        M_stenosisOuterNormal[1] = 0.94276643;
+        M_stenosisOuterNormal[2] = -0.05425531;
+    }
+
+    void
+    Bypass::
+    setDistorsionMatrix()
+    {
+        // setting the eigenvector matrix
+
+        // x eigenvector for the geometry
+        M_Eigenvector1[0] = 0.85784321;
+        M_Eigenvector1[1] = -0.32731597;
+        M_Eigenvector1[2] = -0.30261594;
+
+        // y eigenvector for the geometry
+        M_Eigenvector2 = M_stenosisOuterNormal;
+
+        // z eigenvector for the geometry
+        M_Eigenvector3[0] = 0.30307373;
+        M_Eigenvector3[1] = -0.05905023;
+        M_Eigenvector3[2] = 0.95113583;
+
+        Matrix3D eigenMatrix;
+
+        eigenMatrix(0,0) = M_Eigenvector1[0];
+        eigenMatrix(0,1) = M_Eigenvector2[0];
+        eigenMatrix(0,2) = M_Eigenvector3[0];
+        eigenMatrix(1,0) = M_Eigenvector1[1];
+        eigenMatrix(1,1) = M_Eigenvector2[1];
+        eigenMatrix(1,2) = M_Eigenvector3[1];
+        eigenMatrix(2,0) = M_Eigenvector1[2];
+        eigenMatrix(2,1) = M_Eigenvector2[2];
+        eigenMatrix(2,2) = M_Eigenvector3[2];
+
+        // setting the eigenvalues matrix
+        Matrix3D diagMatrix;
+
+        diagMatrix(0,0) = 2;
+        diagMatrix(0,1) = 0;
+        diagMatrix(0,2) = 0;
+        diagMatrix(1,0) = 0;
+        diagMatrix(1,1) = 2;
+        diagMatrix(1,2) = 0;
+        diagMatrix(2,0) = 0;
+        diagMatrix(2,1) = 0;
+        diagMatrix(2,2) = 1;
+
+        // distorsion matrix for the stenosis norm
+        M_distorsionMatrix = eigenMatrix * diagMatrix * eigenMatrix.inverse();
+
+        // M_distorsionMatrix(0,0) = 2;
+        // M_distorsionMatrix(0,1) = 0;
+        // M_distorsionMatrix(0,2) = 0;
+        // M_distorsionMatrix(1,0) = 0;
+        // M_distorsionMatrix(1,1) = 2;
+        // M_distorsionMatrix(1,2) = 0;
+        // M_distorsionMatrix(2,0) = 0;
+        // M_distorsionMatrix(2,1) = 0;
+        // M_distorsionMatrix(2,2) = 1;
     }
 
     double
@@ -181,43 +232,47 @@ namespace RedMA
 
         using namespace std::placeholders;
 
-        std::string msg = std::string("[") + M_name + " BuildingBlock]";
-        msg = msg + " introducing a stenosis with amplitude = (" + std::to_string(amplitude)
-              + ") and width = (" + std::to_string(width) + " ) \n";
-        printlog(GREEN, msg, M_verbose);
+        if (amplitude > 0 && width > 0) {
 
-        auto fooWall = std::bind(stenosisBC,
-                                 std::placeholders::_1,
-                                 std::placeholders::_2,
-                                 std::placeholders::_3,
-                                 std::placeholders::_4,
-                                 std::placeholders::_5,
-                                 amplitude, width, M_stenosisCenter, M_stenosisOuterNormal, M_distorsionMatrix);
+            std::string msg = std::string("[") + M_name + " BuildingBlock]";
+            msg = msg + " introducing a stenosis with amplitude = (" + std::to_string(amplitude)
+                  + ") and width = (" + std::to_string(width) + " ) \n";
+            printlog(GREEN, msg, M_verbose);
 
-        if (transformMesh) {
-            NonAffineDeformer nAffineDeformer(M_mesh, M_comm, M_verbose);
+            auto fooWall = std::bind(stenosisBC,
+                                     std::placeholders::_1,
+                                     std::placeholders::_2,
+                                     std::placeholders::_3,
+                                     std::placeholders::_4,
+                                     std::placeholders::_5,
+                                     amplitude, width, M_stenosisCenter, M_stenosisOuterNormal, M_distorsionMatrix);
 
-            LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
-            LifeV::BCFunctionBase stenosisFunction(fooWall);
+            if (transformMesh) {
+                NonAffineDeformer nAffineDeformer(M_mesh, M_comm, M_verbose);
 
-            shp <LifeV::BCHandler> bcs(new LifeV::BCHandler);
-            bcs->addBC("Inlet1", 2, LifeV::Essential, LifeV::Full,
-                       zeroFunction, 3);
-            bcs->addBC("Inlet2", 3, LifeV::Essential, LifeV::Full,
-                       zeroFunction, 3);
-            bcs->addBC("Outlet", 4, LifeV::Essential, LifeV::Full,
-                       zeroFunction, 3);
-            bcs->addBC("Wall", 200, LifeV::Essential, LifeV::Full,
-                       stenosisFunction, 3);
+                LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
+                LifeV::BCFunctionBase stenosisFunction(fooWall);
 
-            CoutRedirecter ct;
-            ct.redirect();
-            nAffineDeformer.applyBCs(bcs);
-            std::string xmlFilename = M_datafile("geometric_structure/xmldeformer",
-                                                 "SolverParamList.xml");
-            nAffineDeformer.setXMLsolver(xmlFilename);
-            nAffineDeformer.deformMesh(*transformer);
-            printlog(CYAN, ct.restore(), M_verbose);
+                shp <LifeV::BCHandler> bcs(new LifeV::BCHandler);
+                bcs->addBC("Inlet1", 2, LifeV::Essential, LifeV::Full,
+                           zeroFunction, 3);
+                bcs->addBC("Inlet2", 3, LifeV::Essential, LifeV::Full,
+                           zeroFunction, 3);
+                bcs->addBC("Outlet", 4, LifeV::Essential, LifeV::Full,
+                           zeroFunction, 3);
+                bcs->addBC("Wall", 200, LifeV::Essential, LifeV::Full,
+                           stenosisFunction, 3);
+
+                CoutRedirecter ct;
+                ct.redirect();
+                nAffineDeformer.applyBCs(bcs);
+                std::string xmlFilename = M_datafile("geometric_structure/xmldeformer",
+                                                     "SolverParamList.xml");
+                nAffineDeformer.setXMLsolver(xmlFilename);
+                nAffineDeformer.deformMesh(*transformer);
+                printlog(CYAN, ct.restore(), M_verbose);
+
+            }
 
         }
 
@@ -366,6 +421,8 @@ namespace RedMA
         addStenosis(M_parametersHandler["stenosis_amplitude"],
                     M_parametersHandler["stenosis_width"],
                     transformer, transformMesh);
+
+        M_mesh->check(1, true);
 
         bend(M_parametersHandler["in1_alphax"],
              M_parametersHandler["in1_alphay"],

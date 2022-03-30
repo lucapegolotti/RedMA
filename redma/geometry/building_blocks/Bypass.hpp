@@ -134,6 +134,12 @@ namespace RedMA
         Vector3D M_stenosisCenter;
         Vector3D M_stenosisOuterNormal;
 
+        Vector3D M_Eigenvector1;
+        Vector3D M_Eigenvector2;
+        Vector3D M_Eigenvector3;
+
+        void setDistorsionMatrix();
+
         Matrix3D M_identity3D;
         Matrix3D M_distorsionMatrix;
 
