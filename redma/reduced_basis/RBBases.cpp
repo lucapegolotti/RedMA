@@ -63,6 +63,8 @@ loadSingularValues()
 
         if (M_onlineTol > 1e-15)
             computeOnlineNumberBasisFunctions(i);
+        else
+            M_NsOnline[i] = std::numeric_limits<unsigned int>::max();
     }
 }
 
@@ -115,8 +117,6 @@ RBBases::
 addVectorsFromFile(std::string filename, std::vector<shp<VECTOREPETRA>>& vectors,
                    const unsigned int& indexField, int Nmax)
 {
-    // using namespace boost::filesystem;
-
     if (fs::exists(filename))
     {
         std::ifstream infile;
@@ -173,9 +173,9 @@ loadBases()
                                M_dualSupremizers[i], i);
         }
 
-        for (unsigned i = 0; i < M_numFields; i++)
+        /*for (unsigned i = 0; i < M_numFields; i++)
             if (M_bases[i].size() < M_NsOnline[i])
-                throw new Exception("Selected tolerance requires more vectors than those stored");
+                throw new Exception("Selected tolerance requires more vectors than those stored");*/
 
         for (unsigned int i = 0; i < M_numFields; i++)
         {
@@ -183,8 +183,6 @@ loadBases()
             shp<SparseMatrix> curBasisMatrix(new SparseMatrix(curBasis));
             M_enrichedBasesMatrices.push_back(curBasisMatrix);
             M_enrichedBasesMatricesTransposed.push_back(spcast<SparseMatrix>(curBasisMatrix->transpose()));
-            
-            // curBasisMatrix->dump("Basis_"+std::to_string(i));
         }
 
         print();
@@ -508,7 +506,7 @@ matrixProject(shp<aMatrix> matrix,
 
         shp<MATRIXEPETRA> innerMatrix(new MATRIXEPETRA(*rangeMap));
 
-        auto enrichedBasisIndexEpetra = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, false)->data());
+        auto enrichedBasisIndexEpetra = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, true)->data());
         enrichedBasisIndexEpetra->multiply(false, *auxMatrix,false, *innerMatrix);
 
         innerMatrix->globalAssemble(domainMap, rangeMap);

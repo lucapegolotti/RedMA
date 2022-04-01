@@ -33,7 +33,6 @@ loadSingularValues()
         if (fs::exists(curdir))
         {
             // count number of fields
-
             unsigned int numFields = 0;
             while (fs::exists(curdir + "/svd" + std::to_string(numFields) + ".txt"))
                 numFields++;
