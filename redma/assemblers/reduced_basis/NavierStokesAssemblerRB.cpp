@@ -39,7 +39,7 @@ RBsetup()
 
         auto velocityBasis = M_bases->getEnrichedBasis(0, M_treeNode->M_ID);
 
-        int nterms = M_data("rb/online/numbernonlinearterms", 20);
+        int nterms = M_data("rb/online/numbernonlinearterms", 10);
 
         if (nterms == -1)
             nterms = velocityBasis.size();
@@ -48,6 +48,13 @@ RBsetup()
         shp<VECTOREPETRA> nonLinearTerm(new VECTOREPETRA(M_FEAssembler->getFEspace(0)->map()));
 
         M_nonLinearTermsDecomposition.resize(nterms);
+        M_nonLinearMatrixDecomposition.resize(nterms);
+
+        std::string dir_mat = "NLterm/Matrix/Block" + std::to_string(ID());
+        fs::create_directories(dir_mat);
+        std::string dir_vec = "NLterm/Vector/Block" + std::to_string(ID());
+        fs::create_directories(dir_vec);
+
         for (unsigned int i = 0; i < nterms; i++)
         {
             M_nonLinearTermsDecomposition[i].resize(nterms);
@@ -66,18 +73,30 @@ RBsetup()
 
             nonLinearMatrix->globalAssemble();
 
+            shp<BlockMatrix> nonLinearMatrixVec(new BlockMatrix(2,2));
+            nonLinearMatrixVec->setBlock(0,0,wrap(nonLinearMatrix));
+            this->M_FEAssembler->applyDirichletBCsMatrix(nonLinearMatrixVec, 0.0);
+
+            auto jac00 = M_bases->matrixProject(nonLinearMatrixVec->block(0,0), 0, 0, ID());
+            M_nonLinearMatrixDecomposition[i].reset(new BlockMatrix(2,2));
+            M_nonLinearMatrixDecomposition[i]->setBlock(0,0,jac00);
+
+            std::string filename_mat = dir_mat + "/Mat_" + std::to_string(i) + ".m";
+            M_nonLinearMatrixDecomposition[i]->block(0,0)->dump(filename_mat);
+
             for (unsigned int j = 0; j < nterms; j++)
             {
                 *nonLinearTerm = (*nonLinearMatrix) * (*velocityBasis[j]);
 
                 shp<BlockVector> nonLinearTermVec(new BlockVector(2));
                 nonLinearTermVec->setBlock(0, wrap(nonLinearTerm));
-
                 this->M_FEAssembler->apply0DirichletBCs(nonLinearTermVec);
 
                 M_nonLinearTermsDecomposition[i][j] = M_bases->leftProject(nonLinearTermVec, ID());
+
+                std::string filename_vec = dir_vec + "/Vec_" + std::to_string(i) + "_" + std::to_string(j) +".m";
+                M_nonLinearTermsDecomposition[i][j]->block(0)->dump(filename_vec);
             }
-            M_nonLinearTerm.reset(new BlockVector(0));
         }
 
         std::string msg = "done, in ";

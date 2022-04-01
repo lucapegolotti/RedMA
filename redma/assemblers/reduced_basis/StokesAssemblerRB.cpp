@@ -199,7 +199,6 @@ RBsetup()
         throw new Exception("RB bases have not been set yet");
 
     // scale bases with piola transformation
-    unsigned int indexField = 0;
     printlog(YELLOW, "[StokesAssemblerRB] applying Piola transformation\t", M_data.getVerbose());
     Chrono chrono;
     chrono.start();

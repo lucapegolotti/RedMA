@@ -128,6 +128,7 @@ public:
 
 protected:
     std::vector<std::vector<shp<BlockVector>>>       M_nonLinearTermsDecomposition;
+    std::vector<shp<BlockMatrix>>                    M_nonLinearMatrixDecomposition;
     shp<BlockVector>                                 M_nonLinearTerm;
     bool                                             M_exactJacobian;
 
