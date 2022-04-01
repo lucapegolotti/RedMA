@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     Chrono chrono;
     chrono.start();
 
-    std::string msg = "Starting chrono... \n";
+    std::string msg = "Starting chrono \n";
     printlog(MAGENTA, msg, true);
     
     #ifdef HAVE_MPI

@@ -1,64 +1,38 @@
 #-------------------------------------------------------------
-#           Data file for NavierStokesNicholas
+#   Data file for NavierStokesExample
 #-------------------------------------------------------------
 
-outputdir = solutions
+outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/bypass.xml
+	xmlfile = geometries/tube1x2_rb.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
 
 [assembler]
 	type = stokes
-	[./stabilization]
-        type = supg  # to choose in {none, supg, ip}
-        gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
-    [../]
+	stabilization = none
 [../]
 
 [bc_conditions]
-	inlet_bc_type = dirichlet
-    inletdirichlet = weak
-    inletpressurefile = datafiles/inlet_pressure.txt
+	inletdirichlet = weak
+	inflowfile = datafiles/inflow.txt
 
-    numinletbcs = 2
+        numinletbcs = 1
     	[./inlet0]
     	    generate_inletBC = 0
-    		coefficient = 1.0  #  1.0309752387
-    		flag = 2
-    	[../]
-    	[./inlet1]
-    	    generate_inletBC = 0
-    		coefficient = 1.0  # 1.0916819025
-    		flag = 3
-    	[../]
+            coefficient = 1.0  #  1.0309752387
+            flag = 1
+        [../]
 
-    numoutletbcs = 0
-    [./outlet0]
-        type = dirichlet
-        blockindex = 0
-        boundaryflag = 4
-
-        C = 0.0  # 0.0000760  # WK3
-        Rp = 100.0  # 718.27  # WK3
-        Rd = 0.0  # 15945.20  # WK3
-
-        Ca = 1.0606295687808294e-07  # CORO
-        Cim = 8.581457420135802e-07  # CORO
-        Ra = 194674.68548804865  # CORO
-        Ram = 316346.36391807906  # CORO
-        Rvm = 0  # CORO
-        Rv = 97337.34274402432  # CORO
-    [../]
+	numoutletbcs = 0
 [../]
 
 [rb]
 	[./offline]
 		[./snapshots]
 		    param_type           = inflow
-		    add_outflow_param    = true
 			number 			     = 5
 			bound 			     = 0.2
 			take_every 		     = 1
@@ -69,10 +43,6 @@ outputdir = solutions
 			c_max = 0.3
 			a_min = 4
 			a_max = 8
-			in_min_1 = 0.2
-			in_max_1 = 5.0
-			out_min = 0.2
-			out_max = 0.8
 		[../]
 		[./basis]
 			directory  = basis
@@ -105,12 +75,13 @@ outputdir = solutions
 		usemdeim = false
 		monolithicSolve = false
 		recomputeSchur = false
-		approximatenonlinearterm = 0
+		approximatenonlinearterm = 1
+		numbernonlinearterms = 5
 		[./basis]
 			directory = basis
-			podtol_field0 = 1e-1
-			podtol_field1 = 1e-5
-			useprimalsupremizers = 1
+			podtol_field0 = 1e-16
+			podtol_field1 = 1e-16
+			useprimalsupremizers = 0
 			usedualsupremizers = 0
 		[../]
 		[./mdeim]
@@ -133,7 +104,7 @@ outputdir = solutions
 [newton_method]
 	tol = 1e-5
 	maxit = 10
-	relaxation = 1.0
+        relaxation = 1.0
 [../]
 
 [fluid]
@@ -161,13 +132,11 @@ outputdir = solutions
 	algorithm = bdf
 	rhoinf = 0.5
 	order = 2
-    extrapolation_order = 2
 	t0ramp = 0
 	t0 = 0
 	T = 0.30
 	dt = 0.0025
 	use_extrapolation = 0
-	solve_as_linear = 0
 	solverstatistics = solverstatistics.txt
 [../]
 
@@ -182,9 +151,9 @@ outputdir = solutions
 [../]
 
 [importer]
-    indir = ../../../../../PDE-DNN/TESTS/RB/Unsteady/Stokes/tube_1x2_h0.15/50snapshots/ST-RB/pod_tolerances_1e-04_1e-04/results/
-    param_nb = 50
-    isFEM = false
+    indir = ../../../../../PDE-DNN/TESTS/RB/Unsteady/Stokes/ResultsPaper/ResultsTube1x2/SRB-TFO/pod_tolerance_1e-05_1e-05/results/
+    param_nb = 80
+    isFEM = true
 [../]
 
 [coupling]

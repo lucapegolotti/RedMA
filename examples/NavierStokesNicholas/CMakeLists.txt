@@ -10,6 +10,10 @@ add_executable(NavierStokesNicholasImport NavierStokesNicholasImport.cpp)
 target_link_libraries(NavierStokesNicholasImport ${LINKED_LIBRARIES})
 target_include_directories(NavierStokesNicholasImport PRIVATE ${HEADERS_DIRS})
 
+add_executable(NavierStokesNicholas_handleNonlinearTerm NavierStokesNicholas_handleNonlinearTerm.cpp)
+target_link_libraries(NavierStokesNicholas_handleNonlinearTerm ${LINKED_LIBRARIES})
+target_include_directories(NavierStokesNicholas_handleNonlinearTerm PRIVATE ${HEADERS_DIRS})
+
 add_custom_command(
     TARGET NavierStokesNicholas PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
