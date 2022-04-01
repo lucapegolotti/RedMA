@@ -1,0 +1,170 @@
+#-------------------------------------------------------------
+#   Data file for NavierStokesExample
+#-------------------------------------------------------------
+
+outputdir = rb_solutions
+
+[geometric_structure]
+	xmlfile = geometries/tube1x2.xml
+	xmldeformer = datafiles/SolverParamList.xml
+	geometries_dir = ../../../meshes/
+[../]
+
+[assembler]
+	type = stokes
+	stabilization = none
+[../]
+
+[bc_conditions]
+	inletdirichlet = weak
+	inflowfile = datafiles/inflow.txt
+
+        numinletbcs = 1
+    	[./inlet0]
+    	    generate_inletBC = 0
+            coefficient = 1.0  #  1.0309752387
+            flag = 1
+        [../]
+
+	numoutletbcs = 0
+[../]
+
+[rb]
+	[./offline]
+		[./snapshots]
+		    param_type           = inflow
+			number 			     = 5
+			bound 			     = 0.2
+			take_every 		     = 1
+			dumpbinary 		     = true
+			computereynolds      = true
+			seed 			     = 1234
+			c_min = 0.1
+			c_max = 0.3
+			a_min = 4
+			a_max = 8
+		[../]
+		[./basis]
+			directory  = basis
+			podtol     = 1e-5
+			dumpbinary = true
+			xmlfile = datafiles/SolverParamList.xml
+			addprimalsupremizers = true
+			adddualsupremizers = true
+			[./primal_supremizers]
+				field2augment = 0
+				limitingfield = 1
+			[../]
+			[./dual_supremizers]
+				field2augment = 0
+			[../]
+		[../]
+		[./deim]
+			take_snapshot_every = 4
+			dumpbinary_snapshots = true
+			numbersnapshots = 50
+		[../]
+		[./mdeim]
+			numbersnapshots = 1
+			podtol 			= 1e-5
+			checksonline    = 1
+			directory		= mdeims
+		[../]
+	[../]
+	[./online]
+		usemdeim = false
+		monolithicSolve = false
+		recomputeSchur = false
+		approximatenonlinearterm = 0
+		[./basis]
+			directory = basis
+			podtol_field0 = 1e-1
+			podtol_field1 = 1e-5
+			useprimalsupremizers = 1
+			usedualsupremizers = 0
+		[../]
+		[./mdeim]
+			loadfullbasis   = true
+			directory 		= mdeims
+		[../]
+	[../]
+[../]
+
+[preconditioner]
+	options    	   = datafiles/solversOptionsFast
+	outer      	   = saddlepoint
+	inner	   	   = SIMPLE
+	approxshur 	   = SIMPLE
+	innertol   	   = 0.5
+	recomputeevery = 20
+	thresholdsize  = 5000
+[../]
+
+[newton_method]
+	tol = 1e-5
+	maxit = 10
+        relaxation = 1.0
+[../]
+
+[fluid]
+	velocity_order = P2
+	pressure_order = P1
+	viscosity      = 0.035
+	density        = 1.06
+[../]
+
+[structure]
+	time_integration_order = 3
+	poisson      = 0.3
+	num_young    = 1
+	young    	 = 3.e+6 # 1.07e7 4.07e6'
+	thickness    = 0.1 # 0.2 0.15'
+	density	     = 1.2
+	flag = 10
+	[./external_wall]
+		elastic = 1e4
+		plastic = 1e4
+	[../]
+[../]
+
+[time_discretization]
+	algorithm = bdf
+	rhoinf = 0.5
+	order = 2
+	t0ramp = 0
+	t0 = 0
+	T = 0.30
+	dt = 0.0025
+	use_extrapolation = 0
+	solverstatistics = solverstatistics.txt
+[../]
+
+[exporter]
+	outdir	   = fem-solutions/
+	type       = hdf5
+	multimesh  = false
+	start      = 0
+	save_every = 1
+	filename   = tube
+	exportnorms = true
+[../]
+
+[importer]
+    indir = ../../../../../PDE-DNN/TESTS/RB/Unsteady/Stokes/ResultsPaper/ResultsTube1x2/SRB-TFO/pod_tolerance_1e-05_1e-05/results/
+    param_nb = 80
+    isFEM = true
+[../]
+
+[coupling]
+	type                = chebyshev
+	nMax                = 5
+	stab_coefficient	= 1e-16
+	check_stabterm		= false
+	nfcts_weak_dirichlet_in = 5
+	nfcts_weak_dirichlet_out = 0
+	frequencies_theta_ring = 5
+    frequencies_theta_ring_weak_dirichlet_in = -1
+    frequencies_theta_ring_weak_dirichlet_out = -1
+    strong_ring = false
+    strong_dofs_per_ring = 4
+[../]

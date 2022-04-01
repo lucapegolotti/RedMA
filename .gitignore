@@ -12,4 +12,6 @@ doc/latex/
 .idea/
 */.vscode/
 *.sublime-workspace
+*.basis
+*.snap
 
