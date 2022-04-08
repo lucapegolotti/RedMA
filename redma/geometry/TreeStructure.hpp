@@ -203,6 +203,8 @@ public:
      */
     TreeStructure& operator+(TreeStructure& other);
 
+    void setGeometricParametersFromSample(std::map<std::string, double> sample);
+
     /*! \brief Search a block with a specific face.
      *
      * \param centerOfTheFace The center of the face to be looked for.
