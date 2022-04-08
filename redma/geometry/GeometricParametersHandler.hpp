@@ -109,6 +109,7 @@ public:
      */
     double getMaxValue(){return M_maxValue;};
 
+
 private:
     GeometricParameter() {}
 
@@ -202,6 +203,8 @@ public:
      * \return The desired vector.
      */
     std::vector<double> getRandomizibleParametersValueAsVector();
+
+    void setGeometricParametersFromSample(std::map<std::string, double> sample);
 
     static constexpr double infty = 1e9;
 
