@@ -411,7 +411,7 @@ namespace RedMA
         addStenosis(M_parametersHandler["stenosis_amplitude"],
                     M_parametersHandler["stenosis_width"],
                     transformer, transformMesh);
-        
+
         M_mesh->check(1, true);
 
         bend(M_parametersHandler["in1_alphax"],
