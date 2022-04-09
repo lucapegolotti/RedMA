@@ -42,7 +42,7 @@ public:
 
     inline void setInflow(const std::function<double(double,double,double)>& inflow) {M_inflow=inflow;};
 
-    void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double> array_params);
+    void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double>& array_params);
 
     void transformSnapshotsWithPiola(std::string snapshotsDir,
                                      unsigned int fieldIndex,
@@ -53,7 +53,6 @@ public:
 private:
     DataContainer                                       M_data;
     EPETRACOMM                                          M_comm;
-
     std::function<double(double,double,double)>         M_inflow;
 };
 

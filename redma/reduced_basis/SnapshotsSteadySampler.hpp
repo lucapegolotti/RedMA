@@ -20,7 +20,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/problem/GlobalProblem.hpp>
-#include <redma/reduced_basis/QMC_sampling.h>
+#include <redma/reduced_basis/QMC_sampling.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
 
 #include <cmath>
@@ -42,13 +42,18 @@ namespace RedMA
 
         inline void setInflow(const std::function<double(double,double,double)>& inflow) {M_inflow=inflow;};
 
-        void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double> array_params);
+        void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double>& params);
+
+        void printCurrentSample(std::map<std::string, double> sample);
+
+        std::vector<double> getParametersValuesAsVector(const std::map<std::string, double>& sample);
+
+        std::map<std::string, double> getCurrentSample(unsigned int i);
 
     private:
         DataContainer                                       M_data;
         EPETRACOMM                                          M_comm;
         QMC_sampling                                        M_sampler;
-        unsigned int                                        M_numSamples;
         std::function<double(double,double,double)>         M_inflow;
     };
 

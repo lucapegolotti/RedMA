@@ -162,7 +162,7 @@ void
 SnapshotsSampler::
 dumpSnapshots(GlobalProblem& problem,
               std::string outdir,
-              const std::vector<double> array_params = {})
+              const std::vector<double>& array_params = {})
 {
     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
     auto solutions = problem.getSolutions();

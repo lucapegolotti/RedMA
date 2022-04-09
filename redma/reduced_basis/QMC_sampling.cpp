@@ -2,7 +2,7 @@
 // Created by Federico Betti on 03/04/2022.
 //
 
-#include "QMC_sampling.h"
+#include "QMC_sampling.hpp"
 
 namespace RedMA
 {
@@ -46,8 +46,6 @@ namespace RedMA
 
         // checking consistency
         checkConsistency(M_paramsBounds, M_generatingVector);
-
-        // M_samplesVector = getSamples(M_numSamples, M_generatingVector, M_paramsVector, M_paramsBounds);
     }
 
     std::tuple<std::vector<std::string>, std::vector<std::vector<double>>>
@@ -60,7 +58,7 @@ namespace RedMA
                             it != paramsHandler.getParametersMap().end(); ++ it)
         {
                  paramsNames.push_back(it->first);
-                 paramsBounds.push_back(GetBounds(it->first, paramsHandler));
+                 paramsBounds.push_back(getBounds(it->first, paramsHandler));
         }
         return std::make_tuple(paramsNames, paramsBounds);
     }
@@ -78,7 +76,7 @@ namespace RedMA
 
     std::vector<double>
     QMC_sampling::
-    GetBounds(std::string paramName, GeometricParametersHandler paramsHandler)
+    getBounds(std::string paramName, GeometricParametersHandler paramsHandler)
     {
         std::vector<double> bounds;
         if (paramsHandler.exists(paramName))
@@ -142,4 +140,3 @@ namespace RedMA
     }
 
 }
-

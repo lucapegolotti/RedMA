@@ -9,6 +9,9 @@
 #include <redma/assemblers/finite_element/StokesAssemblerFE.hpp>
 #include <redma/problem/DataContainer.hpp>
 
+
+// make getters and reset all the attributes as private, then change accordingly in the snapshots class
+
 namespace RedMA
 {
     /// sampling class for geometric and physical parameters
@@ -25,11 +28,23 @@ namespace RedMA
          * \param paramName the name of the parameter
          * \param paramsHandler handler of the parameters
          */
-        std::vector<double> GetBounds(std::string paramName, GeometricParametersHandler paramsHandler);
+        std::vector<double> getBounds(std::string paramName, GeometricParametersHandler paramsHandler);
 
         /*! \brief Returns the generating vector of the lattice point set
         */
-        std::vector<double> GetGeneratingVector() {return M_generatingVector; };
+        std::vector<double> getGeneratingVector() {return M_generatingVector; };
+
+        /*! \brief Returns the parameters bounds
+        */
+        std::vector<std::vector<double>> getParamsBounds() {return M_paramsBounds; };
+
+        /*! \brief Returns the parameters names
+        */
+        std::vector<std::string> getParamsNames() {return M_paramsNames; };
+
+        /*! \brief Returns the number of samples
+        */
+        unsigned int getNumSamples() {return M_numSamples; };
 
         /*! \brief This function performs the sampling given in input the number of samples desired.
          * \param N the number of samples
@@ -77,6 +92,7 @@ namespace RedMA
          */
         void checkConsistency(std::vector<std::vector<double>> paramsBounds, std::vector<double> generatingVector);
 
+    private:
         std::string M_name;
         GeometricParametersHandler M_parametersHandler;
         std::vector<double> M_generatingVector;
