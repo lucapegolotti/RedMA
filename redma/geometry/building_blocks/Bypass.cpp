@@ -411,8 +411,12 @@ namespace RedMA
         addStenosis(M_parametersHandler["stenosis_amplitude"],
                     M_parametersHandler["stenosis_width"],
                     transformer, transformMesh);
-        
-        M_mesh->check(1, true);
+
+
+        if (M_mesh->check(1, false))
+            throw new Exception("[Bypass] Aborting: invalid mesh obtained after stenosis deformation.");
+
+        transformer->savePoints();
 
         bend(M_parametersHandler["in1_alphax"],
              M_parametersHandler["in1_alphay"],
@@ -420,6 +424,9 @@ namespace RedMA
              M_parametersHandler["in2_alphax"],
              M_parametersHandler["in2_alphay"],
              M_parametersHandler["in2_alphaz"], transformer, transformMesh);
+
+        if (M_mesh->check(1, false))
+            throw new Exception("[Bypass] Aborting: invalid mesh obtained after bending deformation.");
 
         printlog(MAGENTA, "done\n", M_verbose);
     }
