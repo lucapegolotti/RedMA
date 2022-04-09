@@ -17,8 +17,6 @@ namespace RedMA
         const double minFlow = 0.2;
         const double maxFlow = 0.8;
 
-        // REGISTER ALL POSSIBLE PARAMETERS POTENTIALLY SUBJECT TO SAMPLING
-
         M_parametersHandler.registerParameter("in1_alphax", 0,
                                               -maxAngle, maxAngle, true, false);
         M_parametersHandler.registerParameter("in1_alphay", 0,
@@ -38,36 +36,33 @@ namespace RedMA
         M_parametersHandler.registerParameter("flow_rate", 0,
                                               minFlow, maxFlow, true, false);
 
-        std::tie(M_paramsNames, M_paramsBounds) = setParametersToBeSampled(M_parametersHandler);
+        setParametersToBeSampled();
 
-        // while there is no check here, to achieve the optimal bound on low discrepancy one should pick
+        // while there is no check here, to achieve low discrepancy one should pick
         // all the entries of the generating vector such that they don't have factors in common with M_numSamples
         M_generatingVector = {3, 7, 11, 13, 17, 19, 23, 29, 31};
 
         // checking consistency
-        checkConsistency(M_paramsBounds, M_generatingVector);
-    }
-
-    std::tuple<std::vector<std::string>, std::vector<std::vector<double>>>
-    QMC_sampling::
-    setParametersToBeSampled(GeometricParametersHandler& paramsHandler)
-    {
-        std::vector<std::string> paramsNames;
-        std::vector<std::vector<double>> paramsBounds;
-        for (auto it = paramsHandler.getParametersMap().begin();
-                            it != paramsHandler.getParametersMap().end(); ++ it)
-        {
-                 paramsNames.push_back(it->first);
-                 paramsBounds.push_back(getBounds(it->first, paramsHandler));
-        }
-        return std::make_tuple(paramsNames, paramsBounds);
+        checkConsistency();
     }
 
     void
     QMC_sampling::
-    checkConsistency(std::vector<std::vector<double>> paramsBounds, std::vector<double> generatingVector)
+    setParametersToBeSampled()
     {
-        if (paramsBounds.size() != generatingVector.size())
+        for (auto it = M_parametersHandler.getParametersMap().begin();
+                            it != M_parametersHandler.getParametersMap().end(); ++ it)
+        {
+                 M_paramsNames.push_back(it->first);
+                 M_paramsBounds.push_back(getBounds(it->first));
+        }
+    }
+
+    void
+    QMC_sampling::
+    checkConsistency()
+    {
+        if (M_paramsBounds.size() != M_generatingVector.size())
         {
             throw new Exception("The dimension of the parameters vector doesn't correspond with"
                             "the one of the generating vector");
@@ -76,13 +71,13 @@ namespace RedMA
 
     std::vector<double>
     QMC_sampling::
-    getBounds(std::string paramName, GeometricParametersHandler paramsHandler)
+    getBounds(std::string paramName)
     {
         std::vector<double> bounds;
-        if (paramsHandler.exists(paramName))
+        if (M_parametersHandler.exists(paramName))
         {
-            bounds.push_back(paramsHandler.getParametersMap().at(paramName)->getMinValue());
-            bounds.push_back(paramsHandler.getParametersMap().at(paramName)->getMaxValue());
+            bounds.push_back(M_parametersHandler.getParametersMap().at(paramName)->getMinValue());
+            bounds.push_back(M_parametersHandler.getParametersMap().at(paramName)->getMaxValue());
         }
         return bounds;
     }

@@ -28,7 +28,7 @@ namespace RedMA
          * \param paramName the name of the parameter
          * \param paramsHandler handler of the parameters
          */
-        std::vector<double> getBounds(std::string paramName, GeometricParametersHandler paramsHandler);
+        std::vector<double> getBounds(std::string paramName);
 
         /*! \brief Returns the generating vector of the lattice point set
         */
@@ -82,15 +82,14 @@ namespace RedMA
          * @param paramsHandler handler for the bounds
          * @return final vector of the parameters subject to sampling with bounds in a vector of Vector2D
          */
-        std::tuple<std::vector<std::string>, std::vector<std::vector<double>>>
-                setParametersToBeSampled(GeometricParametersHandler& paramsHandler);
+        void setParametersToBeSampled();
 
         /*! \brief simple checks about consistency of the initializations
          *
          * @param paramsMap bounds map
          * @param generatingVector generating vector
          */
-        void checkConsistency(std::vector<std::vector<double>> paramsBounds, std::vector<double> generatingVector);
+        void checkConsistency();
 
     private:
         std::string M_name;
