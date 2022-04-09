@@ -316,7 +316,7 @@ randomSampleAroundOriginalValue(const double& bound)
 
 void
 TreeStructure::
-setGeometricParametersFromSample(std::map<std::string, double> sample)
+setGeometricParametersFromSample(const std::map<std::string, double>& sample)
 {
     std::queue<TreeNodePtr> nodesQueue;
     nodesQueue.push(M_root);

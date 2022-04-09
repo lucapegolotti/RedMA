@@ -203,7 +203,7 @@ public:
      */
     TreeStructure& operator+(TreeStructure& other);
 
-    void setGeometricParametersFromSample(std::map<std::string, double> sample);
+    void setGeometricParametersFromSample(const std::map<std::string, double>& sample);
 
     /*! \brief Search a block with a specific face.
      *
