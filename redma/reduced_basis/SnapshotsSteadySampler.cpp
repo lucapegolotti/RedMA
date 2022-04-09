@@ -64,7 +64,7 @@ takeSnapshots(const unsigned int &Nstart) {
 
         fs::create_directory(curdir);
 
-        problem.getTree().setGeometricParameters(vec);
+        problem.getTree().setGeometricParametersFromSample(vec);
 
         problem.setup();
 
