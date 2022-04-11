@@ -62,8 +62,7 @@ outputdir = solutions
 [rb]
 	[./offline]
 		[./snapshots]
-			number 			     = 50
-			bound 			     = 0.2
+			nSnapshots		     = 5
 			take_every 		     = 8
 			dumpbinary 		     = true
 			computereynolds      = true
@@ -176,21 +175,23 @@ outputdir = solutions
 	save_every = 1
 	filename   = tube
 	exportnorms = true
-	exporttotxt = true
-	pathtotxt = IC/bypass/
+	exporttotxt = false
+	pathtotxt = IC/bypass_BL/
 [../]
 
-
-[coupling]
-	type                = chebyshev
-	nMax                = 5
-	stab_coefficient	= 1e-16
-	check_stabterm		= false
-	nfcts_weak_dirichlet_in = 0
-	nfcts_weak_dirichlet_out = 0
-	frequencies_theta_ring = 5
-    frequencies_theta_ring_weak_dirichlet_in = -1
-    frequencies_theta_ring_weak_dirichlet_out = -1
-    strong_ring = false
-    strong_dofs_per_ring = 4
+[sampling]
+    in1_alphax = true
+    in1_alphay = true
+    in1_alphaz = true
+    in2_alphax = true
+    in2_alphay = true
+    in2_alphaz = true
+    stenosis_amplitude = true
+    stenosis_width = true
+    stenosis_first_eigenvalue = true
+    stenosis_second_eigenvalue = true
+    stenosis_third_eigenvalue = true
+    viscosity = true
+    density = true
+    flow_rate = true
 [../]

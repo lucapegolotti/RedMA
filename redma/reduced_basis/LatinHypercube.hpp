@@ -20,15 +20,17 @@ namespace RedMa
 
         std::vector<double> getBounds(std::string paramName);
 
-        std::vector<std::map<std::string, double>> generateSamples(unsigned int N, unsigned int);
+        std::vector<std::map<std::string, double>> generateSamples(unsigned int N, unsigned int d);
 
-        std::vector<std::vector<double>> drawUniformSamples(unsigned int N, unsigned int d);
+        std::vector<double> drawUniformSample(unsigned int d);
 
         std::vector<std::vector<unsigned int>> getPermutations(unsigned int N, unsigned int d);
 
         unsigned int getNumSamples() { return M_numSamples; };
 
         std::vector<std::string> getParamsNames() { return M_paramsNames; };
+
+        unsigned int getNumParams() { return M_paramsNames.size(); };
 
         std::vector<std::vector<double>> getParamsBounds() { return M_paramsBounds; };
 

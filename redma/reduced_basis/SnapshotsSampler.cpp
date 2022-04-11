@@ -6,8 +6,7 @@ namespace RedMA
 
 SnapshotsSampler::
 SnapshotsSampler(const DataContainer& data, EPETRACOMM comm) :
-  M_data(data),
-  M_comm(comm)
+  M_data(data), M_comm(comm)
 {
 }
 

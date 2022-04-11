@@ -21,6 +21,7 @@
 #include <redma/problem/DataContainer.hpp>
 #include <redma/problem/GlobalProblem.hpp>
 #include <redma/reduced_basis/QMC_sampling.hpp>
+#include <redma/reduced_basis/LatinHypercube.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
 
 #include <cmath>
@@ -54,6 +55,7 @@ namespace RedMA
         DataContainer                                       M_data;
         EPETRACOMM                                          M_comm;
         QMC_sampling                                        M_sampler;
+        RedMa::LatinHypercube                               M_LHS;
         std::function<double(double,double,double)>         M_inflow;
     };
 

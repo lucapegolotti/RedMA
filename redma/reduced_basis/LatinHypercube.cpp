@@ -2,7 +2,6 @@
 // Created by Federico Betti on 08/04/2022.
 //
 
-
 #include "LatinHypercube.hpp"
 
 namespace RedMa
@@ -52,7 +51,6 @@ setParametersToBeSampled()
     }
 }
 
-
 std::vector<double>
 LatinHypercube::
 getBounds(std::string paramName)
@@ -70,17 +68,16 @@ std::vector<std::map<std::string, double>>
 LatinHypercube::
 generateSamples(unsigned int N, unsigned int d) {
     std::vector<std::map<std::string, double>> LHS_Samples;
-    std::vector<std::vector<double>> uniformSamples = drawUniformSamples(N, d);
     std::vector<std::vector<unsigned int>> permutations = getPermutations(N, d);
     for (unsigned int i = 0; i < N; ++i)
     {
-        std::vector<double> currentLHS_Sample;
         std::map<std::string, double> currentSample;
+        std::vector<double> uniformSample = drawUniformSample(d);
         for (unsigned int j = 0; j < d; ++j)
         {
-            currentLHS_Sample[j] = 1 / double(N) * (permutations[j][i] + uniformSamples[i][j]);
-            currentLHS_Sample[j] = M_paramsBounds[j][0] + currentLHS_Sample[j] * (M_paramsBounds[j][1] - M_paramsBounds[j][0]);
-            currentSample.insert(std::pair<std::string, double>(M_paramsNames[j], currentLHS_Sample[j]));
+            double elem = 1 / double(N) * (permutations[j][i] + uniformSample[j]);
+            elem = M_paramsBounds[j][0] + elem * (M_paramsBounds[j][1] - M_paramsBounds[j][0]);
+            currentSample.insert(std::pair<std::string, double>(M_paramsNames[j], elem));
         }
         LHS_Samples.push_back(currentSample);
     }
@@ -90,24 +87,14 @@ generateSamples(unsigned int N, unsigned int d) {
     return LHS_Samples;
 }
 
-std::vector<std::vector<double>>
+std::vector<double>
 LatinHypercube::
-drawUniformSamples(unsigned int N, unsigned int d) {
-    std::vector<std::vector<double>> uniformSamples;
-    for (unsigned int i = 0; i < N; ++i)
-    {
-        std::vector<double> currentSample;
-        for (unsigned int j = 0; j < d; ++j)
-        {
-            std::random_device                  rand_dev;
-            std::mt19937                        generator(rand_dev());
-            std::uniform_real_distribution<double>  distr(0, 1);
-            double randomNumber = distr(generator);
-            currentSample.push_back(randomNumber);
-        }
-        uniformSamples.push_back(currentSample);
-    }
-    return uniformSamples;
+drawUniformSample(unsigned int d)
+{
+    std::vector<double> uniformSample;
+    std::vector<double> currentSample(d);
+    generate(currentSample.begin(), currentSample.end(), []() {return (double) rand()/RAND_MAX; });
+    return uniformSample;
 }
 
 std::vector<std::vector<unsigned int>>
@@ -115,11 +102,10 @@ LatinHypercube::
 getPermutations(unsigned int N, unsigned int d)
 {
     std::vector<std::vector<unsigned int>> permutationMatrix;
-    std::vector<unsigned int> toBePermuted;
-    for (unsigned int i = 0; i < N; ++i) {
-        toBePermuted.push_back(i);
-    }
-    for (unsigned int j = 0; j < d; ++j) {
+    std::vector<unsigned int> toBePermuted(N);
+    std::iota(toBePermuted.begin(), toBePermuted.end(), 0);
+    for (unsigned int j = 0; j < d; ++j)
+    {
         std::random_shuffle(toBePermuted.begin(), toBePermuted.end());
         permutationMatrix.push_back(toBePermuted);
     }

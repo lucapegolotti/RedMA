@@ -10,17 +10,16 @@ namespace RedMA
 SnapshotsSteadySampler::
 SnapshotsSteadySampler(const DataContainer &data, EPETRACOMM comm, unsigned int numSamples) :
         M_data(data),
-        M_comm(comm), M_sampler(numSamples)
+        M_comm(comm), M_sampler(numSamples), M_LHS(numSamples)
 {
 }
 
 void
 SnapshotsSteadySampler::
-takeSnapshots(const unsigned int &Nstart) {
-
-    std::vector <std::map<std::string, double>> SnapshotsSamples =
-            M_sampler.getSamples(M_sampler.getNumSamples(), M_sampler.getGeneratingVector(),
-                                 M_sampler.getParamsNames(), M_sampler.getParamsBounds());
+takeSnapshots(const unsigned int &Nstart)
+{
+    std::vector <std::map<std::string, double>>  SnapshotsSamples =
+            M_LHS.generateSamples(M_LHS.getNumSamples(), M_LHS.getNumParams());
 
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
     unsigned int numInletConditions = M_data("bc_conditions/numinletbcs", 1);
@@ -31,9 +30,12 @@ takeSnapshots(const unsigned int &Nstart) {
     double elapsedTime = 0.0;
     double elapsedTimeNoSetup = 0.0;
 
-    for (unsigned int i = 0; i < M_sampler.getNumSamples(); i++)
+    for (unsigned int i = 0; i < M_LHS.getNumSamples(); i++)
     {
         std::map<std::string, double> vec = SnapshotsSamples[i];
+        std::string msg = "Performing the # " + std::to_string(i) + "snapshot generation";
+        msg = msg + "The current parameters are: ";
+        printlog(GREEN, msg);
         printCurrentSample(vec);
 
         // to guarantee (almost...) that two snapshots are not saved at the same location!
@@ -112,8 +114,8 @@ dumpSnapshots(GlobalProblem& problem,
     unsigned int takeEvery = M_data("rb/offline/snapshots/take_every", 5);
     bool binary = M_data("rb/offline/snapshots/dumpbinary", true);
     bool computereynolds = M_data("rb/offline/snapshots/computereynolds", true);
-    double density = M_data("rb/offline/fluid/density", 1.0);
-    double viscosity = M_data("rb/offline/fluid/viscosity", 1.0);
+    double density = M_data("fluid/density", 1.0);
+    double viscosity = M_data("fluid/viscosity", 0.035);
 
     std::ios_base::openmode omode = std::ios_base::app;
     if (binary)

@@ -236,11 +236,13 @@ randomizeParametersAroundOriginalValue(const double& bounds)
 
 void
 GeometricParametersHandler::
-setGeometricParametersFromSample(const std::map<std::string, double>& sample)
+setParametersFromSample(const std::map<std::string, double>& sample)
 {
-    for (auto it = M_parametersMap.begin(); it != M_parametersMap.end(); ++ it)
+    typedef std::map<std::string, GeometricParameterPtr> mapType;
+    for (mapType::iterator it = M_parametersMap.begin(); it != M_parametersMap.end(); ++ it)
     {
-        setParameterValue(it->first, sample.at(it->first));
+        GeometricParameterPtr gp = it->second;
+        gp->operator=(sample.at(it->first));
     }
 }
 

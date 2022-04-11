@@ -416,6 +416,14 @@ namespace RedMA
         if (M_mesh->check(1, false))
             throw new Exception("[Bypass] Aborting: invalid mesh obtained after stenosis deformation.");
 
+        std::string msg = "Aborted during stenosis deformation the simulation with parameters given by : ";
+        for (auto it = M_parametersHandler.getParametersMap().begin();
+                it != M_parametersHandler.getParametersMap().end(); ++it)
+        {
+            GeometricParameterPtr gp = it->second;
+            std::cout << it->first << gp->getValue() << std::endl;
+        }
+
         transformer->savePoints();
 
         bend(M_parametersHandler["in1_alphax"],
@@ -427,6 +435,13 @@ namespace RedMA
 
         if (M_mesh->check(1, false))
             throw new Exception("[Bypass] Aborting: invalid mesh obtained after bending deformation.");
+        std::string msg = "Aborted during bending deformation the simulation with parameters given by : ";
+        for (auto it = M_parametersHandler.getParametersMap().begin();
+             it != M_parametersHandler.getParametersMap().end(); ++it)
+        {
+            GeometricParameterPtr gp = it->second;
+            std::cout << it->first << gp->getValue() << std::endl;
+        }
 
         printlog(MAGENTA, "done\n", M_verbose);
     }

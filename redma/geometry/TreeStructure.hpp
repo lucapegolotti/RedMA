@@ -203,6 +203,10 @@ public:
      */
     TreeStructure& operator+(TreeStructure& other);
 
+    /*! \brief Get geometric parameters of each building block from a sample.
+     *
+     * \param sample The sample
+     */
     void setGeometricParametersFromSample(const std::map<std::string, double>& sample);
 
     /*! \brief Search a block with a specific face.
