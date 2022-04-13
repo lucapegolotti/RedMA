@@ -198,25 +198,30 @@ RBsetup()
     if (M_bases == nullptr)
         throw new Exception("RB bases have not been set yet");
 
-    // scale bases with piola transformation
-    printlog(YELLOW, "[StokesAssemblerRB] applying Piola transformation\t", M_data.getVerbose());
     Chrono chrono;
-    chrono.start();
-    M_bases->scaleBasisWithPiola(0, M_treeNode->M_ID, [=](shp<VECTOREPETRA> vector)
+    std::string msg;
+
+    // scale bases with piola transformation
+    if (M_data("rb/online/usepiola", 1))
     {
-        shp<BlockVector> vectorWrap(new BlockVector(2));
+        printlog(YELLOW, "[StokesAssemblerRB] applying Piola transformation\t", M_data.getVerbose());
+        chrono.start();
+        M_bases->scaleBasisWithPiola(0, M_treeNode->M_ID, [=](shp<VECTOREPETRA> vector)
+        {
+            shp<BlockVector> vectorWrap(new BlockVector(2));
 
-        shp<DistributedVector> compVec(new DistributedVector());
-        compVec->setVector(vector);
+            shp<DistributedVector> compVec(new DistributedVector());
+            compVec->setVector(vector);
 
-        vectorWrap->setBlock(0,compVec);
+            vectorWrap->setBlock(0,compVec);
 
-        applyPiola(vectorWrap, false);
-    });
-    std::string msg = "done, in ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(YELLOW, msg, this->M_data.getVerbose());
+            applyPiola(vectorWrap, false);
+        });
+        msg = "done, in ";
+        msg += std::to_string(chrono.diff());
+        msg += " seconds\n";
+        printlog(YELLOW, msg, this->M_data.getVerbose());
+    }
 
     printlog(YELLOW, "[StokesAssemblerRB] assembling and projecting matrices\t", M_data.getVerbose());
     chrono.start();

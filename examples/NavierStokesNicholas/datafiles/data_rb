@@ -102,6 +102,7 @@ outputdir = solutions
 		[../]
 	[../]
 	[./online]
+	    usepiola = false
 		usemdeim = false
 		monolithicSolve = false
 		recomputeSchur = false

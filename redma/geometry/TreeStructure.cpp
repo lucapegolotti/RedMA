@@ -382,12 +382,6 @@ createRandom(unsigned int blocksNumber, shp<Epetra_Comm> comm)
                               " bifurcation symmetric\n", M_verbose);
             newBlock.reset(new BifurcationSymmetric(comm, ref, M_verbose));
         }
-        // else
-        // {
-        //     printlog(MAGENTA, std::string("[TreeStructure] Initializing ") +
-        //                       " bifurcation asymmetric\n", M_verbose);
-        //     newBlock.reset(new BifurcationAsymmetric(comm, ref, M_verbose));
-        // }
         newBlock->setRandom();
 
         if (i == 0)

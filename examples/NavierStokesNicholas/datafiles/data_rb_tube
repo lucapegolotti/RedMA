@@ -72,6 +72,7 @@ outputdir = rb_solutions
 		[../]
 	[../]
 	[./online]
+	    usepiola = false
 		usemdeim = false
 		monolithicSolve = false
 		recomputeSchur = false

@@ -158,20 +158,16 @@ loadBases()
 
         // load primal supremizers
         for (unsigned int i = 0; i < M_numFields; i++)
-        {
             for (unsigned int j = 0; j < M_numFields; j++)
             {
                 std::string name = "/primal_supremizers_" + std::to_string(i) + "_" + std::to_string(j);
                 addVectorsFromFile(M_path + name + ".basis", M_primalSupremizers(i,j), i);
             }
-        }
 
         // load dual supremizers
         for (unsigned int i = 0; i < M_numFields; i++)
-        {
             addVectorsFromFile(M_path + "/dual_supremizers" + std::to_string(i) + ".basis",
                                M_dualSupremizers[i], i);
-        }
 
         /*for (unsigned i = 0; i < M_numFields; i++)
             if (M_bases[i].size() < M_NsOnline[i])
