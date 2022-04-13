@@ -42,6 +42,8 @@ generateDefaultTreeNode(const std::string& nameMesh)
         return generateDefaultTube(nameMesh);
     else if (nameMesh.find("bif_sym") != std::string::npos)
         return generateDefaultSymmetricBifurcation(nameMesh);
+    else if (nameMesh.find("bypass") != std::string::npos)
+        return generateDefaultBypass(nameMesh);
     else
         printlog(YELLOW, "[DefaultAssemblersLibrary]: no default assembler available for " + nameMesh + " mesh!", true);
 
@@ -76,6 +78,19 @@ generateDefaultSymmetricBifurcation(const std::string& nameMesh)
     defaultBifurcation->readMesh();
 
     shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234 + M_count));
+
+    return treeNode;
+}
+
+shp<TreeNode>
+DefaultAssemblersLibrary::
+generateDefaultBypass(const std::string &nameMesh)
+{
+    shp<Bypass> defaultBypass(new Bypass(M_comm, "bypass", false));
+
+    defaultBypass->readMesh();
+
+    shp<TreeNode> treeNode(new TreeNode(defaultBypass, 1234 + M_count));
 
     return treeNode;
 }

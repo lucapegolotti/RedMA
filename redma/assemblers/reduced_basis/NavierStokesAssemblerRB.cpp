@@ -37,7 +37,12 @@ RBsetup()
         Chrono chrono;
         chrono.start();
 
-        auto velocityBasis = M_bases->getEnrichedBasis(0, M_treeNode->M_ID);
+        std::string meshPath = M_treeNode->M_block->getMeshName();
+        unsigned int dashpos = meshPath.find_last_of("/");
+        unsigned int formatpos = meshPath.find_last_of(".");
+        std::string nameMesh = meshPath.substr(dashpos + 1, meshPath.size()+dashpos+1-formatpos);
+
+        auto velocityBasis = M_bases->getEnrichedBasis(0, ID());
 
         int nterms = M_data("rb/online/numbernonlinearterms", 10);
 
@@ -50,9 +55,9 @@ RBsetup()
         M_nonLinearTermsDecomposition.resize(nterms);
         M_nonLinearMatrixDecomposition.resize(nterms);
 
-        std::string dir_mat = "NLterm/Matrix/Block" + std::to_string(ID());
+        std::string dir_mat = "NLterm/" + nameMesh + "/Matrix/Block" + std::to_string(ID());
         fs::create_directories(dir_mat);
-        std::string dir_vec = "NLterm/Vector/Block" + std::to_string(ID());
+        std::string dir_vec = "NLterm/" + nameMesh + "/Vector/Block" + std::to_string(ID());
         fs::create_directories(dir_vec);
 
         for (unsigned int i = 0; i < nterms; i++)

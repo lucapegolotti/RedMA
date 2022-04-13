@@ -62,9 +62,7 @@ loadBases()
     printlog(YELLOW, msg, this->M_data.getVerbose());
 
     for (auto& bases : M_bases)
-    {
         bases.second->loadBases();
-    }
 
     msg = "done, in ";
     msg += std::to_string(chrono.diff());

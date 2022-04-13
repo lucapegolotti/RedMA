@@ -39,7 +39,7 @@ public:
 
     /*! \brief Return the expected number of children.
      *
-     * \return The expected number of children (2).
+     * \return The expected number of children (1).
      */
     virtual inline unsigned int expectedNumberOfChildren() override
     {
