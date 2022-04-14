@@ -58,7 +58,14 @@ NonAffineDeformer::
 deformMesh(LifeV::MeshUtility::MeshTransformer<MESH>& transformer)
 {
     shp<VECTOREPETRA> displacement = solveSystem();
-    transformer.moveMesh(*displacement,  M_fespace->dof().numTotalDof());
+    transformer.moveMesh(*displacement, M_fespace->dof().numTotalDof());
+}
+
+void
+NonAffineDeformer::
+deformMeshComposite(LifeV::MeshUtility::MeshTransformer<MESH>& transformer, shp<VECTOREPETRA> displacement)
+{
+    transformer.moveMesh(*displacement, M_fespace->dof().numTotalDof());
 }
 
 shp<VECTOREPETRA>

@@ -193,16 +193,6 @@ namespace RedMA
 
         // distorsion matrix for the stenosis norm
         M_distorsionMatrix = eigenMatrix * diagMatrix * eigenMatrix.inverse();
-
-        // M_distorsionMatrix(0,0) = 2;
-        // M_distorsionMatrix(0,1) = 0;
-        // M_distorsionMatrix(0,2) = 0;
-        // M_distorsionMatrix(1,0) = 0;
-        // M_distorsionMatrix(1,1) = 2;
-        // M_distorsionMatrix(1,2) = 0;
-        // M_distorsionMatrix(2,0) = 0;
-        // M_distorsionMatrix(2,1) = 0;
-        // M_distorsionMatrix(2,2) = 1;
     }
 
     double
@@ -271,11 +261,8 @@ namespace RedMA
                 nAffineDeformer.setXMLsolver(xmlFilename);
                 nAffineDeformer.deformMesh(*transformer);
                 printlog(CYAN, ct.restore(), M_verbose);
-
             }
-
         }
-
     }
 
     void
@@ -374,6 +361,130 @@ namespace RedMA
         }
     }
 
+    void
+    Bypass::
+    applyTotalDeformation(const double& in1_alphax, const double& in1_alphay, const double& in1_alphaz,
+                          const double& in2_alphax, const double& in2_alphay, const double& in2_alphaz,
+                          const double& amplitude, const double& width,
+                          shp<Transformer> transformer, bool transformMesh)
+    {
+        if ((std::abs(in1_alphax) > 0 || std::abs(in1_alphay) > 0 || std::abs(in1_alphaz) > 0) ||
+            (std::abs(in2_alphax) > 0 || std::abs(in2_alphay) > 0 || std::abs(in2_alphaz) > 0))
+        {
+            std::string msg = std::string("[") + M_name + " BuildingBlock]";
+            msg = msg + " bending with angles = (" + std::to_string(in1_alphax)
+                  + ", " + std::to_string(in1_alphay) +
+                  ", " + std::to_string(in1_alphaz) + ") at outlet 1, and (" +
+                  std::to_string(in2_alphax) + ", " +
+                  std::to_string(in2_alphay) + ", " +
+                  std::to_string(in2_alphaz) + ")"
+                  + " at outlet 2" + "\n";
+            printlog(GREEN, msg, M_verbose);
+
+            using namespace std::placeholders;
+
+            Vector3D rotationCenter = M_center;
+
+            // handle rotation for inlet 1
+            Matrix3D rotationMatrix =
+                    computeRotationMatrix(0, in1_alphax) *
+                    computeRotationMatrix(1, in1_alphay) *
+                    computeRotationMatrix(2, in1_alphaz);
+
+            Vector3D rotatedCenterInlet1;
+            Vector3D rotatedNormalInlet1;
+            rotateGeometricFace(M_inlets[0], rotatedCenterInlet1, rotatedNormalInlet1,
+                                rotationMatrix, rotationCenter);
+
+            auto fooInlet1 = std::bind(inletMapFunction,
+                                       std::placeholders::_1,
+                                       std::placeholders::_2,
+                                       std::placeholders::_3,
+                                       std::placeholders::_4,
+                                       std::placeholders::_5,
+                                       M_inlets[0], rotatedCenterInlet1,
+                                       rotationMatrix);
+
+            M_inlets[0].M_center = rotatedCenterInlet1;
+            M_inlets[0].M_normal = rotatedNormalInlet1;
+
+            // handle rotation for inlet 2
+            rotationMatrix = computeRotationMatrix(0, in2_alphax) *
+                             computeRotationMatrix(1, in2_alphay) *
+                             computeRotationMatrix(2, in2_alphaz);
+
+            Vector3D rotatedCenterInlet2;
+            Vector3D rotatedNormalInlet2;
+            rotateGeometricFace(M_inlets[1], rotatedCenterInlet2, rotatedNormalInlet2,
+                                rotationMatrix, rotationCenter);
+
+            auto fooInlet2 = std::bind(inletMapFunction,
+                                       std::placeholders::_1,
+                                       std::placeholders::_2,
+                                       std::placeholders::_3,
+                                       std::placeholders::_4,
+                                       std::placeholders::_5,
+                                       M_inlets[1], rotatedCenterInlet2,
+                                       rotationMatrix);
+
+            M_inlets[1].M_center = rotatedCenterInlet2;
+            M_inlets[1].M_normal = rotatedNormalInlet2;
+
+            auto fooWall = std::bind(stenosisBC,
+                                     std::placeholders::_1,
+                                     std::placeholders::_2,
+                                     std::placeholders::_3,
+                                     std::placeholders::_4,
+                                     std::placeholders::_5,
+                                     amplitude, width, M_stenosisCenter, M_stenosisOuterNormal, M_distorsionMatrix);
+
+            if (transformMesh)
+            {
+                NonAffineDeformer bending_nAffineDeformer(M_mesh, M_comm, M_verbose);
+
+                LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
+                LifeV::BCFunctionBase inletFunction1(fooInlet1);
+                LifeV::BCFunctionBase inletFunction2(fooInlet2);
+                LifeV::BCFunctionBase stenosisFunction(fooWall);
+
+                shp<LifeV::BCHandler> bending_bcs(new LifeV::BCHandler);
+                bending_bcs->addBC("Inlet1", 2, LifeV::Essential, LifeV::Full,
+                           inletFunction1, 3);
+                bending_bcs->addBC("Inlet2", 3, LifeV::Essential, LifeV::Full,
+                           inletFunction2, 3);
+                bending_bcs->addBC("Outlet", 4, LifeV::Essential, LifeV::Full,
+                           zeroFunction, 3);
+
+                CoutRedirecter ct;
+                ct.redirect();
+                bending_nAffineDeformer.applyBCs(bending_bcs);
+                std::string xmlFilename = M_datafile("geometric_structure/xmldeformer",
+                                                     "SolverParamList.xml");
+                bending_nAffineDeformer.setXMLsolver(xmlFilename);
+                shp<VECTOREPETRA> bending_displacement = bending_nAffineDeformer.solveSystem();
+
+                NonAffineDeformer stenosis_nAffineDeformer(M_mesh, M_comm, M_verbose);
+
+                shp<LifeV::BCHandler> stenosis_bcs(new LifeV::BCHandler);
+                stenosis_bcs->addBC("Inlet1", 2, LifeV::Essential, LifeV::Full,
+                                    zeroFunction, 3);
+                stenosis_bcs->addBC("Inlet2", 3, LifeV::Essential, LifeV::Full,
+                                    zeroFunction, 3);
+                stenosis_bcs->addBC("Outlet", 4, LifeV::Essential, LifeV::Full,
+                                    zeroFunction, 3);
+                stenosis_bcs->addBC("Wall", 200, LifeV::Essential, LifeV::Full,
+                                    stenosisFunction, 3);
+
+                stenosis_nAffineDeformer.applyBCs(stenosis_bcs);
+                stenosis_nAffineDeformer.setXMLsolver(xmlFilename);
+                shp<VECTOREPETRA> stenosis_displacement = stenosis_nAffineDeformer.solveSystem();
+                *bending_displacement += *stenosis_displacement;
+                stenosis_nAffineDeformer.deformMeshComposite(*transformer, bending_displacement);
+                printlog(CYAN, ct.restore(), M_verbose);
+            }
+        }
+    }
+
     double
     Bypass::
     inletMapFunction(const double& t, const double& x,
@@ -418,19 +529,17 @@ namespace RedMA
         if (transformMesh)
             transformer.reset(new Transformer(*M_mesh));
 
-        addStenosis(M_parametersHandler["stenosis_amplitude"],
-                    M_parametersHandler["stenosis_width"],
-                    transformer, transformMesh);
+        applyTotalDeformation(M_parametersHandler["in1_alphax"],
+                              M_parametersHandler["in1_alphay"],
+                              M_parametersHandler["in1_alphaz"],
+                              M_parametersHandler["in2_alphax"],
+                              M_parametersHandler["in2_alphay"],
+                              M_parametersHandler["in2_alphaz"],
+                              M_parametersHandler["stenosis_amplitude"],
+                              M_parametersHandler["stenosis_width"], transformer, transformMesh);
 
-
-        M_mesh->check(1, true);
-
-        bend(M_parametersHandler["in1_alphax"],
-             M_parametersHandler["in1_alphay"],
-             M_parametersHandler["in1_alphaz"],
-             M_parametersHandler["in2_alphax"],
-             M_parametersHandler["in2_alphay"],
-             M_parametersHandler["in2_alphaz"], transformer, transformMesh);
+        if (M_mesh->check(1, false))
+            throw new Exception("[Bypass] Aborting: invalid mesh obtained after total deformation.");
 
         printlog(MAGENTA, "done\n", M_verbose);
     }

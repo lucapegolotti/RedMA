@@ -74,10 +74,12 @@ public:
      */
     void deformMesh(LifeV::MeshUtility::MeshTransformer<MESH>& transformer);
 
+    shp<VECTOREPETRA> solveSystem();
+
+    void deformMeshComposite(LifeV::MeshUtility::MeshTransformer<MESH>& transformer, shp<VECTOREPETRA> displacement);
+
 private:
     void assembleStiffness(const double young, const double poisson);
-
-    shp<VECTOREPETRA> solveSystem();
 
     shp<MESH>               M_mesh;
     EPETRACOMM              M_comm;

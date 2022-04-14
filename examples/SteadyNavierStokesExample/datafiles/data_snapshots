@@ -1,68 +1,31 @@
--------------------------------------------------------------
+#-------------------------------------------------------------
 #           Data file for NavierStokesExample
 #-------------------------------------------------------------
 
-outputdir = solutions
+outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/bypass.xml
+	xmlfile = geometries/tree_snapshots.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
 
 [assembler]
 	type = navierstokes
-	[./stabilization]
-	    type = supg  # to choose in {none, supg, ip}
-	    gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
-    [../]
+	stabilization = none
 [../]
 
 [bc_conditions]
-    inlet_bc_type = dirichlet
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
-	inletpressurefile = datafiles/inlet_pressure.txt
-
-	numinletbcs = 2
-    [./inlet0]
-        generate_inletBC = 0
-        coefficient = 1.0
-        flag = 2
-    [../]
-    [./inlet1]
-        generate_inletBC = 0
-        coefficient = 1.0
-        flag = 3
-    [../]
-
+	coefficientinflow =  1.0370557883
 	numoutletbcs = 0
-	[./outlet0]
-	    type = dirichlet
-        blockindex = 0
-        boundaryflag = 2
-
-        C = 0.0  # 0.0000760  # WK3
-        Rp = 100  # 718.27  # WK3
-        Rd = 0.0  # 15945.20  # WK3
-    [../]
-    [./outlet1]
-        type = windkessel
-        blockindex = 0
-        boundaryflag = 3
-
-        C = 0.0  # 0.0000760  # WK3
-        Rp = 200  # 718.27  # WK3
-        Rd = 0.0  # 15945.20  # WK3
-    [../]
-
-	ring_constraint = full # type of homogeneous BC imposed at I/O rings for membrane model
 [../]
 
 [rb]
 	[./offline]
 		[./snapshots]
-			number 			     = 5
+			number 			     = 1
 			bound 			     = 0.2
 			take_every 		     = 8
 			dumpbinary 		     = true
@@ -103,10 +66,10 @@ outputdir = solutions
 		approximatenonlinearterm = 0
 		[./basis]
 			directory = basis
-			podtol_field0 = 1e-1
+			podtol_field0 = 1e-2
 			podtol_field1 = 1e-5
 			useprimalsupremizers = 1
-			usedualsupremizers = 0
+			usedualsupremizers = 1
 		[../]
 		[./mdeim]
 			loadfullbasis   = true
@@ -120,51 +83,46 @@ outputdir = solutions
 	outer      	   = saddlepoint
 	inner	   	   = SIMPLE
 	approxshur 	   = SIMPLE
-	innertol   	   = 0.5
-	recomputeevery = 20
+	innertol   	   = 1e-6
+	recomputeevery = 5
 	thresholdsize  = 5000
 [../]
 
 [newton_method]
 	tol = 1e-4
 	maxit = 10
-	relaxation = 1.0
-	ic_path = IC/bypass_BL/
 [../]
 
 [fluid]
 	velocity_order = P2
 	pressure_order = P1
-	viscosity      = 0.035
+	viscosity      = 0.04
 	density        = 1.06
 [../]
 
 [structure]
 	time_integration_order = 3
-	poisson      = 0.5
+	poisson      = 0.3
 	num_young    = 1
-	young    	 = 4.07e+6
-	thickness    = 0.1
+	young    	 = 3.e+6 # 1.07e7 4.07e6'
+	thickness    = 0.1 # 0.2 0.15'
 	density	     = 1.2
 	flag = 10
-	constant_thickness = 1
 	[./external_wall]
-		elastic = 0
-		plastic = 0
+		elastic = 1e4
+		plastic = 1e4
 	[../]
 [../]
 
 [time_discretization]
 	algorithm = bdf
 	rhoinf = 0.5
-	order = 0
-	extrapolation_order = 0
-	t0ramp = 0.0
+	order = 2
+	t0ramp = -0.02
 	t0 = 0
-	T = 0.04
-	dt = 0.0002
+	T = 0.005
+	dt = 0.0025
 	use_extrapolation = 0
-	solve_as_linear = 0
 	solverstatistics = solverstatistics.txt
 [../]
 
@@ -173,11 +131,9 @@ outputdir = solutions
 	type       = hdf5
 	multimesh  = false
 	start      = 0
-	save_every = 1
+	save_every = 4
 	filename   = tube
 	exportnorms = true
-	exporttotxt = false
-	pathtotxt = IC/bypass/
 [../]
 
 [coupling]
@@ -185,11 +141,5 @@ outputdir = solutions
 	nMax                = 5
 	stab_coefficient	= 1e-16
 	check_stabterm		= false
-	nfcts_weak_dirichlet_in = 0
-	nfcts_weak_dirichlet_out = 0
-	frequencies_theta_ring = 5
-    frequencies_theta_ring_weak_dirichlet_in = -1
-    frequencies_theta_ring_weak_dirichlet_out = -1
-    strong_ring = false
-    strong_dofs_per_ring = 4
+	nfcts_weak_dirichlet_in = 5
 [../]

@@ -20,7 +20,6 @@
 #define CHEBYSHEVBASISFUNCTION_HPP
 
 #include <functional>
-
 #include <redma/coupling_basis_functions/BasisFunctionFunctor.hpp>
 
 namespace RedMA

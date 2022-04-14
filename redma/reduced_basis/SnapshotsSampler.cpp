@@ -85,7 +85,7 @@ takeSnapshots(const unsigned int& Nstart)
 
             auto inletBC = std::bind(M_inflow,
                                      std::placeholders::_1,
-                                     vec[0],vec[1]);
+                                     vec[0], vec[1]);
 
             for (unsigned int numInlet=0; numInlet < numInletConditions; numInlet++)
             {
@@ -109,7 +109,7 @@ takeSnapshots(const unsigned int& Nstart)
                     else if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
                     {
                         std::function<double(double)> outletDirichlet = [vec, cnt, inletBC] (double t)
-                                {return vec[cnt] * inletBC(t);};
+                                {return vec[cnt] * inletBC(t); };
                         M_data.setOutletBC(outletDirichlet, numOutlet);
                     }
                     cnt++;

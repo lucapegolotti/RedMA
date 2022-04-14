@@ -117,6 +117,11 @@ namespace RedMA
         void addStenosis(const double &amplitude, const double &width,
                     shp <Transformer> transformer, bool transformMesh);
 
+        void applyTotalDeformation(const double& in1_alphax, const double& in1_alphay, const double& in1_alphaz,
+                              const double& in2_alphax, const double& in2_alphay, const double& in2_alphaz,
+                              const double& amplitude, const double& width,
+                              shp<Transformer> transformer, bool transformMesh);
+
         void computeCenter();
 
         void computeStenosisCenter();
@@ -130,11 +135,9 @@ namespace RedMA
         Vector3D M_outletCenterRef;
         Vector3D M_outletNormalRef;
 
-
         Vector3D M_center;
         Vector3D M_stenosisCenter;
         Vector3D M_stenosisOuterNormal;
-
 
         Vector3D M_Eigenvector1;
         Vector3D M_Eigenvector2;

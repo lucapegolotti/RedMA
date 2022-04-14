@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef SNAPSHOTSSAMPLER_HPP
-#define SNAPSHOTSSAMPLER_HPP
+#ifndef SNAPSHOTSSTEADYSAMPLER_HPP
+#define SNAPSHOTSSTEADYSAMPLER_HPP
 
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/problem/GlobalProblem.hpp>
-
+#include <redma/reduced_basis/LatinHypercube.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
 
 #include <cmath>
@@ -31,26 +31,27 @@
 namespace RedMA
 {
 
-/// Class handling the generation of the snapshots.
-class SnapshotsSampler
+/// Class handling the generation of the steady snapshots.
+class SnapshotsSteadySampler
 {
 public:
-    SnapshotsSampler(const DataContainer& data, EPETRACOMM comm);
+    SnapshotsSteadySampler(const DataContainer& data, EPETRACOMM comm, unsigned int numSamples);
 
     /// Take the snapshots.
     void takeSnapshots(const unsigned int& Nstart = 0);
 
     inline void setInflow(const std::function<double(double,double,double)>& inflow) {M_inflow=inflow;};
 
-    void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double> array_params);
+    void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double>& params);
 
-    void transformSnapshotsWithPiola(std::string snapshotsDir,
-                                     unsigned int fieldIndex,
-                                     unsigned int maxSnapshot);
+    void printCurrentSample(std::map<std::string, double> sample);
 
-    std::vector<double> inflowSnapshots(const std::vector<std::vector<double>>& param_bounds);
+    std::vector<double> getParametersValuesAsVector(const std::map<std::string, double>& sample);
+
+    std::map<std::string, double> getCurrentSample(unsigned int i);
 
 private:
+    LatinHypercube                                      M_LHS;
     DataContainer                                       M_data;
     EPETRACOMM                                          M_comm;
     std::function<double(double,double,double)>         M_inflow;
@@ -58,4 +59,4 @@ private:
 
 }  // namespace RedMA
 
-#endif  // SNAPSHOTSSAMPLER_HPP
+#endif  // SNAPSHOTSSTEADYSAMPLER_HPP
