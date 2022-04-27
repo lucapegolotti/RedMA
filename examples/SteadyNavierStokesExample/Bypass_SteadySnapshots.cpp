@@ -19,11 +19,11 @@ int main(int argc, char **argv)
 
     DataContainer data;
     data.setDatafile("datafiles/data");
-    // data.setValueString("geometric_structure/xmlfile", "bypass_snapshots.xml");
+    unsigned int numOutlet = 0;
     data.setVerbose(comm->MyPID() == 0);
 
     unsigned int numSamples = data("rb/offline/snapshots/number", 10);
-    unsigned int Nstart = 0;
+    unsigned int Nstart = 1;
 
     SnapshotsSteadySampler sampler(data, comm, numSamples);
     sampler.takeSnapshots(Nstart);

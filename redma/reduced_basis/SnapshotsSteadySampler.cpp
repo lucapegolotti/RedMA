@@ -24,6 +24,7 @@ takeSnapshots(const unsigned int &Nstart)
 
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
     unsigned int numInletConditions = M_data("bc_conditions/numinletbcs", 2);
+    unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
 
     fs::create_directory(outdir);
     GeometryPrinter printer;
@@ -37,10 +38,16 @@ takeSnapshots(const unsigned int &Nstart)
         chrono.start();
 
         std::map<std::string, double> vec = SnapshotsSamples[i];
-        std::string msg = "Performing the #" + std::to_string(i) + " snapshot generation";
-        msg = msg + "The current parameters are: \n\n";
+        std::string msg = "Performing the # " + std::to_string(i+1) + " snapshot generation" +
+                " out of " + std::to_string(M_LHS.getNumSamples()) + "\n\n";
+        msg = msg + " The current parameters are: \n\n";
         printlog(GREEN, msg);
         printCurrentSample(vec);
+
+        std::vector<double> paramsVec = getParametersValuesAsVector(vec);
+
+        // just for setting easily the initial condition
+        paramsVec.insert(paramsVec.begin() + 1, 1.0 - paramsVec[0]);
 
         // to guarantee (almost...) that two snapshots are not saved at the same location!
         unsigned int paramIndex = Nstart;
@@ -50,25 +57,25 @@ takeSnapshots(const unsigned int &Nstart)
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
 
-        // setting the flow rate at the inlets
-        std::vector<double> vec_inflow = {vec["flow_rate"], 1.0 - vec["flow_rate"]};
-
-        auto inletBC = std::bind(M_inflow,
-                                 std::placeholders::_1,
-                                 vec_inflow[0], vec_inflow[1]);
-
-        for (unsigned int numInlet = 0; numInlet < numInletConditions; numInlet++)
+        for (unsigned int i = 0; i < numInletConditions; i++)
         {
-            std::function<double(double)> inletDirichlet = [vec_inflow, numInlet, inletBC] (double t)
-                    { return (vec_inflow[numInlet]) * inletBC(t); };
-            M_data.setInletBC(inletDirichlet, numInlet);
+            std::function<double(double)> inletDirichlet = [paramsVec, i](double t) {return paramsVec[i]; };
+            M_data.setInletBC(inletDirichlet, i);
         }
+
+        unsigned int numOutlet = 0;
+        M_data.setOutletBC([numOutlet](double t){return 1.5 * 1333.0;}, numOutlet);
+
+        // reset the vector as before
+        paramsVec.erase(paramsVec.begin() + 1);
 
         GlobalProblem problem(M_data, M_comm, false);
 
         problem.doStoreSolutions();
 
         fs::create_directory(curdir);
+        std::string curSolutionDir = curdir + "/";
+        M_data.setValueString("exporter/outdir", curSolutionDir);
 
         problem.getTree().setGeometricParametersFromSample(vec);
 
@@ -85,7 +92,7 @@ takeSnapshots(const unsigned int &Nstart)
 
         elapsedTime += chrono.diff() / M_LHS.getNumSamples();
 
-        dumpSnapshots(problem, curdir, getParametersValuesAsVector(vec));
+        // dumpSnapshots(problem, curdir, paramsVec);
     }
 
     std::string msg = "Average time per snapshot =  ";

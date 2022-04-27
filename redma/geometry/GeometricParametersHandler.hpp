@@ -204,7 +204,7 @@ public:
      */
     std::vector<double> getRandomizibleParametersValueAsVector();
 
-    void setParametersFromSample(std::map<std::string, double> sample);
+    void setParametersFromSample(const std::map<std::string, double>& sample);
 
     static constexpr double infty = 1e9;
 

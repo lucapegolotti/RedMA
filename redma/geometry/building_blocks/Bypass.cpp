@@ -198,7 +198,7 @@ namespace RedMA
     double
     Bypass::
     stenosisDeformation(const double &z) {
-        return (std::abs(z) < 1) * (0.5 + 0.5 * std::sin(std::atan(1) * 4 * (z + 0.5)));
+        return (std::abs(z) < 1) * (std::exp(1 / (pow(z, 2)-1)));
     }
 
     double
@@ -369,7 +369,8 @@ namespace RedMA
                           shp<Transformer> transformer, bool transformMesh)
     {
         if ((std::abs(in1_alphax) > 0 || std::abs(in1_alphay) > 0 || std::abs(in1_alphaz) > 0) ||
-            (std::abs(in2_alphax) > 0 || std::abs(in2_alphay) > 0 || std::abs(in2_alphaz) > 0))
+            (std::abs(in2_alphax) > 0 || std::abs(in2_alphay) > 0 || std::abs(in2_alphaz) > 0) ||
+            (std::abs(amplitude) > 0 || std::abs(width) > 0))
         {
             std::string msg = std::string("[") + M_name + " BuildingBlock]";
             msg = msg + " bending with angles = (" + std::to_string(in1_alphax)
@@ -379,6 +380,9 @@ namespace RedMA
                   std::to_string(in2_alphay) + ", " +
                   std::to_string(in2_alphaz) + ")"
                   + " at outlet 2" + "\n";
+            msg = msg + " stenosis with amplitude = (" + std::to_string(amplitude)
+                  + ") and width = (" +
+                  std::to_string(width) + ")" + "\n";
             printlog(GREEN, msg, M_verbose);
 
             using namespace std::placeholders;
@@ -537,6 +541,8 @@ namespace RedMA
                               M_parametersHandler["in2_alphaz"],
                               M_parametersHandler["stenosis_amplitude"],
                               M_parametersHandler["stenosis_width"], transformer, transformMesh);
+
+        transformer->savePoints();
 
         if (M_mesh->check(1, false))
             throw new Exception("[Bypass] Aborting: invalid mesh obtained after total deformation.");

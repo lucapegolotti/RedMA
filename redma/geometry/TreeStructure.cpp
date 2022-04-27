@@ -322,17 +322,13 @@ setGeometricParametersFromSample(const std::map<std::string, double>& sample)
     nodesQueue.push(M_root);
     while(nodesQueue.size() != 0)
     {
-        std::cout << "Everything okay..." << std::endl;
         TreeNodePtr curNode = nodesQueue.front();
         nodesQueue.pop();
-        std::cout << "Everything okay..." << std::endl;
         curNode->M_block->getGeometricParametersHandler().setParametersFromSample(sample);
-        std::cout << "Everything okay..." << std::endl;
         typedef std::vector<TreeNodePtr> TreeNodesVector;
         TreeNodesVector& children = curNode->M_children;
         unsigned int expectedChildren =
                 curNode->M_block->expectedNumberOfChildren();
-        std::cout << "Everything okay..." << std::endl;
         for (int i = 0; i < expectedChildren; i++)
         {
             TreeNodePtr curChild = children[i];
@@ -342,7 +338,6 @@ setGeometricParametersFromSample(const std::map<std::string, double>& sample)
                 nodesQueue.push(curChild);
             }
         }
-        std::cout << "Everything okay..." << std::endl;
     }
 }
 

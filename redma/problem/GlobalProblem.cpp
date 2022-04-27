@@ -45,6 +45,7 @@ setup()
 
     if (M_data("time_discretization/order", 0) > 0)
     {
+        std::cout << "ENTERING NON STEADY SOLVER FOR GLOBAL PROBLEM" << std::endl;
         // initialize time marching algorithm (for instance BDF)
         M_TMAlgorithm = TimeMarchingAlgorithmFactory(M_data, M_assembler);
         M_TMAlgorithm->setComm(M_comm);
@@ -54,7 +55,6 @@ setup()
         // initialize solver for the steady problem
         M_steadySolver.reset(new SteadySolver(M_data, M_assembler));
         M_steadySolver->setComm(M_comm);
-
         std::string IC_path = M_data("newton_method/ic_path", "");
         M_steadySolver->setInitialGuess(IC_path);
         shp<aVector> tmp = M_steadySolver->getInitialGuess();

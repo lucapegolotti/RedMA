@@ -19,31 +19,34 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/assemblers/abstract/aAssemblerFE.hpp>
+#include <lifev/eta/expression/Integrate.hpp>
+#include <redma/coupling_basis_functions/BasisFunctionFunctor.hpp>
+#include <redma/reduced_basis/RBBases.hpp>
 
 namespace RedMA
 {
-
-/*! \brief Finite element assembler of the Stokes problem.
- *
- * The equations are defined, for every \f$(x,t)\in \Omega\f$, as
- *
- * \f{eqnarray*}{
- *        \rho \dot{u}-\nabla \cdot \sigma(u,p) &= f, \\
- *        \nabla \cdot u &= 0,
- * \f}
- * where \f$u\f$ and \f$p\f$ are velocity and pressure of the fluid,
- * \f[
-        \sigma(u,p) = 2\mu \varepsilon(u) - pI, \quad \varepsilon(u) = (\nabla u + (\nabla u)^T)/2,
- * \f]
- *
- * \f$\rho\f$ is the density of the fluid, and \f$\mu\f$ its viscosity.
- *
- * In some methods, it is required to associate variables and matrices to specific
- * indices.
- *
- * Indices of the components: velocity = 0, pressure = 1.
- * Indices of the matrices: mass = 0, stiffness = 1, divergence = 2.
- */
+        typedef LifeV::VectorSmall<3> Vector3D;
+        /*! \brief Finite element assembler of the Stokes problem.
+         *
+         * The equations are defined, for every \f$(x,t)\in \Omega\f$, as
+         *
+         * \f{eqnarray*}{
+         *        \rho \dot{u}-\nabla \cdot \sigma(u,p) &= f, \\
+         *        \nabla \cdot u &= 0,
+         * \f}
+         * where \f$u\f$ and \f$p\f$ are velocity and pressure of the fluid,
+         * \f[
+                \sigma(u,p) = 2\mu \varepsilon(u) - pI, \quad \varepsilon(u) = (\nabla u + (\nabla u)^T)/2,
+         * \f]
+         *
+         * \f$\rho\f$ is the density of the fluid, and \f$\mu\f$ its viscosity.
+         *
+         * In some methods, it is required to associate variables and matrices to specific
+         * indices.
+         *
+         * Indices of the components: velocity = 0, pressure = 1.
+         * Indices of the matrices: mass = 0, stiffness = 1, divergence = 2.
+         */
 class StokesAssemblerFE : public aAssemblerFE
 {
 public:
@@ -469,6 +472,31 @@ public:
                                 shp<VECTOREPETRA> WSS,
                                 EPETRACOMM comm);
 
+    /*! \brief Integrate the wall shear stress on area of interest.
+     *
+     * \param velocity The current velocity.
+     * \param WSS Output parameter: the wall shear stress.
+     * \param comm The MPI communicator.
+     */
+    void integrateWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS, EPETRACOMM comm, double intWSS);
+
+    /*! \brief weight function for integrateWSS
+     *
+     * @param x x
+     * @param y y
+     * @param z z
+     * @param center center of integration
+     * @param radius radius of integration
+     * @return
+     */
+    static double weightFunction(const double& t,
+                          const double& x,
+                          const double& y,
+                          const double& z,
+                          const LifeV::ID& i);
+
+    void exportIntWSS(double intWSS);
+
     /*! \brief Initialize the finite element space of the velocity.
      *
      * \param comm The MPI communicator.
@@ -506,6 +534,7 @@ protected:
     shp<LifeV::Exporter<MESH>>                        M_exporter;
     shp<VECTOREPETRA>                                 M_velocityExporter;
     shp<VECTOREPETRA>                                 M_WSSExporter;
+    double                                            M_intWSSExporter;
     shp<VECTOREPETRA>                                 M_pressureExporter;
     std::string                                       M_name;
     shp<BlockVector>                                  M_extrapolatedSolution;

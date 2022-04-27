@@ -13,8 +13,8 @@ LatinHypercube(unsigned int numSamples)
     M_numSamples = numSamples;
 
     const double maxAngle = 0.4;
-    const double maxAmplitude = 0.2;
-    const double maxWidth = 0.3;
+    const double maxAmplitude = 0.3;
+    const double maxWidth = 0.2;
     const double minFlow = 0.2;
     const double maxFlow = 0.8;
 
