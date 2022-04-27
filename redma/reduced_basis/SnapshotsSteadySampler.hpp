@@ -20,7 +20,10 @@
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/problem/GlobalProblem.hpp>
+<<<<<<< HEAD
+=======
 #include <redma/reduced_basis/QMC_sampling.hpp>
+>>>>>>> 1721845a018613d3f11b90a264b3fcfb8a08e265
 #include <redma/reduced_basis/LatinHypercube.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
 
@@ -33,6 +36,32 @@ namespace RedMA
 {
 
 /// Class handling the generation of the steady snapshots.
+<<<<<<< HEAD
+class SnapshotsSteadySampler
+{
+public:
+    SnapshotsSteadySampler(const DataContainer& data, EPETRACOMM comm, unsigned int numSamples);
+
+    /// Take the snapshots.
+    void takeSnapshots(const unsigned int& Nstart = 0);
+
+    inline void setInflow(const std::function<double(double,double,double)>& inflow) {M_inflow=inflow;};
+
+    void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double>& params);
+
+    void printCurrentSample(std::map<std::string, double> sample);
+
+    std::vector<double> getParametersValuesAsVector(const std::map<std::string, double>& sample);
+
+    std::map<std::string, double> getCurrentSample(unsigned int i);
+
+private:
+    LatinHypercube                                      M_LHS;
+    DataContainer                                       M_data;
+    EPETRACOMM                                          M_comm;
+    std::function<double(double,double,double)>         M_inflow;
+};
+=======
     class SnapshotsSteadySampler
     {
     public:
@@ -58,6 +87,7 @@ namespace RedMA
         RedMa::LatinHypercube                               M_LHS;
         std::function<double(double,double,double)>         M_inflow;
     };
+>>>>>>> 1721845a018613d3f11b90a264b3fcfb8a08e265
 
 }  // namespace RedMA
 
