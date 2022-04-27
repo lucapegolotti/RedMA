@@ -186,11 +186,14 @@ exportSolution(const double& t,
     if (exportWSS)
         computeWallShearStress(M_velocityExporter, M_WSSExporter, M_comm);
 
+    integrateWallShearStress(M_velocityExporter, M_WSSExporter, M_comm, M_intWSSExporter);
+
     shp<BlockVector> solCopy(new BlockVector(2));
     solCopy->block(0)->setData(M_velocityExporter);
     computeFlowRates(solCopy, true);
 
     exportNorms(t, M_velocityExporter, M_pressureExporter);
+    exportIntWSS(M_intWSSExporter);
 
     CoutRedirecter ct;
     ct.redirect();
@@ -1185,6 +1188,17 @@ exportNorms(double t, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure)
 
 void
 StokesAssemblerFE::
+exportIntWSS(double intWSS)
+{
+    std::string outputName = M_data("exporter/outdir", "solutions/") + "intWSS";
+    outputName += std::to_string(this->M_treeNode->M_ID);
+    outputName += ".txt";
+    std::ofstream filename(outputName, std::ios_base::app);
+    filename << intWSS;
+}
+
+void
+StokesAssemblerFE::
 computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
                        EPETRACOMM comm)
 {
@@ -1255,6 +1269,38 @@ computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
     linearSolver.setRightHandSide(weakWSSUnique);
     linearSolver.solve(WSS);
 }
+
+void
+StokesAssemblerFE::
+integrateWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS, EPETRACOMM comm, double intWSS)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    unsigned int wallFlag = M_treeNode->M_block->getWallFlag();
+    QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
+    computeWallShearStress(velocity, WSS, comm);
+    shp<VECTOREPETRA> WSSRepeated(new VECTOREPETRA(*WSS, Unique));
+    shp<VECTOREPETRA> weakWSSRepeated(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
+    integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
+              myBDQR,
+              M_velocityFESpaceETA,
+              dot(value(M_velocityFESpaceETA, *WSSRepeated), phi_i)
+    ) >> weakWSSRepeated;
+    intWSS = weakWSSRepeated->norm1();
+}
+
+//double
+//StokesAssemblerFE::
+//weightFunction(const double& t, const double& x, const double& y, const double& z,  const LifeV::ID &i)
+//{
+//    Vector3D center(0, 0, 0);
+//    double radius = 0.2;
+//    Vector3D point(x, y, z);
+//    double norm = (point - center).norm() / radius;
+//    return 0.5 + 0.5 * std::sin(std::atan(1) * 4 * (norm + 0.5));
+//}
+
 
 void
 StokesAssemblerFE::
