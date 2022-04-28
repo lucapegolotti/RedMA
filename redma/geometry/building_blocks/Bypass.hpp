@@ -117,6 +117,11 @@ namespace RedMA
         void addStenosis(const double &amplitude, const double &width,
                     shp <Transformer> transformer, bool transformMesh);
 
+        void applyTotalDeformation(const double& in1_alphax, const double& in1_alphay, const double& in1_alphaz,
+                              const double& in2_alphax, const double& in2_alphay, const double& in2_alphaz,
+                              const double& amplitude, const double& width,
+                              shp<Transformer> transformer, bool transformMesh);
+
         void computeCenter();
 
         void computeStenosisCenter();
