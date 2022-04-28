@@ -36,6 +36,7 @@ QMC_sampling(unsigned int numSamples)
     parametersHandler.registerParameter("stenosis_width", 0,
                                           0, maxWidth, true, false);
     parametersHandler.registerParameter("flow_rate", 0,
+                                        minFlow, maxFlow, true, false);
 
     setParametersToBeSampled();
 

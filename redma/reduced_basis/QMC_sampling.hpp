@@ -5,12 +5,8 @@
 #ifndef QMC_SAMPLING_H
 #define QMC_SAMPLING_H
 
-<<<<<<< HEAD
 #include <redma/geometry/GeometricParametersHandler.hpp>
 #include <redma/RedMA.hpp>
-
-
-=======
 #include <redma/geometry/building_blocks/Bypass.hpp>
 #include <redma/assemblers/finite_element/StokesAssemblerFE.hpp>
 #include <redma/problem/DataContainer.hpp>
@@ -18,7 +14,6 @@
 
 // make getters and reset all the attributes as private, then change accordingly in the snapshots class
 
->>>>>>> 1721845a018613d3f11b90a264b3fcfb8a08e265
 namespace RedMA
 {
     /// sampling class for geometric and physical parameters
@@ -56,12 +51,8 @@ namespace RedMA
         /*! \brief This function performs the sampling given in input the number of samples desired.
          * \param N the number of samples
         */
-<<<<<<< HEAD
+
         std::vector<std::map<std::string, double>> getSamples(unsigned int N, std::vector<double> generatingVector,
-=======
-        std::vector<std::map<std::string, double>>
-        getSamples(unsigned int N, std::vector<double> generatingVector,
->>>>>>> 1721845a018613d3f11b90a264b3fcfb8a08e265
                    std::vector<std::string> paramsNames, std::vector<std::vector<double>> paramsBounds);
 
         /*! \brief This function performs component-wise multiplication of a vector by a scalar
@@ -102,7 +93,6 @@ namespace RedMA
          */
         void checkConsistency();
 
-<<<<<<< HEAD
         /*! \brief getter for the parameters handler
          *
          * @return M_parametersHandler
@@ -110,21 +100,13 @@ namespace RedMA
         GeometricParametersHandler& getGeometricParametersHandler() {return M_parametersHandler; };
 
     private:
-        GeometricParametersHandler M_parametersHandler;
-        std::string M_name;
-=======
-    private:
         std::string M_name;
         GeometricParametersHandler M_parametersHandler;
->>>>>>> 1721845a018613d3f11b90a264b3fcfb8a08e265
         std::vector<double> M_generatingVector;
         unsigned int M_numSamples;
         std::vector<std::vector<double>> M_paramsBounds;
         std::vector<std::string> M_paramsNames;
-<<<<<<< HEAD
-=======
         std::vector<std::map<std::string, double>> M_samplesVector;
->>>>>>> 1721845a018613d3f11b90a264b3fcfb8a08e265
     };
 }
 

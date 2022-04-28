@@ -17,8 +17,10 @@ void
 SnapshotsSteadySampler::
 takeSnapshots(const unsigned int &Nstart)
 {
-    std::vector <std::map<std::string, double>>  SnapshotsSamples =
+
+    std::vector <std::map<std::string, double>> SnapshotsSamples =
             M_LHS.generateSamples(M_LHS.getNumSamples(), M_LHS.getNumParams());
+
 
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
     unsigned int numInletConditions = M_data("bc_conditions/numinletbcs", 2);
@@ -83,7 +85,9 @@ takeSnapshots(const unsigned int &Nstart)
             throw new Exception("The tree must be composed of only FE nodes to "
                                 "sample the snapshots!");
 
+        std::string filename = curdir + "/bypass.xml";
         printer.saveToFile(problem.getTree(), filename, M_comm);
+
         problem.solveSteady();
 
         elapsedTime += chrono.diff() / M_LHS.getNumSamples();

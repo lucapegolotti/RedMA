@@ -10,7 +10,6 @@
 #include <redma/problem/DataContainer.hpp>
 #include <redma/geometry/building_blocks/Bypass.hpp>
 #include <redma/assemblers/finite_element/StokesAssemblerFE.hpp>
-
 #include <stdio.h>
 #include <cmath>
 

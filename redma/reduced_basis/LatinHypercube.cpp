@@ -38,6 +38,7 @@ LatinHypercube(unsigned int numSamples)
                                         0, maxWidth, true, false);
     parametersHandler.registerParameter("flow_rate", 0,
                                         minFlow, maxFlow, true, false);
+
     setParametersToBeSampled();
 }
 
@@ -68,7 +69,7 @@ getBounds(std::string paramName)
 
 std::vector<std::map<std::string, double>>
 LatinHypercube::
-generateSamples(const unsigned int& N, const unsigned int& d)
+generateSamples(unsigned int N, unsigned int d)
 {
     std::vector<std::map<std::string, double>> LHS_Samples;
     std::vector<std::vector<unsigned int>> permutations = getPermutations(N, d);
@@ -92,12 +93,11 @@ generateSamples(const unsigned int& N, const unsigned int& d)
 
 std::vector<double>
 LatinHypercube::
-drawUniformSample(const unsigned int& d)
+drawUniformSample(unsigned int d)
 {
-    std::vector<double> uniformSample;
     std::vector<double> currentSample(d);
     generate(currentSample.begin(), currentSample.end(), []() {return (double) rand()/RAND_MAX; });
-    return uniformSample;
+    return currentSample;
 }
 
 std::vector<std::vector<unsigned int>>
