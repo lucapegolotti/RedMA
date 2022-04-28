@@ -20,6 +20,9 @@
 #include <redma/geometry/building_blocks/BuildingBlock.hpp>
 #include <redma/geometry/building_blocks/NonAffineDeformer.hpp>
 
+#include <lifev/core/util/Switch.hpp>
+#include <lifev/core/mesh/MeshChecks.hpp>
+
 namespace RedMA
 {
 

@@ -40,6 +40,7 @@
 
 #include <redma/utils/PrintLog.hpp>
 #include <redma/utils/Chrono.hpp>
+#include <redma/utils/Exception.hpp>
 
 #include <lifev/core/fem/FESpace.hpp>
 #include <lifev/eta/fem/ETFESpace.hpp>

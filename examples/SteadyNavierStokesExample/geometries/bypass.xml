@@ -6,16 +6,16 @@
     <bx>0</bx>
     <by>0</by>
     <bz>0</bz>
-    <in1_alphax>0.25</in1_alphax>
-    <in1_alphay>0.25</in1_alphay>
-    <in1_alphaz>-0.3</in1_alphaz>
+    <in1_alphax>0.15</in1_alphax>
+    <in1_alphay>0.15</in1_alphay>
+    <in1_alphaz>-0.05</in1_alphaz>
     <in2_alphax>0.05</in2_alphax>
     <in2_alphay>0.05</in2_alphay>
-    <in2_alphaz>-0.35</in2_alphaz>
+    <in2_alphaz>-0.15</in2_alphaz>
     <rotation_axis_x>0</rotation_axis_x>
     <rotation_axis_y>0</rotation_axis_y>
     <rotation_axis_z>0</rotation_axis_z>
-    <stenosis_amplitude>0.4</stenosis_amplitude>
+    <stenosis_amplitude>0.3</stenosis_amplitude>
     <stenosis_width>0.2</stenosis_width>
     <scale>1</scale>
 </buildingblock>

@@ -469,7 +469,7 @@ applyTotalDeformation(const double& in1_alphax, const double& in1_alphay, const 
             std::string xmlFilename = M_datafile("geometric_structure/xmldeformer",
                                                  "SolverParamList.xml");
             bending_nAffineDeformer.setXMLsolver(xmlFilename);
-            shp<VECTOREPETRA> bending_displacement = bending_nAffineDeformer.solveSystem();
+            shp<VECTOREPETRA> bending_displacement = bending_nAffineDeformer.solveSystem("Ifpack");
 
             NonAffineDeformer stenosis_nAffineDeformer(M_mesh, M_comm, M_verbose);
 
@@ -485,7 +485,8 @@ applyTotalDeformation(const double& in1_alphax, const double& in1_alphay, const 
 
             stenosis_nAffineDeformer.applyBCs(stenosis_bcs);
             stenosis_nAffineDeformer.setXMLsolver(xmlFilename);
-            shp<VECTOREPETRA> stenosis_displacement = stenosis_nAffineDeformer.solveSystem();
+            shp<VECTOREPETRA> stenosis_displacement = stenosis_nAffineDeformer.solveSystem("ML");
+
             *bending_displacement += *stenosis_displacement;
             stenosis_nAffineDeformer.deformMeshComposite(*transformer, bending_displacement);
             printlog(CYAN, ct.restore(), M_verbose);
@@ -550,11 +551,12 @@ applyNonAffineTransformation(bool transformMesh)
 
     transformer->savePoints();
 
-    if (M_mesh->check(1, false))
+    LifeV::Switch testsw;
+    LifeV::checkMesh3D(*M_mesh, testsw, false, false);
+    if ((testsw.test("ABORT_CONDITION")) || (testsw.test("HAS_NEGATIVE_VOLUMES")))
         throw new Exception("[Bypass] Aborting: invalid mesh obtained after total deformation.");
 
-
-        printlog(MAGENTA, "done\n", M_verbose);
+    printlog(MAGENTA, "done\n", M_verbose);
 }
 
 }

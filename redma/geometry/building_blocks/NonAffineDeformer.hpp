@@ -29,6 +29,7 @@
 #include <lifev/core/mesh/MeshUtility.hpp>
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <lifev/core/algorithm/PreconditionerML.hpp>
+#include <lifev/core/algorithm/PreconditionerIfpack.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_XMLParameterListHelpers.hpp>
 #include <Teuchos_RCP.hpp>
@@ -74,7 +75,7 @@ public:
      */
     void deformMesh(LifeV::MeshUtility::MeshTransformer<MESH>& transformer);
 
-    shp<VECTOREPETRA> solveSystem();
+    shp<VECTOREPETRA> solveSystem(const std::string& precType = "ML");
 
     void deformMeshComposite(LifeV::MeshUtility::MeshTransformer<MESH>& transformer, shp<VECTOREPETRA> displacement);
 
