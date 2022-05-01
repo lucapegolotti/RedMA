@@ -134,6 +134,7 @@ solveSteady()
     int status = -1;
 
     M_solution = spcast<BlockVector>(M_steadySolver->solve(status));
+
     if (status)
         throw new Exception("Error in solver. Status != 0");
 
@@ -143,7 +144,6 @@ solveSteady()
         std::string fname = M_data("exporter/pathtotxt", "IC/");
         M_assembler->exportSolutionToTxt(0.0, M_solution, fname);
     }
-
 }
 
 void

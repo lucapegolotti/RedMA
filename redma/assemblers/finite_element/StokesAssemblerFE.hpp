@@ -480,13 +480,13 @@ public:
      */
     void integrateWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS, EPETRACOMM comm, double intWSS);
 
-    /*! \brief weight function for integrateWSS
+    /*! \brief weight function for integrateWSS, compatible with LifeV syntax
      *
      * @param x x
      * @param y y
      * @param z z
-     * @param center center of integration
-     * @param radius radius of integration
+     * @param t time
+     * @param i coordinate
      * @return
      */
     static double weightFunction(const double& t,
@@ -495,7 +495,34 @@ public:
                           const double& z,
                           const LifeV::ID& i);
 
+    /*! \brief Vectorial version of weightFunction to be compatible with LifeV::Integrate
+     *
+     * @param t time
+     * @param x x
+     * @param y y
+     * @param z z
+     * @param i coordinate
+     * @return
+     */
+
+    static double vectorialWeightFunction(const double& t,
+                                          const double& x,
+                                          const double& y,
+                                          const double& z,
+                                          const LifeV::ID& i);
+
     void exportIntWSS(double intWSS);
+
+    /*! \brief Integrate the wall shear stress given the velocity.
+     *
+     * \param velocity The current velocity
+     * \param WSS WSS
+     * @param comm The MPI communicator
+     */
+
+    double integrateWallShearStress(shp<VECTOREPETRA> velocity,
+                                  shp<VECTOREPETRA> WSS,
+                                  EPETRACOMM comm, double intWSS);
 
     /*! \brief Initialize the finite element space of the velocity.
      *

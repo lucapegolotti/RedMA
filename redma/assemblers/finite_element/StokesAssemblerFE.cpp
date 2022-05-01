@@ -1276,31 +1276,64 @@ integrateWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS, EPET
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
-
+    // set integration domain and quadrature rule
     unsigned int wallFlag = M_treeNode->M_block->getWallFlag();
     QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
+    intWSS = 0;
+    std::string uOrder ("P1");
+    shp<FESPACE> pSpace(new FESPACE(M_pressureFESpace->mesh(), uOrder, 1, comm));
+    // calculate the denominator
+    function_Type g(weightFunction);
+    VECTOREPETRA gInterpolated(pSpace->map(), Repeated);
+    gInterpolated = 0.0;
+    shp<ETFESPACE1> ETpSpace(new ETFESPACE1(M_pressureFESpace->mesh(), &(uSpace->refFE()), &(uSpace->fe().geoMap()), Comm));
+    pSpace->interpolate(g, gInterpolated, 0.0);
+    double localIntegralg(0.0);
+    integrate (boundary(ETpSpace->mesh(), wallFlag),
+                myBDQR,
+                value(ETpSpace, gInterpolated)
+    ) >> localIntegralg;
+    double globalIntegralg(0.0);
+    comm->Barrier();
+    comm->SumAll(&localIntegralg, &globalIntegralg, 1); // sum all the contributes
+    // calculate the numerator
     computeWallShearStress(velocity, WSS, comm);
     shp<VECTOREPETRA> WSSRepeated(new VECTOREPETRA(*WSS, Unique));
     shp<VECTOREPETRA> weakWSSRepeated(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
     integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
               myBDQR,
               M_velocityFESpaceETA,
-              dot(value(M_velocityFESpaceETA, *WSSRepeated), phi_i)
+              dot(value(M_velocityFESpaceETA, vectorialWeightFunction) * value(M_velocityFESpaceETA, *WSSRepeated), Nface)
     ) >> weakWSSRepeated;
-    intWSS = weakWSSRepeated->norm1();
+    weakWSSRepeated->globalAssemble();
+    shp<VECTOREPETRA> weakWSSUnique(new VECTOREPETRA(*weakWSSRepeated, Unique));
+    intWSS = (weakWSSUNique->meanValue() * weakWSSUnique->size()) / globalIntegralg;
 }
 
-//double
-//StokesAssemblerFE::
-//weightFunction(const double& t, const double& x, const double& y, const double& z,  const LifeV::ID &i)
-//{
-//    Vector3D center(0, 0, 0);
-//    double radius = 0.2;
-//    Vector3D point(x, y, z);
-//    double norm = (point - center).norm() / radius;
-//    return 0.5 + 0.5 * std::sin(std::atan(1) * 4 * (norm + 0.5));
-//}
+double
+StokesAssemblerFE::
+weightFunction(const double& t, const double& x, const double& y, const double& z,  const LifeV::ID& i)
+{
+    Vector3D center(0, 0, 0);
+    double radius = 0.2;
+    Vector3D point(x, y, z);
+    double norm = (point - center).norm() / radius;
+    return 0.5 + 0.5 * std::sin(std::atan(1) * 4 * (norm + 0.5));
+}
 
+double
+StokesAssemblerFE::
+vectorialWeightFunction(const double& t, const double& x, const double& y, const double& z, const LifeV::ID& i)
+{
+    Vector3D center(0, 0, 0);
+    Vector3D versor;
+    versor *= 0;
+    versor[i] = 1;
+    double radius = 0.2;
+    Vector3D point(x, y, z);
+    double norm = (point - center).norm() / radius;
+    return (0.5 + 0.5 * std::sin(std::atan(1) * 4 * (norm + 0.5))) * versor[i];
+}
 
 void
 StokesAssemblerFE::
