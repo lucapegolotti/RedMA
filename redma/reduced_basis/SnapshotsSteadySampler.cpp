@@ -10,7 +10,7 @@ namespace RedMA
 SnapshotsSteadySampler::
 SnapshotsSteadySampler(const DataContainer &data, EPETRACOMM comm, unsigned int numSamples) :
         M_data(data),
-        M_comm(comm), M_LHS(numSamples)
+        M_comm(comm), M_sampler(numSamples), M_LHS(numSamples)
 {
 }
 
@@ -18,13 +18,11 @@ void
 SnapshotsSteadySampler::
 takeSnapshots(const unsigned int &Nstart)
 {
-
     std::vector <std::map<std::string, double>>  SnapshotsSamples =
             M_LHS.generateSamples(M_LHS.getNumSamples(), M_LHS.getNumParams());
 
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
-    unsigned int numInletConditions = M_data("bc_conditions/numinletbcs", 2);
-    unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
+    unsigned int numInletConditions = M_data("bc_conditions/numinletbcs", 1);
 
     fs::create_directory(outdir);
     GeometryPrinter printer;
@@ -34,20 +32,11 @@ takeSnapshots(const unsigned int &Nstart)
 
     for (unsigned int i = 0; i < M_LHS.getNumSamples(); i++)
     {
-        Chrono chrono;
-        chrono.start();
-
         std::map<std::string, double> vec = SnapshotsSamples[i];
-        std::string msg = "Performing the # " + std::to_string(i+1) + " snapshot generation" +
-                " out of " + std::to_string(M_LHS.getNumSamples()) + "\n\n";
-        msg = msg + " The current parameters are: \n\n";
+        std::string msg = "Performing the # " + std::to_string(i) + "snapshot generation";
+        msg = msg + "The current parameters are: ";
         printlog(GREEN, msg);
         printCurrentSample(vec);
-
-        std::vector<double> paramsVec = getParametersValuesAsVector(vec);
-
-        // just for setting easily the initial condition
-        paramsVec.insert(paramsVec.begin() + 1, 1.0 - paramsVec[0]);
 
         // to guarantee (almost...) that two snapshots are not saved at the same location!
         unsigned int paramIndex = Nstart;
@@ -57,25 +46,25 @@ takeSnapshots(const unsigned int &Nstart)
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
 
-        for (unsigned int i = 0; i < numInletConditions; i++)
+        // setting the flow rate at the inlets
+        std::vector<double> vec_inflow = {vec["flow_rate"], 1.0 - vec["flow_rate"]};
+
+        auto inletBC = std::bind(M_inflow,
+                                 std::placeholders::_1,
+                                 vec_inflow[0], vec_inflow[1]);
+
+        for (unsigned int numInlet = 0; numInlet < numInletConditions; numInlet++)
         {
-            std::function<double(double)> inletDirichlet = [paramsVec, i](double t) {return paramsVec[i]; };
-            M_data.setInletBC(inletDirichlet, i);
+            std::function<double(double)> inletDirichlet = [vec_inflow, numInlet, inletBC] (double t)
+                    { return (vec_inflow[numInlet]) * inletBC(t); };
+            M_data.setInletBC(inletDirichlet, numInlet);
         }
-
-        unsigned int numOutlet = 0;
-        M_data.setOutletBC([numOutlet](double t){return 1.5 * 1333.0;}, numOutlet);
-
-        // reset the vector as before
-        paramsVec.erase(paramsVec.begin() + 1);
 
         GlobalProblem problem(M_data, M_comm, false);
 
         problem.doStoreSolutions();
 
         fs::create_directory(curdir);
-        std::string curSolutionDir = curdir + "/";
-        M_data.setValueString("exporter/outdir", curSolutionDir);
 
         problem.getTree().setGeometricParametersFromSample(vec);
 
@@ -85,14 +74,12 @@ takeSnapshots(const unsigned int &Nstart)
             throw new Exception("The tree must be composed of only FE nodes to "
                                 "sample the snapshots!");
 
-        std::string filename = curdir + "/bypass.xml";
+        std::string filename = curdir + "/tree.xml";
         printer.saveToFile(problem.getTree(), filename, M_comm);
 
         problem.solveSteady();
 
-        elapsedTime += chrono.diff() / M_LHS.getNumSamples();
-
-        // dumpSnapshots(problem, curdir, paramsVec);
+        dumpSnapshots(problem, curdir, getParametersValuesAsVector(vec));
     }
 
     std::string msg = "Average time per snapshot =  ";
@@ -233,6 +220,7 @@ std::vector<double>
 SnapshotsSteadySampler::
 getParametersValuesAsVector(const std::map<std::string, double>& sample)
 {
+
     std::vector<double> paramsValues;
     for (auto it = sample.begin(); it != sample.end(); ++ it)
     {

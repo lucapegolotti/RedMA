@@ -17,25 +17,23 @@ namespace RedMA
         const double minFlow = 0.2;
         const double maxFlow = 0.8;
 
-        GeometricParametersHandler& parametersHandler = getGeometricParametersHandler();
-
-        parametersHandler.registerParameter("in1_alphax", 0,
+        M_parametersHandler.registerParameter("in1_alphax", 0,
                                               -maxAngle, maxAngle, true, false);
-        parametersHandler.registerParameter("in1_alphay", 0,
+        M_parametersHandler.registerParameter("in1_alphay", 0,
                                               -maxAngle, maxAngle, true, false);
-        parametersHandler.registerParameter("in1_alphaz", 0,
+        M_parametersHandler.registerParameter("in1_alphaz", 0,
                                               -maxAngle, maxAngle, true, false);
-        parametersHandler.registerParameter("in2_alphax", 0,
+        M_parametersHandler.registerParameter("in2_alphax", 0,
                                               -maxAngle, maxAngle, true, false);
-        parametersHandler.registerParameter("in2_alphay", 0,
+        M_parametersHandler.registerParameter("in2_alphay", 0,
                                               -maxAngle, maxAngle, true, false);
-        parametersHandler.registerParameter("in2_alphaz", 0,
+        M_parametersHandler.registerParameter("in2_alphaz", 0,
                                               -maxAngle, maxAngle, true, false);
-        parametersHandler.registerParameter("stenosis_amplitude", 0,
+        M_parametersHandler.registerParameter("stenosis_amplitude", 0,
                                               0, maxAmplitude, true, false);
-        parametersHandler.registerParameter("stenosis_width", 0,
+        M_parametersHandler.registerParameter("stenosis_width", 0,
                                               0, maxWidth, true, false);
-        parametersHandler.registerParameter("flow_rate", 0,
+        M_parametersHandler.registerParameter("flow_rate", 0,
                                               minFlow, maxFlow, true, false);
 
         setParametersToBeSampled();

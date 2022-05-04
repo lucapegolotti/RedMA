@@ -5,16 +5,14 @@
 #ifndef LATINHYPERCUBE_HPP
 #define LATINHYPERCUBE_HPP
 
+#include <redma/problem/DataContainer.hpp>
+#include <redma/geometry/building_blocks/Bypass.hpp>
+#include <redma/assemblers/finite_element/StokesAssemblerFE.hpp>
 #include <redma/geometry/GeometricParametersHandler.hpp>
-#include <redma/RedMA.hpp>
 
-#include <stdio.h>
-#include <cmath>
-
-namespace RedMA
+namespace RedMa
 {
-    class LatinHypercube
-    {
+    class LatinHypercube {
     public:
         LatinHypercube(unsigned int numSamples);
 
@@ -22,11 +20,11 @@ namespace RedMA
 
         std::vector<double> getBounds(std::string paramName);
 
-        std::vector<std::map<std::string, double>> generateSamples(const unsigned int& N, const unsigned int& d);
+        std::vector<std::map<std::string, double>> generateSamples(unsigned int N, unsigned int d);
 
-        std::vector<double> drawUniformSample(const unsigned int& d);
+        std::vector<double> drawUniformSample(unsigned int d);
 
-        std::vector<std::vector<unsigned int>> getPermutations(const unsigned int& N, const unsigned int& d);
+        std::vector<std::vector<unsigned int>> getPermutations(unsigned int N, unsigned int d);
 
         unsigned int getNumSamples() { return M_numSamples; };
 
@@ -36,10 +34,8 @@ namespace RedMA
 
         std::vector<std::vector<double>> getParamsBounds() { return M_paramsBounds; };
 
-        GeometricParametersHandler& getGeometricParametersHandler() {return M_parametersHandler; };
-
     private:
-        GeometricParametersHandler M_parametersHandler;
+        RedMA::GeometricParametersHandler M_parametersHandler;
         unsigned int M_numSamples;
         std::vector<std::string> M_paramsNames;
         std::vector<std::vector<double>> M_paramsBounds;

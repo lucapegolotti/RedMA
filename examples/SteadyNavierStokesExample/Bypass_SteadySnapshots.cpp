@@ -8,22 +8,26 @@
 
 using namespace RedMA;
 
+
 int main(int argc, char **argv)
 {
-    #ifdef HAVE_MPI
+#ifdef HAVE_MPI
     MPI_Init (nullptr, nullptr);
     EPETRACOMM comm (new Epetra_MpiComm(MPI_COMM_WORLD));
-    #else
+#else
     EPETRACOMM comm(new Epetra_SerialComm());
-    #endif
+#endif
 
     DataContainer data;
     data.setDatafile("datafiles/data");
-    unsigned int numOutlet = 0;
+    // data.setValueString("geometric_structure/xmlfile", "tree_snapshots.xml");
     data.setVerbose(comm->MyPID() == 0);
+    data.finalize();
 
-    unsigned int numSamples = data("rb/offline/snapshots/number", 10);
-    unsigned int Nstart = 1;
+    unsigned int numSamples = data("rb/offline/snapshots/nSnapshots", 10);
+    unsigned int Nstart = 0;
+    if (argc > 1)
+        Nstart = std::atoi(argv[1]);
 
     SnapshotsSteadySampler sampler(data, comm, numSamples);
     sampler.takeSnapshots(Nstart);

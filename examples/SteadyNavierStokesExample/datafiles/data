@@ -176,9 +176,10 @@ outputdir = solutions
 	save_every = 1
 	filename   = tube
 	exportnorms = true
-	exporttotxt = false
+	exporttotxt = true
 	pathtotxt = IC/bypass/
 [../]
+
 
 [coupling]
 	type                = chebyshev

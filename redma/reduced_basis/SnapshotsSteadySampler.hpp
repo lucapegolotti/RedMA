@@ -20,6 +20,7 @@
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/problem/GlobalProblem.hpp>
+#include <redma/reduced_basis/QMC_sampling.hpp>
 #include <redma/reduced_basis/LatinHypercube.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
 
@@ -32,30 +33,31 @@ namespace RedMA
 {
 
 /// Class handling the generation of the steady snapshots.
-class SnapshotsSteadySampler
-{
-public:
-    SnapshotsSteadySampler(const DataContainer& data, EPETRACOMM comm, unsigned int numSamples);
+    class SnapshotsSteadySampler
+    {
+    public:
+        SnapshotsSteadySampler(const DataContainer& data, EPETRACOMM comm, unsigned int numSamples);
 
-    /// Take the snapshots.
-    void takeSnapshots(const unsigned int& Nstart = 0);
+        /// Take the snapshots.
+        void takeSnapshots(const unsigned int& Nstart = 0);
 
-    inline void setInflow(const std::function<double(double,double,double)>& inflow) {M_inflow=inflow;};
+        inline void setInflow(const std::function<double(double,double,double)>& inflow) {M_inflow=inflow;};
 
-    void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double>& params);
+        void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double>& params);
 
-    void printCurrentSample(std::map<std::string, double> sample);
+        void printCurrentSample(std::map<std::string, double> sample);
 
-    std::vector<double> getParametersValuesAsVector(const std::map<std::string, double>& sample);
+        std::vector<double> getParametersValuesAsVector(const std::map<std::string, double>& sample);
 
-    std::map<std::string, double> getCurrentSample(unsigned int i);
+        std::map<std::string, double> getCurrentSample(unsigned int i);
 
-private:
-    LatinHypercube                                      M_LHS;
-    DataContainer                                       M_data;
-    EPETRACOMM                                          M_comm;
-    std::function<double(double,double,double)>         M_inflow;
-};
+    private:
+        DataContainer                                       M_data;
+        EPETRACOMM                                          M_comm;
+        QMC_sampling                                        M_sampler;
+        RedMa::LatinHypercube                               M_LHS;
+        std::function<double(double,double,double)>         M_inflow;
+    };
 
 }  // namespace RedMA
 

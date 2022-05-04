@@ -4,7 +4,7 @@
 
 #include "LatinHypercube.hpp"
 
-namespace RedMA
+namespace RedMa
 {
 
 LatinHypercube::
@@ -13,31 +13,29 @@ LatinHypercube(unsigned int numSamples)
     M_numSamples = numSamples;
 
     const double maxAngle = 0.4;
-    const double maxAmplitude = 0.3;
-    const double maxWidth = 0.2;
+    const double maxAmplitude = 0.2;
+    const double maxWidth = 0.3;
     const double minFlow = 0.2;
     const double maxFlow = 0.8;
 
-    GeometricParametersHandler& parametersHandler = getGeometricParametersHandler();
-
-    parametersHandler.registerParameter("in1_alphax", 0,
-                                        -maxAngle, maxAngle, true, false);
-    parametersHandler.registerParameter("in1_alphay", 0,
-                                        -maxAngle, maxAngle, true, false);
-    parametersHandler.registerParameter("in1_alphaz", 0,
-                                        -maxAngle, maxAngle, true, false);
-    parametersHandler.registerParameter("in2_alphax", 0,
-                                        -maxAngle, maxAngle, true, false);
-    parametersHandler.registerParameter("in2_alphay", 0,
-                                        -maxAngle, maxAngle, true, false);
-    parametersHandler.registerParameter("in2_alphaz", 0,
-                                        -maxAngle, maxAngle, true, false);
-    parametersHandler.registerParameter("stenosis_amplitude", 0,
-                                        0, maxAmplitude, true, false);
-    parametersHandler.registerParameter("stenosis_width", 0,
-                                        0, maxWidth, true, false);
-    parametersHandler.registerParameter("flow_rate", 0,
-                                        minFlow, maxFlow, true, false);
+    M_parametersHandler.registerParameter("in1_alphax", 0,
+                                          -maxAngle, maxAngle, true, false);
+    M_parametersHandler.registerParameter("in1_alphay", 0,
+                                          -maxAngle, maxAngle, true, false);
+    M_parametersHandler.registerParameter("in1_alphaz", 0,
+                                          -maxAngle, maxAngle, true, false);
+    M_parametersHandler.registerParameter("in2_alphax", 0,
+                                          -maxAngle, maxAngle, true, false);
+    M_parametersHandler.registerParameter("in2_alphay", 0,
+                                          -maxAngle, maxAngle, true, false);
+    M_parametersHandler.registerParameter("in2_alphaz", 0,
+                                          -maxAngle, maxAngle, true, false);
+    M_parametersHandler.registerParameter("stenosis_amplitude", 0,
+                                          0, maxAmplitude, true, false);
+    M_parametersHandler.registerParameter("stenosis_width", 0,
+                                          0, maxWidth, true, false);
+    M_parametersHandler.registerParameter("flow_rate", 0,
+                                          minFlow, maxFlow, true, false);
 
     setParametersToBeSampled();
 }
@@ -68,8 +66,7 @@ getBounds(std::string paramName)
 
 std::vector<std::map<std::string, double>>
 LatinHypercube::
-generateSamples(const unsigned int& N, const unsigned int& d)
-{
+generateSamples(unsigned int N, unsigned int d) {
     std::vector<std::map<std::string, double>> LHS_Samples;
     std::vector<std::vector<unsigned int>> permutations = getPermutations(N, d);
     for (unsigned int i = 0; i < N; ++i)
@@ -92,16 +89,17 @@ generateSamples(const unsigned int& N, const unsigned int& d)
 
 std::vector<double>
 LatinHypercube::
-drawUniformSample(const unsigned int& d)
+drawUniformSample(unsigned int d)
 {
+    std::vector<double> uniformSample;
     std::vector<double> currentSample(d);
     generate(currentSample.begin(), currentSample.end(), []() {return (double) rand()/RAND_MAX; });
-    return currentSample;
+    return uniformSample;
 }
 
 std::vector<std::vector<unsigned int>>
 LatinHypercube::
-getPermutations(const unsigned int& N, const unsigned int& d)
+getPermutations(unsigned int N, unsigned int d)
 {
     std::vector<std::vector<unsigned int>> permutationMatrix;
     std::vector<unsigned int> toBePermuted(N);
