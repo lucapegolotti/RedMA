@@ -20,9 +20,6 @@
 #include <redma/geometry/building_blocks/BuildingBlock.hpp>
 #include <redma/geometry/building_blocks/NonAffineDeformer.hpp>
 
-#include <lifev/core/util/Switch.hpp>
-#include <lifev/core/mesh/MeshChecks.hpp>
-
 namespace RedMA
 {
 
@@ -42,7 +39,9 @@ namespace RedMA
                std::string name = "bypass",
                bool verbose = false,
                bool boundary_layer = false,
-               bool randomizable = true);
+               bool isBifurcation = false,
+               bool randomizable = true
+               );
 
         /*! \brief Return the expected number of children.
          *
@@ -72,6 +71,13 @@ namespace RedMA
 
         /// Set the inlet and outlets.
         void resetInletOutlets() override;
+
+        /// Set the active stenosis.
+        /// i = 0 activates the old one
+        /// i = 1 activates the one on the direction of outlet zero
+        /// i = 2 activates the one on the direction of outlet one
+        /// i = 3 activates the one close to the inlet
+        void setActiveStenosis(unsigned int i);
 
         /*! \brief Compute the Jacobian non affine transformation.
          *
@@ -120,16 +126,15 @@ namespace RedMA
         void addStenosis(const double &amplitude, const double &width,
                     shp <Transformer> transformer, bool transformMesh);
 
-        void applyTotalDeformation(const double& in1_alphax, const double& in1_alphay, const double& in1_alphaz,
-                              const double& in2_alphax, const double& in2_alphay, const double& in2_alphaz,
-                              const double& amplitude, const double& width,
-                              shp<Transformer> transformer, bool transformMesh);
-
         void computeCenter();
 
         void computeStenosisCenter();
 
         void computeStenosisOuterNormal();
+
+        void setStenosisAttributes();
+
+        std::map<unsigned int, std::map<std::string, Vector3D>> M_stenosisAttributes;
 
         Vector3D M_inletCenterRef1;
         Vector3D M_inletNormalRef1;
@@ -145,6 +150,10 @@ namespace RedMA
         Vector3D M_Eigenvector1;
         Vector3D M_Eigenvector2;
         Vector3D M_Eigenvector3;
+
+        double M_diameterAtStenosis;
+
+        bool M_isBifurcation;
 
         void setDistorsionMatrix();
 
