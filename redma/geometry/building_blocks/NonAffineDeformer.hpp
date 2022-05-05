@@ -75,7 +75,7 @@ public:
      */
     void deformMesh(LifeV::MeshUtility::MeshTransformer<MESH>& transformer);
 
-    shp<VECTOREPETRA> solveSystem(const std::string& precType = "ML");
+    shp<VECTOREPETRA> solveSystem(const std::string& precType);
 
     void deformMeshComposite(LifeV::MeshUtility::MeshTransformer<MESH>& transformer, shp<VECTOREPETRA> displacement);
 
