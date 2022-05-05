@@ -24,11 +24,11 @@ outputdir = solutions
 	inflowfile = datafiles/inflow.txt
 	inletpressurefile = datafiles/inlet_pressure.txt
 
-	numinletbcs = 2
+	numinletbcs = 1
     [./inlet0]
         generate_inletBC = 0
         coefficient = 1.0
-        flag = 2
+        flag = 4
     [../]
     [./inlet1]
         generate_inletBC = 0
@@ -62,7 +62,7 @@ outputdir = solutions
 [rb]
 	[./offline]
 		[./snapshots]
-			number 			     = 50
+			number 			     = 5
 			bound 			     = 0.2
 			take_every 		     = 8
 			dumpbinary 		     = true
@@ -116,19 +116,19 @@ outputdir = solutions
 [../]
 
 [preconditioner]
-        options    	   = datafiles/solversOptionsFast
-	    outer      	   = saddlepoint
-	    inner	   	   = SIMPLE
-	    approxshur 	   = SIMPLE
-	    innertol   	   = 0.5
-	    recomputeevery = 20
-	    thresholdsize  = 5000
+	options    	   = datafiles/solversOptionsFast
+    outer      	   = saddlepoint
+    inner	   	   = SIMPLE
+    approxshur 	   = SIMPLE
+    innertol   	   = 0.5
+    recomputeevery = 20
+    thresholdsize  = 5000
 
-	[./deformation]
-	    prectype = Ifpack
-	    displayList = True
+    [./deformation]
+        prectype = Ifpack
+        displayList = false
 
-	    [./ifpack]
+        [./ifpack]
             prectype                 = Amesos # Amesos (complete LU) , ILU , ILUT
             overlap                  = 3
 
@@ -149,7 +149,7 @@ outputdir = solutions
                 ilut_level-of-fill   = 1
                 absolute_threshold   = 0
                 relative_threshold   = 1
-                drop_tolerance       = 1.e-5
+                drop_tolerance       = 1.e-8
                 relax_value          = 0
 
             [../]
