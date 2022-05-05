@@ -238,9 +238,8 @@ void
 GeometricParametersHandler::
 setParametersFromSample(const std::map<std::string, double>& sample)
 {
-    typedef std::map<std::string, GeometricParameterPtr> mapType1;
-    typedef std::map<std::string, double> mapType2;
-    for (mapType1::iterator it1 = M_parametersMap.begin(); it1 != M_parametersMap.end(); ++ it1)
+    typedef std::map<std::string, GeometricParameterPtr> mapType;
+    for (mapType::iterator it1 = M_parametersMap.begin(); it1 != M_parametersMap.end(); ++ it1)
     {
         auto it = sample.find(it1->first);
         if (it != sample.end())

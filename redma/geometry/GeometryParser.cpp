@@ -163,6 +163,13 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
 
         returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose, BL));
 
+        bool isBifurcation = false;
+        if (element->Attribute("isBifurcation"))
+        {
+            isBifurcation = std::atoi(element->Attribute("isBifurcation"));
+        }
+        returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose, BL, isBifurcation));
+
     }
     else
     {
