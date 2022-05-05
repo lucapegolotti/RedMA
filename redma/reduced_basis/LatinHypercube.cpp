@@ -13,31 +13,31 @@ LatinHypercube(unsigned int numSamples)
     M_numSamples = numSamples;
 
     const double maxAngle = 0.4;
-    const double maxAmplitude = 0.3;
-    const double maxWidth = 0.2;
+    const double maxAmplitude = 0.2;
+    const double maxWidth = 0.3;
     const double minFlow = 0.2;
     const double maxFlow = 0.8;
 
-    GeometricParametersHandler& parametersHandler = getGeometricParametersHandler();
+    GeometricParametersHandler& paramsHandler = getParametersHandler();
 
-    parametersHandler.registerParameter("in1_alphax", 0,
-                                        -maxAngle, maxAngle, true, false);
-    parametersHandler.registerParameter("in1_alphay", 0,
-                                        -maxAngle, maxAngle, true, false);
-    parametersHandler.registerParameter("in1_alphaz", 0,
-                                        -maxAngle, maxAngle, true, false);
-    parametersHandler.registerParameter("in2_alphax", 0,
-                                        -maxAngle, maxAngle, true, false);
-    parametersHandler.registerParameter("in2_alphay", 0,
-                                        -maxAngle, maxAngle, true, false);
-    parametersHandler.registerParameter("in2_alphaz", 0,
-                                        -maxAngle, maxAngle, true, false);
-    parametersHandler.registerParameter("stenosis_amplitude", 0,
-                                        0, maxAmplitude, true, false);
-    parametersHandler.registerParameter("stenosis_width", 0,
-                                        0, maxWidth, true, false);
-    parametersHandler.registerParameter("flow_rate", 0,
-                                        minFlow, maxFlow, true, false);
+//    paramsHandler.registerParameter("in1_alphax", 0,
+//                                          -maxAngle, maxAngle, true, false);
+//    paramsHandler.registerParameter("in1_alphay", 0,
+//                                          -maxAngle, maxAngle, true, false);
+//    paramsHandler.registerParameter("in1_alphaz", 0,
+//                                          -maxAngle, maxAngle, true, false);
+//    paramsHandler.registerParameter("in2_alphax", 0,
+//                                          -maxAngle, maxAngle, true, false);
+//    paramsHandler.registerParameter("in2_alphay", 0,
+//                                          -maxAngle, maxAngle, true, false);
+//    paramsHandler.registerParameter("in2_alphaz", 0,
+//                                          -maxAngle, maxAngle, true, false);
+    paramsHandler.registerParameter("stenosis_amplitude", 0,
+                                          0, maxAmplitude, true, false);
+    paramsHandler.registerParameter("stenosis_width", 0,
+                                          0, maxWidth, true, false);
+    paramsHandler.registerParameter("flow_rate", 0,
+                                          minFlow, maxFlow, true, false);
 
     setParametersToBeSampled();
 }
@@ -47,8 +47,7 @@ LatinHypercube::
 setParametersToBeSampled()
 {
     for (auto it = M_parametersHandler.getParametersMap().begin();
-    it != M_parametersHandler.getParametersMap().end(); ++ it)
-    {
+    it != M_parametersHandler.getParametersMap().end(); ++ it) {
         M_paramsNames.push_back(it->first);
         M_paramsBounds.push_back(getBounds(it->first));
     }
@@ -69,8 +68,7 @@ getBounds(std::string paramName)
 
 std::vector<std::map<std::string, double>>
 LatinHypercube::
-generateSamples(unsigned int N, unsigned int d)
-{
+generateSamples(unsigned int N, unsigned int d) {
     std::vector<std::map<std::string, double>> LHS_Samples;
     std::vector<std::vector<unsigned int>> permutations = getPermutations(N, d);
     for (unsigned int i = 0; i < N; ++i)
