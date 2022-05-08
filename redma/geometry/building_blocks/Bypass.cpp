@@ -4,7 +4,7 @@ namespace RedMA
 {
 
     Bypass::
-    Bypass(EPETRACOMM comm, std::string name, bool verbose, bool boundary_layer, bool isBifurcation,
+    Bypass(EPETRACOMM comm, std::string name, bool verbose, bool boundary_layer, bool isBifurcation, unsigned int activeStenosis,
            bool randomizable):
             BuildingBlock(comm, "coarse", verbose)
     {
@@ -97,7 +97,7 @@ namespace RedMA
         M_identity3D(2,2) = 1;
 
         setStenosisAttributes();
-        setActiveStenosis(2);
+        setActiveStenosis(activeStenosis);
         setDistorsionMatrix();
     }
 
@@ -224,6 +224,32 @@ namespace RedMA
         mapNewStenosis.insert(std::pair<std::string, Vector3D> ("eigenY", newStenosisNormal));
         mapNewStenosis.insert(std::pair<std::string, Vector3D> ("eigenZ", newStenosisThirdEigenvector));
         M_stenosisAttributes.insert(std::pair<unsigned int, std::map<std::string, Vector3D>> (2, mapNewStenosis));
+
+        // stenosis at second outlet
+        Vector3D secondNewStenosisCenter;
+        secondNewStenosisCenter[0] = -8.99104;
+        secondNewStenosisCenter[1] = 2.45104;
+        secondNewStenosisCenter[2] = 44.71721;
+        Vector3D secondNewStenosisNormal;
+        secondNewStenosisNormal[0] = 0.992063;
+        secondNewStenosisNormal[1] = 0.125465;
+        secondNewStenosisNormal[2] = -0.008358;
+        Vector3D secondNewStenosisFirstEigenvector;
+        secondNewStenosisFirstEigenvector[0] = 0.115863;
+        secondNewStenosisFirstEigenvector[1] = -0.884866;
+        secondNewStenosisFirstEigenvector[2] = 0.385514;
+        Vector3D secondNewStenosisThirdEigenvector;
+        secondNewStenosisThirdEigenvector[0] = -0.0526753;
+        secondNewStenosisThirdEigenvector[1] = 0.395785;
+        secondNewStenosisThirdEigenvector[2] = 0.909554;
+        std::map<std::string, Vector3D> mapSecondNewStenosis;
+        mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("center", secondNewStenosisCenter));
+        mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("normal", secondNewStenosisNormal));
+        mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("eigenX", secondNewStenosisNormal));
+        mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("eigenY", secondNewStenosisFirstEigenvector));
+        mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("eigenZ", secondNewStenosisThirdEigenvector));
+        M_stenosisAttributes.insert(std::pair<unsigned int, std::map<std::string, Vector3D>> (3, mapSecondNewStenosis));
+
     }
 
 
@@ -231,8 +257,8 @@ namespace RedMA
     Bypass::
     setActiveStenosis(unsigned int i)
     {
-       if (i > 2)
-           throw new Exception("There are 3 stenosis available but a number bigger than 3 was given as input...");
+       if (i > 3)
+           throw new Exception("There are 4 stenosis available but a number bigger than 3 was given as input...");
        std::string msg = "Selecting stenosis " + std::to_string(i) + "\n";
        printlog(GREEN, msg);
        M_stenosisCenter = M_stenosisAttributes[i]["center"];
@@ -246,6 +272,8 @@ namespace RedMA
            M_diameterAtStenosis = 0.6325955;
        else if (i == 2)
            M_diameterAtStenosis = 0.6585998;
+       else if (i == 3)
+           M_diameterAtStenosis = 0.2356173;
     }
 
     void
@@ -500,6 +528,7 @@ namespace RedMA
                     transformer, transformMesh);
 
         transformer->savePoints();
+
         printlog(MAGENTA, "done\n", M_verbose);
     }
 

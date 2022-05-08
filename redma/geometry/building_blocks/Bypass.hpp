@@ -39,7 +39,7 @@ namespace RedMA
                std::string name = "bypass",
                bool verbose = false,
                bool boundary_layer = false,
-               bool isBifurcation = false,
+               bool isBifurcation = false, unsigned int activeStenosis,
                bool randomizable = true
                );
 

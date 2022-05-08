@@ -15,7 +15,7 @@ namespace RedMA
 {
     class StratifiedSampling {
     public:
-        StratifiedSampling(unsigned int numSamples);
+        StratifiedSampling(std::vector<unsigned int> numSamples);
 
         void setParametersToBeSampled();
 
@@ -23,7 +23,7 @@ namespace RedMA
 
         std::vector<double> setParametersStepSize();
 
-        std::map<std::string, std::vector<double>> generateSamples(unsigned int N, unsigned int d);
+        std::map<std::string, std::vector<double>> generateSamples();
 
         unsigned int getNumSamples() { return M_numSamples; };
 
@@ -35,9 +35,12 @@ namespace RedMA
 
         GeometricParametersHandler& getParametersHandler() { return M_parametersHandler; };
 
+        std::vector<unsigned int> getNumComponents() { return M_numPerComponent; };
+
     private:
         RedMA::GeometricParametersHandler M_parametersHandler;
         unsigned int M_numSamples;
+        std::vector<unsigned int> M_numPerComponent;
         std::vector<std::string> M_paramsNames;
         std::vector<std::vector<double>> M_paramsBounds;
     };

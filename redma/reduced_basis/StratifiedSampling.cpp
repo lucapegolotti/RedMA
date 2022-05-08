@@ -8,15 +8,16 @@ namespace RedMA
 {
 
 StratifiedSampling::
-StratifiedSampling(unsigned int numSamples)
+StratifiedSampling(std::vector<unsigned int> numSamples)
 {
-    M_numSamples = numSamples;
+
+    M_numPerComponent = numSamples;
 
     const double maxAngle = 0.4;
-    const double maxAmplitude = 0.04;
-    const double maxWidth = 0.04;
+    const double maxAmplitude = 0.3;
+    const double maxWidth = 0.2;
     const double minFlow = 0.6;
-    const double maxFlow = 0.64;
+    const double maxFlow = 1.0;
 
     GeometricParametersHandler& paramsHandler = getParametersHandler();
 
@@ -70,13 +71,14 @@ getBounds(std::string paramName)
 
 std::map<std::string, std::vector<double>>
 StratifiedSampling::
-generateSamples(unsigned int N, unsigned int d)
+generateSamples()
 {
     std::map<std::string, std::vector<double>> samples;
-    for (unsigned int j = 0; j < d; ++j)
+    for (unsigned int j = 0; j < this->getNumParams(); ++j)
     {
+        unsigned int N = M_numPerComponent[j];
         std::vector<double> oneParamSamples;
-        for (unsigned int i = 0; i < N; ++i)
+        for (unsigned int i = 0; i < (N+1); ++i)
         {
             double elem = M_paramsBounds[j][0] + i/float(N) * (M_paramsBounds[j][1] - M_paramsBounds[j][0]);
             oneParamSamples.push_back(elem);

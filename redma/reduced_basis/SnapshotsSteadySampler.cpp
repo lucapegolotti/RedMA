@@ -8,7 +8,7 @@ namespace RedMA
 {
 
 SnapshotsSteadySampler::
-SnapshotsSteadySampler(const DataContainer &data, EPETRACOMM comm, unsigned int numSamples) :
+SnapshotsSteadySampler(const DataContainer &data, EPETRACOMM comm, std::vector<unsigned int> numSamples) :
         M_data(data), M_comm(comm), M_StratifiedSampler(numSamples)
 {
 }
@@ -18,11 +18,10 @@ SnapshotsSteadySampler::
 takeSnapshots(const unsigned int &Nstart)
 {
     std::map <std::string, std::vector<double>> SnapshotsSamples =
-            M_StratifiedSampler.generateSamples(M_StratifiedSampler.getNumSamples(),
-                                                M_StratifiedSampler.getNumParams());
+            M_StratifiedSampler.generateSamples();
 
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
-    unsigned int numInletConditions = M_data("bc_conditions/numinletbcs", 2);
+    unsigned int numInletConditions = M_data("bc_conditions/numinletbcs", 1);
     unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
 
     fs::create_directory(outdir);
@@ -31,22 +30,25 @@ takeSnapshots(const unsigned int &Nstart)
     double elapsedTime = 0.0;
 
     BV solutionPrevAmplitude;
-    BV solutionPrevDepth;
+    BV solutionPrevWidth;
     BV solutionPrevFlowRate;
 
-    Chrono chrono;
-    chrono.start();
+    std::map<std::string, BV> initialConditions;
 
-    for (unsigned int i = 0; i < M_StratifiedSampler.getNumSamples(); i++)
+    for (unsigned int i = 0; i < M_StratifiedSampler.getNumComponents()[0]; i++)
     {
         std::map<std::string, double> currentSample;
         currentSample["flow_rate"] = SnapshotsSamples["flow_rate"][i];
-        for (unsigned int j = 0; j < M_StratifiedSampler.getNumSamples(); j++)
+        for (unsigned int j = 0; j < M_StratifiedSampler.getNumComponents()[1]; j++)
         {
             currentSample["stenosis_amplitude"] = SnapshotsSamples["stenosis_amplitude"][j];
-            for (unsigned int k = 0; k < M_StratifiedSampler.getNumSamples(); k++)
+            for (unsigned int k = 0; k < M_StratifiedSampler.getNumComponents()[2]; k++)
             {
+                Chrono chrono;
+                chrono.start();
+
                 currentSample["stenosis_width"] = SnapshotsSamples["stenosis_width"][k];
+
                 std::string msg = "Performing the snapshot generation for the current values";
                 msg = msg + "The current parameters are: ";
                 printlog(GREEN, msg);
@@ -75,22 +77,29 @@ takeSnapshots(const unsigned int &Nstart)
 
                 std::string filename = curdir + "/bypass.xml";
                 printer.saveToFile(problem.getTree(), filename, M_comm);
-                if (j != 0 && i != 0 && k == 0)
-                    problem.getSteadySolver()->setInitialGuess(solutionPrevAmplitude);
-                if (j != 0 && i == 0 && k == 0)
-                    problem.getSteadySolver()->setInitialGuess(solutionPrevDepth);
-                if (k != 0)
-                    problem.getSteadySolver()->setInitialGuess(solutionPrevFlowRate);
-                problem.solveSteady();
-                solutionPrevFlowRate = problem.getLastSolution();
-                if (k == 0)
-                    std::cout << "Starting new run for the flow_rate, save last depth solution" << std::endl;
-                    solutionPrevDepth = problem.getLastSolution();
-                if (j == 0 && k == 0)
-                    std::cout << "Starting new run for the width, save last amplitude solution" << std::endl;
-                    solutionPrevAmplitude = problem.getLastSolution();
 
-                // dumpSnapshots(problem, curdir, paramsVec);
+                if (k != 0)
+                    problem.getSteadySolver()->setInitialGuess(initialConditions["stenosis_width"]);
+                if (j != 0 && k == 0)
+                    problem.getSteadySolver()->setInitialGuess(initialConditions["stenosis_amplitude"]);
+                if (i != 0 && j == 0 && k == 0)
+                    problem.getSteadySolver()->setInitialGuess(initialConditions["flow_rate"]);
+;
+                problem.solveSteady();
+
+                if (k == 0)
+                    initialConditions["stenosis_amplitude"] = problem.getLastSolution();
+                if (j == 0 && k == 0)
+                    initialConditions["flow_rate"] = problem.getLastSolution();
+
+                // this is always updated
+                initialConditions["stenosis_width"] = problem.getLastSolution();
+
+                elapsedTime += chrono.diff() / std::accumulate(begin(M_StratifiedSampler.getNumComponents()),
+                                                               end(M_StratifiedSampler.getNumComponents()),
+                                                               1, std::multiplies<unsigned int>());
+
+                dumpSnapshots(problem, curSolutionDir, paramsVec);
             }
         }
     }
@@ -245,7 +254,7 @@ dumpSnapshots(GlobalProblem& problem,
             outfile.close();
         }
 
-        shp<VECTOREPETRA> WSS(new VECTOREPETRA(problem.getBlockAssembler()->block(0)->getFESpaceBCs()->map(), LifeV::Unique));
+        shp<VECTOREPETRA> WSS(new VECTOREPETRA(problem.getBlockAssembler()->block(0)->getFESpaceBCs()->map, LifeV::Unique));
         if (computereynolds) {
             std::ofstream reynoldsfile;
             reynoldsfile.open(outdir + "/reynolds.txt", std::ios_base::app |
@@ -253,7 +262,6 @@ dumpSnapshots(GlobalProblem& problem,
             for (auto sol: solutions) {
                 auto solBlck = convert<DistributedVector>(convert<BlockVector>(
                         convert<BlockVector>(sol)->block(idmeshtype.first))->block(0));
-                // problem.getBlockAssembler()->block(0)->getTreeNode()->computeWallShearStress(solBlck, WSS, M_comm);
                 double Umax = solBlck->maxMagnitude3D();
                 auto tNode = problem.getBlockAssembler()->block(0)->getTreeNode();
                 double D = 2 * tNode->M_block->getInlet(0).M_radius;
@@ -264,6 +272,19 @@ dumpSnapshots(GlobalProblem& problem,
             }
             reynoldsfile.close();
         }
+
+        std::ofstream WSSfile;
+        WSSfile.open(outdir + "/WSS.txt", std::ios_base::app |
+                                          std::ios::binary);
+        for (auto sol: solutions)
+        {
+            auto solBlck = convert<DistributedVector>(convert<BlockVector>(
+                    convert<BlockVector>(sol)->block(idmeshtype.first))->block(0));
+            problem.getBlockAssembler()->block(0)->computeWallShearStress(solBlck, WSS, M_comm);
+            if (M_comm->MyPID() == 0)
+                WSSfile << WSS << std::endl;
+        }
+        WSSfile.close();
 
         if (!params.empty()) {
             std::ofstream file(outdir + "/coeffile.txt", std::ios_base::app);

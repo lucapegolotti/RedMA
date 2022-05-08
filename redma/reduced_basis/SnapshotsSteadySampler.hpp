@@ -38,7 +38,7 @@ namespace RedMA
     {
         typedef shp<BlockVector>                   BV;
     public:
-        SnapshotsSteadySampler(const DataContainer& data, EPETRACOMM comm, unsigned int numSamples);
+        SnapshotsSteadySampler(const DataContainer& data, EPETRACOMM comm, std::vector<unsigned int> numSamples);
 
         /// Take the snapshots.
         void takeSnapshots(const unsigned int& Nstart = 0);
