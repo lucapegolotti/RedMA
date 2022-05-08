@@ -273,7 +273,7 @@ namespace RedMA
        else if (i == 2)
            M_diameterAtStenosis = 0.6585998;
        else if (i == 3)
-           M_diameterAtStenosis = 0.2356173;
+           M_diameterAtStenosis = 0.5109350;
     }
 
     void
