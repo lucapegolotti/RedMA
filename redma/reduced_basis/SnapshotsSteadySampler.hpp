@@ -53,6 +53,8 @@ namespace RedMA
 
         std::map<std::string, double> getCurrentSample(unsigned int i);
 
+        void saveCoeffsFile(std::string outdir, std::map<std::string, std::vector<double>> currentSample);
+
     private:
         DataContainer                                       M_data;
         EPETRACOMM                                          M_comm;

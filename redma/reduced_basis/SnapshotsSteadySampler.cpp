@@ -17,8 +17,7 @@ void
 SnapshotsSteadySampler::
 takeSnapshots(const unsigned int &Nstart)
 {
-    std::map <std::string, std::vector<double>> SnapshotsSamples =
-            M_StratifiedSampler.generateSamples();
+    std::map<std::string, std::vector<double>> SnapshotsSamples = M_StratifiedSampler.generateSamples();
 
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
     unsigned int numInletConditions = M_data("bc_conditions/numinletbcs", 1);
@@ -29,15 +28,15 @@ takeSnapshots(const unsigned int &Nstart)
 
     double elapsedTime = 0.0;
 
-    BV solutionPrevAmplitude;
-    BV solutionPrevWidth;
-    BV solutionPrevFlowRate;
+    double DeltaT = 1.0;
+    double curTime = 0.0;
 
     std::map<std::string, BV> initialConditions;
+    std::map<std::string, double> currentSample;
+    std::map<unsigned int, BV> solutions;
 
     for (unsigned int i = 0; i < M_StratifiedSampler.getNumComponents()[0]; i++)
     {
-        std::map<std::string, double> currentSample;
         currentSample["flow_rate"] = SnapshotsSamples["flow_rate"][i];
         for (unsigned int j = 0; j < M_StratifiedSampler.getNumComponents()[1]; j++)
         {
@@ -49,16 +48,16 @@ takeSnapshots(const unsigned int &Nstart)
 
                 currentSample["stenosis_width"] = SnapshotsSamples["stenosis_width"][k];
 
-                std::string msg = "Performing the snapshot generation for the current values";
-                msg = msg + "The current parameters are: ";
+                std::string msg = "Performing the snapshot generation for the current values : \n";
+                msg = msg + "The current parameters are: \n";
                 printlog(GREEN, msg);
                 printCurrentSample(currentSample);
 
                 std::vector<double> paramsVec = getParametersValuesAsVector(currentSample);
 
                 // setting directory where to store the solutions
-                std::string curdir = outdir + "/param" + std::to_string(i) + "_"
-                                     + std::to_string(j) + "_" + std::to_string(k);
+                // std::string curdir = outdir + "/param" + std::to_string(i) + "_"
+                //                     + std::to_string(j) + "_" + std::to_string(k);
 
                 // setting the flow rate at the unique inlet, the flow_rate is in position zero
                 unsigned int numInlet = 0;
@@ -66,17 +65,19 @@ takeSnapshots(const unsigned int &Nstart)
                 M_data.setInletBC(inletDirichlet, numInlet);
 
                 GlobalProblem problem(M_data, M_comm, false);
-                fs::create_directory(curdir);
+                // fs::create_directory(curdir);
 
-                std::string curSolutionDir = curdir + "/";
-                M_data.setValueString("exporter/outdir", curSolutionDir);
+                // std::string curSolutionDir = curdir + "/";
+                // M_data.setValueString("exporter/outdir", curSolutionDir);
 
                 problem.getTree().setGeometricParametersFromSample(currentSample);
 
+                problem.doStoreSolutions();
+
                 problem.setup();
 
-                std::string filename = curdir + "/bypass.xml";
-                printer.saveToFile(problem.getTree(), filename, M_comm);
+                // std::string filename = curdir + "/bypass.xml";
+                // printer.saveToFile(problem.getTree(), filename, M_comm);
 
                 if (k != 0)
                     problem.getSteadySolver()->setInitialGuess(initialConditions["stenosis_width"]);
@@ -84,22 +85,33 @@ takeSnapshots(const unsigned int &Nstart)
                     problem.getSteadySolver()->setInitialGuess(initialConditions["stenosis_amplitude"]);
                 if (i != 0 && j == 0 && k == 0)
                     problem.getSteadySolver()->setInitialGuess(initialConditions["flow_rate"]);
-;
+
                 problem.solveSteady();
+
+                curTime += DeltaT;
+                solutions[curTime] = problem.getLastSolution();
 
                 if (k == 0)
                     initialConditions["stenosis_amplitude"] = problem.getLastSolution();
                 if (j == 0 && k == 0)
                     initialConditions["flow_rate"] = problem.getLastSolution();
 
-                // this is always updated
                 initialConditions["stenosis_width"] = problem.getLastSolution();
 
-                elapsedTime += chrono.diff() / std::accumulate(begin(M_StratifiedSampler.getNumComponents()),
-                                                               end(M_StratifiedSampler.getNumComponents()),
-                                                               1, std::multiplies<unsigned int>());
+                // elapsedTime += chrono.diff();
 
-                dumpSnapshots(problem, curSolutionDir, paramsVec);
+//                if (i == M_StratifiedSampler.getNumComponents()[0]-1 &&
+//                    j == M_StratifiedSampler.getNumComponents()[1]-1 &&
+//                    k == M_StratifiedSampler.getNumComponents()[2]-1)
+//                {
+//                    for (unsigned int l = 0; l < curTime; l++)
+//                    {
+//                        std::cout << "[SnapshotsSteadySampler] Saving all solutions to HDF5..." << std::endl;
+//                        problem.getBlockAssembler()->exportSolution(l, solutions[l]);
+//                    }
+//                }
+
+                // dumpSnapshots(problem, curSolutionDir, paramsVec);
             }
         }
     }
@@ -108,70 +120,9 @@ takeSnapshots(const unsigned int &Nstart)
     msg += std::to_string(elapsedTime);
     msg += " seconds\n";
     printlog(MAGENTA, msg, true);
+
+    saveCoeffsFile(outdir, SnapshotsSamples);
 }
-
-
-//    for (unsigned int i = 0; i < M_StratifiedSampler.getNumSamples(); i++)
-//    {
-//        std::map<std::string, double> vec = SnapshotsSamples[i];
-//        std::string msg = "Performing the # " + std::to_string(i) + "snapshot generation";
-//        msg = msg + "The current parameters are: ";
-//        printlog(GREEN, msg);
-//        printCurrentSample(vec);
-//
-//        std::vector<double> paramsVec = getParametersValuesAsVector(vec);
-//
-//        // paramsVec.insert(paramsVec.begin() + 1, 1.0 - paramsVec[0]);
-//
-//        // to guarantee (almost...) that two snapshots are not saved at the same location!
-//        unsigned int paramIndex = Nstart;
-//        // we find the first parameter index available, starting from Nstart
-//        while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
-//            paramIndex++;
-//        std::string curdir = outdir + "/param" + std::to_string(paramIndex);
-//
-//        for (unsigned int numInlet = 0; numInlet < numInletConditions; ++numInlet)
-//        {
-//            std::function<double(double)> inletDirichlet = [paramsVec, numInlet](double t) {return paramsVec[numInlet]; };
-//            M_data.setInletBC(inletDirichlet, numInlet);
-//        }
-//
-//       unsigned int numOutlet = 0;
-//       M_data.setOutletBC([numOutlet](double t){return 1.5 * 1333.0;}, numOutlet);
-//
-//        // paramsVec.erase(paramsVec.begin() + 1);
-//
-//        GlobalProblem problem(M_data, M_comm, false);
-//
-//        problem.doStoreSolutions();
-//
-//        fs::create_directory(curdir);
-//
-//        std::string curSolutionDir = curdir + "/";
-//        M_data.setValueString("exporter/outdir", curSolutionDir);
-//
-//        problem.getTree().setGeometricParametersFromSample(vec);
-//
-//        problem.setup();
-//
-//         if (!problem.isFEProblem())
-//            throw new Exception("The tree must be composed of only FE nodes to "
-//                                "sample the snapshots!");
-//
-//        std::string filename = curdir + "/bypass.xml";
-//        printer.saveToFile(problem.getTree(), filename, M_comm);
-//
-//        problem.solveSteady();
-//
-//        dumpSnapshots(problem, curdir, getParametersValuesAsVector(vec));
-//    }
-//
-//    std::string msg = "Average time per snapshot =  ";
-//    msg += std::to_string(elapsedTime);
-//    msg += " seconds\n";
-//    printlog(MAGENTA, msg, true);
-//
-//}
 
 void
 SnapshotsSteadySampler::
@@ -254,14 +205,15 @@ dumpSnapshots(GlobalProblem& problem,
             outfile.close();
         }
 
-        shp<VECTOREPETRA> WSS(new VECTOREPETRA(problem.getBlockAssembler()->block(0)->getFESpaceBCs()->map, LifeV::Unique));
-        if (computereynolds) {
+        if (computereynolds)
+        {
             std::ofstream reynoldsfile;
             reynoldsfile.open(outdir + "/reynolds.txt", std::ios_base::app |
                                                         std::ios::binary);
             for (auto sol: solutions) {
                 auto solBlck = convert<DistributedVector>(convert<BlockVector>(
                         convert<BlockVector>(sol)->block(idmeshtype.first))->block(0));
+                // problem.getBlockAssembler()->block(0)->getTreeNode()->computeWallShearStress(solBlck, WSS, M_comm);
                 double Umax = solBlck->maxMagnitude3D();
                 auto tNode = problem.getBlockAssembler()->block(0)->getTreeNode();
                 double D = 2 * tNode->M_block->getInlet(0).M_radius;
@@ -273,19 +225,6 @@ dumpSnapshots(GlobalProblem& problem,
             reynoldsfile.close();
         }
 
-        std::ofstream WSSfile;
-        WSSfile.open(outdir + "/WSS.txt", std::ios_base::app |
-                                          std::ios::binary);
-        for (auto sol: solutions)
-        {
-            auto solBlck = convert<DistributedVector>(convert<BlockVector>(
-                    convert<BlockVector>(sol)->block(idmeshtype.first))->block(0));
-            problem.getBlockAssembler()->block(0)->computeWallShearStress(solBlck, WSS, M_comm);
-            if (M_comm->MyPID() == 0)
-                WSSfile << WSS << std::endl;
-        }
-        WSSfile.close();
-
         if (!params.empty()) {
             std::ofstream file(outdir + "/coeffile.txt", std::ios_base::app);
 
@@ -295,6 +234,31 @@ dumpSnapshots(GlobalProblem& problem,
             file.close();
         }
     }
+}
+
+void
+SnapshotsSteadySampler::
+saveCoeffsFile(std::string outdir, std::map<std::string, std::vector<double>> samples)
+{
+    assert(!(samples.empty()));
+
+    std::cout << "[SnapshotsSteadySampler] Saving all parameters to file..." << std::endl;
+    std::ofstream file(outdir + "/coeffile.txt", std::ios_base::app);
+
+    for (unsigned int i = 0; i < M_StratifiedSampler.getNumComponents()[0]; i++)
+    {
+        for (unsigned int j = 0; j < M_StratifiedSampler.getNumComponents()[1]; j++)
+        {
+            for (unsigned int k = 0; k < M_StratifiedSampler.getNumComponents()[2]; k++)
+            {
+                file << std::fixed << std::setprecision(10) << "Flow rate : " << std::to_string(samples["flow_rate"][i]) << std::endl;
+                file << std::fixed << std::setprecision(10) << "Stenosis amplitude : " << std::to_string(samples["stenosis_amplitude"][j]) << std::endl;
+                file << std::fixed << std::setprecision(10) << "Stenosis width : " << std::to_string(samples["stenosis_width"][k]) << std::endl;
+                file << std::endl << std::endl;
+            }
+        }
+    }
+    file.close();
 }
 
 void
@@ -320,3 +284,66 @@ getParametersValuesAsVector(const std::map<std::string, double>& sample)
     return paramsValues;
 }
 }
+
+
+//    for (unsigned int i = 0; i < M_StratifiedSampler.getNumSamples(); i++)
+//    {
+//        std::map<std::string, double> vec = SnapshotsSamples[i];
+//        std::string msg = "Performing the # " + std::to_string(i) + "snapshot generation";
+//        msg = msg + "The current parameters are: ";
+//        printlog(GREEN, msg);
+//        printCurrentSample(vec);
+//
+//        std::vector<double> paramsVec = getParametersValuesAsVector(vec);
+//
+//        // paramsVec.insert(paramsVec.begin() + 1, 1.0 - paramsVec[0]);
+//
+//        // to guarantee (almost...) that two snapshots are not saved at the same location!
+//        unsigned int paramIndex = Nstart;
+//        // we find the first parameter index available, starting from Nstart
+//        while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
+//            paramIndex++;
+//        std::string curdir = outdir + "/param" + std::to_string(paramIndex);
+//
+//        for (unsigned int numInlet = 0; numInlet < numInletConditions; ++numInlet)
+//        {
+//            std::function<double(double)> inletDirichlet = [paramsVec, numInlet](double t) {return paramsVec[numInlet]; };
+//            M_data.setInletBC(inletDirichlet, numInlet);
+//        }
+//
+//       unsigned int numOutlet = 0;
+//       M_data.setOutletBC([numOutlet](double t){return 1.5 * 1333.0;}, numOutlet);
+//
+//        // paramsVec.erase(paramsVec.begin() + 1);
+//
+//        GlobalProblem problem(M_data, M_comm, false);
+//
+//        problem.doStoreSolutions();
+//
+//        fs::create_directory(curdir);
+//
+//        std::string curSolutionDir = curdir + "/";
+//        M_data.setValueString("exporter/outdir", curSolutionDir);
+//
+//        problem.getTree().setGeometricParametersFromSample(vec);
+//
+//        problem.setup();
+//
+//         if (!problem.isFEProblem())
+//            throw new Exception("The tree must be composed of only FE nodes to "
+//                                "sample the snapshots!");
+//
+//        std::string filename = curdir + "/bypass.xml";
+//        printer.saveToFile(problem.getTree(), filename, M_comm);
+//
+//        problem.solveSteady();
+//
+//        dumpSnapshots(problem, curdir, getParametersValuesAsVector(vec));
+//    }
+//
+//    std::string msg = "Average time per snapshot =  ";
+//    msg += std::to_string(elapsedTime);
+//    msg += " seconds\n";
+//    printlog(MAGENTA, msg, true);
+//
+//}
