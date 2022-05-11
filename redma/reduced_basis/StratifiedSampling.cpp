@@ -10,14 +10,13 @@ namespace RedMA
 StratifiedSampling::
 StratifiedSampling(std::vector<unsigned int> numSamples)
 {
-
     M_numPerComponent = numSamples;
 
     const double maxAngle = 0.4;
-    const double maxAmplitude = 0.3;
-    const double maxWidth = 0.2;
+    const double maxAmplitude = 0.04;
+    const double maxWidth = 0.04;
     const double minFlow = 0.6;
-    const double maxFlow = 1.0;
+    const double maxFlow = 0.64;
 
     GeometricParametersHandler& paramsHandler = getParametersHandler();
 
@@ -78,7 +77,7 @@ generateSamples()
     {
         unsigned int N = M_numPerComponent[j];
         std::vector<double> oneParamSamples;
-        for (unsigned int i = 0; i < (N+1); ++i)
+        for (unsigned int i = 0; i < N; ++i)
         {
             double elem = M_paramsBounds[j][0] + i/float(N) * (M_paramsBounds[j][1] - M_paramsBounds[j][0]);
             oneParamSamples.push_back(elem);

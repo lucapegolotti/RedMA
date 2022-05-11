@@ -21,8 +21,6 @@ namespace RedMA
 
         std::vector<double> getBounds(std::string paramName);
 
-        std::vector<double> setParametersStepSize();
-
         std::map<std::string, std::vector<double>> generateSamples();
 
         unsigned int getNumSamples() { return M_numSamples; };
@@ -40,9 +38,9 @@ namespace RedMA
     private:
         RedMA::GeometricParametersHandler M_parametersHandler;
         unsigned int M_numSamples;
-        std::vector<unsigned int> M_numPerComponent;
         std::vector<std::string> M_paramsNames;
         std::vector<std::vector<double>> M_paramsBounds;
+        std::vector<unsigned int> M_numPerComponent;
     };
 }
 
