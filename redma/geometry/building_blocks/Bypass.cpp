@@ -105,21 +105,26 @@ namespace RedMA
     Bypass::
     resetInletOutlets()
     {
-        GeometricFace inlet1(M_inletCenterRef1, M_inletNormalRef1, M_inletRadiusRef1, 2, 20);
-        GeometricFace inlet2(M_inletCenterRef2, M_inletNormalRef2, M_inletRadiusRef2, 3, 30);
-        GeometricFace outlet(M_outletCenterRef, M_outletNormalRef, M_outletRadiusRef, 4, 40);
 
         M_inlets.clear();
         M_outlets.clear();
 
         if (M_isBifurcation)
         {
+            GeometricFace inlet1(M_inletCenterRef1, -1.0 * M_inletNormalRef1, M_inletRadiusRef1, 2, 20);
+            GeometricFace inlet2(M_inletCenterRef2, -1.0 * M_inletNormalRef2, M_inletRadiusRef2, 3, 30);
+            GeometricFace outlet(M_outletCenterRef, -1.0 * M_outletNormalRef, M_outletRadiusRef, 4, 40);
+
             M_inlets.push_back(outlet);
             M_outlets.push_back(inlet1);
             M_outlets.push_back(inlet2);
         }
         else
         {
+            GeometricFace inlet1(M_inletCenterRef1, M_inletNormalRef1, M_inletRadiusRef1, 2, 20);
+            GeometricFace inlet2(M_inletCenterRef2, M_inletNormalRef2, M_inletRadiusRef2, 3, 30);
+            GeometricFace outlet(M_outletCenterRef, M_outletNormalRef, M_outletRadiusRef, 4, 40);
+
             M_inlets.push_back(inlet1);
             M_inlets.push_back(inlet2);
             M_outlets.push_back(outlet);
@@ -225,7 +230,7 @@ namespace RedMA
         mapNewStenosis.insert(std::pair<std::string, Vector3D> ("eigenZ", newStenosisThirdEigenvector));
         M_stenosisAttributes.insert(std::pair<unsigned int, std::map<std::string, Vector3D>> (2, mapNewStenosis));
 
-        // stenosis at second outlet
+
         Vector3D secondNewStenosisCenter;
         secondNewStenosisCenter[0] = -8.99104;
         secondNewStenosisCenter[1] = 2.45104;
@@ -249,7 +254,6 @@ namespace RedMA
         mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("eigenY", secondNewStenosisFirstEigenvector));
         mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("eigenZ", secondNewStenosisThirdEigenvector));
         M_stenosisAttributes.insert(std::pair<unsigned int, std::map<std::string, Vector3D>> (3, mapSecondNewStenosis));
-
     }
 
 
@@ -528,7 +532,6 @@ namespace RedMA
                     transformer, transformMesh);
 
         transformer->savePoints();
-
         printlog(MAGENTA, "done\n", M_verbose);
     }
 
