@@ -495,7 +495,7 @@ setExporter()
                                 "WSS", M_velocityFESpace, M_WSSExporter, 0.0);
     }
 
-    bool exportDisp = this->M_data("exporter/export_displacement", true);
+    bool exportDisp = this->M_data("exporter/export_disp", true);
     if  (exportDisp)
     {
         M_displacementExporter.reset(new VECTOREPETRA(M_displacementFESpace->map(),
