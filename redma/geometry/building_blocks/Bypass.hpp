@@ -93,8 +93,6 @@ namespace RedMA
                                                                 const double& y,
                                                                 const double& z) override {return M_identity3D;};
 
-        shp<VECTOREPETRA> getDisplacement() { return M_displacement; };
-
     private:
 
         static double inletMapFunction(const double& t, const double& x,
@@ -166,8 +164,6 @@ namespace RedMA
         double M_inletRadiusRef1;
         double M_inletRadiusRef2;
         double M_outletRadiusRef;
-
-        shp<VECTOREPETRA> M_displacement;
     };
 
 }  // namespace RedMA

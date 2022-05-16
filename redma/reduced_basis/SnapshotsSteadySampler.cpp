@@ -123,7 +123,7 @@ takeSnapshots(const unsigned int &Nstart)
                 // pressure
                 solCopy->setBlock(1, problem.getLastSolution()->block(0)->block(1));
                 // displacement
-                solCopy->setBlock(2,problem.getBlockAssembler()->block(0)->getTreeNode()->M_block->getDisplacement());
+                solCopy->setBlock(2, problem.getBlockAssembler()->block(0)->getTreeNode()->M_block->getDisplacement());
 
                 defAssembler->exportSolution(curTime, solCopy);
 

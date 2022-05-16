@@ -362,7 +362,7 @@ namespace RedMA
                 LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
                 LifeV::BCFunctionBase stenosisFunction(fooWall);
 
-                shp <LifeV::BCHandler> bcs(new LifeV::BCHandler);
+                shp<LifeV::BCHandler> bcs(new LifeV::BCHandler);
                 bcs->addBC("Inlet1", 2, LifeV::Essential, LifeV::Full,
                            zeroFunction, 3);
                 bcs->addBC("Inlet2", 3, LifeV::Essential, LifeV::Full,

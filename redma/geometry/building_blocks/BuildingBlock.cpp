@@ -107,6 +107,8 @@ BuildingBlock(EPETRACOMM comm, std::string refinement, bool verbose) :
     M_parametersHandler.registerParameter("bx", 0.0, -infty, infty);
     M_parametersHandler.registerParameter("by", 0.0, -infty, infty);
     M_parametersHandler.registerParameter("bz", 0.0, -infty, infty);
+
+    M_displacement->zero();
 }
 
 void
