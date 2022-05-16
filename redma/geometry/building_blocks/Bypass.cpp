@@ -378,9 +378,9 @@ namespace RedMA
                 std::string xmlFilename = M_datafile("geometric_structure/xmldeformer",
                                                      "SolverParamList.xml");
                 nAffineDeformer.setXMLsolver(xmlFilename);
-                nAffineDeformer.deformMesh(*transformer);
+                M_displacement = nAffineDeformer.solveSystem("Ifpack");
+                nAffineDeformer.deformMeshComposite(*transformer, M_displacement);
                 printlog(CYAN, ct.restore(), M_verbose);
-
             }
 
         }
@@ -477,7 +477,6 @@ namespace RedMA
                 std::string xmlFilename = M_datafile("geometric_structure/xmldeformer",
                                                      "SolverParamList.xml");
                 nAffineDeformer.setXMLsolver(xmlFilename);
-                nAffineDeformer.deformMesh(*transformer);
                 printlog(CYAN, ct.restore(), M_verbose);
             }
         }

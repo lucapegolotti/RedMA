@@ -182,18 +182,22 @@ exportSolution(const double& t,
     *M_velocityExporter = *spcast<VECTOREPETRA>(solBlck->block(0)->data());
     *M_pressureExporter = *spcast<VECTOREPETRA>(solBlck->block(1)->data());
 
+    bool exportDisp = M_data("exporter/export_disp", true);
+    if (exportDisp)
+        *M_displacementExporter = *spcast<VECTOREPETRA>(solBlck->block(2)->data());
+
     bool exportWSS = this->M_data("exporter/export_wss", 1);
     if (exportWSS)
         computeWallShearStress(M_velocityExporter, M_WSSExporter, M_comm);
 
-    integrateWallShearStress(M_velocityExporter, M_WSSExporter, M_comm, M_intWSSExporter);
-
     shp<BlockVector> solCopy(new BlockVector(2));
+    if (exportDisp)
+        *solCopy = BlockVector(3);
     solCopy->block(0)->setData(M_velocityExporter);
     computeFlowRates(solCopy, true);
 
     exportNorms(t, M_velocityExporter, M_pressureExporter);
-    exportIntWSS(M_intWSSExporter);
+    // exportIntWSS(M_intWSSExporter);
 
     CoutRedirecter ct;
     ct.redirect();
@@ -445,6 +449,7 @@ void
 StokesAssemblerFE::
 initializeFEspaces()
 {
+    initializeDisplacementFESpace(M_comm);
     initializeVelocityFESpace(M_comm);
     initializePressureFESpace(M_comm);
 }
@@ -488,6 +493,15 @@ setExporter()
 
         M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
                                 "WSS", M_velocityFESpace, M_WSSExporter, 0.0);
+    }
+
+    bool exportDisp = this->M_data("exporter/export_displacement", true);
+    if  (exportDisp)
+    {
+        M_displacementExporter.reset(new VECTOREPETRA(M_displacementFESpace->map(),
+                                                      M_exporter->mapType()));
+        M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
+                                "displacement", M_displacementFESpace, M_displacementExporter, 0.0);
     }
 
     M_exporter->setPostDir(outdir);
@@ -1334,6 +1348,22 @@ vectorialWeightFunction(const double& t, const double& x, const double& y, const
     double norm = (point - center).norm() / radius;
     return (0.5 + 0.5 * std::sin(std::atan(1) * 4 * (norm + 0.5))) * versor[i];
 }
+
+void
+StokesAssemblerFE::
+initializeDisplacementFESpace(EPETRACOMM comm)
+{
+    // initialize fespace displacement
+    bool exportDisp = M_data("exporter/export_disp", true);
+    if (exportDisp)
+        M_displacementFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
+                                        this->M_treeNode->M_block->getDiscretizationMethod(), 3, comm));
+
+        M_displacementFESpaceETA.reset(new ETFESPACE3(M_displacementFESpace->mesh(),
+                                              &(M_displacementFESpace->refFE()),
+                                              comm));
+}
+
 
 void
 StokesAssemblerFE::

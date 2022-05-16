@@ -31,9 +31,25 @@ takeSnapshots(const unsigned int &Nstart)
     double DeltaT = 1.0;
     double curTime = 0.0;
 
-    std::map<std::string, BV> initialConditions;
+    std::string assemblerType = M_data("assembler/type", "navierstokes");
+
+    unsigned int numTotalSimulations = M_StratifiedSampler.getNumComponents()[0] *
+                                M_StratifiedSampler.getNumComponents()[1] * M_StratifiedSampler.getNumComponents()[2];
+
+    // set unique default assembler for all iterations
+    shp<Bypass> defaultBypass(new Bypass(M_comm));
+    defaultBypass->readMesh();
+
+    defaultBypass->setDiscretizationMethod("fem");
+    defaultBypass->setAssemblerType(assemblerType);
+
+    shp<TreeNode> defTreeNode(new TreeNode(defaultBypass, 1234));
+
+    shp<AssemblerType> defAssembler = AssemblerFactory(M_data, defTreeNode);
+    defAssembler->setup();
+
     std::map<std::string, double> currentSample;
-    std::map<unsigned int, BV> solutions;
+    std::map<std::string, BV> initialConditions;
 
     for (unsigned int i = 0; i < M_StratifiedSampler.getNumComponents()[0]; i++)
     {
@@ -80,17 +96,20 @@ takeSnapshots(const unsigned int &Nstart)
                 // printer.saveToFile(problem.getTree(), filename, M_comm);
 
                 if (k != 0)
+                    // it means one is in the inner cycle, so we take as initial condition the previous one
                     problem.getSteadySolver()->setInitialGuess(initialConditions["stenosis_width"]);
                 if (j != 0 && k == 0)
+                    // taking a new value of j
                     problem.getSteadySolver()->setInitialGuess(initialConditions["stenosis_amplitude"]);
                 if (i != 0 && j == 0 && k == 0)
+                    // taking a new value of i
                     problem.getSteadySolver()->setInitialGuess(initialConditions["flow_rate"]);
 
                 problem.solveSteady();
 
                 curTime += DeltaT;
-                solutions[curTime] = problem.getLastSolution();
 
+                // hence, for sure they are all initialized at the first iterate (i=0, j=0, k=0)
                 if (k == 0)
                     initialConditions["stenosis_amplitude"] = problem.getLastSolution();
                 if (j == 0 && k == 0)
@@ -98,18 +117,17 @@ takeSnapshots(const unsigned int &Nstart)
 
                 initialConditions["stenosis_width"] = problem.getLastSolution();
 
-                // elapsedTime += chrono.diff();
+                shp<BlockVector> solCopy(new BlockVector(3));
+                // velocity
+                solCopy->setBlock(0, problem.getLastSolution()->block(0)->block(0));
+                // pressure
+                solCopy->setBlock(1, problem.getLastSolution()->block(0)->block(1));
+                // displacement
+                solCopy->setBlock(2,problem.getBlockAssembler()->block(0)->getTreeNode()->M_block->getDisplacement());
 
-//                if (i == M_StratifiedSampler.getNumComponents()[0]-1 &&
-//                    j == M_StratifiedSampler.getNumComponents()[1]-1 &&
-//                    k == M_StratifiedSampler.getNumComponents()[2]-1)
-//                {
-//                    for (unsigned int l = 0; l < curTime; l++)
-//                    {
-//                        std::cout << "[SnapshotsSteadySampler] Saving all solutions to HDF5..." << std::endl;
-//                        problem.getBlockAssembler()->exportSolution(l, solutions[l]);
-//                    }
-//                }
+                defAssembler->exportSolution(curTime, solCopy);
+
+                elapsedTime += chrono.diff() / numTotalSimulations;
 
                 // dumpSnapshots(problem, curSolutionDir, paramsVec);
             }
@@ -283,7 +301,6 @@ getParametersValuesAsVector(const std::map<std::string, double>& sample)
     }
     return paramsValues;
 }
-}
 
 
 //    for (unsigned int i = 0; i < M_StratifiedSampler.getNumSamples(); i++)
@@ -347,3 +364,9 @@ getParametersValuesAsVector(const std::map<std::string, double>& sample)
 //    printlog(MAGENTA, msg, true);
 //
 //}
+
+
+
+}
+
+}

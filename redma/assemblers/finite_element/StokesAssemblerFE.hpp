@@ -524,10 +524,19 @@ public:
                                   shp<VECTOREPETRA> WSS,
                                   EPETRACOMM comm, double intWSS);
 
+
+    /*! \brief Initialize the finite element space of the displacement.
+    *
+    * \param comm The MPI communicator.
+    */
+
+    void initializeDisplacementFESpace(EPETRACOMM comm);
+
     /*! \brief Initialize the finite element space of the velocity.
      *
      * \param comm The MPI communicator.
      */
+
     void initializeVelocityFESpace(EPETRACOMM comm);
 
     /*! \brief Initialize the finite element space of the pressure.
@@ -559,6 +568,7 @@ protected:
     shp<BlockVector> buildZeroVector() const;
 
     shp<LifeV::Exporter<MESH>>                        M_exporter;
+    shp<VECTOREPETRA>                                 M_displacementExporter;
     shp<VECTOREPETRA>                                 M_velocityExporter;
     shp<VECTOREPETRA>                                 M_WSSExporter;
     double                                            M_intWSSExporter;
@@ -571,7 +581,9 @@ protected:
     shp<BlockMatrix>                                  M_divergence;
     shp<FESPACE>                                      M_velocityFESpace;
     shp<FESPACE>                                      M_pressureFESpace;
+    shp<FESPACE>                                      M_displacementFESpace;
     shp<ETFESPACE3>                                   M_velocityFESpaceETA;
+    shp<ETFESPACE3>                                   M_displacementFESpaceETA;
     shp<ETFESPACE1>                                   M_pressureFESpaceETA;
     double                                            M_density;
     double                                            M_viscosity;
@@ -582,6 +594,7 @@ protected:
     std::map<unsigned int, shp<BlockMatrix>>          M_flowRateJacobians;
     std::map<unsigned int, shp<BlockMatrix>>          M_additionalOutletMatrices;
 
+    std::string                                       M_displacementOrder;
     std::string                                       M_velocityOrder;
     std::string                                       M_pressureOrder;
     shp<RBBases>                                      M_bases;

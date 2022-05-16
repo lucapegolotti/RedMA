@@ -138,7 +138,10 @@ solveSteady()
     if (status)
         throw new Exception("Error in solver. Status != 0");
 
-    M_assembler->exportSolution(0.0, M_solution);
+    bool doing_sampling = M_data("exporter/doing_sampling", true);
+    if (!doing_sampling)
+        M_assembler->exportSolution(0.0, M_solution);
+
     if (M_data("exporter/exporttotxt", true))
     {
         std::string fname = M_data("exporter/pathtotxt", "IC/");

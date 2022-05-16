@@ -246,6 +246,8 @@ outputdir = solutions
 	filename   = tube
 	exportnorms = true
 	exporttotxt = true
+	doing_sampling = true
+	export_disp = true
 	pathtotxt = IC/bypass/
 [../]
 
