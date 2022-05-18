@@ -13,8 +13,8 @@ StratifiedSampling(std::vector<unsigned int> numSamples)
     M_numPerComponent = numSamples;
 
     const double maxAngle = 0.4;
-    const double maxAmplitude = 0.04;
-    const double maxWidth = 0.04;
+    const double maxAmplitude = 0.3;
+    const double maxWidth = 0.3;
     const double minFlow = 0.6;
     const double maxFlow = 0.64;
 
@@ -36,9 +36,9 @@ StratifiedSampling(std::vector<unsigned int> numSamples)
     paramsHandler.registerParameter("flow_rate", 0,
                                     minFlow, maxFlow, true, false);
     paramsHandler.registerParameter("stenosis_width", 0,
-                                    0, maxWidth, true, false);
+                                    0.2, maxWidth, true, false);
     paramsHandler.registerParameter("stenosis_amplitude", 0,
-                                    0, maxAmplitude, true, false);
+                                    0.2, maxAmplitude, true, false);
 
 
     setParametersToBeSampled();

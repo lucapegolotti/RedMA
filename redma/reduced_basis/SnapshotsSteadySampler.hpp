@@ -24,6 +24,9 @@
 #include <redma/reduced_basis/LatinHypercube.hpp>
 #include <redma/reduced_basis/StratifiedSampling.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
+#include <redma/geometry/TreeStructure.hpp>
+#include <redma/geometry/building_blocks/BuildingBlock.hpp>
+#include <redma/assemblers/abstract/aAssembler.hpp>
 
 #include <cmath>
 #include <iomanip>
