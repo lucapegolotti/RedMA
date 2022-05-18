@@ -19,8 +19,10 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/assemblers/abstract/aAssemblerFE.hpp>
+#include <redma/assemblers/coupling/InterfaceAssembler.hpp>
 #include <lifev/eta/expression/Integrate.hpp>
 #include <redma/coupling_basis_functions/BasisFunctionFunctor.hpp>
+#include <redma/coupling_basis_functions/weightFunction.hpp>
 #include <redma/reduced_basis/RBBases.hpp>
 
 namespace RedMA
@@ -47,6 +49,7 @@ namespace RedMA
          * Indices of the components: velocity = 0, pressure = 1.
          * Indices of the matrices: mass = 0, stiffness = 1, divergence = 2.
          */
+
 class StokesAssemblerFE : public aAssemblerFE
 {
 public:
@@ -480,13 +483,13 @@ public:
      */
     void integrateWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS, EPETRACOMM comm, double intWSS);
 
-    /*! \brief weight function for integrateWSS, compatible with LifeV syntax
+    /*! \brief weight function for integrateWSS
      *
      * @param x x
      * @param y y
      * @param z z
-     * @param t time
-     * @param i coordinate
+     * @param center center of integration
+     * @param radius radius of integration
      * @return
      */
     static double weightFunction(const double& t,
@@ -495,48 +498,12 @@ public:
                           const double& z,
                           const LifeV::ID& i);
 
-    /*! \brief Vectorial version of weightFunction to be compatible with LifeV::Integrate
-     *
-     * @param t time
-     * @param x x
-     * @param y y
-     * @param z z
-     * @param i coordinate
-     * @return
-     */
-
-    static double vectorialWeightFunction(const double& t,
-                                          const double& x,
-                                          const double& y,
-                                          const double& z,
-                                          const LifeV::ID& i);
-
     void exportIntWSS(double intWSS);
-
-    /*! \brief Integrate the wall shear stress given the velocity.
-     *
-     * \param velocity The current velocity
-     * \param WSS WSS
-     * @param comm The MPI communicator
-     */
-
-    double integrateWallShearStress(shp<VECTOREPETRA> velocity,
-                                  shp<VECTOREPETRA> WSS,
-                                  EPETRACOMM comm, double intWSS);
-
-
-    /*! \brief Initialize the finite element space of the displacement.
-    *
-    * \param comm The MPI communicator.
-    */
-
-    void initializeDisplacementFESpace(EPETRACOMM comm);
 
     /*! \brief Initialize the finite element space of the velocity.
      *
      * \param comm The MPI communicator.
      */
-
     void initializeVelocityFESpace(EPETRACOMM comm);
 
     /*! \brief Initialize the finite element space of the pressure.
@@ -544,6 +511,8 @@ public:
      * \param comm The MPI communicator.
      */
     void initializePressureFESpace(EPETRACOMM comm);
+
+    void initializeDisplacementFESpace(EPETRACOMM comm);
 
     /*! \brief Get the forcing term \f$f\f$
      *
@@ -568,9 +537,9 @@ protected:
     shp<BlockVector> buildZeroVector() const;
 
     shp<LifeV::Exporter<MESH>>                        M_exporter;
-    shp<VECTOREPETRA>                                 M_displacementExporter;
     shp<VECTOREPETRA>                                 M_velocityExporter;
     shp<VECTOREPETRA>                                 M_WSSExporter;
+    shp<VECTOREPETRA>                                 M_displacementExporter;
     double                                            M_intWSSExporter;
     shp<VECTOREPETRA>                                 M_pressureExporter;
     std::string                                       M_name;
@@ -594,9 +563,9 @@ protected:
     std::map<unsigned int, shp<BlockMatrix>>          M_flowRateJacobians;
     std::map<unsigned int, shp<BlockMatrix>>          M_additionalOutletMatrices;
 
-    std::string                                       M_displacementOrder;
     std::string                                       M_velocityOrder;
     std::string                                       M_pressureOrder;
+    std::string                                       M_displacementOrder;
     shp<RBBases>                                      M_bases;
 
     shp<VECTOREPETRA>                                 M_xs;

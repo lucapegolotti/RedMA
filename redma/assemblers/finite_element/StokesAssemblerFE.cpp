@@ -15,6 +15,7 @@ StokesAssemblerFE(const DataContainer& data,
     M_viscosity = data("fluid/viscosity", 0.035);
     M_velocityOrder = data("fluid/velocity_order", "P2");
     M_pressureOrder = data("fluid/pressure_order", "P1");
+    M_displacementOrder = data("structure/displacement_order", "P1");
     M_addNoSlipBC = true;
 }
 
@@ -36,6 +37,7 @@ setup()
     M_massPressure = spcast<BlockMatrix>(assemblePressureMass(M_bcManager));
     M_stiffness = spcast<BlockMatrix>(assembleStiffness(M_bcManager)); // #2
     M_divergence = spcast<BlockMatrix>(assembleDivergence(M_bcManager)); // #3
+
 
     assembleFlowRateVectors();
     assembleFlowRateJacobians();
@@ -178,23 +180,35 @@ StokesAssemblerFE::
 exportSolution(const double& t,
                const shp<aVector>& sol)
 {
+    std::string msg = "[StokesAssemblerFE] Exporting current solution...";
+    printlog(YELLOW, msg);
     auto solBlck = convert<BlockVector>(sol);
     *M_velocityExporter = *spcast<VECTOREPETRA>(solBlck->block(0)->data());
     *M_pressureExporter = *spcast<VECTOREPETRA>(solBlck->block(1)->data());
-
     bool exportDisp = M_data("exporter/export_disp", true);
     if (exportDisp)
-        *M_displacementExporter = *spcast<VECTOREPETRA>(solBlck->block(2)->data());
+    {
+        if (solBlck->nRows() == 3)
+        {
+            *M_displacementExporter = *spcast<VECTOREPETRA>(solBlck->block(2)->data());
+        }
+        else
+        {
+            std::string msg = "No displacement to export";
+            printlog(YELLOW, msg);
+        }
+    }
+
 
     bool exportWSS = this->M_data("exporter/export_wss", 1);
     if (exportWSS)
         computeWallShearStress(M_velocityExporter, M_WSSExporter, M_comm);
 
     shp<BlockVector> solCopy(new BlockVector(2));
-    if (exportDisp)
-        *solCopy = BlockVector(3);
     solCopy->block(0)->setData(M_velocityExporter);
     computeFlowRates(solCopy, true);
+
+    // integrateWallShearStress(M_velocityExporter, M_WSSExporter, M_comm, M_intWSSExporter);
 
     exportNorms(t, M_velocityExporter, M_pressureExporter);
     // exportIntWSS(M_intWSSExporter);
@@ -204,6 +218,7 @@ exportSolution(const double& t,
     M_exporter->postProcess(t);
     printlog(CYAN, ct.restore());
 }
+
 
 void
 StokesAssemblerFE::
@@ -500,6 +515,7 @@ setExporter()
     {
         M_displacementExporter.reset(new VECTOREPETRA(M_displacementFESpace->map(),
                                                       M_exporter->mapType()));
+
         M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
                                 "displacement", M_displacementFESpace, M_displacementExporter, 0.0);
     }
@@ -1290,78 +1306,47 @@ integrateWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS, EPET
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
-    // set integration domain and quadrature rule
-    unsigned int wallFlag = M_treeNode->M_block->getWallFlag();
+    typedef FESpace<MESH, MAPEPETRA>::function_Type function_Type;
+//    VECTOREPETRA gInterpolated(M_pressureFESpace->map(), Repeated);
+//    function_Type g(weightFunction);
+//    gInterpolated = 0.0;
+//    M_pressureFESpace->interpolate(g, gInterpolated, 0.0);
+//    Real intWeightFunction (0.0);
     QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria7pt));
-    intWSS = 0;
-    std::string uOrder ("P1");
-    shp<FESPACE> pSpace(new FESPACE(M_pressureFESpace->mesh(), uOrder, 1, comm));
-    // calculate the denominator
-    function_Type g(weightFunction);
-    VECTOREPETRA gInterpolated(pSpace->map(), Repeated);
-    gInterpolated = 0.0;
-    shp<ETFESPACE1> ETpSpace(new ETFESPACE1(M_pressureFESpace->mesh(), &(uSpace->refFE()), &(uSpace->fe().geoMap()), Comm));
-    pSpace->interpolate(g, gInterpolated, 0.0);
-    double localIntegralg(0.0);
-    integrate (boundary(ETpSpace->mesh(), wallFlag),
-                myBDQR,
-                value(ETpSpace, gInterpolated)
-    ) >> localIntegralg;
-    double globalIntegralg(0.0);
-    comm->Barrier();
-    comm->SumAll(&localIntegralg, &globalIntegralg, 1); // sum all the contributes
-    // calculate the numerator
+//    std::shared_ptr<weightFunction> weightFunctor(new weightFunction);
+    unsigned int wallFlag = M_treeNode->M_block->getWallFlag();
     computeWallShearStress(velocity, WSS, comm);
-    shp<VECTOREPETRA> WSSRepeated(new VECTOREPETRA(*WSS, Unique));
-    shp<VECTOREPETRA> weakWSSRepeated(new VECTOREPETRA(M_velocityFESpace->map(), Repeated));
+    intWSS = 0;
+    shp<VECTOREPETRA> WSSRepeated(new VECTOREPETRA(*WSS, Repeated));
+    shp<VECTOREPETRA> vecWSSRepeated(new VECTOREPETRA(M_velocityFESpace->map(), Unique));
+    shp<VECTOREPETRA> intWeightFunc(new VECTOREPETRA(M_velocityFESpace->map(), Unique));
     integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
-              myBDQR,
+              myBDQR, // change
               M_velocityFESpaceETA,
-              dot(value(M_velocityFESpaceETA, vectorialWeightFunction) * value(M_velocityFESpaceETA, *WSSRepeated), Nface)
-    ) >> weakWSSRepeated;
-    weakWSSRepeated->globalAssemble();
-    shp<VECTOREPETRA> weakWSSUnique(new VECTOREPETRA(*weakWSSRepeated, Unique));
-    intWSS = (weakWSSUNique->meanValue() * weakWSSUnique->size()) / globalIntegralg;
+              dot(value(M_velocityFESpaceETA, *WSSRepeated), Nface)
+    ) >> vecWSSRepeated;
+//    vecWSSRepeated->globalAssemble();
+    intWSS = vecWSSRepeated->norm1();
+//    integrate (elements(M_pressureFESpaceETA->mesh(), wallFlag),
+//               myBDQR,
+//               value(M_pressureFESpaceETA, gInterpolated)
+//    ) >> intWeightFunction;
+//    Real globalIntegralWeightFunction (0.0);
+//
+//    comm->Barrier();
+//    comm->SumAll (&intWeightFunction, &globalIntegralWeightFunction, 1);
+//    std::cout << "The integral of WSS is " << globalIntegralWeightFunction << std::endl;
 }
 
 double
 StokesAssemblerFE::
-weightFunction(const double& t, const double& x, const double& y, const double& z,  const LifeV::ID& i)
+weightFunction(const double& t, const double& x, const double& y, const double& z,  const LifeV::ID &i)
 {
-    Vector3D center(0, 0, 0);
-    double radius = 0.2;
+    Vector3D center(-7.99255, 1.97546, 42.1994);
+    double radius = 0.1;
     Vector3D point(x, y, z);
     double norm = (point - center).norm() / radius;
-    return 0.5 + 0.5 * std::sin(std::atan(1) * 4 * (norm + 0.5));
-}
-
-double
-StokesAssemblerFE::
-vectorialWeightFunction(const double& t, const double& x, const double& y, const double& z, const LifeV::ID& i)
-{
-    Vector3D center(0, 0, 0);
-    Vector3D versor;
-    versor *= 0;
-    versor[i] = 1;
-    double radius = 0.2;
-    Vector3D point(x, y, z);
-    double norm = (point - center).norm() / radius;
-    return (0.5 + 0.5 * std::sin(std::atan(1) * 4 * (norm + 0.5))) * versor[i];
-}
-
-void
-StokesAssemblerFE::
-initializeDisplacementFESpace(EPETRACOMM comm)
-{
-    // initialize fespace displacement
-    bool exportDisp = M_data("exporter/export_disp", true);
-    if (exportDisp)
-        M_displacementFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
-                                        this->M_treeNode->M_block->getDiscretizationMethod(), 3, comm));
-
-        M_displacementFESpaceETA.reset(new ETFESPACE3(M_displacementFESpace->mesh(),
-                                              &(M_displacementFESpace->refFE()),
-                                              comm));
+    return (norm < 1) * (0.5 + 0.5 * std::sin(std::atan(1) * 4 * (norm + 0.5)));
 }
 
 
@@ -1378,6 +1363,23 @@ initializeVelocityFESpace(EPETRACOMM comm)
                                              comm));
 
 }
+
+void
+StokesAssemblerFE::
+initializeDisplacementFESpace(EPETRACOMM comm)
+{
+    // initialize fespace displacement
+    bool exportDisp = M_data("exporter/export_disp", true);
+    if (exportDisp)
+    {
+        M_displacementFESpace.reset(new FESPACE(this->M_treeNode->M_block->getMesh(),
+                                                M_displacementOrder, 3, comm));
+        // M_displacementFESpaceETA.reset(new ETFESPACE3(M_displacementFESpace->mesh(),
+        //                                              &(M_displacementFESpace->refFE()),
+        //                                              comm));
+    }
+}
+
 
 
 void
