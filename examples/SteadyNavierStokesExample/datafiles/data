@@ -198,6 +198,7 @@ outputdir = solutions
 	tol = 1e-4
 	maxit = 10
 	relaxation = 1.0
+	recomputeevery = 2
 	ic_path = IC/bypass_BL/
 [../]
 

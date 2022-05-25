@@ -27,6 +27,7 @@
 #include <redma/geometry/TreeStructure.hpp>
 #include <redma/geometry/building_blocks/BuildingBlock.hpp>
 #include <redma/assemblers/abstract/aAssembler.hpp>
+#include <tinyxml2.h>
 
 #include <cmath>
 #include <iomanip>
@@ -40,6 +41,7 @@ namespace RedMA
     class SnapshotsSteadySampler
     {
         typedef shp<BlockVector>                   BV;
+        typedef tinyxml2::XMLElement            XMLEl;
     public:
         SnapshotsSteadySampler(const DataContainer& data, EPETRACOMM comm, std::vector<unsigned int> numSamples);
 

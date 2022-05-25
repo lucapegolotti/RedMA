@@ -40,7 +40,33 @@ takeSnapshots(const unsigned int &Nstart)
                                        M_StratifiedSampler.getNumComponents()[1] *
                                        M_StratifiedSampler.getNumComponents()[2];
 
-    shp<Bypass> defaultBypass(new Bypass(M_comm));
+    tinyxml2::XMLDocument doc;
+    int status = doc.LoadFile("bypass.xml");
+
+    tinyxml2::XMLElement* element = doc.FirstChildElement();
+
+    // boundary layer
+    bool BL = false;
+    if (element->Attribute("BL"))
+    {
+        BL = std::atoi(element->Attribute("BL"));
+    }
+
+    // returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose, BL));
+
+    bool isBifurcation = false;
+    if (element->Attribute("isBifurcation"))
+    {
+        isBifurcation = std::atoi(element->Attribute("isBifurcation"));
+    }
+
+    unsigned int activeStenosis;
+    if (element->Attribute("activeStenosis"))
+    {
+        activeStenosis = std::atoi(element->Attribute("activeStenosis"));
+    }
+
+    shp<Bypass> defaultBypass(new Bypass(M_comm, "bypass", false, BL, isBifurcation, activeStenosis));
     defaultBypass->readMesh();
 
     defaultBypass->setDiscretizationMethod("fem");
@@ -52,7 +78,6 @@ takeSnapshots(const unsigned int &Nstart)
 
     std::map<std::string, double> currentSample;
     std::map<std::string, BV> initialConditions;
-
 
     for (unsigned int i = 0; i < M_StratifiedSampler.getNumComponents()[0]; i++)
     {

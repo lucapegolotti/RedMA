@@ -55,10 +55,12 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
         BV incr(new BlockVector(initialGuess->nRows()));
         BV curFun;
         BV sol = initialGuess;
+        BM startingJac = jac(initialGuess);
 
         double tol = M_data("newton_method/tol", 1e-5);
         unsigned int maxit = M_data("newton_method/maxit", 10);
         double omega = M_data("newton_method/relaxation", 1.0);
+        unsigned int recomputeevery = M_data("newton_method/recomputeevery", 2);
 
         std::string msg;
 
@@ -92,10 +94,18 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
             if (err / initialError > tol)
             {
                 incr->multiplyByScalar(0.0);
-                BM curJac = jac(sol);
-                M_linearSystemSolver.setComm(M_comm);
+                if (recomputeevery % count != 0)
+                {
+                    BM curJac = jac(sol);
+                    M_linearSystemSolver.setComm(M_comm);
+                    M_linearSystemSolver.solve(curJac, curFun, incr);
+                }
+                else
+                {
+                    M_linearSystemSolver.setComm(M_comm);
+                    M_linearSystemSolver.solve(startingJac, curFun, incr);
+                }
 
-                M_linearSystemSolver.solve(curJac, curFun, incr);
                 M_solverStatistics.push_back(M_linearSystemSolver.getSolverStatistics());
             }
             incr->multiplyByScalar(-1.0);
