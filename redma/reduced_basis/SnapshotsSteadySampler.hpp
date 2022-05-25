@@ -17,6 +17,12 @@
 #ifndef SNAPSHOTSSTEADYSAMPLER_HPP
 #define SNAPSHOTSSTEADYSAMPLER_HPP
 
+#include <cmath>
+#include <iomanip>
+#include <fstream>
+#include <random>
+#include <tinyxml2.h>
+
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/problem/GlobalProblem.hpp>
@@ -27,12 +33,6 @@
 #include <redma/geometry/TreeStructure.hpp>
 #include <redma/geometry/building_blocks/BuildingBlock.hpp>
 #include <redma/assemblers/abstract/aAssembler.hpp>
-#include <tinyxml2.h>
-
-#include <cmath>
-#include <iomanip>
-#include <fstream>
-#include <random>
 
 namespace RedMA
 {

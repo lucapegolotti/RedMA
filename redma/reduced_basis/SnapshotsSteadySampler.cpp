@@ -41,7 +41,7 @@ takeSnapshots(const unsigned int &Nstart)
                                        M_StratifiedSampler.getNumComponents()[2];
 
     tinyxml2::XMLDocument doc;
-    int status = doc.LoadFile("bypass.xml");
+    int status = doc.LoadFile("geometries/bypass.xml");
 
     tinyxml2::XMLElement* element = doc.FirstChildElement();
 
@@ -66,7 +66,7 @@ takeSnapshots(const unsigned int &Nstart)
         activeStenosis = std::atoi(element->Attribute("activeStenosis"));
     }
 
-    shp<Bypass> defaultBypass(new Bypass(M_comm, "bypass", false, BL, isBifurcation, activeStenosis));
+    shp<Bypass> defaultBypass(new Bypass(M_comm, "bypass", false, BL, isBifurcation, activeStenosis, true));
     defaultBypass->readMesh();
 
     defaultBypass->setDiscretizationMethod("fem");
