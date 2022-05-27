@@ -75,7 +75,17 @@ public:
      */
     void deformMesh(LifeV::MeshUtility::MeshTransformer<MESH>& transformer);
 
+    /*! \brief Solve the linear elasticity to deform the mesh.
+     *
+     * \param precType The preconditioner.
+     */
+
     shp<VECTOREPETRA> solveSystem(const std::string& precType);
+    /*! \brief Deform the mesh given also the displacement.
+     *
+     * \param transformer The mesh transformer
+     * \param displacement The displacement
+     */
 
     void deformMeshComposite(LifeV::MeshUtility::MeshTransformer<MESH>& transformer, shp<VECTOREPETRA> displacement);
 

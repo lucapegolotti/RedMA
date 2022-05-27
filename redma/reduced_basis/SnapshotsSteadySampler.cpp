@@ -40,6 +40,7 @@ takeSnapshots(const unsigned int &Nstart)
                                        M_StratifiedSampler.getNumComponents()[1] *
                                        M_StratifiedSampler.getNumComponents()[2];
 
+    // set the attributes for the default assembler
     tinyxml2::XMLDocument doc;
     int status = doc.LoadFile("geometries/bypass.xml");
 
@@ -51,8 +52,6 @@ takeSnapshots(const unsigned int &Nstart)
     {
         BL = std::atoi(element->Attribute("BL"));
     }
-
-    // returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose, BL));
 
     bool isBifurcation = false;
     if (element->Attribute("isBifurcation"))
