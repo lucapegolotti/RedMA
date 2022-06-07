@@ -232,7 +232,7 @@ namespace RedMA
 
 
         Vector3D secondNewStenosisCenter;
-        secondNewStenosisCenter[0] = -8.99104;
+        secondNewStenosisCenter[0] = -8.69104;
         secondNewStenosisCenter[1] = 2.45104;
         secondNewStenosisCenter[2] = 44.71721;
         Vector3D secondNewStenosisNormal;
