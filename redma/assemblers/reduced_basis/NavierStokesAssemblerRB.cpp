@@ -50,6 +50,7 @@ RBsetup()
             nterms = velocityBasis.size();
 
         shp<MATRIXEPETRA > nonLinearMatrix(new MATRIXEPETRA(M_FEAssembler->getFEspace(0)->map()));
+        shp<MATRIXEPETRA > nonLinearJacobian(new MATRIXEPETRA(M_FEAssembler->getFEspace(0)->map()));
         shp<VECTOREPETRA> nonLinearTerm(new VECTOREPETRA(M_FEAssembler->getFEspace(0)->map()));
 
         M_nonLinearTermsDecomposition.resize(nterms);
@@ -60,34 +61,46 @@ RBsetup()
         std::string dir_vec = "NLterm/" + nameMesh + "/Vector/Block" + std::to_string(ID());
         fs::create_directories(dir_vec);
 
+        double density = M_FEAssembler->getDensity();
+        shp<ETFESPACE3 > velocityFESpaceETA = M_FEAssembler->getVelocityETFEspace();
+
         for (unsigned int i = 0; i < nterms; i++)
         {
             M_nonLinearTermsDecomposition[i].resize(nterms);
-            nonLinearMatrix->zero();
 
-            shp<ETFESPACE3 > velocityFESpaceETA = M_FEAssembler->getVelocityETFEspace();
-            double density = M_FEAssembler->getDensity();
+            nonLinearJacobian->zero();
+            integrate(elements(velocityFESpaceETA->mesh()),
+                      M_FEAssembler->getFEspace(0)->qr(),
+                      velocityFESpaceETA,
+                      velocityFESpaceETA,
+                      value(density) *
+                      dot(value(velocityFESpaceETA, *velocityBasis[i]) * grad(phi_j) +
+                      phi_j * grad(velocityFESpaceETA , *velocityBasis[i]),
+                      phi_i)
+            ) >> nonLinearJacobian;
+            nonLinearJacobian->globalAssemble();
+
+            shp<BlockMatrix> nonLinearJacobianVec(new BlockMatrix(2,2));
+            nonLinearJacobianVec->setBlock(0,0,wrap(nonLinearJacobian));
+            this->M_FEAssembler->applyDirichletBCsMatrix(nonLinearJacobianVec, 0.0);
+
+            auto jac00 = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID());
+            M_nonLinearMatrixDecomposition[i].reset(new BlockMatrix(2,2));
+            M_nonLinearMatrixDecomposition[i]->setBlock(0,0,jac00);
+
+            std::string filename_mat = dir_mat + "/Mat_" + std::to_string(i) + ".m";
+            M_nonLinearMatrixDecomposition[i]->block(0,0)->dump(filename_mat);
+
+            nonLinearMatrix->zero();
             integrate(elements(velocityFESpaceETA->mesh()),
                       M_FEAssembler->getFEspace(0)->qr(),
                       velocityFESpaceETA,
                       velocityFESpaceETA,
                       value(density) *
                       dot(value(velocityFESpaceETA, *velocityBasis[i]) * grad(phi_j),
-                          phi_i)
-            ) >> nonLinearMatrix;
-
+                      phi_i)
+                      ) >> nonLinearMatrix;
             nonLinearMatrix->globalAssemble();
-
-            shp<BlockMatrix> nonLinearMatrixVec(new BlockMatrix(2,2));
-            nonLinearMatrixVec->setBlock(0,0,wrap(nonLinearMatrix));
-            this->M_FEAssembler->applyDirichletBCsMatrix(nonLinearMatrixVec, 0.0);
-
-            auto jac00 = M_bases->matrixProject(nonLinearMatrixVec->block(0,0), 0, 0, ID());
-            M_nonLinearMatrixDecomposition[i].reset(new BlockMatrix(2,2));
-            M_nonLinearMatrixDecomposition[i]->setBlock(0,0,jac00);
-
-            std::string filename_mat = dir_mat + "/Mat_" + std::to_string(i) + ".m";
-            M_nonLinearMatrixDecomposition[i]->block(0,0)->dump(filename_mat);
 
             for (unsigned int j = 0; j < nterms; j++)
             {

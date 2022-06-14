@@ -23,8 +23,10 @@ using namespace RedMA;
 
 double inflow(double t)
 {
-    double T = 0.3;
-    return 1-cos(2*M_PI*t/T) + 0.2*sin(2*6*M_PI*t/T);
+    double T = 0.1;
+    double K = 1;
+
+    return K * (1-cos(2*M_PI*t/T));
 }
 
 int main(int argc, char **argv)
@@ -38,7 +40,7 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    std::string msg = "Starting RB matrices generation\n";
+    std::string msg = "Starting RB matrices generation...\n";
     printlog(MAGENTA, msg, true);
 
     DataContainer data;

@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     shp<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    Tube tb(comm, "fine", true, 1, 2);
+    Tube tb(comm, "coarse", true, 1, 3);
     // BifurcationSymmetric tb(comm, "fine", true, 90);
 
     // M_parametersHandler.registerParameter("bend", 0.0, 0, M_PI/2, randomizible, false);
@@ -45,9 +45,16 @@ int main(int argc, char **argv)
 
     tb.readMesh();
     tb.setParameterValue("Rout_ratio", 0.6);
-    tb.setParameterValue("bend", M_PI*0.3);
+    tb.setParameterValue("L_ratio", 1.3);
+    tb.setParameterValue("bend", 1.5);
+    tb.setParameterValue("alpha", 3.0);
+    tb.setParameterValue("alpha_axis", 0.0);
+    tb.setParameterValue("rotation_axis_x", 1.0);
+    tb.setParameterValue("rotation_axis_y", 0.0);
+    tb.setParameterValue("rotation_axis_z", 0.0);
+    tb.setParameterValue("scale", 2.0);
     tb.applyGlobalTransformation();
-    tb.dumpMesh("output/", "../../../meshes/", "tube");
+    tb.dumpMesh("output/", "../../../meshes/", "my_tube");
 
 
     return 0;

@@ -27,8 +27,10 @@ using namespace RedMA;
 
 double inflow(double t, double a, double c)
 {
-    double T = 0.3;
-    return 1-cos(2*M_PI*t/T) + c*sin(2*M_PI*a*t/T);
+    double T = 0.1;
+    double K = 1;
+
+    return K * (1-cos(2*M_PI*t/T) + c*sin(2*M_PI*a*t/T));
 }
 
 int main(int argc, char **argv)
@@ -41,7 +43,7 @@ int main(int argc, char **argv)
     Chrono chrono;
     chrono.start();
 
-    std::string msg = "Starting chrono \n";
+    std::string msg = "Starting chrono... \n";
     printlog(MAGENTA, msg, true);
     
     #ifdef HAVE_MPI
