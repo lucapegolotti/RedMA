@@ -40,7 +40,7 @@ public:
     /// Take the snapshots.
     void takeSnapshots(const unsigned int& Nstart = 0);
 
-    inline void setInflow(const std::function<double(double,double,double)>& inflow) {M_inflow=inflow;};
+    inline void setInflow(const std::function<double(double, std::vector<double>)>& inflow) {M_inflow=inflow;};
 
     void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double> array_params);
 
@@ -51,10 +51,10 @@ public:
     std::vector<double> inflowSnapshots(const std::vector<std::vector<double>>& param_bounds);
 
 private:
-    DataContainer                                       M_data;
-    EPETRACOMM                                          M_comm;
+    DataContainer                                         M_data;
+    EPETRACOMM                                            M_comm;
 
-    std::function<double(double,double,double)>         M_inflow;
+    std::function<double(double, std::vector<double>)>    M_inflow;
 };
 
 }  // namespace RedMA

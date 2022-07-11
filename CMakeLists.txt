@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(SOURCES "" CACHE INTERNAL "")
 set(HEADERS "" CACHE INTERNAL "")
 
+find_package (Eigen3 3.4 REQUIRED NO_MODULE)
+
 # message(STATUS ${TPL_LifeV_INCLUDE_DIRS})
 set(HEADERS_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -20,7 +22,7 @@ set(HEADERS_DIRS
     ${TPL_SUITESPARSE_INCLUDE_DIRECTORY}
     ${TPL_OPENBLAS_INCLUDE_DIRECTORY}
     ${TPL_TINYXML2_INCLUDE_DIRECTORY}
-    ${TPL_PYTHON_INCLUDE_DIRECTORY}
+    ${TPL_EIGEN_INCLUDE_DIRECTORY}
     )
 
 set(LIBRARIES_DIRS
@@ -34,6 +36,7 @@ set(LIBRARIES_DIRS
     ${TPL_SUITESPARSE_LIBRARY_DIRECTORY}
     ${TPL_OPENBLAS_LIBRARY_DIRECTORY}
     ${TPL_TINYXML2_LIBRARY_DIRECTORY}
+    ${TPL_EIGEN_LIBRARY_DIRECTORY}
     )
 
 set(TRILINOS_LIBRARIES
@@ -66,7 +69,6 @@ set(TRILINOS_LIBRARIES
     triutils
     zoltan
     belosepetra
-    ${TPL_PYTHON_LIBRARY}
     )
 
 # note: by default, boost is built without additional libraries in the lifev
@@ -74,11 +76,11 @@ set(TRILINOS_LIBRARIES
 # the -without-system and -without-filesystem flags in the bootstrap command of lifev
 set(LINKED_LIBRARIES
     tinyxml2
+    Eigen3::Eigen
     mpi
     lifevcore
     lifeveta
     lifevnavierstokesblocks
-    #  lifevreducedbasis
     ${TRILINOS_LIBRARIES}
     hdf5
     parmetis

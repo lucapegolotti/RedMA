@@ -49,9 +49,11 @@ RBsetup()
         if (nterms == -1)
             nterms = velocityBasis.size();
 
-        shp<MATRIXEPETRA > nonLinearMatrix(new MATRIXEPETRA(M_FEAssembler->getFEspace(0)->map()));
-        shp<MATRIXEPETRA > nonLinearJacobian(new MATRIXEPETRA(M_FEAssembler->getFEspace(0)->map()));
+        shp<MATRIXEPETRA> nonLinearMatrix(new MATRIXEPETRA(M_FEAssembler->getFEspace(0)->map()));
+        shp<MATRIXEPETRA> nonLinearJacobian(new MATRIXEPETRA(M_FEAssembler->getFEspace(0)->map()));
         shp<VECTOREPETRA> nonLinearTerm(new VECTOREPETRA(M_FEAssembler->getFEspace(0)->map()));
+
+        auto velocityNorm = M_FEAssembler->getNorm(0, false);
 
         M_nonLinearTermsDecomposition.resize(nterms);
         M_nonLinearMatrixDecomposition.resize(nterms);
@@ -84,7 +86,9 @@ RBsetup()
             nonLinearJacobianVec->setBlock(0,0,wrap(nonLinearJacobian));
             this->M_FEAssembler->applyDirichletBCsMatrix(nonLinearJacobianVec, 0.0);
 
-            auto jac00 = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID());
+            // TODO: I changed here!
+            // auto jac00 = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID());
+            auto jac00 = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID(), velocityNorm);
             M_nonLinearMatrixDecomposition[i].reset(new BlockMatrix(2,2));
             M_nonLinearMatrixDecomposition[i]->setBlock(0,0,jac00);
 
@@ -110,7 +114,10 @@ RBsetup()
                 nonLinearTermVec->setBlock(0, wrap(nonLinearTerm));
                 this->M_FEAssembler->apply0DirichletBCs(nonLinearTermVec);
 
-                M_nonLinearTermsDecomposition[i][j] = M_bases->leftProject(nonLinearTermVec, ID());
+                // TODO: I changed here!
+                // M_nonLinearTermsDecomposition[i][j] = M_bases->leftProject(nonLinearTermVec,  ID());
+                M_nonLinearTermsDecomposition[i][j].reset(new BlockVector(2));
+                M_nonLinearTermsDecomposition[i][j]->setBlock(0, M_bases->leftProject(nonLinearTermVec->block(0), 0, ID(), velocityNorm));
 
                 std::string filename_vec = dir_vec + "/Vec_" + std::to_string(i) + "_" + std::to_string(j) +".m";
                 M_nonLinearTermsDecomposition[i][j]->block(0)->dump(filename_vec);

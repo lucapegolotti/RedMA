@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/tube1x2.xml
+	xmlfile = geometries/tube1x3.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -32,17 +32,27 @@ outputdir = rb_solutions
 [rb]
 	[./offline]
 		[./snapshots]
-		    param_type           = inflow
-			number 			     = 5
+		    param_type           = inflow_systolic
+			number 			     = 1
 			bound 			     = 0.2
 			take_every 		     = 1
 			dumpbinary 		     = true
 			computereynolds      = true
 			seed 			     = 1234
+			# parameter ranges of inflow
 			c_min = 0.1
 			c_max = 0.3
 			a_min = 4
 			a_max = 8
+			# parameter ranges of inflow systolic
+			Dt_min  = -0.2
+			Dt_max  = +0.2
+			DV0_min = -0.4
+            DV0_max = +0.4
+            DVM_min = -0.3
+            DVM_max = +0.3
+            DVm_min = -0.2
+            DVm_max = +0.2
 		[../]
 		[./basis]
 			directory  = basis
@@ -131,10 +141,10 @@ outputdir = rb_solutions
 	algorithm = bdf
 	rhoinf = 0.5
 	order = 2
-	t0ramp = 0
+	t0ramp = -0.05
 	t0 = 0
-	T = 0.05
-	dt = 0.0025
+	T = 0.375
+	dt = 0.005
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
 [../]

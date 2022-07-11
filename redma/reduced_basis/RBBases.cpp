@@ -417,6 +417,36 @@ leftProject(shp<DistributedVector> vector, unsigned int basisIndex, unsigned int
     return nullptr;
 }
 
+shp<aVector>
+RBBases::
+leftProject(shp<aVector> vector, unsigned int basisIndex, unsigned int ID, shp<aMatrix> normMatrix)
+{
+    if (vector->data())
+    {
+        auto rangeMap = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, false)->data())->domainMapPtr();
+
+        shp<VECTOREPETRA> innerVector(new VECTOREPETRA(*rangeMap));
+        shp<MATRIXEPETRA> projectionMatrix(new MATRIXEPETRA(*rangeMap));
+
+        auto enrichedBasisIndexEpetra = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndex, ID, true)->data());
+        if (normMatrix)
+        {
+            enrichedBasisIndexEpetra->multiply(false, *spcast<MATRIXEPETRA>(normMatrix->data()), false, *projectionMatrix);
+            projectionMatrix->multiply(false, *spcast<VECTOREPETRA>(vector->data()), *innerVector);
+        }
+        else
+            enrichedBasisIndexEpetra->multiply(false, *spcast<VECTOREPETRA>(vector->data()), *innerVector);
+
+        innerVector->globalAssemble();
+
+        shp<DistributedVector> retVecEp(new DistributedVector());
+        retVecEp->setVector(innerVector);
+
+        return retVecEp->toDenseVectorPtr();
+    }
+    return nullptr;
+}
+
 shp<BlockMatrix>
 RBBases::
 rightProject(shp<BlockMatrix> matrix, unsigned int ID)
@@ -481,14 +511,16 @@ RBBases::
 matrixProject(shp<aMatrix> matrix,
               unsigned int basisIndexRow,
               unsigned int basisIndexCol,
-              unsigned int ID)
+              unsigned int ID,
+              shp<aMatrix> normMatrix)
 {
     shp<DenseMatrix> retMat(new DenseMatrix());
 
     if (matrix->data())
     {
-        // Vrow' A Vcol
-        // compute A Vcol
+        // Goal: compute Vrow' A Vcol
+
+        // 1. compute A Vcol = AUX
         auto rangeMap = spcast<MATRIXEPETRA>(matrix->data())->rangeMapPtr();
         auto domainMap = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexCol, ID, false)->data())->domainMapPtr();
 
@@ -498,12 +530,20 @@ matrixProject(shp<aMatrix> matrix,
                                 false, *auxMatrix);
         auxMatrix->globalAssemble(domainMap, rangeMap);
 
+        // 2. compute Vrow' AUX
         rangeMap = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, false)->data())->domainMapPtr();
 
         shp<MATRIXEPETRA> innerMatrix(new MATRIXEPETRA(*rangeMap));
+        shp<MATRIXEPETRA> projectionMatrix(new MATRIXEPETRA(*rangeMap));
 
         auto enrichedBasisIndexEpetra = spcast<MATRIXEPETRA>(getEnrichedBasisMatrices(basisIndexRow, ID, true)->data());
-        enrichedBasisIndexEpetra->multiply(false, *auxMatrix,false, *innerMatrix);
+        if (normMatrix)
+        {
+            enrichedBasisIndexEpetra->multiply(false, *spcast<MATRIXEPETRA>(normMatrix->data()), false, *projectionMatrix);
+            projectionMatrix->multiply(false, *auxMatrix, false, *innerMatrix);
+        }
+        else
+            enrichedBasisIndexEpetra->multiply(false, *auxMatrix,false, *innerMatrix);
 
         innerMatrix->globalAssemble(domainMap, rangeMap);
 

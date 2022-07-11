@@ -128,7 +128,8 @@ public:
     shp<aMatrix> matrixProject(shp<aMatrix> matrix,
                                unsigned int basisIndexRow,
                                unsigned int basisIndexCol,
-                               unsigned int ID);
+                               unsigned int ID,
+                               shp<aMatrix> normMatrix=nullptr);
 
     /*! \brief Project a block matrix on the left onto a reduced basis.
      *
@@ -149,6 +150,17 @@ public:
     shp<DenseMatrix> leftProject(shp<SparseMatrix> matrix,
                                  unsigned int basisIndex,
                                  unsigned int ID);
+
+    /*! \brief Project a vector on the left.
+     *
+     * \param vector The vector to project.
+     * \param ID The ID of the building block.
+     * \return The projected vector.
+     */
+    shp<aVector> leftProject(shp<aVector> vector,
+                             unsigned int basisIndex,
+                             unsigned int ID,
+                             shp<aMatrix> normMatrix=nullptr);
 
     /*! \brief Project a block vector on the left.
      *

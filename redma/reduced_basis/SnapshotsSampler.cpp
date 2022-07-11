@@ -44,14 +44,30 @@ takeSnapshots(const unsigned int& Nstart)
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
 
-        if (!std::strcmp(param_type.c_str(), "inflow"))
+        if ((!std::strcmp(param_type.c_str(), "inflow")) || (!std::strcmp(param_type.c_str(), "inflow_systolic")))
         {
             std::vector<std::vector<double>> param_bounds;
 
-            param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/a_min", 0.0),
-                                                        M_data("rb/offline/snapshots/a_max", 1.0)}));
-            param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/c_min", 0.0),
-                                                        M_data("rb/offline/snapshots/c_max", 1.0)}));
+            if (!std::strcmp(param_type.c_str(), "inflow"))
+            {
+                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/a_min", 0.0),
+                                                            M_data("rb/offline/snapshots/a_max", 1.0)}));
+                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/c_min", 0.0),
+                                                            M_data("rb/offline/snapshots/c_max", 1.0)}));
+            }
+            else if (!std::strcmp(param_type.c_str(), "inflow_systolic"))
+            {
+                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/Dt_min", 0.0),
+                                                            M_data("rb/offline/snapshots/Dt_max", 1.0)}));
+                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/DV0_min", 0.0),
+                                                            M_data("rb/offline/snapshots/DV0_max", 1.0)}));
+                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/DVM_min", 0.0),
+                                                            M_data("rb/offline/snapshots/DVM_max", 1.0)}));
+                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/DVm_min", 0.0),
+                                                            M_data("rb/offline/snapshots/DVm_max", 1.0)}));
+            }
+
+            unsigned int num_params_inflow = param_bounds.size();
 
             for (unsigned int numInlet=1; numInlet < numInletConditions; numInlet++)
             {
@@ -72,24 +88,25 @@ takeSnapshots(const unsigned int& Nstart)
 
             std::vector<double> vec = inflowSnapshots(param_bounds);
 
+            auto inletBC = std::bind(M_inflow,
+                                     std::placeholders::_1, vec);
+
             if (numInletConditions > 1)
             {
-                double sum = 1.0 + std::accumulate(vec.begin()+2, vec.begin()+1+numInletConditions, 0.0);
-                for (auto it = vec.begin()+2; it != vec.begin()+1+numInletConditions; ++it)
+                double sum = 1.0 + std::accumulate(vec.begin()+num_params_inflow,
+                                                   vec.begin()+num_params_inflow+numInletConditions-1,
+                                                   0.0);
+                for (auto it = vec.begin()+num_params_inflow; it != vec.begin()+num_params_inflow+numInletConditions-1; ++it)
                     *it /= sum;
-                vec.insert(vec.begin() + 2, 1.0 / sum);
+                vec.insert(vec.begin() + num_params_inflow, 1.0 / sum);
             }
             else
-                vec.insert(vec.begin() + 2, 1.0);
+                vec.insert(vec.begin() + num_params_inflow, 1.0);
             array_params = vec;
-
-            auto inletBC = std::bind(M_inflow,
-                                     std::placeholders::_1,
-                                     vec[0],vec[1]);
 
             for (unsigned int numInlet=0; numInlet < numInletConditions; numInlet++)
             {
-                unsigned int cnt = 2 + numInlet;
+                unsigned int cnt = num_params_inflow + numInlet;
                 std::function<double(double)> inletDirichlet = [vec, cnt, inletBC] (double t)
                         {return vec[cnt] * inletBC(t);};
                 M_data.setInletBC(inletDirichlet, numInlet);
@@ -97,7 +114,7 @@ takeSnapshots(const unsigned int& Nstart)
 
             if (withOutflow)
             {
-                unsigned int cnt = 2 + numInletConditions;
+                unsigned int cnt = num_params_inflow + numInletConditions;
 
                 for (unsigned int numOutlet = 0; numOutlet < numOutletConditions; numOutlet++)
                 {
