@@ -51,18 +51,18 @@ double inflow_systolic(double t, std::vector<double> params)
     double Tm = Tm_ref * (1.0 + params[0]);  // time to min flow
     double Vm = Vm_ref * (1.0 + params[3]);  // min flow
 
-    Eigen::Matrix<double, 8, 8> matrix {
-            {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0},
-            {pow(TM,7), pow(TM,6), pow(TM,5), pow(TM,4), pow(TM,3), pow(TM,2), TM, 1.0},
-            {pow(Ts,7), pow(Ts,6), pow(Ts,5), pow(Ts,4), pow(Ts,3), pow(Ts,2), Ts, 1.0},
-            {pow(Tm,7), pow(Tm,6), pow(Tm,5), pow(Tm,4), pow(Tm,3), pow(Tm,2), Tm, 1.0},
-            {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
-            {7.*pow(TM,6), 6.*pow(TM,5), 5.*pow(TM,4), 4.*pow(TM,3), 3.*pow(TM,2), 2.*TM, 1.0, 0.0},
-            {7.*pow(Tm,6), 6.*pow(Tm,5), 5.*pow(Tm,4), 4.*pow(Tm,3), 3.*pow(Tm,2), 2.*Tm, 1.0, 0.0},
-            {42.*pow(Tm,5), 30.*pow(Tm,4), 20.*pow(Tm,3), 12.*pow(Tm,2), 6.*Tm, 2.0, 0.0, 0.0}
-    };
+    Eigen::Matrix<double, 8, 8> matrix;
+    matrix << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+              pow(TM,7), pow(TM,6), pow(TM,5), pow(TM,4), pow(TM,3), pow(TM,2), TM, 1.0,
+              pow(Ts,7), pow(Ts,6), pow(Ts,5), pow(Ts,4), pow(Ts,3), pow(Ts,2), Ts, 1.0,
+              pow(Tm,7), pow(Tm,6), pow(Tm,5), pow(Tm,4), pow(Tm,3), pow(Tm,2), Tm, 1.0,
+              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0,
+              7.*pow(TM,6), 6.*pow(TM,5), 5.*pow(TM,4), 4.*pow(TM,3), 3.*pow(TM,2), 2.*TM, 1.0, 0.0,
+              7.*pow(Tm,6), 6.*pow(Tm,5), 5.*pow(Tm,4), 4.*pow(Tm,3), 3.*pow(Tm,2), 2.*Tm, 1.0, 0.0,
+              42.*pow(Tm,5), 30.*pow(Tm,4), 20.*pow(Tm,3), 12.*pow(Tm,2), 6.*Tm, 2.0, 0.0, 0.0;
 
-    Eigen::Matrix<double, 8, 1> vector {V0, VM, V0, Vm, 0.0, 0.0, 0.0, 0.0};
+    Eigen::Matrix<double, 8, 1> vector;
+    vector << V0, VM, V0, Vm, 0.0, 0.0, 0.0, 0.0;
 
     Eigen::Matrix<double, 8, 1> a = matrix.colPivHouseholderQr().solve(vector);
 
