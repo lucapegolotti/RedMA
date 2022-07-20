@@ -168,7 +168,6 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
         {
             isBifurcation = std::atoi(element->Attribute("isBifurcation"));
         }
-        // returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose, BL, isBifurcation));
 
         unsigned int activeStenosis;
         if (element->Attribute("activeStenosis"))

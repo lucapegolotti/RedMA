@@ -38,8 +38,8 @@ namespace RedMA
         Bypass(EPETRACOMM comm,
                std::string name = "bypass",
                bool verbose = false,
-               bool boundary_layer = true,
-               bool isBifurcation = true,
+               bool boundary_layer = false,
+               bool isBifurcation = false,
                unsigned int activeStenosis = 1,
                bool randomizable = true
                );

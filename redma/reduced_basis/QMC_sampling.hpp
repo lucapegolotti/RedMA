@@ -5,6 +5,8 @@
 #ifndef QMC_SAMPLING_H
 #define QMC_SAMPLING_H
 
+#include <redma/geometry/GeometricParametersHandler.hpp>
+#include <redma/RedMA.hpp>
 #include <redma/geometry/building_blocks/Bypass.hpp>
 #include <redma/assemblers/finite_element/StokesAssemblerFE.hpp>
 #include <redma/problem/DataContainer.hpp>
@@ -49,8 +51,8 @@ namespace RedMA
         /*! \brief This function performs the sampling given in input the number of samples desired.
          * \param N the number of samples
         */
-        std::vector<std::map<std::string, double>>
-        getSamples(unsigned int N, std::vector<double> generatingVector,
+
+        std::vector<std::map<std::string, double>> getSamples(unsigned int N, std::vector<double> generatingVector,
                    std::vector<std::string> paramsNames, std::vector<std::vector<double>> paramsBounds);
 
         /*! \brief This function performs component-wise multiplication of a vector by a scalar
@@ -90,6 +92,12 @@ namespace RedMA
          * @param generatingVector generating vector
          */
         void checkConsistency();
+
+        /*! \brief getter for the parameters handler
+         *
+         * @return M_parametersHandler
+         */
+        GeometricParametersHandler& getGeometricParametersHandler() {return M_parametersHandler; };
 
     private:
         std::string M_name;

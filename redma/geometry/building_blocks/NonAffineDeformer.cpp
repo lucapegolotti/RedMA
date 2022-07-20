@@ -120,6 +120,7 @@ solveSystem(const std::string& precType)
     }
 
     // linearSolver.setPreconditionerFromGetPot("datafiles/data", "preconditioner/deformation");
+    linearSolver.setPreconditioner(precPtr);
     linearSolver.setRightHandSide(M_rhs);
     linearSolver.solve(solution);
 

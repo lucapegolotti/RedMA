@@ -57,7 +57,7 @@ public:
      *
      * \param IC initial guess
      */
-    void setInitialGuess(const BV IC);
+    void setInitialGuess(const BV& IC);
 
     /*! \brief Get the initial guess
      *

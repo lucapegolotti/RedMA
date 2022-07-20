@@ -68,7 +68,7 @@ setInitialGuess(const std::string &ICpath)
 
 void
 SteadySolver::
-setInitialGuess(const BV IC)
+setInitialGuess(const BV& IC)
 {
     M_initialGuess = IC;
 }

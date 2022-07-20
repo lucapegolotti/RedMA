@@ -210,6 +210,8 @@ exportSolution(const double& t,
 
     // integrateWallShearStress(M_velocityExporter, M_WSSExporter, M_comm, M_intWSSExporter);
 
+    // integrateWallShearStress(M_velocityExporter, M_WSSExporter, M_comm, M_intWSSExporter);
+
     exportNorms(t, M_velocityExporter, M_pressureExporter);
     // exportIntWSS(M_intWSSExporter);
 

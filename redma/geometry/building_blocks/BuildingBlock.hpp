@@ -435,10 +435,6 @@ public:
 
     shp<VECTOREPETRA> getDisplacement() { return M_displacement; };
 
-    void setDefaultStiffness(shp<MATRIXEPETRA> stiff);
-
-    shp<MATRIXEPETRA> getDefaultStiffness() { return M_originalStiffness; };
-
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,

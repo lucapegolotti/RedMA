@@ -108,7 +108,6 @@ BuildingBlock(EPETRACOMM comm, std::string refinement, bool verbose) :
     M_parametersHandler.registerParameter("by", 0.0, -infty, infty);
     M_parametersHandler.registerParameter("bz", 0.0, -infty, infty);
 
-    // M_displacement.reset(new VECTOREPETRA(M_fespace->map(), LifeV::Unique));
     // M_displacement->zero();
 }
 

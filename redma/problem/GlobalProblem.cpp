@@ -136,9 +136,6 @@ solveSteady()
 
     M_solution = spcast<BlockVector>(M_steadySolver->solve(status));
 
-    if (M_storeSolutions)
-        M_solutions.push_back(M_solution);
-
     if (status)
         throw new Exception("Error in solver. Status != 0");
 

@@ -94,9 +94,8 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
             if (err / initialError > tol)
             {
                 incr->multiplyByScalar(0.0);
-                if (count > 0 && count != recomputeevery == 0)
+                if (count > 0 && count % recomputeevery == 0)
                 {
-                    std::cout << "Computing Jacobian" << std::endl;
                     BM curJac = jac(sol);
                     M_linearSystemSolver.setComm(M_comm);
                     M_linearSystemSolver.solve(curJac, curFun, incr);

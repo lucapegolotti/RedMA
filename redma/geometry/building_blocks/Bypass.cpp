@@ -363,7 +363,7 @@ namespace RedMA
                 LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
                 LifeV::BCFunctionBase stenosisFunction(fooWall);
 
-                shp <LifeV::BCHandler> bcs(new LifeV::BCHandler);
+                shp<LifeV::BCHandler> bcs(new LifeV::BCHandler);
                 bcs->addBC("Inlet1", 2, LifeV::Essential, LifeV::Full,
                            zeroFunction, 3);
                 bcs->addBC("Inlet2", 3, LifeV::Essential, LifeV::Full,
@@ -382,7 +382,6 @@ namespace RedMA
                 M_displacement = nAffineDeformer.solveSystem("ML");
                 nAffineDeformer.deformMeshComposite(*transformer, M_displacement);
                 printlog(CYAN, ct.restore(), M_verbose);
-
             }
 
         }
@@ -479,7 +478,6 @@ namespace RedMA
                 std::string xmlFilename = M_datafile("geometric_structure/xmldeformer",
                                                      "SolverParamList.xml");
                 nAffineDeformer.setXMLsolver(xmlFilename);
-                nAffineDeformer.deformMesh(*transformer);
                 printlog(CYAN, ct.restore(), M_verbose);
             }
         }

@@ -23,8 +23,10 @@ int main(int argc, char **argv)
     // data.setValueString("geometric_structure/xmlfile", "tree_snapshots.xml");
     data.setVerbose(comm->MyPID() == 0);
 
-    std::vector<unsigned int> numSamples = {1, 2, 1};
+    // may add the possibility of reading the values from file
+    std::vector<unsigned int> numSamples = {15, 15, 10};
 
+    // unsigned int numSamples = data("rb/offline/snapshots/nSnapshots", 2);
     unsigned int Nstart = 0;
 
     SnapshotsSteadySampler sampler(data, comm, numSamples);
