@@ -188,13 +188,6 @@ name()
     return M_name;
 }
 
-void
-BuildingBlock::
-setDefaultStiffness(shp<MATRIXEPETRA> stiff)
-{
-    *M_originalStiffness = *stiff;
-}
-
 BuildingBlock::Matrix3D
 BuildingBlock::
 computeRotationMatrix(unsigned int axis, double angle)
