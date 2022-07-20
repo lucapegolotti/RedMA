@@ -112,11 +112,6 @@ takeSnapshots(const unsigned int &Nstart)
 
         std::map<unsigned int, double> targetRates = problem.getBlockAssembler()->block(0)->computeFlowRates(solCopy, true);
 
-        for (auto it = targetRates.begin(); it != targetRates.end(); ++it)
-        {
-            std::cout << "Target rates : " << std::to_string(it->second) << endl;
-        }
-
         for (unsigned int j = 0; j < M_StratifiedSampler.getNumComponents()[1]; j++) {
             currentSample["stenosis_amplitude"] = SnapshotsSamples["stenosis_amplitude"][j];
             for (unsigned int k = 0; k < M_StratifiedSampler.getNumComponents()[2]; k++) {
@@ -242,6 +237,7 @@ takeSnapshots(const unsigned int &Nstart)
                 {
                     ratesfile << std::fixed << std::setprecision(10) << std::to_string(it->first) << " : " << std::to_string(it->second) << std::endl;
                 }
+                ratesfile << std::fixed << std::endl;
                 ratesfile.close();
 
                 std::ofstream paramsfile;
@@ -260,7 +256,9 @@ takeSnapshots(const unsigned int &Nstart)
                 {
                     FFRfile << std::fixed << std::setprecision(10) << std::to_string(it->first) <<
                     " : " << std::to_string(it->second/targetRates[it->first]) << ", ";
+                    FFRfile << std::fixed << std::endl;
                 }
+                FFRfile << std::fixed << std::endl;
                 FFRfile.close();
             }
         }
