@@ -1,4 +1,4 @@
-<buildingblock type="bypass" assembler="navierstokes" method="fem" refinement="coarse" BL="1">
+<buildingblock type="bypass" assembler="navierstokes" method="fem" refinement="coarse" BL="1" isBifurcation="1" activeStenosis="1">
     <alpha_axis>0</alpha_axis>
     <alphax>0</alphax>
     <alphay>0</alphay>
@@ -15,7 +15,7 @@
     <rotation_axis_x>0</rotation_axis_x>
     <rotation_axis_y>0</rotation_axis_y>
     <rotation_axis_z>0</rotation_axis_z>
-    <stenosis_amplitude>0.4</stenosis_amplitude>
-    <stenosis_width>0.2</stenosis_width>
+    <stenosis_amplitude>0.0</stenosis_amplitude>
+    <stenosis_width>0.0</stenosis_width>
     <scale>1</scale>
 </buildingblock>

@@ -1,11 +1,11 @@
--------------------------------------------------------------
+﻿-------------------------------------------------------------
 #           Data file for NavierStokesExample
 #-------------------------------------------------------------
 
 outputdir = solutions
 
 [geometric_structure]
-	xmlfile = geometries/bypass.xml
+	xmlfile = geometries/bypass0.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -24,11 +24,12 @@ outputdir = solutions
 	inflowfile = datafiles/inflow.txt
 	inletpressurefile = datafiles/inlet_pressure.txt
 
-	numinletbcs = 2
+	numinletbcs = 1
     [./inlet0]
+        type = dirichlet
         generate_inletBC = 0
         coefficient = 1.0
-        flag = 2
+        flag = 4
     [../]
     [./inlet1]
         generate_inletBC = 0
@@ -47,12 +48,12 @@ outputdir = solutions
         Rd = 0.0  # 15945.20  # WK3
     [../]
     [./outlet1]
-        type = windkessel
+        type = neumann
         blockindex = 0
         boundaryflag = 3
 
         C = 0.0  # 0.0000760  # WK3
-        Rp = 200  # 718.27  # WK3
+        Rp = 100  # 718.27  # WK3
         Rd = 0.0  # 15945.20  # WK3
     [../]
 
@@ -117,18 +118,88 @@ outputdir = solutions
 
 [preconditioner]
 	options    	   = datafiles/solversOptionsFast
-	outer      	   = saddlepoint
-	inner	   	   = SIMPLE
-	approxshur 	   = SIMPLE
-	innertol   	   = 0.5
-	recomputeevery = 20
-	thresholdsize  = 5000
+    outer      	   = saddlepoint
+    inner	   	   = SIMPLE
+    approxshur 	   = SIMPLE
+    innertol   	   = 0.5
+    recomputeevery = 20
+    thresholdsize  = 5000
+
+    [./deformation]
+        prectype = Ifpack
+        displayList = false
+
+        [./ifpack]
+            prectype                 = Amesos # Amesos (complete LU) , ILU , ILUT
+            overlap                  = 3
+
+            [./schwarz]
+                combine_mode         = 0 # 0: Add , 1: Zero , 2: Insert ,
+                                             # 3: Average , 4: AbsMax
+                compute_condest      = true
+                reordering_type      = none # none , metis , rcm
+                filter_singletons    = true
+
+            [../]
+            [./amesos]               # for prectype = Amesos
+                solvertype           = Amesos_Umfpack # Amesos_KLU , Amesos_Umfpack
+
+            [../]
+            [./fact]                 # for prectype = ILU / ILUT
+                level-of-fill        = 4
+                ilut_level-of-fill   = 1
+                absolute_threshold   = 0
+                relative_threshold   = 1
+                drop_tolerance       = 1.e-8
+                relax_value          = 0
+
+            [../]
+        [../]
+
+        [./ML]
+        analyze_smoother            = false
+        default_parameter_list      = DD-ML # SA, DD, DD-ML, maxwell, NSSA, DD-ML-LU, DD-LU
+
+            [./smoother]
+            # smoother type
+            # Aztec, IFPACK, Jacobi, ML symmetric Gauss-Seidel, symmetric Gauss-Seidel,
+            # ML Gauss-Seidel, Gauss-Seidel, Chebyshev, MLS, Hiptmair, Amesos-KLU,
+            # Amesos-Superlu, Amesos-UMFPACK, Amesos-Superludist, Amesos-MUMPS,
+            # user-defined, SuperLU, IFPACK-Chebyshev, self, do-nothing,
+            # IC, ICT, ILU, ILUT
+            type                    = IFPACK
+            pre_or_post             = pre
+            sweeps                  = 3
+            damping_factor          = 1
+
+            [../]
+            [./coarse]
+            type                    = Amesos-UMFPACK # Amesos-KLU , Amesos-UMFPACK
+            sweeps                  = 1
+            pre_or_post             = both
+            max_size                = 200
+
+            [../]
+            [./repartition]
+            enable                  = 1
+            partitioner             = ParMETIS
+            max_min_ration          = 1.3
+            min_per_proc            = 500
+
+            [../]
+            [./energy_minimization]
+            enable          = true
+            type            = 3
+
+            [../]
+        [../]
 [../]
 
 [newton_method]
 	tol = 1e-4
 	maxit = 10
 	relaxation = 1.0
+	recomputeevery = 2
 	ic_path = IC/bypass_BL/
 [../]
 
@@ -176,8 +247,11 @@ outputdir = solutions
 	save_every = 1
 	filename   = tube
 	exportnorms = true
-	exporttotxt = true
-	pathtotxt = IC/bypass/
+	exporttotxt = false
+	doing_sampling = true
+	branch = 0
+    export_disp = true
+	pathtotxt = solutions/
 [../]
 
 

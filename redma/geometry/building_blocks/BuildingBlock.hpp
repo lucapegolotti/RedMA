@@ -433,6 +433,12 @@ public:
      */
     static std::pair<Vector3D, Vector3D> computeLocalTangentVersors(const Vector3D& normal);
 
+    shp<VECTOREPETRA> getDisplacement() { return M_displacement; };
+
+    void setDefaultStiffness(shp<MATRIXEPETRA> stiff);
+
+    shp<MATRIXEPETRA> getDefaultStiffness() { return M_originalStiffness; };
+
 protected:
     void applyAffineTransformationGeometricFace(GeometricFace& face,
                                                 const Matrix3D& affineMatrix,
@@ -482,7 +488,11 @@ protected:
 
     unsigned int                          M_wallFlag;
 
+    shp<MATRIXEPETRA>                     M_originalStiffness;
+
     shp<MembraneThicknessComputer>        M_membraneThicknessComputer;
+
+    shp<VECTOREPETRA>                     M_displacement;
 };
 
 }  // namespace RedMA

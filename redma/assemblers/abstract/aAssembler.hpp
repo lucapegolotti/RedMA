@@ -78,6 +78,7 @@ public:
     virtual void exportSolution(const double& time,
                                 const shp<aVector>& sol) = 0;
 
+
     /*! \brief Virtual export solution to .txt
     *
     * \param time Current time.
@@ -103,6 +104,15 @@ public:
      */
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) = 0;
+
+    /*! \brief Virtual computation of flow rates.
+     *
+     * \param verbose True to print flow rates.
+     * \param sol Current solution.
+     * \return Map of the flow rates.
+     */
+
+    // virtual std::map<unsigned int, double> computeFlowRates(shp<aVector> sol, bool verbose) = 0;
 
     /*! \brief Virtual getter for pressure mass matrix.
      *
@@ -309,6 +319,8 @@ public:
      * \return True if no-slip BC at the lateral wall are imposed.
      */
     // virtual inline bool hasNoSlipBCs() const = 0;
+
+    virtual std::map<unsigned int, double> computeFlowRates(shp<aVector> sol, bool verbose = false) = 0;
 
 protected:
     DataContainer                           M_data;

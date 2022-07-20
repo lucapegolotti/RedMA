@@ -19,8 +19,10 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/assemblers/abstract/aAssemblerFE.hpp>
+#include <redma/assemblers/coupling/InterfaceAssembler.hpp>
 #include <lifev/eta/expression/Integrate.hpp>
 #include <redma/coupling_basis_functions/BasisFunctionFunctor.hpp>
+#include <redma/coupling_basis_functions/weightFunction.hpp>
 #include <redma/reduced_basis/RBBases.hpp>
 
 namespace RedMA
@@ -47,6 +49,7 @@ namespace RedMA
          * Indices of the components: velocity = 0, pressure = 1.
          * Indices of the matrices: mass = 0, stiffness = 1, divergence = 2.
          */
+
 class StokesAssemblerFE : public aAssemblerFE
 {
 public:
@@ -383,8 +386,7 @@ public:
      * \param verbose If true, flow rates are printed to terminal.
      * \return A map with key = face flag and value = flowrate.
      */
-    std::map<unsigned int, double> computeFlowRates(shp<aVector> sol,
-                                                    bool verbose = false);
+    virtual std::map<unsigned int, double> computeFlowRates(shp<aVector> sol, bool verbose = false) override;
 
     /*! \brief Assemble vectors to compute the flow rate.
      *
@@ -509,6 +511,8 @@ public:
      */
     void initializePressureFESpace(EPETRACOMM comm);
 
+    void initializeDisplacementFESpace(EPETRACOMM comm);
+
     /*! \brief Get the forcing term \f$f\f$
      *
      * \param time The current time.
@@ -534,6 +538,7 @@ protected:
     shp<LifeV::Exporter<MESH>>                        M_exporter;
     shp<VECTOREPETRA>                                 M_velocityExporter;
     shp<VECTOREPETRA>                                 M_WSSExporter;
+    shp<VECTOREPETRA>                                 M_displacementExporter;
     double                                            M_intWSSExporter;
     shp<VECTOREPETRA>                                 M_pressureExporter;
     std::string                                       M_name;
@@ -544,7 +549,9 @@ protected:
     shp<BlockMatrix>                                  M_divergence;
     shp<FESPACE>                                      M_velocityFESpace;
     shp<FESPACE>                                      M_pressureFESpace;
+    shp<FESPACE>                                      M_displacementFESpace;
     shp<ETFESPACE3>                                   M_velocityFESpaceETA;
+    shp<ETFESPACE3>                                   M_displacementFESpaceETA;
     shp<ETFESPACE1>                                   M_pressureFESpaceETA;
     double                                            M_density;
     double                                            M_viscosity;
@@ -557,6 +564,7 @@ protected:
 
     std::string                                       M_velocityOrder;
     std::string                                       M_pressureOrder;
+    std::string                                       M_displacementOrder;
     shp<RBBases>                                      M_bases;
 
     shp<VECTOREPETRA>                                 M_xs;

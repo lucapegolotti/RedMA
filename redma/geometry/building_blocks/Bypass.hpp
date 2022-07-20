@@ -38,8 +38,11 @@ namespace RedMA
         Bypass(EPETRACOMM comm,
                std::string name = "bypass",
                bool verbose = false,
-               bool boundary_layer = false,
-               bool randomizable = true);
+               bool boundary_layer = true,
+               bool isBifurcation = true,
+               unsigned int activeStenosis = 1,
+               bool randomizable = true
+               );
 
         /*! \brief Return the expected number of children.
          *
@@ -69,6 +72,13 @@ namespace RedMA
 
         /// Set the inlet and outlets.
         void resetInletOutlets() override;
+
+        /// Set the active stenosis.
+        /// i = 0 activates the old one
+        /// i = 1 activates the one on the direction of outlet zero
+        /// i = 2 activates the one on the direction of outlet one
+        /// i = 3 activates the one close to the inlet
+        void setActiveStenosis(unsigned int i);
 
         /*! \brief Compute the Jacobian non affine transformation.
          *
@@ -123,6 +133,10 @@ namespace RedMA
 
         void computeStenosisOuterNormal();
 
+        void setStenosisAttributes();
+
+        std::map<unsigned int, std::map<std::string, Vector3D>> M_stenosisAttributes;
+
         Vector3D M_inletCenterRef1;
         Vector3D M_inletNormalRef1;
         Vector3D M_inletCenterRef2;
@@ -137,6 +151,10 @@ namespace RedMA
         Vector3D M_Eigenvector1;
         Vector3D M_Eigenvector2;
         Vector3D M_Eigenvector3;
+
+        double M_diameterAtStenosis;
+
+        bool M_isBifurcation;
 
         void setDistorsionMatrix();
 

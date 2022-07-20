@@ -122,6 +122,10 @@ public:
      */
     bool isRBProblem();
 
+    shp<SteadySolver> getSteadySolver() { return M_steadySolver; };
+
+    BV getLastSolution() { return M_solution; };
+
 private:
 
     shp<aTimeMarchingAlgorithm>                M_TMAlgorithm;

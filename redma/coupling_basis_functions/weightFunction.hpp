@@ -2,22 +2,32 @@
 // Created by betti on 4/28/22.
 //
 
-#ifndef WEIGHTFUNCTION_H
-#define WEIGHTFUNCTION_H
+#include <redma/RedMA.hpp>
 
-namespace RedMA {
-    class weightFunction {
-        typedef LifeV::VectorSmall<3> Vector3D;
+#ifndef WEIGHTFUNCTION_HPP
+#define WEIGHTFUNCTION_HPP
+
+namespace RedMA
+{
+    typedef double return_Type;
+    typedef LifeV::VectorSmall<3> Vector3D;
+
+class weightFunction
+    {
     public:
-        weightFunction() {}
+        typedef double return_Type;
+        weightFunction();
+        return_Type operator()(const Vector3D& position);
 
-        double operator()(const Vector3D& position);
-        double getRadius() { return M_radius};
-        double getCenter() { return M_center};
+        void setRadius();
+        void setCenter();
+
+        return_Type getRadius() { return M_radius; };
+        Vector3D getCenter() { return M_center; };
     private:
-        double M_radius;
-        Vector3D M_center;
+    return_Type M_radius;
+    Vector3D M_center;
     };
 }
 
-#endif //WEIGHTFUNCTION_H
+#endif //WEIGHTFUNCTION_HPP

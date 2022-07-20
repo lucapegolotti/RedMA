@@ -1,10 +1,11 @@
 //
-// Created by Federico Betti on 08/04/2022.
+// Created by betti on 5/4/22.
 //
 
-#ifndef LATINHYPERCUBE_HPP
-#define LATINHYPERCUBE_HPP
+#ifndef STRATIFIEDSAMPLING_HPP
+#define STRATIFIEDSAMPLING_HPP
 
+#include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/geometry/building_blocks/Bypass.hpp>
 #include <redma/assemblers/finite_element/StokesAssemblerFE.hpp>
@@ -12,19 +13,15 @@
 
 namespace RedMA
 {
-    class LatinHypercube {
+    class StratifiedSampling {
     public:
-        LatinHypercube(unsigned int numSamples);
+        StratifiedSampling(std::vector<unsigned int> numSamples);
 
         void setParametersToBeSampled();
 
         std::vector<double> getBounds(std::string paramName);
 
-        std::vector<std::map<std::string, double>> generateSamples(unsigned int N, unsigned int d);
-
-        std::vector<double> drawUniformSample(unsigned int d);
-
-        std::vector<std::vector<unsigned int>> getPermutations(unsigned int N, unsigned int d);
+        std::map<std::string, std::vector<double>> generateSamples();
 
         unsigned int getNumSamples() { return M_numSamples; };
 
@@ -36,12 +33,15 @@ namespace RedMA
 
         GeometricParametersHandler& getParametersHandler() { return M_parametersHandler; };
 
+        std::vector<unsigned int> getNumComponents() { return M_numPerComponent; };
+
     private:
         RedMA::GeometricParametersHandler M_parametersHandler;
         unsigned int M_numSamples;
         std::vector<std::string> M_paramsNames;
         std::vector<std::vector<double>> M_paramsBounds;
+        std::vector<unsigned int> M_numPerComponent;
     };
-} // namespace RedMa
+}
 
-#endif //LATINHYPERCUBE_HPP
+#endif //STRATIFIEDSAMPLING_HPP

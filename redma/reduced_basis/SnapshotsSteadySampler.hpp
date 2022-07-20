@@ -22,7 +22,11 @@
 #include <redma/problem/GlobalProblem.hpp>
 #include <redma/reduced_basis/QMC_sampling.hpp>
 #include <redma/reduced_basis/LatinHypercube.hpp>
+#include <redma/reduced_basis/StratifiedSampling.hpp>
 #include <redma/geometry/GeometryPrinter.hpp>
+#include <redma/geometry/TreeStructure.hpp>
+#include <redma/geometry/building_blocks/BuildingBlock.hpp>
+#include <redma/assemblers/abstract/aAssembler.hpp>
 
 #include <cmath>
 #include <iomanip>
@@ -35,8 +39,10 @@ namespace RedMA
 /// Class handling the generation of the steady snapshots.
     class SnapshotsSteadySampler
     {
+        typedef shp<BlockVector>                   BV;
+        typedef tinyxml2::XMLElement               XMLEl;
     public:
-        SnapshotsSteadySampler(const DataContainer& data, EPETRACOMM comm, unsigned int numSamples);
+        SnapshotsSteadySampler(const DataContainer& data, EPETRACOMM comm, std::vector<unsigned int> numSamples);
 
         /// Take the snapshots.
         void takeSnapshots(const unsigned int& Nstart = 0);
@@ -51,11 +57,12 @@ namespace RedMA
 
         std::map<std::string, double> getCurrentSample(unsigned int i);
 
+        void saveCoeffsFile(std::string outdir, std::map<std::string, std::vector<double>> currentSample);
+
     private:
         DataContainer                                       M_data;
         EPETRACOMM                                          M_comm;
-        QMC_sampling                                        M_sampler;
-        RedMa::LatinHypercube                               M_LHS;
+        StratifiedSampling                                  M_StratifiedSampler;
         std::function<double(double,double,double)>         M_inflow;
     };
 

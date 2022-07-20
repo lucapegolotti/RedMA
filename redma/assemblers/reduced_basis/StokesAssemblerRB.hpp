@@ -316,6 +316,8 @@ public:
      */
     shp<BlockVector> reconstructFESolution(shp<BlockVector> sol) const;
 
+    virtual std::map<unsigned int, double> computeFlowRates(shp<aVector> sol, bool verbose = false) override;
+
 protected:
 
     /*! \brief Replacer (i.e. setter) method for the underlying FE assembler

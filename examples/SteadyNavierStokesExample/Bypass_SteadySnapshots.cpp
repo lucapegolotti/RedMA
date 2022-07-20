@@ -22,12 +22,10 @@ int main(int argc, char **argv)
     data.setDatafile("datafiles/data");
     // data.setValueString("geometric_structure/xmlfile", "tree_snapshots.xml");
     data.setVerbose(comm->MyPID() == 0);
-    data.finalize();
 
-    unsigned int numSamples = data("rb/offline/snapshots/nSnapshots", 10);
+    std::vector<unsigned int> numSamples = {1, 2, 1};
+
     unsigned int Nstart = 0;
-    if (argc > 1)
-        Nstart = std::atoi(argv[1]);
 
     SnapshotsSteadySampler sampler(data, comm, numSamples);
     sampler.takeSnapshots(Nstart);

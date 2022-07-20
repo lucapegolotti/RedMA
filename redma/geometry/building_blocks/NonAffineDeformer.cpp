@@ -57,7 +57,7 @@ void
 NonAffineDeformer::
 deformMesh(LifeV::MeshUtility::MeshTransformer<MESH>& transformer)
 {
-    shp<VECTOREPETRA> displacement = solveSystem();
+    shp<VECTOREPETRA> displacement = solveSystem("Ifpack");
     transformer.moveMesh(*displacement, M_fespace->dof().numTotalDof());
 }
 
@@ -70,7 +70,7 @@ deformMeshComposite(LifeV::MeshUtility::MeshTransformer<MESH>& transformer, shp<
 
 shp<VECTOREPETRA>
 NonAffineDeformer::
-solveSystem()
+solveSystem(const std::string& precType)
 {
     shp<VECTOREPETRA> solution;
     // reset solution vector
@@ -86,18 +86,40 @@ solveSystem()
     aztecList = Teuchos::getParametersFromXmlFile(M_XMLsolver);
     linearSolver.setParameters(*aztecList);
 
-    typedef LifeV::PreconditionerML         precML_type;
-    typedef shp<precML_type>                precMLPtr_type;
-    precML_type * precRawPtr;
-    precRawPtr = new precML_type;
-    // we set to look for the "fake" precMLL entry in order to set the
-    // default parameters of ML preconditioner
-    GetPot dummyDatafile;
-    precRawPtr->setDataFromGetPot(dummyDatafile, "precMLL");
-    shp<LifeV::Preconditioner> precPtr;
-    precPtr.reset(precRawPtr);
+//    std::string optionsPrec = M_data("preconditioner/options",
+//                                     "datafiles/solversOptionsFast");
+//    optionsPrec += ".xml";
+//    Teuchos::RCP<Teuchos::ParameterList> precList = Teuchos::getParametersFromXmlFile(optionsPrec);
+//    shp<Teuchos::ParameterList> precOptions;
+//    precOptions.reset(
+//            new Teuchos::ParameterList(M_solversOptionsInner->sublist(precType.c_str())));
+//    linearSolver.setParameters(*precOptions);
 
-    linearSolver.setPreconditioner(precPtr);
+    shp<LifeV::Preconditioner> precPtr;
+
+    if (!std::strcmp(precType.c_str(), "ML")) {
+        typedef LifeV::PreconditionerML precML_type;
+        typedef shp<precML_type>  precMLPtr_type;
+        precML_type* precRawPtr;
+        precRawPtr = new precML_type;
+        GetPot dummyDatafile;
+        precRawPtr->setDataFromGetPot(dummyDatafile, "prec");
+        precPtr.reset(precRawPtr);
+    }
+    else if (!std::strcmp(precType.c_str(), "Ifpack")) {
+        typedef LifeV::PreconditionerIfpack precIf_type;
+        typedef shp<precIf_type>  precIfPtr_type;
+        precIf_type* precRawPtr;
+        precRawPtr = new precIf_type;
+        GetPot dummyDatafile;
+        precRawPtr->setDataFromGetPot(dummyDatafile, "prec");
+        precPtr.reset(precRawPtr);
+    }
+    else {
+        throw new Exception("Unrecognized preconditioner type " + precType);
+    }
+
+    // linearSolver.setPreconditionerFromGetPot("datafiles/data", "preconditioner/deformation");
     linearSolver.setRightHandSide(M_rhs);
     linearSolver.solve(solution);
 

@@ -107,6 +107,9 @@ BuildingBlock(EPETRACOMM comm, std::string refinement, bool verbose) :
     M_parametersHandler.registerParameter("bx", 0.0, -infty, infty);
     M_parametersHandler.registerParameter("by", 0.0, -infty, infty);
     M_parametersHandler.registerParameter("bz", 0.0, -infty, infty);
+
+    // M_displacement.reset(new VECTOREPETRA(M_fespace->map(), LifeV::Unique));
+    // M_displacement->zero();
 }
 
 void
@@ -184,6 +187,13 @@ BuildingBlock::
 name()
 {
     return M_name;
+}
+
+void
+BuildingBlock::
+setDefaultStiffness(shp<MATRIXEPETRA> stiff)
+{
+    *M_originalStiffness = *stiff;
 }
 
 BuildingBlock::Matrix3D

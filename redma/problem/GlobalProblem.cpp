@@ -7,7 +7,7 @@ GlobalProblem::
 GlobalProblem(const DataContainer& data, EPETRACOMM comm, bool doSetup) :
   aProblem(data),
   M_geometryParser(data,
-                   data("geometric_structure/xmlfile","tree.xml"),
+                   data("geometric_structure/xmlfile", "bypass.xml"),
                    comm, data.getVerbose()),
   M_storeSolutions(false),
   M_comm(comm)
@@ -30,6 +30,7 @@ setup()
 
     // read and deform meshes contained in the tree.xml file
     M_tree.readMeshes(geometriesDir);
+
     M_tree.traverseAndDeformGeometries();
 
     // uncomment this to dump tree after it has been read
@@ -135,10 +136,16 @@ solveSteady()
 
     M_solution = spcast<BlockVector>(M_steadySolver->solve(status));
 
+    if (M_storeSolutions)
+        M_solutions.push_back(M_solution);
+
     if (status)
         throw new Exception("Error in solver. Status != 0");
 
-    M_assembler->exportSolution(0.0, M_solution);
+    bool doing_sampling = M_data("exporter/doing_sampling", true);
+    if (!doing_sampling)
+        M_assembler->exportSolution(0.0, M_solution);
+
     if (M_data("exporter/exporttotxt", true))
     {
         std::string fname = M_data("exporter/pathtotxt", "IC/");

@@ -161,7 +161,22 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
             BL = std::atoi(element->Attribute("BL"));
         }
 
-        returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose, BL));
+        // returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose, BL));
+
+        bool isBifurcation = false;
+        if (element->Attribute("isBifurcation"))
+        {
+            isBifurcation = std::atoi(element->Attribute("isBifurcation"));
+        }
+        // returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose, BL, isBifurcation));
+
+        unsigned int activeStenosis;
+        if (element->Attribute("activeStenosis"))
+        {
+            activeStenosis = std::atoi(element->Attribute("activeStenosis"));
+        }
+
+        returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose, BL, isBifurcation, activeStenosis));
 
     }
     else
