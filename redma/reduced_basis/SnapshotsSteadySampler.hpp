@@ -17,12 +17,6 @@
 #ifndef SNAPSHOTSSTEADYSAMPLER_HPP
 #define SNAPSHOTSSTEADYSAMPLER_HPP
 
-#include <cmath>
-#include <iomanip>
-#include <fstream>
-#include <random>
-#include <tinyxml2.h>
-
 #include <redma/RedMA.hpp>
 #include <redma/problem/DataContainer.hpp>
 #include <redma/problem/GlobalProblem.hpp>
@@ -34,6 +28,11 @@
 #include <redma/geometry/building_blocks/BuildingBlock.hpp>
 #include <redma/assemblers/abstract/aAssembler.hpp>
 
+#include <cmath>
+#include <iomanip>
+#include <fstream>
+#include <random>
+
 namespace RedMA
 {
 
@@ -41,7 +40,7 @@ namespace RedMA
     class SnapshotsSteadySampler
     {
         typedef shp<BlockVector>                   BV;
-        typedef tinyxml2::XMLElement            XMLEl;
+        typedef tinyxml2::XMLElement               XMLEl;
     public:
         SnapshotsSteadySampler(const DataContainer& data, EPETRACOMM comm, std::vector<unsigned int> numSamples);
 
