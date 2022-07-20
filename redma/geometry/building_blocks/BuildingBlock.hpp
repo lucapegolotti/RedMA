@@ -484,6 +484,8 @@ protected:
 
     unsigned int                          M_wallFlag;
 
+    shp<MATRIXEPETRA>                     M_originalStiffness;
+
     shp<MembraneThicknessComputer>        M_membraneThicknessComputer;
 
     shp<VECTOREPETRA>                     M_displacement;

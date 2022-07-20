@@ -1,11 +1,11 @@
--------------------------------------------------------------
+﻿-------------------------------------------------------------
 #           Data file for NavierStokesExample
 #-------------------------------------------------------------
 
 outputdir = solutions
 
 [geometric_structure]
-	xmlfile = geometries/bypass.xml
+	xmlfile = geometries/bypass0.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -26,6 +26,7 @@ outputdir = solutions
 
 	numinletbcs = 1
     [./inlet0]
+        type = dirichlet
         generate_inletBC = 0
         coefficient = 1.0
         flag = 4
@@ -47,12 +48,12 @@ outputdir = solutions
         Rd = 0.0  # 15945.20  # WK3
     [../]
     [./outlet1]
-        type = windkessel
+        type = neumann
         blockindex = 0
         boundaryflag = 3
 
         C = 0.0  # 0.0000760  # WK3
-        Rp = 200  # 718.27  # WK3
+        Rp = 100  # 718.27  # WK3
         Rd = 0.0  # 15945.20  # WK3
     [../]
 
@@ -246,10 +247,11 @@ outputdir = solutions
 	save_every = 1
 	filename   = tube
 	exportnorms = true
-	exporttotxt = true
+	exporttotxt = false
 	doing_sampling = true
-	export_disp = true
-	pathtotxt = IC/bypass/
+	branch = 0
+    export_disp = true
+	pathtotxt = solutions/
 [../]
 
 

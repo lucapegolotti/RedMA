@@ -67,7 +67,7 @@ public:
 
     /*! \brief Solutions importing method
     *
-    * Method to import a solutions (velocity or pressure) from txt file into an EpetraMartrix
+    * Method to import a solutions (velocity or pressure) from txt file into an EpetraMatrix
     */
     std::map<unsigned int, std::vector<shp<aVector>>> importSolution(const std::string& filename) const override;
 
@@ -303,6 +303,8 @@ public:
      * \return True if all the primal assemblers are reduced basis assemblers.
      */
     bool arePrimalAssemblersRB();
+
+    virtual std::map<unsigned int, double> computeFlowRates(shp<aVector> sol, bool verbose = false) override;
 
 protected:
     GetPot                                                        M_datafile;

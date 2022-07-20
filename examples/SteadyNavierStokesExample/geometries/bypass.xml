@@ -15,7 +15,7 @@
     <rotation_axis_x>0</rotation_axis_x>
     <rotation_axis_y>0</rotation_axis_y>
     <rotation_axis_z>0</rotation_axis_z>
-    <stenosis_amplitude>0.4</stenosis_amplitude>
-    <stenosis_width>0.2</stenosis_width>
+    <stenosis_amplitude>0.0</stenosis_amplitude>
+    <stenosis_width>0.0</stenosis_width>
     <scale>1</scale>
 </buildingblock>

@@ -386,8 +386,7 @@ public:
      * \param verbose If true, flow rates are printed to terminal.
      * \return A map with key = face flag and value = flowrate.
      */
-    std::map<unsigned int, double> computeFlowRates(shp<aVector> sol,
-                                                    bool verbose = false);
+    virtual std::map<unsigned int, double> computeFlowRates(shp<aVector> sol, bool verbose = false) override;
 
     /*! \brief Assemble vectors to compute the flow rate.
      *

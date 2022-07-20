@@ -50,6 +50,7 @@ public:
      * \return Shared pointer to aVector of the projected function.
      */
     virtual shp<aVector> convertFunctionRBtoFEM(shp<aVector> rbSolution) const = 0;
+
 };
 
 }

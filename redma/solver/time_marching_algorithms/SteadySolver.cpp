@@ -98,6 +98,7 @@ solve(int& status)
 
         return retMat;
     });
+
     BV sol = this->M_systemSolver.solve(fct, jac, M_initialGuess, status);
 
     if (status != 0)

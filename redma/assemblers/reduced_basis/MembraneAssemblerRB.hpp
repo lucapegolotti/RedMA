@@ -121,6 +121,8 @@ public:
      */
     void postProcess(const double& t, const shp<aVector>& sol) override;
 
+    // virtual std::map<unsigned int, double> computeFlowRates(shp<aVector> sol, bool verbose = false) override;
+
 protected:
 
     /*! \brief Getter method for the internal FE Assembler, casted to a MembraneAssemblerFE

@@ -7,7 +7,7 @@ GlobalProblem::
 GlobalProblem(const DataContainer& data, EPETRACOMM comm, bool doSetup) :
   aProblem(data),
   M_geometryParser(data,
-                   data("geometric_structure/xmlfile","tree.xml"),
+                   data("geometric_structure/xmlfile", "bypass.xml"),
                    comm, data.getVerbose()),
   M_storeSolutions(false),
   M_comm(comm)
@@ -30,6 +30,7 @@ setup()
 
     // read and deform meshes contained in the tree.xml file
     M_tree.readMeshes(geometriesDir);
+
     M_tree.traverseAndDeformGeometries();
 
     // uncomment this to dump tree after it has been read
@@ -45,6 +46,7 @@ setup()
 
     if (M_data("time_discretization/order", 0) > 0)
     {
+        std::cout << "ENTERING NON STEADY SOLVER FOR GLOBAL PROBLEM" << std::endl;
         // initialize time marching algorithm (for instance BDF)
         M_TMAlgorithm = TimeMarchingAlgorithmFactory(M_data, M_assembler);
         M_TMAlgorithm->setComm(M_comm);
@@ -54,7 +56,6 @@ setup()
         // initialize solver for the steady problem
         M_steadySolver.reset(new SteadySolver(M_data, M_assembler));
         M_steadySolver->setComm(M_comm);
-
         std::string IC_path = M_data("newton_method/ic_path", "");
         M_steadySolver->setInitialGuess(IC_path);
         shp<aVector> tmp = M_steadySolver->getInitialGuess();

@@ -127,6 +127,8 @@ public:
                                           const shp<aVector>& sol,
                                           const double& diagCoeff = 0) override;
 
+    // virtual std::map<unsigned int, double> computeFlowRates(shp<aVector> sol, bool verbose = false) override;
+
 protected:
     std::vector<std::vector<shp<BlockVector>>>       M_nonLinearTermsDecomposition;
     shp<BlockVector>                                 M_nonLinearTerm;

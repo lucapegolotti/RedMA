@@ -194,6 +194,15 @@ getZeroVector() const
     return retVec;
 }
 
+// just for compatibility
+std::map<unsigned int, double>
+StokesAssemblerRB::
+computeFlowRates(shp<aVector> sol, bool verbose)
+{
+    std::map<unsigned int, double> flowRates;
+    return flowRates;
+}
+
 shp<aVector>
 StokesAssemblerRB::
 getLifting(const double& time) const

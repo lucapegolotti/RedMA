@@ -206,7 +206,9 @@ exportSolution(const double& t,
 
     shp<BlockVector> solCopy(new BlockVector(2));
     solCopy->block(0)->setData(M_velocityExporter);
-    computeFlowRates(solCopy, true);
+    this->computeFlowRates(sol, true);
+
+    // integrateWallShearStress(M_velocityExporter, M_WSSExporter, M_comm, M_intWSSExporter);
 
     // integrateWallShearStress(M_velocityExporter, M_WSSExporter, M_comm, M_intWSSExporter);
 
@@ -355,16 +357,16 @@ addNeumannBCs(double time,
         {
             if (std::find(outletFlags.begin(), outletFlags.end(), rate.first) != outletFlags.end())
             {
-                /*double P = this->M_bcManager->getOutletNeumannBC(time, rate.first, rate.second);
+                double P = this->M_bcManager->getOutletNeumannBC(time, rate.first, rate.second);
                 shp<VECTOREPETRA> flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
                 *flowRateCopy *= P;
-                *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;*/
+                *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;
 
-                double dhdQ = this->M_bcManager->getOutletNeumannJacobian(time, rate.first, rate.second);
-                shp<BlockMatrix> curjac(new BlockMatrix(this->M_nComponents,this->M_nComponents));
-                curjac->deepCopy(M_flowRateJacobians[rate.first]);
-                curjac->multiplyByScalar(dhdQ);
-                rhs->add(curjac->multiplyByVector(sol));
+                // double dhdQ = this->M_bcManager->getOutletNeumannJacobian(time, rate.first, rate.second);
+                // shp<BlockMatrix> curjac(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+                // curjac->deepCopy(M_flowRateJacobians[rate.first]);
+                // curjac->multiplyByScalar(dhdQ);
+                // rhs->add(curjac->multiplyByVector(sol));
 
                 /*shp<aVector> additionalContrib = M_additionalOutletMatrices[rate.first]->multiplyByVector(sol);
                 additionalContrib->multiplyByScalar(-1);
@@ -473,6 +475,8 @@ void
 StokesAssemblerFE::
 setExporter()
 {
+    unsigned int branch_num = M_data("exporter/branch", 0);
+    bool doingSampling = M_data("exporter/doing_sampling", true);
     std::string outputName = "block";
     outputName += std::to_string(aAssembler::M_treeNode->M_ID);
 

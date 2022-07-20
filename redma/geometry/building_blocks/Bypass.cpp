@@ -63,7 +63,7 @@ namespace RedMA
         resetInletOutlets();
 
         const double maxAngle = 0.4;
-        const double maxAmplitude = 0.4;
+        const double maxAmplitude = 0.8;
         const double maxWidth = 0.4;
 
         M_parametersHandler.registerParameter("in1_alphax", 0.0, -maxAngle,
@@ -232,21 +232,21 @@ namespace RedMA
 
 
         Vector3D secondNewStenosisCenter;
-        secondNewStenosisCenter[0] = -8.99104;
-        secondNewStenosisCenter[1] = 2.45104;
-        secondNewStenosisCenter[2] = 44.71721;
+        secondNewStenosisCenter[0] = -8.58698;
+        secondNewStenosisCenter[1] = 2.69411;
+        secondNewStenosisCenter[2] = 44.5586;
         Vector3D secondNewStenosisNormal;
-        secondNewStenosisNormal[0] = 0.992063;
-        secondNewStenosisNormal[1] = 0.125465;
-        secondNewStenosisNormal[2] = -0.008358;
+        secondNewStenosisNormal[0] = 0.690355;
+        secondNewStenosisNormal[1] = 0.702826;
+        secondNewStenosisNormal[2] = -0.17159;
         Vector3D secondNewStenosisFirstEigenvector;
-        secondNewStenosisFirstEigenvector[0] = 0.115863;
-        secondNewStenosisFirstEigenvector[1] = -0.884866;
-        secondNewStenosisFirstEigenvector[2] = 0.385514;
+        secondNewStenosisFirstEigenvector[0] = -0.65362;
+        secondNewStenosisFirstEigenvector[1] = 0.541428;
+        secondNewStenosisFirstEigenvector[2] = -0.528832;
         Vector3D secondNewStenosisThirdEigenvector;
-        secondNewStenosisThirdEigenvector[0] = -0.0526753;
-        secondNewStenosisThirdEigenvector[1] = 0.395785;
-        secondNewStenosisThirdEigenvector[2] = 0.909554;
+        secondNewStenosisThirdEigenvector[0] = -0.2179;
+        secondNewStenosisThirdEigenvector[1] = 0.42262;
+        secondNewStenosisThirdEigenvector[2] = 0.73902;
         std::map<std::string, Vector3D> mapSecondNewStenosis;
         mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("center", secondNewStenosisCenter));
         mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("normal", secondNewStenosisNormal));
@@ -357,6 +357,7 @@ namespace RedMA
                                      amplitude, width, M_stenosisCenter, M_stenosisOuterNormal, M_distorsionMatrix);
 
             if (transformMesh) {
+
                 NonAffineDeformer nAffineDeformer(M_mesh, M_comm, M_verbose);
 
                 LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
@@ -378,7 +379,7 @@ namespace RedMA
                 std::string xmlFilename = M_datafile("geometric_structure/xmldeformer",
                                                      "SolverParamList.xml");
                 nAffineDeformer.setXMLsolver(xmlFilename);
-                M_displacement = nAffineDeformer.solveSystem("Ifpack");
+                M_displacement = nAffineDeformer.solveSystem("ML");
                 nAffineDeformer.deformMeshComposite(*transformer, M_displacement);
                 printlog(CYAN, ct.restore(), M_verbose);
             }
@@ -530,7 +531,6 @@ namespace RedMA
                     M_parametersHandler["stenosis_width"],
                     transformer, transformMesh);
 
-        transformer->savePoints();
         printlog(MAGENTA, "done\n", M_verbose);
     }
 

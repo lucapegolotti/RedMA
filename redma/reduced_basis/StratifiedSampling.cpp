@@ -12,11 +12,11 @@ StratifiedSampling(std::vector<unsigned int> numSamples)
 {
     M_numPerComponent = numSamples;
 
-    const double maxAngle = 0.4;
+//    const double maxAngle = 0.4;
     const double maxAmplitude = 0.3;
     const double maxWidth = 0.3;
-    const double minFlow = 0.6;
-    const double maxFlow = 0.64;
+    const double minFlow = 1.0;
+    const double maxFlow = 1.5;
 
     GeometricParametersHandler& paramsHandler = getParametersHandler();
 
@@ -32,13 +32,12 @@ StratifiedSampling(std::vector<unsigned int> numSamples)
 //                                          -maxAngle, maxAngle, true, false);
 //    paramsHandler.registerParameter("in2_alphaz", 0,
 //                                          -maxAngle, maxAngle, true, false);
-
     paramsHandler.registerParameter("flow_rate", 0,
                                     minFlow, maxFlow, true, false);
     paramsHandler.registerParameter("stenosis_width", 0,
-                                    0.2, maxWidth, true, false);
+                                    0.1, maxWidth, true, false);
     paramsHandler.registerParameter("stenosis_amplitude", 0,
-                                    0.2, maxAmplitude, true, false);
+                                    0.1, maxAmplitude, true, false);
 
 
     setParametersToBeSampled();

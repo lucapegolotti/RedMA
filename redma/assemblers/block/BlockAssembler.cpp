@@ -552,4 +552,13 @@ arePrimalAssemblersRB()
     return true;
 }
 
+// just for compatibility
+std::map<unsigned int, double>
+BlockAssembler::
+computeFlowRates(shp<aVector> sol, bool verbose)
+{
+    std::map<unsigned int, double> flowRates;
+    return flowRates;
+}
+
 }

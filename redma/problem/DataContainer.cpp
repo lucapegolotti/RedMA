@@ -5,7 +5,10 @@ namespace RedMA
 
 DataContainer::
 DataContainer():
-M_verbose(false) {}
+M_verbose(false)
+{
+
+}
 
 void
 DataContainer::
@@ -198,7 +201,7 @@ finalize()
         }
     }
 
-    if (M_inletBCs.empty())
+     if (M_inletBCs.empty())
         throw new Exception("An inflow function has neither being set nor being "
                             "interpolated from datafile! Either call to  'setInletBC' method before "
                             "the 'finalize' method (with 'generate_inletBC' flag set to 0) or call "

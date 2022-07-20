@@ -94,7 +94,7 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
             if (err / initialError > tol)
             {
                 incr->multiplyByScalar(0.0);
-                if (recomputeevery % count != 0)
+                if (count > 0 && count % recomputeevery == 0)
                 {
                     BM curJac = jac(sol);
                     M_linearSystemSolver.setComm(M_comm);
@@ -105,7 +105,6 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
                     M_linearSystemSolver.setComm(M_comm);
                     M_linearSystemSolver.solve(startingJac, curFun, incr);
                 }
-
                 M_solverStatistics.push_back(M_linearSystemSolver.getSolverStatistics());
             }
             incr->multiplyByScalar(-1.0);
