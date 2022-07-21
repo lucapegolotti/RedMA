@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     data.setVerbose(comm->MyPID() == 0);
 
     // may add the possibility of reading the values from file
-    std::vector<unsigned int> numSamples = {15, 15, 10};
+    std::vector<unsigned int> numSamples = {2, 2, 15};
 
     // unsigned int numSamples = data("rb/offline/snapshots/nSnapshots", 2);
     unsigned int Nstart = 0;

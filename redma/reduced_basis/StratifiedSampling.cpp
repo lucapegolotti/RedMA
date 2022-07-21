@@ -13,10 +13,10 @@ StratifiedSampling(std::vector<unsigned int> numSamples)
     M_numPerComponent = numSamples;
 
 //    const double maxAngle = 0.4;
-    const double maxAmplitude = 0.3;
+    const double maxAmplitude = 0.8;
     const double maxWidth = 0.3;
     const double minFlow = 1.0;
-    const double maxFlow = 1.5;
+    const double maxFlow = 1.0;
 
     GeometricParametersHandler& paramsHandler = getParametersHandler();
 
@@ -38,7 +38,6 @@ StratifiedSampling(std::vector<unsigned int> numSamples)
                                     0.1, maxWidth, true, false);
     paramsHandler.registerParameter("stenosis_amplitude", 0,
                                     0.1, maxAmplitude, true, false);
-
 
     setParametersToBeSampled();
 }
@@ -78,7 +77,7 @@ generateSamples()
         std::vector<double> oneParamSamples;
         for (unsigned int i = 0; i < N; ++i)
         {
-            double elem = M_paramsBounds[j][0] + i/float(N) * (M_paramsBounds[j][1] - M_paramsBounds[j][0]);
+            double elem = M_paramsBounds[j][0] + i/float(N-1) * (M_paramsBounds[j][1] - M_paramsBounds[j][0]);
             oneParamSamples.push_back(elem);
         }
         samples.insert(std::pair<std::string, std::vector<double>> (M_paramsNames[j], oneParamSamples));

@@ -82,6 +82,7 @@ takeSnapshots(const unsigned int &Nstart)
     std::map<std::string, double> currentSample;
     std::map<std::string, BV> initialConditions;
     BV TargetGuess;
+    const double tol = pow(10, -10);
 
     unsigned int count = 0;
 
@@ -121,7 +122,7 @@ takeSnapshots(const unsigned int &Nstart)
 
                 currentSample["stenosis_width"] = SnapshotsSamples["stenosis_width"][k];
 
-                std::string msg = "Performing the snapshot generation for the current values: \n";
+                enter: std::string msg = "Performing the snapshot generation for the current values: \n";
                 msg = msg + "The current parameters are: \n";
                 printlog(GREEN, msg);
                 printCurrentSample(currentSample);
@@ -153,6 +154,13 @@ takeSnapshots(const unsigned int &Nstart)
                 problem.doStoreSolutions();
 
                 problem.setup();
+
+                if (problem.getBlockAssembler()->block(0)->getTreeNode()->M_block->getDisplacement()->norm2() < tol
+                && currentSample["stenosis_amplitude"] > tol && currentSample["stenosis_width"] > tol)
+                {
+                    currentSample["stenosis_width"] += 2 * pow(10, -4);
+                    goto enter;
+                }
 
                 // std::string filename = curdir + "/bypass.xml";
                 // printer.saveToFile(problem.getTree(), filename, M_comm);
