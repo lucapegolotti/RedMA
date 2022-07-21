@@ -232,27 +232,27 @@ namespace RedMA
 
 
         Vector3D secondNewStenosisCenter;
-        secondNewStenosisCenter[0] = -8.58698;
-        secondNewStenosisCenter[1] = 2.69411;
-        secondNewStenosisCenter[2] = 44.5586;
+        secondNewStenosisCenter[0] = -8.21895;
+        secondNewStenosisCenter[1] = 2.63577;
+        secondNewStenosisCenter[2] = 44.7453;
         Vector3D secondNewStenosisNormal;
-        secondNewStenosisNormal[0] = 0.690355;
-        secondNewStenosisNormal[1] = 0.702826;
-        secondNewStenosisNormal[2] = -0.17159;
+        secondNewStenosisNormal[0] = 0.948259;
+        secondNewStenosisNormal[1] = 0.299778;
+        secondNewStenosisNormal[2] = -0.104582;
         Vector3D secondNewStenosisFirstEigenvector;
-        secondNewStenosisFirstEigenvector[0] = -0.65362;
-        secondNewStenosisFirstEigenvector[1] = 0.541428;
-        secondNewStenosisFirstEigenvector[2] = -0.528832;
+        secondNewStenosisFirstEigenvector[0] = -0.01552;
+        secondNewStenosisFirstEigenvector[1] = 0.360758;
+        secondNewStenosisFirstEigenvector[2] = 0.93252;
         Vector3D secondNewStenosisThirdEigenvector;
-        secondNewStenosisThirdEigenvector[0] = -0.2179;
-        secondNewStenosisThirdEigenvector[1] = 0.42262;
-        secondNewStenosisThirdEigenvector[2] = 0.73902;
+        secondNewStenosisThirdEigenvector[0] = 0.28104;
+        secondNewStenosisThirdEigenvector[1] = -0.7508;
+        secondNewStenosisThirdEigenvector[2] = 0.31448;
         std::map<std::string, Vector3D> mapSecondNewStenosis;
         mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("center", secondNewStenosisCenter));
         mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("normal", secondNewStenosisNormal));
         mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("eigenX", secondNewStenosisNormal));
-        mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("eigenY", secondNewStenosisFirstEigenvector));
-        mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("eigenZ", secondNewStenosisThirdEigenvector));
+        mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("eigenY", secondNewStenosisThirdEigenvector));
+        mapSecondNewStenosis.insert(std::pair<std::string, Vector3D> ("eigenZ", secondNewStenosisFirstEigenvector));
         M_stenosisAttributes.insert(std::pair<unsigned int, std::map<std::string, Vector3D>> (3, mapSecondNewStenosis));
     }
 
@@ -277,7 +277,7 @@ namespace RedMA
        else if (i == 2)
            M_diameterAtStenosis = 0.6585998;
        else if (i == 3)
-           M_diameterAtStenosis = 0.5109350;
+           M_diameterAtStenosis = 0.5008542;
     }
 
     void
