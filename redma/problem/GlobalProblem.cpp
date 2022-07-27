@@ -90,7 +90,7 @@ solve()
 
         t += dt;
 
-        if (M_storeSolutions && t >= t0)
+        if (M_storeSolutions)
         {
             M_solutions.push_back(M_solution);
             M_timestepsSolutions.push_back(t);

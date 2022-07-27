@@ -32,7 +32,7 @@ outputdir = rb_solutions
 [rb]
 	[./offline]
 		[./snapshots]
-		    param_type           = inflow
+		    param_type           = inflow_systolic
 			number 			     = 10
 			bound 			     = 0.2
 			take_every 		     = 1
@@ -76,8 +76,9 @@ outputdir = rb_solutions
 		usemdeim = false
 		monolithicSolve = false
 		recomputeSchur = false
+		exactjacobian = false
 		approximatenonlinearterm = 1
-		numbernonlinearterms = 81
+		numbernonlinearterms = 1
 		[./basis]
 			directory = basis
 			podtol_field0 = 1e-16
@@ -133,10 +134,10 @@ outputdir = rb_solutions
 	algorithm = bdf
 	rhoinf = 0.5
 	order = 2
-	t0ramp = 0
+	t0ramp = -0.05
 	t0 = 0
-	T = 0.30
-	dt = 0.0025
+	T = 0.37
+	dt = 0.01
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
 [../]
@@ -162,7 +163,7 @@ outputdir = rb_solutions
 	nMax                = 5
 	stab_coefficient	= 1e-16
 	check_stabterm		= false
-	nfcts_weak_dirichlet_in = 5
+	nfcts_weak_dirichlet_in = 0
 	nfcts_weak_dirichlet_out = 0
 	frequencies_theta_ring = 5
     frequencies_theta_ring_weak_dirichlet_in = -1

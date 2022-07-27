@@ -54,7 +54,6 @@ solve(FunctionFunctor<BV,BV> fun, FunctionFunctor<BV,BM> jac,
 
         BV incr(new BlockVector(initialGuess->nRows()));
         BV curFun;
-        BV sol = initialGuess;
 
         double tol = M_data("newton_method/tol", 1e-5);
         unsigned int maxit = M_data("newton_method/maxit", 10);

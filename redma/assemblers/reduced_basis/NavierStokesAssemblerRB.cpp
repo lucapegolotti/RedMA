@@ -68,6 +68,9 @@ RBsetup()
 
         for (unsigned int i = 0; i < nterms; i++)
         {
+            std::string msg =  "\nConsidering basis number " + std::to_string(i);
+            printlog(WHITE, msg, this->M_data.getVerbose());
+
             M_nonLinearTermsDecomposition[i].resize(nterms);
 
             nonLinearJacobian->zero();
@@ -87,13 +90,15 @@ RBsetup()
             this->M_FEAssembler->applyDirichletBCsMatrix(nonLinearJacobianVec, 0.0);
 
             // TODO: I changed here!
-            // auto jac00 = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID());
-            auto jac00 = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID(), velocityNorm);
+            auto jac00 = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID());
+            // auto jac00 = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID(), velocityNorm);
             M_nonLinearMatrixDecomposition[i].reset(new BlockMatrix(2,2));
             M_nonLinearMatrixDecomposition[i]->setBlock(0,0,jac00);
 
             std::string filename_mat = dir_mat + "/Mat_" + std::to_string(i) + ".m";
             M_nonLinearMatrixDecomposition[i]->block(0,0)->dump(filename_mat);
+            /*if (i==0)
+                nonLinearJacobianVec->block(0,0)->dump(dir_mat + "/Mat_" + std::to_string(i) + "_FOM.m");*/
 
             nonLinearMatrix->zero();
             integrate(elements(velocityFESpaceETA->mesh()),
@@ -115,12 +120,14 @@ RBsetup()
                 this->M_FEAssembler->apply0DirichletBCs(nonLinearTermVec);
 
                 // TODO: I changed here!
-                // M_nonLinearTermsDecomposition[i][j] = M_bases->leftProject(nonLinearTermVec,  ID());
                 M_nonLinearTermsDecomposition[i][j].reset(new BlockVector(2));
-                M_nonLinearTermsDecomposition[i][j]->setBlock(0, M_bases->leftProject(nonLinearTermVec->block(0), 0, ID(), velocityNorm));
+                // M_nonLinearTermsDecomposition[i][j]->setBlock(0, M_bases->leftProject(nonLinearTermVec->block(0), 0, ID(), velocityNorm));
+                M_nonLinearTermsDecomposition[i][j]->setBlock(0, M_bases->leftProject(nonLinearTermVec->block(0), 0,  ID()));
 
                 std::string filename_vec = dir_vec + "/Vec_" + std::to_string(i) + "_" + std::to_string(j) +".m";
                 M_nonLinearTermsDecomposition[i][j]->block(0)->dump(filename_vec);
+                /*if (i+j==0)
+                    nonLinearTermVec->block(0)->dump(dir_vec + "/Vec_" + std::to_string(i) + "_" + std::to_string(j) + "_FOM.m");*/
             }
         }
 
@@ -342,6 +349,7 @@ getRightHandSide(const double& time,
     else
     {
         unsigned int nterms = M_nonLinearTermsDecomposition.size();
+        M_nonLinearTerm.reset(new BlockVector(2));
         M_nonLinearTerm->multiplyByScalar(0);
         for (unsigned int i = 0; i < nterms; i++)
         {
@@ -351,7 +359,8 @@ getRightHandSide(const double& time,
                 currVec->deepCopy(M_nonLinearTermsDecomposition[i][j]);
                 currVec->multiplyByScalar(solBlck->block(0)->operator()(i) *
                                           solBlck->block(0)->operator()(j));
-                M_nonLinearTerm->add(currVec);
+
+                M_nonLinearTerm->block(0)->add(currVec->block(0));
             }
         }
     }
