@@ -214,4 +214,63 @@ getJacobianRightHandSide(const double& time,
     return retMat;
 }
 
+void
+NavierStokesAssemblerFE::
+computeConvectiveTermFromFile(std::string filename)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    std::fstream inVel(filename + "/velocity.txt");
+    std::string line;
+
+    unsigned int cnt = 0;
+    std::vector<LifeV::Int> indicesVel;
+
+    shp<VECTOREPETRA> nonLinearTerm(new VECTOREPETRA(M_velocityFESpace->map()));
+    shp<BlockVector> blockVec(new BlockVector(this->M_nComponents));
+
+    while (std::getline(inVel, line))
+    {
+        shp<VECTOREPETRA> tmpEpetraVecVelocity (new VECTOREPETRA(M_velocityFESpace->map(),
+                                                                 Unique));
+
+        double val;
+        std::stringstream ss(line);
+
+        std::vector<double> values;
+        while (ss >> val)
+            values.push_back(val);
+
+        if (cnt == 0)
+            for (LifeV::Int i=0; i<tmpEpetraVecVelocity->size(); ++i)
+                indicesVel.push_back(i);
+        cnt += 1;
+
+        tmpEpetraVecVelocity->setCoefficients(indicesVel, values);
+
+        shp<MATRIXEPETRA> convectiveMatrix(new MATRIXEPETRA(M_velocityFESpace->map()));
+        shp<VECTOREPETRA> velocityRepeated(new VECTOREPETRA(*tmpEpetraVecVelocity, Repeated));
+
+        convectiveMatrix->zero();
+        integrate(elements(M_velocityFESpaceETA->mesh()),
+                  M_velocityFESpace->qr(),
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  value(M_density) *
+                  dot(value(M_velocityFESpaceETA , *velocityRepeated) * grad(phi_j),
+                  phi_i)
+                  ) >> convectiveMatrix;
+        convectiveMatrix->globalAssemble();
+
+        *nonLinearTerm = (*convectiveMatrix) * (*velocityRepeated);
+        blockVec->setBlock(0, wrap(nonLinearTerm));
+
+        this->M_bcManager->apply0DirichletBCs(*blockVec, this->getFESpaceBCs(),
+                                              this->getComponentBCs(), !(this->M_addNoSlipBC));
+
+        blockVec->block(0)->dump("ConvectiveTerm/time" + std::to_string(cnt));
+    }
+}
+
 }

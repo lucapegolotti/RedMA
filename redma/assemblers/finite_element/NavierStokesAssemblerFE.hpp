@@ -128,6 +128,8 @@ public:
     virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
                                                   const shp<aVector>& sol) override;
 
+    void computeConvectiveTermFromFile(std::string filename) override;
+
 
 protected:
     shp<NavierStokesStabilization>                    M_stabilization;

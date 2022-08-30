@@ -13,7 +13,7 @@ outputdir = solutions
 [assembler]
 	type = stokes
 	[./stabilization]
-        type = supg  # to choose in {none, supg, ip}
+        type = none  # to choose in {none, supg, ip}
         gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
     [../]
 [../]
@@ -37,17 +37,6 @@ outputdir = solutions
         type = dirichlet
         blockindex = 0
         boundaryflag = 2
-
-        C = 0.0  # 0.0000760  # WK3
-        Rp = 100.0  # 718.27  # WK3
-        Rd = 0.0  # 15945.20  # WK3
-
-        Ca = 1.0606295687808294e-07  # CORO
-        Cim = 8.581457420135802e-07  # CORO
-        Ra = 194674.68548804865  # CORO
-        Ram = 316346.36391807906  # CORO
-        Rvm = 0  # CORO
-        Rv = 97337.34274402432  # CORO
     [../]
 [../]
 
@@ -62,12 +51,22 @@ outputdir = solutions
 			dumpbinary 		     = true
 			computereynolds      = true
 			seed 			     = 1234
-			c_min = 0.1
-			c_max = 0.3
-			a_min = 4
-			a_max = 8
-			out_min = 0.2
-			out_max = 0.8
+			# parameter ranges of inflow
+            c_min = 0.1
+            c_max = 0.3
+            a_min = 4
+            a_max = 8
+            out_min = 0.2
+            out_max = 0.8
+            # parameter ranges of inflow systolic
+            Dt_min  = -0.2
+            Dt_max  = +0.2
+            DV0_min = -0.4
+            DV0_max = +0.4
+            DVM_min = -0.3
+            DVM_max = +0.3
+            DVm_min = -0.2
+            DVm_max = +0.2
 		[../]
 		[./basis]
 			directory  = basis
@@ -97,7 +96,7 @@ outputdir = solutions
 		[../]
 	[../]
 	[./online]
-	    usepiola = false
+	    usepiola = 0
 		usemdeim = false
 		monolithicSolve = false
 		recomputeSchur = false

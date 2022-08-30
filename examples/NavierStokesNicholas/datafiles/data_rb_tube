@@ -12,19 +12,22 @@ outputdir = rb_solutions
 
 [assembler]
 	type = stokes
-	stabilization = none
+    [./stabilization]
+        type = none  # to choose in {none, supg, ip}
+        gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
+    [../]
 [../]
 
 [bc_conditions]
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 
-        numinletbcs = 1
-    	[./inlet0]
-    	    generate_inletBC = 0
-            coefficient = 1.0  #  1.0309752387
-            flag = 1
-        [../]
+    numinletbcs = 1
+    [./inlet0]
+        generate_inletBC = 0
+        coefficient = 1.0  #  1.0309752387
+        flag = 1
+    [../]
 
 	numoutletbcs = 0
 [../]
@@ -39,10 +42,20 @@ outputdir = rb_solutions
 			dumpbinary 		     = true
 			computereynolds      = true
 			seed 			     = 1234
-			c_min = 0.1
-			c_max = 0.3
-			a_min = 4
-			a_max = 8
+			# parameter ranges of inflow
+            c_min = 0.1
+            c_max = 0.3
+            a_min = 4
+            a_max = 8
+            # parameter ranges of inflow systolic
+            Dt_min  = -0.2
+            Dt_max  = +0.2
+            DV0_min = -0.4
+            DV0_max = +0.4
+            DVM_min = -0.3
+            DVM_max = +0.3
+            DVm_min = -0.2
+            DVm_max = +0.2
 		[../]
 		[./basis]
 			directory  = basis
@@ -72,7 +85,7 @@ outputdir = rb_solutions
 		[../]
 	[../]
 	[./online]
-	    usepiola = false
+	    usepiola = 0
 		usemdeim = false
 		monolithicSolve = false
 		recomputeSchur = false

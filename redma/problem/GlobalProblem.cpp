@@ -164,4 +164,11 @@ isRBProblem()
     return M_assembler->arePrimalAssemblersRB();
 }
 
+void
+GlobalProblem::
+validateRBConvectiveTerm()
+{
+    std::string filename = "ConvectiveTerm/RB_solution";
+    M_assembler->getAssemblersMap()[0]->computeConvectiveTermFromFile(filename);
+}
 }

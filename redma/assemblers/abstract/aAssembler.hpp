@@ -294,11 +294,8 @@ public:
      */
     virtual void setRBBases(shp<RBBasesManager> rbManager) {}
 
-    /*! \brief Getter for the no-slip BCs at the lateral wall.
-     *
-     * \return True if no-slip BC at the lateral wall are imposed.
-     */
-    // virtual inline bool hasNoSlipBCs() const = 0;
+    // Tmp method to be removed
+    virtual void computeConvectiveTermFromFile(std::string filename) {std::cout << "NOT IMPLEMENTED" << std::endl;};
 
 protected:
     DataContainer                           M_data;

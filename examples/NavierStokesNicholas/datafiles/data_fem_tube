@@ -12,7 +12,10 @@ outputdir = rb_solutions
 
 [assembler]
 	type = stokes
-	stabilization = none
+	[./stabilization]
+        type = none  # to choose in {none, supg, ip}
+        gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
+    [../]
 [../]
 
 [bc_conditions]

@@ -97,8 +97,6 @@ RBsetup()
 
             std::string filename_mat = dir_mat + "/Mat_" + std::to_string(i) + ".m";
             M_nonLinearMatrixDecomposition[i]->block(0,0)->dump(filename_mat);
-            /*if (i==0)
-                nonLinearJacobianVec->block(0,0)->dump(dir_mat + "/Mat_" + std::to_string(i) + "_FOM.m");*/
 
             nonLinearMatrix->zero();
             integrate(elements(velocityFESpaceETA->mesh()),
@@ -126,8 +124,6 @@ RBsetup()
 
                 std::string filename_vec = dir_vec + "/Vec_" + std::to_string(i) + "_" + std::to_string(j) +".m";
                 M_nonLinearTermsDecomposition[i][j]->block(0)->dump(filename_vec);
-                /*if (i+j==0)
-                    nonLinearTermVec->block(0)->dump(dir_vec + "/Vec_" + std::to_string(i) + "_" + std::to_string(j) + "_FOM.m");*/
             }
         }
 

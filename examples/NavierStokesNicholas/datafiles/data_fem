@@ -5,14 +5,17 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/tube1x3.xml
+	xmlfile = geometries/tube1x2.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
 
 [assembler]
 	type = stokes
-	stabilization = none
+	[./stabilization]
+        type = none  # to choose in {none, supg, ip}
+        gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
+    [../]
 [../]
 
 [bc_conditions]
@@ -32,8 +35,8 @@ outputdir = rb_solutions
 [rb]
 	[./offline]
 		[./snapshots]
-		    param_type           = inflow_systolic
-			number 			     = 11
+		    param_type           = inflow
+			number 			     = 10
 			bound 			     = 0.2
 			take_every 		     = 1
 			dumpbinary 		     = true
@@ -113,7 +116,7 @@ outputdir = rb_solutions
 [newton_method]
 	tol = 1e-5
 	maxit = 10
-        relaxation = 1.0
+    relaxation = 1.0
 [../]
 
 [fluid]
@@ -141,10 +144,10 @@ outputdir = rb_solutions
 	algorithm = bdf
 	rhoinf = 0.5
 	order = 2
-	t0ramp = -0.05
+	t0ramp = 0
 	t0 = 0
-	T = 0.37
-	dt = 0.01
+	T = 0.3
+	dt = 0.0025
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
 [../]

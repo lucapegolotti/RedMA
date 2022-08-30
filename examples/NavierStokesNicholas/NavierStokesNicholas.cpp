@@ -26,27 +26,26 @@
 
 using namespace RedMA;
 
-double inflow(double t, std::vector<double> params)
+double inflow(const double t, const std::vector<double> params, const double T)
 {
-    double T = 0.1;
-    double K = 1.0;
-
-    return K * (1-cos(2*M_PI*t/T) + params[1]*sin(2*M_PI*params[0]*t/T));
+    return (1-cos(2*M_PI*t/T) + params[1]*sin(2*M_PI*params[0]*t/T));
+    // return params[1] * (1-cos(2*M_PI*t/T));
 }
 
-double inflow2(double t)
+double inflow2(const double t, const double T)
 {
-    double T = 0.1;
-    double K = 1.0;
 
     std::vector<double> params;
-    params.push_back(5.8814);
-    params.push_back(0.2244);
+    // params.push_back(6.6076363381);  // tube_1x2_h0.20
+    // params.push_back(0.2551319086);
+    params.push_back(5.8814478212);  // tube_1x3_h0.30
+    params.push_back(0.2244244114);
 
-    return K * (1-cos(2*M_PI*t/T) + params[1]*sin(2*M_PI*params[0]*t/T));
+    return (1-cos(2*M_PI*t/T) + params[1]*sin(2*M_PI*params[0]*t/T));
+    // return params[1] * (1-cos(2*M_PI*t/T));
 }
 
-double inflow_systolic(double t, std::vector<double> params)
+double inflow_systolic(const double t, const std::vector<double> params, const double T)
 {
     // reference values, computed from measured inflow
     double V0_ref = 1.541;
@@ -111,25 +110,34 @@ int main(int argc, char **argv)
     DataContainer data;
     data.setDatafile("datafiles/data_fem");
     data.setVerbose(comm->MyPID() == 0);
-   /*data.setInletBC(inflow2, 0);
-    data.finalize();*/
 
     unsigned int Nstart = 0;
     if (argc > 1)
         Nstart = std::atoi(argv[1]);
 
+    double T = data("time_discretization/T", 1.0);
+
     SnapshotsSampler sampler(data, comm);
     if (!std::strcmp(data("rb/offline/snapshots/param_type", "inflow").c_str(), "inflow"))
-        sampler.setInflow(inflow);
+        //sampler.setInflow(inflow);
+        sampler.setInflow([T](const double t, const std::vector<double> params){return inflow(t, params, T);});
     else if (!std::strcmp(data("rb/offline/snapshots/param_type", "inflow").c_str(), "inflow_systolic"))
-        sampler.setInflow(inflow_systolic);
+        // sampler.setInflow(inflow_systolic);
+        sampler.setInflow([T](const double t, const std::vector<double> params){return inflow_systolic(t, params, T);});
     else
         throw new Exception("Unrecognized type of inflow parametrization! "
                             "Available types: {inflow, inflow_systolic}.");
     sampler.takeSnapshots(Nstart);
 
-    /*GlobalProblem rbProblem(data, comm);
+    // To solve the RB problem in RedMA  --> set datafile accordingly!
+    /*data.setInletBC(inflow2, 0);
+    data.finalize();
+    GlobalProblem rbProblem(data, comm);
     rbProblem.solve();*/
+
+    // To compute the convective term, given a solution
+    /*GlobalProblem femProblem(data, comm);
+    femProblem.validateRBConvectiveTerm();*/
 
     msg = "Total time =  ";
     msg += std::to_string(chrono.diff());

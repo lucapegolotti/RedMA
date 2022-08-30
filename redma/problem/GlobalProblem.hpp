@@ -115,6 +115,8 @@ public:
      */
     bool isRBProblem();
 
+    void validateRBConvectiveTerm();
+
 private:
 
     shp<aTimeMarchingAlgorithm>                M_TMAlgorithm;

@@ -233,8 +233,6 @@ void
 RBBases::
 dump()
 {
-    // using namespace boost::filesystem;
-
     bool binary = M_data("rb/basis/dumpbinary", true);
 
     std::ios_base::openmode omode = std::ios_base::app;

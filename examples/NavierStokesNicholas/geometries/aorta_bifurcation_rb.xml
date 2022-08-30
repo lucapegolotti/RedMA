@@ -1,4 +1,4 @@
-<buildingblock type="aortabif1" assembler="stokes" method="fem" refinement="normal" outlet="1">
+<buildingblock type="aortabif1" assembler="stokes" method="rb" refinement="normal" outlet="1">
     <L_ratio>1</L_ratio>
     <Rout_ratio>1</Rout_ratio>
     <alpha>0</alpha>

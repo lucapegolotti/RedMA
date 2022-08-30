@@ -11,7 +11,7 @@ StokesAssemblerFE(const DataContainer& data,
     this->M_bcManager.reset(new BCManager(data, treeNode));
     M_name = "StokesAssemblerFE";
     M_nComponents = 2;
-    M_density = data("fluid/density", 1.0);
+    M_density = data("fluid/density", 1.06);
     M_viscosity = data("fluid/viscosity", 0.035);
     M_velocityOrder = data("fluid/velocity_order", "P2");
     M_pressureOrder = data("fluid/pressure_order", "P1");

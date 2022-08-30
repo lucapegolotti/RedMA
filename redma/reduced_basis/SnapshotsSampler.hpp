@@ -40,7 +40,7 @@ public:
     /// Take the snapshots.
     void takeSnapshots(const unsigned int& Nstart = 0);
 
-    inline void setInflow(const std::function<double(double, std::vector<double>)>& inflow) {M_inflow=inflow;};
+    inline void setInflow(const std::function<double(const double, const std::vector<double>)>& inflow) {M_inflow=inflow;};
 
     void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double> array_params);
 
