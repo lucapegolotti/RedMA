@@ -42,22 +42,22 @@ AortaBifurcation0(EPETRACOMM comm, std::string refinement,
     M_inletNormalRef[1] = 0.989459;
     M_inletNormalRef[2] = -0.114466;
 
-    // outlet of outlet (reference configuration)
+    // normal of outlet (reference configuration)
     M_outletNormalRef1[0] = -0.158101;
     M_outletNormalRef1[1] = -0.817230;
     M_outletNormalRef1[2] = -0.554201;
 
-    // outlet of outlet (reference configuration)
+    // normal of outlet (reference configuration)
     M_outletNormalRef2[0] = -0.418575;
     M_outletNormalRef2[1] = -0.286510;
     M_outletNormalRef2[2] = 0.861804;
 
-    // outlet of outlet (reference configuration)
+    // normal of outlet (reference configuration)
     M_outletNormalRef3[0] = -0.358876;
     M_outletNormalRef3[1] = -0.285907;
     M_outletNormalRef3[2] = 0.888519;
 
-    // outlet of outlet (reference configuration)
+    // normal of outlet (reference configuration)
     M_outletNormalRef4[0] = 0.560367;
     M_outletNormalRef4[1] = -0.284151;
     M_outletNormalRef4[2] = 0.777976;

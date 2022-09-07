@@ -13,7 +13,7 @@ outputdir = solutions
 [assembler]
 	type = stokes
 	[./stabilization]
-        type = supg  # to choose in {none, supg, ip}
+        type = none  # to choose in {none, supg, ip}
         gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
     [../]
 [../]
@@ -56,8 +56,8 @@ outputdir = solutions
             c_max = 0.3
             a_min = 4
             a_max = 8
-            out_min = 0.2
-            out_max = 0.8
+            out_min_0 = 0.2
+            out_max_0 = 0.8
             # parameter ranges of inflow systolic
             Dt_min  = -0.2
             Dt_max  = +0.2

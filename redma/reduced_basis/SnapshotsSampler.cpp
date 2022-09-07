@@ -81,9 +81,11 @@ takeSnapshots(const unsigned int& Nstart)
                 for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
                 {
                     std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
+                    std::string dataEntryMin = "rb/offline/snapshots/out_min_" + std::to_string(numOutlet);
+                    std::string dataEntryMax = "rb/offline/snapshots/out_max_" + std::to_string(numOutlet);
                     if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
-                        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/out_min", 0.0),
-                                                                    M_data("rb/offline/snapshots/out_max", 1.0)}));
+                        param_bounds.push_back(std::vector<double>({M_data(dataEntryMin, 0.0),
+                                                                    M_data(dataEntryMax, 1.0)}));
                 }
 
             std::vector<double> vec = inflowSnapshots(param_bounds);
@@ -116,7 +118,7 @@ takeSnapshots(const unsigned int& Nstart)
             {
                 unsigned int cnt = num_params_inflow + numInletConditions;
 
-                for (unsigned int numOutlet = 0; numOutlet < numOutletConditions; numOutlet++)
+                for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
                 {
                     std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
                     if ((!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "neumann")) ||

@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/tube1x2.xml
+	xmlfile = geometries/aorta_bifurcation_0.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -22,20 +22,37 @@ outputdir = rb_solutions
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 
-        numinletbcs = 1
-    	[./inlet0]
-    	    generate_inletBC = 0
-            coefficient = 1.0  #  1.0309752387
-            flag = 1
-        [../]
+    numinletbcs = 1
+    [./inlet0]
+        generate_inletBC = 0
+        coefficient = 1.0
+        flag = 3
+    [../]
 
-	numoutletbcs = 0
+	numoutletbcs = 3
+    [./outlet0]
+        type = dirichlet
+        blockindex = 0
+        boundaryflag = 4
+    [../]
+    [./outlet1]
+        type = dirichlet
+        blockindex = 0
+        boundaryflag = 5
+    [../]
+    [./outlet2]
+        type = dirichlet
+        blockindex = 0
+        boundaryflag = 6
+    [../]
+
 [../]
 
 [rb]
 	[./offline]
 		[./snapshots]
-		    param_type           = inflow
+		    param_type           = inflow_systolic
+		    add_outflow_param    = true
 			number 			     = 10
 			bound 			     = 0.2
 			take_every 		     = 1
@@ -47,6 +64,12 @@ outputdir = rb_solutions
 			c_max = 0.3
 			a_min = 4
 			a_max = 8
+			out_min_0 = 0.05
+			out_max_0 = 0.125
+			out_min_1 = 0.05
+            out_max_1 = 0.125
+            out_min_2 = 0.1
+            out_max_2 = 0.25
 			# parameter ranges of inflow systolic
 			Dt_min  = -0.2
 			Dt_max  = +0.2
@@ -120,7 +143,7 @@ outputdir = rb_solutions
 [../]
 
 [fluid]
-	velocity_order = P2
+	velocity_order = P1Bubble
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1.06
@@ -144,9 +167,9 @@ outputdir = rb_solutions
 	algorithm = bdf
 	rhoinf = 0.5
 	order = 2
-	t0ramp = 0
+	t0ramp = -0.05
 	t0 = 0
-	T = 0.3
+	T = 0.375
 	dt = 0.0025
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
@@ -173,7 +196,7 @@ outputdir = rb_solutions
 	nMax                = 5
 	stab_coefficient	= 1e-16
 	check_stabterm		= false
-	nfcts_weak_dirichlet_in = 0
+	nfcts_weak_dirichlet_in = 5
 	nfcts_weak_dirichlet_out = 0
 	frequencies_theta_ring = 5
     frequencies_theta_ring_weak_dirichlet_in = -1

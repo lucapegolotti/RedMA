@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/aorta_bifurcation_rb.xml
+	xmlfile = geometries/aorta_bifurcation_1_rb.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -50,8 +50,8 @@ outputdir = rb_solutions
 			c_max = 0.3
 			a_min = 4
 			a_max = 8
-            out_min = 0.2
-            out_max = 0.8
+            out_min_0 = 0.2
+            out_max_0 = 0.8
 			# parameter ranges of inflow systolic
 			Dt_min  = -0.2
 			Dt_max  = +0.2

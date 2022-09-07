@@ -9,7 +9,6 @@ BCManager(const DataContainer& data, shp<TreeNode> treeNode) :
   M_treeNode(treeNode)
 {
     M_inletBCType = data("bc_conditions/inlet_bc_type", "dirichlet");
-    // M_strongDirichlet = std::strcmp(data("bc_conditions/inletdirichlet", "weak").c_str(),"strong") == 0;
 
     M_ringConstraint = data("bc_conditions/ring_constraint", "normal");
 
@@ -378,9 +377,6 @@ apply0DirichletBCs(BlockVector& input, shp<FESPACE> fespace,
                    const bool& ringOnly)
 {
     shp<LifeV::BCHandler> bcs = createBCHandler0Dirichlet(ringOnly);
-
-    /*if ((!std::strcmp(M_inletBCType.c_str(), "dirichlet")) && (M_strongDirichlet))
-        addInletBC(bcs, ringOnly, true);*/
 
     shp<VECTOREPETRA> curVec(spcast<VECTOREPETRA>(input.block(index)->data()));
 

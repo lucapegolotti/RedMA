@@ -113,8 +113,6 @@ public:
 
     void postProcess();
 
-    // inline bool useStrongDirichlet() const {return M_strongDirichlet;}
-
     inline std::string getInletBCType() const {return M_inletBCType;}
 
     inline std::map<unsigned int, Law> getInletBCs() const {return M_inletBCs;}
@@ -179,7 +177,6 @@ private:
     std::string                                      M_ringConstraint;
     std::map<unsigned int, Law>                      M_inletBCs;
     std::map<unsigned int, Law>                      M_outletBCs;
-    // bool                                             M_strongDirichlet;
 
     std::vector<unsigned int>                        M_inletFlags;
     std::vector<unsigned int>                        M_outletFlags;
