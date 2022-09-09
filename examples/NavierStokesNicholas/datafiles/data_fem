@@ -5,7 +5,7 @@
 outputdir = rb_solutions
 
 [geometric_structure]
-	xmlfile = geometries/aorta_bifurcation_0.xml
+	xmlfile = geometries/tube1x2.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -22,89 +22,43 @@ outputdir = rb_solutions
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 
-    numinletbcs = 1
-    [./inlet0]
-        generate_inletBC = 0
-        coefficient = 1.0
-        flag = 3
-    [../]
+        numinletbcs = 1
+    	[./inlet0]
+    	    generate_inletBC = 0
+            coefficient = 1.0  #  1.0309752387
+            flag = 1
+        [../]
 
-	numoutletbcs = 3
-    [./outlet0]
-        type = dirichlet
-        blockindex = 0
-        boundaryflag = 4
-    [../]
-    [./outlet1]
-        type = dirichlet
-        blockindex = 0
-        boundaryflag = 5
-    [../]
-    [./outlet2]
-        type = dirichlet
-        blockindex = 0
-        boundaryflag = 6
-    [../]
-
+	numoutletbcs = 0
 [../]
 
 [rb]
 	[./offline]
 		[./snapshots]
-		    param_type           = inflow_systolic
-		    add_outflow_param    = true
-			number 			     = 10
+		    param_type           = inflow
+		    inflow_type          = heartbeat
+			number 			     = 5
 			bound 			     = 0.2
 			take_every 		     = 1
 			dumpbinary 		     = true
 			computereynolds      = true
 			seed 			     = 1234
 			# parameter ranges of inflow
-			c_min = 0.1
-			c_max = 0.3
-			a_min = 4
-			a_max = 8
-			out_min_0 = 0.05
-			out_max_0 = 0.125
-			out_min_1 = 0.05
-            out_max_1 = 0.125
-            out_min_2 = 0.1
-            out_max_2 = 0.25
-			# parameter ranges of inflow systolic
-			Dt_min  = -0.2
-			Dt_max  = +0.2
-			DV0_min = -0.4
-            DV0_max = +0.4
+            c_min = 0.1
+            c_max = 0.3
+            a_min = 4
+            a_max = 8
+            # parameter ranges of inflow systolic and heartbeat
+            Dt_min  = -0.4
+            Dt_max  = +0.4
+            DV0_min = -0.6
+            DV0_max = +0.6
             DVM_min = -0.3
             DVM_max = +0.3
-            DVm_min = -0.2
-            DVm_max = +0.2
-		[../]
-		[./basis]
-			directory  = basis
-			podtol     = 1e-5
-			dumpbinary = true
-			xmlfile = datafiles/SolverParamList.xml
-			addprimalsupremizers = true
-			adddualsupremizers = true
-			[./primal_supremizers]
-				field2augment = 0
-				limitingfield = 1
-			[../]
-			[./dual_supremizers]
-				field2augment = 0
-			[../]
-		[../]
-		[./deim]
-			take_snapshot_every = 4
-			dumpbinary_snapshots = true
-			numbersnapshots = 50
-		[../]
-		[./mdeim]
-			numbersnapshots = 1
-			podtol 			= 1e-5
-			checksonline    = 1
-			directory		= mdeims
+            DVm_min = -0.9
+            DVm_max = +0.9
+            DVMd_min = -0.5
+            DVMd_max = +0.5
 		[../]
 	[../]
 	[./online]
@@ -114,9 +68,9 @@ outputdir = rb_solutions
 		approximatenonlinearterm = 0
 		[./basis]
 			directory = basis
-			podtol_field0 = 1e-1
-			podtol_field1 = 1e-5
-			useprimalsupremizers = 1
+			podtol_field0 = 1e-16
+			podtol_field1 = 1e-16
+			useprimalsupremizers = 0
 			usedualsupremizers = 0
 		[../]
 		[./mdeim]
@@ -139,11 +93,11 @@ outputdir = rb_solutions
 [newton_method]
 	tol = 1e-5
 	maxit = 10
-    relaxation = 1.0
+        relaxation = 1.0
 [../]
 
 [fluid]
-	velocity_order = P1Bubble
+	velocity_order = P2
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1.06
@@ -169,8 +123,8 @@ outputdir = rb_solutions
 	order = 2
 	t0ramp = -0.05
 	t0 = 0
-	T = 0.375
-	dt = 0.0025
+	T = 0.75
+	dt = 0.005
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
 [../]

@@ -17,6 +17,7 @@ takeSnapshots(const unsigned int& Nstart)
 {
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
     std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
+    std::string inflow_type = M_data("rb/offline/snapshots/inflow_type", "default");
     bool withOutflow = M_data("rb/offline/snapshots/add_outflow_param", false);
     int numInletConditions = M_data("bc_conditions/numinletbcs", 1);
     unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
@@ -44,18 +45,18 @@ takeSnapshots(const unsigned int& Nstart)
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
 
-        if ((!std::strcmp(param_type.c_str(), "inflow")) || (!std::strcmp(param_type.c_str(), "inflow_systolic")))
+        if (!std::strcmp(param_type.c_str(), "inflow"))
         {
             std::vector<std::vector<double>> param_bounds;
 
-            if (!std::strcmp(param_type.c_str(), "inflow"))
+            if (!std::strcmp(inflow_type.c_str(), "default"))
             {
                 param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/a_min", 0.0),
                                                             M_data("rb/offline/snapshots/a_max", 1.0)}));
                 param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/c_min", 0.0),
                                                             M_data("rb/offline/snapshots/c_max", 1.0)}));
             }
-            else if (!std::strcmp(param_type.c_str(), "inflow_systolic"))
+            else if ((!std::strcmp(inflow_type.c_str(), "systolic")) || (!std::strcmp(inflow_type.c_str(), "heartbeat")))
             {
                 param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/Dt_min", 0.0),
                                                             M_data("rb/offline/snapshots/Dt_max", 1.0)}));
@@ -65,6 +66,9 @@ takeSnapshots(const unsigned int& Nstart)
                                                             M_data("rb/offline/snapshots/DVM_max", 1.0)}));
                 param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/DVm_min", 0.0),
                                                             M_data("rb/offline/snapshots/DVm_max", 1.0)}));
+                if (!std::strcmp(inflow_type.c_str(), "heartbeat"))
+                    param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/DVMd_min", 0.0),
+                                                                M_data("rb/offline/snapshots/DVMd_max", 1.0)}));
             }
 
             unsigned int num_params_inflow = param_bounds.size();
@@ -195,6 +199,7 @@ dumpSnapshots(GlobalProblem& problem,
     auto M_stiffness = problem.getBlockAssembler()->block(0)->assembleMatrix(1);
     auto M_divergence = problem.getBlockAssembler()->block(0)->assembleMatrix(2);
 
+    std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
     unsigned int takeEvery = M_data("rb/offline/snapshots/take_every", 5);
     bool binary = M_data("rb/offline/snapshots/dumpbinary", true);
     bool computereynolds = M_data("rb/offline/snapshots/computereynolds", true);
@@ -210,8 +215,9 @@ dumpSnapshots(GlobalProblem& problem,
     M_divergence->block(0,1)->dump("BdivT");
     M_divergence->block(1,0)->dump("Bdiv");
 
-    /*for (auto sol : solutions)
-        problem.getBlockAssembler()->applyPiola(sol, true);*/
+    if (!std::strcmp(param_type.c_str(), "geometric"))
+        for (auto sol : solutions)
+            problem.getBlockAssembler()->applyPiola(sol, true);
 
     for (auto idmeshtype : IDmeshTypeMap)
     {
@@ -242,7 +248,6 @@ dumpSnapshots(GlobalProblem& problem,
             }
             outfile.close();
         }
-
 
         for(unsigned int j = 0; j < n_dual_blocks; j++)  // save Lagrange multipliers, if any
 

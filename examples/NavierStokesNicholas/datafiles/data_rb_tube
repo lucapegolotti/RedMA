@@ -35,7 +35,8 @@ outputdir = rb_solutions
 [rb]
 	[./offline]
 		[./snapshots]
-		    param_type           = inflow
+            param_type           = inflow
+		    inflow_type          = heartbeat
 			number 			     = 5
 			bound 			     = 0.2
 			take_every 		     = 1
@@ -47,7 +48,7 @@ outputdir = rb_solutions
             c_max = 0.3
             a_min = 4
             a_max = 8
-            # parameter ranges of inflow systolic
+            # parameter ranges of inflow systolic and heartbeat
             Dt_min  = -0.2
             Dt_max  = +0.2
             DV0_min = -0.4
@@ -56,32 +57,8 @@ outputdir = rb_solutions
             DVM_max = +0.3
             DVm_min = -0.2
             DVm_max = +0.2
-		[../]
-		[./basis]
-			directory  = basis
-			podtol     = 1e-5
-			dumpbinary = true
-			xmlfile = datafiles/SolverParamList.xml
-			addprimalsupremizers = true
-			adddualsupremizers = true
-			[./primal_supremizers]
-				field2augment = 0
-				limitingfield = 1
-			[../]
-			[./dual_supremizers]
-				field2augment = 0
-			[../]
-		[../]
-		[./deim]
-			take_snapshot_every = 4
-			dumpbinary_snapshots = true
-			numbersnapshots = 50
-		[../]
-		[./mdeim]
-			numbersnapshots = 1
-			podtol 			= 1e-5
-			checksonline    = 1
-			directory		= mdeims
+            DVMd_min = -0.5
+            DVMd_max = +0.5
 		[../]
 	[../]
 	[./online]

@@ -12,7 +12,7 @@ outputdir = rb_solutions
 
 [assembler]
 	type = stokes
-    [./stabilization]
+	[./stabilization]
         type = none  # to choose in {none, supg, ip}
         gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
     [../]
@@ -35,8 +35,9 @@ outputdir = rb_solutions
 [rb]
 	[./offline]
 		[./snapshots]
-		    param_type           = inflow
-			number 			     = 10
+            param_type           = inflow
+		    inflow_type          = heartbeat
+			number 			     = 5
 			bound 			     = 0.2
 			take_every 		     = 1
 			dumpbinary 		     = true
@@ -47,51 +48,25 @@ outputdir = rb_solutions
             c_max = 0.3
             a_min = 4
             a_max = 8
-            # parameter ranges of inflow systolic
-            Dt_min  = -0.2
-            Dt_max  = +0.2
-            DV0_min = -0.4
-            DV0_max = +0.4
+            # parameter ranges of inflow systolic and heartbeat
+            Dt_min  = -0.4
+            Dt_max  = +0.4
+            DV0_min = -0.6
+            DV0_max = +0.6
             DVM_min = -0.3
             DVM_max = +0.3
-            DVm_min = -0.2
-            DVm_max = +0.2
-		[../]
-		[./basis]
-			directory  = basis
-			podtol     = 1e-5
-			dumpbinary = true
-			xmlfile = datafiles/SolverParamList.xml
-			addprimalsupremizers = true
-			adddualsupremizers = true
-			[./primal_supremizers]
-				field2augment = 0
-				limitingfield = 1
-			[../]
-			[./dual_supremizers]
-				field2augment = 0
-			[../]
-		[../]
-		[./deim]
-			take_snapshot_every = 4
-			dumpbinary_snapshots = true
-			numbersnapshots = 50
-		[../]
-		[./mdeim]
-			numbersnapshots = 1
-			podtol 			= 1e-5
-			checksonline    = 1
-			directory		= mdeims
+            DVm_min = -0.9
+            DVm_max = +0.9
+            DVMd_min = -0.5
+            DVMd_max = +0.5
 		[../]
 	[../]
 	[./online]
-	    usepiola = 0
+        usepiola = 0
 		usemdeim = false
 		monolithicSolve = false
 		recomputeSchur = false
-		exactjacobian = false
-		approximatenonlinearterm = 1
-		numbernonlinearterms = 14
+		approximatenonlinearterm = 0
 		[./basis]
 			directory = basis
 			podtol_field0 = 1e-16
@@ -147,10 +122,10 @@ outputdir = rb_solutions
 	algorithm = bdf
 	rhoinf = 0.5
 	order = 2
-	t0ramp = 0
+	t0ramp = -0.05
 	t0 = 0
-	T = 0.30
-	dt = 0.0025
+	T = 0.75
+	dt = 0.005
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
 [../]
@@ -176,7 +151,7 @@ outputdir = rb_solutions
 	nMax                = 5
 	stab_coefficient	= 1e-16
 	check_stabterm		= false
-	nfcts_weak_dirichlet_in = 0
+	nfcts_weak_dirichlet_in = 5
 	nfcts_weak_dirichlet_out = 0
 	frequencies_theta_ring = 5
     frequencies_theta_ring_weak_dirichlet_in = -1
