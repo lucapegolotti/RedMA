@@ -1,32 +1,8 @@
-// Reduced Modeling of Arteries (RedMA)
-// Copyright (C) 2019  Luca Pegolotti
-//
-// RedMA is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// RedMA is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-#include <redma/RedMA.hpp>
-#include <redma/problem/GlobalProblem.hpp>
-#include <redma/problem/DataContainer.hpp>
-
-#include <thread>
-
 #include "inflows.hpp"
-
-#include <redma/reduced_basis/SnapshotsSampler.hpp>
 
 using namespace RedMA;
 
-/*double inflow(const double t, const std::vector<double> params, const double T)
+double inflow(const double t, const std::vector<double> params, const double T)
 {
     return (1-cos(2*M_PI*t/T) + params[1]*sin(2*M_PI*params[0]*t/T));
 }
@@ -121,29 +97,29 @@ double inflow_heartbeat(const double t, const std::vector<double> params, const 
 
     Eigen::Matrix<double, 8, 8> matrix_sys;
     matrix_sys << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
-                  pow(TM,7), pow(TM,6), pow(TM,5), pow(TM,4), pow(TM,3), pow(TM,2), TM, 1.0,
-                  pow(Ts,7), pow(Ts,6), pow(Ts,5), pow(Ts,4), pow(Ts,3), pow(Ts,2), Ts, 1.0,
-                  pow(Tm,7), pow(Tm,6), pow(Tm,5), pow(Tm,4), pow(Tm,3), pow(Tm,2), Tm, 1.0,
-                  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0,
-                  7.*pow(TM,6), 6.*pow(TM,5), 5.*pow(TM,4), 4.*pow(TM,3), 3.*pow(TM,2), 2.*TM, 1.0, 0.0,
-                  7.*pow(Tm,6), 6.*pow(Tm,5), 5.*pow(Tm,4), 4.*pow(Tm,3), 3.*pow(Tm,2), 2.*Tm, 1.0, 0.0,
-                  42.*pow(Tm,5), 30.*pow(Tm,4), 20.*pow(Tm,3), 12.*pow(Tm,2), 6.*Tm, 2.0, 0.0, 0.0;
+    pow(TM,7), pow(TM,6), pow(TM,5), pow(TM,4), pow(TM,3), pow(TM,2), TM, 1.0,
+    pow(Ts,7), pow(Ts,6), pow(Ts,5), pow(Ts,4), pow(Ts,3), pow(Ts,2), Ts, 1.0,
+    pow(Tm,7), pow(Tm,6), pow(Tm,5), pow(Tm,4), pow(Tm,3), pow(Tm,2), Tm, 1.0,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0,
+    7.*pow(TM,6), 6.*pow(TM,5), 5.*pow(TM,4), 4.*pow(TM,3), 3.*pow(TM,2), 2.*TM, 1.0, 0.0,
+    7.*pow(Tm,6), 6.*pow(Tm,5), 5.*pow(Tm,4), 4.*pow(Tm,3), 3.*pow(Tm,2), 2.*Tm, 1.0, 0.0,
+    42.*pow(Tm,5), 30.*pow(Tm,4), 20.*pow(Tm,3), 12.*pow(Tm,2), 6.*Tm, 2.0, 0.0, 0.0;
 
     Eigen::Matrix<double, 8, 1> vector_sys;
     vector_sys << V0, VM, V0, Vm, 0.0, 0.0, 0.0, 0.0;
 
     Eigen::Matrix<double, 8, 1> a_sys = matrix_sys.colPivHouseholderQr().solve(vector_sys);
     FunctionFunctor<double, double> systolic_flow(
-        [a_sys](double t)
-    {
-        return a_sys[0]*pow(t,7) + a_sys[1]*pow(t,6) + a_sys[2]*pow(t,5) + a_sys[3]*pow(t,4) +
-               a_sys[4]*pow(t,3) + a_sys[5]*pow(t,2) + a_sys[6]*pow(t,1) + a_sys[7]*pow(t,0);
-    });
+            [a_sys](double t)
+            {
+                return a_sys[0]*pow(t,7) + a_sys[1]*pow(t,6) + a_sys[2]*pow(t,5) + a_sys[3]*pow(t,4) +
+                a_sys[4]*pow(t,3) + a_sys[5]*pow(t,2) + a_sys[6]*pow(t,1) + a_sys[7]*pow(t,0);
+            });
 
 
     double Td = Tm_ref;
     if (Tm < Tm_ref)
-      Td = Tm;
+        Td = Tm;
 
     double Vd = systolic_flow(Td);
     double Vdp = (systolic_flow(Td)- systolic_flow(Td-0.001)) / 0.001;
@@ -163,7 +139,7 @@ double inflow_heartbeat(const double t, const std::vector<double> params, const 
             [a_dia](double t)
             {
                 return a_dia[0]*pow(t,4) + a_dia[1]*pow(t,3) + a_dia[2]*pow(t,2) +
-                       a_dia[3]*pow(t,1) + a_dia[4]*pow(t,0);
+                a_dia[3]*pow(t,1) + a_dia[4]*pow(t,0);
             });
 
     if (t<0)
@@ -172,73 +148,4 @@ double inflow_heartbeat(const double t, const std::vector<double> params, const 
         return systolic_flow(t);
     else
         return diastolic_flow(t);
-}*/
-
-
-int main(int argc, char **argv)
-{
-
-    std::mt19937_64 eng{std::random_device{}()};
-    std::uniform_int_distribution<> dist{1, 20};
-    std::this_thread::sleep_for(std::chrono::seconds{dist(eng)});
-
-    Chrono chrono;
-    chrono.start();
-
-    std::string msg = "Starting chrono \n";
-    printlog(MAGENTA, msg, true);
-    
-    #ifdef HAVE_MPI
-    MPI_Init (nullptr, nullptr);
-    EPETRACOMM comm (new Epetra_MpiComm(MPI_COMM_WORLD));
-    #else
-    EPETRACOMM comm(new Epetra_SerialComm());
-    #endif
-
-    printlog(MAGENTA,"Starting snapshots generation...", true);
-    DataContainer data;
-    data.setDatafile("datafiles/data_fem");
-    data.setVerbose(comm->MyPID() == 0);
-
-    unsigned int Nstart = 0;
-    if (argc > 1)
-        Nstart = std::atoi(argv[1]);
-
-    double T = data("time_discretization/T", 1.0);
-    double Tramp = - data("time_discretization/t0ramp", 0.05);
-
-    if (std::strcmp(data("rb/offline/snapshots/param_type", "inflow").c_str(), "inflow"))
-        throw new Exception("This test case handles only 'inflow' parametrization!");
-
-    SnapshotsSampler sampler(data, comm);
-    if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "default"))
-        sampler.setInflow([T](const double t, const std::vector<double> params){return inflow(t, params, T);});
-    else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "periodic"))
-        sampler.setInflow([T, Tramp](const double t, const std::vector<double> params){return inflow_periodic(t, params, T, Tramp);});
-    else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "systolic"))
-        sampler.setInflow([Tramp](const double t, const std::vector<double> params){return inflow_systolic(t, params, Tramp);});
-    else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "heartbeat"))
-        sampler.setInflow([Tramp](const double t, const std::vector<double> params){return inflow_heartbeat(t, params, Tramp);});
-    else
-        throw new Exception("Unrecognized type of inflow parametrization! "
-                            "Available types: {default, periodic, systolic, heartbeat}.");
-
-    sampler.takeSnapshots(Nstart);
-
-    // To solve the RB problem in RedMA  --> set datafile accordingly!
-    /*data.setInletBC(inflow2, 0);
-    data.finalize();
-    GlobalProblem rbProblem(data, comm);
-    rbProblem.solve();*/
-
-    // To compute the convective term, given a solution
-    /*GlobalProblem femProblem(data, comm);
-    femProblem.validateRBConvectiveTerm();*/
-
-    msg = "Total time =  ";
-    msg += std::to_string(chrono.diff());
-    msg += " seconds\n";
-    printlog(MAGENTA, msg, true);
-
-    return 0;
 }

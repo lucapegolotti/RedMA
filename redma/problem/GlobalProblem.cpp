@@ -58,6 +58,7 @@ solve()
     double T = M_data("time_discretization/T", 1.0);
     double dt = M_data("time_discretization/dt", 0.01);
     int saveEvery = M_data("exporter/save_every", 1);
+    int saveRamp = M_data("exporter/save_ramp", 1);
 
     double t;
 
@@ -92,9 +93,15 @@ solve()
 
         if (M_storeSolutions)
         {
-            M_solutions.push_back(M_solution);
-            M_timestepsSolutions.push_back(t);
+            if (saveRamp || (t > t0))
+            {
+                M_solutions.push_back(M_solution);
+                M_timestepsSolutions.push_back(t);
+            }
+            if ((std::abs(t-t0) < dt/2) || (std::abs(t-(t0-dt)) < dt/2))
+                M_initialConditions.push_back(M_solution);
         }
+
 
         M_assembler->postProcess(t, M_solution);
 

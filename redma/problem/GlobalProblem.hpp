@@ -91,6 +91,12 @@ public:
      */
     inline std::vector<BV> getSolutions() {return M_solutions;}
 
+    /*! \brief Get stored initial conditions.
+     *
+     *  \return Vector of shared pointer to BlockVectors, containing the initial conditions (if not null).
+     */
+    inline std::vector<BV> getInitialConditions() {return M_initialConditions;}
+
     /*! \brief Get a vector with all the timesteps.
      *
      * \return A vector with all the timesteps.
@@ -126,6 +132,7 @@ private:
     GeometryParser                             M_geometryParser;
     bool                                       M_storeSolutions;
     std::vector<BV>                            M_solutions;
+    std::vector<BV>                            M_initialConditions;
     std::vector<double>                        M_timestepsSolutions;
     shp<DefaultAssemblersLibrary>              M_defaultAssemblers;
     EPETRACOMM                                 M_comm;

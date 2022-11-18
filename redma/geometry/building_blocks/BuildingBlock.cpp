@@ -176,6 +176,10 @@ readMesh(std::string meshdir)
     M_mesh.reset(new MESH(M_comm));
     M_mesh = meshPart.meshPartition();
 
+    // check and fix mesh (?)
+    /*LifeV::Switch sw;
+    LifeV::checkMesh3D(*M_mesh, sw, true, true);*/
+
     printlog(MAGENTA, "done\n", M_verbose);
 }
 

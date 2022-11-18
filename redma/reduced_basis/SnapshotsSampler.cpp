@@ -49,7 +49,7 @@ takeSnapshots(const unsigned int& Nstart)
         {
             std::vector<std::vector<double>> param_bounds;
 
-            if (!std::strcmp(inflow_type.c_str(), "default"))
+            if ((!std::strcmp(inflow_type.c_str(), "default")) || (!std::strcmp(inflow_type.c_str(), "periodic")))
             {
                 param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/a_min", 0.0),
                                                             M_data("rb/offline/snapshots/a_max", 1.0)}));
@@ -189,6 +189,7 @@ dumpSnapshots(GlobalProblem& problem,
 {
     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
     auto solutions = problem.getSolutions();
+    auto initialConditions = problem.getInitialConditions();
 
     assert(!(solutions.empty()));
 
@@ -250,7 +251,6 @@ dumpSnapshots(GlobalProblem& problem,
         }
 
         for(unsigned int j = 0; j < n_dual_blocks; j++)  // save Lagrange multipliers, if any
-
         {
             std::string outfilename = meshtypedir + "/lagmult_" + std::to_string(j) + ".snap";
             std::ofstream outfile;
@@ -270,6 +270,32 @@ dumpSnapshots(GlobalProblem& problem,
                 count++;
             }
             outfile.close();
+        }
+
+        if (!initialConditions.empty())
+        {
+            for (unsigned int i = 0; i < nfields; i++)
+            {
+                std::string outfilename = meshtypedir + "/field" + std::to_string(i) + "_IC.snap";
+
+                std::ofstream outfile;
+                outfile.open(outfilename, omode);
+                unsigned int count = 0;
+                for (auto initialCondition : initialConditions)
+                {
+                    auto solBlck = convert<DistributedVector>(convert<BlockVector>(
+                            convert<BlockVector>(initialCondition)->block(idmeshtype.first))->block(i));
+                    if (count % takeEvery == 0)
+                    {
+                        std::string str2write = solBlck->getString(',') + "\n";
+                        if (M_comm->MyPID() == 0)
+                            outfile.write(str2write.c_str(), str2write.size());
+                    }
+
+                    count++;
+                }
+                outfile.close();
+            }
         }
 
         if (computereynolds)

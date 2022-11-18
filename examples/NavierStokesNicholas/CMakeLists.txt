@@ -1,4 +1,4 @@
-add_executable(NavierStokesNicholas NavierStokesNicholas.cpp)
+add_executable(NavierStokesNicholas NavierStokesNicholas.cpp inflows.cpp)
 target_link_libraries(NavierStokesNicholas ${LINKED_LIBRARIES})
 target_include_directories(NavierStokesNicholas PRIVATE ${HEADERS_DIRS})
 
