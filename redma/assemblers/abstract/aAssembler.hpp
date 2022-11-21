@@ -205,6 +205,12 @@ public:
      */
     virtual inline shp<BCManager> getBCManager() const {return M_bcManager;}
 
+    /*! \brief Getter for the class name.
+     *
+     * \return Class name.
+     */
+    virtual inline std::string getName() const {return M_name;}
+
     /*! \brief Virtual setup of the exporter.
      */
     virtual void setExporter() = 0;

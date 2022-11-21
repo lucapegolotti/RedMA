@@ -102,7 +102,6 @@ solve()
                 M_initialConditions.push_back(M_solution);
         }
 
-
         M_assembler->postProcess(t, M_solution);
 
         if ((t > t0 && saveEvery > 0 && count % saveEvery == 0) || (std::abs(t-t0) < dt/2))

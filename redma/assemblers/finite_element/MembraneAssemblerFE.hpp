@@ -106,8 +106,9 @@ public:
      * element basis functions of the velocity.
      *
      * \param bcManager A BCManager for the application of the boundary conditions.
+     * \param add_wall_terms A bool for the addition of wall terms. It defaults to true.
      */
-    shp<aMatrix> assembleMass(shp<BCManager> bcManager) override;
+    shp<aMatrix> assembleMass(shp<BCManager> bcManager, const bool& add_wall_terms);
 
     /*! \brief Assemble the boundary mass matrix.
      *
@@ -165,8 +166,9 @@ public:
      * unit normal vector. \f$\varphi_i^h\f$ are the finite element basis functions of the velocity.
      *
      * \param bcManager A BCManager for the application of the boundary conditions.
+     * \param add_wall_terms A bool for the addition of wall terms. It defaults to true.
      */
-    shp<aMatrix> assembleStiffness(shp<BCManager> bcManager) override;
+    shp<aMatrix> assembleStiffness(shp<BCManager> bcManager, const bool& add_wall_terms = true);
 
     /*! \brief Assemble the boundary stiffness matrix.
      *
@@ -187,6 +189,12 @@ public:
      * \param bcManager A BCManager for the application of the boundary conditions.
      */
     shp<aMatrix> assembleBoundaryStiffness(shp<BCManager> bcManager, bool verbose = false);
+
+    /*! \brief Assemble the different terms of the boundary stiffness matrix.
+     *
+     * \param bcManager A BCManager for the application of the boundary conditions.
+     */
+    std::vector<shp<aMatrix>> assembleBoundaryStiffnessTerms(shp<BCManager> bcManager);
 
     /*! \brief Getter for the right-hand side term in Newton-Raphson iterations.
      *
@@ -237,6 +245,18 @@ public:
     * \return A vector containing the shared pointers to the boundary matrices.
     */
     std::vector<shp<aMatrix>> getBoundaryMatrices() const;
+
+    /*! \brief Getter for the norm matrices.
+     *
+     * The matrices are assembled within this function. If fieldIndex = 0 and bcs = true,
+     * the Dirichlet boundary conditions are applied to the velocity matrix.
+     *
+     * \param fieldIndex Index of norm matrix (velocity = 0, pressure = 1, displacement=2).
+     * \param bcs If true, Dirichlet boundary conditions are applied (only to velocity).
+     * \return Shared pointer to the norm matrix.
+     */
+    virtual shp<aMatrix> getNorm(const unsigned int& fieldIndex,
+                                 bool bcs = true) override;
 
     /*! PostProcess function, to be called at the end of each timestep.
      *

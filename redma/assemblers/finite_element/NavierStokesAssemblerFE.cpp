@@ -9,6 +9,7 @@ NavierStokesAssemblerFE(const DataContainer& data,
   StokesAssemblerFE(data,treeNode)
 {
     M_stabilizationName = data("assembler/stabilization/type", "none");
+    M_name = "NavierStokesAssemblerFE";
     // if we use a stabilization we use P1-P1 by default
     if (std::strcmp(M_stabilizationName.c_str(), "none"))
     {

@@ -17,10 +17,7 @@ takeSnapshots(const unsigned int& Nstart)
 {
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots");
     std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
-    std::string inflow_type = M_data("rb/offline/snapshots/inflow_type", "default");
-    bool withOutflow = M_data("rb/offline/snapshots/add_outflow_param", false);
-    int numInletConditions = M_data("bc_conditions/numinletbcs", 1);
-    unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
+    std::list<std::string> param_types = this->stringTokenizer(param_type, ',');
 
     fs::create_directory(outdir);
     GeometryPrinter printer;
@@ -45,99 +42,17 @@ takeSnapshots(const unsigned int& Nstart)
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
 
-        if (!std::strcmp(param_type.c_str(), "inflow"))
+        if (std::find(std::begin(param_types), std::end(param_types), "inflow") != std::end(param_types))
         {
-            std::vector<std::vector<double>> param_bounds;
+            std::vector<double> array_params_inflow = this->sampleParametersInflow();
+            array_params.insert(array_params.end(), array_params_inflow.begin(), array_params_inflow.end());
+        }
 
-            if ((!std::strcmp(inflow_type.c_str(), "default")) || (!std::strcmp(inflow_type.c_str(), "periodic")))
-            {
-                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/a_min", 0.0),
-                                                            M_data("rb/offline/snapshots/a_max", 1.0)}));
-                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/c_min", 0.0),
-                                                            M_data("rb/offline/snapshots/c_max", 1.0)}));
-            }
-            else if ((!std::strcmp(inflow_type.c_str(), "systolic")) || (!std::strcmp(inflow_type.c_str(), "heartbeat")))
-            {
-                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/Dt_min", 0.0),
-                                                            M_data("rb/offline/snapshots/Dt_max", 1.0)}));
-                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/DV0_min", 0.0),
-                                                            M_data("rb/offline/snapshots/DV0_max", 1.0)}));
-                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/DVM_min", 0.0),
-                                                            M_data("rb/offline/snapshots/DVM_max", 1.0)}));
-                param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/DVm_min", 0.0),
-                                                            M_data("rb/offline/snapshots/DVm_max", 1.0)}));
-                if (!std::strcmp(inflow_type.c_str(), "heartbeat"))
-                    param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/DVMd_min", 0.0),
-                                                                M_data("rb/offline/snapshots/DVMd_max", 1.0)}));
-            }
 
-            unsigned int num_params_inflow = param_bounds.size();
-
-            for (unsigned int numInlet=1; numInlet < numInletConditions; numInlet++)
-            {
-                std::string dataEntryMin = "rb/offline/snapshots/in_min_" + std::to_string(numInlet);
-                std::string dataEntryMax = "rb/offline/snapshots/in_max_" + std::to_string(numInlet);
-                param_bounds.push_back(std::vector<double>({M_data(dataEntryMin, 0.0),
-                                                            M_data(dataEntryMax, 1.0)}));
-            }
-
-            if (withOutflow)
-                for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
-                {
-                    std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
-                    std::string dataEntryMin = "rb/offline/snapshots/out_min_" + std::to_string(numOutlet);
-                    std::string dataEntryMax = "rb/offline/snapshots/out_max_" + std::to_string(numOutlet);
-                    if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
-                        param_bounds.push_back(std::vector<double>({M_data(dataEntryMin, 0.0),
-                                                                    M_data(dataEntryMax, 1.0)}));
-                }
-
-            std::vector<double> vec = inflowSnapshots(param_bounds);
-
-            auto inletBC = std::bind(M_inflow,
-                                     std::placeholders::_1, vec);
-
-            if (numInletConditions > 1)
-            {
-                double sum = 1.0 + std::accumulate(vec.begin()+num_params_inflow,
-                                                   vec.begin()+num_params_inflow+numInletConditions-1,
-                                                   0.0);
-                for (auto it = vec.begin()+num_params_inflow; it != vec.begin()+num_params_inflow+numInletConditions-1; ++it)
-                    *it /= sum;
-                vec.insert(vec.begin() + num_params_inflow, 1.0 / sum);
-            }
-            else
-                vec.insert(vec.begin() + num_params_inflow, 1.0);
-            array_params = vec;
-
-            for (unsigned int numInlet=0; numInlet < numInletConditions; numInlet++)
-            {
-                unsigned int cnt = num_params_inflow + numInlet;
-                std::function<double(double)> inletDirichlet = [vec, cnt, inletBC] (double t)
-                        {return vec[cnt] * inletBC(t);};
-                M_data.setInletBC(inletDirichlet, numInlet);
-            }
-
-            if (withOutflow)
-            {
-                unsigned int cnt = num_params_inflow + numInletConditions;
-
-                for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
-                {
-                    std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
-                    if ((!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "neumann")) ||
-                        (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "windkessel")) ||
-                        (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "coronary")))
-                        throw new Exception("Invalid outlet BC type! Only Dirichlet BCs are supported.");
-                    else if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
-                    {
-                        std::function<double(double)> outletDirichlet = [vec, cnt, inletBC] (double t)
-                                {return vec[cnt] * inletBC(t);};
-                        M_data.setOutletBC(outletDirichlet, numOutlet);
-                    }
-                    cnt++;
-                }
-            }
+        if (std::find(std::begin(param_types), std::end(param_types), "physics") != std::end(param_types))
+        {
+            std::vector<double> array_params_physics = this->sampleParametersPhysics();
+            array_params.insert(array_params.end(), array_params_physics.begin(), array_params_physics.end());
         }
 
         GlobalProblem problem(M_data, M_comm, false);
@@ -146,7 +61,7 @@ takeSnapshots(const unsigned int& Nstart)
 
         fs::create_directory(curdir);
 
-        if (!std::strcmp(param_type.c_str(), "geometric"))
+        if (std::find(std::begin(param_types), std::end(param_types), "geometric") != std::end(param_types))
             problem.getTree().randomSampleAroundOriginalValue(bound);
 
         Chrono chrono2;
@@ -201,11 +116,12 @@ dumpSnapshots(GlobalProblem& problem,
     auto M_divergence = problem.getBlockAssembler()->block(0)->assembleMatrix(2);
 
     std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
+    std::list<std::string> param_types = this->stringTokenizer(param_type, ',');
     unsigned int takeEvery = M_data("rb/offline/snapshots/take_every", 5);
     bool binary = M_data("rb/offline/snapshots/dumpbinary", true);
     bool computereynolds = M_data("rb/offline/snapshots/computereynolds", true);
-    double density = M_data("rb/offline/fluid/density", 1.0);
-    double viscosity = M_data("rb/offline/fluid/viscosity", 1.0);
+    double density = M_data("rb/offline/fluid/density", 1.06);
+    double viscosity = M_data("rb/offline/fluid/viscosity", 0.035);
 
     std::ios_base::openmode omode = std::ios_base::app;
     if (binary)
@@ -216,7 +132,8 @@ dumpSnapshots(GlobalProblem& problem,
     M_divergence->block(0,1)->dump("BdivT");
     M_divergence->block(1,0)->dump("Bdiv");
 
-    if (!std::strcmp(param_type.c_str(), "geometric"))
+    // if (!std::strcmp(param_type.c_str(), "geometric"))
+    if (std::find(std::begin(param_types), std::end(param_types), "geometric") != std::end(param_types))
         for (auto sol : solutions)
             problem.getBlockAssembler()->applyPiola(sol, true);
 
@@ -328,6 +245,8 @@ dumpSnapshots(GlobalProblem& problem,
             file.close();
         }
     }
+
+    // TODO: export displacement in .snap file for membrane assembler !!
 }
 
 void
@@ -426,9 +345,191 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
     }
 }
 
+std::list<std::string>
+SnapshotsSampler::
+stringTokenizer(std::string s, char del)
+{
+    std::stringstream ss(s);
+    std::string word;
+    std::list<std::string> retList;
+
+    while (!ss.eof()) {
+        std::getline(ss, word, del);
+        retList.push_back(word);
+    }
+
+    return retList;
+}
+
 std::vector<double>
 SnapshotsSampler::
-inflowSnapshots(const std::vector<std::vector<double>>& param_bounds)
+sampleParametersInflow()
+{
+    std::vector<double> array_params;
+
+    std::string inflow_type = M_data("rb/offline/snapshots/inflow_type", "default");
+    bool withOutflow = M_data("rb/offline/snapshots/add_outflow_param", false);
+    int numInletConditions = M_data("bc_conditions/numinletbcs", 1);
+    unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
+
+    std::vector<std::vector<double>> param_bounds;
+
+    if ((!std::strcmp(inflow_type.c_str(), "default")) || (!std::strcmp(inflow_type.c_str(), "periodic")))
+    {
+        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/a_min", 0.0),
+                                                    M_data("rb/offline/snapshots/a_max", 1.0)}));
+        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/c_min", 0.0),
+                                                    M_data("rb/offline/snapshots/c_max", 1.0)}));
+    }
+    else if ((!std::strcmp(inflow_type.c_str(), "systolic")) || (!std::strcmp(inflow_type.c_str(), "heartbeat")))
+    {
+        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/Dt_min", 0.0),
+                                                    M_data("rb/offline/snapshots/Dt_max", 1.0)}));
+        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/DV0_min", 0.0),
+                                                    M_data("rb/offline/snapshots/DV0_max", 1.0)}));
+        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/DVM_min", 0.0),
+                                                    M_data("rb/offline/snapshots/DVM_max", 1.0)}));
+        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/DVm_min", 0.0),
+                                                    M_data("rb/offline/snapshots/DVm_max", 1.0)}));
+        if (!std::strcmp(inflow_type.c_str(), "heartbeat"))
+            param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/DVMd_min", 0.0),
+                                                        M_data("rb/offline/snapshots/DVMd_max", 1.0)}));
+    }
+
+    unsigned int num_params_inflow = param_bounds.size();
+
+    for (unsigned int numInlet=1; numInlet < numInletConditions; numInlet++)
+    {
+        std::string dataEntryMin = "rb/offline/snapshots/in_min_" + std::to_string(numInlet);
+        std::string dataEntryMax = "rb/offline/snapshots/in_max_" + std::to_string(numInlet);
+        param_bounds.push_back(std::vector<double>({M_data(dataEntryMin, 0.0),
+                                                    M_data(dataEntryMax, 1.0)}));
+    }
+
+    if (withOutflow)
+        for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
+        {
+            std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
+            std::string dataEntryMin = "rb/offline/snapshots/out_min_" + std::to_string(numOutlet);
+            std::string dataEntryMax = "rb/offline/snapshots/out_max_" + std::to_string(numOutlet);
+            if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
+                param_bounds.push_back(std::vector<double>({M_data(dataEntryMin, 0.0),
+                                                            M_data(dataEntryMax, 1.0)}));
+        }
+
+    std::vector<double> vec = sampleParameters(param_bounds);
+
+    auto inletBC = std::bind(M_inflow,
+                             std::placeholders::_1, vec);
+
+    if (numInletConditions > 1)
+    {
+        double sum = 1.0 + std::accumulate(vec.begin()+num_params_inflow,
+                                           vec.begin()+num_params_inflow+numInletConditions-1,
+                                           0.0);
+        for (auto it = vec.begin()+num_params_inflow; it != vec.begin()+num_params_inflow+numInletConditions-1; ++it)
+            *it /= sum;
+        vec.insert(vec.begin() + num_params_inflow, 1.0 / sum);
+    }
+    else
+        vec.insert(vec.begin() + num_params_inflow, 1.0);
+
+    array_params = vec;  // setting parameter values for exporting
+
+    for (unsigned int numInlet=0; numInlet < numInletConditions; numInlet++)
+    {
+        unsigned int cnt = num_params_inflow + numInlet;
+        std::function<double(double)> inletDirichlet = [vec, cnt, inletBC] (double t)
+                {return vec[cnt] * inletBC(t);};
+        M_data.setInletBC(inletDirichlet, numInlet);
+    }
+
+    if (withOutflow)
+    {
+        unsigned int cnt = num_params_inflow + numInletConditions;
+
+        for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
+        {
+            std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
+            if ((!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "neumann")) ||
+            (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "windkessel")) ||
+            (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "coronary")))
+                throw new Exception("Invalid outlet BC type! Only Dirichlet BCs are supported.");
+            else if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
+            {
+                std::function<double(double)> outletDirichlet = [vec, cnt, inletBC] (double t)
+                        {return vec[cnt] * inletBC(t);};
+                M_data.setOutletBC(outletDirichlet, numOutlet);
+            }
+            cnt++;
+        }
+    }
+
+    return array_params;
+}
+
+std::vector<double>
+SnapshotsSampler::
+sampleParametersPhysics()
+{
+    std::vector<double> array_params;
+
+    bool sampleFluidPhysics = M_data("rb/offline/snapshots/sample_fluid_physics", true);
+    bool sampleStructurePhysics = M_data("rb/offline/snapshots/sample_structure_physics", true);
+
+    if (sampleFluidPhysics)
+    {
+        std::vector<std::vector<double>> param_bounds;
+        std::vector<double> param_ref_values;
+
+        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/rho_f_min", -0.1),
+                                                    M_data("rb/offline/snapshots/rho_f_max", 0.1)}));
+        param_ref_values.push_back(1.06);
+        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/mu_f_min", -0.1),
+                                                    M_data("rb/offline/snapshots/mu_f_max", 0.5)}));
+        param_ref_values.push_back(0.035);
+
+        std::vector<double> array_params_fluid = sampleParameters(param_bounds);
+        array_params.insert(array_params.end(), array_params_fluid.begin(), array_params_fluid.end());
+
+        M_data.setValueDouble("fluid/density", (1.0+array_params_fluid[0]) * param_ref_values[0]);
+        M_data.setValueDouble("fluid/viscosity", (1.0+array_params_fluid[1]) * param_ref_values[1]);
+    }
+
+    if (sampleStructurePhysics)
+    {
+        std::vector<std::vector<double>> param_bounds;
+        std::vector<double> param_ref_values;
+
+        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/rho_s_min", 0.0),
+                                                    M_data("rb/offline/snapshots/rho_s_max", 0.2)}));
+        param_ref_values.push_back(1.2);
+        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/h_s_min", -0.5),
+                                                    M_data("rb/offline/snapshots/h_s_max", 1.0)}));
+        param_ref_values.push_back(0.1);
+        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/E_min", -0.5),
+                                                    M_data("rb/offline/snapshots/E_max", 0.5)}));
+        param_ref_values.push_back(4e6);
+        param_bounds.push_back(std::vector<double>({M_data("rb/offline/snapshots/nu_min", -0.4),
+                                                    M_data("rb/offline/snapshots/nu_max", 0.0)}));
+        param_ref_values.push_back(0.5);
+
+        std::vector<double> array_params_structure = sampleParameters(param_bounds);
+        array_params.insert(array_params.end(), array_params_structure.begin(), array_params_structure.end());
+
+        M_data.setValueDouble("structure/density", (1.0+array_params_structure[0]) * param_ref_values[0]);
+        M_data.setValueDouble("structure/thickness", (1.0+array_params_structure[1]) * param_ref_values[1]);
+        M_data.setValueDouble("structure/constant_thickness", 1);  // setting constant thickness here !!
+        M_data.setValueDouble("structure/young", (1.0+array_params_structure[2]) * param_ref_values[2]);
+        M_data.setValueDouble("structure/poisson", (1.0+array_params_structure[3]) * param_ref_values[3]);
+    }
+
+    return array_params;
+}
+
+std::vector<double>
+SnapshotsSampler::
+sampleParameters(const std::vector<std::vector<double>>& param_bounds)
 {
     std::random_device rd;
     std::mt19937 gen(rd());

@@ -73,6 +73,8 @@ public:
 private:
     void createDefaultAssemblers();
 
+    void setDefaultParameterValues();
+
     shp<TreeNode> generateDefaultTreeNode(const std::string& nameMesh);
 
     shp<TreeNode> generateDefaultTube(const std::string& nameMesh);

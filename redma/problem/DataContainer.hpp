@@ -263,14 +263,16 @@ protected:
     bool checkGenerateInletBC(unsigned int indexInlet=99) const;
 
     shp<GetPot>                                           M_datafile;
+
     std::map<unsigned int, Law>                           M_inletBCs;
     std::map<unsigned int, Law>                           M_outletBCs;
+
     Law                                                   M_ramp;
+
     std::map<unsigned int, Law>                           M_distalPressures;
     Law                                                   M_intraMyocardialPressure;
-    bool                                                  M_verbose;
 
-    //void setInflow(const std::function<double(double, double, double)> &inflow);
+    bool                                                  M_verbose;
 };
 
 }

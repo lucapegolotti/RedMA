@@ -544,7 +544,8 @@ getNorm(const unsigned int& fieldIndex,
 
         retMat->setMatrix(Nu);
     }
-    else
+
+    else if (fieldIndex == 1)
     {
         shp<MATRIXEPETRA> Np(new MATRIXEPETRA(M_pressureFESpace->map()));
 
@@ -559,6 +560,9 @@ getNorm(const unsigned int& fieldIndex,
 
         retMat->setMatrix(Np);
     }
+
+    else
+        throw Exception("Invalid field number " + std::to_string(fieldIndex));
 
     return retMat;
 }

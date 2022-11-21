@@ -48,13 +48,19 @@ public:
                                      unsigned int fieldIndex,
                                      unsigned int maxSnapshot);
 
-    std::vector<double> inflowSnapshots(const std::vector<std::vector<double>>& param_bounds);
-
 private:
     DataContainer                                         M_data;
     EPETRACOMM                                            M_comm;
 
     std::function<double(double, std::vector<double>)>    M_inflow;
+
+    std::list<std::string> stringTokenizer(std::string s, char del);
+
+    std::vector<double> sampleParametersInflow();
+
+    std::vector<double> sampleParametersPhysics();
+
+    std::vector<double> sampleParameters(const std::vector<std::vector<double>>& param_bounds);
 };
 
 }  // namespace RedMA

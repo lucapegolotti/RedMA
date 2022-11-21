@@ -21,38 +21,63 @@ generate()
 
     fs::create_directory(outdir);
 
-    // dump norms
+    std::string assemblerType = M_data("assembler/type", "navierstokes");  // assuming the same for all
+
+    // dump norm matrices (w\ and w\out BCs)
     for (auto& meshas : M_meshASPairMap)
     {
         fs::create_directory(outdir + "/" + meshas.first);
 
         unsigned int nComponents = meshas.second.first->getNumComponents();
 
-        bool bcs = true;
         for (unsigned int i = 0; i < nComponents; i++)
         {
-            std::string normstr = outdir + "/" + meshas.first + "/norm" +
-                                  std::to_string(i);
-            auto nnorm = spcast<aAssemblerFE>(meshas.second.first)->getNorm(i, bcs);
-            spcast<SparseMatrix>(nnorm)->dump(normstr);
+            std::string normstr_nobcs = outdir + "/" + meshas.first + "/norm" + std::to_string(i);
+            auto nnorm_nobcs = spcast<aAssemblerFE>(meshas.second.first)->getNorm(i, false);
+            spcast<SparseMatrix>(nnorm_nobcs)->dump(normstr_nobcs);
+
+            if (i == meshas.second.first->getComponentBCs())
+            {
+                std::string normstr = outdir + "/" + meshas.first + "/norm" + std::to_string(i) + "_bcs";
+                auto nnorm = spcast<aAssemblerFE>(meshas.second.first)->getNorm(i, true);
+                spcast<SparseMatrix>(nnorm)->dump(normstr);
+            }
         }
 
-        bcs = false;
-        for (unsigned int i = 0; i < nComponents; i++)
+        if (!(std::strcmp(assemblerType.c_str(), "navierstokes_membrane")))
         {
-            std::string normstr = outdir + "/" + meshas.first + "/norm" +
-                                  std::to_string(i) + "_nobcs";
-            auto nnorm = spcast<aAssemblerFE>(meshas.second.first)->getNorm(i, bcs);
-            convert<SparseMatrix>(nnorm)->dump(normstr);
+            unsigned int i = nComponents;
+            std::string normstr = outdir + "/" + meshas.first + "/norm" + std::to_string(i);
+            auto nnorm = spcast<aAssemblerFE>(meshas.second.first)->getNorm(i, false);
+            spcast<SparseMatrix>(nnorm)->dump(normstr);
+
         }
+    }
+
+    // dump velocity matrices
+    for (auto& meshas : M_meshASPairMap)
+    {
+        auto massMatrix = spcast<aAssemblerFE>(meshas.second.first)->assembleMatrix(0);
+        convert<SparseMatrix>(massMatrix->block(0,0))->dump(outdir + "/" + meshas.first + "/M");
+
+        auto stiffnessMatrix = spcast<aAssemblerFE>(meshas.second.first)->assembleMatrix(1);
+        convert<SparseMatrix>(stiffnessMatrix->block(0,0))->dump(outdir + "/" + meshas.first + "/A");
+    }
+
+    // dump pressure matrices
+    for (auto& meshas : M_meshASPairMap)
+    {
+        auto divergenceMatrix = spcast<aAssemblerFE>(meshas.second.first)->assembleMatrix(2);
+        convert<SparseMatrix>(divergenceMatrix->block(0,1))->dump(outdir + "/" + meshas.first + "/BdivT");
+        convert<SparseMatrix>(divergenceMatrix->block(1,0))->dump(outdir + "/" + meshas.first + "/Bdiv");
     }
 
     // dump matrices for supremizers
-    for (auto& meshas : M_meshASPairMap)
+    /*for (auto& meshas : M_meshASPairMap)
     {
         auto constraintMatrix = spcast<aAssemblerFE>(meshas.second.first)->getConstraintMatrix();
         convert<SparseMatrix>(constraintMatrix)->dump(outdir + "/" + meshas.first + "/primalConstraint");
-    }
+    }*/
 
     for (auto& meshas : M_meshASPairMap)
     {
@@ -75,42 +100,91 @@ generate()
 	    unsigned int cnt = 0;
         for (auto face : faces)
         {
+            // Interface matrices
+            shp<BlockMatrix> constraintMatrixBlockT(new BlockMatrix(0,0));
             shp<BlockMatrix> constraintMatrixBlock(new BlockMatrix(0,0));
-            shp<BlockMatrix> constraintMatrixDummyBlock(new BlockMatrix(0,0));
             interfaceAssembler.buildCouplingMatrices(meshas.second.first,
                                                      face,
-                                                     constraintMatrixBlock,
-                                                     constraintMatrixDummyBlock);
+                                                     constraintMatrixBlockT,
+                                                     constraintMatrixBlock);
 
             auto constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
-            constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraint" + std::to_string(face.M_flag));
+            auto constraintMatrixT = spcast<SparseMatrix>(constraintMatrixBlockT->block(0,0));
 
+            constraintMatrix->dump(outdir + "/" + meshas.first + "/B" + std::to_string(face.M_flag));
+            constraintMatrixT->dump(outdir + "/" + meshas.first + "/BT" + std::to_string(face.M_flag));
+
+            // constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraint" + std::to_string(face.M_flag));
+
+            // Weak inflow Dirichlet matrices
+            constraintMatrixBlockT.reset(new BlockMatrix(0,0));
             constraintMatrixBlock.reset(new BlockMatrix(0,0));
-            constraintMatrixDummyBlock.reset(new BlockMatrix(0,0));
             if (cnt < in_faces.size())
             {
                 inletInflowAssembler.buildCouplingMatrices(meshas.second.first,
                                                             face,
-                                                            constraintMatrixBlock,
-                                                            constraintMatrixDummyBlock);
+                                                            constraintMatrixBlockT,
+                                                            constraintMatrixBlock);
 
                 constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
-                constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraintIn" + std::to_string(face.M_flag));
+                constraintMatrixT = spcast<SparseMatrix>(constraintMatrixBlockT->block(0,0));
+
+                constraintMatrix->dump(outdir + "/" + meshas.first + "/Bin" + std::to_string(face.M_flag));
+                constraintMatrixT->dump(outdir + "/" + meshas.first + "/BinT" + std::to_string(face.M_flag));
+
+                // constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraintIn" + std::to_string(face.M_flag));
             }
+
+            // Weak outflow Dirichlet matrices
             else
             {
                 outletOutflowAssembler.buildCouplingMatrices(meshas.second.first,
                                                              face,
-                                                             constraintMatrixBlock,
-                                                             constraintMatrixDummyBlock);
+                                                             constraintMatrixBlockT,
+                                                             constraintMatrixBlock);
 
                 constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
-                constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraintOut" + std::to_string(face.M_flag));
+                constraintMatrixT = spcast<SparseMatrix>(constraintMatrixBlockT->block(0,0));
+
+                constraintMatrix->dump(outdir + "/" + meshas.first + "/Bout" + std::to_string(face.M_flag));
+                constraintMatrixT->dump(outdir + "/" + meshas.first + "/BoutT" + std::to_string(face.M_flag));
+
+                // constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraintOut" + std::to_string(face.M_flag));
+            }
+
+            // TODO: export matrices for membrane assembler !!
+            for (auto& meshas : M_meshASPairMap)
+            {
+                if (!(std::strcmp(assemblerType.c_str(), "navierstokes_membrane")))
+                {
+                    auto bcManager = meshas.second.first->getBCManager();
+
+                    auto boundaryMassMatrixBlock = spcast<MembraneAssemblerFE>(meshas.second.first)->assembleBoundaryMass(bcManager);
+                    spcast<SparseMatrix>(boundaryMassMatrixBlock->block(0, 0))->dump(outdir + "/" + meshas.first + "/M_bd");
+
+                    auto boundaryStiffnessMatrixBlocks = spcast<MembraneAssemblerFE>(meshas.second.first)->assembleBoundaryStiffnessTerms(bcManager);
+                    for (int i=0; i<boundaryStiffnessMatrixBlocks.size(); i++)
+                        spcast<SparseMatrix>(boundaryStiffnessMatrixBlocks[i]->block(0, 0))->dump(outdir + "/" + meshas.first + "/A_bd_" + std::to_string(i));
+                }
             }
 
             cnt++;
         }
     }
+}
+
+void
+MatricesGenerator::
+setDefaultParameterValues()
+{
+    M_data.setValueDouble("fluid/density", 1.06);
+    M_data.setValueDouble("fluid/viscosity", 0.035);
+
+    M_data.setValueDouble("structure/density", 1.2);
+    M_data.setValueDouble("structure/thickness", 0.1);
+    M_data.setValueInt("structure/constant_thickness", 1);  // enforce constant thickness in RB
+    M_data.setValueDouble("structure/young", 4e6);
+    M_data.setValueDouble("structure/poisson", 0.5);
 }
 
 void
@@ -121,6 +195,8 @@ createDefaultAssemblers()
 
     if (!fs::exists(snapshotsdir))
         throw new Exception("Snapshots directory has not been generated yet!");
+
+    setDefaultParameterValues();
 
     std::string paramdir = snapshotsdir + "/param";
     unsigned int i = 0;
@@ -193,6 +269,7 @@ generateDefaultTube(const std::string& nameMesh)
     shp<Tube> defaultTube(new Tube(M_comm, refinement, false, diameter, length));
     defaultTube->readMesh();
 
+    defaultTube->setDatafile(M_data);
     defaultTube->setDiscretizationMethod("fem");
     defaultTube->setAssemblerType(assemblerType);
 
@@ -213,6 +290,7 @@ generateDefaultSymmetricBifurcation(const std::string& nameMesh)
     shp<BifurcationSymmetric> defaultBifurcation(new BifurcationSymmetric(M_comm, refinement, false, alpha));
     defaultBifurcation->readMesh();
 
+    defaultBifurcation->setDatafile(M_data);
     defaultBifurcation->setDiscretizationMethod("fem");
     defaultBifurcation->setAssemblerType(assemblerType);
 
@@ -232,6 +310,7 @@ generateDefaultAortaBifurcation0(const std::string& nameMesh)
     shp<AortaBifurcation0> defaultBifurcation(new AortaBifurcation0(M_comm, refinement));
     defaultBifurcation->readMesh();
 
+    defaultBifurcation->setDatafile(M_data);
     defaultBifurcation->setDiscretizationMethod("fem");
     defaultBifurcation->setAssemblerType(assemblerType);
 
@@ -251,6 +330,7 @@ generateDefaultAortaBifurcation1(const std::string& nameMesh)
     shp<AortaBifurcation1> defaultBifurcation(new AortaBifurcation1(M_comm, refinement));
     defaultBifurcation->readMesh();
 
+    defaultBifurcation->setDatafile(M_data);
     defaultBifurcation->setDiscretizationMethod("fem");
     defaultBifurcation->setAssemblerType(assemblerType);
 
@@ -268,6 +348,7 @@ generateDefaultBypass(const std::string &nameMesh)
     shp<Bypass> defaultBypass(new Bypass(M_comm));
     defaultBypass->readMesh();
 
+    defaultBypass->setDatafile(M_data);
     defaultBypass->setDiscretizationMethod("fem");
     defaultBypass->setAssemblerType(assemblerType);
 

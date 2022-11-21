@@ -23,11 +23,11 @@ MembraneAssemblerFE(const DataContainer &data,
                     shp<TreeNode> treeNode) :
         NavierStokesAssemblerFE(data, treeNode)
 {
+    M_name = "MembraneAssemblerFE";
     M_membrane_density = data("structure/density", 1.2);
     M_transverse_shear_coeff = data("structure/transverse_shear_coefficient", 1.0);
     M_wall_elasticity = data("structure/external_wall/elastic", 1e4);
     M_wall_viscoelasticity = data("structure/external_wall/plastic", 1e3);
-    // M_wallFlag = data("structure/flag", 10);
     M_wallFlag = treeNode->M_block->getWallFlag();
 
     this->computeLameConstants();
@@ -167,21 +167,105 @@ assembleWallBoundaryMass(shp<BCManager> bcManager, bool verbose)
 
 shp<aMatrix>
 MembraneAssemblerFE::
-assembleMass(shp<BCManager> bcManager)
+assembleMass(shp<BCManager> bcManager, const bool& add_wall_terms)
 {
     using namespace LifeV::ExpressionAssembly;
 
     shp<aMatrix> mass = NavierStokesAssemblerFE::assembleMass(bcManager);
 
-    M_boundaryMass.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
-    M_boundaryMass->deepCopy(this->assembleBoundaryMass(M_bcManager));
+    if (add_wall_terms)
+    {
+        M_boundaryMass.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+        M_boundaryMass->deepCopy(this->assembleBoundaryMass(M_bcManager));
 
-    M_wallBoundaryMass.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
-    M_wallBoundaryMass->deepCopy(assembleWallBoundaryMass(M_bcManager));
+        M_wallBoundaryMass.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+        M_wallBoundaryMass->deepCopy(assembleWallBoundaryMass(M_bcManager));
 
-    mass->add(M_boundaryMass);
+        mass->add(M_boundaryMass);
+    }
 
     return mass;
+}
+
+std::vector<shp<aMatrix>>
+MembraneAssemblerFE::
+assembleBoundaryStiffnessTerms(shp<BCManager> bcManager)
+{
+    using namespace LifeV::ExpressionAssembly;
+
+    std::vector<shp<aMatrix>> retMatrices;
+
+    LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
+
+    shp<VECTOREPETRA> thickness = this->M_treeNode->M_block->getMembraneThickness();
+    shp<VECTOREPETRA>  thicknessRepeated(new VECTOREPETRA(*thickness, LifeV::Repeated));
+
+    LifeV::MatrixSmall<3, 3> Eye;
+    Eye *= 0.0;
+    Eye[0][0] = 1;
+    Eye[1][1] = 1;
+    Eye[2][2] = 1;
+
+    shp<MATRIXEPETRA> BS(new MATRIXEPETRA(M_velocityFESpace->map()));
+    integrate(boundary(M_velocityFESpaceETA->mesh(), M_wallFlag),
+              myBDQR,
+              M_velocityFESpaceETA,
+              M_velocityFESpaceETA,
+              value(M_pressureFESpaceETA, *thicknessRepeated) * (
+                      2.0 * value(this->M_lameII) *
+                      0.5 * dot(
+                              (grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface))
+                              + transpose(grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface)),
+                              (grad(phi_i) - grad(phi_i) * outerProduct(Nface, Nface)))
+                                      )
+                                      ) >> BS;
+    BS->globalAssemble();
+
+    shp<BlockMatrix> boundaryStiffness(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+    boundaryStiffness->setBlock(0, 0, wrap(BS));
+    bcManager->apply0DirichletMatrix(*boundaryStiffness, M_velocityFESpace, 0, 0.0, !(M_addNoSlipBC));
+    retMatrices.push_back(spcast<aMatrix>(boundaryStiffness));
+
+    BS.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
+    integrate(boundary(M_velocityFESpaceETA->mesh(), M_wallFlag),
+              myBDQR,
+              M_velocityFESpaceETA,
+              M_velocityFESpaceETA,
+              value(M_pressureFESpaceETA, *thicknessRepeated) * (
+                              value(this->M_lameI) *
+                              dot(value(Eye), (grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface))) *
+                              dot(value(Eye), (grad(phi_i) - grad(phi_i) * outerProduct(Nface, Nface)))
+                                      )
+                                      ) >> BS;
+    BS->globalAssemble();
+
+    boundaryStiffness.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+    boundaryStiffness->setBlock(0, 0, wrap(BS));
+    bcManager->apply0DirichletMatrix(*boundaryStiffness, M_velocityFESpace, 0, 0.0, !(M_addNoSlipBC));
+    retMatrices.push_back(spcast<aMatrix>(boundaryStiffness));
+
+    BS.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
+    integrate(boundary(M_velocityFESpaceETA->mesh(), M_wallFlag),
+              myBDQR,
+              M_velocityFESpaceETA,
+              M_velocityFESpaceETA,
+              value(M_pressureFESpaceETA, *thicknessRepeated) * (
+                        2.0 * value((this->M_transverse_shear_coeff - 1.0) * this->M_lameII) *
+                              0.5 * dot(
+                                      ((grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface) +
+                                      transpose(grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface))) *
+                                      outerProduct(Nface, Nface)),
+                                      (grad(phi_i) - grad(phi_i) * outerProduct(Nface, Nface)))
+                                      )
+                                      ) >> BS;
+    BS->globalAssemble();
+
+    boundaryStiffness.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+    boundaryStiffness->setBlock(0, 0, wrap(BS));
+    bcManager->apply0DirichletMatrix(*boundaryStiffness, M_velocityFESpace, 0, 0.0, !(M_addNoSlipBC));
+    retMatrices.push_back(spcast<aMatrix>(boundaryStiffness));
+
+    return retMatrices;
 }
 
 shp<aMatrix>
@@ -192,7 +276,7 @@ assembleBoundaryStiffness(shp<BCManager> bcManager, bool verbose)
 
     shp<BlockMatrix> boundaryStiffness(new BlockMatrix(this->M_nComponents, this->M_nComponents));
 
-    printlog(YELLOW, "[MembraneAssemblerFE] Assembling boundary stiffness matrix ...\n",
+    /*printlog(YELLOW, "[MembraneAssemblerFE] Assembling boundary stiffness matrix ...\n",
              verbose);
 
     LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
@@ -233,33 +317,45 @@ assembleBoundaryStiffness(shp<BCManager> bcManager, bool verbose)
     boundaryStiffness->setBlock(0, 0, wrap(BS));
 
     bcManager->apply0DirichletMatrix(*boundaryStiffness, M_velocityFESpace, 0, 0.0, !(M_addNoSlipBC));
+*/
+
+    std::vector<shp<aMatrix>> boundaryMatrices = this->assembleBoundaryStiffnessTerms(bcManager);
+
+    boundaryStiffness->add(boundaryMatrices[0]);
+    boundaryStiffness->add(boundaryMatrices[1]);
+    boundaryStiffness->add(boundaryMatrices[2]);
+
+    bcManager->apply0DirichletMatrix(*boundaryStiffness, M_velocityFESpace, 0, 0.0, !(M_addNoSlipBC));
 
     return boundaryStiffness;
 }
 
 shp<aMatrix>
 MembraneAssemblerFE::
-assembleStiffness(shp<BCManager> bcManager)
+assembleStiffness(shp<BCManager> bcManager, const bool& add_wall_terms)
 {
     using namespace LifeV::ExpressionAssembly;
 
     shp<aMatrix> stiffness = NavierStokesAssemblerFE::assembleStiffness(bcManager);
 
-    if (!(M_TMA_Displacements)){
-        M_TMA_Displacements = TimeMarchingAlgorithmFactory(this->M_data, this->getZeroVector());
-        M_TMA_Displacements->setComm(this->M_comm);
+    if (add_wall_terms)
+    {
+        if (!(M_TMA_Displacements)){
+            M_TMA_Displacements = TimeMarchingAlgorithmFactory(this->M_data, this->getZeroVector());
+            M_TMA_Displacements->setComm(this->M_comm);
+        }
+
+        double  dt = this->M_data("time_discretization/dt", 0.01);
+        double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
+
+        M_boundaryStiffness.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+        M_boundaryStiffness->deepCopy(assembleBoundaryStiffness(M_bcManager));
+        M_boundaryStiffness->multiplyByScalar(dt * rhs_coeff);
+
+        stiffness->add(M_boundaryStiffness);
+
+        M_boundaryStiffness->multiplyByScalar(1.0 / (dt * rhs_coeff));
     }
-
-    double  dt = this->M_data("time_discretization/dt", 0.01);
-    double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
-
-    M_boundaryStiffness.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
-    M_boundaryStiffness->deepCopy(assembleBoundaryStiffness(M_bcManager));
-    M_boundaryStiffness->multiplyByScalar(dt * rhs_coeff);
-
-    stiffness->add(M_boundaryStiffness);
-
-    M_boundaryStiffness->multiplyByScalar(1.0 / (dt * rhs_coeff));
 
     return stiffness;
 }
@@ -336,6 +432,42 @@ getJacobianRightHandSide(const double &time, const shp<aVector> &sol)
                                              !(this->M_addNoSlipBC));
 
     return retMat;
+}
+
+shp<aMatrix>
+MembraneAssemblerFE::
+getNorm(const unsigned int& fieldIndex,
+        bool bcs)
+{
+    if ((fieldIndex == 0) || (fieldIndex == 1))
+        return StokesAssemblerFE::getNorm(fieldIndex, bcs);
+
+    else if (fieldIndex == 2)
+    {
+        using namespace LifeV::ExpressionAssembly;
+
+        shp<SparseMatrix> retMat(new SparseMatrix());
+
+        LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
+
+        shp<MATRIXEPETRA> Nd(new MATRIXEPETRA(M_velocityFESpace->map()));
+
+        integrate(boundary(M_velocityFESpaceETA->mesh(), M_wallFlag),
+                  myBDQR,
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  dot(phi_i, phi_j)
+                  ) >> Nd;
+
+        Nd->globalAssemble();
+        retMat->setMatrix(Nd);
+
+        return retMat;
+    }
+
+    else
+        throw Exception("Invalid field number " + std::to_string(fieldIndex));
+
 }
 
 void
