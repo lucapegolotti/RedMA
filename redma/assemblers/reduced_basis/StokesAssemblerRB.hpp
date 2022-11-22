@@ -81,6 +81,12 @@ public:
     virtual void exportSolution(const double& t,
                                 const shp<aVector>& sol) override;
 
+    /*! \brief Virtual getter for the current displacement field.
+     *
+     * \return Shared pointer to aVector of the current displacement field.
+     */
+    virtual inline shp<aVector> getDisplacement() const override {return getZeroVector();};
+
     /*! Virtual postProcess functions (to be called at the end of the timestep).
      *
      * \param sol Current solution.

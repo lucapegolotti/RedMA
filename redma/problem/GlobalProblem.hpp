@@ -97,6 +97,18 @@ public:
      */
     inline std::vector<BV> getInitialConditions() {return M_initialConditions;}
 
+    /*! \brief Get stored extra solutions (e.g. displacement field).
+ *
+ *  \return Vector of shared pointer to BlockVectors, containing the extra solutions.
+ */
+    inline std::vector<BV> getExtraSolutions() {return M_extraSolutions;}
+
+    /*! \brief Get stored initial conditions (e.g. displacement field).
+     *
+     *  \return Vector of shared pointer to BlockVectors, containing the extra initial conditions (if not null).
+     */
+    inline std::vector<BV> getExtraInitialConditions() {return M_extraInitialConditions;}
+
     /*! \brief Get a vector with all the timesteps.
      *
      * \return A vector with all the timesteps.
@@ -136,6 +148,8 @@ private:
     std::vector<double>                        M_timestepsSolutions;
     shp<DefaultAssemblersLibrary>              M_defaultAssemblers;
     EPETRACOMM                                 M_comm;
+    std::vector<BV>                            M_extraSolutions;
+    std::vector<BV>                            M_extraInitialConditions;
 };
 
 }

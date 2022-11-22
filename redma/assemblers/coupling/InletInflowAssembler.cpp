@@ -6,8 +6,9 @@ namespace RedMA
 InletInflowAssembler::
 InletInflowAssembler(const DataContainer& data,
                      const Interface& interface,
-                     const bool& addNoSlipBC) :
-  InterfaceAssembler(data, interface, addNoSlipBC)
+                     const bool& addNoSlipBC,
+                     const bool& doSetup) :
+  InterfaceAssembler(data, interface, addNoSlipBC, doSetup)
 {
 }
 
@@ -61,6 +62,7 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
 
     temp = this->M_childBfe->multiplyByVector(assemblerChild->getLifting(time));
     temp->multiplyByScalar(1.0/M_data.getInletBC(inletFlag)(time));
+    // TODO: move this to matrices generator for RB code
     temp->block(0)->dump("RHS_in_" + std::to_string(inletID));
     temp->multiplyByScalar(M_data.getInletBC(inletFlag)(time));
 
@@ -78,5 +80,20 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
     //     sol.block(nPrimalBlocks + interfaceID) * this->M_stabilizationCoupling;
     // }
 }
+
+void
+InletInflowAssembler::
+buildRhsVector(shp<AssemblerType> assembler,
+               const GeometricFace &face,
+               shp<BlockVector> rhs,
+               const double &time)
+{
+    shp<BlockMatrix> BT(new BlockMatrix(0,0));
+    shp<BlockMatrix> B(new BlockMatrix(0,0));
+    this->buildCouplingMatrices(assembler, face, BT, B);
+
+    rhs->add(spcast<BlockVector>(B->multiplyByVector(assembler->getLifting(time))));
+}
+
 
 }

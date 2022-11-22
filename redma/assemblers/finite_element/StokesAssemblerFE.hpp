@@ -145,6 +145,12 @@ public:
      */
     virtual shp<aVector> getFELifting(const double& time) const override;
 
+    /*! \brief Virtual getter for the current displacement field.
+     *
+     * \return Shared pointer to aVector of the current displacement field.
+     */
+    virtual inline shp<aVector> getDisplacement() const override {return getZeroVector();};
+
     /*! \brief Initializer for the finite element spaces.
      *
      * Here we create the finite element spaces for velocity and pressure.

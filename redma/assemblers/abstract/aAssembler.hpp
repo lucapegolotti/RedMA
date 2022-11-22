@@ -144,6 +144,12 @@ public:
      */
     virtual shp<aVector> getZeroVector() const = 0;
 
+    /*! \brief Virtual getter for the current displacement field.
+     *
+     * \return Shared pointer to aVector of the current displacement field.
+     */
+    virtual shp<aVector> getDisplacement() const = 0;
+
     /*! Getter for the finite element space corresponding to a specific component.
      *
      * \param index Index of the desired component.

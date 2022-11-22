@@ -33,6 +33,7 @@ MembraneAssemblerFE(const DataContainer &data,
     this->computeLameConstants();
 
     M_addNoSlipBC = false;
+    M_addBoundaryTerms = true;
 }
 
 void
@@ -167,13 +168,13 @@ assembleWallBoundaryMass(shp<BCManager> bcManager, bool verbose)
 
 shp<aMatrix>
 MembraneAssemblerFE::
-assembleMass(shp<BCManager> bcManager, const bool& add_wall_terms)
+assembleMass(shp<BCManager> bcManager)
 {
     using namespace LifeV::ExpressionAssembly;
 
     shp<aMatrix> mass = NavierStokesAssemblerFE::assembleMass(bcManager);
 
-    if (add_wall_terms)
+    if (M_addBoundaryTerms)
     {
         M_boundaryMass.reset(new BlockMatrix(this->M_nComponents, this->M_nComponents));
         M_boundaryMass->deepCopy(this->assembleBoundaryMass(M_bcManager));
@@ -276,48 +277,8 @@ assembleBoundaryStiffness(shp<BCManager> bcManager, bool verbose)
 
     shp<BlockMatrix> boundaryStiffness(new BlockMatrix(this->M_nComponents, this->M_nComponents));
 
-    /*printlog(YELLOW, "[MembraneAssemblerFE] Assembling boundary stiffness matrix ...\n",
+    printlog(YELLOW, "[MembraneAssemblerFE] Assembling boundary stiffness matrix ...\n",
              verbose);
-
-    LifeV::QuadratureBoundary myBDQR(LifeV::buildTetraBDQR(LifeV::quadRuleTria4pt));
-
-    shp<VECTOREPETRA> thickness = this->M_treeNode->M_block->getMembraneThickness();
-    shp<VECTOREPETRA>  thicknessRepeated(new VECTOREPETRA(*thickness, LifeV::Repeated));
-
-    LifeV::MatrixSmall<3, 3> Eye;
-    Eye *= 0.0;
-    Eye[0][0] = 1;
-    Eye[1][1] = 1;
-    Eye[2][2] = 1;
-
-    shp<MATRIXEPETRA> BS(new MATRIXEPETRA(M_velocityFESpace->map()));
-    integrate(boundary(M_velocityFESpaceETA->mesh(), M_wallFlag),
-              myBDQR,
-              M_velocityFESpaceETA,
-              M_velocityFESpaceETA,
-              value(M_pressureFESpaceETA, *thicknessRepeated) * (
-              2.0 * value(this->M_lameII) *
-              0.5 * dot(
-                      (grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface))
-                      + transpose(grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface)),
-                      (grad(phi_i) - grad(phi_i) * outerProduct(Nface, Nface))) +
-              value(this->M_lameI) *
-                      dot(value(Eye), (grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface))) *
-                      dot(value(Eye), (grad(phi_i) - grad(phi_i) * outerProduct(Nface, Nface))) +
-              2.0 * value((this->M_transverse_shear_coeff - 1.0) * this->M_lameII) *
-              0.5 * dot(
-                      ((grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface) +
-                      transpose(grad(phi_j) - grad(phi_j) * outerProduct(Nface, Nface))) *
-                      outerProduct(Nface, Nface)),
-                      (grad(phi_i) - grad(phi_i) * outerProduct(Nface, Nface)))
-                                                                )
-    ) >> BS;
-
-    BS->globalAssemble();
-    boundaryStiffness->setBlock(0, 0, wrap(BS));
-
-    bcManager->apply0DirichletMatrix(*boundaryStiffness, M_velocityFESpace, 0, 0.0, !(M_addNoSlipBC));
-*/
 
     std::vector<shp<aMatrix>> boundaryMatrices = this->assembleBoundaryStiffnessTerms(bcManager);
 
@@ -332,13 +293,13 @@ assembleBoundaryStiffness(shp<BCManager> bcManager, bool verbose)
 
 shp<aMatrix>
 MembraneAssemblerFE::
-assembleStiffness(shp<BCManager> bcManager, const bool& add_wall_terms)
+assembleStiffness(shp<BCManager> bcManager)
 {
     using namespace LifeV::ExpressionAssembly;
 
     shp<aMatrix> stiffness = NavierStokesAssemblerFE::assembleStiffness(bcManager);
 
-    if (add_wall_terms)
+    if (M_addBoundaryTerms)
     {
         if (!(M_TMA_Displacements)){
             M_TMA_Displacements = TimeMarchingAlgorithmFactory(this->M_data, this->getZeroVector());
@@ -468,6 +429,19 @@ getNorm(const unsigned int& fieldIndex,
     else
         throw Exception("Invalid field number " + std::to_string(fieldIndex));
 
+}
+
+shp<aVector>
+MembraneAssemblerFE::
+getDisplacement() const
+{
+    shp<DistributedVector> displacement(new DistributedVector());
+    displacement->setVector(this->M_displacementExporter);
+
+    shp<BlockVector> retVec(new BlockVector(1));
+    retVec->setBlock(0, displacement);
+
+    return retVec;
 }
 
 void

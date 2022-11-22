@@ -79,8 +79,6 @@ public:
 class InterfaceAssembler
 {
     typedef aAssembler                                   AssemblerType;
-    /*typedef LifeV::DOFInterface3Dto3D                    InterfaceType;
-    typedef std::shared_ptr<InterfaceType>               InterfacePtrType;*/
 
     typedef LifeV::VectorSmall<3>                        Vector3D;
     typedef LifeV::MatrixSmall<3,3>                      Matrix3D;
@@ -103,7 +101,8 @@ public:
      */
     InterfaceAssembler(const DataContainer& data,
                        const Interface& interface,
-                       const bool& addNoSlipBC = true);
+                       const bool& addNoSlipBC = true,
+                       const bool& doSetup = true);
 
     /// Default empty destructor.
     virtual ~InterfaceAssembler() {}
@@ -137,6 +136,17 @@ public:
                                shp<BlockMatrix> matrixT,
                                shp<BlockMatrix> matrix,
                                const bool isFather = true);
+
+    /*! \brief Build right-hand side vector on a specific face and from a specific
+     *         assembler.
+     * \param assembler Shared pointer to aAssembler.
+     * \param face The GeometricFace.
+     * \param rhs Shared pointer to BlockVector of the right-hand side
+     */
+    virtual void buildRhsVector(shp<AssemblerType> assembler,
+                                const GeometricFace& face,
+                                shp<BlockVector> rhs,
+                                const double &time);
 
     /// Build stabilization matrix. Currently not implemented.
     void buildStabilizationMatrix(shp<AssemblerType> assembler,
@@ -296,6 +306,9 @@ protected:
     shp<BlockMatrix>                          M_childB;
     shp<BlockMatrix>                          M_childBfe;
     shp<BlockMatrix>                          M_fatherBfe;
+
+    shp<BlockVector>                          M_fatherRhs;
+    shp<BlockVector>                          M_childRhs;
 
     // this is required in the RB setting to impose weakly dirichlet conditions
     shp<BlockMatrix>                          M_childBEp;

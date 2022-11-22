@@ -35,6 +35,18 @@ getLifting(const double& time) const
     return retVec;
 }
 
+shp<aVector>
+BlockAssembler::
+getDisplacement() const
+{
+    shp<BlockVector> retVec(new BlockVector(M_numberBlocks));
+
+    for (auto as : M_primalAssemblers)
+        retVec->setBlock(as.first,as.second->getDisplacement());
+
+    return retVec;
+}
+
 void
 BlockAssembler::
 setDefaultAssemblers(shp<DefaultAssemblers> defAssemblers)

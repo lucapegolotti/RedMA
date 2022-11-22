@@ -108,7 +108,7 @@ public:
      * \param bcManager A BCManager for the application of the boundary conditions.
      * \param add_wall_terms A bool for the addition of wall terms. It defaults to true.
      */
-    shp<aMatrix> assembleMass(shp<BCManager> bcManager, const bool& add_wall_terms);
+    virtual shp<aMatrix> assembleMass(shp<BCManager> bcManager) override;
 
     /*! \brief Assemble the boundary mass matrix.
      *
@@ -168,7 +168,7 @@ public:
      * \param bcManager A BCManager for the application of the boundary conditions.
      * \param add_wall_terms A bool for the addition of wall terms. It defaults to true.
      */
-    shp<aMatrix> assembleStiffness(shp<BCManager> bcManager, const bool& add_wall_terms = true);
+    virtual shp<aMatrix> assembleStiffness(shp<BCManager> bcManager) override;
 
     /*! \brief Assemble the boundary stiffness matrix.
      *
@@ -258,6 +258,12 @@ public:
     virtual shp<aMatrix> getNorm(const unsigned int& fieldIndex,
                                  bool bcs = true) override;
 
+    /*! \brief Virtual getter for the current displacement field.
+     *
+     * \return Shared pointer to aVector of the current displacement field.
+     */
+    virtual shp<aVector> getDisplacement() const override;
+
     /*! PostProcess function, to be called at the end of each timestep.
      *
      * The function first calls the parent method \see NavierStokesAssemblerFE::postProcess. Then
@@ -302,6 +308,13 @@ public:
      */
     inline shp<VECTOREPETRA> getBoundaryIndicator() const {return M_boundaryIndicator;}
 
+    // set flag to add or not boundary terms
+    /*! \brief Set flag to add or not boundary terms to mass and stiffness matrices
+     *
+     * \param add bool, whether to add or not boundary terms to mass and stiffness matrices
+     */
+    inline void setAddBoundaryTerms(const bool add = true) {M_addBoundaryTerms = add;}
+
 protected:
 
     /*! \brief Method that computes the (modified) Lamé constants for the Coupled Momentum method.
@@ -343,6 +356,7 @@ protected:
     shp<BlockMatrix>                                M_boundaryStiffness;
     shp<BlockMatrix>                                M_boundaryMass;
     shp<BlockMatrix>                                M_wallBoundaryMass;
+    bool                                            M_addBoundaryTerms;
 
     shp<VECTOREPETRA>                               M_displacementExporter;
     shp<VECTOREPETRA>                               M_boundaryIndicator;

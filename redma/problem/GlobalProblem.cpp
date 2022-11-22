@@ -104,6 +104,20 @@ solve()
 
         M_assembler->postProcess(t, M_solution);
 
+        // saving displacement field, if necessary
+        if (!(std::strcmp(M_data("assembler/type", "navierstokes").c_str(), "navierstokes_membrane")))
+        {
+            if (M_storeSolutions)
+            {
+                /*shp<BlockVector> tmpDisplacement (new BlockVector(1));
+                tmpDisplacement->setBlock(0, M_assembler->getDisplacement());*/
+                if (saveRamp || (t > t0))
+                    M_extraSolutions.push_back(spcast<BlockVector>(M_assembler->getDisplacement()));
+                if ((std::abs(t-t0) < dt/2) || (std::abs(t-(t0-dt)) < dt/2))
+                    M_extraInitialConditions.push_back(spcast<BlockVector>(M_assembler->getDisplacement()));
+            }
+        }
+
         if ((t > t0 && saveEvery > 0 && count % saveEvery == 0) || (std::abs(t-t0) < dt/2))
             M_assembler->exportSolution(t, M_solution);
 

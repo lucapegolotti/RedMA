@@ -2,7 +2,7 @@
 #include <redma/problem/GlobalProblem.hpp>
 #include <redma/problem/DataContainer.hpp>
 
-#include <redma/reduced_basis/MatricesGenerator.hpp>
+#include <redma/reduced_basis/MatricesGeneratorFixedGeometry.hpp>
 
 using namespace RedMA;
 
@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     data.setDatafile("datafiles/data_fem");
     data.setVerbose(comm->MyPID() == 0);
 
-    MatricesGenerator generator(data, comm);
+    MatricesGeneratorFixedGeometry generator(data, comm);
     generator.generate();
 
     return 0;

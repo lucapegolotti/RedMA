@@ -81,6 +81,12 @@ public:
     virtual void exportSolution(const double& time,
                                 const shp<aVector>& sol) override;
 
+    /*! \brief Virtual getter for the current displacement field.
+     *
+     * \return Shared pointer to aVector of the current displacement field.
+     */
+    virtual shp<aVector> getDisplacement() const override;
+
     /*! \brief Postprocess function to be called at the end of the timestep.
      *
      * The postProcess function is called in all the primal assemblers.

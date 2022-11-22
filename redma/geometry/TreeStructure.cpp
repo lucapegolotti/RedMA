@@ -44,21 +44,13 @@ TreeNode::
 getOutlets() const
 {
     std::vector<GeometricFace> outlets;
-    /*Vector3D normalIn;
-    Vector3D centerIn;
-    Vector3D normalOut;
-    Vector3D centerOut;*/
-    bool isOutlet;
 
-    // double diff;
+    bool isOutlet;
 
     if (this->isOutletNode())
     {
         for (const auto& outlet : M_block->getOutlets())
         {
-            /*normalOut = outlet.M_normal;
-            centerOut = outlet.M_center;*/
-
             isOutlet = true;
 
             if (M_nChildren > 0)
@@ -73,16 +65,6 @@ getOutlets() const
                             isOutlet = false;
                             break;
                         }
-                        /*normalIn = inlet.M_normal;
-                        normalIn *= (-1);
-                        centerIn = inlet.M_center;
-
-                        diff = (normalIn - normalOut).norm() + (centerIn - centerOut).norm();
-
-                        if (diff <= 1e-8) {
-                            isOutlet = false;
-                            break;
-                        }*/
                     }
                 }
             }

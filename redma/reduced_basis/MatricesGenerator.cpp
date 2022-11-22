@@ -5,20 +5,18 @@ namespace RedMA
 
 MatricesGenerator::
 MatricesGenerator(const DataContainer& data, EPETRACOMM comm) :
-  M_data(data),
-  M_comm(comm)
+        aMatricesGenerator(data, comm)
 {
-    if (M_comm->MyPID() != 0)
-        throw new Exception("MatricesGenerator does not support more than one proc");
 }
 
 void
 MatricesGenerator::
 generate()
 {
-    createDefaultAssemblers();
-    std::string outdir = "matrices";
+    setDummyFlows();
+    createAssemblers();
 
+    std::string outdir = "matrices";
     fs::create_directory(outdir);
 
     std::string assemblerType = M_data("assembler/type", "navierstokes");  // assuming the same for all
@@ -54,30 +52,12 @@ generate()
         }
     }
 
-    // dump velocity matrices
-    for (auto& meshas : M_meshASPairMap)
-    {
-        auto massMatrix = spcast<aAssemblerFE>(meshas.second.first)->assembleMatrix(0);
-        convert<SparseMatrix>(massMatrix->block(0,0))->dump(outdir + "/" + meshas.first + "/M");
-
-        auto stiffnessMatrix = spcast<aAssemblerFE>(meshas.second.first)->assembleMatrix(1);
-        convert<SparseMatrix>(stiffnessMatrix->block(0,0))->dump(outdir + "/" + meshas.first + "/A");
-    }
-
-    // dump pressure matrices
-    for (auto& meshas : M_meshASPairMap)
-    {
-        auto divergenceMatrix = spcast<aAssemblerFE>(meshas.second.first)->assembleMatrix(2);
-        convert<SparseMatrix>(divergenceMatrix->block(0,1))->dump(outdir + "/" + meshas.first + "/BdivT");
-        convert<SparseMatrix>(divergenceMatrix->block(1,0))->dump(outdir + "/" + meshas.first + "/Bdiv");
-    }
-
     // dump matrices for supremizers
-    /*for (auto& meshas : M_meshASPairMap)
+    for (auto& meshas : M_meshASPairMap)
     {
         auto constraintMatrix = spcast<aAssemblerFE>(meshas.second.first)->getConstraintMatrix();
         convert<SparseMatrix>(constraintMatrix)->dump(outdir + "/" + meshas.first + "/primalConstraint");
-    }*/
+    }
 
     for (auto& meshas : M_meshASPairMap)
     {
@@ -93,79 +73,44 @@ generate()
         std::vector<GeometricFace> in_faces = buildingBlock->getInlets();
         std::vector<GeometricFace> out_faces = buildingBlock->getOutlets();
         std::vector<GeometricFace> faces;
-	    faces.insert(std::end(faces), std::begin(in_faces), std::end(in_faces));
-	    faces.insert(std::end(faces), std::begin(out_faces), std::end(out_faces));
+        faces.insert(std::end(faces), std::begin(in_faces), std::end(in_faces));
+        faces.insert(std::end(faces), std::begin(out_faces), std::end(out_faces));
 
-	    // assemble coupling matrices
-	    unsigned int cnt = 0;
+        // assemble coupling matrices
+        unsigned int cnt = 0;
         for (auto face : faces)
         {
-            // Interface matrices
-            shp<BlockMatrix> constraintMatrixBlockT(new BlockMatrix(0,0));
             shp<BlockMatrix> constraintMatrixBlock(new BlockMatrix(0,0));
+            shp<BlockMatrix> constraintMatrixDummyBlock(new BlockMatrix(0,0));
             interfaceAssembler.buildCouplingMatrices(meshas.second.first,
                                                      face,
-                                                     constraintMatrixBlockT,
-                                                     constraintMatrixBlock);
+                                                     constraintMatrixBlock,
+                                                     constraintMatrixDummyBlock);
 
             auto constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
-            auto constraintMatrixT = spcast<SparseMatrix>(constraintMatrixBlockT->block(0,0));
+            constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraint" + std::to_string(face.M_flag));
 
-            constraintMatrix->dump(outdir + "/" + meshas.first + "/B" + std::to_string(face.M_flag));
-            constraintMatrixT->dump(outdir + "/" + meshas.first + "/BT" + std::to_string(face.M_flag));
-
-            // constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraint" + std::to_string(face.M_flag));
-
-            // Weak inflow Dirichlet matrices
-            constraintMatrixBlockT.reset(new BlockMatrix(0,0));
             constraintMatrixBlock.reset(new BlockMatrix(0,0));
+            constraintMatrixDummyBlock.reset(new BlockMatrix(0,0));
             if (cnt < in_faces.size())
             {
                 inletInflowAssembler.buildCouplingMatrices(meshas.second.first,
-                                                            face,
-                                                            constraintMatrixBlockT,
-                                                            constraintMatrixBlock);
+                                                           face,
+                                                           constraintMatrixBlock,
+                                                           constraintMatrixDummyBlock);
 
                 constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
-                constraintMatrixT = spcast<SparseMatrix>(constraintMatrixBlockT->block(0,0));
-
-                constraintMatrix->dump(outdir + "/" + meshas.first + "/Bin" + std::to_string(face.M_flag));
-                constraintMatrixT->dump(outdir + "/" + meshas.first + "/BinT" + std::to_string(face.M_flag));
-
-                // constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraintIn" + std::to_string(face.M_flag));
+                constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraintIn" + std::to_string(face.M_flag));
             }
-
-            // Weak outflow Dirichlet matrices
             else
             {
                 outletOutflowAssembler.buildCouplingMatrices(meshas.second.first,
                                                              face,
-                                                             constraintMatrixBlockT,
-                                                             constraintMatrixBlock);
+                                                             constraintMatrixBlock,
+                                                             constraintMatrixDummyBlock);
 
                 constraintMatrix = spcast<SparseMatrix>(constraintMatrixBlock->block(0,0));
-                constraintMatrixT = spcast<SparseMatrix>(constraintMatrixBlockT->block(0,0));
-
-                constraintMatrix->dump(outdir + "/" + meshas.first + "/Bout" + std::to_string(face.M_flag));
-                constraintMatrixT->dump(outdir + "/" + meshas.first + "/BoutT" + std::to_string(face.M_flag));
-
-                // constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraintOut" + std::to_string(face.M_flag));
-            }
-
-            // TODO: export matrices for membrane assembler !!
-            for (auto& meshas : M_meshASPairMap)
-            {
-                if (!(std::strcmp(assemblerType.c_str(), "navierstokes_membrane")))
-                {
-                    auto bcManager = meshas.second.first->getBCManager();
-
-                    auto boundaryMassMatrixBlock = spcast<MembraneAssemblerFE>(meshas.second.first)->assembleBoundaryMass(bcManager);
-                    spcast<SparseMatrix>(boundaryMassMatrixBlock->block(0, 0))->dump(outdir + "/" + meshas.first + "/M_bd");
-
-                    auto boundaryStiffnessMatrixBlocks = spcast<MembraneAssemblerFE>(meshas.second.first)->assembleBoundaryStiffnessTerms(bcManager);
-                    for (int i=0; i<boundaryStiffnessMatrixBlocks.size(); i++)
-                        spcast<SparseMatrix>(boundaryStiffnessMatrixBlocks[i]->block(0, 0))->dump(outdir + "/" + meshas.first + "/A_bd_" + std::to_string(i));
-                }
+                constraintMatrix->dump(outdir + "/" + meshas.first + "/dualConstraintOut" + std::to_string(face.M_flag));
             }
 
             cnt++;
@@ -175,21 +120,7 @@ generate()
 
 void
 MatricesGenerator::
-setDefaultParameterValues()
-{
-    M_data.setValueDouble("fluid/density", 1.06);
-    M_data.setValueDouble("fluid/viscosity", 0.035);
-
-    M_data.setValueDouble("structure/density", 1.2);
-    M_data.setValueDouble("structure/thickness", 0.1);
-    M_data.setValueInt("structure/constant_thickness", 1);  // enforce constant thickness in RB
-    M_data.setValueDouble("structure/young", 4e6);
-    M_data.setValueDouble("structure/poisson", 0.5);
-}
-
-void
-MatricesGenerator::
-createDefaultAssemblers()
+createAssemblers()
 {
     std::string snapshotsdir = M_data("rb/offline/snapshots/directory", "snapshots");
 

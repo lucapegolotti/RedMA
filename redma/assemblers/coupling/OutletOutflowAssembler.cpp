@@ -6,8 +6,9 @@ namespace RedMA
 OutletOutflowAssembler::
 OutletOutflowAssembler(const DataContainer& data,
                      const Interface& interface,
-                     const bool& addNoSlipBC) :
- InterfaceAssembler(data, interface, addNoSlipBC)
+                     const bool& addNoSlipBC,
+                     const bool& doSetup) :
+ InterfaceAssembler(data, interface, addNoSlipBC, doSetup)
  {
  }
 
@@ -53,12 +54,28 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
     temp = this->M_fatherBfe->multiplyByVector(assemblerFather->getLifting(time));
     temp->multiplyByScalar(-1); // correcting the sign
     temp->multiplyByScalar(1.0/M_data.getOutletBC(M_globalOutletIndex)(time));
+    // TODO: move this to matrices generator for RB code
     temp->block(0)->dump("RHS_out_" + std::to_string(M_globalOutletIndex));
     temp->multiplyByScalar(M_data.getOutletBC(M_globalOutletIndex)(time));
 
     if (assemblerFather->getRBBases())
         temp = assemblerFather->getRBBases()->projectOnLagrangeSpace(spcast<BlockVector>(temp));
     rhs->block(nPrimalBlocks + interfaceID)->add(temp);
+}
+
+void
+OutletOutflowAssembler::
+buildRhsVector(shp<AssemblerType> assembler,
+               const GeometricFace &face,
+               shp<BlockVector> rhs,
+               const double &time)
+{
+    shp<BlockMatrix> BT(new BlockMatrix(0,0));
+    shp<BlockMatrix> B(new BlockMatrix(0,0));
+    this->buildCouplingMatrices(assembler, face, BT, B);
+
+    rhs->add(spcast<BlockVector>(B->multiplyByVector(assembler->getLifting(time))));
+    rhs->multiplyByScalar(-1.0);
 }
 
 }

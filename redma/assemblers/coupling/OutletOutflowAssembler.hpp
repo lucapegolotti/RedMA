@@ -36,7 +36,8 @@ public:
      */
     OutletOutflowAssembler(const DataContainer& data,
                            const Interface& interface,
-                           const bool& addNoSlipBC = true);
+                           const bool& addNoSlipBC = true,
+                           const bool& doSetup = true);
 
     /*! \brief Add coupling contribution to a right-hand side.
     *
@@ -61,6 +62,18 @@ public:
                                             shp<BlockMatrix> jac,
                                             shp<BlockVector> sol,
                                             const unsigned int& nPrimalBlocks) override;
+
+    /*! \brief Build right-hand side vector on a specific face and from a specific
+     *         assembler.
+     * \param assembler Shared pointer to aAssembler.
+     * \param face The GeometricFace.
+     * \param rhs Shared pointer to BlockVector of the right-hand side
+     * \param time The current time
+     */
+    virtual void buildRhsVector(shp<AssemblerType> assembler,
+                                const GeometricFace& face,
+                                shp<BlockVector> rhs,
+                                const double &time) override;
 
     /*! \brief Set global index of the outlet.
     *

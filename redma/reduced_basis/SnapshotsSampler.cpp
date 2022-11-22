@@ -103,17 +103,20 @@ dumpSnapshots(GlobalProblem& problem,
               const std::vector<double> array_params = {})
 {
     auto IDmeshTypeMap = problem.getBlockAssembler()->getIDMeshTypeMap();
+
     auto solutions = problem.getSolutions();
     auto initialConditions = problem.getInitialConditions();
+    auto extraSolutions = problem.getExtraSolutions();
+    auto extraInitialConditions = problem.getExtraInitialConditions();
 
     assert(!(solutions.empty()));
 
     unsigned int n_primal_blocks = IDmeshTypeMap.size();
     unsigned int n_dual_blocks = solutions[0]->nRows() - n_primal_blocks;
 
-    auto M_mass = problem.getBlockAssembler()->block(0)->assembleMatrix(0);
+    /*auto M_mass = problem.getBlockAssembler()->block(0)->assembleMatrix(0);
     auto M_stiffness = problem.getBlockAssembler()->block(0)->assembleMatrix(1);
-    auto M_divergence = problem.getBlockAssembler()->block(0)->assembleMatrix(2);
+    auto M_divergence = problem.getBlockAssembler()->block(0)->assembleMatrix(2);*/
 
     std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
     std::list<std::string> param_types = this->stringTokenizer(param_type, ',');
@@ -127,12 +130,11 @@ dumpSnapshots(GlobalProblem& problem,
     if (binary)
         omode = omode | std::ios::binary;
 
-    M_mass->block(0,0)->dump("M");
+    /*M_mass->block(0,0)->dump("M");
     M_stiffness->block(0,0)->dump("A");
     M_divergence->block(0,1)->dump("BdivT");
-    M_divergence->block(1,0)->dump("Bdiv");
+    M_divergence->block(1,0)->dump("Bdiv");*/
 
-    // if (!std::strcmp(param_type.c_str(), "geometric"))
     if (std::find(std::begin(param_types), std::end(param_types), "geometric") != std::end(param_types))
         for (auto sol : solutions)
             problem.getBlockAssembler()->applyPiola(sol, true);
@@ -143,6 +145,9 @@ dumpSnapshots(GlobalProblem& problem,
         fs::create_directory(meshtypedir);
 
         unsigned int nfields = solutions[0]->block(idmeshtype.first)->nRows();
+        unsigned int nfields_extra = 0;
+        if (extraSolutions.size())
+            nfields_extra = extraSolutions[0]->block(idmeshtype.first)->nRows();
 
         for (unsigned int i = 0; i < nfields; i++)
         {
@@ -167,26 +172,28 @@ dumpSnapshots(GlobalProblem& problem,
             outfile.close();
         }
 
-        for(unsigned int j = 0; j < n_dual_blocks; j++)  // save Lagrange multipliers, if any
+        if (!(std::strcmp(M_data("assembler/type", "navierstokes").c_str(), "navierstokes_membrane")))
         {
-            std::string outfilename = meshtypedir + "/lagmult_" + std::to_string(j) + ".snap";
-            std::ofstream outfile;
-            outfile.open(outfilename, omode);
-            unsigned int count = 0;
-            unsigned int cur_index = n_primal_blocks + j;
-            for (auto sol : solutions)
-            {
-                auto solBlck = convert<DistributedVector>(convert<BlockVector>(
-                               convert<BlockVector>(sol)->block(cur_index))->block(0));
-                if (count % takeEvery == 0)
+            for(unsigned int k = 0; k < nfields_extra; k++)
                 {
-                    std::string str2write = solBlck->getString(',') + "\n";
-                    if (M_comm->MyPID() == 0)
-                        outfile.write(str2write.c_str(), str2write.size());
+                std::string outfilename = meshtypedir + "/field_" + std::to_string(nfields+k) + ".snap";
+                std::ofstream outfile;
+                outfile.open(outfilename, omode);
+                unsigned int count = 0;
+                for (auto sol : extraSolutions)
+                {
+                    auto solBlck = convert<DistributedVector>(convert<BlockVector>(
+                            convert<BlockVector>(sol)->block(idmeshtype.first))->block(k));
+                    if (count % takeEvery == 0)
+                    {
+                        std::string str2write = solBlck->getString(',') + "\n";
+                        if (M_comm->MyPID() == 0)
+                            outfile.write(str2write.c_str(), str2write.size());
+                    }
+                    count++;
                 }
-                count++;
-            }
-            outfile.close();
+                outfile.close();
+                }
         }
 
         if (!initialConditions.empty())
@@ -202,6 +209,32 @@ dumpSnapshots(GlobalProblem& problem,
                 {
                     auto solBlck = convert<DistributedVector>(convert<BlockVector>(
                             convert<BlockVector>(initialCondition)->block(idmeshtype.first))->block(i));
+                    if (count % takeEvery == 0)
+                    {
+                        std::string str2write = solBlck->getString(',') + "\n";
+                        if (M_comm->MyPID() == 0)
+                            outfile.write(str2write.c_str(), str2write.size());
+                    }
+
+                    count++;
+                }
+                outfile.close();
+            }
+        }
+
+        if (!extraInitialConditions.empty())
+        {
+            for (unsigned int k = 0; k < nfields_extra; k++)
+            {
+                std::string outfilename = meshtypedir + "/field" + std::to_string(nfields+k) + "_IC.snap";
+
+                std::ofstream outfile;
+                outfile.open(outfilename, omode);
+                unsigned int count = 0;
+                for (auto initialCondition : extraInitialConditions)
+                {
+                    auto solBlck = convert<DistributedVector>(convert<BlockVector>(
+                            convert<BlockVector>(initialCondition)->block(idmeshtype.first))->block(k));
                     if (count % takeEvery == 0)
                     {
                         std::string str2write = solBlck->getString(',') + "\n";
@@ -246,7 +279,30 @@ dumpSnapshots(GlobalProblem& problem,
         }
     }
 
-    // TODO: export displacement in .snap file for membrane assembler !!
+    // save Lagrange multipliers, if any
+    std::string lagmultdir = outdir + "/multipliers";
+    fs::create_directory(lagmultdir);
+    for(unsigned int j = 0; j < n_dual_blocks; j++)
+        {
+        std::string outfilename = lagmultdir + "/lagmult_" + std::to_string(j) + ".snap";
+        std::ofstream outfile;
+        outfile.open(outfilename, omode);
+        unsigned int count = 0;
+        unsigned int cur_index = n_primal_blocks + j;
+        for (auto sol : solutions)
+        {
+            auto solBlck = convert<DistributedVector>(convert<BlockVector>(
+                    convert<BlockVector>(sol)->block(cur_index))->block(0));
+            if (count % takeEvery == 0)
+            {
+                std::string str2write = solBlck->getString(',') + "\n";
+                if (M_comm->MyPID() == 0)
+                    outfile.write(str2write.c_str(), str2write.size());
+            }
+            count++;
+        }
+        outfile.close();
+        }
 }
 
 void
@@ -255,6 +311,10 @@ transformSnapshotsWithPiola(std::string snapshotsDir,
                             unsigned int fieldIndex,
                             unsigned int maxSnapshot)
 {
+    std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
+    std::list<std::string> param_types = this->stringTokenizer(param_type, ',');
+    if (std::find(std::begin(param_types), std::end(param_types), "geometric") == std::end(param_types))
+        return;
 
     std::ios_base::openmode omode = std::ios_base::app;
 

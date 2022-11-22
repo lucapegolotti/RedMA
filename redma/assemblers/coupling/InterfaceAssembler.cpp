@@ -189,7 +189,8 @@ InterfaceAssembler(const DataContainer& data,
 InterfaceAssembler::
 InterfaceAssembler(const DataContainer& data,
                    const Interface& interface,
-                   const bool& addNoSlipBC) :
+                   const bool& addNoSlipBC,
+                   const bool& doSetup) :
   M_data(data),
   M_interface(interface),
   M_isInlet(false),
@@ -201,7 +202,8 @@ InterfaceAssembler(const DataContainer& data,
     else if (M_interface.M_indexChild == -1)
         M_isOutlet = true;
 
-    setup();
+    if (doSetup)
+        setup();
 }
 
 void
@@ -223,7 +225,7 @@ setup()
     buildCouplingMatrices();
 
     // dumping some matrices
-    if (M_interface.M_indexChild != -1)
+    /*if (M_interface.M_indexChild != -1)
     {
         M_childBT->dump("BT_child_" + std::to_string(M_interface.M_ID));
         M_childB->dump("B_child_" + std::to_string(M_interface.M_ID));
@@ -232,7 +234,7 @@ setup()
     {
         M_fatherBT->dump("BT_father_" + std::to_string(M_interface.M_ID));
         M_fatherB->dump("B_father_" + std::to_string(M_interface.M_ID));
-    }
+    }*/
 
     std::string msg = "done, in ";
     msg += std::to_string(chrono.diff());
@@ -351,6 +353,16 @@ buildCouplingMatrices(shp<AssemblerType> assembler,
                                                      assembler->getFESpaceBCs(),
                                                      assembler->getComponentBCs(),
                                                      0.0, !(M_addNoSlipBC));
+}
+
+void
+InterfaceAssembler::
+buildRhsVector(shp<AssemblerType> assembler,
+               const GeometricFace &face,
+               shp<BlockVector> rhs,
+               const double& time)
+{
+    rhs = this->getZeroVector();
 }
 
 void

@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef MATRICESGENERATOR_HPP
-#define MATRICESGENERATOR_HPP
+#ifndef MATRICESGENERATORFIXEDGEOMETRY_HPP
+#define MATRICESGENERATORFIXEDGEOMETRY_HPP
+
 
 #include "aMatricesGenerator.hpp"
 
@@ -23,21 +24,21 @@ namespace RedMA
 {
 
 /*! \brief Class for generating the finite element matrices necessary to the
- * offline phase of the reduced basis method.
- */
-class MatricesGenerator : public aMatricesGenerator
+* offline phase of the reduced basis method, for the single block and fixed geometry case
+*/
+class MatricesGeneratorFixedGeometry : public aMatricesGenerator
 {
-    typedef aAssembler                                      AssemblerType;
-    typedef std::vector<std::vector<shp<VECTOREPETRA>>>     VectorFunctions;
-    typedef std::pair<shp<AssemblerType>, VectorFunctions>  AssemblerSnapshotPair;
+
+typedef aAssembler                                      AssemblerType;
+
 public:
     /*! \brief Constructor.
      *
      * \param data A DataContainer.
      * \param comm The MPI Communicator.
      */
-    MatricesGenerator(const DataContainer& data,
-                      EPETRACOMM comm);
+    MatricesGeneratorFixedGeometry(const DataContainer& data,
+                                   EPETRACOMM comm);
 
     /*! \brief Generate matrices related to problem (the one specified in the
      * geometry file).
@@ -47,22 +48,12 @@ public:
 protected:
     virtual void createAssemblers() override;
 
-    shp<TreeNode> generateDefaultTreeNode(const std::string& nameMesh);
+    shp<TreeNode> generateTreeNode();
 
-    shp<TreeNode> generateDefaultTube(const std::string& nameMesh);
-
-    shp<TreeNode> generateDefaultSymmetricBifurcation(const std::string& nameMesh);
-
-    shp<TreeNode> generateDefaultAortaBifurcation0(const std::string& nameMesh);
-
-    shp<TreeNode> generateDefaultAortaBifurcation1(const std::string& nameMesh);
-
-    shp<TreeNode> generateDefaultBypass(const std::string& nameMesh);
-
-    std::map<std::string, AssemblerSnapshotPair>        M_meshASPairMap;
-    std::map<std::string, shp<RBBases>>                 M_bases;
+    shp<AssemblerType>                                  M_assembler;
 };
 
 }  // namespace RedMA
 
-#endif  // MATRICESGENERATOR_HPP
+
+#endif //MATRICESGENERATORFIXEDGEOMETRY_HPP
