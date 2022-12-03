@@ -212,6 +212,13 @@ public:
      */
     double evaluateRamp(double time);
 
+    /*! \brief Tokenize a string.
+    *
+    * \param s string to tokenize.
+    * \param del delimiter character.
+    */
+    static std::list<std::string> stringTokenizer(std::string s, char del);
+
 protected:
 
     /*! \brief Parse text file storing pairs of values in the form "time  value"

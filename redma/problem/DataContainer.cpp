@@ -417,4 +417,21 @@ checkGenerateInletBC(unsigned int indexInlet) const
 
     return (generate_inletBC == 1);
 }
+
+std::list<std::string>
+DataContainer::
+stringTokenizer(std::string s, char del)
+{
+    std::stringstream ss(s);
+    std::string word;
+    std::list<std::string> retList;
+
+    while (!ss.eof()) {
+        std::getline(ss, word, del);
+        retList.push_back(word);
+    }
+
+    return retList;
 }
+
+}  // namespace RedMA

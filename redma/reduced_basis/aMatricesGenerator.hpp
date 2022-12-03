@@ -72,7 +72,7 @@ public:
     virtual void generate() = 0;
 
 protected:
-    virtual void setDefaultParameterValues();
+    virtual void setDefaultParameterValues(const std::map<std::string, bool> &categories);
 
     virtual void setDummyFlows();
 

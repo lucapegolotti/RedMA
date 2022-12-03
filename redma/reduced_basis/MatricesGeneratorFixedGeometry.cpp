@@ -66,6 +66,16 @@ generate()
     convert<SparseMatrix>(divergenceMatrix->block(0,1))->dump(outdir + "/BdivT");
     convert<SparseMatrix>(divergenceMatrix->block(1,0))->dump(outdir + "/" + "/Bdiv");
 
+    unsigned int n_cloths = M_data("cloth/n_cloths", 0);
+    if (n_cloths > 0)
+    {
+        for (unsigned int i=0; i<n_cloths; i++)
+        {
+            auto clothMatrix = spcast<StokesAssemblerFE>(M_assembler)->assembleSingleBloodClothMatrix(bcManager, i);
+            convert<SparseMatrix>(clothMatrix->block(0,0))->dump(outdir + "/Mcloth" + std::to_string(i));
+        }
+    }
+
     printlog(YELLOW, "[MatricesGeneratorFixedGeometry] Assembling dual matrices \n",
              this->M_data.getVerbose());
 
@@ -77,9 +87,7 @@ generate()
 
     InterfaceAssembler interfaceAssembler(M_data, hasNoSLipBCs);
     InletInflowAssembler inletInflowAssembler(M_data, dummyInterfaceIn, hasNoSLipBCs, false);
-    // inletInflowAssembler.setAsInlet();
     OutletOutflowAssembler outletOutflowAssembler(M_data, dummyInterfaceOut, hasNoSLipBCs, false);
-    // outletOutflowAssembler.setAsOutlet();
 
     // create list of faces
     std::vector<GeometricFace> in_faces = buildingBlock->getInlets();
@@ -171,7 +179,22 @@ void
 MatricesGeneratorFixedGeometry::
 createAssemblers()
 {
+    std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
+    std::list<std::string> param_types = M_data.stringTokenizer(param_type, ',');
+
+    if (std::find(std::begin(param_types), std::end(param_types), "physics") != std::end(param_types))
+    {
+        std::map<std::string, bool> categories;
+
+        categories["fluid"] = M_data("rb/offline/snapshots/sample_fluid_physics", false);
+        categories["structure"] = M_data("rb/offline/snapshots/sample_structure_physics", false);
+        categories["cloth"] = M_data("rb/offline/snapshots/sample_cloth_physics", false);
+
+        setDefaultParameterValues(categories);
+    }
+
     shp<TreeNode> treeNode = generateTreeNode();
+
     M_assembler = AssemblerFactory(M_data, treeNode);
     M_assembler->setup();
 }

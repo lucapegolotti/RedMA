@@ -466,6 +466,58 @@ postProcess(const double &t, const shp<aVector> &sol)
     M_TMA_Displacements->shiftSolutions(currDisplacement);
 }
 
+std::map<unsigned int, std::vector<shp<BlockVector>>>
+MembraneAssemblerFE::
+importSolution(const std::string& filename) const
+{
+    std::map<unsigned int, std::vector<shp<BlockVector>>> retMapNS = NavierStokesAssemblerFE::importSolution(filename);
+
+    std::fstream inDisp(filename + "/displacement.txt");
+    std::string line;
+    std::vector<shp<VECTOREPETRA>> vecDisplacement;
+
+    std::map<unsigned int, std::vector<shp<BlockVector>>> retMap;
+
+    unsigned int cnt = 0;
+    std::vector<LifeV::Int> indicesDisp;
+
+    while (std::getline(inDisp, line))
+    {
+        shp<VECTOREPETRA> tmpEpetraVecDisplacement (new VECTOREPETRA(M_velocityFESpace->map(),
+                                                                    LifeV::Unique));
+
+        double value;
+        std::stringstream ss(line);
+
+        std::vector<double> values;
+        while (ss >> value)
+            values.push_back(value);
+
+        if (cnt == 0)
+            for (LifeV::Int i=0; i<tmpEpetraVecDisplacement->size(); ++i)
+                indicesDisp.push_back(i);
+            cnt += 1;
+
+            tmpEpetraVecDisplacement->setCoefficients(indicesDisp, values);
+
+            vecDisplacement.push_back(tmpEpetraVecDisplacement);
+    }
+
+    if (vecDisplacement.size() == 0)
+        throw new Exception("Importing error! Impossible to load displacement");
+
+    for (unsigned int count = 0; count<vecDisplacement.size(); ++count)
+    {
+        shp<BlockVector> retBlock (new BlockVector(3));
+        retBlock->setBlock(0, retMapNS[0][count]->block(0));
+        retBlock->setBlock(1, retMapNS[0][count]->block(1));
+        retBlock->setBlock(2, wrap(vecDisplacement[count]));
+        retMap[0].push_back(retBlock);
+    }
+
+    return retMap;
+}
+
 void
 MembraneAssemblerFE::
 setExporter()
@@ -478,6 +530,19 @@ setExporter()
     M_exporter->addVariable(LifeV::ExporterData<MESH>::VectorField,
                             "displacement", M_velocityFESpace,
                             M_displacementExporter, 0.0);
+}
+
+void
+MembraneAssemblerFE::
+exportSolution(const double& t,
+               const shp<aVector>& sol)
+{
+    auto solBlck = convert<BlockVector>(sol);
+
+    if (solBlck->nRows() == 3)
+        setDisplacementExporter(spcast<VECTOREPETRA>(solBlck->block(2)->data()));
+
+    StokesAssemblerFE::exportSolution(t, sol);
 }
 
 std::vector<shp<aMatrix>>

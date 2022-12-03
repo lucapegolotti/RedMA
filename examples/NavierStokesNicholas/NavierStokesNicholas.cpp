@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    printlog(MAGENTA,"Starting snapshots generation...", true);
+    printlog(MAGENTA,"Starting snapshots generation", true);
     DataContainer data;
     data.setDatafile("datafiles/data_fem");
     data.setVerbose(comm->MyPID() == 0);

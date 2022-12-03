@@ -171,7 +171,7 @@ getRightHandSide(const double& time,
     systemMatrix->add(this->M_divergence);
     systemMatrix->multiplyByScalar(-1.0);
 
-    this->addConvectiveMatrix(sol, systemMatrix);
+    this->addConvectiveMatrix(sol, systemMatrix);  // comment for Stokes
 
     shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
 
@@ -197,7 +197,7 @@ getJacobianRightHandSide(const double& time,
 {
     shp<aMatrix> retMat = StokesAssemblerFE::getJacobianRightHandSide(time, sol);
 
-    this->addConvectiveTermJacobian(sol, retMat);
+    this->addConvectiveTermJacobian(sol, retMat);  // comment for Stokes
 
     if (M_stabilization)
     {

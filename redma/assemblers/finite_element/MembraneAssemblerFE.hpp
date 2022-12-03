@@ -275,6 +275,12 @@ public:
      */
     void postProcess(const double& t, const shp<aVector>& sol) override;
 
+    /*! \brief Solutions importing method
+     *
+     * Method to import a solution (velocity, displacement, pressure) from txt file into an EpetraMartrix
+     */
+    std::map<unsigned int, std::vector<shp<BlockVector>>> importSolution(const std::string& filename) const override;
+
     /*! \brief Setter for the exporter(s).
      *
      * In addition to the Navier-Stokes exporter (\see NavierStokesAssemblerFE::setExporter) which sets
@@ -282,6 +288,14 @@ public:
      * wall displacement is set.
      */
     void setExporter() override;
+
+    /*! Virtual export solution.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     */
+    virtual void exportSolution(const double& time,
+                                const shp<aVector>& sol) override;
 
     /*! \brief Setter method for the wall displacement exporter
      *

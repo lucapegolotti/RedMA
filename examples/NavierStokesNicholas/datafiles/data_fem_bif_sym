@@ -38,14 +38,19 @@ outputdir = solutions
         blockindex = 0
         boundaryflag = 2
     [../]
+
+    ring_constraint = full  # type of homogeneous BC imposed at I/O rings ("full", "normal")
 [../]
 
 [rb]
 	[./offline]
 		[./snapshots]
-            param_type           = inflow
+            param_type           = inflow,physics
 		    inflow_type          = default
 		    add_outflow_param    = true
+		    sample_fluid_physics = false
+            sample_structure_physics = false
+            sample_cloth_physics = true
 			number 			     = 10
 			bound 			     = 0.2
 			take_every 		     = 1
@@ -71,6 +76,9 @@ outputdir = solutions
             # other parameters
             out_min_0 = 0.2
             out_max_0 = 0.8
+            # parameter ranges of cloth physics
+            Rcloth_min = 1.0
+            Rcloth_max = 3.0
 		[../]
 	[../]
 	[./online]
@@ -117,16 +125,38 @@ outputdir = solutions
 
 [structure]
 	time_integration_order = 3
-	poisson      = 0.3
+	poisson      = 0.5
 	num_young    = 1
-	young    	 = 3.e+6 # 1.07e7 4.07e6'
-	thickness    = 0.1 # 0.2 0.15'
+	young    	 = 4.07e+6
+	thickness    = 0.1
 	density	     = 1.2
+	transverse_shear_coefficient = 0.8333
 	flag = 10
+	constant_thickness = 1
 	[./external_wall]
-		elastic = 1e4
-		plastic = 1e4
+		elastic = 0
+		plastic = 0
 	[../]
+[../]
+
+[cloth]
+    n_cloths = 1
+    [./cloth0]
+        density = 1e2
+        center_x = 0.0
+        center_y = 0.9752
+        center_z = 0.7278
+        radius = 0.3
+        normal_x = 0.0
+        normal_y = 0.8225
+        normal_z = -0.5688
+        tangent_x = 0.0
+        tangent_y = 0.5822
+        tangent_z = 0.8130
+        shape_n = 1.0
+        shape_t1 = 0.9
+        shape_t2 = 0.75
+    [../]
 [../]
 
 [time_discretization]
@@ -149,6 +179,7 @@ outputdir = solutions
 	multimesh  = false
 	start      = 0
 	save_every = 1
+	save_ramp  = 0
 	filename   = tube
 	exportnorms = true
 [../]

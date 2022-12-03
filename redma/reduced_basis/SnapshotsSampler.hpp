@@ -54,13 +54,12 @@ private:
 
     std::function<double(double, std::vector<double>)>    M_inflow;
 
-    std::list<std::string> stringTokenizer(std::string s, char del);
-
     std::vector<double> sampleParametersInflow();
 
     std::vector<double> sampleParametersPhysics();
 
-    std::vector<double> sampleParameters(const std::vector<std::vector<double>>& param_bounds);
+    std::vector<double> sampleParameters(const std::vector<std::array<double,2>>& param_bounds,
+                                         const bool is_cloth = false) const;
 };
 
 }  // namespace RedMA

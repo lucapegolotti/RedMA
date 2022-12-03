@@ -22,32 +22,37 @@ outputdir = rb_solutions
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
 
-        numinletbcs = 1
-    	[./inlet0]
-    	    generate_inletBC = 0
-            coefficient = 1.0  #  1.0309752387
-            flag = 1
-        [../]
+    numinletbcs = 1
+    [./inlet0]
+        generate_inletBC = 0
+        coefficient = 1.0  #  1.0309752387
+        flag = 1
+    [../]
 
 	numoutletbcs = 0
+
+	ring_constraint = normal  # type of homogeneous BC imposed at I/O rings ("full", "normal")
 [../]
 
 [rb]
 	[./offline]
 		[./snapshots]
 		    param_type           = inflow
-		    inflow_type          = heartbeat
-			number 			     = 5
+		    inflow_type          = default
+		    sample_fluid_physics = false
+		    sample_structure_physics = false
+		    sample_cloth_physics = true
+			number 			     = 1
 			bound 			     = 0.2
 			take_every 		     = 1
 			dumpbinary 		     = true
 			computereynolds      = true
 			seed 			     = 1234
-			# parameter ranges of inflow
-            c_min = 0.1
-            c_max = 0.3
-            a_min = 4
-            a_max = 8
+			# parameter ranges of inflow default and periodic
+            c_min = 0.1  # 2.0
+            c_max = 0.3  # 8.0
+            a_min = 4.0  # 1.0
+            a_max = 8.0  # 3.0
             # parameter ranges of inflow systolic and heartbeat
             Dt_min  = -0.4
             Dt_max  = +0.4
@@ -59,6 +64,23 @@ outputdir = rb_solutions
             DVm_max = +0.9
             DVMd_min = -0.5
             DVMd_max = +0.5
+            # parameter ranges of fluid physics (relative to reference value)
+            rho_f_min = -0.1
+            rho_f_max = +0.1
+            mu_f_min = -0.1
+            mu_f_max = +0.5
+            # parameter ranges of structure physics
+            rho_s_min = 0.0
+            rho_s_max = +0.2
+            h_s_min = -0.5
+            h_s_max = +1.0
+            E_min = -0.5
+            E_max = +0.5
+            nu_min = -0.4
+            nu_max = 0.0
+            # parameter ranges of cloth physics
+            Rcloth_min = 1.0
+            Rcloth_max = 3.0
 		[../]
 	[../]
 	[./online]
@@ -105,25 +127,47 @@ outputdir = rb_solutions
 
 [structure]
 	time_integration_order = 3
-	poisson      = 0.3
+	poisson      = 0.5
 	num_young    = 1
-	young    	 = 3.e+6 # 1.07e7 4.07e6'
-	thickness    = 0.1 # 0.2 0.15'
+	young    	 = 4e+6
+	thickness    = 0.1
 	density	     = 1.2
+	transverse_shear_coefficient = 0.8333
 	flag = 10
+	constant_thickness = 1
 	[./external_wall]
-		elastic = 1e4
-		plastic = 1e4
+		elastic = 0
+		plastic = 0
 	[../]
+[../]
+
+[cloth]
+    n_cloths = 1
+    [./cloth0]
+        density = 1e4
+        center_x = -1.0198
+        center_y = 2.4005
+        center_z = -3.4838
+        radius = 0.4
+        normal_x = -0.9544
+        normal_y = 2.4792
+        normal_z = -3.7729
+        tangent_x = 0.2132
+        tangent_y = 0.2566
+        tangent_z = -0.9427
+        shape_n = 1.0
+        shape_t1 = 0.8
+        shape_t2 = 0.6
+    [../]
 [../]
 
 [time_discretization]
 	algorithm = bdf
 	rhoinf = 0.5
 	order = 2
-	t0ramp = -0.05
+	t0ramp = 0.0
 	t0 = 0
-	T = 0.75
+	T = 0.05
 	dt = 0.005
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
@@ -135,6 +179,7 @@ outputdir = rb_solutions
 	multimesh  = false
 	start      = 0
 	save_every = 1
+	save_ramp  = 1
 	filename   = tube
 	exportnorms = true
 [../]

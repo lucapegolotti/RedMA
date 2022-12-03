@@ -36,6 +36,8 @@ setup()
     M_massPressure = spcast<BlockMatrix>(assemblePressureMass(M_bcManager));
     M_stiffness = spcast<BlockMatrix>(assembleStiffness(M_bcManager)); // #2
     M_divergence = spcast<BlockMatrix>(assembleDivergence(M_bcManager)); // #3
+    if (M_data("cloth/n_cloths", 0) > 0)
+        M_clothMass = spcast<BlockMatrix>(assembleBloodClothMatrix(M_bcManager));
 
     assembleFlowRateVectors();
     assembleFlowRateJacobians();
@@ -195,6 +197,8 @@ getRightHandSide(const double& time,
                                                     this->M_nComponents));
     systemMatrix->add(M_stiffness);
     systemMatrix->add(M_divergence);
+    if (M_data("cloth/n_cloths", 0) > 0)
+        systemMatrix->add(M_clothMass);
     systemMatrix->multiplyByScalar(-1.0);
 
     shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
@@ -305,6 +309,8 @@ getJacobianRightHandSide(const double& time,
 
     retMat->add(M_stiffness);
     retMat->add(M_divergence);
+    if (M_data("cloth/n_cloths", 0) > 0)
+        retMat->add(M_clothMass);
     retMat->multiplyByScalar(-1.0);
 
     if (aAssembler::M_treeNode->isOutletNode())
@@ -1067,6 +1073,84 @@ assembleAdditionalOutletMatrix(const GeometricFace &face)
     OMat->globalAssemble();
 
     return OMat;
+}
+
+shp<aMatrix>
+StokesAssemblerFE::
+assembleSingleBloodClothMatrix(shp<BCManager> bcManager,
+                               unsigned int index)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    int n_cloths = M_data("cloth/n_cloths", 0);
+    if ((n_cloths <= 0) or (index >= n_cloths))
+        throw new Exception("Invalid number of cloths (<=0) or invalid cloth index (>=n_cloths) !");
+
+    shp<BlockMatrix> cloth(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+
+    std::string path = "cloth/cloth" + std::to_string(index);
+    double R_cloth = M_data(path + "/density", 1e2);
+    Vector3D center_cloth(M_data(path + "/center_x", 0.0),
+                          M_data(path + "/center_y", 0.0),
+                          M_data(path + "/center_z", 0.0));
+    Vector3D normal_cloth(M_data(path + "/normal_x", 1.0),
+                          M_data(path + "/normal_y", 0.0),
+                          M_data(path + "/normal_z", 0.0));
+    Vector3D tangent_cloth(M_data(path + "/tangent_x", 0.0),
+                           M_data(path + "/tangent_y", 1.0),
+                           M_data(path + "/tangent_z", 0.0));
+    Vector3D shape_coeffs_cloth(M_data(path + "/shape_n", 1.0),
+                                M_data(path + "/shape_t1", 1.0),
+                                M_data(path + "/shape_t2", 1.0));
+    double radius_cloth = M_data(path + "/radius", 0.1);
+
+    shp<ClothFunctionFunctor> cloth_fun(new ClothFunctionFunctor(center_cloth, radius_cloth,
+                                                                    normal_cloth, tangent_cloth,
+                                                                    shape_coeffs_cloth));
+
+    shp<MATRIXEPETRA> C(new MATRIXEPETRA(M_velocityFESpace->map()));
+    integrate(elements(M_velocityFESpaceETA->mesh()),
+              M_velocityFESpace->qr(),
+              M_velocityFESpaceETA,
+              M_velocityFESpaceETA,
+              value(R_cloth) *
+              eval(cloth_fun, X) *
+              dot(phi_i, phi_j)
+              ) >> C;
+    C->globalAssemble();
+
+    cloth->setBlock(0, 0, wrap(C));
+
+    bcManager->apply0DirichletMatrix(*cloth, M_velocityFESpace,
+                                     0, 1.0,
+                                     !(this->M_addNoSlipBC));
+
+    return cloth;
+}
+
+shp<aMatrix>
+StokesAssemblerFE::
+assembleBloodClothMatrix(shp<BCManager> bcManager)
+{
+    using namespace LifeV;
+    using namespace ExpressionAssembly;
+
+    int n_cloths = M_data("cloth/n_cloths", 0);
+
+    if (n_cloths <= 0)
+        throw new Exception("Invalid number of cloths (<=0) !");
+
+    shp<BlockMatrix> cloth(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+
+    for (unsigned int i=0; i<n_cloths; i++)
+        cloth->add(this->assembleSingleBloodClothMatrix(bcManager, i));
+
+    bcManager->apply0DirichletMatrix(*cloth, M_velocityFESpace,
+                                     0, 1.0,
+                                     !(this->M_addNoSlipBC));
+
+    return cloth;
 }
 
 void
