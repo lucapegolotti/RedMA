@@ -140,7 +140,7 @@ outputdir = solutions
 [../]
 
 [cloth]
-    n_cloths = 1
+    n_cloths = 2
     [./cloth0]
         density = 1e2
         center_x = 0.0
@@ -152,6 +152,22 @@ outputdir = solutions
         normal_z = -0.5688
         tangent_x = 0.0
         tangent_y = 0.5822
+        tangent_z = 0.8130
+        shape_n = 1.0
+        shape_t1 = 0.9
+        shape_t2 = 0.75
+    [../]
+    [./cloth1]
+        density = 1e2
+        center_x = 0.0
+        center_y = -0.9752
+        center_z = 0.7278
+        radius = 0.3
+        normal_x = 0.0
+        normal_y = -0.8225
+        normal_z = -0.5688
+        tangent_x = 0.0
+        tangent_y = -0.5822
         tangent_z = 0.8130
         shape_n = 1.0
         shape_t1 = 0.9
