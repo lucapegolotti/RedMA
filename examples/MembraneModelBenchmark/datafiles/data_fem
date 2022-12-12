@@ -162,10 +162,8 @@ outputdir = rb_solutions
 [exporter]
 	outdir	   = solutions/
 	type       = hdf5
-	multimesh  = false
 	start      = 0
 	save_every = 2
-	filename   = tube
 	exportnorms = true
 [../]
 

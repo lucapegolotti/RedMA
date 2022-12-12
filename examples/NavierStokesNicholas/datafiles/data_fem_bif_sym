@@ -46,12 +46,12 @@ outputdir = solutions
 	[./offline]
 		[./snapshots]
             param_type           = inflow,physics
-		    inflow_type          = default
+		    inflow_type          = heartbeat
 		    add_outflow_param    = true
 		    sample_fluid_physics = false
             sample_structure_physics = false
             sample_cloth_physics = true
-			number 			     = 10
+			number 			     = 5
 			bound 			     = 0.2
 			take_every 		     = 1
 			dumpbinary 		     = true
@@ -63,14 +63,14 @@ outputdir = solutions
             a_min = 4
             a_max = 8
             # parameter ranges of inflow systolic and heartbeat
-            Dt_min  = -0.2
-            Dt_max  = +0.2
-            DV0_min = -0.4
-            DV0_max = +0.4
+            Dt_min  = -0.4
+            Dt_max  = +0.4
+            DV0_min = -0.6
+            DV0_max = +0.6
             DVM_min = -0.3
             DVM_max = +0.3
-            DVm_min = -0.2
-            DVm_max = +0.2
+            DVm_min = -0.9
+            DVm_max = +0.9
             DVMd_min = -0.5
             DVMd_max = +0.5
             # other parameters
@@ -180,9 +180,9 @@ outputdir = solutions
 	rhoinf = 0.5
 	order = 2
     extrapolation_order = 2
-	t0ramp = 0
+	t0ramp = -0.05
 	t0 = 0
-	T = 0.30
+	T = 0.75
 	dt = 0.0025
 	use_extrapolation = 0
 	solve_as_linear = 0
@@ -192,11 +192,9 @@ outputdir = solutions
 [exporter]
 	outdir	   = fem-solutions/
 	type       = hdf5
-	multimesh  = false
 	start      = 0
 	save_every = 1
-	save_ramp  = 0
-	filename   = tube
+	save_ramp  = 1
 	exportnorms = true
 [../]
 

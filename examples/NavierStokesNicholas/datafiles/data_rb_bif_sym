@@ -148,10 +148,8 @@ outputdir = solutions
 [exporter]
 	outdir	   = fem-solutions/
 	type       = hdf5
-	multimesh  = false
 	start      = 0
 	save_every = 1
-	filename   = tube
 	exportnorms = true
 [../]
 

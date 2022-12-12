@@ -66,10 +66,8 @@
 [exporter]
 	outdir	   = solutions/
 	type       = vtk
-	multimesh  = false
 	start      = 0
 	save_every = 1
-	filename   = tube
 [../]
 
 [coupling]
