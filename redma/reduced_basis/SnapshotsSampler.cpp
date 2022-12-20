@@ -583,7 +583,7 @@ sampleParametersPhysics()
         std::vector<double> array_params_cloth;
         array_params_cloth.resize(array_exp_cloth.size());
         std::transform(array_exp_cloth.begin(), array_exp_cloth.end(), array_params_cloth.begin(),
-                       [](double x){return std::pow(10.0, x);});
+                       [](double x){return std::pow(10.0, x) * (x > 1e-8);});
         array_params.insert(array_params.end(), array_params_cloth.begin(), array_params_cloth.end());
 
         for (unsigned int i=0; i<n_cloths; i++)
