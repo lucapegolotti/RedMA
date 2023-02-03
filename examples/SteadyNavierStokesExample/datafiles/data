@@ -5,7 +5,7 @@
 outputdir = solutions
 
 [geometric_structure]
-	xmlfile = geometries/bypass0.xml
+	xmlfile = geometries/bypass.xml
 	xmldeformer = datafiles/SolverParamList.xml
 	geometries_dir = ../../../meshes/
 [../]
@@ -232,7 +232,7 @@ outputdir = solutions
 	extrapolation_order = 0
 	t0ramp = 0.0
 	t0 = 0
-	T = 0.04
+	T = 0.0002
 	dt = 0.0002
 	use_extrapolation = 0
 	solve_as_linear = 0

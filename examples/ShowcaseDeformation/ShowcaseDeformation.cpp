@@ -22,8 +22,11 @@
 #include <Epetra_SerialComm.h>
 #endif
 
-#include <redma/geometry/building_blocks/Tube.hpp>
-#include <redma/geometry/building_blocks/BifurcationSymmetric.hpp>
+#include <redma/problem/DataContainer.hpp>
+
+// #include <redma/geometry/building_blocks/Tube.hpp>
+// #include <redma/geometry/building_blocks/BifurcationSymmetric.hpp>
+#include <redma/geometry/building_blocks/Bypass.hpp>
 
 using namespace RedMA;
 
@@ -36,18 +39,26 @@ int main(int argc, char **argv)
     shp<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    Tube tb(comm, "fine", true, 1, 2);
-    // BifurcationSymmetric tb(comm, "fine", true, 90);
+    DataContainer data;
+    data.setDatafile("data");
+    data.setVerbose(comm->MyPID() == 0);
 
-    // M_parametersHandler.registerParameter("bend", 0.0, 0, M_PI/2, randomizible, false);
-    // M_parametersHandler.registerParameter("L_ratio", 1.0, 0.7, 1.3, randomizible);
-    // M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.4, randomizible);
+    const double A = data("parameters/stenosis_amplitude", 0.4);
+    const double W = data("parameters/stenosis_width", 0.15);
+    const unsigned int N = data("parameters/stenosis_number", 0);
+
+    // Tube tb(comm, "fine", true, 1, 2);
+    // BifurcationSymmetric tb(comm, "fine", true, 90);
+    Bypass tb(comm, "bypass", true, true, true, N, true);
+
+    tb.setDatafile(data);
 
     tb.readMesh();
-    tb.setParameterValue("Rout_ratio", 0.6);
-    tb.setParameterValue("bend", M_PI*0.3);
+    tb.setParameterValue("stenosis_amplitude", A);
+    tb.setParameterValue("stenosis_width", W);
     tb.applyGlobalTransformation();
-    tb.dumpMesh("output/", "../../../meshes/", "tube");
+
+    tb.dumpMesh("output/", "../../../meshes/", "bypass");
 
 
     return 0;

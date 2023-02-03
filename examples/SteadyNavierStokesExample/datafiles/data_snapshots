@@ -40,20 +40,7 @@ outputdir = solutions
 	[./outlet0]
 	    type = dirichlet
         blockindex = 0
-        boundaryflag = 2
-
-        C = 0.0  # 0.0000760  # WK3
-        Rp = 100  # 718.27  # WK3
-        Rd = 0.0  # 15945.20  # WK3
-    [../]
-    [./outlet1]
-        type = windkessel
-        blockindex = 0
-        boundaryflag = 3
-
-        C = 0.0  # 0.0000760  # WK3
-        Rp = 200  # 718.27  # WK3
-        Rd = 0.0  # 15945.20  # WK3
+        boundaryflag = 4
     [../]
 
 	ring_constraint = full # type of homogeneous BC imposed at I/O rings for membrane model
@@ -62,8 +49,8 @@ outputdir = solutions
 [rb]
 	[./offline]
 		[./snapshots]
-			nSnapshots		     = 5
-			take_every 		     = 8
+			nSnapshots		     = 1
+			take_every 		     = 1
 			dumpbinary 		     = true
 			computereynolds      = true
 			seed 			     = 1234
@@ -180,18 +167,18 @@ outputdir = solutions
 [../]
 
 [sampling]
-    in1_alphax = true
-    in1_alphay = true
-    in1_alphaz = true
-    in2_alphax = true
-    in2_alphay = true
-    in2_alphaz = true
+    in1_alphax = false
+    in1_alphay = false
+    in1_alphaz = false
+    in2_alphax = false
+    in2_alphay = false
+    in2_alphaz = false
     stenosis_amplitude = true
     stenosis_width = true
-    stenosis_first_eigenvalue = true
-    stenosis_second_eigenvalue = true
-    stenosis_third_eigenvalue = true
-    viscosity = true
-    density = true
+    stenosis_first_eigenvalue = false
+    stenosis_second_eigenvalue = false
+    stenosis_third_eigenvalue = false
+    viscosity = false
+    density = false
     flow_rate = true
 [../]

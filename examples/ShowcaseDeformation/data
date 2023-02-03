@@ -1,0 +1,17 @@
+﻿#-------------------------------------------------------------
+#           Data file for NavierStokesExample
+#-------------------------------------------------------------
+
+outputdir = solutions
+
+[geometric_structure]
+	xmldeformer = SolverParamList.xml
+	geometries_dir = ../../../meshes/
+[../]
+
+[parameters]
+    stenosis_number = 0
+    stenosis_amplitude = 0.8
+    stenosis_width = 0.2
+[../]
+

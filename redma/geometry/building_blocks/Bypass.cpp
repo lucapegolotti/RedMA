@@ -63,7 +63,9 @@ namespace RedMA
         resetInletOutlets();
 
         const double maxAngle = 0.4;
-        const double maxAmplitude = 0.8;
+        const double minAmplitude = 0.0;
+        const double maxAmplitude = 1.5;
+        const double minWidth = 0.0;
         const double maxWidth = 0.4;
 
         M_parametersHandler.registerParameter("in1_alphax", 0.0, -maxAngle,
@@ -78,9 +80,9 @@ namespace RedMA
                                               maxAngle, randomizable);
         M_parametersHandler.registerParameter("in2_alphaz", 0.0, -maxAngle,
                                               maxAngle, randomizable);
-        M_parametersHandler.registerParameter("stenosis_amplitude", 0.0, 0,
+        M_parametersHandler.registerParameter("stenosis_amplitude", 0.0, minAmplitude,
                                               maxAmplitude, randomizable);
-        M_parametersHandler.registerParameter("stenosis_width", 0.0, 0,
+        M_parametersHandler.registerParameter("stenosis_width", 0.0, minWidth,
                                               maxWidth, randomizable);
 
         computeCenter();
@@ -263,13 +265,16 @@ namespace RedMA
     {
        if (i > 3)
            throw new Exception("There are 4 stenosis available but a number bigger than 3 was given as input...");
+
        std::string msg = "Selecting stenosis " + std::to_string(i) + "\n";
        printlog(GREEN, msg);
+
        M_stenosisCenter = M_stenosisAttributes[i]["center"];
        M_stenosisOuterNormal = M_stenosisAttributes[i]["normal"];
        M_Eigenvector1 = M_stenosisAttributes[i]["eigenX"];
        M_Eigenvector2 = M_stenosisAttributes[i]["eigenY"];
        M_Eigenvector3 = M_stenosisAttributes[i]["eigenZ"];
+
        if (i == 0)
            M_diameterAtStenosis = 0.4912600;
        else if (i == 1)
@@ -356,8 +361,8 @@ namespace RedMA
                                      std::placeholders::_5,
                                      amplitude, width, M_stenosisCenter, M_stenosisOuterNormal, M_distorsionMatrix);
 
-            if (transformMesh) {
-
+            if (transformMesh)
+            {
                 NonAffineDeformer nAffineDeformer(M_mesh, M_comm, M_verbose);
 
                 LifeV::BCFunctionBase zeroFunction(BuildingBlock::fZero);
@@ -376,10 +381,12 @@ namespace RedMA
                 CoutRedirecter ct;
                 ct.redirect();
                 nAffineDeformer.applyBCs(bcs);
+
                 std::string xmlFilename = M_datafile("geometric_structure/xmldeformer",
                                                      "SolverParamList.xml");
                 nAffineDeformer.setXMLsolver(xmlFilename);
                 M_displacement = nAffineDeformer.solveSystem("ML");
+
                 nAffineDeformer.deformMeshComposite(*transformer, M_displacement);
                 printlog(CYAN, ct.restore(), M_verbose);
             }

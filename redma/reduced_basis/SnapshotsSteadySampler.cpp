@@ -21,8 +21,8 @@ takeSnapshots(const unsigned int &Nstart)
 
     unsigned int branch_num = M_data("exporter/branch", 0);
     std::string outdir = M_data("rb/offline/snapshots/directory", "snapshots_" + std::to_string(branch_num));
-    unsigned int numInletConditions = M_data("bc_conditions/numinletbcs", 1);
-    unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
+    /*unsigned int numInletConditions = M_data("bc_conditions/numinletbcs", 1);
+    unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);*/
 
     fs::create_directory(outdir);
     GeometryPrinter printer;
@@ -49,27 +49,22 @@ takeSnapshots(const unsigned int &Nstart)
 
     bool BL = false;
     if (element->Attribute("BL"))
-    {
         BL = std::atoi(element->Attribute("BL"));
-    }
 
     // returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose, BL));
 
     bool isBifurcation = false;
     if (element->Attribute("isBifurcation"))
-    {
         isBifurcation = std::atoi(element->Attribute("isBifurcation"));
-    }
 
     // returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose, BL, isBifurcation));
 
     unsigned int activeStenosis;
     if (element->Attribute("activeStenosis"))
-    {
         activeStenosis = std::atoi(element->Attribute("activeStenosis"));
-    }
 
-    shp<Bypass> defaultBypass(new Bypass(M_comm, "bypass", false, BL, isBifurcation, activeStenosis, true));
+    shp<Bypass> defaultBypass(new Bypass(M_comm, "bypass", false, BL,
+                                            isBifurcation, activeStenosis, true));
     defaultBypass->readMesh();
 
     defaultBypass->setDiscretizationMethod("fem");
