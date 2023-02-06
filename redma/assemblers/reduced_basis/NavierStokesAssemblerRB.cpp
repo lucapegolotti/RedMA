@@ -28,7 +28,6 @@ RBsetup()
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
-
     StokesAssemblerRB::RBsetup();
 
     if (M_data("rb/online/approximatenonlinearterm",1))
@@ -62,6 +61,10 @@ RBsetup()
         fs::create_directories(dir_mat);
         std::string dir_vec = "NLterm/" + nameMesh + "/Vector/Block" + std::to_string(ID());
         fs::create_directories(dir_vec);
+        std::string dir_mat2 = "NLterm/" + nameMesh + "/Matrix2/Block" + std::to_string(ID());
+        fs::create_directories(dir_mat2);
+        std::string dir_vec2 = "NLterm/" + nameMesh + "/Vector2/Block" + std::to_string(ID());
+        fs::create_directories(dir_vec2);
 
         double density = M_FEAssembler->getDensity();
         shp<ETFESPACE3 > velocityFESpaceETA = M_FEAssembler->getVelocityETFEspace();
@@ -92,11 +95,15 @@ RBsetup()
             // TODO: I changed here!
             auto jac00 = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID());
             // auto jac00 = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID(), velocityNorm);
+            auto jac00_2 = M_bases->rightProject(spcast<SparseMatrix>(nonLinearJacobianVec->block(0,0)), 0, ID());
+
             M_nonLinearMatrixDecomposition[i].reset(new BlockMatrix(2,2));
             M_nonLinearMatrixDecomposition[i]->setBlock(0,0,jac00);
 
-            std::string filename_mat = dir_mat + "/Mat_" + std::to_string(i) + ".m";
-            M_nonLinearMatrixDecomposition[i]->block(0,0)->dump(filename_mat);
+            std::string filename_mat = dir_mat + "/Mat_" + std::to_string(i);
+            jac00->dump(filename_mat);
+            std::string filename_mat2 = dir_mat2 + "/Mat_" + std::to_string(i);
+            jac00_2->dump(filename_mat2);
 
             nonLinearMatrix->zero();
             integrate(elements(velocityFESpaceETA->mesh()),
@@ -119,11 +126,13 @@ RBsetup()
 
                 // TODO: I changed here!
                 M_nonLinearTermsDecomposition[i][j].reset(new BlockVector(2));
-                // M_nonLinearTermsDecomposition[i][j]->setBlock(0, M_bases->leftProject(nonLinearTermVec->block(0), 0, ID(), velocityNorm));
                 M_nonLinearTermsDecomposition[i][j]->setBlock(0, M_bases->leftProject(nonLinearTermVec->block(0), 0,  ID()));
+                // M_nonLinearTermsDecomposition[i][j]->setBlock(0, M_bases->leftProject(nonLinearTermVec->block(0), 0, ID(), velocityNorm));
 
-                std::string filename_vec = dir_vec + "/Vec_" + std::to_string(i) + "_" + std::to_string(j) +".m";
+                std::string filename_vec = dir_vec + "/Vec_" + std::to_string(i) + "_" + std::to_string(j);
                 M_nonLinearTermsDecomposition[i][j]->block(0)->dump(filename_vec);
+                std::string filename_vec2 = dir_vec2 + "/Vec_" + std::to_string(i) + "_" + std::to_string(j);
+                nonLinearTermVec->block(0)->dump(filename_vec2);
             }
         }
 
