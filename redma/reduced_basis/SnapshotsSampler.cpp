@@ -565,7 +565,7 @@ sampleParametersPhysics()
 
         M_data.setValueDouble("structure/density", (1.0+array_params_structure[0]) * param_ref_values[0]);
         M_data.setValueDouble("structure/thickness", (1.0+array_params_structure[1]) * param_ref_values[1]);
-        M_data.setValueDouble("structure/constant_thickness", 1);  // setting constant thickness here !!
+        M_data.setValueInt("structure/constant_thickness", 1);  // setting constant thickness here !!
         M_data.setValueDouble("structure/young", (1.0+array_params_structure[2]) * param_ref_values[2]);
         M_data.setValueDouble("structure/poisson", (1.0+array_params_structure[3]) * param_ref_values[3]);
     }

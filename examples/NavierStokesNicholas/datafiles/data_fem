@@ -11,7 +11,7 @@ outputdir = rb_solutions
 [../]
 
 [assembler]
-	type = stokes
+	type = navierstokes
 	[./stabilization]
         type = none  # to choose in {none, supg, ip}
         gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
@@ -31,18 +31,18 @@ outputdir = rb_solutions
 
 	numoutletbcs = 0
 
-	ring_constraint = normal  # type of homogeneous BC imposed at I/O rings ("full", "normal")
+	ring_constraint = full  # type of homogeneous BC imposed at I/O rings ("full", "normal")
 [../]
 
 [rb]
 	[./offline]
 		[./snapshots]
-		    param_type           = inflow
+		    param_type           = inflow,structure
 		    inflow_type          = default
 		    sample_fluid_physics = false
-		    sample_structure_physics = false
+		    sample_structure_physics = true
 		    sample_cloth_physics = true
-			number 			     = 1
+			number 			     = 10
 			bound 			     = 0.2
 			take_every 		     = 1
 			dumpbinary 		     = true
@@ -73,10 +73,10 @@ outputdir = rb_solutions
             rho_s_min = 0.0
             rho_s_max = +0.2
             h_s_min = -0.5
-            h_s_max = +1.0
-            E_min = -0.5
-            E_max = +0.5
-            nu_min = -0.4
+            h_s_max = +0.5
+            E_min = -0.3
+            E_max = +0.3
+            nu_min = -0.3
             nu_max = 0.0
             # parameter ranges of cloth physics
             Rcloth_min = 1.0
@@ -142,7 +142,7 @@ outputdir = rb_solutions
 [../]
 
 [cloth]
-    n_cloths = 1
+    n_cloths = 0
     [./cloth0]
         density = 1e4
         center_x = -1.0198
@@ -167,7 +167,7 @@ outputdir = rb_solutions
 	order = 2
 	t0ramp = 0.0
 	t0 = 0
-	T = 0.05
+	T = 0.2
 	dt = 0.005
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
