@@ -37,11 +37,11 @@ outputdir = rb_solutions
 [rb]
 	[./offline]
 		[./snapshots]
-		    param_type           = inflow,structure
+		    param_type           = inflow,physics
 		    inflow_type          = default
 		    sample_fluid_physics = false
 		    sample_structure_physics = true
-		    sample_cloth_physics = true
+		    sample_cloth_physics = false
 			number 			     = 10
 			bound 			     = 0.2
 			take_every 		     = 1
@@ -70,14 +70,14 @@ outputdir = rb_solutions
             mu_f_min = -0.1
             mu_f_max = +0.5
             # parameter ranges of structure physics
-            rho_s_min = 0.0
-            rho_s_max = +0.2
-            h_s_min = -0.5
-            h_s_max = +0.5
-            E_min = -0.3
-            E_max = +0.3
-            nu_min = -0.3
-            nu_max = 0.0
+            # rho_s_min = 0.0
+            # rho_s_max = 0.0  # +0.2
+            # h_s_min = 0.0  # -0.5
+            # h_s_max = 0.0  # +0.5
+            # E_min = 0.0  # -0.3
+            # E_max = 0.0  # +0.3
+            # nu_min = 0.0  # -0.3
+            # nu_max = 0.0
             # parameter ranges of cloth physics
             Rcloth_min = 1.0
             Rcloth_max = 3.0

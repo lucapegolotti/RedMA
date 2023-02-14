@@ -11,7 +11,7 @@ outputdir = solutions
 [../]
 
 [assembler]
-	type = stokes
+	type = navierstokes
 	[./stabilization]
         type = none  # to choose in {none, supg, ip}
         gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
@@ -210,9 +210,9 @@ n_cloths = 4
 	rhoinf = 0.5
 	order = 2
     extrapolation_order = 2
-	t0ramp = 0
+	t0ramp = -0.05
 	t0 = 0
-	T = 0.30
+	T = 0.375
 	dt = 0.0025
 	use_extrapolation = 0
 	solve_as_linear = 0

@@ -11,7 +11,7 @@ outputdir = solutions
 [../]
 
 [assembler]
-	type = stokes
+	type = navierstokes
 	[./stabilization]
         type = none  # to choose in {none, supg, ip}
         gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
@@ -46,12 +46,12 @@ outputdir = solutions
 	[./offline]
 		[./snapshots]
             param_type           = inflow,physics
-		    inflow_type          = heartbeat
+		    inflow_type          = default
 		    add_outflow_param    = true
 		    sample_fluid_physics = false
             sample_structure_physics = false
             sample_cloth_physics = true
-			number 			     = 5
+			number 			     = 10
 			bound 			     = 0.2
 			take_every 		     = 1
 			dumpbinary 		     = true
@@ -180,9 +180,9 @@ outputdir = solutions
 	rhoinf = 0.5
 	order = 2
     extrapolation_order = 2
-	t0ramp = -0.05
+	t0ramp = 0
 	t0 = 0
-	T = 0.75
+	T = 0.3
 	dt = 0.0025
 	use_extrapolation = 0
 	solve_as_linear = 0

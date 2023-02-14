@@ -169,6 +169,8 @@ getRightHandSide(const double& time,
 
     systemMatrix->add(this->M_stiffness);
     systemMatrix->add(this->M_divergence);
+    if (M_data("cloth/n_cloths", 0) > 0)
+        systemMatrix->add(M_clothMass);
     systemMatrix->multiplyByScalar(-1.0);
 
     this->addConvectiveMatrix(sol, systemMatrix);  // comment for Stokes

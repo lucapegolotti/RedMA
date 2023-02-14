@@ -1,4 +1,4 @@
-<buildingblock type="bypass" assembler="stokes" method="rb">
+<buildingblock type="bypass" assembler="navierstokes" method="rb">
     <L_ratio>1</L_ratio>
     <Rout_ratio>1</Rout_ratio>
     <alpha_axis>0</alpha_axis>
