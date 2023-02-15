@@ -100,9 +100,9 @@ RBsetup()
             M_nonLinearMatrixDecomposition[i].reset(new BlockMatrix(2,2));
             M_nonLinearMatrixDecomposition[i]->setBlock(0,0,jac00);
 
-            std::string filename_mat = dir_mat + "/Mat_" + std::to_string(i);
+            std::string filename_mat = dir_mat + "/Mat_" + std::to_string(i) + ".m";
             jac00->dump(filename_mat);
-            std::string filename_mat2 = dir_mat2 + "/Mat_" + std::to_string(i);
+            std::string filename_mat2 = dir_mat2 + "/Mat_" + std::to_string(i) + ".m";
             jac00_2->dump(filename_mat2);
 
             nonLinearMatrix->zero();
@@ -129,9 +129,9 @@ RBsetup()
                 M_nonLinearTermsDecomposition[i][j]->setBlock(0, M_bases->leftProject(nonLinearTermVec->block(0), 0,  ID()));
                 // M_nonLinearTermsDecomposition[i][j]->setBlock(0, M_bases->leftProject(nonLinearTermVec->block(0), 0, ID(), velocityNorm));
 
-                std::string filename_vec = dir_vec + "/Vec_" + std::to_string(i) + "_" + std::to_string(j);
+                std::string filename_vec = dir_vec + "/Vec_" + std::to_string(i) + "_" + std::to_string(j) + ".m";
                 M_nonLinearTermsDecomposition[i][j]->block(0)->dump(filename_vec);
-                std::string filename_vec2 = dir_vec2 + "/Vec_" + std::to_string(i) + "_" + std::to_string(j);
+                std::string filename_vec2 = dir_vec2 + "/Vec_" + std::to_string(i) + "_" + std::to_string(j) + ".m";
                 nonLinearTermVec->block(0)->dump(filename_vec2);
             }
         }
