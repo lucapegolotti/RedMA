@@ -1,8 +1,7 @@
 Reduced Modeling of Arteries (RedMA)
 =========
 
-The project is still a work in progress. More details will be added to this
-README when a stable version will be available.
+In this repository, we implement Reduced Order Models for cardiovascular modeling based on Proper Orthogonal Decomposition.
 
 Dependencies
 -------------
