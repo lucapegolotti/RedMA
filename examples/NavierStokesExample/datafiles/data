@@ -1,5 +1,5 @@
--------------------------------------------------------------
-#           Data file for NavierStokesExample
+#------------------------------------------------------------
+#Data file for NavierStokesNicholas
 #-------------------------------------------------------------
 
 outputdir = solutions
@@ -11,114 +11,38 @@ outputdir = solutions
 [../]
 
 [assembler]
-	type = navierstokes
+	type = stokes
 	[./stabilization]
-	    type = supg  # to choose in {none, supg, ip}
-	    gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
+        type = none  # to choose in {none, supg, ip}
+        gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
     [../]
 [../]
 
 [bc_conditions]
-    inlet_bc_type = dirichlet
-    generate_inletBC = 0
-	inletdirichlet = weak
-	inflowfile = datafiles/inflow.txt
-	inletpressurefile = datafiles/inlet_pressure.txt
-	coefficientinflow = 1.000552724487405
 
-	numoutletbcs = 1
-	pimfile = datafiles/IM_pressure.txt
-	[./outlet0]
-	    type = dirichlet
+    inlet_bc_type = dirichlet
+    inletdirichlet = weak
+    inflowfile = datafiles/inflow.txt
+    inletpressurefile = datafiles/inlet_pressure.txt
+
+    numinletbcs = 1
+    [./inlet0]
+        type = dirichlet
+        generate_inletBC = 0
+        coefficient = 1.0  #  1.0309752387
+        flag = 1
+    [../]
+
+    numoutletbcs = 1
+    [./outlet0]
+        type = dirichlet
         blockindex = 0
         boundaryflag = 2
-
-        C = 0.0  # 0.0000760  # WK3
-        Rp = 100  # 718.27  # WK3
-        Rd = 0.0  # 15945.20  # WK3
-
-        Ca = 1.0606295687808294e-07  # CORO
-        Cim = 8.581457420135802e-07  # CORO
-        Ra = 194674.68548804865  # CORO
-        Ram = 316346.36391807906  # CORO
-        Rvm = 0  # CORO
-        Rv = 97337.34274402432  # CORO
-    [../]
-    [./outlet1]
-        type = windkessel
-        blockindex = 0
-        boundaryflag = 3
-
-        C = 0.0  # 0.0000760  # WK3
-        Rp = 200  # 718.27  # WK3
-        Rd = 0.0  # 15945.20  # WK3
-
-        Ca = 1.0606295687808294e-07  # CORO
-        Cim = 8.581457420135802e-07  # CORO
-        Ra = 194674.68548804865  # CORO
-        Ram = 316346.36391807906  # CORO
-        Rvm = 0  # CORO
-        Rv = 97337.34274402432  # CORO
     [../]
 
-	ring_constraint = full # type of homogeneous BC imposed at I/O rings for membrane model
+    ring_constraint = full  # type of homogeneous BC imposed at I/O rings ("full", "normal")
 [../]
 
-[rb]
-	[./offline]
-		[./snapshots]
-			number 			     = 50
-			bound 			     = 0.2
-			take_every 		     = 8
-			dumpbinary 		     = true
-			computereynolds      = true
-			seed 			     = 1234
-		[../]
-		[./basis]
-			directory  = basis
-			podtol     = 1e-5
-			dumpbinary = true
-			xmlfile = datafiles/SolverParamList.xml
-			addprimalsupremizers = true
-			adddualsupremizers = true
-			[./primal_supremizers]
-				field2augment = 0
-				limitingfield = 1
-			[../]
-			[./dual_supremizers]
-				field2augment = 0
-			[../]
-		[../]
-		[./deim]
-			take_snapshot_every = 4
-			dumpbinary_snapshots = true
-			numbersnapshots = 50
-		[../]
-		[./mdeim]
-			numbersnapshots = 1
-			podtol 			= 1e-5
-			checksonline    = 1
-			directory		= mdeims
-		[../]
-	[../]
-	[./online]
-		usemdeim = false
-		monolithicSolve = false
-		recomputeSchur = false
-		approximatenonlinearterm = 0
-		[./basis]
-			directory = basis
-			podtol_field0 = 1e-1
-			podtol_field1 = 1e-5
-			useprimalsupremizers = 1
-			usedualsupremizers = 0
-		[../]
-		[./mdeim]
-			loadfullbasis   = true
-			directory 		= mdeims
-		[../]
-	[../]
-[../]
 
 [preconditioner]
 	options    	   = datafiles/solversOptionsFast
@@ -150,6 +74,7 @@ outputdir = solutions
 	young    	 = 4.07e+6
 	thickness    = 0.1
 	density	     = 1.2
+	transverse_shear_coefficient = 0.8333
 	flag = 10
 	constant_thickness = 1
 	[./external_wall]
@@ -158,26 +83,69 @@ outputdir = solutions
 	[../]
 [../]
 
+[cloth]
+    n_cloths = 2
+    [./cloth0]
+        density = 1e2
+        center_x = 0.0
+        center_y = 0.9752
+        center_z = 0.7278
+        radius = 0.3
+        normal_x = 0.0
+        normal_y = 0.8225
+        normal_z = -0.5688
+        tangent_x = 0.0
+        tangent_y = 0.5822
+        tangent_z = 0.8130
+        shape_n = 1.0
+        shape_t1 = 0.9
+        shape_t2 = 0.75
+    [../]
+    [./cloth1]
+        density = 1e2
+        center_x = 0.0
+        center_y = -0.9752
+        center_z = 0.7278
+        radius = 0.3
+        normal_x = 0.0
+        normal_y = -0.8225
+        normal_z = -0.5688
+        tangent_x = 0.0
+        tangent_y = -0.5822
+        tangent_z = 0.8130
+        shape_n = 1.0
+        shape_t1 = 0.9
+        shape_t2 = 0.75
+    [../]
+[../]
+
 [time_discretization]
 	algorithm = bdf
 	rhoinf = 0.5
 	order = 2
-	extrapolation_order = 2
-	t0ramp = 0.0
+    extrapolation_order = 2
+	t0ramp = 0
 	t0 = 0
-	T = 0.04
-	dt = 0.0002
+	T = 0.3
+	dt = 0.0025
 	use_extrapolation = 0
 	solve_as_linear = 0
 	solverstatistics = solverstatistics.txt
 [../]
 
 [exporter]
-	outdir	   = solutions/
+	outdir	   = fem-solutions/
 	type       = hdf5
 	start      = 0
 	save_every = 1
+	save_ramp  = 1
 	exportnorms = true
+[../]
+
+[importer]
+    indir = ../../../../../PDE-DNN/TESTS/RB/Unsteady/Stokes/ResultsPaper/ResultsBifSym/SRB-TFO/pod_tolerance_1e-05_1e-05/results/
+    param_nb = 80
+    isFEM = false
 [../]
 
 [coupling]

@@ -22,19 +22,24 @@ using namespace RedMA;
 
 double inletDirichlet(double t)
 {
-    const double T = 5e-3;
+    /*const double T = 5e-3;
     const double omega = M_PI / T;
     const double Q_max = 1.0;
 
     if (t <= T)
         return 0.5 * (1.0 - std::cos(omega * t)) * Q_max;
 
-    return Q_max;
+    return Q_max;*/
+
+    const double T = 0.3;
+    const std::array<double, 2> params = {6.0, 0.2};
+
+    return (1-cos(2*M_PI*t/T) + params[1]*sin(2*M_PI*params[0]*t/T));
 }
 
 double outletDirichlet(double t, unsigned int i)
 {
-    return 0.3 * inletDirichlet(t); // attention to flow conservation here!!!
+    return 0.5 * inletDirichlet(t); // attention to flow conservation here!!!
 }
 
 double inletNeumann(double t)
@@ -86,13 +91,18 @@ int main(int argc, char **argv)
     data.setDatafile("datafiles/data");
     data.setVerbose(comm->MyPID() == 0);
 
-    if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "dirichlet"))
-        data.setInletBC(inletDirichlet);
-    else if (!std::strcmp(data("bc_conditions/inlet_bc_type", "dirichlet").c_str(), "neumann"))
-        data.setInletBC(inletNeumann);
-    else
-        throw new Exception("Unrecognized inlet BC type! "
-                            "Available types: {dirichlet, neumann}.");
+    unsigned int numInletConditions = data("bc_conditions/numinletbcs", 1);
+    for (unsigned int i = 0; i < numInletConditions; i++)
+    {
+        std::string dataEntry = "bc_conditions/inlet" + std::to_string(i);
+        if (!std::strcmp(data(dataEntry + "/type", "dirichlet").c_str(), "dirichlet"))
+            data.setInletBC(inletDirichlet, i);
+        else if (!std::strcmp(data(dataEntry + "/type", "dirichlet").c_str(), "neumann"))
+            data.setInletBC(inletNeumann, i);
+        else
+            throw new Exception("Unrecognized inlet BC type! "
+                                "Available types: {dirichlet, neumann}.");
+    }
 
     unsigned int numOutletConditions = data("bc_conditions/numoutletbcs", 0);
     for (unsigned int i = 0; i < numOutletConditions; i++)
@@ -102,6 +112,9 @@ int main(int argc, char **argv)
             data.setOutletBC([i](double t){return outletNeumann(t,i);}, i);
         else if (!std::strcmp(data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
             data.setOutletBC([i](double t){return outletDirichlet(t,i);}, i);
+        else
+            throw new Exception("Unrecognized inlet BC type! "
+                                "Available types: {dirichlet, neumann}.");
     }
 
     std::string solutionDir = "solutions";
