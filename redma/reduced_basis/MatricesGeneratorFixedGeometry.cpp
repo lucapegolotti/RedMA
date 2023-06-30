@@ -158,6 +158,18 @@ generate()
             rhsVector->block(0)->dump(outdir + "/RHS_out" + std::to_string(face.M_flag));
         }
 
+        // flow rate vectors at I/O
+        shp<VECTOREPETRA> flowRateVector;
+        flowRateVector.reset(new VECTOREPETRA(*(spcast<StokesAssemblerFE>(M_assembler)->getFlowRateVector(face.M_flag)),
+                                              LifeV::Unique));
+        std::string filename;
+        if (cnt < in_faces.size())
+            filename = outdir + "/q_in" + std::to_string(cnt);
+        else
+            filename = outdir + "/q_out" + std::to_string(cnt - in_faces.size());
+
+        flowRateVector->spy(filename);
+
         // boundary matrices, if the membrane model is selected
         if (!(std::strcmp(assemblerType.c_str(), "navierstokes_membrane")))
         {

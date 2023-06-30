@@ -132,6 +132,13 @@ public:
      */
     virtual shp<aVector> getZeroVector() const override;
 
+    /*! \brief Virtual getter for flow rate vectors.
+     *
+     * \param flag Flag of the inlet/outlet whose flow rate vector is returned
+     * \return Shared pointer to aVector of the flow rate vector
+     */
+    virtual inline shp<VECTOREPETRA> getFlowRateVector(const unsigned int& flag) const override {return M_flowRateVectors.at(flag);};
+
     /*! \brief Virtual getter for the lifting.
      *
      * \param time Current time.
