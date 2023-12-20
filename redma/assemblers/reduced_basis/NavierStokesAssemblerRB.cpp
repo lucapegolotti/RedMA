@@ -58,13 +58,17 @@ RBsetup()
         M_nonLinearMatrixDecomposition.resize(nterms);
 
         std::string dir_mat = "NLterm/" + nameMesh + "/Matrix/Block" + std::to_string(ID());
-        fs::create_directories(dir_mat);
         std::string dir_vec = "NLterm/" + nameMesh + "/Vector/Block" + std::to_string(ID());
-        fs::create_directories(dir_vec);
         std::string dir_mat2 = "NLterm/" + nameMesh + "/Matrix_PG/Block" + std::to_string(ID());
-        fs::create_directories(dir_mat2);
         std::string dir_vec2 = "NLterm/" + nameMesh + "/Vector_PG/Block" + std::to_string(ID());
-        fs::create_directories(dir_vec2);
+
+        fs::create_directories(dir_mat);
+        fs::create_directories(dir_vec);
+        if (M_data("rb/online/addPGdata",1))
+        {
+            fs::create_directories(dir_mat2);
+            fs::create_directories(dir_vec2);
+        }
 
         double density = M_FEAssembler->getDensity();
         shp<ETFESPACE3 > velocityFESpaceETA = M_FEAssembler->getVelocityETFEspace();
@@ -92,18 +96,21 @@ RBsetup()
             nonLinearJacobianVec->setBlock(0,0,wrap(nonLinearJacobian));
             this->M_FEAssembler->applyDirichletBCsMatrix(nonLinearJacobianVec, 0.0);
 
-            // TODO: I changed here!
-            auto jac00 = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID());
-            // auto jac00 = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID(), velocityNorm);
-            auto jac00_2 = M_bases->rightProject(spcast<SparseMatrix>(nonLinearJacobianVec->block(0,0)), 0, ID());
+            auto conv_jac_mat = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID());
+            // auto conv_jac_mat = M_bases->matrixProject(nonLinearJacobianVec->block(0,0), 0, 0, ID(), velocityNorm)
 
             M_nonLinearMatrixDecomposition[i].reset(new BlockMatrix(2,2));
-            M_nonLinearMatrixDecomposition[i]->setBlock(0,0,jac00);
+            M_nonLinearMatrixDecomposition[i]->setBlock(0,0,conv_jac_mat);
 
             std::string filename_mat = dir_mat + "/Mat_" + std::to_string(i) + ".m";
-            jac00->dump(filename_mat);
-            std::string filename_mat2 = dir_mat2 + "/Mat_" + std::to_string(i) + ".m";
-            jac00_2->dump(filename_mat2);
+            conv_jac_mat->dump(filename_mat);
+
+            if (M_data("rb/online/addPGdata",1))
+            {
+                auto conv_jac_mat_2 = M_bases->rightProject(spcast<SparseMatrix>(nonLinearJacobianVec->block(0,0)), 0, ID());
+                std::string filename_mat2 = dir_mat2 + "/Mat_" + std::to_string(i) + ".m";
+                conv_jac_mat_2->dump(filename_mat2);
+            }
 
             nonLinearMatrix->zero();
             integrate(elements(velocityFESpaceETA->mesh()),
@@ -123,16 +130,19 @@ RBsetup()
                 shp<BlockVector> nonLinearTermVec(new BlockVector(2));
                 nonLinearTermVec->setBlock(0, wrap(nonLinearTerm));
                 this->M_FEAssembler->apply0DirichletBCs(nonLinearTermVec);
+                auto conv_vec = M_bases->leftProject(nonLinearTermVec->block(0), 0,  ID());
+                // auto conv_vec = M_bases->leftProject(nonLinearTermVec->block(0), 0, ID(), velocityNorm);
 
-                // TODO: I changed here!
                 M_nonLinearTermsDecomposition[i][j].reset(new BlockVector(2));
-                M_nonLinearTermsDecomposition[i][j]->setBlock(0, M_bases->leftProject(nonLinearTermVec->block(0), 0,  ID()));
-                // M_nonLinearTermsDecomposition[i][j]->setBlock(0, M_bases->leftProject(nonLinearTermVec->block(0), 0, ID(), velocityNorm));
+                M_nonLinearTermsDecomposition[i][j]->setBlock(0, conv_vec);
 
                 std::string filename_vec = dir_vec + "/Vec_" + std::to_string(i) + "_" + std::to_string(j) + ".m";
                 M_nonLinearTermsDecomposition[i][j]->block(0)->dump(filename_vec);
+                if (M_data("rb/online/addPGdata",1))
+                {
                 std::string filename_vec2 = dir_vec2 + "/Vec_" + std::to_string(i) + "_" + std::to_string(j) + ".m";
                 nonLinearTermVec->block(0)->dump(filename_vec2);
+                }
             }
         }
 
