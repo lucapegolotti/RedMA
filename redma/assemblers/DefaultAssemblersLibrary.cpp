@@ -86,7 +86,7 @@ shp<TreeNode>
 DefaultAssemblersLibrary::
 generateDefaultBypass(const std::string &nameMesh)
 {
-    shp<Bypass> defaultBypass(new Bypass(M_comm, "bypass", false));
+    shp<Bypass> defaultBypass(new Bypass(M_comm, "coarse", false));
 
     defaultBypass->readMesh();
 

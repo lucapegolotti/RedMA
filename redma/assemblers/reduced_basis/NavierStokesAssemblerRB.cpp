@@ -61,9 +61,9 @@ RBsetup()
         fs::create_directories(dir_mat);
         std::string dir_vec = "NLterm/" + nameMesh + "/Vector/Block" + std::to_string(ID());
         fs::create_directories(dir_vec);
-        std::string dir_mat2 = "NLterm/" + nameMesh + "/Matrix2/Block" + std::to_string(ID());
+        std::string dir_mat2 = "NLterm/" + nameMesh + "/Matrix_PG/Block" + std::to_string(ID());
         fs::create_directories(dir_mat2);
-        std::string dir_vec2 = "NLterm/" + nameMesh + "/Vector2/Block" + std::to_string(ID());
+        std::string dir_vec2 = "NLterm/" + nameMesh + "/Vector_PG/Block" + std::to_string(ID());
         fs::create_directories(dir_vec2);
 
         double density = M_FEAssembler->getDensity();

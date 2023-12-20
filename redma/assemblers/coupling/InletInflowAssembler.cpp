@@ -62,8 +62,7 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
 
     temp = this->M_childBfe->multiplyByVector(assemblerChild->getLifting(time));
     temp->multiplyByScalar(1.0/M_data.getInletBC(inletFlag)(time));
-    // TODO: move this to matrices generator for RB code
-    temp->block(0)->dump("RHS_in_" + std::to_string(inletID));
+    // temp->block(0)->dump("RHS_in_" + std::to_string(inletID));
     temp->multiplyByScalar(M_data.getInletBC(inletFlag)(time));
 
     if (assemblerChild->getRBBases())

@@ -4,12 +4,17 @@ namespace RedMA
 {
 
 Bypass::
-Bypass(EPETRACOMM comm, std::string name, bool verbose) :
-  BuildingBlock(comm, "coarse", verbose)
+Bypass(EPETRACOMM comm, std::string refinement, bool verbose) :
+  BuildingBlock(comm, refinement, verbose)
 {
-    M_name = name;
+    M_name = "bypass";
     M_datafileName = "data_mesh";
-    M_meshName = "others/bypass_coarse_fluid.mesh";
+    if (!std::strcmp(refinement.c_str(), "coarse"))
+        M_meshName = "others/bypass_coarse_fluid.mesh";
+    else if (!std::strcmp(refinement.c_str(), "fine"))
+        M_meshName = "others/bypass_fluid_BL.mesh";
+    else
+        throw new Exception("Undefined refinement: " + refinement);
 
     // center of inlet1 (reference configuration)
     M_inletCenterRef1[0] = -7.06006787;

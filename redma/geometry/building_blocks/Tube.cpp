@@ -92,7 +92,7 @@ getStringMesh(std::string refinement)
     if (!std::strcmp(refinement.c_str(),"coarse"))
         return "h0.35";
     if (!std::strcmp(refinement.c_str(),"normal"))
-        return "h0.25";
+        return "h0.15";
     if (!std::strcmp(refinement.c_str(),"fine"))
         return "h0.10";
     return "h0.25";

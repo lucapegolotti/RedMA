@@ -154,7 +154,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
                   " building block of type bypass\n";
         printlog(GREEN, msg, M_verbose);
 
-        returnBlock.reset(new Bypass(M_comm, "bypass", M_verbose));
+        returnBlock.reset(new Bypass(M_comm, ref, M_verbose));
 
     }
     else

@@ -34,7 +34,7 @@ public:
      * \param verbose If true, output is pushed to standard output.
      */
     Bypass(EPETRACOMM comm,
-          std::string name = "bypass",
+          std::string refinement = "coarse",
           bool verbose = false);
 
     /*! \brief Return the expected number of children.

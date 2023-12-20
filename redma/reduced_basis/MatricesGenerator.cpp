@@ -272,9 +272,11 @@ shp<TreeNode>
 MatricesGenerator::
 generateDefaultBypass(const std::string &nameMesh)
 {
+    std::string refinement = "coarse";
+
     std::string assemblerType = M_data("assembler/type", "navierstokes");
 
-    shp<Bypass> defaultBypass(new Bypass(M_comm));
+    shp<Bypass> defaultBypass(new Bypass(M_comm, refinement));
     defaultBypass->readMesh();
 
     defaultBypass->setDatafile(M_data);

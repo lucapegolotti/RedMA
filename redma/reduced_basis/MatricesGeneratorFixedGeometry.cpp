@@ -167,7 +167,6 @@ generate()
             filename = outdir + "/q_in" + std::to_string(cnt);
         else
             filename = outdir + "/q_out" + std::to_string(cnt - in_faces.size());
-
         flowRateVector->spy(filename);
 
         // boundary matrices, if the membrane model is selected
