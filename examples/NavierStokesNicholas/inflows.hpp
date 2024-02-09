@@ -31,4 +31,16 @@ double inflow_systolic(const double t, const std::vector<double> params, const d
 
 double inflow_heartbeat(const double t, const std::vector<double> params, const double Tramp);
 
+double inflow_bypass(const double t, const std::vector<double> params, const double Tramp);
+
+struct BSpline {
+    std::vector<double> knots;
+    std::vector<double> controlPoints;
+    unsigned int degree;
+};
+
+double splineBasisFunction(unsigned int i, unsigned int p, const std::vector<double>& knots, double t);
+
+double evaluateBSpline(const BSpline& spline, double t);
+
 #endif //INFLOWS_HPP

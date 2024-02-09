@@ -152,7 +152,6 @@ exportFromFiles(const std::string &inPath)
         unsigned int nFields = solutions[0][0]->nRows();
 
         M_solution.reset(new BlockVector(nBlocks));
-        // M_solution = spcast<BlockVector>(M_assembler->getZeroVector());
 
         for (unsigned int innerCount=0; innerCount<nBlocks; ++innerCount)
         {
