@@ -56,6 +56,7 @@ solve()
     double t0 = M_data("time_discretization/t0", 0.0);
     double t0ramp = M_data("time_discretization/t0ramp", 0.0);
     double T = M_data("time_discretization/T", 1.0);
+    int N_periods = M_data("time_discretization/N_periods", 1);
     double dt = M_data("time_discretization/dt", 0.01);
     int saveEvery = M_data("exporter/save_every", 1);
     int saveRamp = M_data("exporter/save_ramp", 1);
@@ -68,7 +69,7 @@ solve()
         t = t0;
 
     unsigned int count = 1;
-    while (T - t > dt/2)
+    while (T * N_periods - t > dt/2)
     {
         if (t < t0)
         {

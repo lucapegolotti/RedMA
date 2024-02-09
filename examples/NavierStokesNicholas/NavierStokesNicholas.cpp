@@ -67,11 +67,11 @@ int main(int argc, char **argv)
     else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "periodic"))
         sampler.setInflow([T, Tramp](const double t, const std::vector<double> params){return inflow_periodic(t, params, T, Tramp);});
     else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "systolic"))
-        sampler.setInflow([Tramp](const double t, const std::vector<double> params){return inflow_systolic(t, params, Tramp);});
+        sampler.setInflow([T, Tramp](const double t, const std::vector<double> params){return inflow_systolic(t, params, T, Tramp);});
     else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "heartbeat"))
-        sampler.setInflow([Tramp](const double t, const std::vector<double> params){return inflow_heartbeat(t, params, Tramp);});
+        sampler.setInflow([T, Tramp](const double t, const std::vector<double> params){return inflow_heartbeat(t, params, T, Tramp);});
     else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "bypass"))
-        sampler.setInflow([Tramp](const double t, const std::vector<double> params){return inflow_bypass(t, params, Tramp);});
+        sampler.setInflow([T](const double t, const std::vector<double> params){return inflow_bypass(t, params, T);});
     else
         throw new Exception("Unrecognized type of inflow parametrization! "
                             "Available types: {default, periodic, systolic, heartbeat}.");

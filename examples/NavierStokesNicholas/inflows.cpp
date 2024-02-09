@@ -15,11 +15,11 @@ double inflow_periodic(const double t, const std::vector<double> params, const d
     if (t<0)
         return 5.0 * (1 - cos((t+Tramp) * M_PI / Tramp));
     else
-        return 10.0 + std::abs(params[1]*sin(2*M_PI*params[0]*t/T));
+        return 10.0 + std::abs(params[1]*sin(2*M_PI*params[0]*fmod(t, T)/T));
 }
 
 
-double inflow_systolic(const double t, const std::vector<double> params, const double Tramp)
+double inflow_systolic(const double t, const std::vector<double> params, const double T, const double Tramp)
 {
     if (Tramp < 1e-8)
         throw new Exception("Ramp time must be strictly positive!");
@@ -31,6 +31,8 @@ double inflow_systolic(const double t, const std::vector<double> params, const d
     double Ts_ref = 0.3075;
     double Tm_ref = 0.375;
     double Vm_ref = 0.626;
+
+    assert (T == Tm_ref);
 
     double V0 = V0_ref * (1.0 + params[1]);    // initial flow
     double TM = TM_ref * (1.0 + params[0]);    // time of systolic peak
@@ -63,11 +65,11 @@ double inflow_systolic(const double t, const std::vector<double> params, const d
     if (t<0)
         return (V0/2) * (1 - cos((t+Tramp) * M_PI / Tramp));
     else
-        return systolic_flow(t);
+        return systolic_flow(fmod(t, T));
 }
 
 
-double inflow_heartbeat(const double t, const std::vector<double> params, const double Tramp)
+double inflow_heartbeat(const double t, const std::vector<double> params, const double T, const double Tramp)
 {
     if (Tramp < 1e-8)
         throw new Exception("Ramp time must be strictly positive!");
@@ -83,6 +85,8 @@ double inflow_heartbeat(const double t, const std::vector<double> params, const 
     double VMd_ref = 2.092;
     double Tf_ref = 0.75;
     double Vf_ref = 1.527;
+
+    assert (T == Tf_ref);
 
     double V0 = V0_ref * (1.0 + params[1]);    // initial flow
     double TM = TM_ref * (1.0 + params[0]);    // time of systolic peak
@@ -145,13 +149,15 @@ double inflow_heartbeat(const double t, const std::vector<double> params, const 
     if (t<0)
         return (V0/2) * (1 - cos((t+Tramp) * M_PI / Tramp));
     else if (t<Td)
-        return systolic_flow(t);
+        return systolic_flow(fmod(t, T));
     else
-        return diastolic_flow(t);
+        return diastolic_flow(fmod(t, T));
 }
 
-double inflow_bypass(const double t, const std::vector<double> params, const double Tramp)
+double inflow_bypass(const double t, const std::vector<double> params, const double T)
 {
+    assert (T == 0.80);
+
     BSpline spline;
     spline.knots = {0.000000,  0.000000,  0.000000,  0.000000,  0.013009,  0.019696,
                     0.026383,  0.033678,  0.040365,  0.043404,  0.048875,  0.053131,
@@ -198,7 +204,7 @@ double inflow_bypass(const double t, const std::vector<double> params, const dou
 
     spline.degree = 3;
 
-    return evaluateBSpline(spline, t);
+    return evaluateBSpline(spline, fmod(t, T));
 
 }
 

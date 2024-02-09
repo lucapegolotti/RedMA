@@ -21,17 +21,18 @@
 #include <redma/solver/system_solver/FunctionFunctor.hpp>
 
 #include <cmath>
+#include <math.h>
 #include<Eigen/Dense>
 
 double inflow(const double t, const std::vector<double> params, const double T);
 
 double inflow_periodic(const double t, const std::vector<double> params, const double T, const double Tramp);
 
-double inflow_systolic(const double t, const std::vector<double> params, const double Tramp);
+double inflow_systolic(const double t, const std::vector<double> params, const double T, const double Tramp);
 
-double inflow_heartbeat(const double t, const std::vector<double> params, const double Tramp);
+double inflow_heartbeat(const double t, const std::vector<double> params, const double T, const double Tramp);
 
-double inflow_bypass(const double t, const std::vector<double> params, const double Tramp);
+double inflow_bypass(const double t, const std::vector<double> params, const double T);
 
 struct BSpline {
     std::vector<double> knots;
