@@ -2,24 +2,27 @@
 
 using namespace RedMA;
 
-double inflow(const double t, const std::vector<double> params, const double T)
+double inflow(const double t, const std::vector<double> params, const double T,
+              const double scale)
 {
-    return (1-cos(2*M_PI*t/T) + params[1]*sin(2*M_PI*params[0]*t/T));
+    return scale * (1-cos(2*M_PI*t/T) + params[1]*sin(2*M_PI*params[0]*t/T));
 }
 
-double inflow_periodic(const double t, const std::vector<double> params, const double T, const double Tramp)
+double inflow_periodic(const double t, const std::vector<double> params, const double T, const double Tramp,
+                       const double scale)
 {
     if (Tramp < 1e-8)
         throw new Exception("Ramp time must be strictly positive!");
 
     if (t<0)
-        return 5.0 * (1 - cos((t+Tramp) * M_PI / Tramp));
+        return scale * 5.0 * (1 - cos((t+Tramp) * M_PI / Tramp));
     else
-        return 10.0 + std::abs(params[1]*sin(2*M_PI*params[0]*fmod(t, T)/T));
+        return scale * 10.0 + std::abs(params[1]*sin(2*M_PI*params[0]*fmod(t, T)/T));
 }
 
 
-double inflow_systolic(const double t, const std::vector<double> params, const double T, const double Tramp)
+double inflow_systolic(const double t, const std::vector<double> params, const double T, const double Tramp,
+                       const double scale)
 {
     if (Tramp < 1e-8)
         throw new Exception("Ramp time must be strictly positive!");
@@ -63,13 +66,14 @@ double inflow_systolic(const double t, const std::vector<double> params, const d
             });
 
     if (t<0)
-        return (V0/2) * (1 - cos((t+Tramp) * M_PI / Tramp));
+        return scale * (V0/2) * (1 - cos((t+Tramp) * M_PI / Tramp));
     else
-        return systolic_flow(fmod(t, T));
+        return scale * systolic_flow(fmod(t, T));
 }
 
 
-double inflow_heartbeat(const double t, const std::vector<double> params, const double T, const double Tramp)
+double inflow_heartbeat(const double t, const std::vector<double> params, const double T, const double Tramp,
+                        const double scale)
 {
     if (Tramp < 1e-8)
         throw new Exception("Ramp time must be strictly positive!");
@@ -147,14 +151,14 @@ double inflow_heartbeat(const double t, const std::vector<double> params, const 
             });
 
     if (t<0)
-        return (V0/2) * (1 - cos((t+Tramp) * M_PI / Tramp));
+        return scale * (V0/2) * (1 - cos((t+Tramp) * M_PI / Tramp));
     else if (t<Td)
-        return systolic_flow(fmod(t, T));
+        return scale * systolic_flow(fmod(t, T));
     else
-        return diastolic_flow(fmod(t, T));
+        return scale * diastolic_flow(fmod(t, T));
 }
 
-double inflow_bypass(const double t, const std::vector<double> params, const double T)
+double inflow_bypass(const double t, const std::vector<double> params, const double T, const double scale)
 {
     assert (T == 0.80);
 
@@ -199,7 +203,7 @@ double inflow_bypass(const double t, const std::vector<double> params, const dou
                             0.547469,  0.661133,  0.604920,  0.617585,  0.628546,  0.546654,
                             0.432488,  0.558382,  0.369634,  0.407125,  0.174742,  0.000000};
     std::transform(spline.controlPoints.begin(), spline.controlPoints.end(), spline.controlPoints.begin(),
-                   [](auto& c){return -1.0 * c;});
+                   [scale](auto& c){return -scale * c;});
 
 
     spline.degree = 3;

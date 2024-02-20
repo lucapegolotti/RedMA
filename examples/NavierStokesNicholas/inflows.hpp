@@ -24,15 +24,20 @@
 #include <math.h>
 #include<Eigen/Dense>
 
-double inflow(const double t, const std::vector<double> params, const double T);
+double inflow(const double t, const std::vector<double> params, const double T,
+              const double scale = 1.0);
 
-double inflow_periodic(const double t, const std::vector<double> params, const double T, const double Tramp);
+double inflow_periodic(const double t, const std::vector<double> params, const double T, const double Tramp,
+                       const double scale = 1.0);
 
-double inflow_systolic(const double t, const std::vector<double> params, const double T, const double Tramp);
+double inflow_systolic(const double t, const std::vector<double> params, const double T, const double Tramp,
+                       const double scale = 1.0);
 
-double inflow_heartbeat(const double t, const std::vector<double> params, const double T, const double Tramp);
+double inflow_heartbeat(const double t, const std::vector<double> params, const double T, const double Tramp,
+                        const double scale = 1.0);
 
-double inflow_bypass(const double t, const std::vector<double> params, const double T);
+double inflow_bypass(const double t, const std::vector<double> params, const double T,
+                     const double scale = 1.0);
 
 struct BSpline {
     std::vector<double> knots;

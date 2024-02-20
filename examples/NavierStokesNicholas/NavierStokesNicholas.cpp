@@ -57,24 +57,30 @@ int main(int argc, char **argv)
 
     double T = data("time_discretization/T", 1.0);
     double Tramp = - data("time_discretization/t0ramp", 0.05);
+    double scale = - data("bc_conditions/flow_scale", 1.0);
 
     /*if (std::strcmp(data("rb/offline/snapshots/param_type", "inflow").c_str(), "inflow"))
         throw new Exception("This test case handles only 'inflow' parametrization!");*/
 
     SnapshotsSampler sampler(data, comm);
     if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "default"))
-        sampler.setInflow([T](const double t, const std::vector<double> params){return inflow(t, params, T);});
+        sampler.setInflow([T, scale](const double t, const std::vector<double> params){
+            return inflow(t, params, T, scale);});
     else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "periodic"))
-        sampler.setInflow([T, Tramp](const double t, const std::vector<double> params){return inflow_periodic(t, params, T, Tramp);});
+        sampler.setInflow([T, Tramp, scale](const double t, const std::vector<double> params){
+            return inflow_periodic(t, params, T, Tramp, scale);});
     else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "systolic"))
-        sampler.setInflow([T, Tramp](const double t, const std::vector<double> params){return inflow_systolic(t, params, T, Tramp);});
+        sampler.setInflow([T, Tramp, scale](const double t, const std::vector<double> params){
+            return inflow_systolic(t, params, T, Tramp, scale);});
     else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "heartbeat"))
-        sampler.setInflow([T, Tramp](const double t, const std::vector<double> params){return inflow_heartbeat(t, params, T, Tramp);});
+        sampler.setInflow([T, Tramp, scale](const double t, const std::vector<double> params){
+            return inflow_heartbeat(t, params, T, Tramp, scale);});
     else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "bypass"))
-        sampler.setInflow([T](const double t, const std::vector<double> params){return inflow_bypass(t, params, T);});
+        sampler.setInflow([T, scale](const double t, const std::vector<double> params){
+            return inflow_bypass(t, params, T, scale);});
     else
         throw new Exception("Unrecognized type of inflow parametrization! "
-                            "Available types: {default, periodic, systolic, heartbeat}.");
+                            "Available types: {'default', 'periodic', 'systolic', 'heartbeat', 'bypass'}.");
 
     sampler.takeSnapshots(Nstart);
 
