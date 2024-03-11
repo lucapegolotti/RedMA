@@ -203,7 +203,7 @@ double inflow_bypass(const double t, const std::vector<double> params, const dou
                             0.547469,  0.661133,  0.604920,  0.617585,  0.628546,  0.546654,
                             0.432488,  0.558382,  0.369634,  0.407125,  0.174742,  0.000000};
     std::transform(spline.controlPoints.begin(), spline.controlPoints.end(), spline.controlPoints.begin(),
-                   [scale](auto& c){return -scale * c;});
+                   [scale](auto& c){return scale * c;});
 
 
     spline.degree = 3;
