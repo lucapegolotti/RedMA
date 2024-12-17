@@ -109,6 +109,16 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;
 
+    // TODO: this is new !!
+    /*! \brief Getter for the resistance matrix
+    *
+    * \param time Current time.
+    * \param sol Current solution.
+    * \return Shared pointer to BlockMatrix containing the global resistance matrix.
+    */
+    virtual shp<aMatrix> getResistance(const double& time,
+                                       const shp<aVector>& sol) override;
+
     /*! \brief Getter for the pressure mass matrix.
     *
     * The getMass method is called in all the subdomains and each output is

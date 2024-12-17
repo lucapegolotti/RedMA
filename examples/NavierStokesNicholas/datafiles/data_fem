@@ -11,7 +11,7 @@ outputdir = rb_solutions
 [../]
 
 [assembler]
-	type = navierstokes
+	type = stokes
 	[./stabilization]
         type = none  # to choose in {none, supg, ip}
         gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
@@ -21,6 +21,7 @@ outputdir = rb_solutions
 [bc_conditions]
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
+	flow_scale = 1.0
 
     numinletbcs = 1
     [./inlet0]
@@ -30,6 +31,14 @@ outputdir = rb_solutions
     [../]
 
 	numoutletbcs = 0
+	[./outlet0]
+	    blockindex = 0
+	    type = windkessel
+	    C = 0
+	    Rp = 10
+	    Rd = 0
+        boundaryflag = 2
+    [../]
 
 	ring_constraint = full  # type of homogeneous BC imposed at I/O rings ("full", "normal")
 [../]
@@ -37,22 +46,23 @@ outputdir = rb_solutions
 [rb]
 	[./offline]
 		[./snapshots]
+		    directory            = snapshots
 		    param_type           = inflow,physics
 		    inflow_type          = default
 		    sample_fluid_physics = false
-		    sample_structure_physics = true
+		    sample_structure_physics = false
 		    sample_cloth_physics = false
-			number 			     = 10
+			number 			     = 1
 			bound 			     = 0.2
 			take_every 		     = 1
 			dumpbinary 		     = true
 			computereynolds      = true
 			seed 			     = 1234
 			# parameter ranges of inflow default and periodic
-            c_min = 0.1  # 2.0
-            c_max = 0.3  # 8.0
-            a_min = 4.0  # 1.0
-            a_max = 8.0  # 3.0
+            c_min = 0.0  # 0.1
+            c_max = 0.0  # 0.3
+            a_min = 0.0  # 4.0
+            a_max = 0.0  # 8.0
             # parameter ranges of inflow systolic and heartbeat
             Dt_min  = -0.4
             Dt_max  = +0.4
@@ -70,14 +80,14 @@ outputdir = rb_solutions
             mu_f_min = -0.1
             mu_f_max = +0.5
             # parameter ranges of structure physics
-            # rho_s_min = 0.0
-            # rho_s_max = 0.0  # +0.2
+            # rho_s_min = 0.0  # -0.1
+            # rho_s_max = 0.0  # +0.5
             # h_s_min = 0.0  # -0.5
             # h_s_max = 0.0  # +0.5
-            # E_min = 0.0  # -0.3
-            # E_max = 0.0  # +0.3
+            # E_min = 0.0  # -0.5
+            # E_max = 0.0  # +0.5
             # nu_min = 0.0  # -0.3
-            # nu_max = 0.0
+            # nu_max = 0.0  # 0.0
             # parameter ranges of cloth physics
             Rcloth_min = 1.0
             Rcloth_max = 3.0
@@ -115,11 +125,11 @@ outputdir = rb_solutions
 [newton_method]
 	tol = 1e-5
 	maxit = 10
-        relaxation = 1.0
+    relaxation = 1.0
 [../]
 
 [fluid]
-	velocity_order = P2
+	velocity_order = P1Bubble
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1.06
@@ -167,8 +177,9 @@ outputdir = rb_solutions
 	order = 2
 	t0ramp = 0.0
 	t0 = 0
-	T = 0.2
-	dt = 0.005
+	T = 0.8
+	N_periods = 1
+	dt = 0.05
 	use_extrapolation = 0
 	solverstatistics = solverstatistics.txt
 [../]
@@ -183,8 +194,8 @@ outputdir = rb_solutions
 [../]
 
 [importer]
-    indir = ../../../../../PDE-DNN/TESTS/RB/Unsteady/Stokes/ResultsPaper/ResultsTube1x2/SRB-TFO/pod_tolerance_1e-05_1e-05/results/
-    param_nb = 80
+    indir = ../../../../../PDE-DNN/TESTS/RB/Unsteady/Stokes/tube_1x2_h0.20/default+cloth/SRB-TFO/Test1/results/
+    param_nb = 51
     isFEM = true
 [../]
 
@@ -193,9 +204,9 @@ outputdir = rb_solutions
 	nMax                = 5
 	stab_coefficient	= 1e-16
 	check_stabterm		= false
-	nfcts_weak_dirichlet_in = 5
+	nfcts_weak_dirichlet_in = 0
 	nfcts_weak_dirichlet_out = 0
-	frequencies_theta_ring = 5
+	frequencies_theta_ring = 0
     frequencies_theta_ring_weak_dirichlet_in = -1
     frequencies_theta_ring_weak_dirichlet_out = -1
     strong_ring = false

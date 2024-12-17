@@ -29,9 +29,9 @@ using namespace RedMA;
 int main(int argc, char **argv)
 {
 
-    std::mt19937_64 eng{std::random_device{}()};
+    /*std::mt19937_64 eng{std::random_device{}()};
     std::uniform_int_distribution<> dist{1, 20};
-    std::this_thread::sleep_for(std::chrono::seconds{dist(eng)});
+    std::this_thread::sleep_for(std::chrono::seconds{dist(eng)});*/
 
     Chrono chrono;
     chrono.start();

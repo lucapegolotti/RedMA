@@ -34,7 +34,7 @@ public:
     virtual shp<aVector> getZeroVector() const override;
 
     virtual shp<aMatrix> getMass(const double& time,
-                                const shp<aVector>& sol) override;
+                                 const shp<aVector>& sol) override;
 
     virtual shp<aMatrix> getMassJacobian(const double& time,
                                         const shp<aVector>& sol) override;

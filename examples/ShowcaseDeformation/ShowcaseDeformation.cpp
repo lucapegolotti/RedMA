@@ -24,6 +24,7 @@
 
 #include <redma/geometry/building_blocks/Tube.hpp>
 #include <redma/geometry/building_blocks/BifurcationSymmetric.hpp>
+#include <redma/geometry/building_blocks/Bypass.hpp>
 
 using namespace RedMA;
 
@@ -36,26 +37,28 @@ int main(int argc, char **argv)
     shp<Epetra_Comm> comm(new Epetra_SerialComm ());
     #endif
 
-    Tube tb(comm, "coarse", true, 1, 3);
-    // BifurcationSymmetric tb(comm, "fine", true, 90);
+    //Tube tb(comm, "fine", true, 1, 4);
+    BifurcationSymmetric tb(comm, "fine", true, 50);
+    // Bypass tb(comm, "fine", true);
 
     // M_parametersHandler.registerParameter("bend", 0.0, 0, M_PI/2, randomizible, false);
     // M_parametersHandler.registerParameter("L_ratio", 1.0, 0.7, 1.3, randomizible);
     // M_parametersHandler.registerParameter("Rout_ratio", 1.0, 0.6, 1.4, randomizible);
 
     tb.readMesh();
-    tb.setParameterValue("Rout_ratio", 0.6);
-    tb.setParameterValue("L_ratio", 1.3);
-    tb.setParameterValue("bend", 1.5);
-    tb.setParameterValue("alpha", 3.0);
-    tb.setParameterValue("alpha_axis", 0.0);
-    tb.setParameterValue("rotation_axis_x", 1.0);
-    tb.setParameterValue("rotation_axis_y", 0.0);
-    tb.setParameterValue("rotation_axis_z", 0.0);
-    tb.setParameterValue("scale", 2.0);
-    tb.applyGlobalTransformation();
-    tb.dumpMesh("output/", "../../../meshes/", "my_tube");
 
+    //tb.setParameterValue("Rout_ratio", 0.6);
+    //tb.setParameterValue("L_ratio", 1.3);
+    //tb.setParameterValue("bend", 1.5);
+    //tb.setParameterValue("alpha", 3.0);
+    //tb.setParameterValue("alpha_axis", 0.0);
+    //tb.setParameterValue("rotation_axis_x", 1.0);
+    //tb.setParameterValue("rotation_axis_y", 0.0);
+    //tb.setParameterValue("rotation_axis_z", 0.0);
+    //tb.setParameterValue("scale", 1.4324166082620979);
+    tb.applyGlobalTransformation();
+
+    tb.dumpMesh("output/", "../../../meshes/", "my_bif_sym");
 
     return 0;
 }

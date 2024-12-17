@@ -23,7 +23,7 @@ WindkesselModel(const DataContainer& data, const std::string& dataEntry,
     }
     else
         printlog(GREEN, "[WindkesselModel] The Windkessel model reduces to a Resistance  "
-                        "one as the capacitance and the distal resistance have been set to 0.");
+                        "model, since the capacitance and the distal resistance have been set to 0.");
 }
 
 double

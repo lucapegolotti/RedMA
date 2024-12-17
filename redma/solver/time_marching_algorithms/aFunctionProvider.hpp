@@ -57,6 +57,16 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) = 0;
 
+    // TODO: this is new !!
+    /*! \brief Virtual getter for resistance matrix.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     * \return Shared pointer to aMatrix of the mass matrix.
+     */
+    virtual shp<aMatrix> getResistance(const double& time,
+                                       const shp<aVector>& sol) {return spcast<aMatrix>(shp<SparseMatrix>());}
+
     /*! \brief Getter for the pressure mass matrix.
      *
      * \param time The current time.

@@ -90,6 +90,16 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;
 
+    // TODO: this is new !!
+    /*! \brief Virtual getter for resistance matrix.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     * \return Shared pointer to aMatrix of the resistance matrix.
+     */
+    virtual shp<aMatrix> getResistance(const double& time,
+                                       const shp<aVector>& sol) override;
+
     /*! \brief Virtual getter for pressure mass matrix.
      *
      * \param time Current time.
@@ -517,6 +527,11 @@ public:
      */
     inline double getViscosity() {return M_viscosity;}
 
+
+    // TODO: this is new !!
+    shp<aMatrix> assembleResistance();
+    shp<aMatrix> assembleGlobalAdditionalOutletMatrix();
+
 protected:
     shp<BlockVector> buildZeroVector() const;
 
@@ -553,6 +568,10 @@ protected:
     shp<VECTOREPETRA>                                 M_zs;
 
     bool                                              M_addNoSlipBC;
+
+    // TODO: this is new !!
+    shp<BlockMatrix>                                  M_resistance;
+    shp<BlockMatrix>                                  M_additionalOutlet;
 };
 
 }

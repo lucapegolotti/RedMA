@@ -41,7 +41,11 @@ setup()
 
     assembleFlowRateVectors();
     assembleFlowRateJacobians();
-    // assembleAdditionalOutletMatrices();
+    assembleAdditionalOutletMatrices();
+
+    // TODO: this is new !
+    M_resistance = spcast<BlockMatrix>(assembleResistance());
+    M_additionalOutlet = spcast<BlockMatrix>(assembleGlobalAdditionalOutletMatrix());
 
     setExporter();
 
@@ -172,6 +176,14 @@ getMass(const double& time,
 
 shp<aMatrix>
 StokesAssemblerFE::
+getResistance(const double& time,
+              const shp<aVector>& sol)
+{
+return M_resistance;
+}
+
+shp<aMatrix>
+StokesAssemblerFE::
 getPressureMass(const double& time,
                 const shp<aVector>& sol)
 {
@@ -199,6 +211,12 @@ getRightHandSide(const double& time,
     systemMatrix->add(M_divergence);
     if (M_data("cloth/n_cloths", 0) > 0)
         systemMatrix->add(M_clothMass);
+
+    // TODO: this is new !
+    //systemMatrix->add(M_resistance);
+    if (M_treeNode->isOutletNode())
+        systemMatrix->add(M_additionalOutlet);
+
     systemMatrix->multiplyByScalar(-1.0);
 
     shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
@@ -279,16 +297,16 @@ addNeumannBCs(double time,
         {
             if (std::find(outletFlags.begin(), outletFlags.end(), rate.first) != outletFlags.end())
             {
-                /*double P = this->M_bcManager->getOutletNeumannBC(time, rate.first, rate.second);
+                double P = this->M_bcManager->getOutletNeumannBC(time, rate.first, rate.second);
                 shp<VECTOREPETRA> flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
                 *flowRateCopy *= P;
-                *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;*/
+                *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;
 
-                double dhdQ = this->M_bcManager->getOutletNeumannJacobian(time, rate.first, rate.second);
+                /*double dhdQ = this->M_bcManager->getOutletNeumannJacobian(time, rate.first, rate.second);
                 shp<BlockMatrix> curjac(new BlockMatrix(this->M_nComponents,this->M_nComponents));
                 curjac->deepCopy(M_flowRateJacobians[rate.first]);
                 curjac->multiplyByScalar(dhdQ);
-                rhs->add(curjac->multiplyByVector(sol));
+                rhs->add(curjac->multiplyByVector(sol));*/
 
                 /*shp<aVector> additionalContrib = M_additionalOutletMatrices[rate.first]->multiplyByVector(sol);
                 additionalContrib->multiplyByScalar(-1);
@@ -311,6 +329,12 @@ getJacobianRightHandSide(const double& time,
     retMat->add(M_divergence);
     if (M_data("cloth/n_cloths", 0) > 0)
         retMat->add(M_clothMass);
+
+    // TODO: this is new !
+    // retMat->add(M_resistance);
+    if (M_treeNode->isOutletNode())
+        retMat->add(M_additionalOutlet);
+
     retMat->multiplyByScalar(-1.0);
 
     if (aAssembler::M_treeNode->isOutletNode())
@@ -844,6 +868,56 @@ assembleDivergence(shp<BCManager> bcManager)
                                      !(this->M_addNoSlipBC));
 
     return divergence;
+}
+
+// TODO: this is new !
+shp<aMatrix>
+StokesAssemblerFE::
+assembleResistance() {
+
+    if (!(M_treeNode->isOutletNode()))
+        throw new Exception("Invalid call to method on non-outlet nodes!");
+
+    const double R = 100;  // tmp common resistance value
+
+    shp<BlockMatrix> resistance(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+    auto faces = M_treeNode->M_block->getOutlets();
+
+    for (auto face : faces)
+    {
+        shp<BlockMatrix> curResistance(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+        curResistance->add(M_flowRateJacobians[face.M_flag]);
+        curResistance->multiplyByScalar(-1.0 * R);
+        // curResistance->add(M_additionalOutletMatrices[face.M_flag]);
+        applyDirichletBCsMatrix(curResistance, 0.0);
+
+        resistance->add(curResistance);
+    }
+
+    return resistance;
+}
+
+// TODO: this is new !
+shp<aMatrix>
+StokesAssemblerFE::
+assembleGlobalAdditionalOutletMatrix() {
+
+    if (!(M_treeNode->isOutletNode()))
+        throw new Exception("Invalid call to method on non-outlet nodes!");
+
+    shp<BlockMatrix> outMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+    auto faces = M_treeNode->M_block->getOutlets();
+
+    for (auto face : faces)
+    {
+        shp<BlockMatrix> curMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+        curMat->add(M_additionalOutletMatrices[face.M_flag]);
+        applyDirichletBCsMatrix(curMat, 0.0);
+
+        outMat->add(curMat);
+    }
+
+    return outMat;
 }
 
 void

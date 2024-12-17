@@ -116,10 +116,6 @@ dumpSnapshots(GlobalProblem& problem,
     unsigned int n_primal_blocks = IDmeshTypeMap.size();
     unsigned int n_dual_blocks = solutions[0]->nRows() - n_primal_blocks;
 
-    /*auto M_mass = problem.getBlockAssembler()->block(0)->assembleMatrix(0);
-    auto M_stiffness = problem.getBlockAssembler()->block(0)->assembleMatrix(1);
-    auto M_divergence = problem.getBlockAssembler()->block(0)->assembleMatrix(2);*/
-
     std::string param_type = M_data("rb/offline/snapshots/param_type", "geometric");
     std::list<std::string> param_types = M_data.stringTokenizer(param_type, ',');
     unsigned int takeEvery = M_data("rb/offline/snapshots/take_every", 5);
@@ -131,11 +127,6 @@ dumpSnapshots(GlobalProblem& problem,
     std::ios_base::openmode omode = std::ios_base::app;
     if (binary)
         omode = omode | std::ios::binary;
-
-    /*M_mass->block(0,0)->dump("M");
-    M_stiffness->block(0,0)->dump("A");
-    M_divergence->block(0,1)->dump("BdivT");
-    M_divergence->block(1,0)->dump("Bdiv");*/
 
     if (std::find(std::begin(param_types), std::end(param_types), "geometric") != std::end(param_types))
         for (auto sol : solutions)
@@ -415,7 +406,7 @@ sampleParametersInflow()
 
     std::string inflow_type = M_data("rb/offline/snapshots/inflow_type", "default");
     bool withOutflow = M_data("rb/offline/snapshots/add_outflow_param", false);
-    int numInletConditions = M_data("bc_conditions/numinletbcs", 1);
+    unsigned int numInletConditions = M_data("bc_conditions/numinletbcs", 1);
     unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
 
     std::vector<std::array<double,2>> param_bounds;

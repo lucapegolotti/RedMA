@@ -194,6 +194,10 @@ advance(const double& time, double& dt, int& status)
         BV retVec(new BlockVector(0));
         retVec->deepCopy(mass->multiplyByVector(prevContribution));
 
+        // TODO: this is new !!
+        BM resistance(this->M_funProvider->getResistance(time+dt, sol));
+        f->add(resistance->multiplyByVector(M_prevSolutions[0]));
+
         f->multiplyByScalar(-1. * M_rhsCoeff * dt);
         retVec->add(f);
         // the previous solution satisfies the boundary conditions, so we search

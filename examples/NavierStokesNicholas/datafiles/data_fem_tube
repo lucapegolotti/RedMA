@@ -37,6 +37,7 @@ outputdir = rb_solutions
 [rb]
 	[./offline]
 		[./snapshots]
+		    directory            = snapshots
 		    param_type           = inflow
 		    inflow_type          = default
 		    sample_fluid_physics = false

@@ -42,6 +42,7 @@ outputdir = rb_solutions
 [rb]
 	[./offline]
 		[./snapshots]
+		    directory            = snapshots
             param_type           = inflow
 		    inflow_type          = systolic
 		    add_outflow_param    = true

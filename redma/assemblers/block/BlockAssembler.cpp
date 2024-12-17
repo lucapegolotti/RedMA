@@ -214,6 +214,23 @@ getMass(const double& time,
 
 shp<aMatrix>
 BlockAssembler::
+getResistance(const double& time,
+              const shp<aVector>& sol)
+{
+    shp<BlockMatrix> resistance(new BlockMatrix(M_numberBlocks, M_numberBlocks));
+
+    for (auto as : M_primalAssemblers)
+    {
+        unsigned int ind = as.first;
+        if (as.second->getTreeNode()->isOutletNode())
+            resistance->setBlock(ind, ind, as.second->getResistance(time, convert<BlockVector>(sol)->block(ind)));
+    }
+
+    return resistance;
+}
+
+shp<aMatrix>
+BlockAssembler::
 getPressureMass(const double& time,
                 const shp<aVector>& sol)
 {

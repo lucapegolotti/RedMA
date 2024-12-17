@@ -86,63 +86,12 @@ public:
     virtual void postProcess(const double& t,
                              const shp<aVector>& sol) = 0;
 
-    /*! \brief Virtual getter for mass matrix.
-     *
-     * \param time Current time.
-     * \param sol Current solution.
-     * \return Shared pointer to aMatrix of the mass matrix.
-     */
-    virtual shp<aMatrix> getMass(const double& time,
-                                 const shp<aVector>& sol) = 0;
-
-    /*! \brief Virtual getter for pressure mass matrix.
-     *
-     * \param time Current time.
-     * \param sol Current solution.
-     * \return Shared pointer to aMatrix of the pressure mass matrix.
-     */
-    virtual shp<aMatrix> getPressureMass(const double& time,
-                                         const shp<aVector>& sol) = 0;
-
-    /*! \brief Virtual getter for mass matrix jacobian.
-     *
-     * \param time Current time.
-     * \param sol Current solution.
-     * \return Shared pointer to aMatrix of the mass matrix jacobian.
-     */
-    virtual shp<aMatrix> getMassJacobian(const double& time,
-                                         const shp<aVector>& sol) = 0;
-
-    /*! \brief Virtual getter for right-hand side.
-     *
-     * \param time Current time.
-     * \param sol Current solution.
-     * \return Shared pointer to aVector of the right-hand side
-     */
-    virtual shp<aVector> getRightHandSide(const double& time,
-                                          const shp<aVector>& sol) = 0;
-
-    /*! \brief Virtual getter for Jacobian of the right-hand side.
-     *
-     * \param time Current time.
-     * \param sol Current solution.
-     * \return Shared pointer to aMatrix of the right-hand side jacobian.
-     */
-    virtual shp<aMatrix> getJacobianRightHandSide(const double& time,
-                                                  const shp<aVector>& sol) = 0;
-
     /*! \brief Virtual getter for the lifting.
      *
      * \param time Current time.
      * \return Shared pointer to aVector of the lifting.
      */
     virtual shp<aVector> getLifting(const double& time) const = 0;
-
-    /*! \brief Virtual getter for the zero vector.
-     *
-     * \return Shared pointer to aVector of zeros.
-     */
-    virtual shp<aVector> getZeroVector() const = 0;
 
     /*! \brief Virtual getter for the current displacement field.
      *
@@ -228,22 +177,6 @@ public:
      */
     virtual void applyDirichletBCsMatrix(shp<aMatrix> matrix,
                                          double diagCoeff) const = 0;
-
-    /*! \brief Virtual method to apply homogeneous Dirichlet bcs to a vector.
-     *
-     * \param vector The vector to which the bcs must be applied.
-     */
-    virtual void apply0DirichletBCs(shp<aVector> vector) const = 0;
-
-    /*! \brief Virtual method to apply Dirichlet bcs to a vector.
-     *
-     * The boundary condtion is evaluated at the time provided as input.
-     *
-     * \param time Current time.
-     * \param vector The vector to which the bcs must be applied.
-     */
-    virtual void applyDirichletBCs(const double& time,
-                                   shp<aVector> vector) const = 0;
 
     /*! \brief Applies the piola transformation (or its inverse) to a vector.
      *
