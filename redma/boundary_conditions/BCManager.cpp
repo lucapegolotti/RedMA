@@ -75,11 +75,13 @@ parseOutletBCData()
             unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
             std::string BCtype = M_data(dataEntry + "/type", "windkessel");
             if (!std::strcmp(BCtype.c_str(), "windkessel"))
-                M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
+                throw new Exception("Windkessel BCs unmaintained. Aborting.");
+                // M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
             else if (!std::strcmp(BCtype.c_str(), "coronary"))
-                M_models[boundaryflag].reset(new CoronaryModel(M_data, dataEntry, outletIndex));
-            else if ((!std::strcmp(BCtype.c_str(), "neumann")) ||
-                     (!std::strcmp(BCtype.c_str(), "dirichlet")))
+                throw new Exception("Coronary BCs unmaintained. Aborting.");
+                // M_models[boundaryflag].reset(new CoronaryModel(M_data, dataEntry, outletIndex));
+            else if ((!std::strcmp(BCtype.c_str(), "neumann")) || (!std::strcmp(BCtype.c_str(), "dirichlet")) ||
+                     (!std::strcmp(BCtype.c_str(), "resistance")))
                 continue;
             else
                 throw new Exception("Unrecognized outlet BC model " + BCtype +

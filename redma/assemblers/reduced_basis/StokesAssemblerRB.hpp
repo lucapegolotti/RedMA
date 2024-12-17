@@ -110,7 +110,7 @@ public:
      * \return Shared pointer to aMatrix of the mass matrix.
      */
     virtual shp<aMatrix> getPressureMass(const double& time,
-                                         const shp<aVector>& sol) override;
+                                         const shp<aVector>& sol) const override;
 
     /*! \brief Virtual getter for mass matrix Jacobian.
      *

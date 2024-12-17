@@ -112,12 +112,9 @@ public:
     // TODO: this is new !!
     /*! \brief Getter for the resistance matrix
     *
-    * \param time Current time.
-    * \param sol Current solution.
     * \return Shared pointer to BlockMatrix containing the global resistance matrix.
     */
-    virtual shp<aMatrix> getResistance(const double& time,
-                                       const shp<aVector>& sol) override;
+    virtual shp<aMatrix> getResistance() const override;
 
     /*! \brief Getter for the pressure mass matrix.
     *
@@ -129,7 +126,7 @@ public:
     * \return Shared pointer to BlockMatrix containing the global pressure mass matrix.
     */
     virtual shp<aMatrix> getPressureMass(const double& time,
-                                         const shp<aVector>& sol) override;
+                                         const shp<aVector>& sol) const override;
 
     /*! \brief Getter for the mass matrix jacobian.
     *

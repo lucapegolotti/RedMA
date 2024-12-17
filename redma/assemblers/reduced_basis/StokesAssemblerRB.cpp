@@ -34,7 +34,7 @@ getMass(const double& time,
 shp<aMatrix>
 StokesAssemblerRB::
 getPressureMass(const double& time,
-                const shp<aVector>& sol)
+                const shp<aVector>& sol) const
 {
     return M_reducedMassPressure;
 }

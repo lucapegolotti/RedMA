@@ -60,12 +60,9 @@ public:
     // TODO: this is new !!
     /*! \brief Virtual getter for resistance matrix.
      *
-     * \param time Current time.
-     * \param sol Current solution.
      * \return Shared pointer to aMatrix of the mass matrix.
      */
-    virtual shp<aMatrix> getResistance(const double& time,
-                                       const shp<aVector>& sol) {return spcast<aMatrix>(shp<SparseMatrix>());}
+    virtual shp<aMatrix> getResistance() const {return spcast<aMatrix>(shp<SparseMatrix>());}
 
     /*! \brief Getter for the pressure mass matrix.
      *
@@ -74,7 +71,7 @@ public:
      * \return Shared pointer to the pressure mass matrix.
      */
     virtual shp<aMatrix> getPressureMass(const double& time, 
-                                         const shp<aVector>& sol) = 0;
+                                         const shp<aVector>& sol) const = 0;
 
     /*! \brief Getter for the mass matrix Jacobian.
      *

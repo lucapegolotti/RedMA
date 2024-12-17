@@ -67,7 +67,7 @@ public:
      * \return The desired matrix.
      */
     virtual shp<BlockMatrix> getMassJacobian(shp<BlockVector> sol,
-                                            shp<BlockVector> rhs) override;
+                                             shp<BlockVector> rhs) override;
 
     /*! \brief Assemble and get the Jacobian.
      *

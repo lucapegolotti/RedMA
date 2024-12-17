@@ -168,30 +168,6 @@ exportSolution(const double& t,
 
 shp<aMatrix>
 StokesAssemblerFE::
-getMass(const double& time,
-        const shp<aVector>& sol)
-{
-    return M_mass;
-}
-
-shp<aMatrix>
-StokesAssemblerFE::
-getResistance(const double& time,
-              const shp<aVector>& sol)
-{
-return M_resistance;
-}
-
-shp<aMatrix>
-StokesAssemblerFE::
-getPressureMass(const double& time,
-                const shp<aVector>& sol)
-{
-    return M_massPressure;
-}
-
-shp<aMatrix>
-StokesAssemblerFE::
 getMassJacobian(const double& time,
                 const shp<aVector>& sol)
 {
@@ -878,20 +854,29 @@ assembleResistance() {
     if (!(M_treeNode->isOutletNode()))
         throw new Exception("Invalid call to method on non-outlet nodes!");
 
-    const double R = 100;  // tmp common resistance value
-
     shp<BlockMatrix> resistance(new BlockMatrix(this->M_nComponents,this->M_nComponents));
-    auto faces = M_treeNode->M_block->getOutlets();
 
-    for (auto face : faces)
+    unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
+
+    for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
     {
-        shp<BlockMatrix> curResistance(new BlockMatrix(this->M_nComponents,this->M_nComponents));
-        curResistance->add(M_flowRateJacobians[face.M_flag]);
-        curResistance->multiplyByScalar(-1.0 * R);
-        // curResistance->add(M_additionalOutletMatrices[face.M_flag]);
-        applyDirichletBCsMatrix(curResistance, 0.0);
+        std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
 
-        resistance->add(curResistance);
+        unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
+        std::string BCtype = M_data(dataEntry + "/type", "windkessel");
+
+        if ((M_treeNode->M_ID == blockindex) && (!std::strcmp(BCtype.c_str(), "resistance")))
+        {
+            unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
+            double R = M_data(dataEntry + "/R", 100.0);
+
+            shp<BlockMatrix> curResistance(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+            curResistance->add(M_flowRateJacobians[boundaryflag]);
+            curResistance->multiplyByScalar(-1.0 * R);
+            applyDirichletBCsMatrix(curResistance, 0.0);
+
+            resistance->add(curResistance);
+        }
     }
 
     return resistance;
@@ -906,15 +891,26 @@ assembleGlobalAdditionalOutletMatrix() {
         throw new Exception("Invalid call to method on non-outlet nodes!");
 
     shp<BlockMatrix> outMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
-    auto faces = M_treeNode->M_block->getOutlets();
 
-    for (auto face : faces)
+    unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
+
+    for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
     {
-        shp<BlockMatrix> curMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
-        curMat->add(M_additionalOutletMatrices[face.M_flag]);
-        applyDirichletBCsMatrix(curMat, 0.0);
+        std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
 
-        outMat->add(curMat);
+        unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
+        std::string BCtype = M_data(dataEntry + "/type", "windkessel");
+
+        if ((M_treeNode->M_ID == blockindex) && (!std::strcmp(BCtype.c_str(), "resistance")))
+        {
+            unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
+
+            shp<BlockMatrix> curMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+            curMat->add(M_additionalOutletMatrices[boundaryflag]);
+            applyDirichletBCsMatrix(curMat, 0.0);
+
+            outMat->add(curMat);
+        }
     }
 
     return outMat;

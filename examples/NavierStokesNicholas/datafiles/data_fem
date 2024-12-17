@@ -30,13 +30,11 @@ outputdir = rb_solutions
         flag = 1
     [../]
 
-	numoutletbcs = 0
+	numoutletbcs = 1
 	[./outlet0]
 	    blockindex = 0
-	    type = windkessel
-	    C = 0
-	    Rp = 10
-	    Rd = 0
+	    type = resistance
+	    R = 1000
         boundaryflag = 2
     [../]
 

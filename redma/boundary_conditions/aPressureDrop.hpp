@@ -33,7 +33,7 @@ public:
     aPressureDrop() {}
 
     virtual shp<aMatrix> getPressureMass(const double& time,
-                                         const shp<aVector>& sol) override
+                                         const shp<aVector>& sol) const override
         {throw new Exception("'getPressureMass' method is not implemented in class aPressureDrop");};
 
     virtual inline void setFlowRate(const double& Q) {M_Q = Q;}

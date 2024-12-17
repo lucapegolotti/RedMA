@@ -87,18 +87,33 @@ public:
      * \param sol Current solution.
      * \return Shared pointer to aMatrix of the mass matrix.
      */
-    virtual shp<aMatrix> getMass(const double& time,
-                                 const shp<aVector>& sol) override;
+    inline virtual shp<aMatrix> getMass(const double& time,
+                                        const shp<aVector>& sol) override {return M_mass;};
+
+    /*! \brief Virtual getter for stiffness matrix.
+     *
+     * \return Shared pointer to aMatrix of the stiffness matrix.
+     */
+    inline virtual shp<aMatrix> getStiffness() const {return M_stiffness;};
+
+    /*! \brief Virtual getter for divergence matrix.
+     *
+     * \return Shared pointer to aMatrix of the divergence matrix.
+     */
+    inline virtual shp<aMatrix> getDivergence() const {return M_divergence;};
 
     // TODO: this is new !!
     /*! \brief Virtual getter for resistance matrix.
      *
-     * \param time Current time.
-     * \param sol Current solution.
      * \return Shared pointer to aMatrix of the resistance matrix.
      */
-    virtual shp<aMatrix> getResistance(const double& time,
-                                       const shp<aVector>& sol) override;
+    inline virtual shp<aMatrix> getResistance() const override {return M_resistance;};
+
+    /*! \brief Virtual getter for additional outlet matrix.
+     *
+     * \return Shared pointer to aMatrix of the additional outlet matrix.
+     */
+    inline virtual shp<aMatrix> getAdditionalOutletMatrix() const {return M_additionalOutlet;};
 
     /*! \brief Virtual getter for pressure mass matrix.
      *
@@ -106,8 +121,8 @@ public:
      * \param sol Current solution.
      * \return Shared pointer to aMatrix of the pressure mass matrix.
      */
-    virtual shp<aMatrix> getPressureMass(const double& time,
-                                         const shp<aVector>& sol) override;
+    inline virtual shp<aMatrix> getPressureMass(const double& time,
+                                                const shp<aVector>& sol) const override {return M_massPressure;};
 
     /*! \brief Virtual getter for mass matrix Jacobian.
      *
