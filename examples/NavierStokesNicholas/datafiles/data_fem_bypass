@@ -22,6 +22,7 @@ outputdir = solutions
 	inlet_bc_type = dirichlet
     inletdirichlet = weak
     inletpressurefile = datafiles/inlet_pressure.txt
+    flow_scale = 1.0
 
     numinletbcs = 2
     	[./inlet0]
@@ -80,23 +81,6 @@ outputdir = solutions
             Rcloth_max = 3.0
 		[../]
 	[../]
-	[./online]
-		usemdeim = false
-		monolithicSolve = false
-		recomputeSchur = false
-		approximatenonlinearterm = 0
-		[./basis]
-			directory = basis
-			podtol_field0 = 1e-1
-			podtol_field1 = 1e-5
-			useprimalsupremizers = 1
-			usedualsupremizers = 0
-		[../]
-		[./mdeim]
-			loadfullbasis   = true
-			directory 		= mdeims
-		[../]
-	[../]
 [../]
 
 [preconditioner]
@@ -139,7 +123,7 @@ outputdir = solutions
 [../]
 
 [cloth]
-n_cloths = 4
+n_cloths = 0
     [./cloth0]
         density = 1e2
         center_x = -8.29497

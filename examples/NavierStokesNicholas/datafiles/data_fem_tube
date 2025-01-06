@@ -21,6 +21,7 @@ outputdir = rb_solutions
 [bc_conditions]
 	inletdirichlet = weak
 	inflowfile = datafiles/inflow.txt
+	flow_scale = 1.0
 
     numinletbcs = 1
     [./inlet0]
@@ -29,7 +30,13 @@ outputdir = rb_solutions
         flag = 1
     [../]
 
-	numoutletbcs = 0
+	numoutletbcs = 1
+    [./outlet0]
+        blockindex = 0
+        type = resistance
+        R = 100
+        boundaryflag = 2
+    [../]
 
 	ring_constraint = normal  # type of homogeneous BC imposed at I/O rings ("full", "normal")
 [../]
@@ -116,7 +123,7 @@ outputdir = rb_solutions
 [newton_method]
 	tol = 1e-5
 	maxit = 10
-        relaxation = 1.0
+    relaxation = 1.0
 [../]
 
 [fluid]
@@ -143,7 +150,7 @@ outputdir = rb_solutions
 [../]
 
 [cloth]
-    n_cloths = 2
+    n_cloths = 0
     [./cloth0]
         density = 1e4
         center_x = -1.09

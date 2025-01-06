@@ -2,8 +2,6 @@
 #Data file for NavierStokesNicholas
 #-------------------------------------------------------------
 
-outputdir = solutions
-
 [geometric_structure]
 	xmlfile = geometries/bifurcation_symmetric.xml
 	xmldeformer = datafiles/SolverParamList.xml
@@ -19,7 +17,6 @@ outputdir = solutions
 [../]
 
 [bc_conditions]
-
     inlet_bc_type = dirichlet
     inletdirichlet = weak
     inflowfile = datafiles/inflow.txt
@@ -82,23 +79,6 @@ outputdir = solutions
             Rcloth_max = 3.0
 		[../]
 	[../]
-	[./online]
-		usemdeim = false
-		monolithicSolve = false
-		recomputeSchur = false
-		approximatenonlinearterm = 0
-		[./basis]
-			directory = basis
-			podtol_field0 = 1e-1
-			podtol_field1 = 1e-5
-			useprimalsupremizers = 1
-			usedualsupremizers = 0
-		[../]
-		[./mdeim]
-			loadfullbasis   = true
-			directory 		= mdeims
-		[../]
-	[../]
 [../]
 
 [preconditioner]
@@ -141,7 +121,7 @@ outputdir = solutions
 [../]
 
 [cloth]
-    n_cloths = 2
+    n_cloths = 0
     [./cloth0]
         density = 1e2
         center_x = 0.0

@@ -2,8 +2,6 @@
 #   Data file for NavierStokesExample
 #-------------------------------------------------------------
 
-outputdir = rb_solutions
-
 [geometric_structure]
 	xmlfile = geometries/aorta_bifurcation_0.xml
 	xmldeformer = datafiles/SolverParamList.xml
@@ -85,23 +83,6 @@ outputdir = rb_solutions
             out_max_1 = 0.125
             out_min_2 = 0.1
             out_max_2 = 0.25
-		[../]
-	[../]
-	[./online]
-		usemdeim = false
-		monolithicSolve = false
-		recomputeSchur = false
-		approximatenonlinearterm = 0
-		[./basis]
-			directory = basis
-			podtol_field0 = 1e-1
-			podtol_field1 = 1e-5
-			useprimalsupremizers = 1
-			usedualsupremizers = 0
-		[../]
-		[./mdeim]
-			loadfullbasis   = true
-			directory 		= mdeims
 		[../]
 	[../]
 [../]

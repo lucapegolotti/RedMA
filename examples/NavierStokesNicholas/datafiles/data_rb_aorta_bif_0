@@ -2,8 +2,6 @@
 #   Data file for NavierStokesExample
 #-------------------------------------------------------------
 
-outputdir = rb_solutions
-
 [geometric_structure]
 	xmlfile = geometries/aorta_bifurcation_rb.xml
 	xmldeformer = datafiles/SolverParamList.xml
@@ -35,42 +33,6 @@ outputdir = rb_solutions
 [../]
 
 [rb]
-	[./offline]
-		[./snapshots]
-            param_type           = inflow
-		    inflow_type          = systolic
-		    add_outflow_param    = true
-			number 			     = 10
-			bound 			     = 0.2
-			take_every 		     = 1
-			dumpbinary 		     = true
-			computereynolds      = true
-			seed 			     = 1234
-			# parameter ranges of inflow
-            c_min = 0.1
-            c_max = 0.3
-            a_min = 4
-            a_max = 8
-            # parameter ranges of inflow systolic and heartbeat
-            Dt_min  = -0.2
-            Dt_max  = +0.2
-            DV0_min = -0.4
-            DV0_max = +0.4
-            DVM_min = -0.3
-            DVM_max = +0.3
-            DVm_min = -0.2
-            DVm_max = +0.2
-            DVMd_min = -0.5
-            DVMd_max = +0.5
-            # other parameters
-            out_min_0 = 0.05
-            out_max_0 = 0.125
-            out_min_1 = 0.05
-            out_max_1 = 0.125
-            out_min_2 = 0.1
-            out_max_2 = 0.25
-		[../]
-	[../]
 	[./online]
         usepiola = 0
 		usemdeim = false
@@ -78,6 +40,7 @@ outputdir = rb_solutions
 		recomputeSchur = false
 		approximatenonlinearterm = 1
 		numbernonlinearterms = 20
+		addPGdata = 0
 		[./basis]
 			directory = basis
 			podtol_field0 = 1e-16
@@ -117,15 +80,15 @@ outputdir = rb_solutions
 
 [structure]
 	time_integration_order = 3
-	poisson      = 0.3
+	poisson      = 0.5
 	num_young    = 1
-	young    	 = 3.e+6 # 1.07e7 4.07e6'
-	thickness    = 0.1 # 0.2 0.15'
+	young    	 = 4e+6
+	thickness    = 0.1
 	density	     = 1.2
 	flag = 10
 	[./external_wall]
-		elastic = 1e4
-		plastic = 1e4
+		elastic = 0
+		plastic = 0
 	[../]
 [../]
 

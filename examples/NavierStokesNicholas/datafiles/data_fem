@@ -2,8 +2,6 @@
 #   Data file for NavierStokesExample
 #-------------------------------------------------------------
 
-outputdir = rb_solutions
-
 [geometric_structure]
 	xmlfile = geometries/tube1x2.xml
 	xmldeformer = datafiles/SolverParamList.xml
@@ -11,7 +9,7 @@ outputdir = rb_solutions
 [../]
 
 [assembler]
-	type = stokes
+	type = navierstokes_membrane
 	[./stabilization]
         type = none  # to choose in {none, supg, ip}
         gamma_pressure = 0.2  # ip pressure coefficient for IP stabilization
@@ -34,7 +32,7 @@ outputdir = rb_solutions
 	[./outlet0]
 	    blockindex = 0
 	    type = resistance
-	    R = 1000
+	    R = 100
         boundaryflag = 2
     [../]
 
@@ -48,7 +46,7 @@ outputdir = rb_solutions
 		    param_type           = inflow,physics
 		    inflow_type          = default
 		    sample_fluid_physics = false
-		    sample_structure_physics = false
+		    sample_structure_physics = true
 		    sample_cloth_physics = false
 			number 			     = 1
 			bound 			     = 0.2
@@ -91,23 +89,6 @@ outputdir = rb_solutions
             Rcloth_max = 3.0
 		[../]
 	[../]
-	[./online]
-		usemdeim = false
-		monolithicSolve = false
-		recomputeSchur = false
-		approximatenonlinearterm = 0
-		[./basis]
-			directory = basis
-			podtol_field0 = 1e-16
-			podtol_field1 = 1e-16
-			useprimalsupremizers = 0
-			usedualsupremizers = 0
-		[../]
-		[./mdeim]
-			loadfullbasis   = true
-			directory 		= mdeims
-		[../]
-	[../]
 [../]
 
 [preconditioner]
@@ -127,7 +108,7 @@ outputdir = rb_solutions
 [../]
 
 [fluid]
-	velocity_order = P1Bubble
+	velocity_order = P2
 	pressure_order = P1
 	viscosity      = 0.035
 	density        = 1.06
