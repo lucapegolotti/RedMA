@@ -39,6 +39,9 @@ double inflow_heartbeat(const double t, const std::vector<double> params, const 
 double inflow_bypass(const double t, const std::vector<double> params, const double T,
                      const double scale = 1.0);
 
+double outflow_bypass(const double t, const std::vector<double> params, const double T,
+                      const double scale = 1.0);
+
 struct BSpline {
     std::vector<double> knots;
     std::vector<double> controlPoints;

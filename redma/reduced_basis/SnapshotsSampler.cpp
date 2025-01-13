@@ -485,6 +485,10 @@ sampleParametersInflow()
     {
         unsigned int cnt = num_params_inflow + numInletConditions;
 
+        auto flow = (M_outflow) ? M_outflow : M_inflow;
+        auto outletBC = std::bind(flow,
+                                  std::placeholders::_1, vec);
+
         for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
         {
             std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
@@ -494,8 +498,8 @@ sampleParametersInflow()
                 throw new Exception("Invalid outlet BC type! Only Dirichlet BCs are supported.");
             else if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
             {
-                std::function<double(double)> outletDirichlet = [vec, cnt, inletBC] (double t)
-                        {return vec[cnt] * inletBC(t);};
+                std::function<double(double)> outletDirichlet = [vec, cnt, outletBC] (double t)
+                        {return vec[cnt] * outletBC(t);};
                 M_data.setOutletBC(outletDirichlet, numOutlet);
             }
             cnt++;

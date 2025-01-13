@@ -75,9 +75,12 @@ int main(int argc, char **argv)
     else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "heartbeat"))
         sampler.setInflow([T, Tramp, scale](const double t, const std::vector<double> params){
             return inflow_heartbeat(t, params, T, Tramp, scale);});
-    else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "bypass"))
+    else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "bypass")) {
         sampler.setInflow([T, scale](const double t, const std::vector<double> params){
             return inflow_bypass(t, params, T, scale);});
+        sampler.setOutflow([T, scale](const double t, const std::vector<double> params){
+            return outflow_bypass(t, params, T, scale);});
+    }
     else
         throw new Exception("Unrecognized type of inflow parametrization! "
                             "Available types: {'default', 'periodic', 'systolic', 'heartbeat', 'bypass'}.");
