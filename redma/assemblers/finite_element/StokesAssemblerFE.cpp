@@ -43,7 +43,6 @@ setup()
     assembleFlowRateJacobians();
     assembleAdditionalOutletMatrices();
 
-    // TODO: this is new !
     M_resistance = spcast<BlockMatrix>(assembleResistance());
     M_additionalOutlet = spcast<BlockMatrix>(assembleGlobalAdditionalOutletMatrix());
 
@@ -188,8 +187,6 @@ getRightHandSide(const double& time,
     if (M_data("cloth/n_cloths", 0) > 0)
         systemMatrix->add(M_clothMass);
 
-    // TODO: this is new !
-    //systemMatrix->add(M_resistance);
     if (M_treeNode->isOutletNode())
         systemMatrix->add(M_additionalOutlet);
 
@@ -306,14 +303,13 @@ getJacobianRightHandSide(const double& time,
     if (M_data("cloth/n_cloths", 0) > 0)
         retMat->add(M_clothMass);
 
-    // TODO: this is new !
-    // retMat->add(M_resistance);
     if (M_treeNode->isOutletNode())
         retMat->add(M_additionalOutlet);
 
     retMat->multiplyByScalar(-1.0);
 
-    if (aAssembler::M_treeNode->isOutletNode())
+    // TODO: this seems to break parallelization --> useless if we do not use Neumann BCs
+    /*if (aAssembler::M_treeNode->isOutletNode())
     {
         auto flowRates = this->computeFlowRates(sol);
         std::vector<unsigned int> outletFlags;
@@ -329,13 +325,9 @@ getJacobianRightHandSide(const double& time,
                 curjac->deepCopy(M_flowRateJacobians[rate.first]);
                 curjac->multiplyByScalar(dhdQ);
                 retMat->add(curjac);
-
-                /*shp<BlockMatrix> additionalContrib = M_additionalOutletMatrices[rate.first];
-                additionalContrib->multiplyByScalar(-1);
-                retMat->add(additionalContrib);*/
             }
         }
-    }
+    }*/
 
     this->M_bcManager->apply0DirichletMatrix(*retMat, getFESpaceBCs(),
                                              getComponentBCs(), 0.0,
@@ -846,7 +838,6 @@ assembleDivergence(shp<BCManager> bcManager)
     return divergence;
 }
 
-// TODO: this is new !
 shp<aMatrix>
 StokesAssemblerFE::
 assembleResistance() {
@@ -882,7 +873,6 @@ assembleResistance() {
     return resistance;
 }
 
-// TODO: this is new !
 shp<aMatrix>
 StokesAssemblerFE::
 assembleGlobalAdditionalOutletMatrix() {

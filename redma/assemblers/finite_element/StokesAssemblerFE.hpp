@@ -102,7 +102,6 @@ public:
      */
     inline virtual shp<aMatrix> getDivergence() const {return M_divergence;};
 
-    // TODO: this is new !!
     /*! \brief Virtual getter for resistance matrix.
      *
      * \return Shared pointer to aMatrix of the resistance matrix.
@@ -543,7 +542,6 @@ public:
     inline double getViscosity() {return M_viscosity;}
 
 
-    // TODO: this is new !!
     shp<aMatrix> assembleResistance();
     shp<aMatrix> assembleGlobalAdditionalOutletMatrix();
 
@@ -584,7 +582,6 @@ protected:
 
     bool                                              M_addNoSlipBC;
 
-    // TODO: this is new !!
     shp<BlockMatrix>                                  M_resistance;
     shp<BlockMatrix>                                  M_additionalOutlet;
 };

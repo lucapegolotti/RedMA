@@ -172,7 +172,6 @@ generate()
             filename = outdir + "/q_out" + std::to_string(cnt - in_faces.size());
         flowRateVector->spy(filename);
 
-        // TODO: this is new !!
         // global resistance BC matrices, accounting for all absorbing outlets
         unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
         if (numOutletConditions > 0)

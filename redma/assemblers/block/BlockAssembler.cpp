@@ -212,7 +212,6 @@ getMass(const double& time,
     return mass;
 }
 
-// TODO: this is new !!
 shp<aMatrix>
 BlockAssembler::
 getResistance() const

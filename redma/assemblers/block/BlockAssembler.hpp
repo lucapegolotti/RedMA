@@ -109,7 +109,6 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) override;
 
-    // TODO: this is new !!
     /*! \brief Getter for the resistance matrix
     *
     * \return Shared pointer to BlockMatrix containing the global resistance matrix.

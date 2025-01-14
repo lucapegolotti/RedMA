@@ -172,8 +172,6 @@ getRightHandSide(const double& time,
     if (M_data("cloth/n_cloths", 0) > 0)
         systemMatrix->add(M_clothMass);
 
-    // TODO: this is new !
-    //systemMatrix->add(M_resistance);
     if (M_treeNode->isOutletNode())
         systemMatrix->add(M_additionalOutlet);
 
@@ -191,7 +189,9 @@ getRightHandSide(const double& time,
         retVec->add(residual);
     }
 
-    StokesAssemblerFE::addNeumannBCs(time, sol, retVec);
+    // TODO: this command stales parallelization --> useless if we do not use Neumann BCs !
+    // StokesAssemblerFE::addNeumannBCs(time, sol, retVec);
+
     this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec), this->getFESpaceBCs(),
                                           this->getComponentBCs(), !(this->M_addNoSlipBC));
 

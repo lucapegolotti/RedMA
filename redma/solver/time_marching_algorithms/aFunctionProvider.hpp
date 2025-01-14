@@ -57,7 +57,6 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) = 0;
 
-    // TODO: this is new !!
     /*! \brief Virtual getter for resistance matrix.
      *
      * \return Shared pointer to aMatrix of the mass matrix.

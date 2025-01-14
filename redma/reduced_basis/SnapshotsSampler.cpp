@@ -42,7 +42,7 @@ takeSnapshots(const unsigned int& Nstart)
         while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
             paramIndex++;
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
-        printlog(GREEN, "\nComputing snapshot number " + std::to_string(paramIndex));
+        printlog(GREEN, "\nComputing snapshot number " + std::to_string(paramIndex) +"\n");
 
         if (std::find(std::begin(param_types), std::end(param_types), "inflow") != std::end(param_types))
         {
