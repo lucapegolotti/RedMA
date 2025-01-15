@@ -274,7 +274,7 @@ buildCouplingVectors(shp<BasisFunctionFunctor> bfs,
 
         for (unsigned int i = 0; i < nBasisFunctions; i++)
         {
-            shp<VECTOREPETRA> currentMode(new VECTOREPETRA(map, LifeV::Repeated));
+            shp<VECTOREPETRA> currentModeRepeated(new VECTOREPETRA(map, LifeV::Repeated));
 
             bfs->setIndex(i);
             couplingVectors[count].reset(new DistributedVector());
@@ -283,7 +283,10 @@ buildCouplingVectors(shp<BasisFunctionFunctor> bfs,
                       boundaryQuadRule,
                       etfespace,
                       eval(bfs, X) * dot(versor, phi_i)
-                  ) >> currentMode;
+                  ) >> currentModeRepeated;
+
+            shp<VECTOREPETRA> currentMode(new VECTOREPETRA(*currentModeRepeated,
+                                                              Unique));
 
             couplingVectors[count]->setData(currentMode);
 
