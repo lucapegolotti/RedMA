@@ -11,7 +11,9 @@ Bypass(EPETRACOMM comm, std::string refinement, bool verbose) :
     M_datafileName = "data_mesh";
     if (!std::strcmp(refinement.c_str(), "coarse"))
         M_meshName = "others/bypass_coarse_fluid.mesh";
-    else if (!std::strcmp(refinement.c_str(), "fine"))
+    else if (!std::strcmp(refinement.c_str(), "coarse_BL"))
+        M_meshName = "others/bypass_BL.mesh";
+    else if (!std::strcmp(refinement.c_str(), "fine_BL"))
         M_meshName = "others/bypass_fluid_BL.mesh";
     else
         throw new Exception("Undefined refinement: " + refinement);
