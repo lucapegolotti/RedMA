@@ -119,6 +119,8 @@ solve()
             }
         }
 
+        M_comm->Barrier();
+
         if ((t > t0 && saveEvery > 0 && count % saveEvery == 0) || (std::abs(t-t0) < dt/2))
             M_assembler->exportSolution(t, M_solution);
 

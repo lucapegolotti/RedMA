@@ -189,8 +189,7 @@ getRightHandSide(const double& time,
         retVec->add(residual);
     }
 
-    // TODO: this command stales parallelization --> useless if we do not use Neumann BCs !
-    // StokesAssemblerFE::addNeumannBCs(time, sol, retVec);
+    StokesAssemblerFE::addNeumannBCs(time, sol, retVec);
 
     this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec), this->getFESpaceBCs(),
                                           this->getComponentBCs(), !(this->M_addNoSlipBC));

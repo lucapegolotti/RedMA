@@ -153,9 +153,9 @@ exportSolution(const double& t,
     if (exportWSS)
         computeWallShearStress(M_velocityExporter, M_WSSExporter, M_comm);
 
-    shp<BlockVector> solCopy(new BlockVector(2));
-    solCopy->block(0)->setData(M_velocityExporter);
-    computeFlowRates(solCopy, true);
+    // shp<BlockVector> solCopy(new BlockVector(2));
+    // solCopy->block(0)->setData(M_velocityExporter);
+    computeFlowRates(sol);
 
     exportNorms(t, M_velocityExporter, M_pressureExporter);
 
@@ -244,46 +244,52 @@ addNeumannBCs(double time,
     if (aAssembler::M_treeNode->isOutletNode())
     {
         // 1) handle non-homogeneous Neumann outlet BCs
-        shp<LifeV::BCHandler> bcs;
-        bcs.reset(new LifeV::BCHandler);
-
-        this->M_bcManager->applyOutletNeumannBCs(bcs, false);
-
-        if (bcs->size())
+        if (this->M_bcManager->checkOutletBCType({"neumann"}))
         {
-            bcs->bcUpdate(*M_velocityFESpace->mesh(), M_velocityFESpace->feBd(),
-                          M_velocityFESpace->dof());
+            shp<LifeV::BCHandler> bcs;
+            bcs.reset(new LifeV::BCHandler);
 
-            bcManageRhs(*spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()),
-                        *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
-                        *bcs, M_velocityFESpace->feBd(), 1.0, time);
+            this->M_bcManager->applyOutletNeumannBCs(bcs, false);
+
+            if (bcs->size())
+            {
+                bcs->bcUpdate(*M_velocityFESpace->mesh(), M_velocityFESpace->feBd(),
+                              M_velocityFESpace->dof());
+
+                bcManageRhs(*spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()),
+                            *M_velocityFESpace->mesh(), M_velocityFESpace->dof(),
+                            *bcs, M_velocityFESpace->feBd(), 1.0, time);
+            }
         }
 
-        // 2) handle other outlet BCs (Coronary, Windkessel, Resistance)
-        auto flowRates = this->computeFlowRates(sol, true);
-
-        std::vector<unsigned int> outletFlags;
-        for (auto out : aAssembler::M_treeNode->M_block->getOutlets())
-            outletFlags.push_back(out.M_flag);
-
-        for (auto rate : flowRates) 
+        // 2) handle other outlet BCs (Coronary, Windkessel)
+        else if (this->M_bcManager->checkOutletBCType({"windkessel", "coronary"}))
         {
-            if (std::find(outletFlags.begin(), outletFlags.end(), rate.first) != outletFlags.end())
+            auto flowRates = this->computeFlowRates(sol);
+
+            std::vector<unsigned int> outletFlags;
+            for (auto out : aAssembler::M_treeNode->M_block->getOutlets())
+                outletFlags.push_back(out.M_flag);
+
+            for (auto rate : flowRates)
             {
-                double P = this->M_bcManager->getOutletNeumannBC(time, rate.first, rate.second);
-                shp<VECTOREPETRA> flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
-                *flowRateCopy *= P;
-                *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;
+                if (std::find(outletFlags.begin(), outletFlags.end(), rate.first) != outletFlags.end())
+                {
+                    double P = this->M_bcManager->getOutletNeumannBC(time, rate.first, rate.second);
+                    shp<VECTOREPETRA> flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
+                    *flowRateCopy *= P;
+                    *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;
 
-                /*double dhdQ = this->M_bcManager->getOutletNeumannJacobian(time, rate.first, rate.second);
-                shp<BlockMatrix> curjac(new BlockMatrix(this->M_nComponents,this->M_nComponents));
-                curjac->deepCopy(M_flowRateJacobians[rate.first]);
-                curjac->multiplyByScalar(dhdQ);
-                rhs->add(curjac->multiplyByVector(sol));*/
+                    /*double dhdQ = this->M_bcManager->getOutletNeumannJacobian(time, rate.first, rate.second);
+                    shp<BlockMatrix> curjac(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+                    curjac->deepCopy(M_flowRateJacobians[rate.first]);
+                    curjac->multiplyByScalar(dhdQ);
+                    rhs->add(curjac->multiplyByVector(sol));*/
 
-                /*shp<aVector> additionalContrib = M_additionalOutletMatrices[rate.first]->multiplyByVector(sol);
-                additionalContrib->multiplyByScalar(-1);
-                rhs->add(additionalContrib);*/
+                    /*shp<aVector> additionalContrib = M_additionalOutletMatrices[rate.first]->multiplyByVector(sol);
+                    additionalContrib->multiplyByScalar(-1);
+                    rhs->add(additionalContrib);*/
+                }
             }
         }
 
@@ -308,8 +314,8 @@ getJacobianRightHandSide(const double& time,
 
     retMat->multiplyByScalar(-1.0);
 
-    // TODO: this seems to break parallelization --> useless if we do not use Neumann BCs
-    /*if (aAssembler::M_treeNode->isOutletNode())
+    if ((aAssembler::M_treeNode->isOutletNode()) &&
+        (this->M_bcManager->checkOutletBCType({"windkessel", "coronary"})))
     {
         auto flowRates = this->computeFlowRates(sol);
         std::vector<unsigned int> outletFlags;
@@ -327,7 +333,7 @@ getJacobianRightHandSide(const double& time,
                 retMat->add(curjac);
             }
         }
-    }*/
+    }
 
     this->M_bcManager->apply0DirichletMatrix(*retMat, getFESpaceBCs(),
                                              getComponentBCs(), 0.0,
@@ -976,7 +982,7 @@ assembleAdditionalOutletMatrices()
 
 std::map<unsigned int, double>
 StokesAssemblerFE::
-computeFlowRates(shp<aVector> sol, bool verbose)
+computeFlowRates(shp<aVector> sol)
 {
     auto solBlck = convert<BlockVector>(sol);
 
@@ -992,7 +998,7 @@ computeFlowRates(shp<aVector> sol, bool verbose)
             msg = "[StokesAssemblerFE]  inflow rate = ";
             msg += std::to_string(flowRates[face.M_flag]);
             msg += "\n";
-            printlog(YELLOW, msg, verbose);
+            printlog(YELLOW, msg, M_data.getVerbose());
         }
     }
 
@@ -1006,7 +1012,7 @@ computeFlowRates(shp<aVector> sol, bool verbose)
             msg = "[StokesAssemblerFE]  outflow rate = ";
             msg += std::to_string(flowRates[face.M_flag]);
             msg += "\n";
-            printlog(YELLOW, msg, verbose);
+            printlog(YELLOW, msg, M_data.getVerbose());
         }
     }
 
@@ -1035,7 +1041,7 @@ assembleFlowRateVector(const GeometricFace& face)
     flowRateVectorRepeated->globalAssemble();
 
     shp<VECTOREPETRA> flowRateVector(new VECTOREPETRA(*flowRateVectorRepeated,
-                                                      Repeated));
+                                                      Unique));
     return flowRateVector;
 }
 

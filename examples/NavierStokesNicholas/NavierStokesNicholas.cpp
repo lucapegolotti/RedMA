@@ -32,12 +32,6 @@ int main(int argc, char **argv)
     std::mt19937_64 eng{std::random_device{}()};
     std::uniform_int_distribution<> dist{1, 20};
     std::this_thread::sleep_for(std::chrono::seconds{dist(eng)});
-
-    Chrono chrono;
-    chrono.start();
-
-    std::string msg = "Starting chrono... \n";
-    printlog(MAGENTA, msg, true);
     
     #ifdef HAVE_MPI
     MPI_Init (nullptr, nullptr);
@@ -46,10 +40,18 @@ int main(int argc, char **argv)
     EPETRACOMM comm(new Epetra_SerialComm());
     #endif
 
-    printlog(MAGENTA,"Starting snapshots generation", true);
+    comm->Barrier();
+
     DataContainer data;
     data.setDatafile("datafiles/data_fem");
     data.setVerbose(comm->MyPID() == 0);
+
+    Chrono chrono;
+    chrono.start();
+    std::string msg = "Starting chrono... \n";
+    printlog(MAGENTA, msg, data.getVerbose());
+
+    printlog(MAGENTA,"Starting snapshots generation\n", data.getVerbose());
 
     unsigned int Nstart = 0;
     if (argc > 1)
@@ -100,7 +102,11 @@ int main(int argc, char **argv)
     msg = "Total time =  ";
     msg += std::to_string(chrono.diff());
     msg += " seconds\n";
-    printlog(MAGENTA, msg, true);
+    printlog(MAGENTA, msg, data.getVerbose());
+
+    #ifdef HAVE_MPI
+    MPI_Finalize();
+    #endif
 
     return 0;
 }

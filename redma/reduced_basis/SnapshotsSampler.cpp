@@ -36,13 +36,17 @@ takeSnapshots(const unsigned int& Nstart)
         std::vector<double> array_params;
 
         // to guarantee (almost...) that two snapshots are not saved at the same location!
-        unsigned int paramIndex = Nstart;
+        int paramIndex = Nstart;
         
         // we find the first parameter index available, starting from Nstart
-        while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
-            paramIndex++;
+        if (M_comm->MyPID() == 0) {
+            while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
+                paramIndex++;
+            printlog(GREEN, "\nComputing snapshot number " + std::to_string(paramIndex) +"\n");
+        }
+        M_comm->Barrier();
+        M_comm->Broadcast(&paramIndex, 1, 0);
         std::string curdir = outdir + "/param" + std::to_string(paramIndex);
-        printlog(GREEN, "\nComputing snapshot number " + std::to_string(paramIndex) +"\n");
 
         if (std::find(std::begin(param_types), std::end(param_types), "inflow") != std::end(param_types))
         {
@@ -89,12 +93,12 @@ takeSnapshots(const unsigned int& Nstart)
     std::string msg = "Average time per snapshot =  ";
     msg += std::to_string(elapsedTime);
     msg += " seconds\n";
-    printlog(MAGENTA, msg, true);
+    printlog(MAGENTA, msg, M_data.getVerbose());
 
     msg = "Average time per snapshot (no setup) =  ";
     msg += std::to_string(elapsedTimeNoSetup);
     msg += " seconds\n";
-    printlog(MAGENTA, msg, true);
+    printlog(MAGENTA, msg, M_data.getVerbose());
 
 }
 

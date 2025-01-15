@@ -115,6 +115,8 @@ public:
 
     inline std::string getInletBCType() const {return M_inletBCType;}
 
+    bool checkOutletBCType(const std::set<std::string>) const;
+
     inline std::map<unsigned int, Law> getInletBCs() const {return M_inletBCs;}
 
     std::vector<unsigned int> getWallFlags(const bool& withRings = true) const;

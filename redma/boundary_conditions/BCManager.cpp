@@ -140,6 +140,24 @@ applyInletNeumannBCs(shp<LifeV::BCHandler> bcs, const Law& law, GeometricFace in
                inletFunction);
 }
 
+bool
+BCManager::
+checkOutletBCType(const std::set<std::string> types) const
+{
+    unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
+
+    for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
+    {
+        std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
+        std::string BCtype = M_data(dataEntry + "/type", "windkessel");
+
+        if (types.find(BCtype) != types.end())
+            return true;
+    }
+
+    return false;
+}
+
 void
 BCManager::
 applyOutletDirichletBCs(shp<LifeV::BCHandler> bcs,
