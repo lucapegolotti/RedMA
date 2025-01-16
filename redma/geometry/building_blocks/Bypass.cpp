@@ -44,9 +44,9 @@ Bypass(EPETRACOMM comm, std::string refinement, bool verbose) :
     M_inletNormalRef2[2] = 0.94464124;
 
     // outlet of outlet (reference configuration)
-    M_outletNormalRef[0] = 0.27216076;
-    M_outletNormalRef[1] = 0.1600235;
-    M_outletNormalRef[2] = 0.94885246;
+    M_outletNormalRef[0] = -0.27216076;
+    M_outletNormalRef[1] = -0.1600235;
+    M_outletNormalRef[2] = -0.94885246;
 
     // inlets and outlet radia (reference configuration)
     M_inletRadiusRef1 = 0.33609344929489127;
