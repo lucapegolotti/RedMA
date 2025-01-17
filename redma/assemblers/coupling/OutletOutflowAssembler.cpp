@@ -38,6 +38,7 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
 {
     unsigned int fatherID = this->M_interface.M_indexFather;
     unsigned int interfaceID = this->M_interface.M_ID;
+
     shp<aAssembler> assemblerFather = this->M_interface.M_assemblerFather;
 
     auto temp = this->M_fatherBT->multiplyByVector(sol->block(nPrimalBlocks + interfaceID));
@@ -53,9 +54,6 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
     
     temp = this->M_fatherBfe->multiplyByVector(assemblerFather->getLifting(time));
     temp->multiplyByScalar(-1); // correcting the sign
-    temp->multiplyByScalar(1.0/M_data.getOutletBC(M_globalOutletIndex)(time));
-    // temp->block(0)->dump("RHS_out_" + std::to_string(M_globalOutletIndex));
-    temp->multiplyByScalar(M_data.getOutletBC(M_globalOutletIndex)(time));
 
     if (assemblerFather->getRBBases())
         temp = assemblerFather->getRBBases()->projectOnLagrangeSpace(spcast<BlockVector>(temp));

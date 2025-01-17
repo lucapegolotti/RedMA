@@ -30,12 +30,11 @@ addContributionJacobianRhs(const double& time,
     jac->block(childID,  nPrimalBlocks + interfaceID)->multiplyByScalar(-1);
     jac->block(nPrimalBlocks + interfaceID,  childID)->multiplyByScalar(-1);
 
-    // if (this->M_stabilizationCoupling > THRESHOLDSTAB)
-    // {
-    //     jac.block(nPrimalBlocks + interfaceID,  childID) += (this->M_stabChild * (-1.0 * this->M_stabilizationCoupling));
-    //
-    //     jac.block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID).deepCopy(this->M_identity * (-1.0 * this->M_stabilizationCoupling));
-    // }
+    /*if (this->M_stabilizationCoupling > THRESHOLDSTAB)
+    {
+        jac->block(nPrimalBlocks + interfaceID,  childID) += (this->M_stabChild * (-1.0 * this->M_stabilizationCoupling));
+        jac->block(nPrimalBlocks + interfaceID, nPrimalBlocks + interfaceID)->deepCopy(this->M_identity * (-1.0 * this->M_stabilizationCoupling));
+    }*/
 }
 
 void
@@ -45,8 +44,7 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
 {
     unsigned int childID = this->M_interface.M_indexChild;
     unsigned int interfaceID = this->M_interface.M_ID;
-    unsigned int inletID = this->M_interface.M_indexInlet;
-    unsigned int inletFlag = this->M_interface.M_interfaceFlag;
+
     shp<aAssembler> assemblerChild = this->M_interface.M_assemblerChild;
 
     auto temp = this->M_childBT->multiplyByVector(sol->block(nPrimalBlocks + interfaceID));
@@ -61,23 +59,17 @@ addContributionRhs(const double& time, shp<BlockVector> rhs, shp<BlockVector> so
         rhs->block(nPrimalBlocks + interfaceID)->add(temp);
 
     temp = this->M_childBfe->multiplyByVector(assemblerChild->getLifting(time));
-    temp->multiplyByScalar(1.0/M_data.getInletBC(inletFlag)(time));
-    // temp->block(0)->dump("RHS_in_" + std::to_string(inletID));
-    temp->multiplyByScalar(M_data.getInletBC(inletFlag)(time));
 
     if (assemblerChild->getRBBases())
         temp = assemblerChild->getRBBases()->projectOnLagrangeSpace(spcast<BlockVector>(temp));
     rhs->block(nPrimalBlocks + interfaceID)->add(temp);
 
-    // // here + because the stabilization term is (stress - lagrange) => hence
-    // // + lagrange at rhs
-    // if (this->M_stabilizationCoupling > THRESHOLDSTAB)
-    // {
-    //     rhs.block(nPrimalBlocks + interfaceID) -= (this->M_stabChild * sol.block(childID)) * (1.0 * this->M_stabilizationCoupling);
-    //
-    //     rhs.block(nPrimalBlocks + interfaceID) -=
-    //     sol.block(nPrimalBlocks + interfaceID) * this->M_stabilizationCoupling;
-    // }
+    // here + because the stabilization term is (stress - lagrange) => hence + lagrange at rhs
+    /*if (this->M_stabilizationCoupling > THRESHOLDSTAB)
+    {
+        rhs->block(nPrimalBlocks + interfaceID) -= (this->M_stabChild * sol->block(childID)) * (1.0 * this->M_stabilizationCoupling);
+        rhs->block(nPrimalBlocks + interfaceID) -= sol->block(nPrimalBlocks + interfaceID) * this->M_stabilizationCoupling;
+    }*/
 }
 
 void

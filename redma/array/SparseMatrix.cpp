@@ -17,19 +17,16 @@ SparseMatrix(std::vector<shp<DistributedVector>> columnVectors)
     shp<LifeV::MapEpetra> rangeMap = columnVectors[0]->getVector()->mapPtr();
     shp<Epetra_Comm> comm = rangeMap->commPtr();
 
-    unsigned int myel = N / comm->NumProc();
-
-    // the first process takes care of the remainder
-    if (comm->MyPID() == 0)
-    {
-        myel += N % comm->NumProc();
-    }
-
-    shp<LifeV::MapEpetra> domainMap;
-    domainMap.reset(new LifeV::MapEpetra(N, myel, 0, comm));
-
     shp<MATRIXEPETRA> matrix;
     matrix.reset(new MATRIXEPETRA(*rangeMap, N, false));
+
+    std::vector<int> couplingVector(N);
+    for (unsigned int i = 0; i < N; i++)
+        couplingVector[i] = i;
+
+    shp<LifeV::MapEpetra> domainMap;
+    domainMap.reset (new LifeV::MapEpetra (-1, static_cast< int> ( couplingVector.size() ),
+                                           &couplingVector[0], comm));
 
     Epetra_Map epetraMap = columnVectors[0]->getVector()->epetraMap();
     unsigned int numElements = epetraMap.NumMyElements();
@@ -48,8 +45,8 @@ SparseMatrix(std::vector<shp<DistributedVector>> columnVectors)
                     matrix->addToCoefficient(gdof, i, value);
             }
         }
-    }
 
+    }
     comm->Barrier();
 
     matrix->globalAssemble(domainMap, rangeMap);
@@ -65,17 +62,13 @@ SparseMatrix(const std::vector<shp<VECTOREPETRA>>& columnVectors)
     shp<LifeV::MapEpetra> rangeMap = columnVectors[0]->mapPtr();
     shp<Epetra_Comm> comm = rangeMap->commPtr();
 
-    unsigned int myel = N / comm->NumProc();
-
-    // the first process takes care of the remainder
-    if (comm->MyPID() == 0)
-    {
-        myel += N % comm->NumProc();
-    }
+    std::vector<int> couplingVector(N);
+    for (unsigned int i = 0; i < N; i++)
+        couplingVector[i] = i;
 
     shp<LifeV::MapEpetra> domainMap;
-    domainMap.reset(new LifeV::MapEpetra(N, myel, 0, comm));
-
+    domainMap.reset (new LifeV::MapEpetra (-1, static_cast< int> ( couplingVector.size() ),
+                                           &couplingVector[0], comm));
     shp<MATRIXEPETRA> matrix;
     matrix.reset(new MATRIXEPETRA(*rangeMap, N, false));
 
@@ -92,9 +85,7 @@ SparseMatrix(const std::vector<shp<VECTOREPETRA>>& columnVectors)
             {
                 double value(columnVectorUnique[gdof]);
                 if (std::abs(value) > dropTolerance)
-                {
                     matrix->addToCoefficient(gdof, i, value);
-                }
             }
         }
     }
