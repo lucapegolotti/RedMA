@@ -11,11 +11,11 @@ NavierStokesAssemblerFE(const DataContainer& data,
     M_stabilizationName = data("assembler/stabilization/type", "none");
     M_name = "NavierStokesAssemblerFE";
     // if we use a stabilization we use P1-P1 by default
-    if (std::strcmp(M_stabilizationName.c_str(), "none"))
+    /*if (std::strcmp(M_stabilizationName.c_str(), "none"))
     {
         setVelocityOrder("P1");
         setPressureOrder("P1");
-    }
+    }*/
 }
 
 void

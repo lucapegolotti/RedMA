@@ -24,6 +24,8 @@ IPStabilization(const DataContainer &data,
 
     if (M_gamma_pressure < 0)
         throw new Exception("IP stabilization constants must be positive!");
+
+    // TODO: with this stabilization, Newton does not converge anymore !
 }
 
 void
@@ -71,7 +73,7 @@ getJacobian(shp<BlockVector> sol,
     jac11.reset(new MATRIXEPETRA(*(this->stabilizePressure())));
 
     M_jac.reset(new BlockMatrix(2,2));
-    M_jac->setBlock(1,1, wrap(jac11));
+    M_jac->setBlock(1, 1, wrap(jac11));
 
     return M_jac;
 }
@@ -99,7 +101,7 @@ stabilizePressure()
     shp<MATRIXEPETRA> A(new MATRIXEPETRA(M_pressureFESpace->map()));
 
     integrate(elements(M_velocityFESpaceETA->mesh()),
-              M_velocityFESpace->qr(),
+              M_pressureFESpace->qr(),
               M_pressureFESpaceETA,
               M_pressureFESpaceETA,
               dot(grad(phi_i), grad(phi_j))
@@ -140,7 +142,7 @@ stabilizePressure()
                               std::to_string(myFacets+1) + " out of " +
                               std::to_string(faceInteriorListPtr->size())
                               + "...\n";
-            printlog(YELLOW, msg, true);
+            printlog(YELLOW, msg, M_verbose);
         }
         ++myFacets;
 

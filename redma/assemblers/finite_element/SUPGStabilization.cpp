@@ -21,7 +21,7 @@ SUPGStabilization(const DataContainer& data,
 
     if (!std::strcmp(M_velocityOrder.c_str(),"P1"))
         M_C_I = 30;
-    else if (!std::strcmp(M_velocityOrder.c_str(),"P2"))
+    else if ((!std::strcmp(M_velocityOrder.c_str(),"P2")) or (!std::strcmp(M_velocityOrder.c_str(),"P1Bubble")))
         M_C_I = 60;
     else if (!std::strcmp(M_velocityOrder.c_str(),"P3"))
         M_C_I = 120;

@@ -269,8 +269,9 @@ dumpSnapshots(GlobalProblem& problem,
         {
             std::ofstream file(outdir + "/coeffile.txt", std::ios_base::app);
 
-            for (double i : array_params)
-                file << std::fixed << std::setprecision(10) << i << std::endl;
+            if (M_comm->MyPID() == 0)
+                for (double i : array_params)
+                    file << std::fixed << std::setprecision(10) << i << std::endl;
 
             file.close();
         }
