@@ -19,7 +19,6 @@ generate()
     std::string outdir = "matrices";
     fs::create_directory(outdir);
 
-    // std::string assemblerType = M_data("assembler/type", "navierstokes");
     std::string assemblerType = M_assembler->getTreeNode()->M_block->getAssemblerType();
     unsigned int nComponents = M_assembler->getNumComponents();
 
@@ -56,15 +55,12 @@ generate()
     if (!(std::strcmp(assemblerType.c_str(), "navierstokes_membrane")))
         spcast<MembraneAssemblerFE>(M_assembler)->setAddBoundaryTerms(false);
 
-    // auto massMatrix = spcast<StokesAssemblerFE>(M_assembler)->assembleMass(bcManager);
     auto massMatrix = spcast<StokesAssemblerFE>(M_assembler)->getMass(0.0, M_assembler->getZeroVector());
     convert<SparseMatrix>(massMatrix->block(0,0))->dump(outdir + "/M");
 
-    // auto stiffnessMatrix = spcast<StokesAssemblerFE>(M_assembler)->assembleStiffness(bcManager);
     auto stiffnessMatrix = spcast<StokesAssemblerFE>(M_assembler)->getStiffness();
     convert<SparseMatrix>(stiffnessMatrix->block(0,0))->dump(outdir + "/A");
 
-    // auto divergenceMatrix = spcast<StokesAssemblerFE>(M_assembler)->assembleDivergence(bcManager);
     auto divergenceMatrix = spcast<StokesAssemblerFE>(M_assembler)->getDivergence();
     convert<SparseMatrix>(divergenceMatrix->block(0,1))->dump(outdir + "/BdivT");
     convert<SparseMatrix>(divergenceMatrix->block(1,0))->dump(outdir + "/" + "/Bdiv");
@@ -77,6 +73,34 @@ generate()
             auto clothMatrix = spcast<StokesAssemblerFE>(M_assembler)->assembleSingleBloodClothMatrix(bcManager, i);
             convert<SparseMatrix>(clothMatrix->block(0,0))->dump(outdir + "/Mcloth" + std::to_string(i));
         }
+    }
+
+    // global resistance BC matrices, accounting for all absorbing outlets
+    unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
+    unsigned int n_resistance_boundaries = 0;
+    for (unsigned int i = 0; i < numOutletConditions; i++) {
+        std::string outlet_str = "outlet_" + std::to_string(i);
+        if (!(std::strcmp(M_data("bc_conditions/outlet_str", "dirichlet").c_str(), "resistance")))
+            n_resistance_boundaries += 1;
+    }
+    if (n_resistance_boundaries > 0)
+    {
+        auto resistanceMatrix = spcast<StokesAssemblerFE>(M_assembler)->getResistance();
+        convert<SparseMatrix>(resistanceMatrix->block(0,0))->dump(outdir + "/R");
+
+        auto additionalOutletMatrix = spcast<StokesAssemblerFE>(M_assembler)->getAdditionalOutletMatrix();
+        convert<SparseMatrix>(additionalOutletMatrix->block(0,0))->dump(outdir + "/R_add");
+    }
+
+    // boundary matrices, if the membrane model is selected
+    if (!(std::strcmp(assemblerType.c_str(), "navierstokes_membrane")))
+    {
+        auto boundaryMassMatrixBlock = spcast<MembraneAssemblerFE>(M_assembler)->assembleBoundaryMass(bcManager);
+        spcast<SparseMatrix>(boundaryMassMatrixBlock->block(0, 0))->dump(outdir + "/M_bd");
+
+        auto boundaryStiffnessMatrixBlocks = spcast<MembraneAssemblerFE>(M_assembler)->assembleBoundaryStiffnessTerms(bcManager);
+        for (int i=0; i<boundaryStiffnessMatrixBlocks.size(); i++)
+            spcast<SparseMatrix>(boundaryStiffnessMatrixBlocks[i]->block(0, 0))->dump(outdir + "/A_bd_" + std::to_string(i));
     }
 
     printlog(YELLOW, "[MatricesGeneratorFixedGeometry] Assembling dual matrices \n",
@@ -171,30 +195,6 @@ generate()
         else
             filename = outdir + "/q_out" + std::to_string(cnt - in_faces.size());
         flowRateVector->spy(filename);
-
-        // global resistance BC matrices, accounting for all absorbing outlets
-        unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
-        if (numOutletConditions > 0)
-        {
-            // auto resistanceMatrix = spcast<StokesAssemblerFE>(M_assembler)->assembleResistance();
-            auto resistanceMatrix = spcast<StokesAssemblerFE>(M_assembler)->getResistance();
-            convert<SparseMatrix>(resistanceMatrix->block(0,0))->dump(outdir + "/R");
-
-            // auto additionalOutletMatrix = spcast<StokesAssemblerFE>(M_assembler)->assembleGlobalAdditionalOutletMatrix();
-            auto additionalOutletMatrix = spcast<StokesAssemblerFE>(M_assembler)->getAdditionalOutletMatrix();
-            convert<SparseMatrix>(additionalOutletMatrix->block(0,0))->dump(outdir + "/R_add");
-        }
-
-        // boundary matrices, if the membrane model is selected
-        if (!(std::strcmp(assemblerType.c_str(), "navierstokes_membrane")))
-        {
-            auto boundaryMassMatrixBlock = spcast<MembraneAssemblerFE>(M_assembler)->assembleBoundaryMass(bcManager);
-            spcast<SparseMatrix>(boundaryMassMatrixBlock->block(0, 0))->dump(outdir + "/M_bd");
-
-            auto boundaryStiffnessMatrixBlocks = spcast<MembraneAssemblerFE>(M_assembler)->assembleBoundaryStiffnessTerms(bcManager);
-            for (int i=0; i<boundaryStiffnessMatrixBlocks.size(); i++)
-                spcast<SparseMatrix>(boundaryStiffnessMatrixBlocks[i]->block(0, 0))->dump(outdir + "/A_bd_" + std::to_string(i));
-        }
 
         cnt++;
     }
