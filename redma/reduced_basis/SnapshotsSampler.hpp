@@ -44,6 +44,10 @@ public:
 
     inline void setOutflow(const std::function<double(const double, const std::vector<double>)>& outflow) {M_outflow=outflow;};
 
+    inline void setOutpres(const std::function<double(double)>& outpres) {M_outpres=outpres;};
+
+    inline void setData(DataContainer data) {M_data=data;};
+
     void dumpSnapshots(GlobalProblem& problem, std::string outdir, const std::vector<double> array_params);
 
     void transformSnapshotsWithPiola(std::string snapshotsDir,
@@ -56,6 +60,7 @@ private:
 
     std::function<double(double, std::vector<double>)>    M_inflow;
     std::function<double(double, std::vector<double>)>    M_outflow;
+    std::function<double(double)>                         M_outpres;
 
     std::vector<double> sampleParametersInflow();
 

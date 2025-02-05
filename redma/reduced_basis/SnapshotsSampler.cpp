@@ -486,29 +486,37 @@ sampleParametersInflow()
         M_data.setInletBC(inletDirichlet, numInlet);
     }
 
-    if (withOutflow)
+    for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
     {
-        unsigned int cnt = num_params_inflow + numInletConditions;
+        std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
+        if (!std::strcmp(M_data(dataEntry + "/type", "dirichlet").c_str(), "neumann")) {
 
-        auto flow = (M_outflow) ? M_outflow : M_inflow;
-        auto outletBC = std::bind(flow,
-                                  std::placeholders::_1, vec);
-
-        for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
-        {
-            std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
-            if ((!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "neumann")) ||
-            (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "windkessel")) ||
-            (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "coronary")))
-                throw new Exception("Invalid outlet BC type! Only Dirichlet BCs are supported.");
-            else if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
-            {
-                std::function<double(double)> outletDirichlet = [vec, cnt, outletBC] (double t)
-                        {return vec[cnt] * outletBC(t);};
-                M_data.setOutletBC(outletDirichlet, numOutlet);
-            }
-            cnt++;
+            if (M_outpres)
+                M_data.setOutletBC(M_outpres, numOutlet);
+            else
+                throw Exception("Outlet pressure not set!");
         }
+
+        else if (!std::strcmp(M_data(dataEntry + "/type", "dirichlet").c_str(), "dirichlet")) {
+
+            assert(withOutflow);
+
+            unsigned int cnt = num_params_inflow + numInletConditions;
+
+            auto flow = (M_outflow) ? M_outflow : M_inflow;
+            auto outletBC = std::bind(flow,
+                                      std::placeholders::_1, vec);
+
+            std::function<double(double)> outletDirichlet = [vec, cnt, outletBC] (double t)
+                    {return vec[cnt] * outletBC(t);};
+            M_data.setOutletBC(outletDirichlet, numOutlet);
+        }
+
+        else if (!std::strcmp(M_data(dataEntry + "/type", "dirichlet").c_str(), "resistance"))
+            continue;
+        else
+            throw new Exception("Invalid outlet BC type! "
+                                "Only Dirichlet, Neumann and Resistance BCs are supported.");
     }
 
     return array_params;
