@@ -349,10 +349,10 @@ getRightHandSide(const double &time,
     // computing current displacement part due to previous displacements
     shp<aVector> rhsDisplacement = this->M_TMA_Displacements->combineOldSolutions();
 
-    // computing membrane stress contribution on previous displacements
+    // computing membrane stress contribution to previous displacements
     shp<aVector> membraneContrib = M_boundaryStiffness->multiplyByVector(rhsDisplacement);
 
-    // computing external wall contribution on previous displacements
+    // computing external wall contribution to previous displacements
     shp<aVector> wallContrib = M_wallBoundaryMass->multiplyByVector((rhsDisplacement));
     wallContrib->multiplyByScalar(M_wall_elasticity);
 

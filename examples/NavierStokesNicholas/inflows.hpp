@@ -42,6 +42,9 @@ double inflow_bypass(const double t, const std::vector<double> params, const dou
 double outflow_bypass(const double t, const std::vector<double> params, const double T,
                       const double scale = 1.0);
 
+double outpres_bypass(double t, const double T,
+                      const double scale = 1.0);
+
 struct BSpline {
     std::vector<double> knots;
     std::vector<double> controlPoints;

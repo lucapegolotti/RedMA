@@ -78,10 +78,21 @@ int main(int argc, char **argv)
         sampler.setInflow([T, Tramp, scale](const double t, const std::vector<double> params){
             return inflow_heartbeat(t, params, T, Tramp, scale);});
     else if (!std::strcmp(data("rb/offline/snapshots/inflow_type", "default").c_str(), "bypass")) {
+
         sampler.setInflow([T, scale](const double t, const std::vector<double> params){
             return inflow_bypass(t, params, T, scale);});
         sampler.setOutflow([T, scale](const double t, const std::vector<double> params){
             return outflow_bypass(t, params, T, scale);});
+
+        unsigned int numOutletConditions = data("bc_conditions/numoutletbcs", 0);
+        for (unsigned int i = 0; i < numOutletConditions; i++)
+        {
+            std::string dataEntry = "bc_conditions/outlet" + std::to_string(i);
+            if (!std::strcmp(data(dataEntry + "/type", "dirichlet").c_str(), "neumann"))
+                data.setOutletBC([T, scale](double t){
+                    return outpres_bypass(t, T, scale);}, i);
+        }
+
     }
     else
         throw new Exception("Unrecognized type of inflow parametrization! "
