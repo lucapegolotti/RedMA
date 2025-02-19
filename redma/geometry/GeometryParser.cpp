@@ -122,7 +122,7 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
                   " building block of type aorta\n";
         printlog(GREEN, msg, M_verbose);
 
-        returnBlock.reset(new Aorta(M_comm, "aorta", M_verbose));
+        returnBlock.reset(new Aorta(M_comm, ref, M_verbose));
     }
     else if (!std::strcmp(element->Attribute("type"),
                           "aortabif0"))
