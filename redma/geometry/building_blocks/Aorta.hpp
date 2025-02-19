@@ -30,11 +30,11 @@ public:
     /*! \brief Default constructor.
      *
      * \param comm The MPI Communicator.
-     * \param name The name of the mesh.
+     * \param refinement The refinement level of the mesh.
      * \param verbose If true, output is pushed to standard output.
      */
     Aorta(EPETRACOMM comm,
-          std::string name = "aorta",
+          std::string refinement = "normal",
           bool verbose = false);
 
     /*! \brief Return the expected number of children.

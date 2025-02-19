@@ -4,12 +4,20 @@ namespace RedMA
 {
 
 Aorta::
-Aorta(EPETRACOMM comm, std::string name, bool verbose) :
-  BuildingBlock(comm, "normal", verbose)
+Aorta(EPETRACOMM comm, std::string refinement, bool verbose) :
+  BuildingBlock(comm, refinement, verbose)
 {
-    M_name = name;
+    M_name = "aorta";
     M_datafileName = "data_mesh";
-    M_meshName = "others/aorta.mesh";
+
+    if (!std::strcmp(refinement.c_str(), "coarse"))
+        M_meshName = "others/aorta_coarse.mesh";
+    else if (!std::strcmp(refinement.c_str(), "normal"))
+        M_meshName = "others/aorta_normal.mesh";
+    else if (!std::strcmp(refinement.c_str(), "fine"))
+        M_meshName = "others/aorta.mesh";
+    else
+        throw new Exception("Undefined refinement: " + refinement);
 
     // center of inlet (reference configuration)
     M_inletCenterRef[0] = -1.966975;
@@ -44,6 +52,8 @@ Aorta(EPETRACOMM comm, std::string name, bool verbose) :
     M_inletRadiusRef = 1.219238;
     M_outletRadiusRef1 = 0.504580;
     M_outletRadiusRef2 = 0.555306;
+
+    M_wallFlag = 10;
 
     resetInletOutlets();
 }
