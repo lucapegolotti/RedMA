@@ -122,7 +122,11 @@ parseElement(const XMLEl *element, unsigned int& outletParent)
                   " building block of type aorta\n";
         printlog(GREEN, msg, M_verbose);
 
-        returnBlock.reset(new Aorta(M_comm, ref, M_verbose));
+        bool add_rings = false;
+        if (element->Attribute("add_rings"))
+            add_rings = std::atoi(element->Attribute("add_rings"));
+
+        returnBlock.reset(new Aorta(M_comm, ref, M_verbose, add_rings));
     }
     else if (!std::strcmp(element->Attribute("type"),
                           "aortabif0"))

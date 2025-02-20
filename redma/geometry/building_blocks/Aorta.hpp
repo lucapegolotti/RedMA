@@ -32,10 +32,12 @@ public:
      * \param comm The MPI Communicator.
      * \param refinement The refinement level of the mesh.
      * \param verbose If true, output is pushed to standard output.
+     * \param add_rings Whether to consider meshes with tagged rings or not.
      */
     Aorta(EPETRACOMM comm,
           std::string refinement = "normal",
-          bool verbose = false);
+          bool verbose = false,
+          bool add_rings = false);
 
     /*! \brief Return the expected number of children.
      *
@@ -91,6 +93,8 @@ private:
     double M_inletRadiusRef;
     double M_outletRadiusRef1;
     double M_outletRadiusRef2;
+
+    bool M_add_rings;
 };
 
 }  // namespace RedMA

@@ -44,6 +44,8 @@ generateDefaultTreeNode(const std::string& nameMesh)
         return generateDefaultSymmetricBifurcation(nameMesh);
     else if (nameMesh.find("bypass") != std::string::npos)
         return generateDefaultBypass(nameMesh);
+    else if (nameMesh.find("aorta") != std::string::npos)
+        return generateDefaultAortaIliac(nameMesh);
     else
         printlog(YELLOW, "[DefaultAssemblersLibrary]: no default assembler available for " + nameMesh + " mesh!", true);
 
@@ -78,6 +80,19 @@ generateDefaultSymmetricBifurcation(const std::string& nameMesh)
     defaultBifurcation->readMesh();
 
     shp<TreeNode> treeNode(new TreeNode(defaultBifurcation, 1234 + M_count));
+
+    return treeNode;
+}
+
+shp<TreeNode>
+DefaultAssemblersLibrary::
+generateDefaultAortaIliac(const std::string &nameMesh)
+{
+    shp<Aorta> defaultAorta(new Aorta(M_comm, "normal", false, false));
+
+    defaultAorta->readMesh();
+
+    shp<TreeNode> treeNode(new TreeNode(defaultAorta, 1234 + M_count));
 
     return treeNode;
 }

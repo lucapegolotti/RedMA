@@ -4,18 +4,19 @@ namespace RedMA
 {
 
 Aorta::
-Aorta(EPETRACOMM comm, std::string refinement, bool verbose) :
-  BuildingBlock(comm, refinement, verbose)
+Aorta(EPETRACOMM comm, std::string refinement, bool verbose, bool add_rings) :
+  BuildingBlock(comm, refinement, verbose),
+  M_add_rings(add_rings)
 {
     M_name = "aorta";
     M_datafileName = "data_mesh";
 
     if (!std::strcmp(refinement.c_str(), "coarse"))
-        M_meshName = "others/aorta_coarse.mesh";
+        M_meshName = add_rings ? "others/aorta_coarse_rings.mesh" : "others/aorta_coarse.mesh";
     else if (!std::strcmp(refinement.c_str(), "normal"))
-        M_meshName = "others/aorta_normal.mesh";
+        M_meshName = add_rings ? "others/aorta_normal_rings.mesh" : "others/aorta_normal.mesh";
     else if (!std::strcmp(refinement.c_str(), "fine"))
-        M_meshName = "others/aorta.mesh";
+        M_meshName = add_rings ? "others/aorta_rings.mesh" :  "others/aorta.mesh";
     else
         throw new Exception("Undefined refinement: " + refinement);
 
@@ -62,9 +63,12 @@ void
 Aorta::
 resetInletOutlets()
 {
-    GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef, 1, -1);
-    GeometricFace outlet1(M_outletCenterRef1, M_outletNormalRef1, M_outletRadiusRef1, 2, -1);
-    GeometricFace outlet2(M_outletCenterRef2, M_outletNormalRef2, M_outletRadiusRef2, 3, -1);
+    GeometricFace inlet(M_inletCenterRef, M_inletNormalRef, M_inletRadiusRef, 1,
+                        M_add_rings ? 1000 : -1);
+    GeometricFace outlet1(M_outletCenterRef1, M_outletNormalRef1, M_outletRadiusRef1, 2,
+                          M_add_rings ? 2000 : -1);
+    GeometricFace outlet2(M_outletCenterRef2, M_outletNormalRef2, M_outletRadiusRef2, 3,
+                          M_add_rings ? 3000 : -1);
 
     M_inlets.clear();
     M_inlets.push_back(inlet);

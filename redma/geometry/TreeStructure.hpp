@@ -21,6 +21,7 @@
 #include <redma/geometry/building_blocks/Tube.hpp>
 #include <redma/geometry/building_blocks/BifurcationSymmetric.hpp>
 #include <redma/geometry/building_blocks/Bypass.hpp>
+#include <redma/geometry/building_blocks/Aorta.hpp>
 
 #include <Epetra_SerialComm.h>
 #include <Epetra_MpiComm.h>

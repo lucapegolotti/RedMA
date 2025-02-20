@@ -68,6 +68,13 @@ public:
      */
     shp<TreeNode> generateDefaultSymmetricBifurcation(const std::string& nameMesh);
 
+    /*! \brief Generate a tree node corresponding to an aorta with iliac branches.
+     *
+     * \param nameMesh Name of the mesh.
+     * \return Shared pointer to the TreeNode.
+     */
+    shp<TreeNode> generateDefaultAortaIliac(const std::string& nameMesh);
+
     /*! \brief Generate a tree node corresponding to a femoropopliteal bypass.
      *
      * \param nameMesh Name of the mesh.
