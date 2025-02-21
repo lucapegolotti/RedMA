@@ -7,39 +7,6 @@ BasisFunctionFunctor::
 BasisFunctionFunctor(const GeometricFace& face) :
   M_face(face)
 {
-    Vector3D& normal = M_face.M_normal;
-
-    // arbitrary vector to measure the angle
-    // we check just the first component of the normal because we trust that
-    // it is unitary (hence if normal[1] == 1 => normal = (1,0,0))
-    if (std::abs(std::abs(normal[0]) - 1.0) > 1e-12)
-    {
-        M_e[0] = 1.0; M_e[1] = 0.0; M_e[2] = 0.0;
-    }
-    else
-    {
-        M_e[0] = 0.0; M_e[1] = 1.0; M_e[2] = 0.0;
-    }
-    // project the vector onto the face and orthonormalize
-    M_e = M_e - M_e.dot(normal) * normal;
-    M_e = M_e / M_e.norm();
-
-    M_eOrth = normal.cross(M_e);
-    M_eOrth = M_eOrth / M_eOrth.norm();
-}
-
-void
-BasisFunctionFunctor::
-setIndex(const unsigned int& index)
-{
-    M_index = index;
-}
-
-unsigned int
-BasisFunctionFunctor::
-getNumBasisFunctions() const
-{
-    return M_nBasisFunctions;
 }
 
 BasisFunctionFunctor::Function
@@ -68,11 +35,13 @@ BasisFunctionFunctor::
 getLocalXAndY(const Vector3D& pos, double& x, double& y)
 {
     Vector3D& center = M_face.M_center;
+    Vector3D& tangent1 = M_face.M_tangent1;
+    Vector3D& tangent2 = M_face.M_tangent2;
 
     Vector3D diff = pos - center;
 
-    x = diff.dot(M_e);
-    y = diff.dot(M_eOrth);
+    x = diff.dot(tangent1);
+    y = diff.dot(tangent2);
 }
 
 void
@@ -81,6 +50,8 @@ getThetaAndRadius(const Vector3D& pos, double& theta, double& radius)
 {
     Vector3D& center = M_face.M_center;
     Vector3D& normal = M_face.M_normal;
+    Vector3D& tangent1 = M_face.M_tangent1;
+    Vector3D& tangent2 = M_face.M_tangent2;
 
     Vector3D diff = pos - center;
     radius = diff.norm();
@@ -90,9 +61,9 @@ getThetaAndRadius(const Vector3D& pos, double& theta, double& radius)
     else
     {
         double ratio;
-        if (diff.dot(M_eOrth) > 0)
+        if (diff.dot(tangent2) > 0)
         {
-            ratio = diff.dot(M_e) / radius;
+            ratio = diff.dot(tangent1) / radius;
 
             if (std::abs(ratio + 1) < 1e-15)
                 theta = M_PI;
@@ -101,7 +72,7 @@ getThetaAndRadius(const Vector3D& pos, double& theta, double& radius)
         }
         else
         {
-            ratio = -diff.dot(M_e) / radius;
+            ratio = -diff.dot(tangent1) / radius;
 
             if (std::abs(ratio + 1) < 1e-15)
                 theta = M_PI;

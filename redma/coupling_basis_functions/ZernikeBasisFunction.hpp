@@ -68,9 +68,8 @@ private:
     std::vector<unsigned int>                 M_factorials;
     std::function<double(double)>             M_curFunction;
     double                                    M_orthoCoefficient;
-    double                                    M_R;
 };
 
 }  // namespace RedMA
 
-#endif  // FOURIERBASISFUNCTION_HPP
+#endif  // ZERNIKEBASISFUNCTION_HPP

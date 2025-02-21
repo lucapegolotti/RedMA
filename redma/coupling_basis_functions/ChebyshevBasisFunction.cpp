@@ -10,7 +10,6 @@ ChebyshevBasisFunction(const GeometricFace& face,
   M_sqrtPIm1(1.0/std::sqrt(M_PI))
 {
     M_nMax = nMax;
-    M_R = face.M_radius;
 
     for (int n = 0; n <= M_nMax; n++)
     {
@@ -51,8 +50,12 @@ operator()(const Vector3D& pos)
     unsigned int n = M_ns[M_index];
     double ind = static_cast<float>((k * M_PI)) / (n + 1);
 
-    returnVal = M_sqrtPIm1 * chebyshevU(x/M_R*std::cos(ind) +
-                                        y/M_R*std::sin(ind), n)/M_R;
+    double R1 = M_face.M_radius1;
+    double R2 = M_face.M_radius2;
+    double R = std::sqrt(R1*R2);
+
+    returnVal = M_sqrtPIm1 * chebyshevU(x/R1*std::cos(ind) +
+                                        y/R2*std::sin(ind), n) / R;
 
     return returnVal;
 }

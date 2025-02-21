@@ -9,6 +9,10 @@ GeometricFace() :
   M_center(Vector3D(0.0,0.0,0.0)),
   M_normal(Vector3D(1.0,0.0,0.0)),
   M_radius(1.0),
+  M_radius1(1.0),
+  M_radius2(1.0),
+  M_tangent1(Vector3D(0.0,1.0,0.0)),
+  M_tangent2(Vector3D(0.0,0.0,1.0)),
   M_flag(0),
   M_ringFlag(0)
 {
@@ -16,41 +20,44 @@ GeometricFace() :
 
 GeometricFace::
 GeometricFace(Vector3D center, Vector3D normal, double radius,
-              unsigned int flag) :
-  M_center(center),
-  M_normal(normal),
-  M_radius(radius),
-  M_flag(flag),
-  M_ringFlag(0)
-{
-}
-
-GeometricFace::
-GeometricFace(Vector3D center, Vector3D normal, double radius,
               unsigned int flag, unsigned int flagRing) :
-  M_center(center),
-  M_normal(normal),
-  M_radius(radius),
-  M_flag(flag),
-  M_ringFlag(flagRing)
+M_center(center),
+M_normal(normal),
+M_radius(radius),
+M_radius1(radius),
+M_radius2(radius),
+M_flag(flag),
+M_ringFlag(flagRing)
 {
+    if (std::abs(std::abs(normal[0]) - 1.0) > 1e-12)
+    {
+        M_tangent1[0] = 1.0; M_tangent1[1] = 0.0; M_tangent1[2] = 0.0;
+    }
+    else
+    {
+        M_tangent1[0] = 0.0; M_tangent1[1] = 1.0; M_tangent1[2] = 0.0;
+    }
+
+    M_tangent1 = M_tangent1 - M_tangent1.dot(normal) * normal;
+    M_tangent1 = M_tangent1 / M_tangent1.norm();
+
+    M_tangent2 = normal.cross(M_tangent1);
+    M_tangent2 = M_tangent2 / M_tangent2.norm();
 }
 
-void
 GeometricFace::
-print() const
+GeometricFace(Vector3D center, Vector3D normal, double radius1, double radius2, Vector3D tangent1, Vector3D tangent2,
+              unsigned int flag, unsigned int flagRing) :
+M_center(center),
+M_normal(normal),
+M_radius1(radius1),
+M_radius2(radius2),
+M_tangent1(tangent1),
+M_tangent2(tangent2),
+M_flag(flag),
+M_ringFlag(flagRing)
 {
-    printlog(WHITE, "[GeometricFace]\n");
-    printlog(WHITE, std::string("\tcenter = (") + std::to_string(M_center[0]) +
-                    "," + std::to_string(M_center[1]) + "," +
-                    std::to_string(M_center[2]) + ")\n");
-    printlog(WHITE, std::string("\tnormal = (") + std::to_string(M_normal[0]) +
-                    "," + std::to_string(M_normal[1]) + "," +
-                    std::to_string(M_normal[2]) + ")\n");
-    printlog(WHITE, std::string("\tradius = ") + std::to_string(M_radius) + "\n");
-    printlog(WHITE, std::string("\tflag = ") + std::to_string(M_flag) + "\n");
-    printlog(WHITE, std::string("\tring flag = ") + std::to_string(M_ringFlag) + "\n");
-
+    M_radius = (M_radius1 + M_radius2) / 2.0;
 }
 
 bool
@@ -74,6 +81,24 @@ operator==(const GeometricFace& lhs, const GeometricFace& rhs)
 
     return (diff <= 1e-3);
 }
+
+void
+GeometricFace::
+print() const
+{
+    printlog(WHITE, "[GeometricFace]\n");
+    printlog(WHITE, std::string("\tcenter = (") + std::to_string(M_center[0]) +
+                    "," + std::to_string(M_center[1]) + "," +
+                    std::to_string(M_center[2]) + ")\n");
+    printlog(WHITE, std::string("\tnormal = (") + std::to_string(M_normal[0]) +
+                    "," + std::to_string(M_normal[1]) + "," +
+                    std::to_string(M_normal[2]) + ")\n");
+    printlog(WHITE, std::string("\tradius = ") + std::to_string(M_radius) + "\n");
+    printlog(WHITE, std::string("\tflag = ") + std::to_string(M_flag) + "\n");
+    printlog(WHITE, std::string("\tring flag = ") + std::to_string(M_ringFlag) + "\n");
+
+}
+
 
 BuildingBlock::
 BuildingBlock(EPETRACOMM comm, std::string refinement, bool verbose) :

@@ -81,23 +81,23 @@ public:
                                  const double& z,
                                  unsigned int const& index);
 
-    /* \brief Set the index of the current basis function.
+    /*! \brief Set the index of the current basis function.
      *
      * \param index The index.
      */
-    virtual void setIndex(const unsigned int& index);
+    virtual inline void setIndex(const unsigned int& index) {M_index = index;};
 
-    /* \brief Get the number of basis functions.
+    /*! \brief Get the number of basis functions.
      *
      * \return The number of basis functions
      */
-    unsigned int getNumBasisFunctions() const;
+    inline unsigned int getNumBasisFunctions() const {return M_nBasisFunctions;};
 
-    /* \brief Get the type of basis function as a string.
+    /*! \brief Get the type of basis function as a string.
      *
      * \return The type of the basis function.
      */
-    std::string getType() const {return M_type;};
+    inline std::string getType() const {return M_type;};
 
 protected:
     void getLocalXAndY(const Vector3D& pos,
@@ -111,9 +111,7 @@ protected:
     GeometricFace           M_face;
     unsigned int            M_index;
     unsigned int            M_nBasisFunctions;
-    // versor to compute the normal
-    Vector3D                M_e;
-    Vector3D                M_eOrth;
+
     std::string             M_type;
 };
 

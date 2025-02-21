@@ -61,45 +61,59 @@ public:
 
     /*! \brief Constructor.
      *
+     * \param flag The flag of the face.
+     * \param flagRing The flag of the ring.
      * \param center Center of the face.
      * \param normal Normal of the face.
      * \param radius The radius of the face.
-     * \param flag The flag of the face.
      */
     GeometricFace(Vector3D center,
                   Vector3D normal,
                   double radius,
-                  unsigned int flag);
+                  unsigned int flag = 0,
+                  unsigned int flagRing = 0);
 
     /*! \brief Constructor.
      *
      * \param center Center of the face.
      * \param normal Normal of the face.
-     * \param radius The radius of the face.
+     * \param radius1 Radius of the face along the principal axis.
+     * \param radius2 Radius of the face along the secondary axis.
+     * \param tangent1 Principal axis tangent of the face.
+     * \param tangent2 Secondary axis tangent of the face.
      * \param flag The flag of the face.
-     * \param flagDisk The flag of the ring.
+     * \param flagRing The flag of the ring.
      */
     GeometricFace(Vector3D center,
                   Vector3D normal,
-                  double radius,
-                  unsigned int flag,
-                  unsigned int flagRing);
+                  double radius1,
+                  double radius2,
+                  Vector3D tangent1,
+                  Vector3D tangent2,
+                  unsigned int flag = 0,
+                  unsigned int flagRing = 0);
 
     /// Print information regarding the geometric face.
     void print() const;
 
-    /*! \brief Equality operator between geometric faces.
+    /*! \brief Equality operator between circular faces.
      *
      * \param lhs Left Hand Side face
      * \param rhs Right Hand Side face
      */
     friend bool operator==(const GeometricFace& lhs, const GeometricFace& rhs);
 
-    unsigned int    M_flag;
-    unsigned int    M_ringFlag;
     Vector3D        M_center;
     Vector3D        M_normal;
+    Vector3D        M_tangent1;
+    Vector3D        M_tangent2;
+
     double          M_radius;
+    double          M_radius1;
+    double          M_radius2;
+
+    unsigned int    M_flag;
+    unsigned int    M_ringFlag;
 };
 
 /// Abstract building block containing the mesh of a subdomain.

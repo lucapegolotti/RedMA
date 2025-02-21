@@ -59,9 +59,7 @@ private:
     unsigned int                              M_nMax;
     std::vector<int>                          M_ks;
     std::vector<int>                          M_ns;
-    double                                    M_R;
-    // versor to compute the normal
-    Vector3D                                  M_e;
+
     const double                              M_sqrtPIm1;
 };
 

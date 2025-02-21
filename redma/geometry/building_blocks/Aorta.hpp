@@ -90,9 +90,15 @@ private:
     Vector3D M_outletCenterRef2;
     Vector3D M_outletNormalRef2;
 
-    double M_inletRadiusRef;
+    // double M_inletRadiusRef;
     double M_outletRadiusRef1;
     double M_outletRadiusRef2;
+
+    double M_inletRadius1Ref;
+    double M_inletRadius2Ref;
+
+    Vector3D M_inletTangent1Ref;
+    Vector3D M_inletTangent2Ref;
 
     bool M_add_rings;
 };
