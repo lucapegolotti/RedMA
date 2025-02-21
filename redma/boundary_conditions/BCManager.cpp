@@ -505,17 +505,27 @@ poiseuilleInflow(const double& t, const double& x, const double& y,
 {
     const Vector3D& center = face.M_center;
     const Vector3D& normal = face.M_normal;
+    double R1 = face.M_radius1;
+    double R2 = face.M_radius2;
     double R = face.M_radius;
+    double area = M_PI * R1 * R2;
+    const double maxU = inflow(t) * 2.0 / area;
 
     Vector3D curPoint(x,y,z);
     Vector3D diff = curPoint - center;
     double r = diff.norm();
 
-    // we suppose that inflow is the flowrate and we want to find the max velocity
-    const double maxU = inflow(t) * 2.0 / (M_PI * R * R);
+    if (R1 != R2)
+    {
+        const Vector3D& tangent1 = face.M_tangent1;
+        double theta = std::acos(diff.dot(tangent1) / diff.norm());
+        R = (R1 * R2) / std::sqrt(R2 * std::cos(theta) * std::cos(theta) + R1 * std::sin(theta) * std::sin(theta));
+    }
+
     double inflowNorm = maxU * (1.0 - (r * r)/(R * R));
 
     Vector3D inflowValue = -inflowNorm * normal * coefficient;
+
     return inflowValue[i];
 }
 

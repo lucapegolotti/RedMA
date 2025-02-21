@@ -86,6 +86,21 @@ public:
      */
     void setup() override;
 
+    /*! \brief Virtual getter for mass matrix.
+     *
+     * \param time Current time.
+     * \param sol Current solution.
+     * \return Shared pointer to aMatrix of the mass matrix.
+     */
+    virtual shp<aMatrix> getMass(const double& time,
+                                 const shp<aVector>& sol) override ;
+
+    /*! \brief Virtual getter for stiffness matrix.
+     *
+     * \return Shared pointer to aMatrix of the stiffness matrix.
+     */
+    virtual shp<aMatrix> getStiffness() const override;
+
     /*! \brief Assemble the mass matrix.
      *
      * The mass matrix is defined as

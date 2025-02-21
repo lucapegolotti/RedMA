@@ -188,6 +188,22 @@ assembleMass(shp<BCManager> bcManager)
     return mass;
 }
 
+shp<aMatrix>
+MembraneAssemblerFE::
+getMass(const double& time, const shp<aVector>& sol)
+{
+    shp<aMatrix> mass = M_mass;
+
+    if (!(M_addBoundaryTerms))
+    {
+        M_boundaryMass->multiplyByScalar(-1.0);
+        mass->add(M_boundaryMass);
+        M_boundaryMass->multiplyByScalar(-1.0);
+    }
+
+    return mass;
+}
+
 std::vector<shp<aMatrix>>
 MembraneAssemblerFE::
 assembleBoundaryStiffnessTerms(shp<BCManager> bcManager)
@@ -316,6 +332,25 @@ assembleStiffness(shp<BCManager> bcManager)
         stiffness->add(M_boundaryStiffness);
 
         M_boundaryStiffness->multiplyByScalar(1.0 / (dt * rhs_coeff));
+    }
+
+    return stiffness;
+}
+
+shp<aMatrix>
+MembraneAssemblerFE::
+getStiffness() const
+{
+    shp<aMatrix> stiffness = M_stiffness;
+
+    if (!(M_addBoundaryTerms))
+    {
+        double  dt = this->M_data("time_discretization/dt", 0.01);
+        double rhs_coeff = this->M_TMA_Displacements->getCoefficients().back();
+
+        M_boundaryStiffness->multiplyByScalar(-1.0 * dt * rhs_coeff);
+        stiffness->add(M_boundaryStiffness);
+        M_boundaryStiffness->multiplyByScalar(-1.0 / (dt * rhs_coeff));
     }
 
     return stiffness;

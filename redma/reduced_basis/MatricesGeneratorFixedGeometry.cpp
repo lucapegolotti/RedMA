@@ -101,6 +101,12 @@ generate()
         auto boundaryStiffnessMatrixBlocks = spcast<MembraneAssemblerFE>(M_assembler)->assembleBoundaryStiffnessTerms(bcManager);
         for (int i=0; i<boundaryStiffnessMatrixBlocks.size(); i++)
             spcast<SparseMatrix>(boundaryStiffnessMatrixBlocks[i]->block(0, 0))->dump(outdir + "/A_bd_" + std::to_string(i));
+
+        if ( (M_data("structure/external_wall/elastic", 0) > 0) || (M_data("structure/external_wall/plastic", 0) > 0))
+        {
+            auto boundaryWallMassMatrixBlock = spcast<MembraneAssemblerFE>(M_assembler)->assembleWallBoundaryMass(bcManager);
+            spcast<SparseMatrix>(boundaryWallMassMatrixBlock->block(0, 0))->dump(outdir + "/M_bd_W");
+        }
     }
 
     printlog(YELLOW, "[MatricesGeneratorFixedGeometry] Assembling dual matrices \n",
