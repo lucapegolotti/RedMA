@@ -102,17 +102,11 @@ public:
      */
     inline virtual shp<aMatrix> getDivergence() const {return M_divergence;};
 
-    /*! \brief Virtual getter for resistance matrix.
+    /*! \brief Virtual getter for resistance term vector.
      *
-     * \return Shared pointer to aMatrix of the resistance matrix.
+     * \return Shared pointer to aVector of the resistance term.
      */
-    inline virtual shp<aMatrix> getResistance() const override {return M_resistance;};
-
-    /*! \brief Virtual getter for additional outlet matrix.
-     *
-     * \return Shared pointer to aMatrix of the additional outlet matrix.
-     */
-    inline virtual shp<aMatrix> getAdditionalOutletMatrix() const {return M_additionalOutlet;};
+    virtual shp<aVector> getResistanceTerm(const shp<aVector>& sol) const override;
 
     /*! \brief Virtual getter for pressure mass matrix.
      *
@@ -162,6 +156,29 @@ public:
      * \return Shared pointer to aVector of the flow rate vector
      */
     virtual inline shp<VECTOREPETRA> getFlowRateVector(const unsigned int& flag) const override {return M_flowRateVectors.at(flag);};
+
+    /*! \brief Virtual getter for flow rate jacobians.
+     *
+     * \param flag Flag of the inlet/outlet whose flow rate jacobian is returned
+     * \return Shared pointer to aMatrix of the flow rate jacobian
+     */
+    inline shp<aMatrix> getFlowRateJacobian(const unsigned int & flag) const {return M_flowRateJacobians.at(flag);};
+
+    /*! \brief Virtual getter for additional outlet matrices.
+     *
+     * \param flag Flag of the inlet/outlet whose matrix is returned
+     * \return Shared pointer to aMatrix of the additional outlet matrix
+     */
+    inline shp<aMatrix> getAdditionalOutletMatrix(const unsigned int & flag) const {return M_additionalOutletMatrices.at(flag);};
+
+    /// Import from file the resistance values at the outlets.
+    void importResistances();
+
+    /*! \brief Virtual getter for resistance values
+     *
+     * \return Map of resistance values at the outlets, associated to the corresponding outlet flag.
+     */
+    inline virtual std::map<unsigned int, double> getResistances() const {return M_resistances;};
 
     /*! \brief Virtual getter for the lifting.
      *
@@ -540,10 +557,6 @@ public:
      */
     inline double getViscosity() {return M_viscosity;}
 
-
-    shp<aMatrix> assembleResistance();
-    shp<aMatrix> assembleGlobalAdditionalOutletMatrix();
-
 protected:
     shp<BlockVector> buildZeroVector() const;
 
@@ -570,6 +583,7 @@ protected:
     std::map<unsigned int, shp<VECTOREPETRA>>         M_flowRateVectors;
     std::map<unsigned int, shp<BlockMatrix>>          M_flowRateJacobians;
     std::map<unsigned int, shp<BlockMatrix>>          M_additionalOutletMatrices;
+    std::map<unsigned int, double>                    M_resistances;
 
     std::string                                       M_velocityOrder;
     std::string                                       M_pressureOrder;
@@ -580,9 +594,6 @@ protected:
     shp<VECTOREPETRA>                                 M_zs;
 
     bool                                              M_addNoSlipBC;
-
-    shp<BlockMatrix>                                  M_resistance;
-    shp<BlockMatrix>                                  M_additionalOutlet;
 };
 
 }

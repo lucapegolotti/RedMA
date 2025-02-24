@@ -213,7 +213,7 @@ finalize()
     while (indexOutlet < noutletbcs)
     {
         dataEntry = "bc_conditions/outlet" + std::to_string(indexOutlet) +"/type";
-        BCType = (*M_datafile)(dataEntry.c_str(), "windkessel");
+        BCType = (*M_datafile)(dataEntry.c_str(), "neumann");
         if (!std::strcmp(BCType.c_str(), "coronary"))
             indexOutlet = noutletbcs + 2;
         else

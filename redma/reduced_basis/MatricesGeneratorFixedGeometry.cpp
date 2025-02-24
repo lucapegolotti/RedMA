@@ -75,21 +75,15 @@ generate()
         }
     }
 
-    // global resistance BC matrices, accounting for all absorbing outlets
-    unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
-    unsigned int n_resistance_boundaries = 0;
-    for (unsigned int i = 0; i < numOutletConditions; i++) {
-        std::string outlet_str = "outlet_" + std::to_string(i);
-        if (!(std::strcmp(M_data("bc_conditions/outlet_str", "dirichlet").c_str(), "resistance")))
-            n_resistance_boundaries += 1;
-    }
-    if (n_resistance_boundaries > 0)
+    // resistance BC matrices, accounting for the absorbing outlets
+    for (const auto& [key, value] : spcast<StokesAssemblerFE>(M_assembler)->getResistances())
     {
-        auto resistanceMatrix = spcast<StokesAssemblerFE>(M_assembler)->getResistance();
-        convert<SparseMatrix>(resistanceMatrix->block(0,0))->dump(outdir + "/R");
+        auto resistanceMatrix = spcast<StokesAssemblerFE>(M_assembler)->getFlowRateJacobian(key);
+        resistanceMatrix->multiplyByScalar(-1.0 * value);
+        convert<SparseMatrix>(resistanceMatrix->block(0,0))->dump(outdir + "/R" + std::to_string(key));
 
-        auto additionalOutletMatrix = spcast<StokesAssemblerFE>(M_assembler)->getAdditionalOutletMatrix();
-        convert<SparseMatrix>(additionalOutletMatrix->block(0,0))->dump(outdir + "/R_add");
+        auto additionalOutletMatrix = spcast<StokesAssemblerFE>(M_assembler)->getAdditionalOutletMatrix(key);
+        convert<SparseMatrix>(additionalOutletMatrix->block(0,0))->dump(outdir + "/R_add" + std::to_string(key));
     }
 
     // boundary matrices, if the membrane model is selected

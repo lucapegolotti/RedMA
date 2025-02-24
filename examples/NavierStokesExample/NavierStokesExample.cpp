@@ -108,9 +108,9 @@ int main(int argc, char **argv)
     for (unsigned int i = 0; i < numOutletConditions; i++)
     {
         std::string dataEntry = "bc_conditions/outlet" + std::to_string(i);
-        if (!std::strcmp(data(dataEntry + "/type", "windkessel").c_str(), "neumann"))
+        if (!std::strcmp(data(dataEntry + "/type", "neumann").c_str(), "neumann"))
             data.setOutletBC([i](double t){return outletNeumann(t,i);}, i);
-        else if (!std::strcmp(data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
+        else if (!std::strcmp(data(dataEntry + "/type", "neumann").c_str(), "dirichlet"))
             data.setOutletBC([i](double t){return outletDirichlet(t,i);}, i);
         else
             throw new Exception("Unrecognized inlet BC type! "

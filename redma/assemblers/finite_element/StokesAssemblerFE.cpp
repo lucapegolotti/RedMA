@@ -39,12 +39,13 @@ setup()
     if (M_data("cloth/n_cloths", 0) > 0)
         M_clothMass = spcast<BlockMatrix>(assembleBloodClothMatrix(M_bcManager));
 
-    assembleFlowRateVectors();
-    assembleFlowRateJacobians();
-    assembleAdditionalOutletMatrices();
-
-    M_resistance = spcast<BlockMatrix>(assembleResistance());
-    M_additionalOutlet = spcast<BlockMatrix>(assembleGlobalAdditionalOutletMatrix());
+    if ((M_treeNode->isInletNode()) || (M_treeNode->isOutletNode()))
+    {
+        importResistances();
+        assembleFlowRateVectors();
+        assembleFlowRateJacobians();
+        assembleAdditionalOutletMatrices();
+    }
 
     setExporter();
 
@@ -188,7 +189,8 @@ getRightHandSide(const double& time,
         systemMatrix->add(M_clothMass);
 
     if (M_treeNode->isOutletNode())
-        systemMatrix->add(M_additionalOutlet);
+        for (const auto& [key, _] : M_resistances)
+            systemMatrix->add(M_additionalOutletMatrices.at(key));
 
     systemMatrix->multiplyByScalar(-1.0);
 
@@ -310,7 +312,8 @@ getJacobianRightHandSide(const double& time,
         retMat->add(M_clothMass);
 
     if (M_treeNode->isOutletNode())
-        retMat->add(M_additionalOutlet);
+        for (const auto& [key, _] : M_resistances)
+            retMat->add(M_additionalOutletMatrices.at(key));
 
     retMat->multiplyByScalar(-1.0);
 
@@ -844,14 +847,12 @@ assembleDivergence(shp<BCManager> bcManager)
     return divergence;
 }
 
-shp<aMatrix>
+void
 StokesAssemblerFE::
-assembleResistance() {
-
+importResistances()
+{
     if (!(M_treeNode->isOutletNode()))
-        throw new Exception("Invalid call to method on non-outlet nodes!");
-
-    shp<BlockMatrix> resistance(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+        return;
 
     unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
 
@@ -860,56 +861,37 @@ assembleResistance() {
         std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
 
         unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
-        std::string BCtype = M_data(dataEntry + "/type", "windkessel");
+        std::string BCtype = M_data(dataEntry + "/type", "neumann");
 
         if ((M_treeNode->M_ID == blockindex) && (!std::strcmp(BCtype.c_str(), "resistance")))
         {
             unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
             double R = M_data(dataEntry + "/R", 100.0);
-
-            shp<BlockMatrix> curResistance(new BlockMatrix(this->M_nComponents,this->M_nComponents));
-            curResistance->add(M_flowRateJacobians[boundaryflag]);
-            curResistance->multiplyByScalar(-1.0 * R);
-            applyDirichletBCsMatrix(curResistance, 0.0);
-
-            resistance->add(curResistance);
+            M_resistances[boundaryflag] = R;
         }
     }
-
-    return resistance;
 }
 
-shp<aMatrix>
+shp<aVector>
 StokesAssemblerFE::
-assembleGlobalAdditionalOutletMatrix() {
-
+getResistanceTerm(const shp<aVector>& sol) const
+{
     if (!(M_treeNode->isOutletNode()))
-        throw new Exception("Invalid call to method on non-outlet nodes!");
+        return this->getZeroVector();
 
-    shp<BlockMatrix> outMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+    shp<BlockVector> retVec (new BlockVector(this->M_nComponents));
 
-    unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
-
-    for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
+    for (const auto& [key, value] : M_resistances)
     {
-        std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
+        shp<BlockMatrix> curResistance(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+        curResistance->add(M_flowRateJacobians.at(key));
+        curResistance->multiplyByScalar(-1.0 * value);
+        applyDirichletBCsMatrix(curResistance, 0.0);
 
-        unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
-        std::string BCtype = M_data(dataEntry + "/type", "windkessel");
-
-        if ((M_treeNode->M_ID == blockindex) && (!std::strcmp(BCtype.c_str(), "resistance")))
-        {
-            unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
-
-            shp<BlockMatrix> curMat(new BlockMatrix(this->M_nComponents,this->M_nComponents));
-            curMat->add(M_additionalOutletMatrices[boundaryflag]);
-            applyDirichletBCsMatrix(curMat, 0.0);
-
-            outMat->add(curMat);
-        }
+        retVec->add(curResistance->multiplyByVector(sol));
     }
 
-    return outMat;
+    return retVec;
 }
 
 void

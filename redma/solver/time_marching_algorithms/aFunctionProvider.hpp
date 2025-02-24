@@ -57,11 +57,11 @@ public:
     virtual shp<aMatrix> getMass(const double& time,
                                  const shp<aVector>& sol) = 0;
 
-    /*! \brief Virtual getter for resistance matrix.
+    /*! \brief Virtual getter for resistance term vector.
      *
-     * \return Shared pointer to aMatrix of the mass matrix.
+     * \return Shared pointer to aVector of the resistance term.
      */
-    virtual shp<aMatrix> getResistance() const {return spcast<aMatrix>(shp<SparseMatrix>());}
+    virtual shp<aVector> getResistanceTerm(const shp<aVector>& sol) const {return spcast<aVector>(shp<DistributedVector>());};
 
     /*! \brief Getter for the pressure mass matrix.
      *

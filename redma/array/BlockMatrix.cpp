@@ -375,9 +375,9 @@ getSubmatrix(const unsigned int& ibegin, const unsigned int& iend,
 
     shp<BlockMatrix> retMatrix(new BlockMatrix());
 
-    unsigned int nrows = iend-ibegin+1;
-    unsigned int ncols = jend-jbegin+1;
-    retMatrix->resize(iend-ibegin+1, jend-jbegin+1);
+    unsigned int nRows = iend-ibegin+1;
+    unsigned int nCols = jend-jbegin+1;
+    retMatrix->resize(nRows, nCols);
 
     for (unsigned int i = ibegin; i <= iend; i++)
     {

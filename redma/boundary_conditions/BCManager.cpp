@@ -73,7 +73,7 @@ parseOutletBCData()
         if (M_treeNode->M_ID == blockindex)
         {
             unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
-            std::string BCtype = M_data(dataEntry + "/type", "windkessel");
+            std::string BCtype = M_data(dataEntry + "/type", "neumann");
             if (!std::strcmp(BCtype.c_str(), "windkessel"))
                 throw new Exception("Windkessel BCs unmaintained. Aborting.");
                 // M_models[boundaryflag].reset(new WindkesselModel(M_data, dataEntry, outletIndex));
@@ -149,7 +149,7 @@ checkOutletBCType(const std::set<std::string> types) const
     for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
     {
         std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
-        std::string BCtype = M_data(dataEntry + "/type", "windkessel");
+        std::string BCtype = M_data(dataEntry + "/type", "neumann");
 
         if (types.find(BCtype) != types.end())
             return true;
@@ -170,7 +170,7 @@ applyOutletDirichletBCs(shp<LifeV::BCHandler> bcs,
         std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
 
         unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
-        std::string BCtype = M_data(dataEntry + "/type", "windkessel");
+        std::string BCtype = M_data(dataEntry + "/type", "neumann");
         if ((M_treeNode->M_ID == blockindex) && (!std::strcmp(BCtype.c_str(), "dirichlet")))
         {
             unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);
@@ -223,7 +223,7 @@ applyOutletNeumannBCs(shp<LifeV::BCHandler> bcs,
         std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
 
         unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
-        std::string BCtype = M_data(dataEntry + "/type", "windkessel");
+        std::string BCtype = M_data(dataEntry + "/type", "neumann");
         if ((M_treeNode->M_ID == blockindex) && (!std::strcmp(BCtype.c_str(), "neumann")))
         {
             unsigned int boundaryflag = M_data(dataEntry + "/boundaryflag", 2);

@@ -173,7 +173,8 @@ getRightHandSide(const double& time,
         systemMatrix->add(M_clothMass);
 
     if (M_treeNode->isOutletNode())
-        systemMatrix->add(M_additionalOutlet);
+        for (const auto& [key, _] : M_resistances)
+            systemMatrix->add(M_additionalOutletMatrices.at(key));
 
     systemMatrix->multiplyByScalar(-1.0);
 

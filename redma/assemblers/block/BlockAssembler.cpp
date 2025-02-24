@@ -212,20 +212,20 @@ getMass(const double& time,
     return mass;
 }
 
-shp<aMatrix>
+shp<aVector>
 BlockAssembler::
-getResistance() const
+getResistanceTerm(const shp<aVector>& sol) const
 {
-    shp<BlockMatrix> resistance(new BlockMatrix(M_numberBlocks, M_numberBlocks));
+    shp<BlockVector> resistanceTerm(new BlockVector(M_numberBlocks));
 
     for (auto as : M_primalAssemblers)
     {
         unsigned int ind = as.first;
         if (as.second->getTreeNode()->isOutletNode())
-            resistance->setBlock(ind, ind, as.second->getResistance());
+            resistanceTerm->setBlock(ind, as.second->getResistanceTerm(convert<BlockVector>(sol)->block(ind)));
     }
 
-    return resistance;
+    return resistanceTerm;
 }
 
 shp<aMatrix>
@@ -499,7 +499,7 @@ setup()
     {
         std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
         unsigned int blockindex = this->M_data(dataEntry + "/blockindex", 0);
-        std::string BCtype = this->M_data(dataEntry + "/type", "windkessel");
+        std::string BCtype = this->M_data(dataEntry + "/type", "neumann");
 
         if (!std::strcmp(BCtype.c_str(), "dirichlet"))
         {

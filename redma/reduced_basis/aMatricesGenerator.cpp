@@ -60,11 +60,11 @@ setDummyFlows()
         for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
         {
             std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
-            if ((!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "neumann")) ||
-            (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "windkessel")) ||
-            (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "coronary")))
+            if ((!std::strcmp(M_data(dataEntry + "/type", "neumann").c_str(), "neumann")) ||
+            (!std::strcmp(M_data(dataEntry + "/type", "neumann").c_str(), "windkessel")) ||
+            (!std::strcmp(M_data(dataEntry + "/type", "neumann").c_str(), "coronary")))
                 throw new Exception("Invalid outlet BC type! Only Dirichlet BCs are supported.");
-            else if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
+            else if (!std::strcmp(M_data(dataEntry + "/type", "neumann").c_str(), "dirichlet"))
                 M_data.setOutletBC(dummyFlow, numOutlet);
         }
     }

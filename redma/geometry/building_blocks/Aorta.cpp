@@ -54,8 +54,8 @@ Aorta(EPETRACOMM comm, std::string refinement, bool verbose, bool add_rings) :
     M_outletRadiusRef1 = 0.504580;
     M_outletRadiusRef2 = 0.555306;
 
-    M_inletRadius1Ref = 1.35;  // 1.331228;
-    M_inletRadius2Ref = 1.10;  // 1.080369;
+    M_inletRadius1Ref = 1.34;  // 1.331228;
+    M_inletRadius2Ref = 1.09;  // 1.080369;
     M_inletTangent1Ref[0] = -0.22282188;
     M_inletTangent1Ref[1] = 0.9232805;
     M_inletTangent1Ref[2] = 0.31289541;

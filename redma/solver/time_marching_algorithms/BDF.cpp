@@ -175,9 +175,10 @@ advance(const double& time, double& dt, int& status)
         [this,time,dt](BV sol)
     {
         BM mass(this->M_funProvider->getMass(time+dt, sol));
+        BV extrapolatedSolution = computeExtrapolatedSolution();
 
         if (M_useExtrapolation)
-            this->M_funProvider->setExtrapolatedSolution(computeExtrapolatedSolution());
+            this->M_funProvider->setExtrapolatedSolution(extrapolatedSolution);
 
         BV f(this->M_funProvider->getRightHandSide(time+dt, sol));
 
@@ -194,9 +195,7 @@ advance(const double& time, double& dt, int& status)
         BV retVec(new BlockVector(0));
         retVec->deepCopy(mass->multiplyByVector(prevContribution));
 
-        BM resistance(this->M_funProvider->getResistance());
-        f->add(resistance->multiplyByVector(computeExtrapolatedSolution()));
-        // f->add(resistance->multiplyByVector(M_prevSolutions[0]));
+        f->add(this->M_funProvider->getResistanceTerm(extrapolatedSolution));
 
         f->multiplyByScalar(-1. * M_rhsCoeff * dt);
         retVec->add(f);
