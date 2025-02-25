@@ -188,13 +188,11 @@ getRightHandSide(const double& time,
     if (M_data("cloth/n_cloths", 0) > 0)
         systemMatrix->add(M_clothMass);
 
-    if (M_treeNode->isOutletNode())
-        for (const auto& [key, _] : M_resistances)
-            systemMatrix->add(M_additionalOutletMatrices.at(key));
-
     systemMatrix->multiplyByScalar(-1.0);
 
     shp<aVector> retVec = systemMatrix->multiplyByVector(sol);
+
+    retVec->add(getAdditionalResistanceTerm(sol));
     addNeumannBCs(time, sol, retVec);
 
     this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec),
@@ -887,6 +885,27 @@ getResistanceTerm(const shp<aVector>& sol) const
         curResistance->add(M_flowRateJacobians.at(key));
         curResistance->multiplyByScalar(-1.0 * value);
         applyDirichletBCsMatrix(curResistance, 0.0);
+
+        retVec->add(curResistance->multiplyByVector(sol));
+    }
+
+    return retVec;
+}
+
+shp<aVector>
+StokesAssemblerFE::
+getAdditionalResistanceTerm(const shp<aVector>& sol) const
+{
+    if (!(M_treeNode->isOutletNode()))
+        return this->getZeroVector();
+
+    shp<BlockVector> retVec (new BlockVector(this->M_nComponents));
+
+    for (const auto& [key, value] : M_resistances)
+    {
+        shp<BlockMatrix> curResistance(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+        curResistance->add(M_additionalOutletMatrices.at(key));
+        curResistance->multiplyByScalar(-1.0);
 
         retVec->add(curResistance->multiplyByVector(sol));
     }

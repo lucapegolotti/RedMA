@@ -108,6 +108,12 @@ public:
      */
     virtual shp<aVector> getResistanceTerm(const shp<aVector>& sol) const override;
 
+    /*! \brief Virtual getter for additional resistance term vector.
+     *
+     * \return Shared pointer to aVector of the additional resistance term.
+     */
+    virtual shp<aVector> getAdditionalResistanceTerm(const shp<aVector>& sol) const;
+
     /*! \brief Virtual getter for pressure mass matrix.
      *
      * \param time Current time.

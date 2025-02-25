@@ -172,10 +172,6 @@ getRightHandSide(const double& time,
     if (M_data("cloth/n_cloths", 0) > 0)
         systemMatrix->add(M_clothMass);
 
-    if (M_treeNode->isOutletNode())
-        for (const auto& [key, _] : M_resistances)
-            systemMatrix->add(M_additionalOutletMatrices.at(key));
-
     systemMatrix->multiplyByScalar(-1.0);
 
     this->addConvectiveMatrix(sol, systemMatrix);  // comment for Stokes
@@ -190,6 +186,7 @@ getRightHandSide(const double& time,
         retVec->add(residual);
     }
 
+    retVec->add(getAdditionalResistanceTerm(sol));
     StokesAssemblerFE::addNeumannBCs(time, sol, retVec);
 
     this->M_bcManager->apply0DirichletBCs(*spcast<BlockVector>(retVec), this->getFESpaceBCs(),
