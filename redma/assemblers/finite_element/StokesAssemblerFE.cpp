@@ -311,8 +311,9 @@ getJacobianRightHandSide(const double& time,
 
     // this matrix sum is, for some mysterious reasons, wrong !
     if (M_treeNode->isOutletNode())
-        for (const auto& [key, _] : M_resistances)
-            retMat->add(M_additionalOutletMatrices.at(key));
+        // for (const auto& [key, _] : M_resistances)
+        for (auto rit = M_resistances.rbegin(); rit != M_resistances.rend(); ++rit)
+            retMat->add(M_additionalOutletMatrices.at(rit->first));
 
     retMat->multiplyByScalar(-1.0);
 
@@ -902,10 +903,11 @@ getAdditionalResistanceTerm(const shp<aVector>& sol) const
 
     shp<BlockVector> retVec (new BlockVector(this->M_nComponents));
 
-    for (const auto& [key, value] : M_resistances)
+    //for (const auto& [key, _] : M_resistances)
+    for (auto rit = M_resistances.rbegin(); rit != M_resistances.rend(); ++rit)
     {
         shp<BlockMatrix> curResistance(new BlockMatrix(this->M_nComponents,this->M_nComponents));
-        curResistance->add(M_additionalOutletMatrices.at(key));
+        curResistance->add(M_additionalOutletMatrices.at(rit->first));
         curResistance->multiplyByScalar(-1.0);
 
         retVec->add(curResistance->multiplyByVector(sol));
