@@ -152,10 +152,14 @@ double inflow_heartbeat(const double t, const std::vector<double> params, const 
 
     if (t<0)
         return scale * (V0/2) * (1 - cos((t+Tramp) * M_PI / Tramp));
-    else if (t<Td)
-        return scale * systolic_flow(fmod(t, T));
     else
-        return scale * diastolic_flow(fmod(t, T));
+    {
+        double tMod = fmod(t, T);
+        if (tMod < Td)
+            return scale * systolic_flow(fmod(t, T));
+        else
+            return scale * diastolic_flow(fmod(t, T));
+    }
 }
 
 double inflow_bypass(const double t, const std::vector<double> params, const double T, const double scale)

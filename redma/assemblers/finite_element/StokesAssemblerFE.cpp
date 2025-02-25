@@ -309,6 +309,7 @@ getJacobianRightHandSide(const double& time,
     if (M_data("cloth/n_cloths", 0) > 0)
         retMat->add(M_clothMass);
 
+    // this matrix sum is, for some mysterious reasons, wrong !
     if (M_treeNode->isOutletNode())
         for (const auto& [key, _] : M_resistances)
             retMat->add(M_additionalOutletMatrices.at(key));
