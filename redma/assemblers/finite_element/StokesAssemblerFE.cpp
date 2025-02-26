@@ -154,8 +154,6 @@ exportSolution(const double& t,
     if (exportWSS)
         computeWallShearStress(M_velocityExporter, M_WSSExporter, M_comm);
 
-    // shp<BlockVector> solCopy(new BlockVector(2));
-    // solCopy->block(0)->setData(M_velocityExporter);
     computeFlowRates(sol);
 
     exportNorms(t, M_velocityExporter, M_pressureExporter);
@@ -279,16 +277,6 @@ addNeumannBCs(double time,
                     shp<VECTOREPETRA> flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
                     *flowRateCopy *= P;
                     *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;
-
-                    /*double dhdQ = this->M_bcManager->getOutletNeumannJacobian(time, rate.first, rate.second);
-                    shp<BlockMatrix> curjac(new BlockMatrix(this->M_nComponents,this->M_nComponents));
-                    curjac->deepCopy(M_flowRateJacobians[rate.first]);
-                    curjac->multiplyByScalar(dhdQ);
-                    rhs->add(curjac->multiplyByVector(sol));*/
-
-                    /*shp<aVector> additionalContrib = M_additionalOutletMatrices[rate.first]->multiplyByVector(sol);
-                    additionalContrib->multiplyByScalar(-1);
-                    rhs->add(additionalContrib);*/
                 }
             }
         }
@@ -309,11 +297,12 @@ getJacobianRightHandSide(const double& time,
     if (M_data("cloth/n_cloths", 0) > 0)
         retMat->add(M_clothMass);
 
-    // this matrix sum is, for some mysterious reasons, wrong !
+    // IMPORTANT: open matrix --> allows to update the sparsity pattern !!
+    spcast<SparseMatrix>(retMat->block(0,0))->getMatrix()->openCrsMatrix();
+
     if (M_treeNode->isOutletNode())
-        // for (const auto& [key, _] : M_resistances)
-        for (auto rit = M_resistances.rbegin(); rit != M_resistances.rend(); ++rit)
-            retMat->add(M_additionalOutletMatrices.at(rit->first));
+        for (const auto& [key, _] : M_resistances)
+            retMat->add(M_additionalOutletMatrices.at(key));
 
     retMat->multiplyByScalar(-1.0);
 
@@ -324,7 +313,7 @@ getJacobianRightHandSide(const double& time,
         std::vector<unsigned int> outletFlags;
         for (auto out : aAssembler::M_treeNode->M_block->getOutlets())
             outletFlags.push_back(out.M_flag);
-        
+
         for (auto rate : flowRates)
         {
             if (std::find(outletFlags.begin(), outletFlags.end(), rate.first) != outletFlags.end())
@@ -337,6 +326,9 @@ getJacobianRightHandSide(const double& time,
             }
         }
     }
+
+    // global assemble to close the sparsity pattern
+    spcast<SparseMatrix>(retMat->block(0,0))->getMatrix()->globalAssemble();
 
     this->M_bcManager->apply0DirichletMatrix(*retMat, getFESpaceBCs(),
                                              getComponentBCs(), 0.0,
@@ -903,11 +895,10 @@ getAdditionalResistanceTerm(const shp<aVector>& sol) const
 
     shp<BlockVector> retVec (new BlockVector(this->M_nComponents));
 
-    //for (const auto& [key, _] : M_resistances)
-    for (auto rit = M_resistances.rbegin(); rit != M_resistances.rend(); ++rit)
+    for (const auto& [key, _] : M_resistances)
     {
         shp<BlockMatrix> curResistance(new BlockMatrix(this->M_nComponents,this->M_nComponents));
-        curResistance->add(M_additionalOutletMatrices.at(rit->first));
+        curResistance->add(M_additionalOutletMatrices.at(key));
         curResistance->multiplyByScalar(-1.0);
 
         retVec->add(curResistance->multiplyByVector(sol));

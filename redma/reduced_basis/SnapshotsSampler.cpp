@@ -514,6 +514,10 @@ sampleParametersInflow()
 
         else if (!std::strcmp(M_data(dataEntry + "/type", "dirichlet").c_str(), "resistance"))
             continue;
+        else if (!std::strcmp(M_data(dataEntry + "/type", "dirichlet").c_str(), "windkessel"))
+            continue;
+        else if (!std::strcmp(M_data(dataEntry + "/type", "dirichlet").c_str(), "coronary"))
+            continue;
         else
             throw new Exception("Invalid outlet BC type! "
                                 "Only Dirichlet, Neumann and Resistance BCs are supported.");
