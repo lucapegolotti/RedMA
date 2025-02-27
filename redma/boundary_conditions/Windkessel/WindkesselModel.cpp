@@ -9,10 +9,13 @@ WindkesselModel(const DataContainer& data, const std::string& dataEntry,
     aBCModel(data, dataEntry, indexOutlet)
 {
     M_C = data(dataEntry + "/C", 0.0);
-    M_Rp = data(dataEntry + "/Rp", 0.0);
+    M_Rp = data(dataEntry + "/Rp", 1.0);
     M_Rd = data(dataEntry + "/Rd", 0.0);
 
     double tol = 1e-10;
+    if (std::abs(M_Rp) < tol)
+        throw new Exception("The proximal resistance value must be larger than zero!");
+
     M_isResistanceBC = (std::abs(M_C) < tol) && (std::abs(M_Rd) < tol);
     if (!M_isResistanceBC)
     {

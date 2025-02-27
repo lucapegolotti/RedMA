@@ -265,18 +265,22 @@ addNeumannBCs(double time,
         {
             auto flowRates = this->computeFlowRates(sol, false);
 
-            std::vector<unsigned int> outletFlags;
-            for (auto out : aAssembler::M_treeNode->M_block->getOutlets())
-                outletFlags.push_back(out.M_flag);
-
-            for (auto rate : flowRates)
+            unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
+            for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
             {
-                if (std::find(outletFlags.begin(), outletFlags.end(), rate.first) != outletFlags.end())
+                std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
+
+                unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
+                std::string BCtype = M_data(dataEntry + "/type", "neumann");
+                if ((M_treeNode->M_ID == blockindex) &&
+                   ((!std::strcmp(BCtype.c_str(), "windkessel") || (!std::strcmp(BCtype.c_str(), "coronary")))))
                 {
-                    double P = this->M_bcManager->getOutletNeumannBC(time, rate.first, rate.second);
-                    shp<VECTOREPETRA> flowRateCopy(new VECTOREPETRA(*M_flowRateVectors[rate.first]));
-                    *flowRateCopy *= P;
-                    *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += *flowRateCopy;
+                    unsigned int flag = M_data(dataEntry + "/boundaryflag", 2);
+                    if (flowRates.find(flag) == flowRates.end())
+                        throw new Exception("Invalid outlet boundary flag " + std::to_string(flag));
+
+                    double P = this->M_bcManager->getOutletNeumannBC(time, flag, flowRates[flag]);
+                    *spcast<VECTOREPETRA>(convert<BlockVector>(rhs)->block(0)->data()) += ((*M_flowRateVectors[flag]) * P);
                 }
             }
         }
@@ -310,17 +314,24 @@ getJacobianRightHandSide(const double& time,
         (this->M_bcManager->checkOutletBCType({"windkessel", "coronary"})))
     {
         auto flowRates = this->computeFlowRates(sol, false);
-        std::vector<unsigned int> outletFlags;
-        for (auto out : aAssembler::M_treeNode->M_block->getOutlets())
-            outletFlags.push_back(out.M_flag);
 
-        for (auto rate : flowRates)
+        unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
+        for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
         {
-            if (std::find(outletFlags.begin(), outletFlags.end(), rate.first) != outletFlags.end())
+            std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
+
+            unsigned int blockindex = M_data(dataEntry + "/blockindex", 0);
+            std::string BCtype = M_data(dataEntry + "/type", "neumann");
+            if ((M_treeNode->M_ID == blockindex) &&
+            ((!std::strcmp(BCtype.c_str(), "windkessel") || (!std::strcmp(BCtype.c_str(), "coronary")))))
             {
-                double dhdQ = this->M_bcManager->getOutletNeumannJacobian(time, rate.first, rate.second);
-                shp<BlockMatrix> curjac(new BlockMatrix(this->M_nComponents,this->M_nComponents));
-                curjac->deepCopy(M_flowRateJacobians[rate.first]);
+                unsigned int flag = M_data(dataEntry + "/boundaryflag", 2);
+                if (flowRates.find(flag) == flowRates.end())
+                    throw new Exception("Invalid outlet boundary flag " + std::to_string(flag));
+
+                double dhdQ = this->M_bcManager->getOutletNeumannJacobian(time, flag, flowRates[flag]);
+                shp<BlockMatrix> curjac(new BlockMatrix(this->M_nComponents, this->M_nComponents));
+                curjac->deepCopy(M_flowRateJacobians[flag]);
                 curjac->multiplyByScalar(dhdQ);
                 retMat->add(curjac);
             }

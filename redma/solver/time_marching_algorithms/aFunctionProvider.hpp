@@ -61,7 +61,7 @@ public:
      *
      * \return Shared pointer to aVector of the resistance term.
      */
-    virtual shp<aVector> getResistanceTerm(const shp<aVector>& sol) const {return spcast<aVector>(shp<DistributedVector>());};
+    virtual shp<aVector> getResistanceTerm(const shp<aVector>& sol) const {return getZeroVector();};
 
     /*! \brief Getter for the pressure mass matrix.
      *
