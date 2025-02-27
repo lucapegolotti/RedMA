@@ -263,7 +263,7 @@ addNeumannBCs(double time,
         // 2) handle other outlet BCs (Coronary, Windkessel)
         else if (this->M_bcManager->checkOutletBCType({"windkessel", "coronary"}))
         {
-            auto flowRates = this->computeFlowRates(sol);
+            auto flowRates = this->computeFlowRates(sol, false);
 
             std::vector<unsigned int> outletFlags;
             for (auto out : aAssembler::M_treeNode->M_block->getOutlets())
@@ -309,7 +309,7 @@ getJacobianRightHandSide(const double& time,
     if ((aAssembler::M_treeNode->isOutletNode()) &&
         (this->M_bcManager->checkOutletBCType({"windkessel", "coronary"})))
     {
-        auto flowRates = this->computeFlowRates(sol);
+        auto flowRates = this->computeFlowRates(sol, false);
         std::vector<unsigned int> outletFlags;
         for (auto out : aAssembler::M_treeNode->M_block->getOutlets())
             outletFlags.push_back(out.M_flag);
@@ -977,7 +977,7 @@ assembleAdditionalOutletMatrices()
 
 std::map<unsigned int, double>
 StokesAssemblerFE::
-computeFlowRates(shp<aVector> sol)
+computeFlowRates(shp<aVector> sol, bool verbose)
 {
     auto solBlck = convert<BlockVector>(sol);
 
@@ -990,10 +990,8 @@ computeFlowRates(shp<aVector> sol)
         for (auto face : faces)
         {
             flowRates[face.M_flag] = spcast<VECTOREPETRA>(solBlck->block(0)->data())->dot(*M_flowRateVectors[face.M_flag]);
-            msg = "[StokesAssemblerFE]  inflow rate = ";
-            msg += std::to_string(flowRates[face.M_flag]);
-            msg += "\n";
-            printlog(YELLOW, msg, M_data.getVerbose());
+            msg = "[StokesAssemblerFE]  inflow rate = " + std::to_string(flowRates[face.M_flag]) + "\n";
+            printlog(YELLOW, msg, M_data.getVerbose() && verbose);
         }
     }
 
@@ -1004,10 +1002,8 @@ computeFlowRates(shp<aVector> sol)
         for (auto face : faces)
         {
             flowRates[face.M_flag] = spcast<VECTOREPETRA>(solBlck->block(0)->data())->dot(*M_flowRateVectors[face.M_flag]);
-            msg = "[StokesAssemblerFE]  outflow rate = ";
-            msg += std::to_string(flowRates[face.M_flag]);
-            msg += "\n";
-            printlog(YELLOW, msg, M_data.getVerbose());
+            msg = "[StokesAssemblerFE]  outflow rate = " + std::to_string(flowRates[face.M_flag]) + "\n";
+            printlog(YELLOW, msg, M_data.getVerbose() && verbose);
         }
     }
 

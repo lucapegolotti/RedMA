@@ -33,7 +33,7 @@ setInletBC(const std::function<double(double)>& inletLaw,
     }
     else
         printlog(YELLOW, "[DataContainer] WARNING: Inlet BC function will be "
-                      "read from file, as the 'generate_inletBC' flag in datafile is set to 1\n");
+                      "read from file, as the 'generate_inletBC' flag in datafile is set to 1", M_verbose);
 }
 
 void
@@ -53,7 +53,7 @@ getDistalPressure(const unsigned int& outletIndex) const
     if (it == M_distalPressures.end())
     {
         printlog(YELLOW, "[DataContainer] WARNING: distal pressure not set in outlet number " +
-                std::to_string(outletIndex) + ". Setting a default null distal pressure.\n");
+                std::to_string(outletIndex) + ". Setting a default null distal pressure.", M_verbose);
         std::function<double(double)> nullP = [](double t) {return 0.0;};
         return nullP;
     }
@@ -264,7 +264,7 @@ generateIntraMyocardialPressure(std::string inputfilename)
     catch (Exception* e)
     {
         printlog(YELLOW, "[DataContainer] Intramyocardial pressure datafile not found; "
-                         "setting it to 0 by default.");
+                         "setting it to 0 by default.", M_verbose);
         M_intraMyocardialPressure = [](double t) {return 0.0;};
     }
 }
@@ -295,7 +295,7 @@ linearInterpolation(const std::vector<std::pair<double,double>>& values,
 {
     if (std::abs(values[0].second) <= 1e-5 && M_ramp)
         printlog(YELLOW, "[DataContainer] WARNING: unnecessary addition of ramp, as the initial "
-                         "value is already zero. Risk of numerical problems!\n");
+                         "value is already zero. Risk of numerical problems!", M_verbose);
 
     funct = [values,this](double x)
     {

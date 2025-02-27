@@ -22,8 +22,8 @@ WindkesselModel(const DataContainer& data, const std::string& dataEntry,
         M_bdf->setLinearSolver();
     }
     else
-        printlog(GREEN, "[WindkesselModel] The Windkessel model reduces to a Resistance  "
-                        "model, since the capacitance and the distal resistance have been set to 0.");
+        printlog(GREEN, "[WindkesselModel] The Windkessel model reduces to a Resistance model, "
+                        "since the capacitance and the distal resistance have been set to 0.", M_data.getVerbose());
 }
 
 double
