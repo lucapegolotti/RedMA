@@ -79,7 +79,7 @@ generate()
     for (const auto& [key, value] : spcast<StokesAssemblerFE>(M_assembler)->getResistances())
     {
         auto resistanceMatrix = spcast<StokesAssemblerFE>(M_assembler)->getFlowRateJacobian(key);
-        resistanceMatrix->multiplyByScalar(-1.0 * value);
+        resistanceMatrix->multiplyByScalar(value);
         convert<SparseMatrix>(resistanceMatrix->block(0,0))->dump(outdir + "/R" + std::to_string(key));
 
         auto additionalOutletMatrix = spcast<StokesAssemblerFE>(M_assembler)->getAdditionalOutletMatrix(key);
