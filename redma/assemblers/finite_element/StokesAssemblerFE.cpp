@@ -879,7 +879,7 @@ shp<aVector>
 StokesAssemblerFE::
 getResistanceTerm(const shp<aVector>& sol) const
 {
-    if (!(M_treeNode->isOutletNode()))
+    if (!(M_treeNode->isOutletNode()) || !(this->M_bcManager->checkOutletBCType({"resistance"})))
         return this->getZeroVector();
 
     shp<BlockVector> retVec (new BlockVector(this->M_nComponents));
@@ -901,7 +901,7 @@ shp<aVector>
 StokesAssemblerFE::
 getAdditionalResistanceTerm(const shp<aVector>& sol) const
 {
-    if (!(M_treeNode->isOutletNode()))
+    if (!(M_treeNode->isOutletNode()) || !(this->M_bcManager->checkOutletBCType({"resistance"})))
         return this->getZeroVector();
 
     shp<BlockVector> retVec (new BlockVector(this->M_nComponents));

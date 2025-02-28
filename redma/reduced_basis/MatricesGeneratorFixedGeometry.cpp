@@ -76,14 +76,25 @@ generate()
     }
 
     // resistance BC matrices, accounting for the absorbing outlets
-    for (const auto& [key, value] : spcast<StokesAssemblerFE>(M_assembler)->getResistances())
+    unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);
+    for (unsigned int outletIndex = 0; outletIndex < numConditions; outletIndex++)
     {
-        auto resistanceMatrix = spcast<StokesAssemblerFE>(M_assembler)->getFlowRateJacobian(key);
-        resistanceMatrix->multiplyByScalar(value);
-        convert<SparseMatrix>(resistanceMatrix->block(0,0))->dump(outdir + "/R" + std::to_string(key));
+        std::string dataEntry = "bc_conditions/outlet" + std::to_string(outletIndex);
+        std::string BCtype = M_data(dataEntry + "/type", "neumann");
 
-        auto additionalOutletMatrix = spcast<StokesAssemblerFE>(M_assembler)->getAdditionalOutletMatrix(key);
-        convert<SparseMatrix>(additionalOutletMatrix->block(0,0))->dump(outdir + "/R_add" + std::to_string(key));
+        if ((!std::strcmp(BCtype.c_str(), "windkessel")) || (!std::strcmp(BCtype.c_str(), "coronary")) ||
+            (!std::strcmp(BCtype.c_str(), "resistance")))
+        {
+            unsigned int flag = M_data(dataEntry + "/boundaryflag", 2);
+            double R = M_data(dataEntry + ((!std::strcmp(BCtype.c_str(), "resistance") ? "/R" : "/Rp")), 100);
+
+            auto resistanceMatrix = spcast<StokesAssemblerFE>(M_assembler)->getFlowRateJacobian(flag);
+            resistanceMatrix->multiplyByScalar(R);
+            convert<SparseMatrix>(resistanceMatrix->block(0,0))->dump(outdir + "/R" + std::to_string(outletIndex));
+
+            auto additionalOutletMatrix = spcast<StokesAssemblerFE>(M_assembler)->getAdditionalOutletMatrix(flag);
+            convert<SparseMatrix>(additionalOutletMatrix->block(0,0))->dump(outdir + "/R_add" + std::to_string(outletIndex));
+        }
     }
 
     // boundary matrices, if the membrane model is selected
