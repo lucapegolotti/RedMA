@@ -112,6 +112,9 @@ protected:
     unsigned int            M_index;
     unsigned int            M_nBasisFunctions;
 
+    Vector3D                M_e;
+    Vector3D                M_eOrth;
+
     std::string             M_type;
 };
 

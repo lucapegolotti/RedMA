@@ -52,7 +52,7 @@ operator()(const Vector3D& pos)
 
     double R1 = M_face.M_radius1;
     double R2 = M_face.M_radius2;
-    double R = std::sqrt(R1*R2);
+    double R = (std::abs(R1 - R2) > 1e-8) ? std::sqrt(R1*R2) : M_face.M_radius;
 
     returnVal = M_sqrtPIm1 * chebyshevU(x/R1*std::cos(ind) +
                                         y/R2*std::sin(ind), n) / R;

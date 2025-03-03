@@ -606,8 +606,12 @@ applyAffineTransformationGeometricFace(GeometricFace& face,
     face.M_center = face.M_center + translation;
 
     face.M_normal = affineMatrix * face.M_normal;
+    face.M_tangent1 = affineMatrix * face.M_tangent1;
+    face.M_tangent2 = affineMatrix * face.M_tangent2;
 
     face.M_radius = face.M_radius * scale;
+    face.M_radius1 = face.M_radius1 * scale;
+    face.M_radius2 = face.M_radius2 * scale;
 }
 
 void

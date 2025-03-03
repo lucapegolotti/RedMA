@@ -145,7 +145,6 @@ scalingFunction(double& x, double& y, double& z,
                 const double& lengthRatio, const double& outRadiusRatio,
                 const double& L)
 {
-    // 15 is the length of the tube
     double curRatio = 1. - (1. - outRadiusRatio) * z / L;
     z = z * lengthRatio;
     x = x * curRatio;
