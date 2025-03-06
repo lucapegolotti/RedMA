@@ -8,8 +8,8 @@ aMatricesGenerator(const DataContainer& data, EPETRACOMM comm) :
 M_data(data),
 M_comm(comm)
 {
-    if (M_comm->MyPID() != 0)
-        throw new Exception("MatricesGenerator does not support more than one proc");
+    /*if (M_comm->MyPID() != 0)
+        throw new Exception("MatricesGenerator does not support more than one proc");*/
 }
 
 void

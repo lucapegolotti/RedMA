@@ -45,6 +45,8 @@ public:
      */
     virtual void generate() override;
 
+    inline void setAssembler(shp<AssemblerType> assembler) {M_assembler=assembler;};
+
 protected:
     virtual void createAssemblers() override;
 

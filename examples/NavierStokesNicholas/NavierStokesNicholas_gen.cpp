@@ -22,5 +22,9 @@ int main(int argc, char **argv)
     MatricesGeneratorFixedGeometry generator(data, comm);
     generator.generate();
 
+    #ifdef HAVE_MPI
+    MPI_Finalize();
+    #endif
+
     return 0;
 }

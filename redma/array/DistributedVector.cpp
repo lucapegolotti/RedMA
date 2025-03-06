@@ -126,9 +126,9 @@ DistributedVector::
 getString(const char& delimiter) const
 {
     std::ostringstream streamObj;
-    // streamObj << std::scientific;
     streamObj << std::setprecision(16);
     streamObj << "";
+
     if (M_vector)
     {
         // we reduce the vector to processor 0
@@ -137,18 +137,31 @@ getString(const char& delimiter) const
         if (redVec.epetraVector().Comm().MyPID())
             return streamObj.str();
 
-        const double* values = redVec.epetraVector()[0];
-        for (unsigned int i = 0; i < redVec.epetraVector().GlobalLength(); ++i)
+        std::vector<std::pair<int, double>> global_values;
+        for (unsigned int j = 0; j < redVec.epetraVector().GlobalLength(); j++) {
+            unsigned int gid = redVec.epetraMap().GID(j);
+            if (redVec.isGlobalIDPresent(gid))
+                global_values.emplace_back(gid, redVec[j]);
+        }
+        std::sort(global_values.begin(), global_values.end());
+
+        unsigned int cnt = 0;
+        for (const auto& pair : global_values)
         {
-            if (std::abs(values[i]) > ZEROTHRESHOLD)
-                streamObj << values[i];
+
+            if (std::abs(pair.second) > ZEROTHRESHOLD)
+                streamObj << pair.second;
             else
                 streamObj << 0.;
 
-            if (i != redVec.epetraVector().GlobalLength()-1)
+            if (cnt != redVec.epetraVector().GlobalLength()-1)
                 streamObj << delimiter;
+
+            cnt += 1;
         }
+
     }
+
     return streamObj.str();
 }
 

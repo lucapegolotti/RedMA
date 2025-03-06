@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     std::string msg = "Starting chrono... \n";
     printlog(MAGENTA, msg, data.getVerbose());
 
-    printlog(MAGENTA,"Starting snapshots generation\n", data.getVerbose());
+    printlog(MAGENTA,"Starting snapshots generation...\n", data.getVerbose());
 
     unsigned int Nstart = 0;
     if (argc > 1)

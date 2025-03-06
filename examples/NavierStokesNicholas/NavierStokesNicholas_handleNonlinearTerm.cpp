@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     #endif
 
     std::string msg = "Starting RB matrices generation...\n";
-    printlog(MAGENTA, msg, true);
+    printlog(MAGENTA, msg, comm->MyPID()==0);
 
     DataContainer data;
     data.setDatafile("datafiles/data_rb");
@@ -53,7 +53,11 @@ int main(int argc, char **argv)
     // rbProblem.solve();
 
     msg = "Done\n";
-    printlog(MAGENTA, msg, true);
+    printlog(MAGENTA, msg, comm->MyPID()==0);
+
+    #ifdef HAVE_MPI
+    MPI_Finalize();
+    #endif
 
     return 0;
 }

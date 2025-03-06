@@ -60,6 +60,10 @@ int main(int argc, char **argv)
 
     femProblem.exportFromFiles(path);
 
+    #ifdef HAVE_MPI
+    MPI_Finalize();
+    #endif
+
     return 0;
 }
 

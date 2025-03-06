@@ -46,7 +46,7 @@ takeSnapshots(const unsigned int& Nstart)
         }
         M_comm->Barrier();
         M_comm->Broadcast(&paramIndex, 1, 0);
-        std::string curdir = outdir + "/param" + std::to_string(paramIndex);
+        std::string curdir = outdir + "/param" + std::to_string(paramIndex) + "/";
 
         if (std::find(std::begin(param_types), std::end(param_types), "inflow") != std::end(param_types))
         {
@@ -62,10 +62,19 @@ takeSnapshots(const unsigned int& Nstart)
         }
 
         GlobalProblem problem(M_data, M_comm, false);
-
         problem.doStoreSolutions();
 
         fs::create_directory(curdir);
+
+        if (M_comm->NumProc() > 1)  // with parallel simulation, store in h5 files
+        {
+            M_data.setValueString("exporter/outdir", curdir);
+            M_data.setValueString("exporter/type", "hdf5");
+            M_data.setValueBool("exporter/exportnorms", false);
+            M_data.setValueInt("exporter/start", 0);
+            M_data.setValueInt("exporter/save_every", 1);
+            M_data.setValueInt("exporter/save_ramp", 1);
+        }
 
         if (std::find(std::begin(param_types), std::end(param_types), "geometric") != std::end(param_types))
             problem.getTree().randomSampleAroundOriginalValue(bound);
@@ -76,10 +85,9 @@ takeSnapshots(const unsigned int& Nstart)
         double setupTime = chrono2.diff();
 
         if (!problem.isFEProblem())
-            throw new Exception("The tree must be composed of only FE nodes to "
-                                "sample the snapshots!");
+            throw new Exception("The tree must be composed of only FE nodes to sample the snapshots!");
 
-        std::string filename = curdir + "/tree.xml";
+        std::string filename = curdir + "tree.xml";
         printer.saveToFile(problem.getTree(), filename, M_comm);
 
         problem.solve();
@@ -99,7 +107,6 @@ takeSnapshots(const unsigned int& Nstart)
     msg += std::to_string(elapsedTimeNoSetup);
     msg += " seconds\n";
     printlog(MAGENTA, msg, M_data.getVerbose());
-
 }
 
 void
@@ -146,69 +153,22 @@ dumpSnapshots(GlobalProblem& problem,
         if (extraSolutions.size())
             nfields_extra = extraSolutions[0]->block(idmeshtype.first)->nRows();
 
-        for (unsigned int i = 0; i < nfields; i++)
-        {
-            std::string outfilename = meshtypedir + "/field" + std::to_string(i) + ".snap";
-
-            std::ofstream outfile;
-            outfile.open(outfilename, omode);
-            unsigned int count = 0;
-            for (auto sol : solutions)
-            {
-                auto solBlck = convert<DistributedVector>(convert<BlockVector>(
-                               convert<BlockVector>(sol)->block(idmeshtype.first))->block(i));
-                if (count % takeEvery == 0)
-                {
-                    std::string str2write = solBlck->getString(',') + "\n";
-                    if (M_comm->MyPID() == 0)
-                        outfile.write(str2write.c_str(), str2write.size());
-                }
-
-                count++;
-            }
-            outfile.close();
-        }
-
-        if (!(std::strcmp(M_data("assembler/type", "navierstokes").c_str(), "navierstokes_membrane")))
-        {
-            for(unsigned int k = 0; k < nfields_extra; k++)
-                {
-                std::string outfilename = meshtypedir + "/field" + std::to_string(nfields+k) + ".snap";
-                std::ofstream outfile;
-                outfile.open(outfilename, omode);
-                unsigned int count = 0;
-                for (auto sol : extraSolutions)
-                {
-                    auto solBlck = convert<DistributedVector>(convert<BlockVector>(
-                            convert<BlockVector>(sol)->block(idmeshtype.first))->block(k));
-                    if (count % takeEvery == 0)
-                    {
-                        std::string str2write = solBlck->getString(',') + "\n";
-                        if (M_comm->MyPID() == 0)
-                            outfile.write(str2write.c_str(), str2write.size());
-                    }
-                    count++;
-                }
-                outfile.close();
-                }
-        }
-
-        if (!initialConditions.empty())
+        if (M_comm->NumProc() == 1)  // save in plain txt only with serial simulations
         {
             for (unsigned int i = 0; i < nfields; i++)
             {
-                std::string outfilename = meshtypedir + "/field" + std::to_string(i) + "_IC.snap";
+                std::string outfilename = meshtypedir + "/field" + std::to_string(i) + ".snap";
 
                 std::ofstream outfile;
                 outfile.open(outfilename, omode);
                 unsigned int count = 0;
-                for (auto initialCondition : initialConditions)
+                for (auto sol : solutions)
                 {
                     auto solBlck = convert<DistributedVector>(convert<BlockVector>(
-                            convert<BlockVector>(initialCondition)->block(idmeshtype.first))->block(i));
+                            convert<BlockVector>(sol)->block(idmeshtype.first))->block(i));
                     if (count % takeEvery == 0)
                     {
-                        std::string str2write = solBlck->getString(',') + "\n";
+                        std::string str2write = solBlck->getString(',') + "\n";  // TODO: issues with parallel !
                         if (M_comm->MyPID() == 0)
                             outfile.write(str2write.c_str(), str2write.size());
                     }
@@ -217,32 +177,83 @@ dumpSnapshots(GlobalProblem& problem,
                 }
                 outfile.close();
             }
-        }
 
-        if (!extraInitialConditions.empty())
-        {
-            for (unsigned int k = 0; k < nfields_extra; k++)
+            if (!(std::strcmp(M_data("assembler/type", "navierstokes").c_str(), "navierstokes_membrane")))
             {
-                std::string outfilename = meshtypedir + "/field" + std::to_string(nfields+k) + "_IC.snap";
-
-                std::ofstream outfile;
-                outfile.open(outfilename, omode);
-                unsigned int count = 0;
-                for (auto initialCondition : extraInitialConditions)
+                for(unsigned int k = 0; k < nfields_extra; k++)
                 {
-                    auto solBlck = convert<DistributedVector>(convert<BlockVector>(
-                            convert<BlockVector>(initialCondition)->block(idmeshtype.first))->block(k));
-                    if (count % takeEvery == 0)
+                    std::string outfilename = meshtypedir + "/field" + std::to_string(nfields+k) + ".snap";
+                    std::ofstream outfile;
+                    outfile.open(outfilename, omode);
+                    unsigned int count = 0;
+                    for (auto sol : extraSolutions)
                     {
-                        std::string str2write = solBlck->getString(',') + "\n";
-                        if (M_comm->MyPID() == 0)
-                            outfile.write(str2write.c_str(), str2write.size());
+                        auto solBlck = convert<DistributedVector>(convert<BlockVector>(
+                                convert<BlockVector>(sol)->block(idmeshtype.first))->block(k));
+                        if (count % takeEvery == 0)
+                        {
+                            std::string str2write = solBlck->getString(',') + "\n";  // TODO: issues with parallel !
+                            if (M_comm->MyPID() == 0)
+                                outfile.write(str2write.c_str(), str2write.size());
+                        }
+                        count++;
                     }
-
-                    count++;
+                    outfile.close();
                 }
-                outfile.close();
             }
+
+            if (!initialConditions.empty())
+            {
+                for (unsigned int i = 0; i < nfields; i++)
+                {
+                    std::string outfilename = meshtypedir + "/field" + std::to_string(i) + "_IC.snap";
+
+                    std::ofstream outfile;
+                    outfile.open(outfilename, omode);
+                    unsigned int count = 0;
+                    for (auto initialCondition : initialConditions)
+                    {
+                        auto solBlck = convert<DistributedVector>(convert<BlockVector>(
+                                convert<BlockVector>(initialCondition)->block(idmeshtype.first))->block(i));
+                        if (count % takeEvery == 0)
+                        {
+                            std::string str2write = solBlck->getString(',') + "\n";
+                            if (M_comm->MyPID() == 0)
+                                outfile.write(str2write.c_str(), str2write.size());
+                        }
+
+                        count++;
+                    }
+                    outfile.close();
+                }
+            }
+
+            if (!extraInitialConditions.empty())
+            {
+                for (unsigned int k = 0; k < nfields_extra; k++)
+                {
+                    std::string outfilename = meshtypedir + "/field" + std::to_string(nfields+k) + "_IC.snap";
+
+                    std::ofstream outfile;
+                    outfile.open(outfilename, omode);
+                    unsigned int count = 0;
+                    for (auto initialCondition : extraInitialConditions)
+                    {
+                        auto solBlck = convert<DistributedVector>(convert<BlockVector>(
+                                convert<BlockVector>(initialCondition)->block(idmeshtype.first))->block(k));
+                        if (count % takeEvery == 0)
+                        {
+                            std::string str2write = solBlck->getString(',') + "\n";
+                            if (M_comm->MyPID() == 0)
+                                outfile.write(str2write.c_str(), str2write.size());
+                        }
+
+                        count++;
+                    }
+                    outfile.close();
+                }
+            }
+
         }
 
         if (computereynolds)

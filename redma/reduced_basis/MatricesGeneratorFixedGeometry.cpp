@@ -200,11 +200,17 @@ generate()
         shp<VECTOREPETRA> flowRateVector;
         flowRateVector.reset(new VECTOREPETRA(*(spcast<StokesAssemblerFE>(M_assembler)->getFlowRateVector(face.M_flag)),
                                               LifeV::Unique));
+
+        shp<DistributedVector> flowRateVectorDist;
+        flowRateVectorDist.reset(new DistributedVector());
+        flowRateVectorDist->setData(flowRateVector);
+
         std::string filename;
         if (cnt < in_faces.size())
             filename = outdir + "/q_in" + std::to_string(cnt);
         else
             filename = outdir + "/q_out" + std::to_string(cnt - in_faces.size());
+
         flowRateVector->spy(filename);
 
         cnt++;
