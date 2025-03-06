@@ -50,7 +50,8 @@ takeSnapshots(const unsigned int& Nstart)
         int paramIndex = Nstart;
         
         // we find the first parameter index available, starting from Nstart
-        if (M_comm->MyPID() == 0) {
+        if (M_comm->MyPID() == 0)
+        {
             while (fs::exists(outdir + "/param" + std::to_string(paramIndex)))
                 paramIndex++;
             printlog(GREEN, "\nComputing snapshot number " + std::to_string(paramIndex) +"\n");
@@ -59,18 +60,27 @@ takeSnapshots(const unsigned int& Nstart)
         M_comm->Broadcast(&paramIndex, 1, 0);
         std::string curdir = outdir + "/param" + std::to_string(paramIndex) + "/";
 
-        if (std::find(std::begin(param_types), std::end(param_types), "inflow") != std::end(param_types))
+        if (M_comm->MyPID() == 0)
         {
-            std::vector<double> array_params_inflow = this->sampleParametersInflow();
-            array_params.insert(array_params.end(), array_params_inflow.begin(), array_params_inflow.end());
+            if (std::find(std::begin(param_types), std::end(param_types), "inflow") != std::end(param_types))
+            {
+                std::vector<double> array_params_inflow = this->sampleParametersInflow();
+                array_params.insert(array_params.end(), array_params_inflow.begin(), array_params_inflow.end());
+            }
+
+            if (std::find(std::begin(param_types), std::end(param_types), "physics") != std::end(param_types))
+            {
+                std::vector<double> array_params_physics = this->sampleParametersPhysics();
+                array_params.insert(array_params.end(), array_params_physics.begin(), array_params_physics.end());
+            }
         }
 
-
-        if (std::find(std::begin(param_types), std::end(param_types), "physics") != std::end(param_types))
-        {
-            std::vector<double> array_params_physics = this->sampleParametersPhysics();
-            array_params.insert(array_params.end(), array_params_physics.begin(), array_params_physics.end());
-        }
+        // Broadcast the parameters to all the processes
+        M_comm->Barrier();
+        int params_size = array_params.size();
+        M_comm->Broadcast(&params_size, 1, 0);
+        array_params.resize(params_size);
+        M_comm->Broadcast(array_params.data(), params_size, 0);
 
         GlobalProblem problem(M_data, M_comm, false);
         problem.doStoreSolutions();
@@ -78,7 +88,11 @@ takeSnapshots(const unsigned int& Nstart)
         fs::create_directory(curdir);
 
         if (std::find(std::begin(param_types), std::end(param_types), "geometric") != std::end(param_types))
+        {
+            if (M_comm->NumProc() > 1)
+                throw new Exception("Geometric variability does not support parallelization!");
             problem.getTree().randomSampleAroundOriginalValue(bound);
+        }
 
         Chrono chrono2;
         chrono2.start();
