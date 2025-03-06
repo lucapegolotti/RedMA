@@ -22,6 +22,17 @@ takeSnapshots(const unsigned int& Nstart)
     fs::create_directory(outdir);
     GeometryPrinter printer;
 
+    if (M_comm->NumProc() > 1)   // with parallel simulation, store in h5 files
+    {
+        M_data.setValueString("exporter/type", "hdf5");
+        M_data.setValueBool("exporter/exportnorms", false);
+        M_data.setValueInt("exporter/start", 0);
+        M_data.setValueInt("exporter/save_every", 1);
+        M_data.setValueInt("exporter/save_ramp", 1);
+        M_data.setValueInt("exporter/export_wss", 0);  // to save memory
+    }
+
+
     unsigned int nSnapshots = M_data("rb/offline/snapshots/number", 10);
     double bound = M_data("rb/offline/snapshots/bound", 0.2);
 
@@ -66,18 +77,6 @@ takeSnapshots(const unsigned int& Nstart)
 
         fs::create_directory(curdir);
 
-        if (M_comm->NumProc() > 1)  // with parallel simulation, store in h5 files
-        {
-            // M_data.setValueString("exporter/outdir", curdir);
-            problem.getBlockAssembler()->setExporterDirectory(curdir);
-            M_data.setValueString("exporter/type", "hdf5");
-            M_data.setValueBool("exporter/exportnorms", false);
-            M_data.setValueInt("exporter/start", 0);
-            M_data.setValueInt("exporter/save_every", 1);
-            M_data.setValueInt("exporter/save_ramp", 1);
-            M_data.setValueInt("exporter/export_wss", 0);  // to save memory
-        }
-
         if (std::find(std::begin(param_types), std::end(param_types), "geometric") != std::end(param_types))
             problem.getTree().randomSampleAroundOriginalValue(bound);
 
@@ -91,6 +90,9 @@ takeSnapshots(const unsigned int& Nstart)
 
         std::string filename = curdir + "tree.xml";
         printer.saveToFile(problem.getTree(), filename, M_comm);
+
+        if (M_comm->NumProc() > 1)  // with parallel simulation, store in h5 files
+            problem.getBlockAssembler()->setExporterDirectory(curdir);
 
         problem.solve();
 
