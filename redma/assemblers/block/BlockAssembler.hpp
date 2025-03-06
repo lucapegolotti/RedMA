@@ -214,6 +214,12 @@ public:
      */
     virtual void setExporter() override;
 
+    /*! \brief Set the solution exporter directory in all the subdomains
+     *
+     * \param outdir Exporter directory
+     */
+    virtual void setExporterDirectory(std::string outdir) override;
+
     /*! \brief Check the magnitude of the stabilization term for the coupling.
      *
      * Currently not implemented.

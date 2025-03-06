@@ -156,6 +156,14 @@ setExporter()
 
 void
 BlockAssembler::
+setExporterDirectory(std::string outdir)
+{
+    for (auto as: M_primalAssemblers)
+        as.second->setExporterDirectory(outdir);
+}
+
+void
+BlockAssembler::
 exportSolution(const double& t, const shp<aVector>& sol)
 {
     for (auto as : M_primalAssemblers)

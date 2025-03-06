@@ -218,6 +218,12 @@ public:
      */
     void setExporter() override;
 
+    /*! \brief Setter for the exporter(s) directory.
+     *
+     * \param outdir Exporter directory
+     */
+    inline void setExporterDirectory(std::string outdir) override {M_exporter->setPostDir(outdir);};
+
     /*! \brief Getter for the finite element space corresponding to the Dirichlet bcs,
      * i.e., the velocity finite element space.
      *

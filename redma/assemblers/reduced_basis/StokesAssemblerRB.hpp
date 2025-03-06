@@ -73,6 +73,12 @@ public:
      */
     virtual void setExporter() override;
 
+    /*! \brief Setter for the exporter(s) directory.
+     *
+     * \param outdir Exporter directory
+     */
+    inline void setExporterDirectory(std::string outdir) override {M_exporter->setPostDir(outdir);};
+
     /*! Virtual export solution.
      *
      * \param time Current time.

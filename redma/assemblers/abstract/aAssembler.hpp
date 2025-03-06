@@ -170,6 +170,10 @@ public:
      */
     virtual void setExporter() = 0;
 
+    /*! \brief Virtual setup of the exporter.
+     */
+    virtual void setExporterDirectory(std::string outdir) = 0;
+
     /*! \brief Virtual method to apply Dirichlet bcs to a matrix.
      *
      * \param matrix The matrix to which the bcs must be applied.
