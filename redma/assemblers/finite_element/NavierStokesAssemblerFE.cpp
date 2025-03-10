@@ -169,8 +169,8 @@ getRightHandSide(const double& time,
 
     systemMatrix->add(this->M_stiffness);
     systemMatrix->add(this->M_divergence);
-    if (M_data("cloth/n_cloths", 0) > 0)
-        systemMatrix->add(M_clothMass);
+    if (M_data("clot/n_clots", 0) > 0)
+        systemMatrix->add(M_clotMass);
 
     systemMatrix->multiplyByScalar(-1.0);
 

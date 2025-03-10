@@ -36,8 +36,8 @@ setup()
     M_massPressure = spcast<BlockMatrix>(assemblePressureMass(M_bcManager));
     M_stiffness = spcast<BlockMatrix>(assembleStiffness(M_bcManager)); // #2
     M_divergence = spcast<BlockMatrix>(assembleDivergence(M_bcManager)); // #3
-    if (M_data("cloth/n_cloths", 0) > 0)
-        M_clothMass = spcast<BlockMatrix>(assembleBloodClothMatrix(M_bcManager));
+    if (M_data("clot/n_clots", 0) > 0)
+        M_clotMass = spcast<BlockMatrix>(assembleBloodClotMatrix(M_bcManager));
 
     if ((M_treeNode->isInletNode()) || (M_treeNode->isOutletNode()))
     {
@@ -183,8 +183,8 @@ getRightHandSide(const double& time,
                                                     this->M_nComponents));
     systemMatrix->add(M_stiffness);
     systemMatrix->add(M_divergence);
-    if (M_data("cloth/n_cloths", 0) > 0)
-        systemMatrix->add(M_clothMass);
+    if (M_data("clot/n_clots", 0) > 0)
+        systemMatrix->add(M_clotMass);
 
     systemMatrix->multiplyByScalar(-1.0);
 
@@ -298,8 +298,8 @@ getJacobianRightHandSide(const double& time,
 
     retMat->add(M_stiffness);
     retMat->add(M_divergence);
-    if (M_data("cloth/n_cloths", 0) > 0)
-        retMat->add(M_clothMass);
+    if (M_data("clot/n_clots", 0) > 0)
+        retMat->add(M_clotMass);
 
     // IMPORTANT: open matrix --> allows to update the sparsity pattern !!
     spcast<SparseMatrix>(retMat->block(0,0))->getMatrix()->openCrsMatrix();
@@ -1145,80 +1145,80 @@ assembleAdditionalOutletMatrix(const GeometricFace &face)
 
 shp<aMatrix>
 StokesAssemblerFE::
-assembleSingleBloodClothMatrix(shp<BCManager> bcManager,
+assembleSingleBloodClotMatrix(shp<BCManager> bcManager,
                                unsigned int index)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    int n_cloths = M_data("cloth/n_cloths", 0);
-    if ((n_cloths <= 0) or (index >= n_cloths))
-        throw new Exception("Invalid number of cloths (<=0) or invalid cloth index (>=n_cloths) !");
+    int n_clots = M_data("clot/n_clots", 0);
+    if ((n_clots <= 0) or (index >= n_clots))
+        throw new Exception("Invalid number of clots (<=0) or invalid clot index (>=n_clots) !");
 
-    shp<BlockMatrix> cloth(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+    shp<BlockMatrix> clot(new BlockMatrix(this->M_nComponents,this->M_nComponents));
 
-    std::string path = "cloth/cloth" + std::to_string(index);
-    double R_cloth = M_data(path + "/density", 1e2);
-    Vector3D center_cloth(M_data(path + "/center_x", 0.0),
+    std::string path = "clot/clot" + std::to_string(index);
+    double R_clot = M_data(path + "/density", 1e2);
+    Vector3D center_clot(M_data(path + "/center_x", 0.0),
                           M_data(path + "/center_y", 0.0),
                           M_data(path + "/center_z", 0.0));
-    Vector3D normal_cloth(M_data(path + "/normal_x", 1.0),
+    Vector3D normal_clot(M_data(path + "/normal_x", 1.0),
                           M_data(path + "/normal_y", 0.0),
                           M_data(path + "/normal_z", 0.0));
-    Vector3D tangent_cloth(M_data(path + "/tangent_x", 0.0),
+    Vector3D tangent_clot(M_data(path + "/tangent_x", 0.0),
                            M_data(path + "/tangent_y", 1.0),
                            M_data(path + "/tangent_z", 0.0));
-    Vector3D shape_coeffs_cloth(M_data(path + "/shape_n", 1.0),
+    Vector3D shape_coeffs_clot(M_data(path + "/shape_n", 1.0),
                                 M_data(path + "/shape_t1", 1.0),
                                 M_data(path + "/shape_t2", 1.0));
-    double radius_cloth = M_data(path + "/radius", 0.1);
+    double radius_clot = M_data(path + "/radius", 0.1);
 
-    shp<ClothFunctionFunctor> cloth_fun(new ClothFunctionFunctor(center_cloth, radius_cloth,
-                                                                    normal_cloth, tangent_cloth,
-                                                                    shape_coeffs_cloth));
+    shp<ClotFunctionFunctor> clot_fun(new ClotFunctionFunctor(center_clot, radius_clot,
+                                                                    normal_clot, tangent_clot,
+                                                                    shape_coeffs_clot));
 
     shp<MATRIXEPETRA> C(new MATRIXEPETRA(M_velocityFESpace->map()));
     integrate(elements(M_velocityFESpaceETA->mesh()),
               M_velocityFESpace->qr(),
               M_velocityFESpaceETA,
               M_velocityFESpaceETA,
-              value(R_cloth) *
-              eval(cloth_fun, X) *
+              value(R_clot) *
+              eval(clot_fun, X) *
               dot(phi_i, phi_j)
               ) >> C;
     C->globalAssemble();
 
-    cloth->setBlock(0, 0, wrap(C));
+    clot->setBlock(0, 0, wrap(C));
 
-    bcManager->apply0DirichletMatrix(*cloth, M_velocityFESpace,
+    bcManager->apply0DirichletMatrix(*clot, M_velocityFESpace,
                                      0, 1.0,
                                      !(this->M_addNoSlipBC));
 
-    return cloth;
+    return clot;
 }
 
 shp<aMatrix>
 StokesAssemblerFE::
-assembleBloodClothMatrix(shp<BCManager> bcManager)
+assembleBloodClotMatrix(shp<BCManager> bcManager)
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
 
-    int n_cloths = M_data("cloth/n_cloths", 0);
+    int n_clots = M_data("clot/n_clots", 0);
 
-    if (n_cloths <= 0)
-        throw new Exception("Invalid number of cloths (<=0) !");
+    if (n_clots <= 0)
+        throw new Exception("Invalid number of clots (<=0) !");
 
-    shp<BlockMatrix> cloth(new BlockMatrix(this->M_nComponents,this->M_nComponents));
+    shp<BlockMatrix> clot(new BlockMatrix(this->M_nComponents,this->M_nComponents));
 
-    for (unsigned int i=0; i<n_cloths; i++)
-        cloth->add(this->assembleSingleBloodClothMatrix(bcManager, i));
+    for (unsigned int i=0; i<n_clots; i++)
+        clot->add(this->assembleSingleBloodClotMatrix(bcManager, i));
 
-    bcManager->apply0DirichletMatrix(*cloth, M_velocityFESpace,
+    bcManager->apply0DirichletMatrix(*clot, M_velocityFESpace,
                                      0, 1.0,
                                      !(this->M_addNoSlipBC));
 
-    return cloth;
+    return clot;
 }
 
 void

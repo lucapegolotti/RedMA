@@ -53,7 +53,7 @@
 		    inflow_type          = heartbeat
 		    sample_fluid_physics = false
 		    sample_structure_physics = false
-		    sample_cloth_physics = false
+		    sample_clot_physics = false
 		    add_outflow_param    = false
 			number 			     = 1
 			bound 			     = 0.2
@@ -91,9 +91,9 @@
             E_max = 0.0  # +0.5
             nu_min = 0.0  # -0.3
             nu_max = 0.0  # 0.0
-            # parameter ranges of cloth physics
-            Rcloth_min = 1.0
-            Rcloth_max = 3.0
+            # parameter ranges of clot physics
+            Rclot_min = 1.0
+            Rclot_max = 3.0
 		[../]
 	[../]
 [../]
@@ -160,7 +160,7 @@
 [../]
 
 [importer]
-    indir = ../../../../../PDE-DNN/TESTS/RB/Unsteady/Stokes/tube_1x2_h0.20/default+cloth/SRB-TFO/Test1/results/
+    indir = ../../../../../PDE-DNN/TESTS/RB/Unsteady/Stokes/tube_1x2_h0.20/default+clot/SRB-TFO/Test1/results/
     param_nb = 51
     isFEM = true
 [../]

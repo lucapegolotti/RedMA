@@ -60,27 +60,17 @@ takeSnapshots(const unsigned int& Nstart)
         M_comm->Broadcast(&paramIndex, 1, 0);
         std::string curdir = outdir + "/param" + std::to_string(paramIndex) + "/";
 
-        if (M_comm->MyPID() == 0)
+        if (std::find(std::begin(param_types), std::end(param_types), "inflow") != std::end(param_types))
         {
-            if (std::find(std::begin(param_types), std::end(param_types), "inflow") != std::end(param_types))
-            {
-                std::vector<double> array_params_inflow = this->sampleParametersInflow();
-                array_params.insert(array_params.end(), array_params_inflow.begin(), array_params_inflow.end());
-            }
-
-            if (std::find(std::begin(param_types), std::end(param_types), "physics") != std::end(param_types))
-            {
-                std::vector<double> array_params_physics = this->sampleParametersPhysics();
-                array_params.insert(array_params.end(), array_params_physics.begin(), array_params_physics.end());
-            }
+            std::vector<double> array_params_inflow = this->sampleParametersInflow();
+            array_params.insert(array_params.end(), array_params_inflow.begin(), array_params_inflow.end());
         }
 
-        // Broadcast the parameters to all the processes
-        M_comm->Barrier();
-        int params_size = array_params.size();
-        M_comm->Broadcast(&params_size, 1, 0);
-        array_params.resize(params_size);
-        M_comm->Broadcast(array_params.data(), params_size, 0);
+        if (std::find(std::begin(param_types), std::end(param_types), "physics") != std::end(param_types))
+        {
+            std::vector<double> array_params_physics = this->sampleParametersPhysics();
+            array_params.insert(array_params.end(), array_params_physics.begin(), array_params_physics.end());
+        }
 
         GlobalProblem problem(M_data, M_comm, false);
         problem.doStoreSolutions();
@@ -186,7 +176,7 @@ dumpSnapshots(GlobalProblem& problem,
                             convert<BlockVector>(sol)->block(idmeshtype.first))->block(i));
                     if (count % takeEvery == 0)
                     {
-                        std::string str2write = solBlck->getString(',') + "\n";  // TODO: issues with parallel !
+                        std::string str2write = solBlck->getString(',') + "\n";
                         if (M_comm->MyPID() == 0)
                             outfile.write(str2write.c_str(), str2write.size());
                     }
@@ -210,7 +200,7 @@ dumpSnapshots(GlobalProblem& problem,
                                 convert<BlockVector>(sol)->block(idmeshtype.first))->block(k));
                         if (count % takeEvery == 0)
                         {
-                            std::string str2write = solBlck->getString(',') + "\n";  // TODO: issues with parallel !
+                            std::string str2write = solBlck->getString(',') + "\n";
                             if (M_comm->MyPID() == 0)
                                 outfile.write(str2write.c_str(), str2write.size());
                         }
@@ -436,6 +426,7 @@ std::vector<double>
 SnapshotsSampler::
 sampleParametersInflow()
 {
+
     std::vector<double> array_params;
 
     std::string inflow_type = M_data("rb/offline/snapshots/inflow_type", "default");
@@ -443,75 +434,88 @@ sampleParametersInflow()
     unsigned int numInletConditions = M_data("bc_conditions/numinletbcs", 1);
     unsigned int numOutletConditions = M_data("bc_conditions/numoutletbcs", 0);
 
-    std::vector<std::array<double,2>> param_bounds;
+    int num_params_inflow;
 
-    if ((!std::strcmp(inflow_type.c_str(), "default")) || (!std::strcmp(inflow_type.c_str(), "periodic")))
+    if (M_comm->MyPID() == 0)
     {
-        param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/a_min", 0.0),
-                                                       M_data("rb/offline/snapshots/a_max", 1.0)}));
-        param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/c_min", 0.0),
-                                                       M_data("rb/offline/snapshots/c_max", 1.0)}));
-    }
-    else if ((!std::strcmp(inflow_type.c_str(), "systolic")) || (!std::strcmp(inflow_type.c_str(), "heartbeat")))
-    {
-        param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/Dt_min", 0.0),
-                                                     M_data("rb/offline/snapshots/Dt_max", 1.0)}));
-        param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/DV0_min", 0.0),
-                                                     M_data("rb/offline/snapshots/DV0_max", 1.0)}));
-        param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/DVM_min", 0.0),
-                                                     M_data("rb/offline/snapshots/DVM_max", 1.0)}));
-        param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/DVm_min", 0.0),
-                                                     M_data("rb/offline/snapshots/DVm_max", 1.0)}));
-        if (!std::strcmp(inflow_type.c_str(), "heartbeat"))
-            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/DVMd_min", 0.0),
-                                                         M_data("rb/offline/snapshots/DVMd_max", 1.0)}));
-    }
+        std::vector<std::array<double,2>> param_bounds;
 
-    unsigned int num_params_inflow = param_bounds.size();
-
-    for (unsigned int numInlet=1; numInlet < numInletConditions; numInlet++)
-    {
-        std::string dataEntryMin = "rb/offline/snapshots/in_min_" + std::to_string(numInlet);
-        std::string dataEntryMax = "rb/offline/snapshots/in_max_" + std::to_string(numInlet);
-        param_bounds.push_back(std::array<double,2>({M_data(dataEntryMin, 0.0),
-                                                     M_data(dataEntryMax, 1.0)}));
-    }
-
-    if (withOutflow)
-        for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
+        if ((!std::strcmp(inflow_type.c_str(), "default")) || (!std::strcmp(inflow_type.c_str(), "periodic")))
         {
-            std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
-            std::string dataEntryMin = "rb/offline/snapshots/out_min_" + std::to_string(numOutlet);
-            std::string dataEntryMax = "rb/offline/snapshots/out_max_" + std::to_string(numOutlet);
-            if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
-                param_bounds.push_back(std::array<double,2>({M_data(dataEntryMin, 0.0),
-                                                             M_data(dataEntryMax, 1.0)}));
+            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/a_min", 0.0),
+                                                           M_data("rb/offline/snapshots/a_max", 1.0)}));
+            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/c_min", 0.0),
+                                                           M_data("rb/offline/snapshots/c_max", 1.0)}));
+        }
+        else if ((!std::strcmp(inflow_type.c_str(), "systolic")) || (!std::strcmp(inflow_type.c_str(), "heartbeat")))
+        {
+            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/Dt_min", 0.0),
+                                                         M_data("rb/offline/snapshots/Dt_max", 1.0)}));
+            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/DV0_min", 0.0),
+                                                         M_data("rb/offline/snapshots/DV0_max", 1.0)}));
+            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/DVM_min", 0.0),
+                                                         M_data("rb/offline/snapshots/DVM_max", 1.0)}));
+            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/DVm_min", 0.0),
+                                                         M_data("rb/offline/snapshots/DVm_max", 1.0)}));
+            if (!std::strcmp(inflow_type.c_str(), "heartbeat"))
+                param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/DVMd_min", 0.0),
+                                                             M_data("rb/offline/snapshots/DVMd_max", 1.0)}));
         }
 
-    std::vector<double> vec = sampleParameters(param_bounds);
+        num_params_inflow = param_bounds.size();
+
+        for (unsigned int numInlet=1; numInlet < numInletConditions; numInlet++)
+        {
+            std::string dataEntryMin = "rb/offline/snapshots/in_min_" + std::to_string(numInlet);
+            std::string dataEntryMax = "rb/offline/snapshots/in_max_" + std::to_string(numInlet);
+            param_bounds.push_back(std::array<double,2>({M_data(dataEntryMin, 0.0),
+                                                         M_data(dataEntryMax, 1.0)}));
+        }
+
+        if (withOutflow)
+            for (unsigned int numOutlet=0; numOutlet < numOutletConditions; numOutlet++)
+            {
+                std::string dataEntry = "bc_conditions/outlet" + std::to_string(numOutlet);
+                std::string dataEntryMin = "rb/offline/snapshots/out_min_" + std::to_string(numOutlet);
+                std::string dataEntryMax = "rb/offline/snapshots/out_max_" + std::to_string(numOutlet);
+                if (!std::strcmp(M_data(dataEntry + "/type", "windkessel").c_str(), "dirichlet"))
+                    param_bounds.push_back(std::array<double,2>({M_data(dataEntryMin, 0.0),
+                                                                 M_data(dataEntryMax, 1.0)}));
+            }
+
+        array_params = sampleParameters(param_bounds);
+
+        // normalize inlet parametrization so that it sums up to 1
+        if (numInletConditions > 1)
+        {
+            double sum = 1.0 + std::accumulate(array_params.begin()+num_params_inflow,
+                                               array_params.begin()+num_params_inflow+numInletConditions-1,
+                                               0.0);
+            for (auto it = array_params.begin()+num_params_inflow; it != array_params.begin()+num_params_inflow+numInletConditions-1; ++it)
+                *it /= sum;
+            array_params.insert(array_params.begin() + num_params_inflow, 1.0 / sum);
+        }
+        else
+            array_params.insert(array_params.begin() + num_params_inflow, 1.0);
+
+    }
+
+    // Broadcast the parameters to all the processes
+    M_comm->Barrier();
+    M_comm->Broadcast(&num_params_inflow, 1, 0);
+    int params_size = array_params.size();
+    M_comm->Broadcast(&params_size, 1, 0);
+    array_params.resize(params_size);
+    M_comm->Broadcast(array_params.data(), params_size, 0);
 
     auto inletBC = std::bind(M_inflow,
-                             std::placeholders::_1, vec);
-
-    if (numInletConditions > 1)
-    {
-        double sum = 1.0 + std::accumulate(vec.begin()+num_params_inflow,
-                                           vec.begin()+num_params_inflow+numInletConditions-1,
-                                           0.0);
-        for (auto it = vec.begin()+num_params_inflow; it != vec.begin()+num_params_inflow+numInletConditions-1; ++it)
-            *it /= sum;
-        vec.insert(vec.begin() + num_params_inflow, 1.0 / sum);
-    }
-    else
-        vec.insert(vec.begin() + num_params_inflow, 1.0);
-
-    array_params = vec;  // setting parameter values for exporting
+                             std::placeholders::_1, array_params);
 
     for (unsigned int numInlet=0; numInlet < numInletConditions; numInlet++)
     {
         unsigned int cnt = num_params_inflow + numInlet;
-        std::function<double(double)> inletDirichlet = [vec, cnt, inletBC] (double t)
-                {return vec[cnt] * inletBC(t);};
+        std::function<double(double)> inletDirichlet = [array_params, cnt, inletBC] (double t)
+                {return array_params[cnt] * inletBC(t);};
         M_data.setInletBC(inletDirichlet, numInlet);
     }
 
@@ -534,10 +538,10 @@ sampleParametersInflow()
 
             auto flow = (M_outflow) ? M_outflow : M_inflow;
             auto outletBC = std::bind(flow,
-                                      std::placeholders::_1, vec);
+                                      std::placeholders::_1, array_params);
 
-            std::function<double(double)> outletDirichlet = [vec, cnt, outletBC] (double t)
-                    {return vec[cnt] * outletBC(t);};
+            std::function<double(double)> outletDirichlet = [array_params, cnt, outletBC] (double t)
+                    {return array_params[cnt] * outletBC(t);};
             M_data.setOutletBC(outletDirichlet, numOutlet);
         }
 
@@ -563,75 +567,107 @@ sampleParametersPhysics()
 
     bool sampleFluidPhysics = M_data("rb/offline/snapshots/sample_fluid_physics", false);
     bool sampleStructurePhysics = M_data("rb/offline/snapshots/sample_structure_physics", false);
-    bool sampleClothPhysics = M_data("rb/offline/snapshots/sample_cloth_physics", false);
+    bool sampleClotPhysics = M_data("rb/offline/snapshots/sample_clot_physics", false);
 
     if (sampleFluidPhysics)
     {
-        std::vector<std::array<double,2>> param_bounds;
-        std::vector<double> param_ref_values;
+        std::vector<double> array_params_fluid;
 
-        param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/rho_f_min", -0.1),
-                                                       M_data("rb/offline/snapshots/rho_f_max", 0.1)}));
-        param_ref_values.push_back(1.06);
-        param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/mu_f_min", -0.1),
-                                                       M_data("rb/offline/snapshots/mu_f_max", 0.5)}));
-        param_ref_values.push_back(0.035);
+        if (M_comm->MyPID() == 0)
+        {
+            std::vector<std::array<double,2>> param_bounds;
 
-        std::vector<double> array_params_fluid = sampleParameters(param_bounds);
-        array_params.insert(array_params.end(), array_params_fluid.begin(), array_params_fluid.end());
+            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/rho_f_min", -0.1),
+                                                         M_data("rb/offline/snapshots/rho_f_max", 0.1)}));
+            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/mu_f_min", -0.1),
+                                                         M_data("rb/offline/snapshots/mu_f_max", 0.5)}));
 
+            array_params_fluid = sampleParameters(param_bounds);
+        }
+
+        // Broadcast the parameters to all the processes
+        M_comm->Barrier();
+        int params_size = array_params_fluid.size();
+        M_comm->Broadcast(&params_size, 1, 0);
+        array_params_fluid.resize(params_size);
+        M_comm->Broadcast(array_params_fluid.data(), params_size, 0);
+
+        std::vector<double> param_ref_values = {1.06, 0.035};
         M_data.setValueDouble("fluid/density", (1.0+array_params_fluid[0]) * param_ref_values[0]);
         M_data.setValueDouble("fluid/viscosity", (1.0+array_params_fluid[1]) * param_ref_values[1]);
+
+        array_params.insert(array_params.end(), array_params_fluid.begin(), array_params_fluid.end());
     }
 
     if (sampleStructurePhysics)
     {
-        std::vector<std::array<double,2>> param_bounds;
-        std::vector<double> param_ref_values;
+        std::vector<double> array_params_structure;
 
-        param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/rho_s_min", 0.0),
-                                                     M_data("rb/offline/snapshots/rho_s_max", 0.2)}));
-        param_ref_values.push_back(1.2);
-        param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/h_s_min", -0.5),
-                                                     M_data("rb/offline/snapshots/h_s_max", 1.0)}));
-        param_ref_values.push_back(0.1);
-        param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/E_min", -0.5),
-                                                     M_data("rb/offline/snapshots/E_max", 0.5)}));
-        param_ref_values.push_back(4e6);
-        param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/nu_min", -0.4),
-                                                     M_data("rb/offline/snapshots/nu_max", 0.0)}));
-        param_ref_values.push_back(0.5);
+        if (M_comm->MyPID() == 0)
+        {
+            std::vector<std::array<double,2>> param_bounds;
 
-        std::vector<double> array_params_structure = sampleParameters(param_bounds);
-        array_params.insert(array_params.end(), array_params_structure.begin(), array_params_structure.end());
+            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/rho_s_min", 0.0),
+                                                         M_data("rb/offline/snapshots/rho_s_max", 0.2)}));
+            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/h_s_min", -0.5),
+                                                         M_data("rb/offline/snapshots/h_s_max", 1.0)}));
+            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/E_min", -0.5),
+                                                         M_data("rb/offline/snapshots/E_max", 0.5)}));
+            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/nu_min", -0.4),
+                                                         M_data("rb/offline/snapshots/nu_max", 0.0)}));
 
+            array_params_structure = sampleParameters(param_bounds);
+        }
+
+        // Broadcast the parameters to all the processes
+        M_comm->Barrier();
+        int params_size = array_params_structure.size();
+        M_comm->Broadcast(&params_size, 1, 0);
+        array_params_structure.resize(params_size);
+        M_comm->Broadcast(array_params_structure.data(), params_size, 0);
+
+        std::vector<double> param_ref_values = {1.2, 0.1, 4e6, 0.5};
         M_data.setValueDouble("structure/density", (1.0+array_params_structure[0]) * param_ref_values[0]);
         M_data.setValueDouble("structure/thickness", (1.0+array_params_structure[1]) * param_ref_values[1]);
         M_data.setValueInt("structure/constant_thickness", 1);  // setting constant thickness here !!
         M_data.setValueDouble("structure/young", (1.0+array_params_structure[2]) * param_ref_values[2]);
         M_data.setValueDouble("structure/poisson", (1.0+array_params_structure[3]) * param_ref_values[3]);
+
+        array_params.insert(array_params.end(), array_params_structure.begin(), array_params_structure.end());
     }
 
-    if (sampleClothPhysics)
+    unsigned int n_clots = M_data("clot/n_clots", 0);
+    if ((sampleClotPhysics) && (n_clots > 0))
     {
-        std::vector<std::array<double,2>> param_bounds;
+        std::vector<double> array_params_clot;
 
-        unsigned int n_cloths = M_data("cloth/n_cloths", 0.0);
-        for (unsigned int i=0; i<n_cloths; i++)
-            param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/Rcloth_min", 1.0),
-                                                          M_data("rb/offline/snapshots/Rcloth_max", 3.0)}));
-
-        std::vector<double> array_exp_cloth = sampleParameters(param_bounds, true);
-        std::vector<double> array_params_cloth;
-        array_params_cloth.resize(array_exp_cloth.size());
-        std::transform(array_exp_cloth.begin(), array_exp_cloth.end(), array_params_cloth.begin(),
-                       [](double x){return std::pow(10.0, x) * (x > 1e-8);});
-        array_params.insert(array_params.end(), array_params_cloth.begin(), array_params_cloth.end());
-
-        for (unsigned int i=0; i<n_cloths; i++)
+        if (M_comm->MyPID() == 0)
         {
-            std::string path = "cloth/cloth" + std::to_string(i) + "/density";
-            M_data.setValueDouble(path, array_params_cloth[i]);
+            std::vector<std::array<double,2>> param_bounds;
+
+            for (unsigned int i=0; i<n_clots; i++)
+                param_bounds.push_back(std::array<double,2>({M_data("rb/offline/snapshots/Rclot_min", 1.0),
+                                                             M_data("rb/offline/snapshots/Rclot_max", 3.0)}));
+
+            std::vector<double> array_exp_clot = sampleParameters(param_bounds, true);
+            array_params_clot.resize(array_exp_clot.size());
+            std::transform(array_exp_clot.begin(), array_exp_clot.end(), array_params_clot.begin(),
+                           [](double x){return std::pow(10.0, x) * (x > 1e-8);});
+        }
+
+        // Broadcast the parameters to all the processes
+        M_comm->Barrier();
+        int params_size = array_params_clot.size();
+        M_comm->Broadcast(&params_size, 1, 0);
+        array_params_clot.resize(params_size);
+        M_comm->Broadcast(array_params_clot.data(), params_size, 0);
+
+        array_params.insert(array_params.end(), array_params_clot.begin(), array_params_clot.end());
+
+        for (unsigned int i=0; i<n_clots; i++)
+        {
+            std::string path = "clot/clot" + std::to_string(i) + "/density";
+            M_data.setValueDouble(path, array_params_clot[i]);
         }
     }
 
@@ -641,7 +677,7 @@ sampleParametersPhysics()
 std::vector<double>
 SnapshotsSampler::
 sampleParameters(const std::vector<std::array<double,2>>& param_bounds,
-                 const bool is_cloth) const
+                 const bool is_clot) const
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -651,14 +687,14 @@ sampleParameters(const std::vector<std::array<double,2>>& param_bounds,
     for (auto elem : param_bounds)
     {
         bool is_active;
-        if (is_cloth)
+        if (is_clot)
         {
-            unsigned int n_cloths = param_bounds.size();
-            std::bernoulli_distribution bernoulli_distribution(1.0 / n_cloths);
+            unsigned int n_clots = param_bounds.size();
+            std::bernoulli_distribution bernoulli_distribution(1.0 / n_clots);
             is_active = bernoulli_distribution(gen);
         }
 
-        if ((!is_cloth) or (is_active))
+        if ((!is_clot) or (is_active))
         {
             std::uniform_real_distribution<> distribution(elem[0], elem[1]);
             out.push_back(distribution(gen));

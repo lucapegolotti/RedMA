@@ -33,12 +33,12 @@ setDefaultParameterValues(const std::map<std::string, bool> &categories)
         M_data.setValueDouble("structure/poisson", 0.5);
     }
 
-    auto it_cloth = categories.find("cloth");
-    if ((it_cloth != categories.end()) && (it_cloth->second))
+    auto it_clot = categories.find("clot");
+    if ((it_clot != categories.end()) && (it_clot->second))
     {
-        unsigned int n_cloths = M_data("cloth/n_cloths", 0);
-        for (unsigned int i=0; i<n_cloths; i++)
-            M_data.setValueDouble("cloth/cloth" + std::to_string(i) + "/density", 1.0);
+        unsigned int n_clots = M_data("clot/n_clots", 0);
+        for (unsigned int i=0; i<n_clots; i++)
+            M_data.setValueDouble("clot/clot" + std::to_string(i) + "/density", 1.0);
     }
 }
 

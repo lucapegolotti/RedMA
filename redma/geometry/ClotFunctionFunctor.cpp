@@ -1,9 +1,9 @@
-#include "ClothFunctionFunctor.hpp"
+#include "ClotFunctionFunctor.hpp"
 
 namespace RedMA {
 
-ClothFunctionFunctor::
-ClothFunctionFunctor(const LifeV::Vector3D &center, const double &radius,
+ClotFunctionFunctor::
+ClotFunctionFunctor(const LifeV::Vector3D &center, const double &radius,
                      const LifeV::Vector3D& normal, const LifeV::Vector3D& tangent,
                      const LifeV::Vector3D& shape_coefficients) :
 M_center(center), M_radius(radius), M_normal(normal), M_tangent1(tangent), M_shapeCoeffs(shape_coefficients)
@@ -44,11 +44,11 @@ M_center(center), M_radius(radius), M_normal(normal), M_tangent1(tangent), M_sha
     M_normMatrix = eigenMatrix * diagMatrix * eigenMatrix.inverse();
 }
 
-ClothFunctionFunctor::Function
-ClothFunctionFunctor::
+ClotFunctionFunctor::Function
+ClotFunctionFunctor::
 function()
 {
-    return std::bind(&ClothFunctionFunctor::evaluateOperator, this,
+    return std::bind(&ClotFunctionFunctor::evaluateOperator, this,
                      std::placeholders::_1,
                      std::placeholders::_2,
                      std::placeholders::_3,
@@ -56,8 +56,8 @@ function()
                      std::placeholders::_5);
 }
 
-ClothFunctionFunctor::return_Type
-ClothFunctionFunctor::
+ClotFunctionFunctor::return_Type
+ClotFunctionFunctor::
 evaluateOperator(const double& t, const double& x, const double& y,
                  const double& z, unsigned int const& index)
 {
@@ -65,8 +65,8 @@ evaluateOperator(const double& t, const double& x, const double& y,
     return this->operator()(pos);
 }
 
-ClothFunctionFunctor::return_Type
-ClothFunctionFunctor::
+ClotFunctionFunctor::return_Type
+ClotFunctionFunctor::
 operator()(const Vector3D& pos)
 {
     Vector3D diff = pos - M_center;
@@ -81,8 +81,8 @@ operator()(const Vector3D& pos)
         return 0.0;
 }
 
-ClothFunctionFunctor::return_Type
-ClothFunctionFunctor::
+ClotFunctionFunctor::return_Type
+ClotFunctionFunctor::
 norm(const LifeV::Vector3D &pos) const
 {
     return pos.dot((M_normMatrix * pos));

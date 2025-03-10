@@ -27,10 +27,10 @@
 namespace RedMA
 {
 
-/*! \brief A functor implementing the indicator function for the cloth modeling.
+/*! \brief A functor implementing the indicator function for the clot modeling.
 *
 */
-class ClothFunctionFunctor
+class ClotFunctionFunctor
 {
 public:
     typedef double                                            return_Type;
@@ -42,19 +42,19 @@ public:
             double const&,
             unsigned int const& )>       Function;
 
-    /*! \brief Constructor taking the cloth center and radius
+    /*! \brief Constructor taking the clot center and radius
      *
-     * \param center Center of the cloth
-     * \param radius Radius of the cloth
+     * \param center Center of the clot
+     * \param radius Radius of the clot
      */
-    ClothFunctionFunctor(const LifeV::Vector3D& center, const double& radius,
+    ClotFunctionFunctor(const LifeV::Vector3D& center, const double& radius,
                          const LifeV::Vector3D& normal, const LifeV::Vector3D& tangent,
                          const LifeV::Vector3D& shape_coefficients);
 
     /*! \brief Evaluation operator.
      *
      * \param pos Position where the function has to be evaluated.
-     * \return Value of the cloth indicator function.
+     * \return Value of the clot indicator function.
      */
     return_Type operator()(const Vector3D& pos);
 
@@ -87,7 +87,7 @@ protected:
     /*! \brief Evaluation operator.
      *
      * \param pos Position where the function has to be evaluated.
-     * \return Value of the cloth indicator function.
+     * \return Value of the clot indicator function.
      */
     return_Type norm(const Vector3D& pos) const;
 

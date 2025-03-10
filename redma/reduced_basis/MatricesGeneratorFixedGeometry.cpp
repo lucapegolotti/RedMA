@@ -65,13 +65,13 @@ generate()
     convert<SparseMatrix>(divergenceMatrix->block(0,1))->dump(outdir + "/BdivT");
     convert<SparseMatrix>(divergenceMatrix->block(1,0))->dump(outdir + "/" + "/Bdiv");
 
-    unsigned int n_cloths = M_data("cloth/n_cloths", 0);
-    if (n_cloths > 0)
+    unsigned int n_clots = M_data("clot/n_clots", 0);
+    if (n_clots > 0)
     {
-        for (unsigned int i=0; i<n_cloths; i++)
+        for (unsigned int i=0; i<n_clots; i++)
         {
-            auto clothMatrix = spcast<StokesAssemblerFE>(M_assembler)->assembleSingleBloodClothMatrix(bcManager, i);
-            convert<SparseMatrix>(clothMatrix->block(0,0))->dump(outdir + "/Mcloth" + std::to_string(i));
+            auto clotMatrix = spcast<StokesAssemblerFE>(M_assembler)->assembleSingleBloodClotMatrix(bcManager, i);
+            convert<SparseMatrix>(clotMatrix->block(0,0))->dump(outdir + "/Mclot" + std::to_string(i));
         }
     }
 
@@ -230,7 +230,7 @@ createAssemblers()
 
         categories["fluid"] = M_data("rb/offline/snapshots/sample_fluid_physics", false);
         categories["structure"] = M_data("rb/offline/snapshots/sample_structure_physics", false);
-        categories["cloth"] = M_data("rb/offline/snapshots/sample_cloth_physics", false);
+        categories["clot"] = M_data("rb/offline/snapshots/sample_clot_physics", false);
 
         setDefaultParameterValues(categories);
     }

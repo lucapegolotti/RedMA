@@ -19,7 +19,7 @@
 
 #include <redma/RedMA.hpp>
 #include <redma/assemblers/abstract/aAssemblerFE.hpp>
-#include <redma/geometry/ClothFunctionFunctor.hpp>
+#include <redma/geometry/ClotFunctionFunctor.hpp>
 
 namespace RedMA
 {
@@ -493,18 +493,18 @@ public:
      */
     shp<MATRIXEPETRA> assembleAdditionalOutletMatrix(const GeometricFace& face);
 
-    /*! \brief Assemble matrix to model single blood cloth presence
+    /*! \brief Assemble matrix to model single blood clot presence
      *
      * \param bcManager A BCManager for the application of the boundary conditions.
-     * \param index Index of the blood cloth
+     * \param index Index of the blood clot
      */
-    shp<aMatrix> assembleSingleBloodClothMatrix(shp<BCManager> bcManager, unsigned int index);
+    shp<aMatrix> assembleSingleBloodClotMatrix(shp<BCManager> bcManager, unsigned int index);
 
-    /*! \brief Assemble matrix to model multiple blood cloth presence
+    /*! \brief Assemble matrix to model multiple blood clot presence
      *
      * \param bcManager A BCManager for the application of the boundary conditions.
      */
-    shp<aMatrix> assembleBloodClothMatrix(shp<BCManager> bcManager);
+    shp<aMatrix> assembleBloodClotMatrix(shp<BCManager> bcManager);
 
     /*! \brief Add backflow stabilization.
      *
@@ -582,7 +582,7 @@ protected:
     shp<BlockMatrix>                                  M_massPressure;
     shp<BlockMatrix>                                  M_stiffness;
     shp<BlockMatrix>                                  M_divergence;
-    shp<BlockMatrix>                                  M_clothMass;
+    shp<BlockMatrix>                                  M_clotMass;
     shp<FESPACE>                                      M_velocityFESpace;
     shp<FESPACE>                                      M_pressureFESpace;
     shp<ETFESPACE3>                                   M_velocityFESpaceETA;

@@ -48,7 +48,7 @@
 		    add_outflow_param    = true
 		    sample_fluid_physics = false
             sample_structure_physics = false
-            sample_cloth_physics = true
+            sample_clot_physics = true
 			number 			     = 10
 			bound 			     = 0.2
 			take_every 		     = 1
@@ -74,9 +74,9 @@
             # other parameters
             out_min_0 = 0.2
             out_max_0 = 0.8
-            # parameter ranges of cloth physics
-            Rcloth_min = 1.0
-            Rcloth_max = 3.0
+            # parameter ranges of clot physics
+            Rclot_min = 1.0
+            Rclot_max = 3.0
 		[../]
 	[../]
 [../]
@@ -120,9 +120,9 @@
 	[../]
 [../]
 
-[cloth]
-    n_cloths = 0
-    [./cloth0]
+[clot]
+    n_clots = 0
+    [./clot0]
         density = 1e2
         center_x = 0.0
         center_y = 0.9752
@@ -138,7 +138,7 @@
         shape_t1 = 0.9
         shape_t2 = 0.75
     [../]
-    [./cloth1]
+    [./clot1]
         density = 1e2
         center_x = 0.0
         center_y = -0.9752

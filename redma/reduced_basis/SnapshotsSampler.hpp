@@ -67,7 +67,7 @@ private:
     std::vector<double> sampleParametersPhysics();
 
     std::vector<double> sampleParameters(const std::vector<std::array<double,2>>& param_bounds,
-                                         const bool is_cloth = false) const;
+                                         const bool is_clot = false) const;
 };
 
 }  // namespace RedMA
