@@ -8,7 +8,7 @@ BasisFunctionFunctor(const GeometricFace& face) :
   M_face(face)
 {
     // tangents are not considered in non-affine transformations --> handle tangents here
-    if (std::abs(face.M_normal.dot(face.M_tangent1)) > 1e-8)
+    if (std::abs(face.M_normal.dot(face.M_tangent1)) > 1e-6)
     {
         printlog(YELLOW, "[BasisFunctionFunctor] Invalid tangent vector at face with flag " +
                  std::to_string(face.M_flag) + ". Computing new tangent vectors. This is likely to yield "
