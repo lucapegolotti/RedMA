@@ -39,16 +39,19 @@ Aorta(EPETRACOMM comm, std::string refinement, bool verbose, bool add_rings) :
     M_inletNormalRef[0] = -0.449215;
     M_inletNormalRef[1] = -0.382102;
     M_inletNormalRef[2] = 0.807591;
+    M_inletNormalRef /= M_inletNormalRef.norm();
 
     // outlet of outlet (reference configuration)
     M_outletNormalRef1[0] = -0.318503;
     M_outletNormalRef1[1] = 0.325307;
     M_outletNormalRef1[2] = -0.890355;
+    M_outletNormalRef1 /= M_outletNormalRef1.norm();
 
     // outlet of outlet (reference configuration)
     M_outletNormalRef2[0] = 0.272467;
     M_outletNormalRef2[1] = 0.387918;
     M_outletNormalRef2[2] = -0.880501;
+    M_outletNormalRef2 /= M_outletNormalRef2.norm();
 
     // M_inletRadiusRef = 1.219238;
     M_outletRadiusRef1 = 0.504580;
@@ -59,9 +62,13 @@ Aorta(EPETRACOMM comm, std::string refinement, bool verbose, bool add_rings) :
     M_inletTangent1Ref[0] = -0.22282188;
     M_inletTangent1Ref[1] = 0.9232805;
     M_inletTangent1Ref[2] = 0.31289541;
-    M_inletTangent2Ref[0] = -0.86519115;
+    M_inletTangent1Ref -= (M_inletTangent1Ref.dot(M_inletNormalRef)) * M_inletNormalRef;
+    M_inletTangent2Ref = M_inletNormalRef.cross(M_inletTangent1Ref);
+    M_inletTangent2Ref /= M_inletTangent2Ref.norm();
+
+    /*M_inletTangent2Ref[0] = -0.86519115;
     M_inletTangent2Ref[1] = -0.03939153;
-    M_inletTangent2Ref[2] = -0.49989257;
+    M_inletTangent2Ref[2] = -0.49989257;*/
 
     M_wallFlag = 10;
 
