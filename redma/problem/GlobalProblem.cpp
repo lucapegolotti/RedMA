@@ -121,8 +121,11 @@ solve()
 
         M_comm->Barrier();
 
-        if ((t > t0 && saveEvery > 0 && count % saveEvery == 0) || (std::abs(t-t0) < dt/2))
-            M_assembler->exportSolution(t, M_solution);
+        if (saveEvery > 0)
+        {
+            if ((t < t0 && saveRamp) || (t > t0 && count % saveEvery == 0) || (std::abs(t-t0) < dt/2))
+                M_assembler->exportSolution(t, M_solution);
+        }
 
         M_TMAlgorithm->shiftSolutions(M_solution);
 
