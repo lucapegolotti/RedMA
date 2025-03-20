@@ -75,8 +75,8 @@ RBsetup()
 
         for (unsigned int i = 0; i < nterms; i++)
         {
-            std::string msg =  "\nConsidering basis number " + std::to_string(i);
-            printlog(WHITE, msg, this->M_data.getVerbose());
+            std::string msg =  "\n[NavierStokesAssemblerRB] Considering basis number " + std::to_string(i);
+            printlog(YELLOW, msg, this->M_data.getVerbose());
 
             M_nonLinearTermsDecomposition[i].resize(nterms);
 

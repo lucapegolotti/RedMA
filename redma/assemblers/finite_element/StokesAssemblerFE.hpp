@@ -528,6 +528,11 @@ public:
      */
     void exportNorms(double time, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure);
 
+    /*! \brief Assemble the quantities needed to compute the wall shear stress, given the velocity.
+     *
+     */
+    void assembleWallShearStressSolver();
+
     /*! \brief Compute the wall shear stress given the velocity.
      *
      * \param velocity The current velocity.
@@ -537,6 +542,12 @@ public:
     void computeWallShearStress(shp<VECTOREPETRA> velocity,
                                 shp<VECTOREPETRA> WSS,
                                 EPETRACOMM comm);
+
+    /// Getter for the WSS lhs matrix
+    inline shp<MATRIXEPETRA> getWSSLeftMatrix() const {return M_massWall;};
+
+    /// Getter for the WSS rhs matrix
+    inline shp<MATRIXEPETRA> getWSSRightMatrix() const {return M_WSSMatrix;};
 
     /*! \brief Initialize the finite element space of the velocity.
      *
@@ -590,6 +601,7 @@ protected:
     double                                            M_density;
     double                                            M_viscosity;
     shp<MATRIXEPETRA>                                 M_massWall;
+    shp<MATRIXEPETRA>                                 M_WSSMatrix;
 
     // first index is face flag
     std::map<unsigned int, shp<VECTOREPETRA>>         M_flowRateVectors;

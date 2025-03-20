@@ -65,6 +65,7 @@ generate()
     convert<SparseMatrix>(divergenceMatrix->block(0,1))->dump(outdir + "/BdivT");
     convert<SparseMatrix>(divergenceMatrix->block(1,0))->dump(outdir + "/" + "/Bdiv");
 
+    // blood clots matrices
     unsigned int n_clots = M_data("clot/n_clots", 0);
     if (n_clots > 0)
     {
@@ -74,6 +75,13 @@ generate()
             convert<SparseMatrix>(clotMatrix->block(0,0))->dump(outdir + "/Mclot" + std::to_string(i));
         }
     }
+
+    // WSS matrices
+    spcast<StokesAssemblerFE>(M_assembler)->assembleWallShearStressSolver();
+    auto WSSLeftMatrix = spcast<StokesAssemblerFE>(M_assembler)->getWSSLeftMatrix();
+    WSSLeftMatrix->spy(outdir + "/WSS_left");
+    auto WSSRightMatrix = spcast<StokesAssemblerFE>(M_assembler)->getWSSRightMatrix();
+    WSSRightMatrix->spy(outdir + "/WSS_right");
 
     // resistance BC matrices, accounting for the absorbing outlets
     unsigned int numConditions = M_data("bc_conditions/numoutletbcs", 0);

@@ -32,10 +32,11 @@ setup()
 
     initializeFEspaces();
 
-    M_mass = spcast<BlockMatrix>(assembleMass(M_bcManager)); // #1
+    M_mass = spcast<BlockMatrix>(assembleMass(M_bcManager));
     M_massPressure = spcast<BlockMatrix>(assemblePressureMass(M_bcManager));
-    M_stiffness = spcast<BlockMatrix>(assembleStiffness(M_bcManager)); // #2
-    M_divergence = spcast<BlockMatrix>(assembleDivergence(M_bcManager)); // #3
+    M_stiffness = spcast<BlockMatrix>(assembleStiffness(M_bcManager));
+    M_divergence = spcast<BlockMatrix>(assembleDivergence(M_bcManager));
+
     if (M_data("clot/n_clots", 0) > 0)
         M_clotMass = spcast<BlockMatrix>(assembleBloodClotMatrix(M_bcManager));
 
@@ -46,6 +47,9 @@ setup()
         assembleFlowRateJacobians();
         assembleAdditionalOutletMatrices();
     }
+
+    if (M_data("exporter/export_wss", 1))
+        assembleWallShearStressSolver();
 
     setExporter();
 
@@ -1282,8 +1286,7 @@ exportNorms(double t, shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> pressure)
 
 void
 StokesAssemblerFE::
-computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
-                       EPETRACOMM comm)
+assembleWallShearStressSolver()
 {
     using namespace LifeV;
     using namespace ExpressionAssembly;
@@ -1300,47 +1303,55 @@ computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
                   M_velocityFESpaceETA,
                   M_velocityFESpaceETA,
                   dot(phi_i, phi_j)
-              ) >> M_massWall;
+                  ) >> M_massWall;
         M_massWall->globalAssemble();
     }
 
+    if (M_WSSMatrix == nullptr)
+    {
+        M_WSSMatrix.reset(new MATRIXEPETRA(M_velocityFESpace->map()));
+
+        integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
+                  myBDQR,
+                  M_velocityFESpaceETA,
+                  M_velocityFESpaceETA,
+                  value(M_viscosity) *
+                  dot((grad(phi_j) + transpose(grad(phi_j))) * Nface
+                      - dot((grad(phi_j) + transpose(grad(phi_j))) * Nface, Nface) * Nface,
+                      phi_i)
+                      ) >> M_WSSMatrix;
+
+        M_WSSMatrix->globalAssemble();
+    }
+
+}
+
+void
+StokesAssemblerFE::
+computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
+                       EPETRACOMM comm)
+{
+    using namespace LifeV;
+
+    assembleWallShearStressSolver();
+
     WSS->zero();
 
-    shp<VECTOREPETRA> velocityRepeated(new VECTOREPETRA(*velocity,
-                                                         Repeated));
     shp<VECTOREPETRA> weakWSSRepeated(new VECTOREPETRA(M_velocityFESpace->map(),
                                                        Repeated));
-
-    integrate(boundary(M_velocityFESpaceETA->mesh(), wallFlag),
-              myBDQR,
-              M_velocityFESpaceETA,
-              value(M_viscosity) *
-              dot(
-             (grad(M_velocityFESpaceETA, *velocityRepeated) +
-             transpose(grad(M_velocityFESpaceETA, *velocityRepeated))) * Nface
-             -
-             dot(
-             (grad(M_velocityFESpaceETA, *velocityRepeated) +
-             transpose(grad(M_velocityFESpaceETA, *velocityRepeated))) * Nface,
-             Nface
-             ) * Nface,
-             phi_i)
-             ) >> weakWSSRepeated;
-
-    weakWSSRepeated->globalAssemble();
+    weakWSSRepeated.reset(new VECTOREPETRA(M_WSSMatrix->operator*(*velocity)));
     shp<VECTOREPETRA> weakWSSUnique(new VECTOREPETRA(*weakWSSRepeated, Unique));
 
     LinearSolver linearSolver(comm);
     linearSolver.setOperator(M_massWall);
 
-    Teuchos::RCP<Teuchos::ParameterList> aztecList =
-                                    Teuchos::rcp(new Teuchos::ParameterList);
+    Teuchos::RCP<Teuchos::ParameterList> aztecList = Teuchos::rcp(new Teuchos::ParameterList);
     aztecList = Teuchos::getParametersFromXmlFile("datafiles/SolverParamList.xml");
     linearSolver.setParameters(*aztecList);
 
     typedef LifeV::PreconditionerML         precML_type;
-    typedef shp<precML_type>    precMLPtr_type;
-    precML_type * precRawPtr;
+    typedef shp<precML_type>                precMLPtr_type;
+    precML_type* precRawPtr;
     precRawPtr = new precML_type;
 
     GetPot dummyDatafile;
@@ -1352,6 +1363,7 @@ computeWallShearStress(shp<VECTOREPETRA> velocity, shp<VECTOREPETRA> WSS,
     linearSolver.setRightHandSide(weakWSSUnique);
     linearSolver.solve(WSS);
 }
+
 
 void
 StokesAssemblerFE::

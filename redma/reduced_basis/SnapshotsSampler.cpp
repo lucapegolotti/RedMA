@@ -29,7 +29,7 @@ takeSnapshots(const unsigned int& Nstart)
         M_data.setValueInt("exporter/start", 0);
         M_data.setValueInt("exporter/save_every", 1);
         M_data.setValueInt("exporter/save_ramp", 1);
-        M_data.setValueInt("exporter/export_wss", 0);  // to save memory
+        // M_data.setValueInt("exporter/export_wss", 0);  // to save memory
     }
 
 
